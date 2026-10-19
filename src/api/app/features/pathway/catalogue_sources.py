@@ -33,7 +33,7 @@ MSLEARN_API = (
     "https://learn.microsoft.com/api/learn/catalog?locale=en-us&type=modules,learningPaths"
 )
 MSLEARN_SOURCE = "Microsoft Learn Catalog API"
-MSLEARN_SOURCE_URL = "https://learn.microsoft.com/api/learn/catalog"
+MSLEARN_SOURCE_URL = "https://learn.microsoft.com/en-us/training/support/catalog-api"
 COURSERA_API = "https://api.coursera.org/api/courses.v1?q=slug&slug={slug}&fields=workload"
 CHECKED = date(2026, 10, 20)
 

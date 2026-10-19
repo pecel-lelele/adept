@@ -41,7 +41,7 @@ AUTHORITATIVE = (
     "https://unstats.un.org/sdgs/metadata/",
     "https://www.ilo.org/",
     "https://www.unesco.org/",
-    "https://unesdoc.unesco.org/",
+    "https://gcedclearinghouse.org/",  # UNESCO Clearinghouse on GCED (APCEIU)
 )
 
 
