@@ -153,7 +153,12 @@ def select_courses(
     hrd_eligible: bool,
     booked: set[str],
 ) -> Selection:
-    candidates = [c for c in catalogue if skill_id in c.skill_ids and c.level > current]
+    # Subscriptions unlock courses rather than teach a skill: never booked as a step.
+    candidates = [
+        c
+        for c in catalogue
+        if skill_id in c.skill_ids and c.level > current and c.format != "subscription"
+    ]
     by_cost = sorted(
         candidates, key=lambda c: (c.level, out_of_pocket(c, hrd_eligible), c.hours, c.id)
     )

@@ -11,6 +11,12 @@ from app.contracts.sdg import SdgTarget
 GapStatus = Literal["have", "partial", "missing"]
 UnmetReason = Literal["no_catalogue_course", "over_budget", "catalogue_tops_out"]
 CourseStatus = Literal["not_started", "in_progress", "completed"]
+CourseFormat = Literal["self_paced", "live_online", "in_person", "hybrid", "subscription"]
+CourseAudience = Literal["individual", "corporate", "both"]
+PriceBasis = Literal["per_course", "per_user_year", "per_user_month", "per_group"]
+ProviderType = Literal[
+    "mooc", "university", "industry_body", "professional_body", "private_provider", "government"
+]
 
 
 class Course(BaseModel):
@@ -29,6 +35,14 @@ class Course(BaseModel):
     hrd_note: str = ""
     duration_note: str = ""
     source: Source | None = None
+    format: CourseFormat = "self_paced"
+    audience: CourseAudience = "individual"
+    price_basis: PriceBasis = "per_course"
+    currency: str = Field(default="MYR", description="Currency of the provider's list price.")
+    list_price: float | None = Field(default=None, ge=0, description="Price in `currency`.")
+    provider_type: ProviderType = "private_provider"
+    location: str = ""
+    price_note: str = Field(default="", description="How cost_myr was derived (e.g. FX rate).")
 
 
 class SkillGap(BaseModel):

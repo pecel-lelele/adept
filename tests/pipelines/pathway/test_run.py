@@ -77,7 +77,7 @@ def test_main_writes_the_seed(tmp_path: Path) -> None:
     run.main(["--from-file", str(FIXTURE), "--out", str(out), "--retrieved", "2026-10-20"])
     with out.open(encoding="utf-8") as fh:
         rows = list(csv.DictReader(fh))
-    assert len(rows) == len(src.CURATED) + len(src.COURSERA) + len(src.MANUAL)
+    assert len(rows) == len(src.CURATED) + len(src.COURSERA) + len(src.MANUAL) + len(src.BUNDLES)
     assert {"provider_ref", "hrd_note", "duration_note"} <= set(rows[0])
 
 
@@ -85,7 +85,7 @@ def test_committed_catalogue_matches_the_sources() -> None:
     with (SEED / "courses" / "courses.csv").open(encoding="utf-8") as fh:
         ids = [row["id"] for row in csv.DictReader(fh)]
     expected = [c.id for c in src.CURATED] + [c.id for c in src.COURSERA]
-    assert ids == expected + [m.id for m in src.MANUAL]
+    assert ids == expected + [m.id for m in src.MANUAL] + [b.id for b in src.BUNDLES]
 
 
 def test_catalogue_covers_more_skills_than_the_skeleton() -> None:
@@ -94,3 +94,22 @@ def test_catalogue_covers_more_skills_than_the_skeleton() -> None:
     skills = {s for r in rows for s in r["skill_ids"].strip("{}").split(",")}
     assert {"excel", "logistics-planning", "risk-compliance", "prompt-engineering"} <= skills
     assert sum(r["hrd_claimable"] == "true" for r in rows) >= 5
+
+
+def test_bnm_rate_is_parsed_per_unit() -> None:
+    body = {
+        "data": {
+            "currency_code": "USD",
+            "unit": 1,
+            "rate": {"date": "2026-10-19", "selling_rate": 4.088},
+        }
+    }
+    assert src.fetch_fx("USD", get_json=lambda u, t: body) == (4.088, date(2026, 10, 19))
+    body["data"]["unit"] = 100
+    assert src.fetch_fx("JPY", get_json=lambda u, t: body)[0] == pytest.approx(0.04088)
+
+
+def test_bundles_are_never_booked_as_steps() -> None:
+
+    plus = next(b for b in src.BUNDLES if b.id == "coursera-plus-annual")
+    assert plus.format == "subscription" and plus.currency == "USD" and plus.price_note

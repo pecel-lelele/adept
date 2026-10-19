@@ -132,6 +132,15 @@ class CourseRow:
     language: str = "en"
     duration_note: str = ""
     provider_ref: str = ""
+    # How it is delivered and sold (used by catalogue filters and the org plan).
+    format: str = "self_paced"  # self_paced | live_online | in_person | hybrid | subscription
+    audience: str = "individual"  # individual | corporate | both
+    price_basis: str = "per_course"  # per_course | per_user_year | per_user_month | per_group
+    currency: str = "MYR"  # currency of the provider's list price
+    list_price: float | None = None  # in `currency`; cost_myr is the ringgit equivalent
+    provider_type: str = "private_provider"
+    location: str = ""
+    price_note: str = ""
 
 
 _COURSERA_FREE = (
@@ -161,6 +170,7 @@ def _coursera(
         duration_note=f"Sum of module hours on the course page ({hours:g} h); page states "
         f'"{stated}".',
         provider_ref=slug,
+        provider_type="mooc",
     )
 
 
@@ -187,11 +197,35 @@ _FMM_PDF = (
     "MANAGEMENT.pdf"
 )
 _MAICSA_PDF = "https://maicsa.org.my/media/training_calendar/cs111224w1.pdf"
+_FMM_POWERBI_PDF = "https://smtp.fmm.org.my/images/articles/training/15431Brochure.pdf"
+
+# Foreign-currency prices are converted at Bank Negara Malaysia's selling rate (what a buyer
+# of the currency pays). Seed files use the reading below; live sync replaces it daily.
+BNM_FX_API = "https://api.bnm.gov.my/public/exchange-rate/{currency}"
+BNM_SOURCE = "Bank Negara Malaysia OpenAPI (exchange rates)"
+SEED_USD_RATE = 4.088
+SEED_USD_RATE_DATE = date(2026, 10, 19)
+
+
+def usd_to_myr(amount: float, rate: float = SEED_USD_RATE) -> float:
+    return round(amount * rate, 2)
+
+
+def fx_note(amount: float, rate: float = SEED_USD_RATE, on: date = SEED_USD_RATE_DATE) -> str:
+    return (
+        f"Listed as USD {amount:g}; RM {usd_to_myr(amount, rate):,.2f} at the Bank Negara "
+        f"Malaysia selling rate of {rate:g} on {on.isoformat()}."
+    )
+
 
 # Paid, HRD Corp-claimable courses checked by hand on the provider's own page or brochure.
 MANUAL: tuple[CourseRow, ...] = (
     CourseRow(
         id="aitraining2u-ai-data-analytics",
+        format="in_person",
+        audience="both",
+        provider_type="private_provider",
+        location="Kuala Lumpur",
         title="AI Data Analytics Training (2 days)",
         provider="AITraining2U",
         url="https://www.aitraining2u.com/aianalytics.html",
@@ -215,6 +249,10 @@ MANUAL: tuple[CourseRow, ...] = (
     ),
     CourseRow(
         id="aitraining2u-chatgpt",
+        format="in_person",
+        audience="both",
+        provider_type="private_provider",
+        location="Kuala Lumpur",
         title="ChatGPT Training: Custom GPTs, Agents & Codex (2 days)",
         provider="AITraining2U",
         url="https://www.aitraining2u.com/chatgpt-training-malaysia.html",
@@ -235,6 +273,10 @@ MANUAL: tuple[CourseRow, ...] = (
     ),
     CourseRow(
         id="unimas-excel-booster",
+        format="in_person",
+        audience="both",
+        provider_type="university",
+        location="Kuching / Miri, Sarawak",
         title="Booster with #ExcelChampMY (Microsoft Excel, Intermediate)",
         provider="UNIMAS (PROCEL)",
         url=_UNIMAS_PDF,
@@ -257,6 +299,10 @@ MANUAL: tuple[CourseRow, ...] = (
     ),
     CourseRow(
         id="unimas-excel-powering-up",
+        format="in_person",
+        audience="both",
+        provider_type="university",
+        location="Kuching / Miri, Sarawak",
         title="Powering Up with #ExcelChampMY (Microsoft Excel, Advance)",
         provider="UNIMAS (PROCEL)",
         url=_UNIMAS_PDF,
@@ -279,6 +325,10 @@ MANUAL: tuple[CourseRow, ...] = (
     ),
     CourseRow(
         id="fmm-supply-chain-logistics",
+        format="in_person",
+        audience="both",
+        provider_type="industry_body",
+        location="Kuching, Sarawak",
         title="Supply Chain and Logistics Management (2 days)",
         provider="FMM Institute (Sarawak Branch)",
         url=_FMM_PDF,
@@ -301,6 +351,10 @@ MANUAL: tuple[CourseRow, ...] = (
     ),
     CourseRow(
         id="maicsa-aml-str",
+        format="live_online",
+        audience="both",
+        provider_type="professional_body",
+        location="Online",
         title="AML/CFT Webinar Series: Suspicious Transaction Report (STR)",
         provider="MAICSA",
         url=_MAICSA_PDF,
@@ -320,6 +374,90 @@ MANUAL: tuple[CourseRow, ...] = (
             "Virtual, 9:00 a.m.-1:00 p.m. (4 CPD hours). Listed run (11 Dec 2024) has passed: "
             "check MAICSA's training calendar for the next one."
         ),
+    ),
+    CourseRow(
+        id="ukm-data-analytics-certificate",
+        title="Professional Certificate in Data Analytics",
+        provider="Universiti Kebangsaan Malaysia (UKMSHAPE)",
+        url="https://www.ukm.my/studyukm/professional-certificate-in-data-analytics/",
+        hours=160,
+        cost_myr=3000,
+        hrd_claimable=True,
+        verified_at=CHECKED,
+        skill_ids=("python", "data-visualisation"),
+        level=3,
+        source_name="UKM programme page",
+        source_url="https://www.ukm.my/studyukm/professional-certificate-in-data-analytics/",
+        hrd_note=(
+            'Programme page: "this course is claimable under HRD Corp"; the employer must be '
+            "registered, contributing and submit the claim. RM 3,000 for Malaysian applicants."
+        ),
+        duration_note=(
+            "3 months, 4 credits, online on weekends. 160 h applies the MQA rule of 40 notional "
+            "learning hours per credit. Covers Python (Jupyter), Tableau and Power BI."
+        ),
+        format="live_online",
+        audience="both",
+        provider_type="university",
+        location="Online",
+    ),
+    CourseRow(
+        id="fmm-power-bi",
+        title="Power BI: Data Visualisation & Business Intelligence (2 days)",
+        provider="FMM Institute (Eastern Branch)",
+        url=_FMM_POWERBI_PDF,
+        hours=14,
+        cost_myr=1080,
+        hrd_claimable=True,
+        verified_at=CHECKED,
+        skill_ids=("data-visualisation",),
+        level=3,
+        source_name="FMM training brochure (PDF)",
+        source_url=_FMM_POWERBI_PDF,
+        hrd_note=(
+            'Brochure section "HRD CORP CLAIMABLE COURSE DETAILS" (FMM Institute Eastern); '
+            "non-member RM1,080, member RM972, inclusive of 8% SST."
+        ),
+        duration_note=(
+            "2 days, 9 a.m.-5 p.m.; 14 h assumes 7 h/day. Listed run (11-12 Feb 2026) has "
+            "passed: ask FMM for new dates."
+        ),
+        format="in_person",
+        audience="both",
+        provider_type="industry_body",
+        location="FMM Eastern Branch",
+    ),
+)
+
+# Subscriptions and corporate bundles: shown in the catalogue and to HR, never booked as a
+# pathway step (they unlock courses rather than teach a skill themselves).
+BUNDLES: tuple[CourseRow, ...] = (
+    CourseRow(
+        id="coursera-plus-annual",
+        title="Coursera Plus (annual subscription)",
+        provider="Coursera",
+        url="https://www.coursera.org/courseraplus",
+        hours=0.1,
+        cost_myr=usd_to_myr(239),
+        hrd_claimable=False,
+        verified_at=CHECKED,
+        skill_ids=tuple(sorted({s for r in COURSERA for s in r.skill_ids})),
+        level=3,
+        source_name="Coursera Plus page",
+        source_url="https://www.coursera.org/courseraplus",
+        hrd_note=(
+            "Unlocks graded work and certificates for the Coursera courses in this catalogue "
+            "(and 10,000+ others; some programmes excluded). Not HRD Corp claimable."
+        ),
+        duration_note="Subscription: hours depend on the courses taken.",
+        format="subscription",
+        audience="individual",
+        price_basis="per_user_year",
+        currency="USD",
+        list_price=239,
+        provider_type="mooc",
+        location="Online",
+        price_note=fx_note(239),
     ),
 )
 
@@ -371,6 +509,7 @@ def from_mslearn(
                 hrd_note="Free; nothing to claim.",
                 duration_note=f"Microsoft Learn {kind}, {minutes} min as listed by the provider.",
                 provider_ref=c.uid,
+                provider_type="mooc",
             )
         )
     return rows
@@ -379,7 +518,45 @@ def from_mslearn(
 def all_rows(
     payload: dict[str, Any], retrieved: date, allow_missing: bool = False
 ) -> list[CourseRow]:
-    return from_mslearn(payload, retrieved, allow_missing) + list(COURSERA) + list(MANUAL)
+    return (
+        from_mslearn(payload, retrieved, allow_missing)
+        + list(COURSERA)
+        + list(MANUAL)
+        + list(BUNDLES)
+    )
+
+
+def fetch_fx(
+    currency: str, get_json: Callable[[str, int], Any] | None = None
+) -> tuple[float, date]:
+    """(MYR selling rate per 1 unit of `currency`, rate date) from Bank Negara Malaysia."""
+    url = BNM_FX_API.format(currency=quote(currency))
+    if get_json is None:
+        req = urllib.request.Request(
+            url, headers={"Accept": "application/vnd.BNM.API.v1+json", "User-Agent": "adept/1.0"}
+        )
+        ctx = ssl.create_default_context()
+        with urllib.request.urlopen(req, timeout=30, context=ctx) as r:
+            body = json.load(r)
+    else:
+        body = get_json(url, 30)
+    data = body["data"]
+    rate = float(data["rate"]["selling_rate"]) / float(data.get("unit") or 1)
+    return rate, date.fromisoformat(data["rate"]["date"])
+
+
+def with_fx(rows: Iterable[CourseRow], rate: float, on: date) -> list[CourseRow]:
+    """Re-price USD rows in ringgit at `rate` (MYR per USD) dated `on`."""
+    out: list[CourseRow] = []
+    for r in rows:
+        if r.currency == "USD" and r.list_price is not None:
+            r = replace(
+                r,
+                cost_myr=usd_to_myr(r.list_price, rate),
+                price_note=fx_note(r.list_price, rate, on),
+            )
+        out.append(r)
+    return out
 
 
 def validate(rows: Iterable[CourseRow], skills: set[str]) -> None:
@@ -395,6 +572,8 @@ def validate(rows: Iterable[CourseRow], skills: set[str]) -> None:
             raise ValueError(f"{r.id}: invalid level, hours or url")
         if r.hrd_claimable and not r.hrd_note:
             raise ValueError(f"{r.id}: HRD Corp claim without the provider's statement")
+        if r.currency != "MYR" and (r.list_price is None or not r.price_note):
+            raise ValueError(f"{r.id}: foreign-currency price without list price and FX note")
 
 
 def write_csv(rows: Iterable[CourseRow], out: Path) -> None:
@@ -408,6 +587,7 @@ def write_csv(rows: Iterable[CourseRow], out: Path) -> None:
             values = asdict(r)
             values["skill_ids"] = "{" + ",".join(r.skill_ids) + "}"
             values["hrd_claimable"] = "true" if r.hrd_claimable else "false"
+            values["list_price"] = "" if r.list_price is None else r.list_price
             w.writerow([values[f] for f in fields])
 
 

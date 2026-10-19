@@ -98,3 +98,11 @@ def test_unmet_skill_is_reported_not_invented(client: TestClient) -> None:
 def test_prompt_engineering_gap_is_now_closed_by_the_catalogue(client: TestClient) -> None:
     body = _pathway(client, "ai-operations-specialist", headers=WEIJIE)
     assert "prompt-engineering" not in {u.skill_id for u in body.unmet}
+
+
+def test_subscriptions_are_never_booked_as_steps(client: TestClient) -> None:
+    for role in data.role_labels():
+        if not data.requirements(role):
+            continue
+        for step in _pathway(client, role).steps:
+            assert all(c.format != "subscription" for c in step.courses), role

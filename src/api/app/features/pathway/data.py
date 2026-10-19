@@ -50,6 +50,14 @@ def catalogue() -> list[Course]:
                 level=int(r.get("level") or 2),
                 hrd_note=r.get("hrd_note", ""),
                 duration_note=r.get("duration_note", ""),
+                format=r.get("format") or "self_paced",  # type: ignore[arg-type]
+                audience=r.get("audience") or "individual",  # type: ignore[arg-type]
+                price_basis=r.get("price_basis") or "per_course",  # type: ignore[arg-type]
+                currency=r.get("currency") or "MYR",
+                list_price=float(r["list_price"]) if r.get("list_price") else None,
+                provider_type=r.get("provider_type") or "private_provider",  # type: ignore[arg-type]
+                location=r.get("location", ""),
+                price_note=r.get("price_note", ""),
                 source=Source(
                     name=source_name, url=r.get("source_url") or r["url"], retrieved_at=verified
                 ),

@@ -10,6 +10,7 @@ import pytest
 
 from app.core import refdata
 from app.core.config import get_settings
+from app.features.pathway import catalogue_sources as src
 from app.features.pathway import data
 from app.features.pathway.sync import sync_catalogue
 from app.features.sdg import repository as sdg_repository
@@ -19,6 +20,13 @@ pytestmark = pytest.mark.usefixtures("pg_backend")
 FIXTURES = Path(__file__).resolve().parents[2] / "pipelines"
 CATALOG = FIXTURES / "pathway" / "fixtures" / "catalog_sample.json"
 GOALS = FIXTURES / "sdg" / "fixtures" / "goal_list_sample.json"
+
+
+FX = (4.2, date(2026, 10, 21))
+
+
+def _fx() -> tuple[float, date]:
+    return FX
 
 
 def _catalog() -> dict[str, Any]:
@@ -41,7 +49,10 @@ def test_catalogue_sync_refreshes_and_retires() -> None:
         m for m in payload["modules"] if m["uid"] != "learn-bizapps.pad-excel-automation"
     ]
     report = sync_catalogue(
-        payload, date(2026, 10, 21), coursera_check=lambda slug: slug != "supply-chain-logistics"
+        payload,
+        date(2026, 10, 21),
+        coursera_check=lambda slug: slug != "supply-chain-logistics",
+        fx=_fx,
     )
     try:
         assert report.status == "ok" and report.retired == 2, report.detail
@@ -51,21 +62,25 @@ def test_catalogue_sync_refreshes_and_retires() -> None:
         assert _syncs("Course catalogue%")[0][0] == "ok"
     finally:
         # Restore: a full sync un-retires everything.
-        again = sync_catalogue(_catalog(), date(2026, 10, 20), coursera_check=lambda slug: True)
+        again = sync_catalogue(
+            _catalog(), date(2026, 10, 20), coursera_check=lambda slug: True, fx=_fx
+        )
         assert again.status == "ok" and again.retired == 0
         refdata.invalidate()
         assert "mslearn-pad-excel" in {c.id for c in data.catalogue()}
 
 
 def test_unknown_coursera_status_keeps_the_course() -> None:
-    report = sync_catalogue(_catalog(), date(2026, 10, 20), coursera_check=lambda slug: None)
+    report = sync_catalogue(
+        _catalog(), date(2026, 10, 20), coursera_check=lambda slug: None, fx=_fx
+    )
     assert report.status == "ok" and report.retired == 0
     assert "Coursera unreachable" in report.detail
 
 
 def test_failed_source_is_logged_and_changes_nothing() -> None:
     before = {c.id for c in data.catalogue()}
-    report = sync_catalogue({"modules": "not-a-list"}, date(2026, 10, 20), lambda s: True)
+    report = sync_catalogue({"modules": "not-a-list"}, date(2026, 10, 20), lambda s: True, _fx)
     assert report.status == "failed" and report.records == 0
     refdata.invalidate()
     assert {c.id for c in data.catalogue()} == before
@@ -86,3 +101,17 @@ def test_sdg_sync_stamps_targets_and_upserts_evidence() -> None:
         ).fetchone()
     assert stamped is not None and stamped[0] == date(2026, 10, 21)
     assert dropped is not None and dropped[0] == 0, "links removed from the files are removed"
+
+
+def test_usd_prices_follow_the_live_exchange_rate() -> None:
+    report = sync_catalogue(_catalog(), date(2026, 10, 21), coursera_check=lambda s: True, fx=_fx)
+    assert report.status == "ok" and "USD at 4.2 MYR" in report.detail
+    refdata.invalidate()
+    plus = {c.id: c for c in data.catalogue()}["coursera-plus-annual"]
+    assert plus.cost_myr == round(239 * 4.2, 2) and "4.2" in plus.price_note
+    with psycopg.connect(get_settings().database_url) as conn:
+        row = conn.execute(
+            "SELECT selling_rate FROM fx_rates WHERE currency = 'USD' AND rate_date = %s", (FX[1],)
+        ).fetchone()
+    assert row is not None and float(row[0]) == 4.2
+    assert src.usd_to_myr(1, 4.2) == 4.2
