@@ -49,3 +49,12 @@ def test_committed_seed_has_the_full_official_list() -> None:
         targets = list(csv.DictReader(fh))
     assert len(targets) == 169
     assert {int(t["goal"]) for t in targets} == set(range(1, 18))
+
+
+def test_light_endpoints_combine_into_the_parsed_shape() -> None:
+    from app.features.sdg.sources import combine
+
+    goals = [{"code": str(n), "title": f"Goal {n}"} for n in range(1, 18)]
+    targets = [{"goal": str(n), "code": f"{n}.1", "title": f"Target {n}.1"} for n in range(1, 18)]
+    parsed_goals, parsed_targets = run.parse(combine(goals, targets))
+    assert len(parsed_goals) == 17 and [t.id for t in parsed_targets][:2] == ["1.1", "2.1"]

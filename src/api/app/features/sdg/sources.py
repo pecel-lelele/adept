@@ -2,7 +2,7 @@
 
 Shared by the offline pipeline (`pipelines.sdg.run`, writes the seed CSVs) and live sync
 (`app.features.sdg.sync`, writes PostgreSQL), so both always parse the same way.
-`GET /v1/sdg/Goal/List?includechildren=true` is public and needs no key.
+The API is public and needs no key; `fetch` uses the light goal and target lists.
 """
 
 from __future__ import annotations
@@ -14,6 +14,8 @@ from dataclasses import dataclass
 from typing import Any
 
 API_URL = "https://unstats.un.org/SDGAPI/v1/sdg/Goal/List?includechildren=true"
+GOALS_URL = "https://unstats.un.org/SDGAPI/v1/sdg/Goal/List?includechildren=false"
+TARGETS_URL = "https://unstats.un.org/SDGAPI/v1/sdg/Target/List?includechildren=false"
 GOAL_PAGE = "https://sdgs.un.org/goals/goal{n}"
 
 # Official short names of the goals (the API only carries the long statement).
@@ -85,8 +87,22 @@ def validate(goals: list[Goal], targets: list[Target]) -> None:
         raise ValueError(f"goals without targets: {sorted(missing)}")
 
 
-def fetch(url: str = API_URL, timeout_s: int = 60) -> list[dict[str, Any]]:
+def _get(url: str, timeout_s: int) -> list[dict[str, Any]]:
     req = urllib.request.Request(url, headers={"Accept": "application/json"})
     with urllib.request.urlopen(req, timeout=timeout_s, context=ssl.create_default_context()) as r:
         data: list[dict[str, Any]] = json.load(r)
     return data
+
+
+def combine(goals: list[dict[str, Any]], targets: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Nest targets under their goals: the `Goal/List?includechildren=true` shape `parse` reads."""
+    by_goal: dict[str, list[dict[str, Any]]] = {}
+    for t in targets:
+        by_goal.setdefault(str(t["goal"]), []).append({"code": t["code"], "title": t["title"]})
+    return [{**g, "targets": by_goal.get(str(g["code"]), [])} for g in goals]
+
+
+def fetch(timeout_s: int = 60) -> list[dict[str, Any]]:
+    """Goals and targets in two small calls (~100 KB). `Goal/List?includechildren=true` also
+    returns every indicator series (~11 MB) and proved unreliable to download."""
+    return combine(_get(GOALS_URL, timeout_s), _get(TARGETS_URL, timeout_s))
