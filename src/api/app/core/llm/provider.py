@@ -37,3 +37,12 @@ def get_provider() -> LLMProvider:
     if settings.llm_provider == "none":
         return NullProvider()
     raise LLMUnavailableError(f"Unknown LLM_PROVIDER: {settings.llm_provider}")
+
+
+def disclosure() -> tuple[str, str]:
+    """(provider, model) as configured, for the About page and README disclosure.
+
+    Read from settings, not hard-coded, so the disclosure cannot drift from what runs.
+    """
+    settings = get_settings()
+    return settings.llm_provider, settings.llm_model
