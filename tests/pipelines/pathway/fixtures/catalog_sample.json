@@ -1,0 +1,182 @@
+{
+ "modules": [
+  {
+   "uid": "learn.wwl.get-started-data-analytics",
+   "type": "module",
+   "title": "Get started with data analytics",
+   "duration_in_minutes": 36,
+   "url": "https://learn.microsoft.com/en-us/training/modules/get-started-data-analytics/?WT.mc_id=api_CatalogApi",
+   "levels": [
+    "beginner"
+   ],
+   "last_modified": "2026-10-12T22:11:00+00:00"
+  },
+  {
+   "uid": "learn.wwl.embrace-responsible-ai-principles-practices",
+   "type": "module",
+   "title": "Embrace responsible AI principles and practices",
+   "duration_in_minutes": 58,
+   "url": "https://learn.microsoft.com/en-us/training/modules/embrace-responsible-ai-principles-practices/?WT.mc_id=api_CatalogApi",
+   "levels": [
+    "beginner"
+   ],
+   "last_modified": "2026-07-14T11:19:00+00:00"
+  },
+  {
+   "uid": "learn.wwl.explore-fundamentals-of-data-visualization",
+   "type": "module",
+   "title": "Explore fundamentals of data visualization",
+   "duration_in_minutes": 39,
+   "url": "https://learn.microsoft.com/en-us/training/modules/explore-fundamentals-data-visualization/?WT.mc_id=api_CatalogApi",
+   "levels": [
+    "beginner"
+   ],
+   "last_modified": "2026-10-13T07:29:00+00:00"
+  },
+  {
+   "uid": "learn.philanthropies.create-prompts-for-generative-ai-training-tools",
+   "type": "module",
+   "title": "Create effective prompts for generative AI training tools",
+   "duration_in_minutes": 20,
+   "url": "https://learn.microsoft.com/en-us/training/modules/create-prompts-for-generative-ai-training-tools/?WT.mc_id=api_CatalogApi",
+   "levels": [
+    "beginner"
+   ],
+   "last_modified": "2026-03-16T07:10:00+00:00"
+  },
+  {
+   "uid": "learn.wwl.write-effective-prompts-do-more-prompting",
+   "type": "module",
+   "title": "Write effective prompts to achieve optimal results",
+   "duration_in_minutes": 29,
+   "url": "https://learn.microsoft.com/en-us/training/modules/write-effective-prompts-do-more-prompting/?WT.mc_id=api_CatalogApi",
+   "levels": [
+    "beginner"
+   ],
+   "last_modified": "2026-10-16T23:12:00+00:00"
+  },
+  {
+   "uid": "learn-m365.what-generative-ai",
+   "type": "module",
+   "title": "Prepare to use generative AI at work",
+   "duration_in_minutes": 31,
+   "url": "https://learn.microsoft.com/en-us/training/modules/what-generative-ai/?WT.mc_id=api_CatalogApi",
+   "levels": [
+    "beginner"
+   ],
+   "last_modified": "2026-09-25T17:08:00+00:00"
+  }
+ ],
+ "learningPaths": [
+  {
+   "uid": "learn.wwl.describe-concepts-of-security-compliance-identity",
+   "type": "learningPath",
+   "title": "Introduction to security, compliance, and identity concepts",
+   "duration_in_minutes": 97,
+   "url": "https://learn.microsoft.com/en-us/training/paths/describe-concepts-of-security-compliance-identity/?WT.mc_id=api_CatalogApi",
+   "levels": [
+    "beginner"
+   ],
+   "last_modified": "2026-04-27T23:59:00+00:00"
+  },
+  {
+   "uid": "learn.wwl.get-started-querying-with-transact-sql",
+   "type": "learningPath",
+   "title": "Query and modify data with Transact-SQL",
+   "duration_in_minutes": 345,
+   "url": "https://learn.microsoft.com/en-us/training/paths/get-started-querying-with-transact-sql/?WT.mc_id=api_CatalogApi",
+   "levels": [
+    "beginner"
+   ],
+   "last_modified": "2026-08-10T22:17:00+00:00"
+  },
+  {
+   "uid": "learn.wwl.get-started-with-python-programs",
+   "type": "learningPath",
+   "title": "Get started with Python programming: Part 2 - building programs",
+   "duration_in_minutes": 210,
+   "url": "https://learn.microsoft.com/en-us/training/paths/get-started-with-python-programs/?WT.mc_id=api_CatalogApi",
+   "levels": [
+    "beginner"
+   ],
+   "last_modified": "2026-08-21T11:02:00+00:00"
+  },
+  {
+   "uid": "learn.wwl.get-started-with-python-fundamentals",
+   "type": "learningPath",
+   "title": "Get Started with Python Programming: Part 1 - Fundamentals",
+   "duration_in_minutes": 192,
+   "url": "https://learn.microsoft.com/en-us/training/paths/get-started-with-python-fundamentals/?WT.mc_id=api_CatalogApi",
+   "levels": [
+    "beginner"
+   ],
+   "last_modified": "2026-08-07T22:11:00+00:00"
+  },
+  {
+   "uid": "learn-bizapps.pad-work",
+   "type": "learningPath",
+   "title": "Work with Power Automate desktop app",
+   "duration_in_minutes": 220,
+   "url": "https://learn.microsoft.com/en-us/training/paths/pad-work/?WT.mc_id=api_CatalogApi",
+   "levels": [
+    "beginner"
+   ],
+   "last_modified": "2026-04-20T23:14:00+00:00"
+  },
+  {
+   "uid": "learn-bizapps.automate-process-using-flow",
+   "type": "learningPath",
+   "title": "Automate a business process using Power Automate",
+   "duration_in_minutes": 277,
+   "url": "https://learn.microsoft.com/en-us/training/paths/automate-process-power-automate/?WT.mc_id=api_CatalogApi",
+   "levels": [
+    "beginner"
+   ],
+   "last_modified": "2025-03-21T17:04:00+00:00"
+  },
+  {
+   "uid": "learn-bizapps.pad-get-started",
+   "type": "learningPath",
+   "title": "Get started with Power Automate desktop app",
+   "duration_in_minutes": 67,
+   "url": "https://learn.microsoft.com/en-us/training/paths/pad-get-started/?WT.mc_id=api_CatalogApi",
+   "levels": [
+    "beginner"
+   ],
+   "last_modified": "2026-04-20T23:14:00+00:00"
+  },
+  {
+   "uid": "learn.wwl.prepare-visualize-data-power-bi",
+   "type": "learningPath",
+   "title": "Prepare and visualize data with Microsoft Power BI",
+   "duration_in_minutes": 492,
+   "url": "https://learn.microsoft.com/en-us/training/paths/prepare-visualize-data-power-bi/?WT.mc_id=api_CatalogApi",
+   "levels": [
+    "beginner"
+   ],
+   "last_modified": "2025-06-27T17:16:00+00:00"
+  },
+  {
+   "uid": "learn-bizapps.introduction-process-advisor",
+   "type": "learningPath",
+   "title": "Get started with process mining in Power Automate",
+   "duration_in_minutes": 185,
+   "url": "https://learn.microsoft.com/en-us/training/paths/introduction-process-advisor/?WT.mc_id=api_CatalogApi",
+   "levels": [
+    "beginner"
+   ],
+   "last_modified": "2025-03-21T17:04:00+00:00"
+  },
+  {
+   "uid": "learn.mec.introduction-ai-literacy",
+   "type": "learningPath",
+   "title": "Introduction to AI literacy",
+   "duration_in_minutes": 201,
+   "url": "https://learn.microsoft.com/en-us/training/paths/introduction-ai-literacy/?WT.mc_id=api_CatalogApi",
+   "levels": [
+    "beginner"
+   ],
+   "last_modified": "2026-05-14T23:08:00+00:00"
+  }
+ ]
+}
