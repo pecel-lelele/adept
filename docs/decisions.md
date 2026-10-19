@@ -205,6 +205,59 @@
 - **Replaces**: none
 - **PR / branch**: `feat/pathway-sdg-guardrails`
 
+### M3-014: Fixes for the eight automated review findings on PR #2
+- **Date**: 2026-10-20
+- **Feature**: F5, F8 (+ Core web helper and CI that this PR added)
+- **Type**: other
+- **Change**: (1) Seed reads are cached per file version (path, mtime, size), so a new trend snapshot reaches saved plans without a restart. (2) When every rate-limit counter is throttled, newcomers get 429 instead of an active block being evicted. (3) Body size is counted as bytes arrive (pure ASGI middleware), so chunked uploads without Content-Length are stopped before multipart parsing. (4) The web server forwards only the client address appended by `TRUSTED_PROXY_HOPS` trusted proxies (default 0 = never). (5) Pathway and progress pages show the saved plan when its role and scenario match; progress returns the plan it is tracked against; profile changes are proposed as a re-plan, not applied. (6) A new migration deletes the skeleton's mock courses, mock links and shortened targets so `make seed` reloads the real rows; CI builds a DB from the skeleton commit and upgrades it. (7) Server actions report API errors (422, 429) next to the button instead of silently refreshing. (8) GitHub Actions pinned to commit SHAs.
+- **Why**: Review findings (greptile) on PR #2.
+- **Affects**: everyone using `make dev`/web server (TRUSTED_PROXY_HOPS), existing local databases (run `make db-migrate seed`)
+- **Replaces**: none
+- **PR / branch**: `feat/pathway-sdg-guardrails`
+
+### M3-015: PostgreSQL storage for M3 (M3_BACKEND)
+- **Date**: 2026-10-20
+- **Feature**: F5, F6, F8
+- **Type**: schema | method | dependency
+- **Change**: `M3_BACKEND=csv|postgres` (`app/core/refdata.py`). With `postgres`: saved plans (whole Pathway as jsonb), per-role course progress and badges live in `pathway_plans`, `course_progress`, `user_badges` (`PostgresStore`, users row created for new authenticated users); catalogue and SDG reads come from the DB with a 30 s cache and a seed-file fallback if the DB is down; writes fail with 503 rather than being lost. Migration `20261021090000_m3_live_data_and_shared_state.sql`: evidence columns on the SDG maps, `provider_ref`/`last_synced_at`/`retired_at` on courses, `data_syncs` log, per-role progress key, UNLOGGED `rate_limit_counters`, skeleton data upgrade. Tested against pgvector/pg16 locally (upgrade from a skeleton-seeded DB, down/up round trip) and in CI. `DATABASE_URL` defaults now use 127.0.0.1 (the port is bound to IPv4 loopback; `localhost` cost 5 s per connection on Windows).
+- **Why**: State must survive restarts and be shared by every instance on Replit (whose own PostgreSQL can be used by setting `DATABASE_URL` and `M3_BACKEND=postgres`).
+- **Affects**: deployment config (set `M3_BACKEND=postgres` once the Replit database exists)
+- **Replaces**: in-memory-only state from M3-009
+- **PR / branch**: `feat/pathway-sdg-guardrails`
+
+### M3-016: Rate limits shared across API instances
+- **Date**: 2026-10-20
+- **Feature**: F8
+- **Type**: method | dependency
+- **Change**: With `M3_BACKEND=postgres` the limiter keeps one counter per (client, bucket, window) in `rate_limit_counters`, updated in one atomic upsert and read as a sliding window (`previous * (1 - elapsed/window) + current`); the call runs off the event loop through a small `psycopg-pool` pool (new dependency `psycopg-pool>=3.2`); if the DB fails it falls back to the in-memory limiter. Sync endpoints get a 5-per-hour bucket. Tested with two counters standing in for two instances.
+- **Why**: Per-process counters let N instances allow N times the limit.
+- **Affects**: everyone (requirements.txt)
+- **Replaces**: per-process-only limits from M3-003
+- **PR / branch**: `feat/pathway-sdg-guardrails`
+
+### M3-017: Live data sync and a deeper catalogue
+- **Date**: 2026-10-20
+- **Feature**: F5, F6, F8
+- **Type**: data source | method
+- **Change**: `python -m app.features.pathway.sync` / `POST /api/v1/pathway/catalogue/sync` and `python -m app.features.sdg.sync` / `POST /api/v1/sdg/sync` (header `X-Sync-Token` = `SYNC_TOKEN`, needs postgres) refresh reference data from live sources in one transaction, log every run in `data_syncs`, roll back on failure, and flag courses a provider no longer lists as `retired_at` (never recommended, progress kept). Catalogue now 31 courses: 20 Microsoft Learn items (API), 5 free-to-enrol Coursera courses (hours = module sums on the page; existence checked live through Coursera's catalog API) and 6 HRD Corp-claimable provider courses quoted from their own pages or brochures (AITraining2U x2, UNIMAS Excel Intermediate RM1,100 and Advanced RM1,300, FMM Supply Chain & Logistics RM1,350, MAICSA AML/CFT STR RM490); past run dates are stated, not hidden. UN SDG goals/targets now come from the light `Goal/List` + `Target/List` endpoints (~100 KB; the 11 MB tree failed mid-download). Source logic moved into `app/features/{pathway/catalogue_sources,sdg/sources}.py`, shared by pipelines and sync. Weekly workflow re-fetches, checks Coursera and checks that all 42 course and evidence links resolve (`pipelines.guardrails.check_links`).
+- **Why**: Thin, static data was the main gap; the app now has real live connections and can be refreshed on a schedule (e.g. a Replit scheduled job running the two CLIs).
+- **Pipeline**: Microsoft Learn API + Coursera API + provider pages / UN SDG API → validate (UIDs listed, skill IDs, https, HRD quote) → upsert + retire → `data_syncs` → API reads DB → `/guardrails/sources` shows last sync.
+- **Open**: still no catalogue course for customer service; risk & compliance stops at level 2; HRD Corp course hours assume 7 h/day where only days are stated.
+- **Affects**: none outside M3
+- **Replaces**: M3-007
+- **PR / branch**: `feat/pathway-sdg-guardrails`
+
+### M3-018: Evidence-backed SDG mappings
+- **Date**: 2026-10-20
+- **Feature**: F6
+- **Type**: method | data source | contract
+- **Change**: Every role and skill link now cites a published source with a note on what it says: UN SDG indicator metadata (4.4.1 ICT skill types incl. spreadsheets, coding, charts, information verification and online courses; 4.3.1; 8.2.1; 8.10.2; 9.1.2; 9.5.1; 10.5.1; 16.4.1; 16.5.2), ILO Working Paper 140 (2025) on generative-AI exposure ("clerical occupations continue to have the highest exposure levels"; "transformation of jobs is the most likely impact"), the UNESCO Recommendation on the Ethics of AI (2021) and UNESCO/EQUALS (2019) via the UNESCO GCED Clearinghouse record (unesdoc's certificate had expired). Links the evidence does not support were dropped (data analyst → 9.5, Python → 9.5, data visualisation → 8.2) or downgraded to enabling (AI ops → 9.5, compliance → 16.5, data analyst → 8.2). Plan-level links carry 4.4.1/4.3.1 evidence. 29 links in total. Contract: `SdgLink.evidence {source, note}`. Tests require an authoritative evidence URL on every link.
+- **Why**: "Meaningful, not decorative" needs a justification a judge can open, not just a reason we wrote.
+- **Open**: `reviewed_by` is still empty; a human reviewer should sign the mappings off.
+- **Affects**: M2 (alignment scores changed for data-analyst and ai-operations-specialist)
+- **Replaces**: M3-006 (mapping content)
+- **PR / branch**: `feat/pathway-sdg-guardrails`
+
 ---
 
 ## M4: Core & Organisation (Core, F7)

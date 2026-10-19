@@ -11,8 +11,9 @@
 ## Status
 
 Real data. All 17 goals and 169 targets from the UN SDG API (`src/pipelines/sdg`). Every role
-and skill in the taxonomy links to ≥1 target with a reason and a direct/enabling strength
-(drafts, `reviewed_by` empty until a human signs off). Endpoints: `GET /sdg/goals`,
+and skill in the taxonomy links to ≥1 target with a reason, a direct/enabling strength and
+published evidence (UN indicator metadata, ILO, UNESCO), as drafts until a human signs off.
+Goals, targets and links are refreshed live by `sync.py` (`POST /sdg/sync`). Endpoints: `GET /sdg/goals`,
 `/sdg/roles/{id}`, `/sdg/roles/{id}/alignment?goals=`, `/sdg/skills/{id}`,
 `/sdg/contribution/me?role_id=`, `/sdg/contribution/org`, `/sdg/regions`,
 `/sdg/contribution/region/{state}`.

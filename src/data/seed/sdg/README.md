@@ -4,7 +4,7 @@
 |---|---|---|
 | `sdg_goals.csv` | 17 goals | UN Statistics Division SDG API, written by `pipelines.sdg.run` (`retrieved_at` per row) |
 | `sdg_targets.csv` | 169 targets, official wording | same |
-| `role_sdg_map.csv` | every role in `taxonomy/roles.csv` | Adept mapping: target, one-line reason, `strength` (direct / enabling) |
+| `role_sdg_map.csv` | every role in `taxonomy/roles.csv` | Adept mapping: target, one-line reason, `strength` (direct / enabling), `evidence_source` / `evidence_url` / `evidence_note` (UN indicator metadata, ILO, UNESCO) |
 | `skill_sdg_map.csv` | every skill in `taxonomy/skills.csv` | same |
 | `org_regions.csv` | synthetic demo organisations → Malaysian state | synthetic, for the region SDG view |
 
