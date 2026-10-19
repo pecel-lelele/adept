@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Cross-platform task runner behind the Makefile.
 
-Usage: python scripts/dev.py <task>   (or `make <task>`)
+Usage: python src/scripts/dev.py <task>   (or `make <task>`)
 
 Kept stdlib-only so it runs before any virtualenv exists, and so Windows users
 without `make` can call it directly.
@@ -18,10 +18,13 @@ import time
 from collections.abc import Callable, Sequence
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
-API = ROOT / "apps" / "api"
-WEB = ROOT / "apps" / "web"
-CONTRACT_FILES = ["apps/api/openapi.json", "apps/web/src/lib/api/types.ts"]
+ROOT = Path(__file__).resolve().parents[2]
+API = ROOT / "src" / "api"
+WEB = ROOT / "src" / "web"
+DB = ROOT / "src" / "db"
+VENV = ROOT / ".venv"
+PYTHON_VERSION = "3.11"
+CONTRACT_FILES = ["src/api/openapi.json", "src/web/src/lib/api/types.ts"]
 
 
 class TaskError(Exception):
@@ -45,11 +48,24 @@ def load_env() -> None:
         os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
 
 
+def venv_python() -> Path:
+    if os.name == "nt":
+        return VENV / "Scripts" / "python.exe"
+    return VENV / "bin" / "python"
+
+
+def py(*args: str) -> list[str]:
+    python = venv_python()
+    if not python.exists():
+        raise TaskError("No .venv yet. Run `make setup` first.")
+    return [str(python), *args]
+
+
 def pnpm() -> list[str]:
     found = shutil.which("pnpm")
     if found:
         return [found]
-    package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
+    package = json.loads((WEB / "package.json").read_text(encoding="utf-8"))
     version = package["packageManager"].split("@", 1)[1]
     npx = shutil.which("npx")
     if not npx:
@@ -72,12 +88,8 @@ def run(cmd: Sequence[str], cwd: Path = ROOT, check: bool = True) -> int:
     return code
 
 
-def api_run(*args: str, check: bool = True) -> int:
-    return run([*uv(), "run", *args], cwd=API, check=check)
-
-
-def web_run(*args: str, check: bool = True) -> int:
-    return run([*pnpm(), "--filter", "web", *args], check=check)
+def web_run(*args: str) -> int:
+    return run([*pnpm(), *args], cwd=WEB)
 
 
 # --- database ---------------------------------------------------------------
@@ -87,8 +99,7 @@ def docker_available() -> bool:
     docker = shutil.which("docker")
     if not docker:
         return False
-    result = subprocess.run([docker, "info"], capture_output=True)
-    return result.returncode == 0
+    return subprocess.run([docker, "info"], capture_output=True).returncode == 0
 
 
 def db_up(required: bool = True) -> bool:
@@ -111,11 +122,11 @@ def task_db_down() -> None:
 
 
 def task_db_migrate() -> None:
-    api_run("python", str(ROOT / "db" / "migrate.py"), "up")
+    run(py(str(DB / "migrate.py"), "up"))
 
 
 def task_seed() -> None:
-    api_run("python", str(ROOT / "db" / "seed.py"))
+    run(py(str(DB / "seed.py")))
 
 
 # --- lifecycle ----------------------------------------------------------------
@@ -125,10 +136,12 @@ def task_setup() -> None:
     if not (ROOT / ".env").exists():
         shutil.copy(ROOT / ".env.example", ROOT / ".env")
         log("Created .env from .env.example")
-    log("Installing Python dependencies (uv)")
-    run([*uv(), "sync"], cwd=API)
-    log("Installing JS dependencies (pnpm)")
-    run([*pnpm(), "install"])
+    log("Installing Python dependencies (uv + requirements.txt)")
+    if not venv_python().exists():
+        run([*uv(), "venv", "--python", PYTHON_VERSION, str(VENV)])
+    run([*uv(), "pip", "install", "--python", str(venv_python()), "-r", "requirements.txt"])
+    log("Installing JS dependencies (pnpm, src/web)")
+    web_run("install")
     log("Starting database")
     if db_up(required=False):
         task_db_migrate()
@@ -142,11 +155,11 @@ def task_dev() -> None:
     log(f"API on http://localhost:{api_port}/docs  |  web on http://localhost:3000")
     procs = [
         subprocess.Popen(
-            [*uv(), "run", "uvicorn", "app.main:app", "--reload", "--port", api_port],
+            py("-m", "uvicorn", "app.main:app", "--reload", "--port", api_port),
             cwd=API,
             env=os.environ,
         ),
-        subprocess.Popen([*pnpm(), "--filter", "web", "dev"], cwd=ROOT, env=os.environ),
+        subprocess.Popen([*pnpm(), "dev"], cwd=WEB, env=os.environ),
     ]
     try:
         while all(p.poll() is None for p in procs):
@@ -168,18 +181,18 @@ def task_dev() -> None:
 
 
 def task_lint() -> None:
-    api_run("ruff", "check", str(ROOT))
-    api_run("ruff", "format", "--check", str(ROOT))
+    run(py("-m", "ruff", "check", "."))
+    run(py("-m", "ruff", "format", "--check", "."))
     web_run("lint")
 
 
 def task_format() -> None:
-    api_run("ruff", "check", "--fix", str(ROOT))
-    api_run("ruff", "format", str(ROOT))
+    run(py("-m", "ruff", "check", "--fix", "."))
+    run(py("-m", "ruff", "format", "."))
 
 
 def task_test() -> None:
-    api_run("pytest")
+    run(py("-m", "pytest"))
 
 
 def task_typecheck() -> None:
@@ -188,7 +201,7 @@ def task_typecheck() -> None:
 
 def task_contracts() -> None:
     """Regenerate openapi.json from the Pydantic contracts, then the TS types."""
-    api_run("python", "-m", "app.export_openapi", str(API / "openapi.json"))
+    run(py("-m", "app.export_openapi", str(API / "openapi.json")), cwd=API)
     web_run("contracts")
 
 
@@ -204,14 +217,46 @@ def task_contracts_check() -> None:
         print(result.stdout)
         raise TaskError(
             "Contract drift: generated files changed. Run `make contracts` and commit "
-            "apps/api/openapi.json and apps/web/src/lib/api/types.ts."
+            + " and ".join(CONTRACT_FILES)
+            + "."
         )
     log("Contracts in sync")
+
+
+def _keys(node: object, prefix: str = "") -> set[str]:
+    if not isinstance(node, dict):
+        return {prefix}
+    return {k for key, value in node.items() for k in _keys(value, f"{prefix}{key}.")}
+
+
+def task_i18n_check() -> None:
+    """Every locale must have the same namespaces and keys as English."""
+    messages = WEB / "messages"
+    base = {
+        p.name: _keys(json.loads(p.read_text(encoding="utf-8"))) for p in messages.glob("en/*.json")
+    }
+    problems: list[str] = []
+    for locale_dir in sorted(d for d in messages.iterdir() if d.is_dir() and d.name != "en"):
+        for name, keys in base.items():
+            path = locale_dir / name
+            if not path.exists():
+                problems.append(f"{locale_dir.name}/{name}: missing file")
+                continue
+            other = _keys(json.loads(path.read_text(encoding="utf-8")))
+            for key in sorted(keys - other):
+                problems.append(f"{locale_dir.name}/{name}: missing {key.rstrip('.')}")
+            for key in sorted(other - keys):
+                problems.append(f"{locale_dir.name}/{name}: extra {key.rstrip('.')}")
+    if problems:
+        print("\n".join(problems))
+        raise TaskError("Translation keys differ from messages/en")
+    log("Translations in sync")
 
 
 def task_check() -> None:
     steps: list[tuple[str, Callable[[], None]]] = [
         ("lint", task_lint),
+        ("i18n", task_i18n_check),
         ("test", task_test),
         ("typecheck", task_typecheck),
         ("contracts", task_contracts_check),
@@ -239,6 +284,7 @@ TASKS: dict[str, Callable[[], None]] = {
     "typecheck": task_typecheck,
     "contracts": task_contracts,
     "contracts-check": task_contracts_check,
+    "i18n-check": task_i18n_check,
     "db-up": task_db_up,
     "db-down": task_db_down,
     "db-migrate": task_db_migrate,
@@ -248,7 +294,7 @@ TASKS: dict[str, Callable[[], None]] = {
 
 def main(argv: list[str]) -> int:
     if len(argv) != 1 or argv[0] not in TASKS:
-        print(f"usage: python scripts/dev.py <{'|'.join(TASKS)}>", file=sys.stderr)
+        print(f"usage: python src/scripts/dev.py <{'|'.join(TASKS)}>", file=sys.stderr)
         return 2
     load_env()
     try:

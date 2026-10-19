@@ -1,0 +1,18 @@
+# Tool settings only (no package). Dependencies live in requirements.txt.
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["src/web", "src/data"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "W"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app", "pipelines"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# src/api makes `import app...` work; src makes `import pipelines...` work.
+pythonpath = ["src/api", "src"]
+addopts = "-q --import-mode=importlib"
