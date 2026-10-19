@@ -1,0 +1,11 @@
+snapshot_id,entity_type,entity_id,direction,growth_rate,ai_exposure,automation_share,augmentation_share
+1,role,data-analyst,rising,0.14,0.55,0.25,0.75
+1,role,ai-operations-specialist,rising,0.22,0.70,0.20,0.80
+1,role,process-automation-analyst,rising,0.18,0.65,0.30,0.70
+1,role,compliance-analytics-officer,stable,0.04,0.45,0.35,0.65
+1,role,bank-operations-executive,declining,-0.09,0.80,0.70,0.30
+1,role,data-entry-clerk,declining,-0.15,0.90,0.85,0.15
+1,skill,prompt-engineering,rising,0.30,0.90,0.10,0.90
+1,skill,python,rising,0.12,0.50,0.20,0.80
+1,skill,excel,stable,0.01,0.60,0.50,0.50
+1,skill,manual-data-entry,declining,-0.20,0.95,0.90,0.10

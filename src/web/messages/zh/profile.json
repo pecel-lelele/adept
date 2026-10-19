@@ -1,0 +1,18 @@
+{
+  "onboardingTitle": "您目前处于什么阶段？",
+  "onboardingBody": "选择最符合您的选项。它只会改变部分问题，不会改变结果。",
+  "segment": {
+    "working": "在职人士",
+    "graduate": "应届毕业生",
+    "switcher": "转行者"
+  },
+  "current": "当前",
+  "title": "您的技能档案",
+  "skills": "技能",
+  "level": "等级 {level}/5",
+  "hoursPerWeek": "每周 {hours} 小时学习",
+  "budget": "预算 RM {amount}",
+  "hrdEligible": "符合 HRD Corp 资格",
+  "interests": "兴趣",
+  "cvNote": "简历上传（POST /profile/cv）返回模拟提取结果。仅使用合成简历。"
+}

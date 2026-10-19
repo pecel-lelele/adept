@@ -1,0 +1,20 @@
+{
+  "setupTitle": "Persediaan organisasi",
+  "membersTitle": "Ahli",
+  "gapsTitle": "Peta haba jurang kemahiran pasukan",
+  "planTitle": "Pelan peningkatan kemahiran kumpulan",
+  "type": {
+    "company": "Syarikat",
+    "institution": "Institusi"
+  },
+  "industry": "Industri",
+  "size": "Saiz",
+  "intake": {
+    "invited": "Dijemput",
+    "in_progress": "Dalam proses",
+    "complete": "Selesai"
+  },
+  "gapLegend": "Peratusan ahli yang tiada setiap kemahiran untuk peranan sasaran.",
+  "target": "Peranan sasaran: {role}",
+  "assigned": "Ditugaskan kepada {count} ahli"
+}

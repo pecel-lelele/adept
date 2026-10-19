@@ -1,0 +1,20 @@
+{
+  "setupTitle": "Organisation setup",
+  "membersTitle": "Members",
+  "gapsTitle": "Team skills-gap heatmap",
+  "planTitle": "Group reskilling plan",
+  "type": {
+    "company": "Company",
+    "institution": "Institution"
+  },
+  "industry": "Industry",
+  "size": "Size",
+  "intake": {
+    "invited": "Invited",
+    "in_progress": "In progress",
+    "complete": "Complete"
+  },
+  "gapLegend": "Share of members missing each skill for the target role.",
+  "target": "Target role: {role}",
+  "assigned": "Assigned to {count} members"
+}

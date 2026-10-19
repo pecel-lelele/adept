@@ -1,0 +1,2224 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Aiversecity Future-Ready Workforce API",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/v1/health": {
+      "get": {
+        "tags": [
+          "core"
+        ],
+        "summary": "Health",
+        "operationId": "core_health",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/meta/data-freshness": {
+      "get": {
+        "tags": [
+          "core"
+        ],
+        "summary": "Data Freshness",
+        "operationId": "core_data_freshness",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataFreshness"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/matches": {
+      "get": {
+        "tags": [
+          "matching"
+        ],
+        "summary": "List Matches",
+        "operationId": "matching_list_matches",
+        "parameters": [
+          {
+            "name": "scenario",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "moderate",
+                "fast"
+              ],
+              "type": "string",
+              "default": "moderate",
+              "title": "Scenario"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatchResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/matches/{role_id}": {
+      "get": {
+        "tags": [
+          "matching"
+        ],
+        "summary": "Get Match",
+        "operationId": "matching_get_match",
+        "parameters": [
+          {
+            "name": "role_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Role Id"
+            }
+          },
+          {
+            "name": "scenario",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "moderate",
+                "fast"
+              ],
+              "type": "string",
+              "default": "moderate",
+              "title": "Scenario"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoleMatch"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/org/me": {
+      "get": {
+        "tags": [
+          "org"
+        ],
+        "summary": "Get My Org",
+        "operationId": "org_get_my_org",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Organization"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/org/members": {
+      "get": {
+        "tags": [
+          "org"
+        ],
+        "summary": "List Members",
+        "operationId": "org_list_members",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/org/gaps": {
+      "get": {
+        "tags": [
+          "org"
+        ],
+        "summary": "Get Gaps",
+        "operationId": "org_get_gaps",
+        "parameters": [
+          {
+            "name": "scenario",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "moderate",
+                "fast"
+              ],
+              "type": "string",
+              "default": "moderate",
+              "title": "Scenario"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GapHeatmapResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/org/plan": {
+      "get": {
+        "tags": [
+          "org"
+        ],
+        "summary": "Get Plan",
+        "operationId": "org_get_plan",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupPlan"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pathway": {
+      "get": {
+        "tags": [
+          "pathway"
+        ],
+        "summary": "Get Pathway",
+        "operationId": "pathway_get_pathway",
+        "parameters": [
+          {
+            "name": "role_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Role Id"
+            }
+          },
+          {
+            "name": "scenario",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "moderate",
+                "fast"
+              ],
+              "type": "string",
+              "default": "moderate",
+              "title": "Scenario"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Pathway"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/profile": {
+      "post": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Upsert Profile",
+        "operationId": "profile_upsert_profile",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Profile"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/profile/me": {
+      "get": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Get My Profile",
+        "operationId": "profile_get_my_profile",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Profile"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/profile/cv": {
+      "post": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Upload Cv",
+        "operationId": "profile_upload_cv",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_profile_upload_cv"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CvExtractionResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/profile/skills": {
+      "put": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Replace Skills",
+        "operationId": "profile_replace_skills",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SkillsUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Profile"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/scenarios": {
+      "get": {
+        "tags": [
+          "scenarios"
+        ],
+        "summary": "List Scenarios",
+        "operationId": "scenarios_list_scenarios",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScenarioListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/scenarios/outlook": {
+      "get": {
+        "tags": [
+          "scenarios"
+        ],
+        "summary": "Get Outlook",
+        "operationId": "scenarios_get_outlook",
+        "parameters": [
+          {
+            "name": "role_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Role Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OutlookResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sdg/roles/{role_id}": {
+      "get": {
+        "tags": [
+          "sdg"
+        ],
+        "summary": "Get Role Sdg",
+        "operationId": "sdg_get_role_sdg",
+        "parameters": [
+          {
+            "name": "role_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Role Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntitySdgLinks"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sdg/skills/{skill_id}": {
+      "get": {
+        "tags": [
+          "sdg"
+        ],
+        "summary": "Get Skill Sdg",
+        "operationId": "sdg_get_skill_sdg",
+        "parameters": [
+          {
+            "name": "skill_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Skill Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntitySdgLinks"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sdg/contribution/me": {
+      "get": {
+        "tags": [
+          "sdg"
+        ],
+        "summary": "Get My Contribution",
+        "operationId": "sdg_get_my_contribution",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SdgContribution"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/trends/radar": {
+      "get": {
+        "tags": [
+          "trends"
+        ],
+        "summary": "Get Radar",
+        "operationId": "trends_get_radar",
+        "parameters": [
+          {
+            "name": "scenario",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "moderate",
+                "fast"
+              ],
+              "type": "string",
+              "default": "moderate",
+              "title": "Scenario"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RadarResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/trends/roles/{role_id}": {
+      "get": {
+        "tags": [
+          "trends"
+        ],
+        "summary": "Get Role Trend",
+        "operationId": "trends_get_role_trend",
+        "parameters": [
+          {
+            "name": "role_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Role Id"
+            }
+          },
+          {
+            "name": "scenario",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "moderate",
+                "fast"
+              ],
+              "type": "string",
+              "default": "moderate",
+              "title": "Scenario"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoleTrendResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Body_profile_upload_cv": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_profile_upload_cv"
+      },
+      "Course": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "provider": {
+            "type": "string",
+            "title": "Provider"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "hours": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Hours"
+          },
+          "cost_myr": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Cost Myr"
+          },
+          "hrd_claimable": {
+            "type": "boolean",
+            "title": "Hrd Claimable"
+          },
+          "verified_at": {
+            "type": "string",
+            "format": "date",
+            "title": "Verified At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "provider",
+          "url",
+          "hours",
+          "cost_myr",
+          "hrd_claimable",
+          "verified_at"
+        ],
+        "title": "Course"
+      },
+      "CvExtractionResult": {
+        "properties": {
+          "skills": {
+            "items": {
+              "$ref": "#/components/schemas/ExtractedSkill"
+            },
+            "type": "array",
+            "title": "Skills"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RecommendationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "skills",
+          "meta"
+        ],
+        "title": "CvExtractionResult"
+      },
+      "DataFreshness": {
+        "properties": {
+          "snapshot_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Snapshot Date"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/Source"
+            },
+            "type": "array",
+            "title": "Sources"
+          },
+          "is_mock": {
+            "type": "boolean",
+            "title": "Is Mock"
+          }
+        },
+        "type": "object",
+        "required": [
+          "snapshot_date",
+          "sources",
+          "is_mock"
+        ],
+        "title": "DataFreshness"
+      },
+      "EntitySdgLinks": {
+        "properties": {
+          "entity_type": {
+            "type": "string",
+            "enum": [
+              "role",
+              "skill"
+            ],
+            "title": "Entity Type"
+          },
+          "entity_id": {
+            "type": "string",
+            "title": "Entity Id"
+          },
+          "links": {
+            "items": {
+              "$ref": "#/components/schemas/SdgLink"
+            },
+            "type": "array",
+            "title": "Links"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RecommendationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "entity_type",
+          "entity_id",
+          "links",
+          "meta"
+        ],
+        "title": "EntitySdgLinks"
+      },
+      "ExtractedSkill": {
+        "properties": {
+          "skill_id": {
+            "type": "string",
+            "title": "Skill Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "level": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Level"
+          },
+          "confidence": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Confidence"
+          }
+        },
+        "type": "object",
+        "required": [
+          "skill_id",
+          "label",
+          "level",
+          "confidence"
+        ],
+        "title": "ExtractedSkill"
+      },
+      "GapHeatmapCell": {
+        "properties": {
+          "role_id": {
+            "type": "string",
+            "title": "Role Id"
+          },
+          "skill_id": {
+            "type": "string",
+            "title": "Skill Id"
+          },
+          "gap": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Gap",
+            "description": "Share of members missing the skill."
+          }
+        },
+        "type": "object",
+        "required": [
+          "role_id",
+          "skill_id",
+          "gap"
+        ],
+        "title": "GapHeatmapCell"
+      },
+      "GapHeatmapResponse": {
+        "properties": {
+          "role_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Role Ids"
+          },
+          "skills": {
+            "items": {
+              "$ref": "#/components/schemas/Skill"
+            },
+            "type": "array",
+            "title": "Skills"
+          },
+          "cells": {
+            "items": {
+              "$ref": "#/components/schemas/GapHeatmapCell"
+            },
+            "type": "array",
+            "title": "Cells"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RecommendationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role_ids",
+          "skills",
+          "cells",
+          "meta"
+        ],
+        "title": "GapHeatmapResponse"
+      },
+      "GoalSummary": {
+        "properties": {
+          "goal": {
+            "type": "integer",
+            "maximum": 17.0,
+            "minimum": 1.0,
+            "title": "Goal"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "link_count": {
+            "type": "integer",
+            "title": "Link Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "goal",
+          "label",
+          "link_count"
+        ],
+        "title": "GoalSummary"
+      },
+      "GroupPlan": {
+        "properties": {
+          "org_id": {
+            "type": "string",
+            "title": "Org Id"
+          },
+          "target_role_id": {
+            "type": "string",
+            "title": "Target Role Id"
+          },
+          "assigned_member_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Assigned Member Ids"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/PathwayStep"
+            },
+            "type": "array",
+            "title": "Steps"
+          },
+          "total_weeks": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Total Weeks"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RecommendationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "org_id",
+          "target_role_id",
+          "assigned_member_ids",
+          "steps",
+          "total_weeks",
+          "meta"
+        ],
+        "title": "GroupPlan"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HealthResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "ok",
+            "title": "Status"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "auth_mode": {
+            "type": "string",
+            "title": "Auth Mode"
+          },
+          "database": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "unavailable"
+            ],
+            "title": "Database"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "version",
+          "auth_mode",
+          "database"
+        ],
+        "title": "HealthResponse"
+      },
+      "MatchResponse": {
+        "properties": {
+          "matches": {
+            "items": {
+              "$ref": "#/components/schemas/RoleMatch"
+            },
+            "type": "array",
+            "title": "Matches"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RecommendationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "matches",
+          "meta"
+        ],
+        "title": "MatchResponse"
+      },
+      "Member": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
+          },
+          "current_role_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Role Id"
+          },
+          "intake_status": {
+            "type": "string",
+            "enum": [
+              "invited",
+              "in_progress",
+              "complete"
+            ],
+            "title": "Intake Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "display_name",
+          "current_role_id",
+          "intake_status"
+        ],
+        "title": "Member"
+      },
+      "MemberListResponse": {
+        "properties": {
+          "members": {
+            "items": {
+              "$ref": "#/components/schemas/Member"
+            },
+            "type": "array",
+            "title": "Members"
+          }
+        },
+        "type": "object",
+        "required": [
+          "members"
+        ],
+        "title": "MemberListResponse"
+      },
+      "Organization": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "company",
+              "institution"
+            ],
+            "title": "Type"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "industry": {
+            "type": "string",
+            "title": "Industry"
+          },
+          "size": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "name",
+          "industry",
+          "size"
+        ],
+        "title": "Organization"
+      },
+      "OutlookResponse": {
+        "properties": {
+          "outlooks": {
+            "items": {
+              "$ref": "#/components/schemas/RoleOutlook"
+            },
+            "type": "array",
+            "title": "Outlooks"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RecommendationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "outlooks",
+          "meta"
+        ],
+        "title": "OutlookResponse"
+      },
+      "Pathway": {
+        "properties": {
+          "role_id": {
+            "type": "string",
+            "title": "Role Id"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/PathwayStep"
+            },
+            "type": "array",
+            "title": "Steps"
+          },
+          "total_weeks": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Total Weeks"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RecommendationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role_id",
+          "steps",
+          "total_weeks",
+          "meta"
+        ],
+        "title": "Pathway"
+      },
+      "PathwayStep": {
+        "properties": {
+          "order": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Order"
+          },
+          "skill_id": {
+            "type": "string",
+            "title": "Skill Id"
+          },
+          "courses": {
+            "items": {
+              "$ref": "#/components/schemas/Course"
+            },
+            "type": "array",
+            "title": "Courses"
+          },
+          "est_hours": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Est Hours"
+          },
+          "week_start": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Week Start"
+          },
+          "week_end": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Week End"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "order",
+          "skill_id",
+          "courses",
+          "est_hours",
+          "week_start",
+          "week_end",
+          "reason"
+        ],
+        "title": "PathwayStep"
+      },
+      "Profile": {
+        "properties": {
+          "segment": {
+            "type": "string",
+            "enum": [
+              "working",
+              "graduate",
+              "switcher"
+            ],
+            "title": "Segment"
+          },
+          "interests": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Interests"
+          },
+          "hours_per_week": {
+            "type": "integer",
+            "maximum": 80.0,
+            "minimum": 0.0,
+            "title": "Hours Per Week"
+          },
+          "budget_myr": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Budget Myr"
+          },
+          "hrd_eligible": {
+            "type": "boolean",
+            "title": "Hrd Eligible"
+          },
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
+          },
+          "current_role_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Role Id"
+          },
+          "skills": {
+            "items": {
+              "$ref": "#/components/schemas/UserSkill"
+            },
+            "type": "array",
+            "title": "Skills"
+          }
+        },
+        "type": "object",
+        "required": [
+          "segment",
+          "hours_per_week",
+          "budget_myr",
+          "hrd_eligible",
+          "user_id",
+          "display_name",
+          "skills"
+        ],
+        "title": "Profile"
+      },
+      "ProfileIn": {
+        "properties": {
+          "segment": {
+            "type": "string",
+            "enum": [
+              "working",
+              "graduate",
+              "switcher"
+            ],
+            "title": "Segment"
+          },
+          "interests": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Interests"
+          },
+          "hours_per_week": {
+            "type": "integer",
+            "maximum": 80.0,
+            "minimum": 0.0,
+            "title": "Hours Per Week"
+          },
+          "budget_myr": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Budget Myr"
+          },
+          "hrd_eligible": {
+            "type": "boolean",
+            "title": "Hrd Eligible"
+          }
+        },
+        "type": "object",
+        "required": [
+          "segment",
+          "hours_per_week",
+          "budget_myr",
+          "hrd_eligible"
+        ],
+        "title": "ProfileIn"
+      },
+      "RadarResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TrendSignal"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RecommendationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "meta"
+        ],
+        "title": "RadarResponse"
+      },
+      "RecommendationMeta": {
+        "properties": {
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/Source"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Sources"
+          },
+          "snapshot_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Snapshot Date"
+          },
+          "scenario": {
+            "type": "string",
+            "enum": [
+              "moderate",
+              "fast"
+            ],
+            "title": "Scenario"
+          },
+          "is_estimate": {
+            "type": "boolean",
+            "title": "Is Estimate",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "sources",
+          "snapshot_date",
+          "scenario"
+        ],
+        "title": "RecommendationMeta",
+        "description": "Attached to every response that contains a recommendation, score or trend."
+      },
+      "RoleMatch": {
+        "properties": {
+          "role_id": {
+            "type": "string",
+            "title": "Role Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "score": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Score",
+            "description": "Sum of weight * value over components."
+          },
+          "components": {
+            "items": {
+              "$ref": "#/components/schemas/ScoreComponent"
+            },
+            "type": "array",
+            "title": "Components"
+          },
+          "missing_skills": {
+            "items": {
+              "$ref": "#/components/schemas/Skill"
+            },
+            "type": "array",
+            "title": "Missing Skills"
+          },
+          "partial_skills": {
+            "items": {
+              "$ref": "#/components/schemas/Skill"
+            },
+            "type": "array",
+            "title": "Partial Skills"
+          },
+          "sdg_targets": {
+            "items": {
+              "$ref": "#/components/schemas/SdgTarget"
+            },
+            "type": "array",
+            "title": "Sdg Targets"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RecommendationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role_id",
+          "label",
+          "score",
+          "components",
+          "missing_skills",
+          "partial_skills",
+          "sdg_targets",
+          "meta"
+        ],
+        "title": "RoleMatch"
+      },
+      "RoleOutlook": {
+        "properties": {
+          "role_id": {
+            "type": "string",
+            "title": "Role Id"
+          },
+          "scenario": {
+            "type": "string",
+            "enum": [
+              "moderate",
+              "fast"
+            ],
+            "title": "Scenario"
+          },
+          "outlook": {
+            "type": "number",
+            "title": "Outlook",
+            "description": "Projected demand index; 1.0 = current demand."
+          },
+          "low": {
+            "type": "number",
+            "title": "Low"
+          },
+          "high": {
+            "type": "number",
+            "title": "High"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role_id",
+          "scenario",
+          "outlook",
+          "low",
+          "high"
+        ],
+        "title": "RoleOutlook"
+      },
+      "RoleTrendResponse": {
+        "properties": {
+          "signal": {
+            "$ref": "#/components/schemas/TrendSignal"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RecommendationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "signal",
+          "meta"
+        ],
+        "title": "RoleTrendResponse"
+      },
+      "Scenario": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "enum": [
+              "moderate",
+              "fast"
+            ],
+            "title": "Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "adoption_rate": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Adoption Rate",
+            "description": "Share of tasks adopting AI by horizon."
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "adoption_rate",
+          "description"
+        ],
+        "title": "Scenario"
+      },
+      "ScenarioListResponse": {
+        "properties": {
+          "scenarios": {
+            "items": {
+              "$ref": "#/components/schemas/Scenario"
+            },
+            "type": "array",
+            "title": "Scenarios"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RecommendationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "scenarios",
+          "meta"
+        ],
+        "title": "ScenarioListResponse"
+      },
+      "ScoreComponent": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "examples": [
+              "skill_overlap",
+              "trend_outlook",
+              "interest_fit"
+            ]
+          },
+          "weight": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Weight"
+          },
+          "value": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Value"
+          },
+          "explanation": {
+            "type": "string",
+            "title": "Explanation"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "weight",
+          "value",
+          "explanation"
+        ],
+        "title": "ScoreComponent"
+      },
+      "SdgContribution": {
+        "properties": {
+          "goals_summary": {
+            "items": {
+              "$ref": "#/components/schemas/GoalSummary"
+            },
+            "type": "array",
+            "title": "Goals Summary"
+          },
+          "links": {
+            "items": {
+              "$ref": "#/components/schemas/SdgLink"
+            },
+            "type": "array",
+            "title": "Links"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RecommendationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "goals_summary",
+          "links",
+          "meta"
+        ],
+        "title": "SdgContribution"
+      },
+      "SdgLink": {
+        "properties": {
+          "target": {
+            "$ref": "#/components/schemas/SdgTarget"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "target",
+          "reason"
+        ],
+        "title": "SdgLink"
+      },
+      "SdgTarget": {
+        "properties": {
+          "goal": {
+            "type": "integer",
+            "maximum": 17.0,
+            "minimum": 1.0,
+            "title": "Goal"
+          },
+          "target": {
+            "type": "string",
+            "title": "Target",
+            "examples": [
+              "4.4"
+            ]
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "goal",
+          "target",
+          "label"
+        ],
+        "title": "SdgTarget"
+      },
+      "Skill": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "label"
+        ],
+        "title": "Skill"
+      },
+      "SkillsUpdate": {
+        "properties": {
+          "skills": {
+            "items": {
+              "$ref": "#/components/schemas/UserSkill"
+            },
+            "type": "array",
+            "title": "Skills"
+          }
+        },
+        "type": "object",
+        "required": [
+          "skills"
+        ],
+        "title": "SkillsUpdate"
+      },
+      "Source": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "examples": [
+              "MOCK DATA"
+            ]
+          },
+          "url": {
+            "type": "string",
+            "title": "Url",
+            "description": "Empty only for mock data."
+          },
+          "retrieved_at": {
+            "type": "string",
+            "format": "date",
+            "title": "Retrieved At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "url",
+          "retrieved_at"
+        ],
+        "title": "Source"
+      },
+      "TrendSignal": {
+        "properties": {
+          "entity_type": {
+            "type": "string",
+            "enum": [
+              "role",
+              "skill"
+            ],
+            "title": "Entity Type"
+          },
+          "entity_id": {
+            "type": "string",
+            "title": "Entity Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "rising",
+              "stable",
+              "declining"
+            ],
+            "title": "Direction"
+          },
+          "growth_rate": {
+            "type": "number",
+            "title": "Growth Rate",
+            "description": "Year-on-year change in demand, e.g. 0.12 = +12%."
+          },
+          "ai_exposure": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Ai Exposure"
+          },
+          "automation_share": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Automation Share"
+          },
+          "augmentation_share": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Augmentation Share"
+          }
+        },
+        "type": "object",
+        "required": [
+          "entity_type",
+          "entity_id",
+          "label",
+          "direction",
+          "growth_rate",
+          "ai_exposure",
+          "automation_share",
+          "augmentation_share"
+        ],
+        "title": "TrendSignal"
+      },
+      "UserSkill": {
+        "properties": {
+          "skill_id": {
+            "type": "string",
+            "title": "Skill Id"
+          },
+          "level": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Level"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "cv",
+              "form",
+              "confirmed"
+            ],
+            "title": "Source"
+          }
+        },
+        "type": "object",
+        "required": [
+          "skill_id",
+          "level",
+          "source"
+        ],
+        "title": "UserSkill"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}
