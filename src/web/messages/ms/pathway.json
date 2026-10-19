@@ -8,5 +8,60 @@
   "hrdClaimable": "Boleh dituntut HRD Corp",
   "verified": "disahkan {date}",
   "progressTitle": "Kemajuan anda",
-  "progressBody": "Penjejakan kemajuan dan lencana kemahiran akan datang kemudian (F5 Akhir)."
+  "progressBody": "Tandakan kursus apabila selesai. Lencana berdasarkan laporan anda sendiri, bukan penilaian.",
+  "estimateNote": "Bilangan minggu dan tahap yang dicapai bagi setiap kursus ialah anggaran.",
+  "catalogueOnly": "Kursus hanya daripada katalog kami, setiap satu dengan sumber dan tarikh semakan.",
+  "summary": {
+    "title": "Ringkasan pelan",
+    "pace": "{hours} j/minggu",
+    "totalHours": "{hours} j keseluruhan",
+    "outOfPocket": "Anda bayar RM {amount} daripada bajet RM {budget}",
+    "listPrice": "Harga senarai RM {amount}",
+    "hrdNote": "Kursus yang boleh dituntut HRD Corp tiada kos kepada anda: majikan memohon geran levi sebelum kursus bermula.",
+    "overBudget": "Melebihi bajet anda"
+  },
+  "step": {
+    "levels": "Tahap {current} → {reaches} (peranan memerlukan {target})",
+    "prerequisites": "Dibina atas: {skills}",
+    "alternatives": "Pilihan katalog lain ({count})",
+    "members": "Diperlukan oleh {count} ahli: {members}",
+    "source": "Sumber: {name}",
+    "sdg": "Sasaran SDG"
+  },
+  "unmet": {
+    "title": "Jurang yang belum dapat ditutup oleh katalog kami",
+    "no_catalogue_course": "Tiada kursus dalam katalog",
+    "over_budget": "Melebihi bajet",
+    "catalogue_tops_out": "Perlu latihan di luar kursus"
+  },
+  "plan": {
+    "save": "Pilih peranan ini dan simpan pelan",
+    "saved": "Disimpan sebagai pelan anda ({date})",
+    "decide": "Anda yang membuat keputusan. Menyimpan tidak mengikat anda dan boleh diubah bila-bila masa.",
+    "sdgLink": "Sumbangan laluan ini kepada SDG",
+    "progressLink": "Jejak kemajuan"
+  },
+  "replan": {
+    "title": "Data trend baharu mengubah pelan anda",
+    "accept": "Terima pelan yang dikemas kini",
+    "keep": "Kekalkan pelan semasa",
+    "change": {
+      "added": "Ditambah",
+      "removed": "Dibuang",
+      "reordered": "Disusun semula",
+      "courses_changed": "Kursus berubah"
+    }
+  },
+  "progress": {
+    "percent": "{percent} daripada jam yang dirancang selesai",
+    "gapClosed": "{closed} daripada {total} jurang kemahiran ditutup",
+    "markDone": "Tanda selesai",
+    "markUndone": "Batal",
+    "badges": "Lencana",
+    "noBadges": "Belum ada lencana. Selesaikan satu kursus untuk lencana pertama.",
+    "selfReported": "dilaporkan sendiri",
+    "skills": "Kemahiran",
+    "level": "Tahap {current} daripada {target}",
+    "courses": "Kursus dalam pelan anda"
+  }
 }

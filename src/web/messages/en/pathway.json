@@ -8,5 +8,60 @@
   "hrdClaimable": "HRD Corp claimable",
   "verified": "verified {date}",
   "progressTitle": "Your progress",
-  "progressBody": "Progress tracking and skill badges come later (F5 Final)."
+  "progressBody": "Tick courses as you finish them. Badges reflect what you report (self-reported), not an assessment.",
+  "estimateNote": "Weeks and the level each course brings you to are estimates.",
+  "catalogueOnly": "Courses come only from our catalogue, each with its source and the date we checked it.",
+  "summary": {
+    "title": "Plan summary",
+    "pace": "{hours} h/week",
+    "totalHours": "{hours} h in total",
+    "outOfPocket": "You pay RM {amount} of your RM {budget} budget",
+    "listPrice": "List price RM {amount}",
+    "hrdNote": "HRD Corp-claimable courses cost you nothing: your employer applies for the levy grant before the course starts.",
+    "overBudget": "Over your budget"
+  },
+  "step": {
+    "levels": "Level {current} → {reaches} (role needs {target})",
+    "prerequisites": "Builds on: {skills}",
+    "alternatives": "Other catalogue options ({count})",
+    "members": "Needed by {count} member(s): {members}",
+    "source": "Source: {name}",
+    "sdg": "SDG targets"
+  },
+  "unmet": {
+    "title": "Gaps our catalogue cannot close yet",
+    "no_catalogue_course": "No catalogue course",
+    "over_budget": "Over budget",
+    "catalogue_tops_out": "Needs practice beyond courses"
+  },
+  "plan": {
+    "save": "Choose this role and save the plan",
+    "saved": "Saved as your plan ({date})",
+    "decide": "You decide. Saving commits you to nothing, and you can change it any time.",
+    "sdgLink": "How this path contributes to the SDGs",
+    "progressLink": "Track progress"
+  },
+  "replan": {
+    "title": "New trend data changes your plan",
+    "accept": "Accept the updated plan",
+    "keep": "Keep my current plan",
+    "change": {
+      "added": "Added",
+      "removed": "Removed",
+      "reordered": "Reordered",
+      "courses_changed": "Courses changed"
+    }
+  },
+  "progress": {
+    "percent": "{percent} of planned hours done",
+    "gapClosed": "{closed} of {total} skill gaps closed",
+    "markDone": "Mark done",
+    "markUndone": "Undo",
+    "badges": "Badges",
+    "noBadges": "No badges yet. Finish a course to earn your first.",
+    "selfReported": "self-reported",
+    "skills": "Skills",
+    "level": "Level {current} of {target}",
+    "courses": "Courses in your plan"
+  }
 }
