@@ -95,9 +95,11 @@ export async function PathwayView({ roleId, scenario }: { roleId: string; scenar
   const t = await getTranslations("pathway");
   const [result, status] = await Promise.all([fetchPathway(roleId, scenario), fetchPlanStatus()]);
   if (!result.ok) return <ApiError message={result.message} />;
-  const plan = result.data;
   const saved = status.ok ? status.data.saved : null;
-  const isSaved = saved?.role_id === roleId;
+  // The saved plan is the one progress is tracked against; show it (not a fresh rebuild)
+  // whenever it is for this role and scenario. Changes are offered by the re-plan banner.
+  const savedHere = saved && saved.role_id === roleId && saved.scenario === scenario ? saved : null;
+  const plan = savedHere ? savedHere.pathway : result.data;
   const query = `?role=${encodeURIComponent(roleId)}&scenario=${scenario}`;
 
   return (
@@ -108,11 +110,13 @@ export async function PathwayView({ roleId, scenario }: { roleId: string; scenar
       >
         <MetaBar meta={plan.meta} />
       </PageHeader>
-      {status.ok ? <ReplanBanner status={status.data} /> : null}
+      {status.ok && savedHere ? <ReplanBanner status={status.data} /> : null}
       <Summary plan={plan} />
       <div className="flex flex-wrap items-center gap-2">
-        {isSaved && saved ? (
-          <Badge variant="success">{t("plan.saved", { date: saved.saved_at.slice(0, 10) })}</Badge>
+        {savedHere ? (
+          <Badge variant="success">
+            {t("plan.saved", { date: savedHere.saved_at.slice(0, 10) })}
+          </Badge>
         ) : (
           <form action={savePlanAction}>
             <input type="hidden" name="role_id" value={roleId} />

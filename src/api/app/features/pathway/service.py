@@ -179,11 +179,18 @@ def replan_status(user: CurrentUser) -> ReplanStatus:
     proposed = get_pathway(user, saved.role_id, saved.scenario)
     changes = replan.diff_plans(saved.pathway, proposed)
     newer = saved.snapshot_version != latest_version
-    needs = bool(changes) and newer
-    if needs and latest:
+    # Any difference is proposed, never applied silently: new trend data, or a changed
+    # profile (e.g. a skill confirmed at a higher level since the plan was saved).
+    needs = bool(changes)
+    if needs and newer and latest:
         message = (
             f"New trend data ({latest.source.name}, {latest.source.retrieved_at}) changes "
             f"{len(changes)} part(s) of your plan. Review and accept, or keep your current plan."
+        )
+    elif needs:
+        message = (
+            f"Your profile changed since you saved this plan; {len(changes)} part(s) would "
+            "change. Review and accept, or keep your current plan."
         )
     elif newer:
         message = f"Checked against trend snapshot {latest_version}: your plan is unchanged."
@@ -211,8 +218,11 @@ def accept_replan(user: CurrentUser) -> SavedPlan:
 
 
 def _plan_for_progress(user: CurrentUser, role_id: str, scenario: ScenarioId) -> Pathway:
+    """The plan progress is tracked against: the saved plan for this role and scenario, else
+    a fresh one. The same rule serves GET and POST, and the response carries the plan, so the
+    page always shows exactly the courses the API accepts."""
     saved = repository.get_plan(user.id)
-    if saved and saved.role_id == role_id:
+    if saved and saved.role_id == role_id and saved.scenario == scenario:
         return saved.pathway
     return get_pathway(user, role_id, scenario)
 
@@ -251,6 +261,7 @@ def get_progress(user: CurrentUser, role_id: str, scenario: ScenarioId) -> Progr
         gap_closed=sum(1 for s in skills if s.closed),
         gap_total=len(skills),
         badges=badges,
+        pathway=plan,
         meta=plan.meta,
     )
 

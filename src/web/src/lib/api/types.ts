@@ -1115,6 +1115,8 @@ export interface components {
             gap_total: number;
             /** Badges */
             badges: components["schemas"]["Badge"][];
+            /** @description The plan this progress is tracked against. */
+            pathway: components["schemas"]["Pathway"];
             meta: components["schemas"]["RecommendationMeta"];
         };
         /** ProgressUpdate */

@@ -3161,6 +3161,10 @@
             "type": "array",
             "title": "Badges"
           },
+          "pathway": {
+            "$ref": "#/components/schemas/Pathway",
+            "description": "The plan this progress is tracked against."
+          },
           "meta": {
             "$ref": "#/components/schemas/RecommendationMeta"
           }
@@ -3174,6 +3178,7 @@
           "gap_closed",
           "gap_total",
           "badges",
+          "pathway",
           "meta"
         ],
         "title": "Progress"

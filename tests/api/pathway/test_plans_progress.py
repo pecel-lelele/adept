@@ -92,3 +92,38 @@ def test_progress_rejects_courses_outside_the_plan(client: TestClient) -> None:
     )
     assert resp.status_code == 422
     assert resp.json()["error"]["code"] == "unknown_course"
+
+
+def test_progress_tracks_and_returns_the_saved_plan(client: TestClient) -> None:
+    saved = _save(client)
+    body = Progress.model_validate(
+        client.get("/api/v1/pathway/progress", params={"role_id": ROLE}).json()
+    )
+    assert body.pathway == saved.pathway
+
+
+def test_profile_change_is_proposed_not_applied(client: TestClient) -> None:
+    from app.features.profile import repository as profiles
+
+    original = profiles.get_profile("aisyah")
+    assert original is not None
+    saved = _save(client)
+    try:
+        skills = [s.model_dump() for s in original.skills]
+        skills.append({"skill_id": "rpa", "level": 3, "source": "confirmed"})
+        client.put("/api/v1/profile/skills", json={"skills": skills})
+        status = ReplanStatus.model_validate(client.get("/api/v1/pathway/plans/me").json())
+        assert status.needs_replan and "profile changed" in status.message
+        assert status.saved and status.saved.pathway == saved.pathway  # nothing applied yet
+        assert status.proposed and "rpa" not in [s.skill_id for s in status.proposed.steps]
+        # Progress still follows the saved plan until the learner accepts.
+        progress = client.get("/api/v1/pathway/progress", params={"role_id": ROLE}).json()
+        assert "rpa" in [s["skill_id"] for s in progress["pathway"]["steps"]]
+    finally:
+        profiles.save_profile(original)
+
+
+def test_other_scenario_uses_a_fresh_plan(client: TestClient) -> None:
+    _save(client)  # moderate
+    body = client.get("/api/v1/pathway/progress", params={"role_id": ROLE, "scenario": "fast"})
+    assert Progress.model_validate(body.json()).pathway.meta.scenario == "fast"

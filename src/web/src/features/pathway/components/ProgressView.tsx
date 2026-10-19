@@ -15,18 +15,15 @@ import type { ScenarioId } from "@/lib/api";
 import { percent } from "@/lib/utils";
 
 import { updateProgressAction } from "../actions";
-import { fetchPathway, fetchProgress } from "../api";
+import { fetchProgress } from "../api";
 
 export async function ProgressView({ roleId, scenario }: { roleId: string; scenario: ScenarioId }) {
   const t = await getTranslations("pathway");
-  const [plan, progress] = await Promise.all([
-    fetchPathway(roleId, scenario),
-    fetchProgress(roleId, scenario),
-  ]);
-  if (!plan.ok) return <ApiError message={plan.message} />;
+  const progress = await fetchProgress(roleId, scenario);
   if (!progress.ok) return <ApiError message={progress.message} />;
   const p = progress.data;
-  const courses = plan.data.steps.flatMap((s) => s.courses.map((c) => ({ ...c, step: s.order })));
+  // Courses come from the plan the API tracks progress against, so every button is valid.
+  const courses = p.pathway.steps.flatMap((s) => s.courses.map((c) => ({ ...c, step: s.order })));
   const unique = courses.filter((c, i) => courses.findIndex((x) => x.id === c.id) === i);
 
   return (

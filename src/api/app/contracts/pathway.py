@@ -158,4 +158,5 @@ class Progress(BaseModel):
     gap_closed: int = Field(ge=0)
     gap_total: int = Field(ge=0)
     badges: list[Badge]
+    pathway: Pathway = Field(description="The plan this progress is tracked against.")
     meta: RecommendationMeta
