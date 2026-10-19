@@ -36,10 +36,10 @@ def get_gaps(user: CurrentUser, scenario: ScenarioId) -> GapHeatmapResponse:
     )
 
 
-def get_plan(user: CurrentUser) -> GroupPlan:
+def get_plan(user: CurrentUser, scenario: ScenarioId) -> GroupPlan:
     org_id = _org_id(user)
     # Reuses F5's public service; TODO(F7): let the manager pick the target role.
-    pathway = pathway_service.get_pathway(user, DEMO_TARGET_ROLE_ID, "moderate")
+    pathway = pathway_service.get_pathway(user, DEMO_TARGET_ROLE_ID, scenario)
     return GroupPlan(
         org_id=org_id,
         target_role_id=pathway.role_id,

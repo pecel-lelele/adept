@@ -36,3 +36,10 @@ def test_plan(client: TestClient) -> None:
     assert resp.status_code == 200
     body = GroupPlan.model_validate(resp.json())
     assert body.steps and body.assigned_member_ids
+
+
+def test_plan_follows_the_selected_scenario(client: TestClient) -> None:
+    for scenario in ("moderate", "fast"):
+        resp = client.get("/api/v1/org/plan", params={"scenario": scenario}, headers=COMPANY)
+        assert resp.status_code == 200
+        assert GroupPlan.model_validate(resp.json()).meta.scenario == scenario

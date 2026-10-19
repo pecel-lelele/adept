@@ -24,5 +24,5 @@ def get_gaps(user: CurrentUserDep, scenario: ScenarioId = "moderate") -> GapHeat
 
 
 @router.get("/plan")
-def get_plan(user: CurrentUserDep) -> GroupPlan:
-    return service.get_plan(user)
+def get_plan(user: CurrentUserDep, scenario: ScenarioId = "moderate") -> GroupPlan:
+    return service.get_plan(user, scenario)

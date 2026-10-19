@@ -1034,7 +1034,9 @@ export interface operations {
     };
     org_get_plan: {
         parameters: {
-            query?: never;
+            query?: {
+                scenario?: "moderate" | "fast";
+            };
             header?: {
                 "x-demo-user"?: string | null;
             };

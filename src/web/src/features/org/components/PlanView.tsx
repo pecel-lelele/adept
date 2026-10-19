@@ -2,12 +2,13 @@ import { getTranslations } from "next-intl/server";
 
 import { ApiError, MetaBar, PageHeader, StubBanner } from "@/components";
 import { PathwaySteps } from "@/features/pathway";
+import type { ScenarioId } from "@/lib/api";
 
 import { fetchPlan } from "../api";
 
-export async function PlanView() {
+export async function PlanView({ scenario }: { scenario: ScenarioId }) {
   const t = await getTranslations("org");
-  const result = await fetchPlan();
+  const result = await fetchPlan(scenario);
   return (
     <section>
       <StubBanner feature="F7 Organisation mode" endpoint="GET /api/v1/org/plan" />

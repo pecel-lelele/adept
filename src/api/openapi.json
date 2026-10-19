@@ -352,6 +352,20 @@
         "operationId": "org_get_plan",
         "parameters": [
           {
+            "name": "scenario",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "moderate",
+                "fast"
+              ],
+              "type": "string",
+              "default": "moderate",
+              "title": "Scenario"
+            }
+          },
+          {
             "name": "x-demo-user",
             "in": "header",
             "required": false,
