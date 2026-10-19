@@ -42,11 +42,13 @@ export async function AboutView() {
                     })
                   : t("llmNone")}
               </p>
-              {disclosure.data.purpose.map((p) => (
-                <p key={p} className="text-muted-foreground">
-                  {p}
-                </p>
-              ))}
+              {disclosure.data.llm_enabled
+                ? disclosure.data.purpose.map((p) => (
+                    <p key={p} className="text-muted-foreground">
+                      {p}
+                    </p>
+                  ))
+                : null}
               <p className="text-xs text-muted-foreground">
                 {t("llmCalls", {
                   calls: disclosure.data.calls_logged,

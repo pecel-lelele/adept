@@ -34,7 +34,11 @@ def test_valid_token_decodes() -> None:
     [
         _token(exp=int(time.time()) - 10),
         _token(aud="anon"),
-        jwt.encode({"sub": "x", "aud": "authenticated", "exp": 9e9}, "wrong", algorithm="HS256"),
+        jwt.encode(
+            {"sub": "x", "aud": "authenticated", "exp": 9e9},
+            "wrong-secret-also-32-bytes-long-xx",
+            algorithm="HS256",
+        ),
         jwt.encode({"aud": "authenticated", "exp": 9e9}, SECRET, algorithm="HS256"),  # no sub
         "not-a-jwt",
     ],
