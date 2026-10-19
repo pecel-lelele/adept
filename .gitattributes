@@ -1,0 +1,5 @@
+# Keep LF everywhere so generated contract files don't drift on Windows.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.pdf binary

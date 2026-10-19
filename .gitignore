@@ -1,0 +1,33 @@
+# secrets
+.env
+.env.*
+!.env.example
+
+# data
+data/raw/
+
+# python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# node / next
+node_modules/
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+.pnpm-store/
+
+# personal AI settings
+CLAUDE.local.md
+.gemini/settings.json
+.claude/settings.local.json
+
+# os / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
