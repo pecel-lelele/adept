@@ -1,0 +1,36 @@
+# Weekly check that the live public sources behind the catalogue and SDG list still answer
+# and still contain what we rely on (e.g. a curated Microsoft Learn module was not retired).
+# It does not commit anything; a failure means someone should rerun the pipeline and review.
+name: Data sources
+
+on:
+  schedule:
+    - cron: "17 2 * * 1" # Mondays 02:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  refresh-dry-run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: UN SDG API still returns 17 goals and their targets
+        run: PYTHONPATH=src python -m pipelines.sdg.run --out "$RUNNER_TEMP/sdg"
+
+      - name: Microsoft Learn still lists every curated course
+        run: PYTHONPATH=src python -m pipelines.pathway.run --out "$RUNNER_TEMP/courses.csv"
+
+      - name: Report differences from the committed seed
+        run: |
+          diff <(cut -d, -f1-3 src/data/seed/sdg/sdg_targets.csv) \
+               <(cut -d, -f1-3 "$RUNNER_TEMP/sdg/sdg_targets.csv") || echo "::warning::SDG targets changed upstream"
+          diff <(cut -d, -f1-5 src/data/seed/courses/courses.csv) \
+               <(cut -d, -f1-5 "$RUNNER_TEMP/courses.csv") || echo "::warning::Course catalogue changed upstream; rerun pipelines.pathway"
