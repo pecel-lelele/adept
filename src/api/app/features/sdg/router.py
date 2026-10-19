@@ -1,9 +1,10 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
 from pydantic import Field
 
 from app.contracts.common import ScenarioId
+from app.contracts.guardrails import SyncReport
 from app.contracts.sdg import (
     EntitySdgLinks,
     RegionListResponse,
@@ -12,12 +13,19 @@ from app.contracts.sdg import (
     SdgGoalListResponse,
 )
 from app.core.auth import CurrentUserDep
+from app.features.guardrails.datasync import require_sync_token
 from app.features.org import service as org_service
-from app.features.sdg import service
+from app.features.sdg import service, sync
 
 router = APIRouter(prefix="/sdg", tags=["sdg"])
 
 GoalId = Annotated[int, Field(ge=1, le=17)]
+
+
+@router.post("/sync", dependencies=[Depends(require_sync_token)])
+def sync_sdg() -> SyncReport:
+    """Refresh goals/targets from the UN API and the curated links (needs X-Sync-Token)."""
+    return sync.sync_sdg()
 
 
 @router.get("/goals")

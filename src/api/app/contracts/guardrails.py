@@ -1,6 +1,6 @@
 """F8 Guardrails & transparency (owner M3)."""
 
-from datetime import date
+from datetime import date, datetime
 from typing import Literal
 
 from pydantic import BaseModel, Field
@@ -25,6 +25,9 @@ class DataSourceInfo(BaseModel):
     kind: SourceKind
     used_for: str
     records: int = Field(ge=0)
+    last_synced_at: datetime | None = Field(
+        default=None, description="Last successful live sync (M3_BACKEND=postgres only)."
+    )
 
 
 class SourcesResponse(BaseModel):
@@ -43,3 +46,15 @@ class FairnessReport(BaseModel):
     protected_inputs_found: list[str]
     counterfactual_checks: list[CounterfactualResult]
     passed: bool
+
+
+class SyncReport(BaseModel):
+    """Result of refreshing reference data from its live source."""
+
+    source: str
+    status: Literal["ok", "failed"]
+    records: int = Field(ge=0, description="Rows written or refreshed.")
+    retired: int = Field(ge=0, description="Rows the source no longer lists (kept, flagged).")
+    started_at: datetime
+    finished_at: datetime
+    detail: str = ""

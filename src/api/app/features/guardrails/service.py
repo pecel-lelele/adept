@@ -21,10 +21,13 @@ from app.contracts.guardrails import (
 from app.core import seed
 from app.core.fairness import PROTECTED_TERMS, counterfactual_diffs, protected_terms_in
 from app.core.llm import CALL_LOG, disclosure
+from app.features.guardrails import datasync
 from app.features.pathway import data as pathway_data
 from app.features.pathway import engine
 from app.features.pathway import service as pathway_service
+from app.features.pathway import sync as pathway_sync
 from app.features.sdg import repository as sdg_repository
+from app.features.sdg import sync as sdg_sync_module
 
 RULES = [
     "The model may only select IDs from a catalogue we supply; unknown IDs are rejected.",
@@ -121,6 +124,16 @@ def get_sources() -> SourcesResponse:
             records=len(seed.rows("personas", "users")) + len(seed.rows("org", "users")),
         )
     )
+    synced = datasync.last_successful_syncs()
+    catalogue_sync = synced.get(pathway_sync.SOURCE)
+    sdg_sync = synced.get(sdg_sync_module.SOURCE)
+    for item in out:
+        if item.used_for.startswith("Course catalogue"):
+            item.last_synced_at = catalogue_sync
+        elif item.kind == "live_api" and "SDG" in item.name:
+            item.last_synced_at = sdg_sync
+        elif item.kind == "curated":
+            item.last_synced_at = sdg_sync
     return SourcesResponse(sources=out)
 
 

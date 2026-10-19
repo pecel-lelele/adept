@@ -1,6 +1,7 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from app.contracts.common import ScenarioId
+from app.contracts.guardrails import SyncReport
 from app.contracts.pathway import (
     CatalogueResponse,
     Pathway,
@@ -11,7 +12,8 @@ from app.contracts.pathway import (
     SavePlanIn,
 )
 from app.core.auth import CurrentUserDep
-from app.features.pathway import service
+from app.features.guardrails.datasync import require_sync_token
+from app.features.pathway import service, sync
 
 router = APIRouter(prefix="/pathway", tags=["pathway"])
 
@@ -25,6 +27,12 @@ def get_pathway(role_id: str, user: CurrentUserDep, scenario: ScenarioId = "mode
 def get_catalogue() -> CatalogueResponse:
     """Every course the pathway may recommend, with its source and verification date."""
     return service.catalogue()
+
+
+@router.post("/catalogue/sync", dependencies=[Depends(require_sync_token)])
+def sync_catalogue() -> SyncReport:
+    """Refresh the catalogue from its live sources (needs X-Sync-Token, M3_BACKEND=postgres)."""
+    return sync.sync_catalogue()
 
 
 @router.post("/plans")
