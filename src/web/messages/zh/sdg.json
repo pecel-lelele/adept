@@ -1,7 +1,25 @@
 {
-  "title": "您的路径如何助力可持续发展目标",
-  "orgTitle": "您机构的 SDG 贡献",
+  "title": "您的路径对 SDG 的贡献",
+  "orgTitle": "贵机构的 SDG 贡献",
+  "regionTitle": "{region} 的 SDG 贡献",
+  "description": "显示全部 17 项可持续发展目标；本领域重点关注目标 4、5、8、9 和 10。您的路径未涉及的目标也会显示。",
   "goals": "目标",
   "links": "关联",
-  "linkCount": "{count} 项关联"
+  "linkCount": "{count} 项关联",
+  "focus": "重点",
+  "direct": "直接",
+  "enabling": "促进",
+  "strengthHint": "直接：这项工作本身推进该具体目标。促进：它建立该目标所需的能力。",
+  "contributors": "{count} 人",
+  "draft": "草稿，待审核",
+  "forRoles": "职位：{roles}",
+  "via": {
+    "role": "职位",
+    "skill": "技能",
+    "pathway": "您的计划"
+  },
+  "scope": {
+    "organisation": "机构",
+    "region": "地区"
+  }
 }
