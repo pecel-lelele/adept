@@ -16,6 +16,7 @@ from app.core.config import get_settings
 from app.core.errors import register_error_handlers
 from app.core.logging import configure_logging, get_logger
 from app.core.routes import router as core_router
+from app.core.security import install_security
 
 log = get_logger("app")
 
@@ -52,6 +53,7 @@ def create_app() -> FastAPI:
         separate_input_output_schemas=False,
         generate_unique_id_function=_operation_id,
     )
+    install_security(app, settings)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origin_list,
