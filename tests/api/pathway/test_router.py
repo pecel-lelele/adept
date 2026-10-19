@@ -1,6 +1,21 @@
 from fastapi.testclient import TestClient
 
-from app.contracts.pathway import Pathway
+from app.contracts.matching import MatchResponse
+from app.contracts.pathway import CatalogueResponse, Pathway
+from app.features.pathway import data
+
+AISYAH = {"X-Demo-User": "aisyah"}
+WEIJIE = {"X-Demo-User": "weijie"}
+
+
+def _pathway(
+    client: TestClient, role: str, headers: dict[str, str] = AISYAH, scenario: str = "moderate"
+) -> Pathway:
+    resp = client.get(
+        "/api/v1/pathway", params={"role_id": role, "scenario": scenario}, headers=headers
+    )
+    assert resp.status_code == 200, resp.text
+    return Pathway.model_validate(resp.json())
 
 
 def test_pathway(client: TestClient) -> None:
@@ -18,3 +33,62 @@ def test_pathway_requires_role(client: TestClient) -> None:
 
 def test_pathway_unknown_role(client: TestClient) -> None:
     assert client.get("/api/v1/pathway", params={"role_id": "x"}).status_code == 404
+
+
+def test_every_suggested_match_has_a_pathway(client: TestClient) -> None:
+    """Review finding P1: 'Plan a pathway' must work for every match shown."""
+    for scenario in ("moderate", "fast"):
+        matches = MatchResponse.model_validate(
+            client.get("/api/v1/matches", params={"scenario": scenario}).json()
+        )
+        for m in matches.matches:
+            assert _pathway(client, m.role_id, scenario=scenario).steps, m.role_id
+
+
+def test_recommends_only_catalogue_courses(client: TestClient) -> None:
+    catalogue = {c.id: c for c in data.catalogue()}
+    for role in data.role_labels():
+        if not data.requirements(role):
+            continue
+        for step in _pathway(client, role).steps:
+            for c in [*step.courses, *step.alternatives]:
+                assert catalogue[c.id] == c, f"{c.id} is not the catalogue record"
+
+
+def test_every_course_carries_url_source_and_verified_date(client: TestClient) -> None:
+    body = CatalogueResponse.model_validate(client.get("/api/v1/pathway/catalogue").json())
+    assert body.courses
+    for c in body.courses:
+        assert c.url.startswith("https://") and c.source and c.source.retrieved_at
+        assert c.verified_at <= c.source.retrieved_at or c.verified_at == c.source.retrieved_at
+    assert not body.meta.is_estimate
+
+
+def test_schedule_uses_profile_hours_per_week(client: TestClient) -> None:
+    aisyah = _pathway(client, "data-analyst")
+    assert aisyah.hours_per_week == 6
+    assert aisyah.total_weeks == -(-aisyah.total_hours // 6)
+
+
+def test_budget_and_hrd_fields_are_explained(client: TestClient) -> None:
+    body = _pathway(client, "data-analyst")
+    assert body.hrd_eligible and body.budget_myr == 500
+    assert body.within_budget and body.out_of_pocket_myr <= body.budget_myr
+    hrd = [a for s in body.steps for a in s.alternatives if a.hrd_claimable]
+    assert hrd and all(a.hrd_note for a in hrd)
+
+
+def test_steps_link_to_sdg_targets(client: TestClient) -> None:
+    body = _pathway(client, "process-automation-analyst")
+    assert all(step.sdg_targets for step in body.steps)
+
+
+def test_prerequisite_order_for_aisyah(client: TestClient) -> None:
+    order = [s.skill_id for s in _pathway(client, "process-automation-analyst").steps]
+    assert order.index("process-mapping") < order.index("rpa")
+
+
+def test_unmet_skill_is_reported_not_invented(client: TestClient) -> None:
+    body = _pathway(client, "ai-operations-specialist", headers=WEIJIE)
+    unmet = {u.skill_id: u for u in body.unmet}
+    assert unmet["prompt-engineering"].reason == "catalogue_tops_out"
