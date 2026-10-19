@@ -1,0 +1,36 @@
+"""Application settings, read from environment variables and the root .env."""
+
+from functools import lru_cache
+from pathlib import Path
+from typing import Literal
+
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+REPO_ROOT = Path(__file__).resolve().parents[4]
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=REPO_ROOT / ".env", env_file_encoding="utf-8", extra="ignore"
+    )
+
+    app_name: str = "Aiversecity Future-Ready Workforce API"
+    version: str = "0.1.0"
+    api_prefix: str = "/api/v1"
+    auth_mode: Literal["demo", "supabase"] = "demo"
+    database_url: str = "postgresql://adept:adept@localhost:5432/adept"
+    cors_origins: str = Field(default="http://localhost:3000")
+    log_level: str = "INFO"
+    llm_provider: str = "none"
+    llm_model: str = ""
+    llm_api_key: str = ""
+
+    @property
+    def cors_origin_list(self) -> list[str]:
+        return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+
+
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()
