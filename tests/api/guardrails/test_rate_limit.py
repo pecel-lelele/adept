@@ -51,6 +51,16 @@ def test_eviction_never_drops_a_throttled_counter() -> None:
     assert not c.hit("attacker", "/", now=1)[0], "eviction must not reset a throttle"
 
 
+def test_full_map_of_throttled_counters_keeps_every_block() -> None:
+    c = SlidingWindowCounter({}, default=(1, 60), max_keys=2)
+    assert c.hit("a", "/", now=0)[0] and c.hit("b", "/", now=0)[0]  # both now at their limit
+    allowed, _, _, retry = c.hit("newcomer", "/", now=1)
+    assert not allowed and retry == 60, "newcomers wait rather than evict an active block"
+    assert not c.hit("a", "/", now=2)[0] and not c.hit("b", "/", now=2)[0]
+    assert len(c) == 2
+    assert c.hit("newcomer", "/", now=61)[0], "once a window expires, there is room again"
+
+
 def test_middleware_returns_429_with_retry_after() -> None:
     client = _app(default=(2, 60), route_limits={})
     assert client.get("/api/v1/a").status_code == 200

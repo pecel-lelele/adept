@@ -6,7 +6,8 @@ Design (kept from KerjaCerdas `api/middleware/rate_limiter.py`):
   ``__default__``. Keying by raw path would give every URL its own allowance and let an
   attacker grow the map without bound.
 - The map is capped (``max_keys``) with LRU eviction that prefers expired windows and never
-  drops a counter that is currently at its limit (eviction must not reset a throttle).
+  drops a counter that is currently at its limit (eviction must not reset a throttle). If
+  every stored counter is at its limit, new clients are refused (429) until a window expires.
 - ``X-Real-IP`` is trusted only when the request also carries the shared proxy secret, so a
   client cannot rotate a spoofed header to dodge the limit.
 
@@ -92,17 +93,21 @@ class SlidingWindowCounter:
     def _is_throttled(self, key: tuple[str, str], now: float) -> bool:
         return len(self._live(key, now)) >= self._limit_of(key[1])[0]
 
-    def _evict_one(self, now: float) -> None:
+    def _evict_one(self, now: float) -> bool:
+        """Drop one counter that costs nothing to lose. False if every counter is throttled.
+
+        An active throttle is never dropped: recreating it empty would hand that client a
+        fresh allowance.
+        """
         for key in list(self._windows):  # LRU first
             if not self._live(key, now):
                 del self._windows[key]
-                return
+                return True
         for key in list(self._windows):
             if not self._is_throttled(key, now):
                 del self._windows[key]
-                return
-        log.warning("rate limiter full (%d keys), all throttled; evicting LRU", len(self))
-        self._windows.popitem(last=False)
+                return True
+        return False
 
     def hit(self, ip: str, path: str, now: float | None = None) -> tuple[bool, Limit, int, int]:
         """Record one request. Returns (allowed, limit, remaining, retry_after_s)."""
@@ -112,8 +117,11 @@ class SlidingWindowCounter:
         if key in self._windows:
             self._windows.move_to_end(key)
         else:
-            if len(self._windows) >= self.max_keys:
-                self._evict_one(now)
+            if len(self._windows) >= self.max_keys and not self._evict_one(now):
+                # Map full of active throttles: refuse newcomers until a window expires,
+                # rather than forget a block.
+                log.warning("rate limiter full (%d keys), all throttled; rejecting", len(self))
+                return False, limit, 0, limit[1]
             self._windows[key] = deque()
         dq = self._live(key, now)
         max_req, window = limit
