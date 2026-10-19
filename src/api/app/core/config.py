@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     version: str = "0.1.0"
     api_prefix: str = "/api/v1"
     auth_mode: Literal["demo", "supabase"] = "demo"
-    database_url: str = "postgresql://adept:adept@localhost:5433/adept"
+    database_url: str = "postgresql://adept:adept@127.0.0.1:5433/adept"
     cors_origins: str = Field(default="http://localhost:3000")
     log_level: str = "INFO"
     llm_provider: str = "none"
