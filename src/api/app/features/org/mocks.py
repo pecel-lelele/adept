@@ -1,8 +1,7 @@
 """Mock organisations (synthetic). The full demo company has 25 synthetic employees; a few
 are listed here. F7 (M4) moves this to `organizations` and `memberships`."""
 
-from app.contracts.org import GapHeatmapCell, Member, Organization
-from app.contracts.profile import Skill
+from app.contracts.org import Member, Organization
 
 ORGS: dict[str, Organization] = {
     "org-demo-bank": Organization(id="org-demo-bank", type="company", name="Demo Bank Berhad",
@@ -31,28 +30,18 @@ MEMBERS: dict[str, list[Member]] = {
     ],
 }  # fmt: skip
 
-GAP_SKILLS = [
-    Skill(id="sql", label="SQL"),
-    Skill(id="python", label="Python programming"),
-    Skill(id="rpa", label="Robotic process automation"),
-    Skill(id="ai-literacy", label="AI literacy & responsible AI"),
-]
+# Roles shown as heatmap rows. Cells are computed from members' skills (F5 `team_gaps`).
 GAP_ROLES = ["data-analyst", "process-automation-analyst"]
-# (role_id, skill_id) -> base gap; the fast scenario widens gaps in this mock.
-GAPS: dict[tuple[str, str], float] = {
-    ("data-analyst", "sql"): 0.72,
-    ("data-analyst", "python"): 0.84,
-    ("data-analyst", "rpa"): 0.20,
-    ("data-analyst", "ai-literacy"): 0.55,
-    ("process-automation-analyst", "sql"): 0.40,
-    ("process-automation-analyst", "python"): 0.60,
-    ("process-automation-analyst", "rpa"): 0.90,
-    ("process-automation-analyst", "ai-literacy"): 0.50,
+
+# Synthetic confirmed skills for team members who have no persona profile (F1). Members with
+# a profile (e.g. Aisyah, Wei Jie) use their profile instead. Levels 1-5. No real people.
+TEAM_SKILLS: dict[str, dict[str, int]] = {
+    "emp-002": {"excel": 3, "manual-data-entry": 4, "customer-service": 2},
+    "emp-003": {"excel": 4, "risk-compliance": 2, "process-mapping": 1},
 }
 
-
-def heatmap(widen: float) -> list[GapHeatmapCell]:
-    return [
-        GapHeatmapCell(role_id=r, skill_id=s, gap=min(1.0, round(g * widen, 2)))
-        for (r, s), g in GAPS.items()
-    ]
+# Target role a manager plans for when none is chosen yet (per organisation).
+DEFAULT_TARGET_ROLE: dict[str, str] = {
+    "org-demo-bank": "process-automation-analyst",
+    "org-demo-poly": "data-analyst",
+}
