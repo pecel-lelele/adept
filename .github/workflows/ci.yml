@@ -107,6 +107,8 @@ jobs:
       DATABASE_URL: postgresql://adept:adept-ci-only@localhost:5432/adept
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0 # the skeleton commit is needed for the upgrade test
 
       - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
 
@@ -114,6 +116,17 @@ jobs:
         run: |
           uv venv --python "$PYTHON_VERSION" .venv
           uv pip install --python .venv/bin/python -r requirements.txt
+
+      # Upgrade path: build the database exactly as the merged skeleton did (its own
+      # migrations and mock seeds), then apply today's migrations and seeds on top.
+      - name: Seed a database from the skeleton release
+        run: |
+          mkdir -p "$RUNNER_TEMP/skeleton"
+          git archive "$SKELETON_SHA" src/db src/data/seed | tar -x -C "$RUNNER_TEMP/skeleton"
+          .venv/bin/python "$RUNNER_TEMP/skeleton/src/db/migrate.py" up
+          .venv/bin/python "$RUNNER_TEMP/skeleton/src/db/seed.py"
+        env:
+          SKELETON_SHA: 010f048e0bafc81d7734061939dc366f9ccaf3f8
 
       - name: Apply migrations
         run: .venv/bin/python src/db/migrate.py up
@@ -135,13 +148,28 @@ jobs:
           BEGIN
             IF (SELECT count(*) FROM sdg_goals) <> 17 THEN RAISE EXCEPTION 'expected 17 goals'; END IF;
             IF (SELECT count(*) FROM sdg_targets) <> 169 THEN RAISE EXCEPTION 'expected 169 targets'; END IF;
+            IF EXISTS (SELECT 1 FROM sdg_targets WHERE retrieved_at IS NULL)
+              THEN RAISE EXCEPTION 'a skeleton SDG target survived the upgrade'; END IF;
             IF EXISTS (SELECT 1 FROM roles r WHERE NOT EXISTS
                        (SELECT 1 FROM role_sdg_map m WHERE m.role_id = r.id))
               THEN RAISE EXCEPTION 'a role has no SDG link'; END IF;
             IF EXISTS (SELECT 1 FROM skills s WHERE NOT EXISTS
                        (SELECT 1 FROM skill_sdg_map m WHERE m.skill_id = s.id))
               THEN RAISE EXCEPTION 'a skill has no SDG link'; END IF;
-            IF EXISTS (SELECT 1 FROM courses WHERE url NOT LIKE 'https://%' OR source_url = '')
-              THEN RAISE EXCEPTION 'a course lacks an https URL or source'; END IF;
+            IF EXISTS (SELECT 1 FROM role_sdg_map WHERE reason ILIKE '%mock%' OR evidence_url = ''
+                       UNION ALL
+                       SELECT 1 FROM skill_sdg_map WHERE reason ILIKE '%mock%' OR evidence_url = '')
+              THEN RAISE EXCEPTION 'an SDG link is a mock or has no evidence'; END IF;
+            IF EXISTS (SELECT 1 FROM courses WHERE url NOT LIKE 'https://%' OR source_url = ''
+                       OR url LIKE 'https://example.org/%')
+              THEN RAISE EXCEPTION 'a course is a placeholder or lacks an https URL or source'; END IF;
           END $$;
           SQL
+
+      # Plans, progress, badges, reference reads, live sync (from fixtures) and shared rate
+      # limits against the real database.
+      - name: PostgreSQL integration tests
+        run: |
+          .venv/bin/python -m pytest -q tests/api/pathway/test_postgres_store.py tests/api/pathway/test_postgres_refdata.py tests/api/pathway/test_postgres_sync.py tests/api/guardrails/test_rate_limit_postgres.py
+        env:
+          ADEPT_TEST_DATABASE_URL: ${{ env.DATABASE_URL }}
