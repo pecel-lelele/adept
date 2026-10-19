@@ -37,6 +37,12 @@ class Settings(BaseSettings):
     rate_limit_window_s: int = 60
     # Shared secret the web server sends with X-Real-IP so the API can trust it.
     proxy_shared_secret: str = ""
+    # --- M3 storage (F5/F6/F8) ---
+    # csv: reference data from the seed files, plans/progress/badges/rate limits in memory.
+    # postgres: everything in DATABASE_URL (shared by all API instances; survives restarts).
+    m3_backend: Literal["csv", "postgres"] = "csv"
+    # Secret for POST .../sync endpoints that refresh live data; empty = sync disabled.
+    sync_token: str = ""
     # AUTH_MODE=supabase: project JWT secret (HS256) and expected audience.
     supabase_jwt_secret: str = ""
     supabase_jwt_audience: str = "authenticated"
