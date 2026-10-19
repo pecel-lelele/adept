@@ -16,6 +16,13 @@ class SdgTarget(BaseModel):
     label: str
 
 
+class SdgEvidence(BaseModel):
+    """The published source that justifies a link, and what in it does."""
+
+    source: Source
+    note: str
+
+
 class SdgLink(BaseModel):
     target: SdgTarget
     reason: str
@@ -25,6 +32,9 @@ class SdgLink(BaseModel):
     )
     via: str = Field(default="", description="What the link comes from, e.g. 'skill:sql'.")
     reviewed: bool = Field(default=False, description="False = draft pending human review.")
+    evidence: SdgEvidence | None = Field(
+        default=None, description="Source justifying the link (UN metadata, ILO, UNESCO)."
+    )
 
 
 class EntitySdgLinks(BaseModel):

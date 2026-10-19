@@ -6,7 +6,7 @@ from __future__ import annotations
 from datetime import date
 
 from app.contracts.common import Source
-from app.contracts.sdg import SdgLink, SdgStrength, SdgTarget
+from app.contracts.sdg import SdgEvidence, SdgLink, SdgStrength, SdgTarget
 from app.core import refdata
 
 AREA = "sdg"
@@ -44,6 +44,19 @@ def short_titles() -> dict[int, str]:
     return {int(g["id"]): g["short_title"] for g in refdata.rows(AREA, "sdg_goals", " ORDER BY id")}
 
 
+EVIDENCE_CHECKED = date(2026, 10, 20)
+
+
+def _evidence(row: dict[str, str]) -> SdgEvidence | None:
+    url = row.get("evidence_url", "")
+    if not url:
+        return None
+    return SdgEvidence(
+        source=Source(name=row.get("evidence_source", ""), url=url, retrieved_at=EVIDENCE_CHECKED),
+        note=row.get("evidence_note", ""),
+    )
+
+
 def _links(table: str, key: str, entity_id: str, via: str) -> list[SdgLink]:
     known = targets()
     out: list[SdgLink] = []
@@ -58,6 +71,7 @@ def _links(table: str, key: str, entity_id: str, via: str) -> list[SdgLink]:
                 strength=strength,
                 via=f"{via}:{entity_id}",
                 reviewed=bool(r.get("reviewed_by")),
+                evidence=_evidence(r),
             )
         )
     return out

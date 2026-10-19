@@ -37,6 +37,28 @@ def test_links_point_at_official_targets_with_meaningful_reasons() -> None:
             )
 
 
+AUTHORITATIVE = (
+    "https://unstats.un.org/sdgs/metadata/",
+    "https://www.ilo.org/",
+    "https://www.unesco.org/",
+    "https://unesdoc.unesco.org/",
+)
+
+
+def test_every_link_cites_an_authoritative_source() -> None:
+    for table in ("role_sdg_map", "skill_sdg_map"):
+        for row in seed.rows("sdg", table):
+            assert row["evidence_url"].startswith(AUTHORITATIVE), row
+            assert row["evidence_source"] and len(row["evidence_note"]) >= 40, row
+
+
+def test_links_and_plan_links_carry_evidence(client: TestClient) -> None:
+    body = SdgContribution.model_validate(
+        client.get("/api/v1/sdg/contribution/me", params={"role_id": "data-analyst"}).json()
+    )
+    assert body.links and all(link.evidence and link.evidence.source.url for link in body.links)
+
+
 def test_draft_mappings_are_labelled_unreviewed(client: TestClient) -> None:
     body = client.get("/api/v1/sdg/roles/data-analyst").json()
     assert body["links"] and all(link["reviewed"] is False for link in body["links"])

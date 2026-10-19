@@ -17,7 +17,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Sequence
 
-from app.contracts.common import RecommendationMeta, ScenarioId
+from app.contracts.common import RecommendationMeta, ScenarioId, Source
 from app.contracts.pathway import Pathway
 from app.contracts.sdg import (
     EntitySdgLinks,
@@ -25,6 +25,7 @@ from app.contracts.sdg import (
     RegionListResponse,
     SdgAlignment,
     SdgContribution,
+    SdgEvidence,
     SdgGoal,
     SdgGoalListResponse,
     SdgLink,
@@ -88,6 +89,30 @@ def skill_sdg(skill_id: str) -> EntitySdgLinks:
 # --- contributions -----------------------------------------------------------------
 
 
+_META = "https://unstats.un.org/sdgs/metadata/files/Metadata-{}.pdf"
+
+
+def _evidence(name: str, code: str, note: str) -> SdgEvidence:
+    return SdgEvidence(
+        source=Source(name=name, url=_META.format(code), retrieved_at=repository.EVIDENCE_CHECKED),
+        note=note,
+    )
+
+
+EVIDENCE_4_4 = _evidence(
+    "UN SDG indicator metadata 4.4.1 (custodian ITU, updated 2025-03-28)",
+    "04-04-01",
+    'Among the ICT skills 4.4.1 counts is "Doing an online course or accessing online learning '
+    'material", alongside the skill types each step builds.',
+)
+EVIDENCE_4_3 = _evidence(
+    "UN SDG indicator metadata 4.3.1 (updated 2024-07-29)",
+    "04-03-01",
+    "4.3.1 is the participation rate of youth and adults in formal and non-formal education "
+    "and training in the previous 12 months; target 4.3 asks for affordable access to it.",
+)
+
+
 def plan_links(plan: Pathway) -> list[SdgLink]:
     """Links that follow from facts about the plan itself."""
     targets = repository.targets()
@@ -101,6 +126,7 @@ def plan_links(plan: Pathway) -> list[SdgLink]:
                 f"{', '.join(built)}.",
                 strength="direct",
                 via="pathway",
+                evidence=EVIDENCE_4_4,
             )
         )
         if plan.out_of_pocket_myr == 0:
@@ -111,6 +137,7 @@ def plan_links(plan: Pathway) -> list[SdgLink]:
                     "cost is not a barrier to technical education.",
                     strength="direct",
                     via="pathway",
+                    evidence=EVIDENCE_4_3,
                 )
             )
         elif plan.within_budget:
@@ -120,6 +147,7 @@ def plan_links(plan: Pathway) -> list[SdgLink]:
                     reason=f"The plan fits your RM {plan.budget_myr:g} budget.",
                     strength="enabling",
                     via="pathway",
+                    evidence=EVIDENCE_4_3,
                 )
             )
     return links
