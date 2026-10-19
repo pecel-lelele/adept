@@ -1,4 +1,19 @@
-skill_id,sdg_target_id,reason
-python,4.4,Programming is a relevant skill for employment (mock reason).
-sql,4.4,Data skills are relevant for decent jobs (mock reason).
-rpa,8.2,Automation skills raise productivity (mock reason).
+skill_id,sdg_target_id,reason,strength
+excel,4.4,"Spreadsheet skills are ICT skills, which indicator 4.4.1 measures as relevant skills for employment.",direct
+sql,4.4,"Querying data is a technical skill employers ask for; indicator 4.4.1 counts ICT skills by type.",direct
+python,4.4,"Programming is a technical ICT skill for employment (indicator 4.4.1).",direct
+python,9.5,"Programming capability lets organisations build and adapt their own technology (9.5).",enabling
+data-visualisation,4.4,"Turning data into charts and dashboards is an ICT skill relevant for employment (4.4.1).",direct
+data-visualisation,8.2,"Clear reporting speeds up decisions and so supports productivity (8.2).",enabling
+process-mapping,8.2,"Mapping a process is the first step to redesigning or automating it for higher productivity (8.2).",enabling
+rpa,8.2,"Software robots take over repetitive steps, raising output per worker (8.2).",direct
+rpa,9.5,"Adopting automation upgrades an organisation's technological capability (9.5).",enabling
+prompt-engineering,4.4,"Working effectively with generative AI tools is a new ICT skill relevant for employment (4.4.1).",direct
+ai-literacy,4.4,"Understanding what AI can and cannot do is a relevant skill for decent work as AI spreads (4.4).",direct
+ai-literacy,5.b,"Target 5.b asks for wider use of enabling technology, in particular ICT, to empower women; AI literacy is that capability, counted at team or region level, never inferred per person.",enabling
+ai-literacy,10.2,"Responsible-AI knowledge includes checking that automated decisions do not exclude people by age, sex, disability, race or origin (10.2).",enabling
+risk-compliance,16.5,"Risk and compliance work is how organisations prevent bribery and corruption (16.5).",enabling
+risk-compliance,16.4,"Compliance checks in financial services help stop illicit financial flows (16.4).",enabling
+customer-service,8.10,"In banking, customer service is how people get access to accounts and financial services (8.10).",enabling
+logistics-planning,9.1,"Planning logistics keeps transport and supply-chain infrastructure reliable (9.1).",enabling
+manual-data-entry,8.5,"A highly automatable skill: Adept flags it so holders can reskill and stay in productive employment (8.5).",enabling

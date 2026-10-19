@@ -1,7 +1,15 @@
-role_id,sdg_target_id,reason
-data-analyst,8.2,Data-driven decisions raise productivity (mock reason).
-data-analyst,4.4,In-demand digital skill for decent work (mock reason).
-process-automation-analyst,8.2,Automates routine work (mock reason).
-process-automation-analyst,9.5,Upgrades technological capability (mock reason).
-ai-operations-specialist,9.5,Operates AI systems responsibly (mock reason).
-compliance-analytics-officer,8.5,Keeps workers employed as roles shift (mock reason).
+role_id,sdg_target_id,reason,strength
+bank-operations-executive,8.10,"Bank operations keep banking and financial services running, the capacity target 8.10 asks domestic financial institutions to strengthen.",direct
+bank-operations-executive,8.5,"A role with high automation exposure; moving its holders into adjacent roles protects the full and productive employment 8.5 targets.",enabling
+data-entry-clerk,8.5,"Routine data entry is among the most automatable work; reskilling its holders keeps them in decent, productive employment (8.5).",enabling
+logistics-supervisor,9.1,"Supervising logistics keeps the supply-chain infrastructure that 9.1 calls quality and reliable working day to day.",enabling
+data-analyst,8.2,"Analysis that informs decisions is a direct route to the productivity through technological upgrading that 8.2 targets.",direct
+data-analyst,9.5,"Analytics capability is part of the upgraded technological capability of industrial and service sectors in 9.5.",enabling
+process-automation-analyst,8.2,"Automating routine processes raises output per worker, the productivity gain 8.2 measures (real GDP per employed person).",direct
+process-automation-analyst,9.5,"Introducing automation upgrades the technological capability of the organisation (9.5).",enabling
+process-automation-analyst,8.5,"The role redesigns work so people move to higher-value tasks rather than out of employment (8.5).",enabling
+ai-operations-specialist,9.5,"Running AI systems in production is the upgraded technological capability 9.5 asks industries to build.",direct
+ai-operations-specialist,8.2,"Well-operated AI tools raise productivity across the teams that use them (8.2).",enabling
+compliance-analytics-officer,16.4,"Monitoring transactions for money laundering in a bank directly reduces illicit financial flows (16.4).",direct
+compliance-analytics-officer,16.5,"Compliance analytics detects bribery and corruption patterns (16.5).",direct
+compliance-analytics-officer,10.5,"Bank-side compliance monitoring is how the regulation of financial institutions in 10.5 is put into practice.",enabling
