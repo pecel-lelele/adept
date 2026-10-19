@@ -67,3 +67,24 @@ def test_unreachable_database_fails_loudly_on_write(
         resp = client.post("/api/v1/pathway/plans", json={"role_id": ROLE})
     assert resp.status_code == 503
     assert resp.json()["error"]["code"] == "storage_unavailable"
+
+
+def test_evidence_and_review_persist(client: TestClient) -> None:
+    plan = SavedPlan.model_validate(
+        client.post("/api/v1/pathway/plans", json={"role_id": ROLE}).json()
+    ).pathway
+    course = plan.steps[0].courses[0].id
+    client.post(
+        "/api/v1/pathway/progress",
+        json={"role_id": ROLE, "course_id": course, "status": "completed"},
+    )
+    fresh = repository.PostgresStore()
+    assert fresh.evidence("aisyah", ROLE)[course].kind == "self_reported"
+    decision = {"user_id": "aisyah", "role_id": ROLE, "course_id": course, "decision": "confirm"}
+    resp = client.post(
+        "/api/v1/pathway/verifications", json=decision, headers={"X-Demo-User": "demo-company"}
+    )
+    assert resp.status_code == 200, resp.text
+    stored = repository.PostgresStore().evidence("aisyah", ROLE)[course]
+    assert stored.kind == "org_confirmed" and stored.reviewed_by == "demo-company"
+    assert ("aisyah", ROLE, course, "completed") in fresh.progress_of(["aisyah"])

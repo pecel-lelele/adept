@@ -18,7 +18,7 @@ import psycopg
 from psycopg.rows import tuple_row
 from psycopg.types.json import Jsonb
 
-from app.contracts.pathway import CourseStatus, Pathway, SavedPlan
+from app.contracts.pathway import CompletionEvidence, CourseStatus, Pathway, SavedPlan
 from app.core.db import connection
 from app.core.refdata import StorageUnavailableError, use_postgres
 
@@ -31,6 +31,10 @@ class Store(Protocol):
         self, user_id: str, role_id: str, course_id: str, status: CourseStatus
     ) -> None: ...
     def record_badges(self, user_id: str, badge_ids: list[str], today: date) -> dict[str, date]: ...
+    def evidence(self, user_id: str, role_id: str) -> dict[str, CompletionEvidence]: ...
+    def save_evidence(self, user_id: str, ev: CompletionEvidence) -> None: ...
+    def delete_evidence(self, user_id: str, role_id: str, course_id: str) -> None: ...
+    def progress_of(self, user_ids: list[str]) -> list[tuple[str, str, str, CourseStatus]]: ...
     def reset(self) -> None: ...
 
 
@@ -39,6 +43,7 @@ class MemoryStore:
         self._plans: dict[str, SavedPlan] = {}
         self._progress: dict[tuple[str, str], dict[str, CourseStatus]] = {}
         self._badges: dict[str, dict[str, date]] = {}
+        self._evidence: dict[tuple[str, str, str], CompletionEvidence] = {}
 
     def get_plan(self, user_id: str) -> SavedPlan | None:
         return self._plans.get(user_id)
@@ -65,10 +70,33 @@ class MemoryStore:
             earned.setdefault(badge_id, today)
         return dict(earned)
 
+    def evidence(self, user_id: str, role_id: str) -> dict[str, CompletionEvidence]:
+        return {
+            course: ev
+            for (uid, rid, course), ev in self._evidence.items()
+            if uid == user_id and rid == role_id
+        }
+
+    def save_evidence(self, user_id: str, ev: CompletionEvidence) -> None:
+        self._evidence[(user_id, ev.role_id, ev.course_id)] = ev
+
+    def delete_evidence(self, user_id: str, role_id: str, course_id: str) -> None:
+        self._evidence.pop((user_id, role_id, course_id), None)
+
+    def progress_of(self, user_ids: list[str]) -> list[tuple[str, str, str, CourseStatus]]:
+        wanted = set(user_ids)
+        return [
+            (uid, rid, cid, status)
+            for (uid, rid), statuses in self._progress.items()
+            if uid in wanted
+            for cid, status in statuses.items()
+        ]
+
     def reset(self) -> None:
         self._plans.clear()
         self._progress.clear()
         self._badges.clear()
+        self._evidence.clear()
 
 
 class PostgresStore:
@@ -166,9 +194,62 @@ class PostgresStore:
         )
         return {str(b): d for b, d in rows}  # type: ignore[misc]
 
+    _EVIDENCE_COLS = (
+        "role_id, course_id, kind, url, link_status, link_checked_at, submitted_at, "
+        "reviewed_by, reviewed_at, review_note"
+    )
+
+    def evidence(self, user_id: str, role_id: str) -> dict[str, CompletionEvidence]:
+        rows = self._run(
+            f"SELECT {self._EVIDENCE_COLS} FROM course_evidence "
+            "WHERE user_id = %s AND role_id = %s",
+            (user_id, role_id),
+        )
+        names = [c.strip() for c in self._EVIDENCE_COLS.split(",")]
+        out: dict[str, CompletionEvidence] = {}
+        for row in rows:
+            ev = CompletionEvidence.model_validate(dict(zip(names, row, strict=True)))
+            out[ev.course_id] = ev
+        return out
+
+    def save_evidence(self, user_id: str, ev: CompletionEvidence) -> None:
+        self._ensure_user(user_id)
+        if ev.reviewed_by:
+            self._ensure_user(ev.reviewed_by)
+        self._run(
+            f"INSERT INTO course_evidence (user_id, {self._EVIDENCE_COLS}) "
+            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) "
+            "ON CONFLICT (user_id, role_id, course_id) DO UPDATE SET kind = EXCLUDED.kind, "
+            "url = EXCLUDED.url, link_status = EXCLUDED.link_status, "
+            "link_checked_at = EXCLUDED.link_checked_at, submitted_at = EXCLUDED.submitted_at, "
+            "reviewed_by = EXCLUDED.reviewed_by, reviewed_at = EXCLUDED.reviewed_at, "
+            "review_note = EXCLUDED.review_note",
+            (
+                user_id, ev.role_id, ev.course_id, ev.kind, ev.url, ev.link_status,
+                ev.link_checked_at, ev.submitted_at, ev.reviewed_by, ev.reviewed_at,
+                ev.review_note,
+            ),
+        )  # fmt: skip
+
+    def delete_evidence(self, user_id: str, role_id: str, course_id: str) -> None:
+        self._run(
+            "DELETE FROM course_evidence WHERE user_id = %s AND role_id = %s AND course_id = %s",
+            (user_id, role_id, course_id),
+        )
+
+    def progress_of(self, user_ids: list[str]) -> list[tuple[str, str, str, CourseStatus]]:
+        if not user_ids:
+            return []
+        rows = self._run(
+            "SELECT user_id, role_id, course_id, status FROM course_progress "
+            "WHERE user_id = ANY(%s) ORDER BY user_id, role_id, course_id",
+            (user_ids,),
+        )
+        return [(str(u), str(r), str(c), s) for u, r, c, s in rows]  # type: ignore[misc]
+
     def reset(self) -> None:
         """Test hook: clears pathway state (not users or reference data)."""
-        for table in ("course_progress", "user_badges", "pathway_plans"):
+        for table in ("course_evidence", "course_progress", "user_badges", "pathway_plans"):
             self._run(f"DELETE FROM {table}", ())
 
 
@@ -199,6 +280,23 @@ def set_course_status(user_id: str, role_id: str, course_id: str, status: Course
 def record_badges(user_id: str, badge_ids: list[str], today: date) -> dict[str, date]:
     """Keep the first date each badge was earned; return all earned dates."""
     return store().record_badges(user_id, badge_ids, today)
+
+
+def evidence(user_id: str, role_id: str) -> dict[str, CompletionEvidence]:
+    return store().evidence(user_id, role_id)
+
+
+def save_evidence(user_id: str, ev: CompletionEvidence) -> None:
+    store().save_evidence(user_id, ev)
+
+
+def delete_evidence(user_id: str, role_id: str, course_id: str) -> None:
+    store().delete_evidence(user_id, role_id, course_id)
+
+
+def progress_of(user_ids: list[str]) -> list[tuple[str, str, str, CourseStatus]]:
+    """(user, role, course, status) rows for these users (for HR / advisor review)."""
+    return store().progress_of(user_ids)
 
 
 def reset() -> None:

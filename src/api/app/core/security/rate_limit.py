@@ -53,6 +53,7 @@ ROUTE_LIMITS: dict[str, Limit] = {
     "/api/v1/pathway/catalogue/sync": (5, 3600),  # calls external APIs
     "/api/v1/sdg/sync": (5, 3600),
     "/api/v1/profile/cv": (10, 60),  # upload + parsing
+    "/api/v1/pathway/progress/evidence": (20, 60),  # checks an external link
     "/api/v1/pathway/progress": (60, 60),  # writes
     "/api/v1/pathway/plans": (30, 60),  # writes + rebuilds a plan
     "/api/v1/guardrails": (60, 60),

@@ -146,12 +146,61 @@ class ProgressUpdate(BaseModel):
     status: CourseStatus
 
 
+# Evidence ladder for a completed course, weakest first (KerjaCerdas proof-level idea).
+EvidenceKind = Literal["self_reported", "certificate_link", "org_confirmed", "org_rejected"]
+LinkStatus = Literal["not_submitted", "provider_verified", "unreachable", "not_provider_page"]
+
+
+class CompletionEvidence(BaseModel):
+    role_id: str
+    course_id: str
+    kind: EvidenceKind
+    url: str | None = Field(default=None, description="Certificate or credential link.")
+    link_status: LinkStatus = "not_submitted"
+    link_checked_at: datetime | None = None
+    submitted_at: datetime
+    reviewed_by: str | None = Field(default=None, description="HR or advisor who reviewed it.")
+    reviewed_at: datetime | None = None
+    review_note: str = ""
+
+
+class EvidenceSubmit(BaseModel):
+    role_id: str = Field(max_length=80)
+    course_id: str = Field(max_length=120)
+    url: str = Field(min_length=12, max_length=500, pattern=r"^https://")
+
+
+class ReviewDecision(BaseModel):
+    user_id: str = Field(max_length=120)
+    role_id: str = Field(max_length=80)
+    course_id: str = Field(max_length=120)
+    decision: Literal["confirm", "reject"]
+    note: str = Field(default="", max_length=300)
+
+
+class VerificationItem(BaseModel):
+    user_id: str
+    display_name: str
+    role_id: str
+    course: Course
+    status: CourseStatus
+    evidence: CompletionEvidence | None
+
+
+class VerificationQueue(BaseModel):
+    org_id: str
+    pending: int = Field(ge=0, description="Completions not yet confirmed or rejected.")
+    items: list[VerificationItem]
+
+
 class Badge(BaseModel):
     id: str
     kind: Literal["skill", "milestone"]
     label: str
     earned_at: date
-    evidence: Literal["self_reported"] = "self_reported"
+    evidence: Literal["self_reported", "certificate_link", "org_confirmed"] = Field(
+        default="self_reported", description="Weakest evidence behind the badge."
+    )
     skill_id: str | None = None
 
 
@@ -172,5 +221,8 @@ class Progress(BaseModel):
     gap_closed: int = Field(ge=0)
     gap_total: int = Field(ge=0)
     badges: list[Badge]
+    evidence: dict[str, CompletionEvidence] = Field(
+        default_factory=dict, description="Course id -> completion evidence."
+    )
     pathway: Pathway = Field(description="The plan this progress is tracked against.")
     meta: RecommendationMeta

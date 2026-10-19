@@ -16,19 +16,25 @@ from app.contracts.common import RecommendationMeta, ScenarioId, Source
 from app.contracts.pathway import (
     Badge,
     CatalogueResponse,
+    CompletionEvidence,
     Course,
+    EvidenceSubmit,
     Pathway,
     PathwayStep,
     Progress,
     ProgressUpdate,
     ReplanStatus,
+    ReviewDecision,
     SavedPlan,
     SavePlanIn,
+    VerificationItem,
+    VerificationQueue,
 )
 from app.contracts.sdg import SdgTarget
 from app.core.auth import CurrentUser
 from app.core.errors import AppError, NotFoundError
-from app.features.pathway import data, engine, progress, replan, repository
+from app.features.org import repository as org_repository
+from app.features.pathway import data, engine, progress, replan, repository, verification
 from app.features.profile import service as profile_service
 from app.features.sdg import repository as sdg_repository
 
@@ -268,47 +274,199 @@ def _badge_label(
     return "milestone", None, names.get(key, key)
 
 
+def _plan_courses(plan: Pathway) -> dict[str, Course]:
+    """Course facts as saved in the plan. Progress uses these, never the live catalogue, so a
+    course retired later keeps the credit a learner already earned with it."""
+    out: dict[str, Course] = {}
+    for step in plan.steps:
+        for c in step.courses:
+            out.setdefault(c.id, c)
+    return out
+
+
 def get_progress(user: CurrentUser, role_id: str, scenario: ScenarioId) -> Progress:
     plan = _plan_for_progress(user, role_id, scenario)
-    statuses = repository.course_status(user.id, role_id)
-    index = data.course_index()
-    levels = {cid: {s: c.level for s in c.skill_ids} for cid, c in index.items()}
+    raw = repository.course_status(user.id, role_id)
+    evidence = repository.evidence(user.id, role_id)
+    statuses = verification.effective_statuses(raw, evidence)
+    courses = _plan_courses(plan)
+    levels = {cid: {s: c.level for s in c.skill_ids} for cid, c in courses.items()}
     skills = progress.skill_progress(plan, statuses, levels)
-    # Badges reflect current progress (undoing a course removes what it earned) but keep the
-    # date each one was first earned.
+    # Badges reflect current progress (undoing or a rejected completion removes what it
+    # earned), keep the date each was first earned, and show the weakest evidence behind them.
     current = progress.earned_badges(plan, statuses, skills)
     first_earned = repository.record_badges(user.id, current, date.today())
+    done = [cid for cid, st in statuses.items() if st == "completed" and cid in courses]
     labels = data.skill_labels()
     badges = []
     for badge_id in sorted(current):
-        earned_at = first_earned[badge_id]
         kind, skill_id, label = _badge_label(badge_id, labels)
+        behind = [cid for cid in done if skill_id is None or skill_id in courses[cid].skill_ids]
         badges.append(
-            Badge(id=badge_id, kind=kind, label=label, earned_at=earned_at, skill_id=skill_id)
+            Badge(
+                id=badge_id,
+                kind=kind,
+                label=label,
+                earned_at=first_earned[badge_id],
+                evidence=verification.weakest(behind, evidence),  # type: ignore[arg-type]
+                skill_id=skill_id,
+            )
         )
     return Progress(
         role_id=role_id,
-        course_status=statuses,
+        course_status=raw,
         percent_complete=progress.percent_complete(plan, statuses),
         skills=skills,
         gap_closed=sum(1 for s in skills if s.closed),
         gap_total=len(skills),
         badges=badges,
+        evidence=evidence,
         pathway=plan,
         meta=plan.meta,
     )
 
 
-def update_progress(user: CurrentUser, body: ProgressUpdate, scenario: ScenarioId) -> Progress:
-    plan = _plan_for_progress(user, body.role_id, scenario)
-    if body.course_id not in progress.planned_courses(plan):
+def _require_planned(plan: Pathway, role_id: str, course_id: str) -> Course:
+    course = _plan_courses(plan).get(course_id)
+    if course is None:
         raise AppError(
-            f"Course {body.course_id} is not in your plan for {body.role_id}",
+            f"Course {course_id} is not in your plan for {role_id}",
             status_code=422,
             code="unknown_course",
         )
+    return course
+
+
+def update_progress(user: CurrentUser, body: ProgressUpdate, scenario: ScenarioId) -> Progress:
+    plan = _plan_for_progress(user, body.role_id, scenario)
+    _require_planned(plan, body.role_id, body.course_id)
     repository.set_course_status(user.id, body.role_id, body.course_id, body.status)
+    if body.status == "completed":
+        if body.course_id not in repository.evidence(user.id, body.role_id):
+            repository.save_evidence(
+                user.id,
+                CompletionEvidence(
+                    role_id=body.role_id,
+                    course_id=body.course_id,
+                    kind="self_reported",
+                    submitted_at=datetime.now(UTC),
+                ),
+            )
+    else:
+        repository.delete_evidence(user.id, body.role_id, body.course_id)
     return get_progress(user, body.role_id, scenario)
+
+
+def submit_evidence(
+    user: CurrentUser,
+    body: EvidenceSubmit,
+    scenario: ScenarioId,
+    check: verification.Probe = verification.probe,
+) -> Progress:
+    """Attach a certificate link; marks the course done. A new link resets any review."""
+    plan = _plan_for_progress(user, body.role_id, scenario)
+    course = _require_planned(plan, body.role_id, body.course_id)
+    now = datetime.now(UTC)
+    repository.set_course_status(user.id, body.role_id, body.course_id, "completed")
+    repository.save_evidence(
+        user.id,
+        CompletionEvidence(
+            role_id=body.role_id,
+            course_id=body.course_id,
+            kind="certificate_link",
+            url=body.url,
+            link_status=verification.check_link(body.url, course, check),
+            link_checked_at=now,
+            submitted_at=now,
+        ),
+    )
+    return get_progress(user, body.role_id, scenario)
+
+
+# --- HR / career-advisor review -------------------------------------------------------------
+
+
+def _reviewer_org(user: CurrentUser) -> str:
+    if user.kind != "org_admin" or not user.org_id:
+        raise AppError(
+            "Only HR or career-centre staff can review completions",
+            status_code=403,
+            code="forbidden",
+        )
+    return user.org_id
+
+
+def _course_facts(user_id: str, role_id: str) -> dict[str, Course]:
+    saved = repository.get_plan(user_id)
+    facts = _plan_courses(saved.pathway) if saved and saved.role_id == role_id else {}
+    return {**data.course_index(), **facts}  # saved facts win over the live catalogue
+
+
+def verification_queue(user: CurrentUser) -> VerificationQueue:
+    org_id = _reviewer_org(user)
+    members = {m.id: m.display_name for m in org_repository.list_members(org_id)}
+    items: list[VerificationItem] = []
+    for uid, role_id, course_id, status in repository.progress_of(list(members)):
+        if status != "completed":
+            continue
+        course = _course_facts(uid, role_id).get(course_id)
+        if course is None:
+            continue
+        items.append(
+            VerificationItem(
+                user_id=uid,
+                display_name=members[uid],
+                role_id=role_id,
+                course=course,
+                status=status,
+                evidence=repository.evidence(uid, role_id).get(course_id),
+            )
+        )
+    reviewed = {"org_confirmed", "org_rejected"}
+    pending = sum(1 for i in items if not i.evidence or i.evidence.kind not in reviewed)
+    # Unreviewed first, strongest automatic evidence first within them.
+    items.sort(
+        key=lambda i: (
+            bool(i.evidence and i.evidence.kind in reviewed),
+            -verification.RANK.get(verification.evidence_strength(i.evidence), 0),
+            i.display_name,
+        )
+    )
+    return VerificationQueue(org_id=org_id, pending=pending, items=items)
+
+
+def review_completion(user: CurrentUser, body: ReviewDecision) -> VerificationItem:
+    org_id = _reviewer_org(user)
+    members = {m.id: m.display_name for m in org_repository.list_members(org_id)}
+    if body.user_id not in members:
+        raise AppError("Not a member of your organisation", status_code=403, code="forbidden")
+    status = repository.course_status(body.user_id, body.role_id).get(body.course_id)
+    if status != "completed":
+        raise AppError("This course is not marked as completed", status_code=409, code="conflict")
+    course = _course_facts(body.user_id, body.role_id).get(body.course_id)
+    if course is None:
+        raise NotFoundError(f"Unknown course {body.course_id}")
+    previous = repository.evidence(body.user_id, body.role_id).get(body.course_id)
+    now = datetime.now(UTC)
+    ev = (previous or CompletionEvidence(
+        role_id=body.role_id, course_id=body.course_id, kind="self_reported", submitted_at=now
+    )).model_copy(
+        update={
+            "kind": "org_confirmed" if body.decision == "confirm" else "org_rejected",
+            "reviewed_by": user.id,
+            "reviewed_at": now,
+            "review_note": body.note,
+        }
+    )  # fmt: skip
+    repository.save_evidence(body.user_id, ev)
+    return VerificationItem(
+        user_id=body.user_id,
+        display_name=members[body.user_id],
+        role_id=body.role_id,
+        course=course,
+        status=status,
+        evidence=ev,
+    )
 
 
 # --- teams (F7 uses these) ----------------------------------------------------------------

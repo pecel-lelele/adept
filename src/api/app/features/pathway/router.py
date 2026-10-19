@@ -7,13 +7,17 @@ from app.contracts.guardrails import SyncReport
 from app.contracts.pathway import (
     CatalogueResponse,
     CourseFormat,
+    EvidenceSubmit,
     Pathway,
     Progress,
     ProgressUpdate,
     ProviderType,
     ReplanStatus,
+    ReviewDecision,
     SavedPlan,
     SavePlanIn,
+    VerificationItem,
+    VerificationQueue,
 )
 from app.core.auth import CurrentUserDep
 from app.features.guardrails.datasync import require_sync_token
@@ -75,3 +79,24 @@ def update_progress(
     body: ProgressUpdate, user: CurrentUserDep, scenario: ScenarioId = "moderate"
 ) -> Progress:
     return service.update_progress(user, body, scenario)
+
+
+@router.post("/progress/evidence")
+def submit_evidence(
+    body: EvidenceSubmit, user: CurrentUserDep, scenario: ScenarioId = "moderate"
+) -> Progress:
+    """Attach a certificate link to a completed course; it is checked against the provider's
+    official verification pages and shown to the learner's HR or career advisor."""
+    return service.submit_evidence(user, body, scenario)
+
+
+@router.get("/verifications")
+def get_verification_queue(user: CurrentUserDep) -> VerificationQueue:
+    """HR / career-centre staff: completions by members of their organisation to review."""
+    return service.verification_queue(user)
+
+
+@router.post("/verifications")
+def review_completion(body: ReviewDecision, user: CurrentUserDep) -> VerificationItem:
+    """Confirm or reject a member's completion (with an optional note)."""
+    return service.review_completion(user, body)
