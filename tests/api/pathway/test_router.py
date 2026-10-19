@@ -89,6 +89,12 @@ def test_prerequisite_order_for_aisyah(client: TestClient) -> None:
 
 
 def test_unmet_skill_is_reported_not_invented(client: TestClient) -> None:
-    body = _pathway(client, "ai-operations-specialist", headers=WEIJIE)
+    # Catalogue risk & compliance courses stop at level 2; the role needs 3.
+    body = _pathway(client, "compliance-analytics-officer", headers={"X-Demo-User": "ravi"})
     unmet = {u.skill_id: u for u in body.unmet}
-    assert unmet["prompt-engineering"].reason == "catalogue_tops_out"
+    assert unmet["risk-compliance"].reason == "catalogue_tops_out"
+
+
+def test_prompt_engineering_gap_is_now_closed_by_the_catalogue(client: TestClient) -> None:
+    body = _pathway(client, "ai-operations-specialist", headers=WEIJIE)
+    assert "prompt-engineering" not in {u.skill_id for u in body.unmet}

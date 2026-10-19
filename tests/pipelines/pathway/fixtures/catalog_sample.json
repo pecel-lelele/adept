@@ -1,6 +1,17 @@
 {
  "modules": [
   {
+   "uid": "learn.wwl.work-with-data-python",
+   "type": "module",
+   "title": "Work with data in Python",
+   "duration_in_minutes": 48,
+   "url": "https://learn.microsoft.com/en-us/training/modules/work-with-data-python/?WT.mc_id=api_CatalogApi",
+   "levels": [
+    "beginner"
+   ],
+   "last_modified": "2026-08-07T22:11:00+00:00"
+  },
+  {
    "uid": "learn.wwl.get-started-data-analytics",
    "type": "module",
    "title": "Get started with data analytics",
@@ -10,6 +21,17 @@
     "beginner"
    ],
    "last_modified": "2026-10-12T22:11:00+00:00"
+  },
+  {
+   "uid": "learn.wwl.explore-relational-data-offerings",
+   "type": "module",
+   "title": "Explore fundamental relational data concepts",
+   "duration_in_minutes": 37,
+   "url": "https://learn.microsoft.com/en-us/training/modules/explore-relational-data-offerings/?WT.mc_id=api_CatalogApi",
+   "levels": [
+    "beginner"
+   ],
+   "last_modified": "2026-10-13T07:29:00+00:00"
   },
   {
    "uid": "learn.wwl.embrace-responsible-ai-principles-practices",
@@ -34,6 +56,17 @@
    "last_modified": "2026-10-13T07:29:00+00:00"
   },
   {
+   "uid": "learn.philanthropies.explore-responsible-ai",
+   "type": "module",
+   "title": "Explore responsible AI",
+   "duration_in_minutes": 34,
+   "url": "https://learn.microsoft.com/en-us/training/modules/responsible-ai/?WT.mc_id=api_CatalogApi",
+   "levels": [
+    "beginner"
+   ],
+   "last_modified": "2025-08-12T17:17:00+00:00"
+  },
+  {
    "uid": "learn.philanthropies.create-prompts-for-generative-ai-training-tools",
    "type": "module",
    "title": "Create effective prompts for generative AI training tools",
@@ -43,6 +76,18 @@
     "beginner"
    ],
    "last_modified": "2026-03-16T07:10:00+00:00"
+  },
+  {
+   "uid": "learn-bizapps.pad-excel-automation",
+   "type": "module",
+   "title": "Excel automation in Power Automate desktop app",
+   "duration_in_minutes": 52,
+   "url": "https://learn.microsoft.com/en-us/training/modules/pad-excel-automation/?WT.mc_id=api_CatalogApi",
+   "levels": [
+    "beginner",
+    "intermediate"
+   ],
+   "last_modified": "2026-06-12T17:23:00+00:00"
   },
   {
    "uid": "learn.wwl.write-effective-prompts-do-more-prompting",

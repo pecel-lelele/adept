@@ -38,7 +38,7 @@ WHERE t.retrieved_at IS NULL
 -- 3. Live course catalogue sync --------------------------------------------------------------
 
 ALTER TABLE courses
-    ADD COLUMN provider_ref text NOT NULL DEFAULT '',
+    ADD COLUMN provider_ref text,  -- external id (Microsoft Learn UID, Coursera slug); NULL if none
     ADD COLUMN last_synced_at timestamptz,
     ADD COLUMN retired_at timestamptz;
 
