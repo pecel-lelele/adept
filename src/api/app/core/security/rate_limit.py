@@ -12,17 +12,29 @@ Design (kept from KerjaCerdas `api/middleware/rate_limiter.py`):
   client cannot rotate a spoofed header to dodge the limit.
 
 Simplified for Adept: the check-and-append runs without an ``await`` in between, so it is
-atomic on the event loop and needs no per-key locks. Counters are per process: with N API
-instances the effective limit is N times higher.
+atomic on the event loop and needs no per-key locks.
+
+Two backends:
+
+- ``SlidingWindowCounter`` (memory): per process. With N API instances the effective limit
+  would be N times higher, so it is only the default for local dev and tests.
+- ``PostgresCounter`` (``M3_BACKEND=postgres``): one counter per (client, bucket, window) in
+  the UNLOGGED table ``rate_limit_counters``, shared by every instance. It approximates a
+  sliding window from the current and previous fixed windows
+  (``previous * (1 - elapsed / window) + current``), updated in a single atomic upsert. If
+  the database fails it degrades to the in-memory counter rather than blocking everyone.
 """
 
 from __future__ import annotations
 
+import asyncio
 import hmac
 import time
 from collections import OrderedDict, deque
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 
+import psycopg
+from psycopg_pool import ConnectionPool, PoolTimeout
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
@@ -132,6 +144,82 @@ class SlidingWindowCounter:
         return True, limit, max_req - len(dq), 0
 
 
+Hit = tuple[bool, Limit, int, int]  # (allowed, limit, remaining, retry_after_s)
+
+_UPSERT = """
+WITH up AS (
+    INSERT INTO rate_limit_counters (client, bucket, window_start, hits)
+    VALUES (%(client)s, %(bucket)s, %(current)s, 1)
+    ON CONFLICT (client, bucket, window_start)
+    DO UPDATE SET hits = rate_limit_counters.hits + 1
+    RETURNING hits
+)
+SELECT up.hits, COALESCE((
+    SELECT hits FROM rate_limit_counters
+    WHERE client = %(client)s AND bucket = %(bucket)s AND window_start = %(previous)s
+), 0) FROM up
+"""
+_PRUNE = "DELETE FROM rate_limit_counters WHERE window_start < %s"
+_PRUNE_EVERY = 1000
+_KEEP_S = 3600
+
+
+class PostgresCounter:
+    """Rate-limit counters shared by every API instance through PostgreSQL."""
+
+    def __init__(
+        self,
+        conninfo: str,
+        route_limits: Mapping[str, Limit],
+        default: Limit,
+        fallback: SlidingWindowCounter | None = None,
+        clock: Callable[[], float] = time.time,
+    ) -> None:
+        self.route_limits = dict(route_limits)
+        self.default = default
+        self.fallback = fallback or SlidingWindowCounter(route_limits, default)
+        self.clock = clock
+        self._hits = 0
+        self.pool = ConnectionPool(
+            conninfo,
+            min_size=0,
+            max_size=4,
+            timeout=2.0,
+            open=False,
+            kwargs={"autocommit": True, "connect_timeout": 2},
+        )
+        self._opened = False
+
+    def _conn_pool(self) -> ConnectionPool:
+        if not self._opened:
+            self.pool.open(wait=False)
+            self._opened = True
+        return self.pool
+
+    def hit(self, ip: str, path: str) -> Hit:
+        bucket, limit = bucket_for(path, self.route_limits, self.default)
+        max_req, window = limit
+        now = self.clock()
+        current = int(now // window) * window
+        elapsed = now - current
+        params = {"client": ip, "bucket": bucket, "current": current, "previous": current - window}
+        try:
+            with self._conn_pool().connection() as conn:
+                row = conn.execute(_UPSERT, params).fetchone()
+                self._hits += 1
+                if self._hits % _PRUNE_EVERY == 0:
+                    conn.execute(_PRUNE, (int(now) - _KEEP_S,))
+        except (psycopg.Error, PoolTimeout) as exc:
+            log.warning("shared rate limiter unavailable, using in-memory counter: %s", exc)
+            return self.fallback.hit(ip, path)
+        assert row is not None
+        hits, previous = int(row[0]), int(row[1])
+        estimate = previous * (1 - elapsed / window) + hits
+        if estimate > max_req:
+            return False, limit, 0, int(window - elapsed) + 1
+        return True, limit, max(0, int(max_req - estimate)), 0
+
+
 class RateLimitMiddleware(BaseHTTPMiddleware):
     def __init__(
         self,
@@ -140,16 +228,27 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         route_limits: Mapping[str, Limit] | None = None,
         proxy_secret: str = "",
         max_keys: int = 10_000,
+        shared_conninfo: str = "",
     ) -> None:
         super().__init__(app)
-        self.counter = SlidingWindowCounter(
-            ROUTE_LIMITS if route_limits is None else route_limits, default, max_keys
+        limits = ROUTE_LIMITS if route_limits is None else route_limits
+        self.counter = SlidingWindowCounter(limits, default, max_keys)
+        self.shared = (
+            PostgresCounter(shared_conninfo, limits, default, fallback=self.counter)
+            if shared_conninfo
+            else None
         )
         self.proxy_secret = proxy_secret
 
+    async def _hit(self, ip: str, path: str) -> Hit:
+        if self.shared is not None:
+            # Blocking database call: run it off the event loop.
+            return await asyncio.to_thread(self.shared.hit, ip, path)
+        return self.counter.hit(ip, path)
+
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         ip = client_ip(request, self.proxy_secret)
-        allowed, (max_req, window), remaining, retry_after = self.counter.hit(ip, request.url.path)
+        allowed, (max_req, window), remaining, retry_after = await self._hit(ip, request.url.path)
         headers = {
             "X-RateLimit-Limit": str(max_req),
             "X-RateLimit-Remaining": str(remaining),

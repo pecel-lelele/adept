@@ -32,6 +32,8 @@ def install_security(app: FastAPI, settings: Settings) -> None:
             RateLimitMiddleware,
             default=(settings.rate_limit_default, settings.rate_limit_window_s),
             proxy_secret=settings.proxy_shared_secret,
+            # One limit across all API instances when state lives in PostgreSQL.
+            shared_conninfo=settings.database_url if settings.m3_backend == "postgres" else "",
         )
     app.add_middleware(SecurityHeadersMiddleware)
 
