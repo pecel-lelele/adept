@@ -1,0 +1,18 @@
+{
+  "onboardingTitle": "Where are you today?",
+  "onboardingBody": "Choose the option closest to you. It changes a few questions, not your results.",
+  "segment": {
+    "working": "Working adult",
+    "graduate": "Fresh graduate",
+    "switcher": "Career switcher"
+  },
+  "current": "Current",
+  "title": "Your skills profile",
+  "skills": "Skills",
+  "level": "Level {level}/5",
+  "hoursPerWeek": "{hours} hours/week to learn",
+  "budget": "Budget RM {amount}",
+  "hrdEligible": "HRD Corp eligible",
+  "interests": "Interests",
+  "cvNote": "CV upload (POST /profile/cv) returns mock extraction. Use synthetic CVs only."
+}

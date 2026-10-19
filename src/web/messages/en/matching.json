@@ -1,0 +1,15 @@
+{
+  "title": "Your future-role matches",
+  "description": "Ranked by an explainable score. You choose the target role.",
+  "score": "Match {score}",
+  "missing": "Missing skills",
+  "partial": "Partly there",
+  "viewDetail": "See breakdown",
+  "viewPathway": "Plan a pathway",
+  "breakdown": "Score breakdown",
+  "component": {
+    "skill_overlap": "Skill overlap",
+    "trend_outlook": "Trend outlook",
+    "interest_fit": "Interest fit"
+  }
+}

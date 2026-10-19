@@ -1,0 +1,18 @@
+{
+  "onboardingTitle": "Di mana anda hari ini?",
+  "onboardingBody": "Pilih pilihan yang paling hampir dengan anda. Ia mengubah beberapa soalan, bukan keputusan anda.",
+  "segment": {
+    "working": "Orang dewasa bekerja",
+    "graduate": "Graduan baharu",
+    "switcher": "Penukar kerjaya"
+  },
+  "current": "Semasa",
+  "title": "Profil kemahiran anda",
+  "skills": "Kemahiran",
+  "level": "Tahap {level}/5",
+  "hoursPerWeek": "{hours} jam/minggu untuk belajar",
+  "budget": "Bajet RM {amount}",
+  "hrdEligible": "Layak HRD Corp",
+  "interests": "Minat",
+  "cvNote": "Muat naik CV (POST /profile/cv) memulangkan pengekstrakan olok-olok. Gunakan CV sintetik sahaja."
+}

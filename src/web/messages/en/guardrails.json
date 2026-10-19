@@ -1,0 +1,10 @@
+{
+  "title": "About Adept",
+  "llmTitle": "AI disclosure",
+  "llmNone": "No language model is used in this version. When one is added, its name and purpose will be listed here.",
+  "methodTitle": "Methodology",
+  "methodBody": "Trend signals feed role outlooks under two scenarios; matches combine skill overlap, trend outlook and interest fit; pathways use a course catalogue with verified dates.",
+  "sourcesTitle": "Data sources",
+  "limitsTitle": "Limitations",
+  "limitsBody": "All predictions are estimates. Demo data is synthetic. Adept supports human decisions and never makes hiring decisions."
+}

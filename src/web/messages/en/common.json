@@ -1,0 +1,74 @@
+{
+  "appName": "Adept",
+  "tagline": "Future-ready careers in the AI era",
+  "humanInCharge": "You decide. Adept suggests options; it never makes hiring decisions.",
+  "stub": {
+    "banner": "STUB · {feature} · mock data from {endpoint}",
+    "static": "STUB · {feature} · no endpoint yet"
+  },
+  "scenario": {
+    "label": "Scenario",
+    "moderate": "Moderate AI disruption",
+    "fast": "Fast AI disruption"
+  },
+  "estimate": {
+    "label": "Estimate",
+    "hint": "Predictions are estimates, not facts."
+  },
+  "source": {
+    "label": "Source",
+    "asOf": "data as of {date}"
+  },
+  "freshness": {
+    "label": "Trend data as of {date}",
+    "unavailable": "Trend data unavailable"
+  },
+  "nav": {
+    "onboarding": "Start",
+    "profile": "Profile",
+    "radar": "Skills Radar",
+    "matches": "Matches",
+    "pathway": "Pathway",
+    "sdg": "SDG impact",
+    "progress": "Progress",
+    "setup": "Setup",
+    "members": "Members",
+    "gaps": "Skills gaps",
+    "plan": "Group plan",
+    "about": "About",
+    "sources": "Sources",
+    "snapshots": "Snapshots"
+  },
+  "journey": {
+    "step": "Step {n}"
+  },
+  "landing": {
+    "individual": "Individual",
+    "organisation": "Organisation",
+    "individualTitle": "See where your skills can take you in the AI era",
+    "individualBody": "Tell us about yourself, see which skills are rising, get matched to future roles and follow a reskilling pathway linked to the SDGs.",
+    "individualCta": "Get started",
+    "individualDemo": "Try the demo as Aisyah",
+    "organisationTitle": "Plan how your team or cohort reskills for AI",
+    "organisationBody": "For HR, L&D and career centres: team skills-gap heatmaps, group reskilling plans and an aggregated SDG view.",
+    "organisationCta": "Set up your organisation",
+    "organisationDemo": "Try the demo company"
+  },
+  "auth": {
+    "loginTitle": "Log in",
+    "signupTitle": "Sign up",
+    "consentTitle": "Your data and consent",
+    "consentBody": "Adept uses only the information you enter to suggest options. You stay in charge of every decision.",
+    "joinTitle": "Join with a code",
+    "notImplemented": "Real sign-in is not built yet. Use a demo account."
+  },
+  "error": {
+    "apiTitle": "Could not load data"
+  },
+  "empty": {
+    "title": "Nothing here yet"
+  },
+  "locale": {
+    "label": "Language"
+  }
+}

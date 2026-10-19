@@ -1,0 +1,74 @@
+{
+  "appName": "Adept",
+  "tagline": "Kerjaya bersedia masa depan dalam era AI",
+  "humanInCharge": "Anda yang menentukan. Adept mencadangkan pilihan; ia tidak membuat keputusan pengambilan pekerja.",
+  "stub": {
+    "banner": "STUB · {feature} · data olok-olok daripada {endpoint}",
+    "static": "STUB · {feature} · belum ada endpoint"
+  },
+  "scenario": {
+    "label": "Senario",
+    "moderate": "Gangguan AI sederhana",
+    "fast": "Gangguan AI pantas"
+  },
+  "estimate": {
+    "label": "Anggaran",
+    "hint": "Ramalan ialah anggaran, bukan fakta."
+  },
+  "source": {
+    "label": "Sumber",
+    "asOf": "data setakat {date}"
+  },
+  "freshness": {
+    "label": "Data trend setakat {date}",
+    "unavailable": "Data trend tidak tersedia"
+  },
+  "nav": {
+    "onboarding": "Mula",
+    "profile": "Profil",
+    "radar": "Radar Kemahiran",
+    "matches": "Padanan",
+    "pathway": "Laluan",
+    "sdg": "Impak SDG",
+    "progress": "Kemajuan",
+    "setup": "Persediaan",
+    "members": "Ahli",
+    "gaps": "Jurang kemahiran",
+    "plan": "Pelan kumpulan",
+    "about": "Perihal",
+    "sources": "Sumber",
+    "snapshots": "Snapshot"
+  },
+  "journey": {
+    "step": "Langkah {n}"
+  },
+  "landing": {
+    "individual": "Individu",
+    "organisation": "Organisasi",
+    "individualTitle": "Lihat ke mana kemahiran anda boleh membawa anda dalam era AI",
+    "individualBody": "Ceritakan tentang diri anda, lihat kemahiran yang meningkat, dapatkan padanan peranan masa depan dan ikuti laluan peningkatan kemahiran yang dikaitkan dengan SDG.",
+    "individualCta": "Mula sekarang",
+    "individualDemo": "Cuba demo sebagai Aisyah",
+    "organisationTitle": "Rancang cara pasukan atau kohort anda meningkatkan kemahiran untuk AI",
+    "organisationBody": "Untuk HR, L&D dan pusat kerjaya: peta haba jurang kemahiran pasukan, pelan peningkatan kemahiran kumpulan dan paparan SDG agregat.",
+    "organisationCta": "Sediakan organisasi anda",
+    "organisationDemo": "Cuba syarikat demo"
+  },
+  "auth": {
+    "loginTitle": "Log masuk",
+    "signupTitle": "Daftar",
+    "consentTitle": "Data dan persetujuan anda",
+    "consentBody": "Adept hanya menggunakan maklumat yang anda masukkan untuk mencadangkan pilihan. Anda kekal mengawal setiap keputusan.",
+    "joinTitle": "Sertai dengan kod",
+    "notImplemented": "Log masuk sebenar belum dibina. Gunakan akaun demo."
+  },
+  "error": {
+    "apiTitle": "Tidak dapat memuatkan data"
+  },
+  "empty": {
+    "title": "Belum ada apa-apa"
+  },
+  "locale": {
+    "label": "Bahasa"
+  }
+}

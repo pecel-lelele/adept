@@ -1,0 +1,21 @@
+{
+  "title": "Radar Kemahiran Masa Depan",
+  "description": "Peranan dan kemahiran yang meningkat, stabil atau menurun.",
+  "orgTitle": "Radar Kemahiran Masa Depan untuk industri anda",
+  "direction": {
+    "rising": "Meningkat",
+    "stable": "Stabil",
+    "declining": "Menurun"
+  },
+  "entity": {
+    "role": "Peranan",
+    "skill": "Kemahiran"
+  },
+  "growth": "Pertumbuhan",
+  "aiExposure": "Pendedahan AI",
+  "automation": "Automasi",
+  "augmentation": "Peningkatan",
+  "sourcesTitle": "Sumber data trend",
+  "snapshotsTitle": "Snapshot",
+  "snapshotDate": "Snapshot terkini: {date}"
+}

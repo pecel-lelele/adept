@@ -1,0 +1,21 @@
+{
+  "title": "未来技能雷达",
+  "description": "哪些职位和技能正在上升、稳定或下降。",
+  "orgTitle": "您所在行业的未来技能雷达",
+  "direction": {
+    "rising": "上升",
+    "stable": "稳定",
+    "declining": "下降"
+  },
+  "entity": {
+    "role": "职位",
+    "skill": "技能"
+  },
+  "growth": "增长",
+  "aiExposure": "AI 暴露度",
+  "automation": "自动化",
+  "augmentation": "增强",
+  "sourcesTitle": "趋势数据来源",
+  "snapshotsTitle": "快照",
+  "snapshotDate": "最新快照：{date}"
+}

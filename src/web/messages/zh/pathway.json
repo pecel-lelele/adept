@@ -1,0 +1,12 @@
+{
+  "title": "您的再培训路径",
+  "totalWeeks": "约 {weeks} 周",
+  "weeks": "第 {start}–{end} 周",
+  "hours": "{hours} 小时",
+  "free": "免费",
+  "cost": "RM {amount}",
+  "hrdClaimable": "可申请 HRD Corp 报销",
+  "verified": "核实于 {date}",
+  "progressTitle": "您的进度",
+  "progressBody": "进度跟踪和技能徽章将在后续提供（F5 决赛阶段）。"
+}

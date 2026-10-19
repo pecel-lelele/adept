@@ -1,0 +1,12 @@
+{
+  "title": "Your reskilling pathway",
+  "totalWeeks": "About {weeks} weeks",
+  "weeks": "Weeks {start}–{end}",
+  "hours": "{hours} h",
+  "free": "Free",
+  "cost": "RM {amount}",
+  "hrdClaimable": "HRD Corp claimable",
+  "verified": "verified {date}",
+  "progressTitle": "Your progress",
+  "progressBody": "Progress tracking and skill badges come later (F5 Final)."
+}

@@ -1,0 +1,12 @@
+{
+  "title": "Laluan peningkatan kemahiran anda",
+  "totalWeeks": "Kira-kira {weeks} minggu",
+  "weeks": "Minggu {start}–{end}",
+  "hours": "{hours} j",
+  "free": "Percuma",
+  "cost": "RM {amount}",
+  "hrdClaimable": "Boleh dituntut HRD Corp",
+  "verified": "disahkan {date}",
+  "progressTitle": "Kemajuan anda",
+  "progressBody": "Penjejakan kemajuan dan lencana kemahiran akan datang kemudian (F5 Akhir)."
+}

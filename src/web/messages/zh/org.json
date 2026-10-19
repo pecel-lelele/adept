@@ -1,0 +1,20 @@
+{
+  "setupTitle": "机构设置",
+  "membersTitle": "成员",
+  "gapsTitle": "团队技能差距热力图",
+  "planTitle": "团体再培训计划",
+  "type": {
+    "company": "公司",
+    "institution": "院校"
+  },
+  "industry": "行业",
+  "size": "规模",
+  "intake": {
+    "invited": "已邀请",
+    "in_progress": "进行中",
+    "complete": "已完成"
+  },
+  "gapLegend": "缺少目标职位各项技能的成员比例。",
+  "target": "目标职位：{role}",
+  "assigned": "已分配给 {count} 名成员"
+}
