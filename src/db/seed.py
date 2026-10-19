@@ -34,9 +34,12 @@ TABLE_ORDER = [
     "snapshots",
     "trend_signals",
     "courses",
+    "skill_prerequisites",
+    "sdg_goals",
     "sdg_targets",
     "role_sdg_map",
     "skill_sdg_map",
+    "org_regions",
 ]
 SERIAL_TABLES = {"snapshots", "trend_signals"}
 
