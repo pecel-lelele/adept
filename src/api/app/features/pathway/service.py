@@ -8,6 +8,7 @@ Public functions other features may call: `get_pathway`, `build_pathway`, `learn
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from typing import Literal
 
@@ -133,8 +134,38 @@ def get_pathway(user: CurrentUser, role_id: str, scenario: ScenarioId) -> Pathwa
     return build_pathway(learner_for(user), role_id, scenario)
 
 
-def catalogue() -> CatalogueResponse:
-    courses = data.catalogue()
+@dataclass(frozen=True)
+class CatalogueFilter:
+    skill: str | None = None
+    format: str | None = None
+    audience: str | None = None  # "individual" also matches "both", likewise "corporate"
+    provider_type: str | None = None
+    hrd_claimable: bool | None = None
+    max_cost_myr: float | None = None
+
+
+def filter_courses(courses: Sequence[Course], f: CatalogueFilter) -> list[Course]:
+    out = []
+    for c in courses:
+        if f.skill and f.skill not in c.skill_ids:
+            continue
+        if f.format and c.format != f.format:
+            continue
+        if f.audience and c.audience not in (f.audience, "both"):
+            continue
+        if f.provider_type and c.provider_type != f.provider_type:
+            continue
+        if f.hrd_claimable is not None and c.hrd_claimable != f.hrd_claimable:
+            continue
+        if f.max_cost_myr is not None and c.cost_myr > f.max_cost_myr:
+            continue
+        out.append(c)
+    # Cheapest first, then shortest: the same preference the pathway engine uses.
+    return sorted(out, key=lambda c: (c.cost_myr, c.hours, c.id))
+
+
+def catalogue(f: CatalogueFilter | None = None) -> CatalogueResponse:
+    courses = filter_courses(data.catalogue(), f or CatalogueFilter())
     step = PathwayStep(
         order=1, skill_id="-", courses=courses, est_hours=0, week_start=1, week_end=1, reason=""
     )

@@ -128,6 +128,9 @@ export async function PathwayView({ roleId, scenario }: { roleId: string; scenar
         <Link href={`/app/sdg${query}`} className="text-sm underline">
           {t("plan.sdgLink")}
         </Link>
+        <Link href="/app/courses" className="text-sm underline">
+          {t("catalogue.browse")}
+        </Link>
       </div>
       <p className="text-xs text-muted-foreground">{t("plan.decide")}</p>
       <PathwaySteps steps={plan.steps} />

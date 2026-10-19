@@ -66,5 +66,46 @@
   },
   "actionFailed": "未保存：{message}",
   "saving": "正在保存…",
-  "saved": "已保存。您的进度和徽章已更新。"
+  "saved": "已保存。您的进度和徽章已更新。",
+  "catalogue": {
+    "title": "课程目录",
+    "description": "Adept 可能推荐的所有课程：免费与付费、线上与线下，附 HRD Corp 状态、计价方式、来源及核实日期。",
+    "browse": "浏览全部课程",
+    "any": "全部",
+    "skills": "技能",
+    "level": "可达到水平 {level}（估计）",
+    "formatLabel": "形式",
+    "providerLabel": "提供方类型",
+    "audienceLabel": "适用对象",
+    "maxCost": "最高 RM",
+    "apply": "筛选",
+    "reset": "重置",
+    "count": "{count} 门课程",
+    "price": {
+      "per_course": "RM {amount}",
+      "per_user_year": "RM {amount} / 人 / 年",
+      "per_user_month": "RM {amount} / 人 / 月",
+      "per_group": "RM {amount} / 团体"
+    },
+    "format": {
+      "self_paced": "线上自学",
+      "live_online": "线上直播",
+      "in_person": "线下面授",
+      "hybrid": "混合",
+      "subscription": "订阅"
+    },
+    "provider": {
+      "mooc": "在线平台",
+      "university": "大学",
+      "industry_body": "行业组织",
+      "professional_body": "专业团体",
+      "private_provider": "培训机构",
+      "government": "政府"
+    },
+    "audience": {
+      "individual": "个人",
+      "corporate": "企业",
+      "both": "个人与企业"
+    }
+  }
 }

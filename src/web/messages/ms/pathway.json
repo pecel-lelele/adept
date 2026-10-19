@@ -66,5 +66,46 @@
   },
   "actionFailed": "Tidak disimpan: {message}",
   "saving": "Menyimpan…",
-  "saved": "Disimpan. Kemajuan dan lencana anda dikemas kini."
+  "saved": "Disimpan. Kemajuan dan lencana anda dikemas kini.",
+  "catalogue": {
+    "title": "Katalog kursus",
+    "description": "Setiap kursus yang mungkin dicadangkan oleh Adept: percuma dan berbayar, dalam talian dan bersemuka, dengan status HRD Corp, asas harga, sumber dan tarikh semakan.",
+    "browse": "Lihat semua kursus",
+    "any": "Semua",
+    "skills": "Kemahiran",
+    "level": "mencapai tahap {level} (anggaran)",
+    "formatLabel": "Format",
+    "providerLabel": "Jenis penyedia",
+    "audienceLabel": "Untuk",
+    "maxCost": "Maks RM",
+    "apply": "Tapis",
+    "reset": "Set semula",
+    "count": "{count} kursus",
+    "price": {
+      "per_course": "RM {amount}",
+      "per_user_year": "RM {amount} / pengguna / tahun",
+      "per_user_month": "RM {amount} / pengguna / bulan",
+      "per_group": "RM {amount} / kumpulan"
+    },
+    "format": {
+      "self_paced": "Kendiri dalam talian",
+      "live_online": "Langsung dalam talian",
+      "in_person": "Bersemuka",
+      "hybrid": "Hibrid",
+      "subscription": "Langganan"
+    },
+    "provider": {
+      "mooc": "Platform dalam talian",
+      "university": "Universiti",
+      "industry_body": "Badan industri",
+      "professional_body": "Badan profesional",
+      "private_provider": "Penyedia latihan",
+      "government": "Kerajaan"
+    },
+    "audience": {
+      "individual": "Individu",
+      "corporate": "Syarikat",
+      "both": "Individu dan syarikat"
+    }
+  }
 }

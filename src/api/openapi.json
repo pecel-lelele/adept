@@ -681,6 +681,125 @@
         "summary": "Get Catalogue",
         "description": "Every course the pathway may recommend, with its source and verification date.",
         "operationId": "pathway_get_catalogue",
+        "parameters": [
+          {
+            "name": "skill",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 60
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Skill"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "self_paced",
+                    "live_online",
+                    "in_person",
+                    "hybrid",
+                    "subscription"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Format"
+            }
+          },
+          {
+            "name": "audience",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "individual",
+                    "corporate"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Audience"
+            }
+          },
+          {
+            "name": "provider_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "mooc",
+                    "university",
+                    "industry_body",
+                    "professional_body",
+                    "private_provider",
+                    "government"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Provider Type"
+            }
+          },
+          {
+            "name": "hrd_claimable",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Hrd Claimable"
+            }
+          },
+          {
+            "name": "max_cost_myr",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Max Cost Myr"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -688,6 +807,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/CatalogueResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -2243,6 +2372,82 @@
                 "type": "null"
               }
             ]
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "self_paced",
+              "live_online",
+              "in_person",
+              "hybrid",
+              "subscription"
+            ],
+            "title": "Format",
+            "default": "self_paced"
+          },
+          "audience": {
+            "type": "string",
+            "enum": [
+              "individual",
+              "corporate",
+              "both"
+            ],
+            "title": "Audience",
+            "default": "individual"
+          },
+          "price_basis": {
+            "type": "string",
+            "enum": [
+              "per_course",
+              "per_user_year",
+              "per_user_month",
+              "per_group"
+            ],
+            "title": "Price Basis",
+            "default": "per_course"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency",
+            "description": "Currency of the provider's list price.",
+            "default": "MYR"
+          },
+          "list_price": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "List Price",
+            "description": "Price in `currency`."
+          },
+          "provider_type": {
+            "type": "string",
+            "enum": [
+              "mooc",
+              "university",
+              "industry_body",
+              "professional_body",
+              "private_provider",
+              "government"
+            ],
+            "title": "Provider Type",
+            "default": "private_provider"
+          },
+          "location": {
+            "type": "string",
+            "title": "Location",
+            "default": ""
+          },
+          "price_note": {
+            "type": "string",
+            "title": "Price Note",
+            "description": "How cost_myr was derived (e.g. FX rate).",
+            "default": ""
           }
         },
         "type": "object",

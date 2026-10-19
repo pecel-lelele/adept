@@ -106,3 +106,25 @@ def test_subscriptions_are_never_booked_as_steps(client: TestClient) -> None:
             continue
         for step in _pathway(client, role).steps:
             assert all(c.format != "subscription" for c in step.courses), role
+
+
+def test_catalogue_filters(client: TestClient) -> None:
+    def ids(**params: object) -> list[str]:
+        body = CatalogueResponse.model_validate(
+            client.get("/api/v1/pathway/catalogue", params=params).json()
+        )
+        return [c.id for c in body.courses]
+
+    hrd = ids(hrd_claimable=True)
+    assert hrd and "ukm-data-analytics-certificate" in hrd and "mslearn-tsql" not in hrd
+    assert ids(format="subscription") == ["coursera-plus-annual"]
+    assert set(ids(skill="excel")) >= {
+        "unimas-excel-booster",
+        "coursera-excel-basics-data-analysis-ibm",
+    }
+    assert "unimas-excel-booster" not in ids(skill="excel", max_cost_myr=500)
+    assert ids(provider_type="university")
+    cheapest = client.get("/api/v1/pathway/catalogue", params={"skill": "python"}).json()["courses"]
+    costs = [c["cost_myr"] for c in cheapest]
+    assert costs == sorted(costs)
+    assert client.get("/api/v1/pathway/catalogue", params={"format": "nope"}).status_code == 422

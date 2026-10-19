@@ -725,6 +725,52 @@ export interface components {
              */
             duration_note: string;
             source?: components["schemas"]["Source"] | null;
+            /**
+             * Format
+             * @default self_paced
+             * @enum {string}
+             */
+            format: "self_paced" | "live_online" | "in_person" | "hybrid" | "subscription";
+            /**
+             * Audience
+             * @default individual
+             * @enum {string}
+             */
+            audience: "individual" | "corporate" | "both";
+            /**
+             * Price Basis
+             * @default per_course
+             * @enum {string}
+             */
+            price_basis: "per_course" | "per_user_year" | "per_user_month" | "per_group";
+            /**
+             * Currency
+             * @description Currency of the provider's list price.
+             * @default MYR
+             */
+            currency: string;
+            /**
+             * List Price
+             * @description Price in `currency`.
+             */
+            list_price?: number | null;
+            /**
+             * Provider Type
+             * @default private_provider
+             * @enum {string}
+             */
+            provider_type: "mooc" | "university" | "industry_body" | "professional_body" | "private_provider" | "government";
+            /**
+             * Location
+             * @default
+             */
+            location: string;
+            /**
+             * Price Note
+             * @description How cost_myr was derived (e.g. FX rate).
+             * @default
+             */
+            price_note: string;
         };
         /** CvExtractionResult */
         CvExtractionResult: {
@@ -1971,7 +2017,14 @@ export interface operations {
     };
     pathway_get_catalogue: {
         parameters: {
-            query?: never;
+            query?: {
+                skill?: string | null;
+                format?: ("self_paced" | "live_online" | "in_person" | "hybrid" | "subscription") | null;
+                audience?: ("individual" | "corporate") | null;
+                provider_type?: ("mooc" | "university" | "industry_body" | "professional_body" | "private_provider" | "government") | null;
+                hrd_claimable?: boolean | null;
+                max_cost_myr?: number | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -1985,6 +2038,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CatalogueResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

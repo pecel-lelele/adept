@@ -66,5 +66,46 @@
   },
   "actionFailed": "Not saved: {message}",
   "saving": "Saving…",
-  "saved": "Saved. Your progress and badges are updated."
+  "saved": "Saved. Your progress and badges are updated.",
+  "catalogue": {
+    "title": "Course catalogue",
+    "description": "Every course Adept may recommend: free and paid, online and in person, with HRD Corp status, price basis, source and the date we checked it.",
+    "browse": "Browse all courses",
+    "any": "Any",
+    "skills": "Skills",
+    "level": "reaches level {level} (estimate)",
+    "formatLabel": "Format",
+    "providerLabel": "Provider type",
+    "audienceLabel": "For",
+    "maxCost": "Max RM",
+    "apply": "Filter",
+    "reset": "Reset",
+    "count": "{count} courses",
+    "price": {
+      "per_course": "RM {amount}",
+      "per_user_year": "RM {amount} / user / year",
+      "per_user_month": "RM {amount} / user / month",
+      "per_group": "RM {amount} / group"
+    },
+    "format": {
+      "self_paced": "Self-paced online",
+      "live_online": "Live online",
+      "in_person": "In person",
+      "hybrid": "Hybrid",
+      "subscription": "Subscription"
+    },
+    "provider": {
+      "mooc": "Online platform",
+      "university": "University",
+      "industry_body": "Industry body",
+      "professional_body": "Professional body",
+      "private_provider": "Training provider",
+      "government": "Government"
+    },
+    "audience": {
+      "individual": "Individuals",
+      "corporate": "Companies",
+      "both": "Individuals and companies"
+    }
+  }
 }

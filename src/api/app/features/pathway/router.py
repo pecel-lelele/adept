@@ -1,12 +1,16 @@
-from fastapi import APIRouter, Depends
+from typing import Annotated, Literal
+
+from fastapi import APIRouter, Depends, Query
 
 from app.contracts.common import ScenarioId
 from app.contracts.guardrails import SyncReport
 from app.contracts.pathway import (
     CatalogueResponse,
+    CourseFormat,
     Pathway,
     Progress,
     ProgressUpdate,
+    ProviderType,
     ReplanStatus,
     SavedPlan,
     SavePlanIn,
@@ -24,9 +28,18 @@ def get_pathway(role_id: str, user: CurrentUserDep, scenario: ScenarioId = "mode
 
 
 @router.get("/catalogue")
-def get_catalogue() -> CatalogueResponse:
+def get_catalogue(
+    skill: Annotated[str | None, Query(max_length=60)] = None,
+    format: CourseFormat | None = None,
+    audience: Literal["individual", "corporate"] | None = None,
+    provider_type: ProviderType | None = None,
+    hrd_claimable: bool | None = None,
+    max_cost_myr: Annotated[float | None, Query(ge=0)] = None,
+) -> CatalogueResponse:
     """Every course the pathway may recommend, with its source and verification date."""
-    return service.catalogue()
+    return service.catalogue(
+        service.CatalogueFilter(skill, format, audience, provider_type, hrd_claimable, max_cost_myr)
+    )
 
 
 @router.post("/catalogue/sync", dependencies=[Depends(require_sync_token)])
