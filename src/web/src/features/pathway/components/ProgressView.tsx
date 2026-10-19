@@ -11,7 +11,7 @@ import {
   PageHeader,
 } from "@/components";
 import type { ScenarioId } from "@/lib/api";
-import { percent } from "@/lib/utils";
+import { cn, percent } from "@/lib/utils";
 
 import { updateProgressAction } from "../actions";
 import { fetchProgress } from "../api";
@@ -54,7 +54,7 @@ export async function ProgressView({ roleId, scenario }: { roleId: string; scena
                 <ActionForm
                   key={c.id}
                   action={updateProgressAction}
-                  className="flex flex-wrap items-center gap-2"
+                  className="flex flex-wrap items-center gap-x-3 gap-y-1"
                   fields={{
                     role_id: roleId,
                     scenario,
@@ -64,7 +64,12 @@ export async function ProgressView({ roleId, scenario }: { roleId: string; scena
                   label={done ? t("progress.markUndone") : t("progress.markDone")}
                   variant={done ? "outline" : "default"}
                 >
-                  <span className={done ? "line-through text-muted-foreground" : undefined}>
+                  <span
+                    className={cn(
+                      "min-w-0 flex-1",
+                      done ? "text-muted-foreground line-through" : undefined,
+                    )}
+                  >
                     {c.step}. {c.title}
                   </span>
                 </ActionForm>

@@ -1,5 +1,5 @@
 /** Result of a pathway server action; `error` is shown next to the button that failed. */
-export type ActionState = { error?: string };
+export type ActionState = { error?: string; done?: number };
 
 /** Turn an openapi-fetch error result into a short message (API body first, then status). */
 export function actionError(error: unknown, status: number): string {

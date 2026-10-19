@@ -25,15 +25,19 @@ export function ActionForm({ action, fields = {}, label, variant, className, chi
       {Object.entries(fields).map(([name, value]) => (
         <input key={name} type="hidden" name={name} value={value} />
       ))}
-      <Button size="sm" variant={variant} disabled={pending}>
-        {label}
+      <Button size="sm" variant={variant} disabled={pending} aria-busy={pending}>
+        {pending ? t("saving") : label}
       </Button>
       {children}
-      {state.error ? (
-        <p role="alert" className="basis-full text-xs text-red-700">
-          {t("actionFailed", { message: state.error })}
-        </p>
-      ) : null}
+      <span aria-live="polite" className="basis-full text-xs">
+        {state.error ? (
+          <span role="alert" className="text-red-700">
+            {t("actionFailed", { message: state.error })}
+          </span>
+        ) : state.done && !pending ? (
+          <span className="text-emerald-700">{t("saved")}</span>
+        ) : null}
+      </span>
     </form>
   );
 }

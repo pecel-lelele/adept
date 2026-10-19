@@ -26,7 +26,7 @@ async function settle(request: Promise<ApiOutcome>, path: string): Promise<Actio
     return { error: "The API could not be reached." };
   }
   revalidatePath(path);
-  return {};
+  return { done: Date.now() };
 }
 
 /** The learner explicitly chooses a target role and saves its plan (human in charge). */

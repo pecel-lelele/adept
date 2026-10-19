@@ -64,5 +64,7 @@
     "level": "Tahap {current} daripada {target}",
     "courses": "Kursus dalam pelan anda"
   },
-  "actionFailed": "Tidak disimpan: {message}"
+  "actionFailed": "Tidak disimpan: {message}",
+  "saving": "Menyimpan…",
+  "saved": "Disimpan. Kemajuan dan lencana anda dikemas kini."
 }

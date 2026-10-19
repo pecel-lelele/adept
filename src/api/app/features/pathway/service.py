@@ -243,12 +243,14 @@ def get_progress(user: CurrentUser, role_id: str, scenario: ScenarioId) -> Progr
     index = data.course_index()
     levels = {cid: {s: c.level for s in c.skill_ids} for cid, c in index.items()}
     skills = progress.skill_progress(plan, statuses, levels)
-    earned = repository.record_badges(
-        user.id, progress.earned_badges(plan, statuses, skills), date.today()
-    )
+    # Badges reflect current progress (undoing a course removes what it earned) but keep the
+    # date each one was first earned.
+    current = progress.earned_badges(plan, statuses, skills)
+    first_earned = repository.record_badges(user.id, current, date.today())
     labels = data.skill_labels()
     badges = []
-    for badge_id, earned_at in sorted(earned.items()):
+    for badge_id in sorted(current):
+        earned_at = first_earned[badge_id]
         kind, skill_id, label = _badge_label(badge_id, labels)
         badges.append(
             Badge(id=badge_id, kind=kind, label=label, earned_at=earned_at, skill_id=skill_id)

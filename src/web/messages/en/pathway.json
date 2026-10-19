@@ -64,5 +64,7 @@
     "level": "Level {current} of {target}",
     "courses": "Courses in your plan"
   },
-  "actionFailed": "Not saved: {message}"
+  "actionFailed": "Not saved: {message}",
+  "saving": "Saving…",
+  "saved": "Saved. Your progress and badges are updated."
 }

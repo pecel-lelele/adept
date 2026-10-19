@@ -80,8 +80,10 @@ def test_progress_raises_levels_and_awards_badges(client: TestClient) -> None:
 
 def test_progress_can_be_undone(client: TestClient) -> None:
     course_id = _save(client).pathway.steps[0].courses[0].id
-    _progress(client, course_id)
-    assert _progress(client, course_id, "not_started").course_status == {}
+    assert {b.id for b in _progress(client, course_id).badges} >= {"milestone:first"}
+    undone = _progress(client, course_id, "not_started")
+    assert undone.course_status == {}
+    assert undone.badges == [], "badges follow current progress"
 
 
 def test_progress_rejects_courses_outside_the_plan(client: TestClient) -> None:
