@@ -13,7 +13,7 @@ from datetime import date, datetime
 
 from app.contracts.common import Source
 from app.contracts.pathway import Course
-from app.core import seed
+from app.core import refdata, seed
 
 
 @dataclass(frozen=True)
@@ -32,7 +32,8 @@ class Snapshot:
 
 def catalogue() -> list[Course]:
     out: list[Course] = []
-    for r in seed.rows("courses", "courses"):
+    # Retired courses (no longer listed by their provider) are never recommended.
+    for r in refdata.rows("courses", "courses", " WHERE retired_at IS NULL ORDER BY id"):
         verified = date.fromisoformat(r["verified_at"])
         source_name = r.get("source_name") or r["provider"]
         out.append(

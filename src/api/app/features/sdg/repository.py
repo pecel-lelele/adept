@@ -7,7 +7,7 @@ from datetime import date
 
 from app.contracts.common import Source
 from app.contracts.sdg import SdgLink, SdgStrength, SdgTarget
-from app.core import seed
+from app.core import refdata
 
 AREA = "sdg"
 UN_API_URL = "https://unstats.un.org/SDGAPI/v1/sdg/Goal/List"
@@ -16,7 +16,7 @@ MAPPING_DATE = date(2026, 10, 20)
 
 
 def un_source() -> Source:
-    goals = seed.rows(AREA, "sdg_goals")
+    goals = refdata.rows(AREA, "sdg_goals", " ORDER BY id")
     retrieved = date.fromisoformat(goals[0]["retrieved_at"]) if goals else MAPPING_DATE
     return Source(name="UN Statistics Division SDG API", url=UN_API_URL, retrieved_at=retrieved)
 
@@ -30,24 +30,24 @@ def mapping_source() -> Source:
 
 
 def goals() -> list[dict[str, str]]:
-    return [dict(r) for r in seed.rows(AREA, "sdg_goals")]
+    return [dict(r) for r in refdata.rows(AREA, "sdg_goals", " ORDER BY id")]
 
 
 def targets() -> dict[str, SdgTarget]:
     return {
         r["id"]: SdgTarget(goal=int(r["goal"]), target=r["id"], label=r["label"])
-        for r in seed.rows(AREA, "sdg_targets")
+        for r in refdata.rows(AREA, "sdg_targets")
     }
 
 
 def short_titles() -> dict[int, str]:
-    return {int(g["id"]): g["short_title"] for g in seed.rows(AREA, "sdg_goals")}
+    return {int(g["id"]): g["short_title"] for g in refdata.rows(AREA, "sdg_goals", " ORDER BY id")}
 
 
 def _links(table: str, key: str, entity_id: str, via: str) -> list[SdgLink]:
     known = targets()
     out: list[SdgLink] = []
-    for r in seed.rows(AREA, table):
+    for r in refdata.rows(AREA, table):
         if r[key] != entity_id:
             continue
         strength: SdgStrength = "direct" if r.get("strength") == "direct" else "enabling"
@@ -72,23 +72,23 @@ def skill_links(skill_id: str) -> list[SdgLink]:
 
 
 def mapped_role_ids() -> set[str]:
-    return {r["role_id"] for r in seed.rows(AREA, "role_sdg_map")}
+    return {r["role_id"] for r in refdata.rows(AREA, "role_sdg_map")}
 
 
 def mapped_skill_ids() -> set[str]:
-    return {r["skill_id"] for r in seed.rows(AREA, "skill_sdg_map")}
+    return {r["skill_id"] for r in refdata.rows(AREA, "skill_sdg_map")}
 
 
 def org_state(org_id: str) -> str | None:
-    for r in seed.rows(AREA, "org_regions"):
+    for r in refdata.rows(AREA, "org_regions"):
         if r["org_id"] == org_id:
             return r["state"]
     return None
 
 
 def orgs_in_state(state: str) -> list[str]:
-    return [r["org_id"] for r in seed.rows(AREA, "org_regions") if r["state"] == state]
+    return [r["org_id"] for r in refdata.rows(AREA, "org_regions") if r["state"] == state]
 
 
 def states() -> list[str]:
-    return sorted({r["state"] for r in seed.rows(AREA, "org_regions")})
+    return sorted({r["state"] for r in refdata.rows(AREA, "org_regions")})

@@ -11,11 +11,14 @@ nothing is silently lost.
 
 from __future__ import annotations
 
+import time
 from collections.abc import Callable, Sequence
 from typing import Any, TypeVar
 
 import psycopg
+from psycopg import sql
 
+from app.core import seed
 from app.core.config import get_settings
 from app.core.db import connection
 from app.core.errors import AppError
@@ -52,3 +55,52 @@ def read(from_db: Callable[[], T], from_seed: Callable[[], T]) -> T:
     except psycopg.Error as exc:
         log.warning("database read failed, using seed files instead: %s", exc)
         return from_seed()
+
+
+def _as_seed_text(value: Any) -> str:
+    """Render a DB value the way the seed CSVs store it, so one parser serves both."""
+    if value is None:
+        return ""
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, list):
+        return "{" + ",".join(str(v) for v in value) + "}"
+    if hasattr(value, "isoformat"):
+        return str(value.isoformat())
+    return str(value)
+
+
+def _db_rows(table: str, where: str) -> tuple[dict[str, str], ...]:
+    query = sql.SQL("SELECT * FROM {}{}").format(sql.Identifier(table), sql.SQL(where))
+    with connection() as conn:
+        rows = conn.execute(query).fetchall()
+    return tuple({k: _as_seed_text(v) for k, v in row.items()} for row in rows)
+
+
+# Reference rows change only when a sync runs (which calls `invalidate`), so a short cache
+# keeps one request from opening a connection per lookup.
+CACHE_TTL_S = 30.0
+_cache: dict[tuple[str, str], tuple[float, tuple[dict[str, str], ...]]] = {}
+
+
+def invalidate() -> None:
+    _cache.clear()
+
+
+def rows(area: str, table: str, where: str = "") -> tuple[dict[str, str], ...]:
+    """Seed-shaped rows for an M3 reference table: from PostgreSQL when M3_BACKEND=postgres
+    (with a fixed, code-defined `where` clause), else from src/data/seed/<area>/<table>.csv."""
+    if not use_postgres():
+        return seed.rows(area, table)
+    key = (table, where)
+    hit = _cache.get(key)
+    now = time.monotonic()
+    if hit and now - hit[0] < CACHE_TTL_S:
+        return hit[1]
+    try:
+        fresh = _db_rows(table, where)
+    except psycopg.Error as exc:
+        log.warning("database read of %s failed, using seed files instead: %s", table, exc)
+        return seed.rows(area, table)
+    _cache[key] = (now, fresh)
+    return fresh
