@@ -2,7 +2,7 @@
 
 Instructions for Gemini CLI in this repository. Same rules as CLAUDE.md; keep both files in sync. Read the imported files before doing any work.
 
-@docs/ai/PROJECT_CONTEXT.md
+@docs/PROJECT_CONTEXT.md
 @docs/TEAM_RULES.md
 @docs/TASKS.md
 

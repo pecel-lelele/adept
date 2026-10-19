@@ -1,6 +1,6 @@
 # Personas seed (F1, M2)
 
-Synthetic personas from `docs/ai/PROJECT_CONTEXT.md` §11.5. Invented people; any
+Synthetic personas from `docs/PROJECT_CONTEXT.md` §11.5. Invented people; any
 resemblance to real people is coincidental. Do not add age, gender or background
 columns: they must not influence matching.
 

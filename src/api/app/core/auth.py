@@ -23,7 +23,7 @@ class CurrentUser:
     org_id: str | None = None
 
 
-# Synthetic personas only (docs/ai/PROJECT_CONTEXT.md §11.5).
+# Synthetic personas only (docs/PROJECT_CONTEXT.md §11.5).
 DEMO_USERS: dict[str, CurrentUser] = {
     "aisyah": CurrentUser("aisyah", "Aisyah", "learner", "org-demo-bank"),
     "weijie": CurrentUser("weijie", "Wei Jie", "learner"),

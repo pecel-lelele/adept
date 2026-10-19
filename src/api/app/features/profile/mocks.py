@@ -1,4 +1,4 @@
-"""Synthetic persona profiles (docs/ai/PROJECT_CONTEXT.md §11.5). No real people."""
+"""Synthetic persona profiles (docs/PROJECT_CONTEXT.md §11.5). No real people."""
 
 from app.contracts.profile import ExtractedSkill, Profile, UserSkill
 

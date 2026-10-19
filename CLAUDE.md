@@ -2,7 +2,7 @@
 
 Instructions for Claude Code in this repository. Read the imported files before doing any work.
 
-@docs/ai/PROJECT_CONTEXT.md
+@docs/PROJECT_CONTEXT.md
 @docs/TEAM_RULES.md
 @docs/TASKS.md
 

@@ -62,7 +62,7 @@ These affect everyone, so changes need a quick message in the team chat **before
 | Dependencies (`requirements.txt`, `src/web/package.json`, `src/web/pnpm-lock.yaml`) | Lockfile conflicts are painful | Prefer a small separate PR; pull and re-install after it's merged |
 | Root config (`Makefile`, `docker-compose.yml`, env vars, `.github/`) | Everyone's environment | Separate small PR; update `.env.example` if you add a variable |
 | Navigation / app shell / shared UI components | All pages use them | Coordinate with M4 |
-| `docs/ai/PROJECT_CONTEXT.md`, `CLAUDE.md`, `GEMINI.md` | Shared AI context | Team agrees first |
+| `docs/PROJECT_CONTEXT.md`, `CLAUDE.md`, `GEMINI.md` | Shared AI context | Team agrees first |
 
 If two people need the same shared change, one person does it and the other waits for the merge.
 
