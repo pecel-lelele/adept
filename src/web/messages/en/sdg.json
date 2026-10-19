@@ -21,5 +21,6 @@
   "scope": {
     "organisation": "Organisation",
     "region": "Region"
-  }
+  },
+  "evidence": "Evidence"
 }

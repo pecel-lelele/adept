@@ -77,6 +77,20 @@ async function LinkList({ links }: { links: Schemas["SdgLink"][] }) {
               </Badge>{" "}
               {link.reviewed ? null : <span>· {t("draft")}</span>}
             </p>
+            {link.evidence ? (
+              <p className="text-xs text-muted-foreground">
+                {t("evidence")}:{" "}
+                <a
+                  href={link.evidence.source.url}
+                  className="underline"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {link.evidence.source.name}
+                </a>
+                . {link.evidence.note}
+              </p>
+            ) : null}
           </div>
         </li>
       ))}

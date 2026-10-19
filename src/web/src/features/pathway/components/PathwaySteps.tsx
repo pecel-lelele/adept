@@ -27,6 +27,9 @@ async function CourseLine({ course }: { course: Course }) {
         {course.source ? `${t("step.source", { name: course.source.name })} · ` : null}
         {t("verified", { date: course.verified_at })}
       </span>
+      {course.hrd_claimable && course.duration_note ? (
+        <span className="basis-full text-xs text-muted-foreground">{course.duration_note}</span>
+      ) : null}
     </div>
   );
 }

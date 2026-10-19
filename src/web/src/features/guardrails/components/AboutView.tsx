@@ -101,6 +101,9 @@ export async function AboutView() {
                 </Badge>
                 <span className="text-xs text-muted-foreground">
                   {s.used_for} · {t("records", { count: s.records })} · {s.retrieved_at}
+                  {s.last_synced_at
+                    ? ` · ${t("lastSynced", { date: s.last_synced_at.slice(0, 16).replace("T", " ") })}`
+                    : null}
                 </span>
               </div>
             ))

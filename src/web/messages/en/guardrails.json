@@ -21,5 +21,6 @@
   "fairnessFailed": "A fairness check failed",
   "protectedTitle": "Never accepted as input",
   "limitsTitle": "Limitations",
-  "limitsBody": "All predictions are estimates. Demo people and teams are synthetic. SDG mappings are drafts until reviewed. Course levels are our estimate. Adept supports human decisions and never makes hiring decisions."
+  "limitsBody": "All predictions are estimates. Demo people and teams are synthetic. SDG mappings are drafts until reviewed. Course levels are our estimate. Adept supports human decisions and never makes hiring decisions.",
+  "lastSynced": "last synced {date} UTC"
 }

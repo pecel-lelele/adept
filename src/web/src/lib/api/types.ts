@@ -240,6 +240,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/pathway/catalogue/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sync Catalogue
+         * @description Refresh the catalogue from its live sources (needs X-Sync-Token, M3_BACKEND=postgres).
+         */
+        post: operations["pathway_sync_catalogue"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/pathway/plans": {
         parameters: {
             query?: never;
@@ -411,6 +431,26 @@ export interface paths {
         get: operations["scenarios_get_outlook"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sdg/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sync Sdg
+         * @description Refresh goals/targets from the UN API and the curated links (needs X-Sync-Token).
+         */
+        post: operations["sdg_sync_sdg"];
         delete?: never;
         options?: never;
         head?: never;
@@ -724,6 +764,11 @@ export interface components {
             used_for: string;
             /** Records */
             records: number;
+            /**
+             * Last Synced At
+             * @description Last successful live sync (M3_BACKEND=postgres only).
+             */
+            last_synced_at?: string | null;
         };
         /** Disclosure */
         Disclosure: {
@@ -1330,6 +1375,15 @@ export interface components {
             /** Role Ids */
             role_ids?: string[];
         };
+        /**
+         * SdgEvidence
+         * @description The published source that justifies a link, and what in it does.
+         */
+        SdgEvidence: {
+            source: components["schemas"]["Source"];
+            /** Note */
+            note: string;
+        };
         /** SdgGoal */
         SdgGoal: {
             /** Goal */
@@ -1376,6 +1430,8 @@ export interface components {
              * @default false
              */
             reviewed: boolean;
+            /** @description Source justifying the link (UN metadata, ILO, UNESCO). */
+            evidence?: components["schemas"]["SdgEvidence"] | null;
         };
         /** SdgTarget */
         SdgTarget: {
@@ -1456,6 +1512,44 @@ export interface components {
         SourcesResponse: {
             /** Sources */
             sources: components["schemas"]["DataSourceInfo"][];
+        };
+        /**
+         * SyncReport
+         * @description Result of refreshing reference data from its live source.
+         */
+        SyncReport: {
+            /** Source */
+            source: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "failed";
+            /**
+             * Records
+             * @description Rows written or refreshed.
+             */
+            records: number;
+            /**
+             * Retired
+             * @description Rows the source no longer lists (kept, flagged).
+             */
+            retired: number;
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /**
+             * Finished At
+             * Format: date-time
+             */
+            finished_at: string;
+            /**
+             * Detail
+             * @default
+             */
+            detail: string;
         };
         /** TrendSignal */
         TrendSignal: {
@@ -1895,6 +1989,37 @@ export interface operations {
             };
         };
     };
+    pathway_sync_catalogue: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-sync-token"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncReport"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     pathway_save_plan: {
         parameters: {
             query?: never;
@@ -2246,6 +2371,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OutlookResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sdg_sync_sdg: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-sync-token"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncReport"];
                 };
             };
             /** @description Validation Error */

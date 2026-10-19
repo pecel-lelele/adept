@@ -21,5 +21,6 @@
   "fairnessFailed": "有一项公平性检查未通过",
   "protectedTitle": "从不作为输入",
   "limitsTitle": "局限",
-  "limitsBody": "所有预测均为估计。演示中的人员和团队均为合成数据。SDG 关联在审核前为草稿。课程水平为我们的估计。Adept 支持人的决策，从不做出招聘决定。"
+  "limitsBody": "所有预测均为估计。演示中的人员和团队均为合成数据。SDG 关联在审核前为草稿。课程水平为我们的估计。Adept 支持人的决策，从不做出招聘决定。",
+  "lastSynced": "最近同步 {date} UTC"
 }

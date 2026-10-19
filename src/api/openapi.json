@@ -695,6 +695,56 @@
         }
       }
     },
+    "/api/v1/pathway/catalogue/sync": {
+      "post": {
+        "tags": [
+          "pathway"
+        ],
+        "summary": "Sync Catalogue",
+        "description": "Refresh the catalogue from its live sources (needs X-Sync-Token, M3_BACKEND=postgres).",
+        "operationId": "pathway_sync_catalogue",
+        "parameters": [
+          {
+            "name": "x-sync-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Sync-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncReport"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/pathway/plans": {
       "post": {
         "tags": [
@@ -1420,6 +1470,56 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/OutlookResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sdg/sync": {
+      "post": {
+        "tags": [
+          "sdg"
+        ],
+        "summary": "Sync Sdg",
+        "description": "Refresh goals/targets from the UN API and the curated links (needs X-Sync-Token).",
+        "operationId": "sdg_sync_sdg",
+        "parameters": [
+          {
+            "name": "x-sync-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Sync-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncReport"
                 }
               }
             }
@@ -2239,6 +2339,19 @@
             "type": "integer",
             "minimum": 0.0,
             "title": "Records"
+          },
+          "last_synced_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Synced At",
+            "description": "Last successful live sync (M3_BACKEND=postgres only)."
           }
         },
         "type": "object",
@@ -3708,6 +3821,24 @@
         ],
         "title": "SdgContribution"
       },
+      "SdgEvidence": {
+        "properties": {
+          "source": {
+            "$ref": "#/components/schemas/Source"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source",
+          "note"
+        ],
+        "title": "SdgEvidence",
+        "description": "The published source that justifies a link, and what in it does."
+      },
       "SdgGoal": {
         "properties": {
           "goal": {
@@ -3808,6 +3939,17 @@
             "title": "Reviewed",
             "description": "False = draft pending human review.",
             "default": false
+          },
+          "evidence": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SdgEvidence"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Source justifying the link (UN metadata, ILO, UNESCO)."
           }
         },
         "type": "object",
@@ -4014,6 +4156,60 @@
           "sources"
         ],
         "title": "SourcesResponse"
+      },
+      "SyncReport": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "records": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Records",
+            "description": "Rows written or refreshed."
+          },
+          "retired": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Retired",
+            "description": "Rows the source no longer lists (kept, flagged)."
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At"
+          },
+          "finished_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Finished At"
+          },
+          "detail": {
+            "type": "string",
+            "title": "Detail",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "source",
+          "status",
+          "records",
+          "retired",
+          "started_at",
+          "finished_at"
+        ],
+        "title": "SyncReport",
+        "description": "Result of refreshing reference data from its live source."
       },
       "TrendSignal": {
         "properties": {
