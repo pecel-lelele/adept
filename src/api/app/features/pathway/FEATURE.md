@@ -10,8 +10,12 @@
 
 ## Status
 
-Skeleton: endpoints return mock data from `mocks.py` with `meta.sources = MOCK DATA`.
-Replace `repository.py` reads with real data, keep the contracts stable.
+Real data. `engine.py` (pure) builds plans; `service.py` wires profile (F1), taxonomy (F4),
+trend snapshots (F2) and SDG links (F6) into it; `repository.py` keeps saved plans, progress and
+badges in memory (tables `pathway_plans`, `course_progress`, `user_badges` exist for the DB move).
+Endpoints: `GET /pathway`, `GET /pathway/catalogue`, `POST /pathway/plans`,
+`GET /pathway/plans/me` (re-plan check), `POST /pathway/plans/me/accept-replan`,
+`GET|POST /pathway/progress`. F7 uses `group_pathway` and `team_gaps`.
 
 ## Goal and tasks (from docs/TASKS.md)
 
@@ -30,13 +34,11 @@ Replace `repository.py` reads with real data, keep the contracts stable.
 
 ## Pipeline
 
-Fill this in as the feature takes shape (copy it into the `docs/decisions.md` entry).
-
 | Stage | Choice | Notes |
 |---|---|---|
-| Source | | |
-| Preprocessing / cleaning | | |
-| Features | | |
-| Model / method | | |
-| Evaluation | | metric + result |
-| Serving | | endpoint(s) |
+| Source | Microsoft Learn Catalog API (16 curated modules/paths) + 1 HRD Corp-claimable provider page checked by hand | `src/pipelines/pathway`, dated per row |
+| Preprocessing / cleaning | strip tracking params, minutes → hours, validate skill IDs, https URLs, levels | pipeline fails if a curated UID is retired |
+| Features | gap = required − current level; priority = importance × gap share × (1 + growth × w), w = 1 moderate / 2 fast | growth from the latest trend snapshot |
+| Model / method | topological sort over `skill_prerequisites` (prerequisites inherit the urgency of what they unlock); ascending-level course selection, cheapest out-of-pocket (HRD Corp-claimable = RM 0 if eligible) then shortest, within budget; multi-skill course booked once; weeks = ⌈hours ÷ hours/week⌉ | never invents a course: uncovered skills are reported as unmet |
+| Evaluation | 38 tests: catalogue-only, every match has a pathway, budget, HRD, prerequisites, re-plan diff, badges, counterfactual fairness | `tests/api/pathway` |
+| Serving | endpoints above; web `/app/pathway`, `/app/progress`, `/org/plan` | |
