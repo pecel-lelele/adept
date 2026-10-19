@@ -3,7 +3,6 @@ import { getTranslations } from "next-intl/server";
 import {
   ApiError,
   Badge,
-  Button,
   Card,
   CardContent,
   CardHeader,
@@ -16,6 +15,7 @@ import { percent } from "@/lib/utils";
 
 import { updateProgressAction } from "../actions";
 import { fetchProgress } from "../api";
+import { ActionForm } from "./ActionForm";
 
 export async function ProgressView({ roleId, scenario }: { roleId: string; scenario: ScenarioId }) {
   const t = await getTranslations("pathway");
@@ -51,18 +51,23 @@ export async function ProgressView({ roleId, scenario }: { roleId: string; scena
             {unique.map((c) => {
               const done = p.course_status[c.id] === "completed";
               return (
-                <form key={c.id} action={updateProgressAction} className="flex items-center gap-2">
-                  <input type="hidden" name="role_id" value={roleId} />
-                  <input type="hidden" name="scenario" value={scenario} />
-                  <input type="hidden" name="course_id" value={c.id} />
-                  <input type="hidden" name="status" value={done ? "not_started" : "completed"} />
-                  <Button size="sm" variant={done ? "outline" : "default"}>
-                    {done ? t("progress.markUndone") : t("progress.markDone")}
-                  </Button>
+                <ActionForm
+                  key={c.id}
+                  action={updateProgressAction}
+                  className="flex flex-wrap items-center gap-2"
+                  fields={{
+                    role_id: roleId,
+                    scenario,
+                    course_id: c.id,
+                    status: done ? "not_started" : "completed",
+                  }}
+                  label={done ? t("progress.markUndone") : t("progress.markDone")}
+                  variant={done ? "outline" : "default"}
+                >
                   <span className={done ? "line-through text-muted-foreground" : undefined}>
                     {c.step}. {c.title}
                   </span>
-                </form>
+                </ActionForm>
               );
             })}
           </CardContent>

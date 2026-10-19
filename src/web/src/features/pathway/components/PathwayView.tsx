@@ -4,7 +4,6 @@ import { getTranslations } from "next-intl/server";
 import {
   ApiError,
   Badge,
-  Button,
   Card,
   CardContent,
   CardHeader,
@@ -16,6 +15,7 @@ import type { ScenarioId, Schemas } from "@/lib/api";
 
 import { acceptReplanAction, savePlanAction } from "../actions";
 import { fetchPathway, fetchPlanStatus } from "../api";
+import { ActionForm } from "./ActionForm";
 import { PathwaySteps } from "./PathwaySteps";
 
 async function Summary({ plan }: { plan: Schemas["Pathway"] }) {
@@ -81,9 +81,7 @@ async function ReplanBanner({ status }: { status: Schemas["ReplanStatus"] }) {
           ))}
         </ul>
         <div className="flex gap-2">
-          <form action={acceptReplanAction}>
-            <Button size="sm">{t("replan.accept")}</Button>
-          </form>
+          <ActionForm action={acceptReplanAction} label={t("replan.accept")} />
           <span className="self-center text-xs text-muted-foreground">{t("replan.keep")}</span>
         </div>
       </CardContent>
@@ -118,11 +116,11 @@ export async function PathwayView({ roleId, scenario }: { roleId: string; scenar
             {t("plan.saved", { date: savedHere.saved_at.slice(0, 10) })}
           </Badge>
         ) : (
-          <form action={savePlanAction}>
-            <input type="hidden" name="role_id" value={roleId} />
-            <input type="hidden" name="scenario" value={scenario} />
-            <Button size="sm">{t("plan.save")}</Button>
-          </form>
+          <ActionForm
+            action={savePlanAction}
+            fields={{ role_id: roleId, scenario }}
+            label={t("plan.save")}
+          />
         )}
         <Link href={`/app/progress${query}`} className="text-sm underline">
           {t("plan.progressLink")}

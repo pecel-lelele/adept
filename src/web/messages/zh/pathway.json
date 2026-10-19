@@ -63,5 +63,6 @@
     "skills": "技能",
     "level": "水平 {current}/{target}",
     "courses": "计划中的课程"
-  }
+  },
+  "actionFailed": "未保存：{message}"
 }

@@ -63,5 +63,6 @@
     "skills": "Kemahiran",
     "level": "Tahap {current} daripada {target}",
     "courses": "Kursus dalam pelan anda"
-  }
+  },
+  "actionFailed": "Tidak disimpan: {message}"
 }

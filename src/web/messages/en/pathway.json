@@ -63,5 +63,6 @@
     "skills": "Skills",
     "level": "Level {current} of {target}",
     "courses": "Courses in your plan"
-  }
+  },
+  "actionFailed": "Not saved: {message}"
 }
