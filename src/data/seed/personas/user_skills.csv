@@ -1,0 +1,9 @@
+user_id,skill_id,level,source,confidence
+aisyah,excel,4,confirmed,
+aisyah,risk-compliance,3,confirmed,
+aisyah,process-mapping,2,cv,0.64
+aisyah,customer-service,4,form,
+weijie,python,2,cv,0.80
+weijie,sql,2,cv,0.75
+ravi,logistics-planning,4,confirmed,
+ravi,excel,3,form,

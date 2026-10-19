@@ -1,0 +1,5 @@
+id,title,provider,url,hours,cost_myr,hrd_claimable,verified_at,skill_ids
+course-rpa-101,Intro to Process Automation (sample),Sample Provider,https://example.org/courses/rpa-101,12,0,false,2026-10-20,{rpa}
+course-python-basics,Python Basics (sample),Sample Provider,https://example.org/courses/python-basics,20,0,false,2026-10-20,{python}
+course-sql-101,SQL for Analysts (sample),Sample Training Centre,https://example.org/courses/sql-101,15,350,true,2026-10-20,{sql}
+course-dataviz,Dashboards & Data Visualisation (sample),Sample Training Centre,https://example.org/courses/dataviz,10,250,true,2026-10-20,"{data-visualisation,process-mapping}"
