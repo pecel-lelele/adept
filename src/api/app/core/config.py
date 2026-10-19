@@ -25,6 +25,8 @@ class Settings(BaseSettings):
     llm_provider: str = "none"
     llm_model: str = ""
     llm_api_key: str = ""
+    # Largest accepted upload (CV) in bytes; bigger files are rejected with 413.
+    max_upload_bytes: int = 5 * 1024 * 1024
 
     @property
     def cors_origin_list(self) -> list[str]:
