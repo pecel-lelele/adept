@@ -8,12 +8,21 @@ import type { NavItem } from "@/config/navigation";
 import { SCENARIO_PARAM } from "@/lib/scenario";
 import { cn } from "@/lib/utils";
 
-/** Journey steps 1-4 plus extra links; keeps ?scenario when navigating. */
+/** Query params that describe "the same plan" and must survive navigation. */
+const PRESERVED_PARAMS = [SCENARIO_PARAM, "role"] as const;
+
+/** Journey steps 1-4 plus extra links; keeps ?scenario and ?role when navigating. */
 export function JourneyStepper({ items }: { items: readonly NavItem[] }) {
   const t = useTranslations("common");
   const pathname = usePathname();
-  const scenario = useSearchParams().get(SCENARIO_PARAM);
-  const suffix = scenario ? `?${SCENARIO_PARAM}=${scenario}` : "";
+  const params = useSearchParams();
+  const next = new URLSearchParams();
+  for (const key of PRESERVED_PARAMS) {
+    const value = params.get(key);
+    if (value) next.set(key, value);
+  }
+  const query = next.toString();
+  const suffix = query ? `?${query}` : "";
 
   return (
     <nav className="flex flex-wrap gap-1 text-sm">
