@@ -1,10 +1,25 @@
 {
-  "title": "Perihal Adept",
+  "title": "Tentang Adept",
   "llmTitle": "Pendedahan AI",
-  "llmNone": "Tiada model bahasa digunakan dalam versi ini. Apabila ditambah, nama dan tujuannya akan disenaraikan di sini.",
+  "llmNone": "Tiada model bahasa digunakan dalam versi ini. Pelan, skor dan pautan SDG dikira menggunakan peraturan yang deterministik dan boleh dijelaskan.",
+  "llmProvider": "Penyedia: {provider} · model: {model}",
+  "llmCalls": "{calls} panggilan model direkodkan; {rejected} ID rekaan ditolak.",
   "methodTitle": "Metodologi",
-  "methodBody": "Isyarat trend menyuap tinjauan peranan di bawah dua senario; padanan menggabungkan pertindihan kemahiran, tinjauan trend dan kesesuaian minat; laluan menggunakan katalog kursus dengan tarikh yang disahkan.",
+  "methodBody": "Petikan data trend menyuap prospek peranan di bawah senario gangguan AI sederhana dan pantas. Padanan menggabungkan pertindihan kemahiran, prospek trend dan minat. Laluan menutup jurang kemahiran anda dengan kursus daripada katalog kami sahaja, disusun mengikut prasyarat dan keutamaan berwajaran trend, dan dijadualkan mengikut jam seminggu anda. Setiap peranan dan kemahiran dipautkan kepada sasaran SDG rasmi beserta sebab.",
+  "rulesTitle": "Pagar keselamatan",
   "sourcesTitle": "Sumber data",
+  "sourceKind": {
+    "live_api": "API langsung",
+    "verified_page": "halaman disahkan",
+    "curated": "dikurasi",
+    "synthetic": "sintetik",
+    "mock": "olok-olok"
+  },
+  "records": "{count} rekod",
+  "fairnessTitle": "Semakan keadilan",
+  "fairnessPassed": "Semua semakan keadilan lulus",
+  "fairnessFailed": "Satu semakan keadilan gagal",
+  "protectedTitle": "Tidak pernah diterima sebagai input",
   "limitsTitle": "Had",
-  "limitsBody": "Semua ramalan ialah anggaran. Data demo adalah sintetik. Adept menyokong keputusan manusia dan tidak membuat keputusan pengambilan pekerja."
+  "limitsBody": "Semua ramalan ialah anggaran. Individu dan pasukan demo adalah sintetik. Pemetaan SDG ialah draf sehingga disemak. Tahap kursus ialah anggaran kami. Adept menyokong keputusan manusia dan tidak pernah membuat keputusan pengambilan pekerja."
 }

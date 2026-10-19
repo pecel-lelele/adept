@@ -1,10 +1,25 @@
 {
   "title": "About Adept",
   "llmTitle": "AI disclosure",
-  "llmNone": "No language model is used in this version. When one is added, its name and purpose will be listed here.",
+  "llmNone": "No language model is used in this version. Plans, scores and SDG links are computed by deterministic, explainable rules.",
+  "llmProvider": "Provider: {provider} · model: {model}",
+  "llmCalls": "{calls} model calls logged; {rejected} invented IDs rejected.",
   "methodTitle": "Methodology",
-  "methodBody": "Trend signals feed role outlooks under two scenarios; matches combine skill overlap, trend outlook and interest fit; pathways use a course catalogue with verified dates.",
+  "methodBody": "Trend snapshots feed role outlooks under a moderate and a fast AI-disruption scenario. Matches combine skill overlap, trend outlook and interest fit. Pathways close your skills gap with courses from our catalogue only, ordered by prerequisites and trend-weighted priority, and timed from your hours per week. Every role and skill links to official SDG targets with a reason.",
+  "rulesTitle": "Guardrails",
   "sourcesTitle": "Data sources",
+  "sourceKind": {
+    "live_api": "live API",
+    "verified_page": "verified page",
+    "curated": "curated",
+    "synthetic": "synthetic",
+    "mock": "mock"
+  },
+  "records": "{count} records",
+  "fairnessTitle": "Fairness checks",
+  "fairnessPassed": "All fairness checks pass",
+  "fairnessFailed": "A fairness check failed",
+  "protectedTitle": "Never accepted as input",
   "limitsTitle": "Limitations",
-  "limitsBody": "All predictions are estimates. Demo data is synthetic. Adept supports human decisions and never makes hiring decisions."
+  "limitsBody": "All predictions are estimates. Demo people and teams are synthetic. SDG mappings are drafts until reviewed. Course levels are our estimate. Adept supports human decisions and never makes hiring decisions."
 }
