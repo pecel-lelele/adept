@@ -258,6 +258,58 @@
 - **Replaces**: M3-006 (mapping content)
 - **PR / branch**: `feat/pathway-sdg-guardrails`
 
+### M3-019: Progress page gives feedback and tracks the saved plan
+- **Date**: 2026-10-20
+- **Feature**: F5
+- **Type**: UI | method
+- **Change**: "Mark done" / "Undo" now show "Saving…" then a confirmation or the API error (server actions return a state through `useActionState`). The course list comes from the plan the API tracks, so every button maps to a valid course. Undoing a course revokes badges it no longer supports (the first-earned date is kept if it is earned again).
+- **Why**: Clicking did nothing visible; buttons for courses outside the saved plan failed silently; badges outlived the progress behind them.
+- **Affects**: none outside M3
+- **Replaces**: none
+- **PR / branch**: `feat/pathway-sdg-guardrails`
+
+### M3-020: Paid, Malaysian and bundled courses; live exchange rate
+- **Date**: 2026-10-20
+- **Feature**: F5
+- **Type**: data source | schema | contract
+- **Change**: Courses gain `format` (self-paced, live online, in person, hybrid, subscription), `audience` (individual, corporate, both), `price_basis`, `currency`, `list_price`, `provider_type`, `location` and `price_note` (migration `20261021120000_m3_catalogue_formats_and_fx`, new `fx_rates` table). Added two paid HRD Corp-claimable courses quoted from the provider pages: UKM Professional Certificate in Data Analytics (RM3,000, online, 3 months) and FMM Power BI (RM1,080 non-member incl. 8% SST). Added the Coursera Plus annual subscription (USD 239) as a bundle; it shows in the catalogue but is never booked as a pathway step. USD prices are converted with Bank Negara Malaysia's live USD selling rate (`api.bnm.gov.my`, 4.088 on 2026-10-19) on every sync, with the rate and date in the price note. 34 courses in total.
+- **Why**: The user asked for paid courses, Malaysian providers and corporate bundles; one hard-coded exchange rate would go stale.
+- **Pipeline**: Microsoft Learn API + Coursera API + provider pages + BNM OpenAPI → validate (incl. FX note on converted prices) → upsert → `fx_rates` + `data_syncs` → API.
+- **Open**: Coursera for Teams price is not shown publicly; Udemy and UiPath pages could not be read, so they are not listed.
+- **Affects**: none outside M3 (new optional fields on `Course`)
+- **Replaces**: none
+- **PR / branch**: `feat/pathway-sdg-guardrails`
+
+### M3-021: Course browse page for learners and HR
+- **Date**: 2026-10-20
+- **Feature**: F5
+- **Type**: UI | contract
+- **Change**: `GET /api/v1/pathway/catalogue` takes filters (skill, format, audience, provider type, HRD Corp-claimable, max cost in RM), sorted by cost then hours. New routes `/app/courses` and `/org/courses` (thin pages importing `CatalogueView`); the pathway and group plan link to them.
+- **Why**: Learners and HR wanted to see what exists beyond the recommended steps, e.g. corporate HRD Corp-claimable programmes.
+- **Affects**: M4 (two new routes the navigation can link to)
+- **Replaces**: none
+- **PR / branch**: `feat/pathway-sdg-guardrails`
+
+### M3-022: Verified course completions
+- **Date**: 2026-10-20
+- **Feature**: F5, F7 (read-only use of org membership)
+- **Type**: method | schema | contract | UI
+- **Change**: Each completion has evidence on a ladder `self_reported` < `certificate_link` < `org_confirmed`; `org_rejected` removes the completion from progress. The learner can attach an https certificate link on `/app/progress`; the API checks whether it is an official verification page (Coursera accomplishments/verify, Microsoft Learn `/users/`, Credly badges) and whether it opens (HEAD then GET, 5 s). HR or a career advisor (`org_admin`) reviews members of their own organisation only at `/org/verify`, confirming or rejecting with a note the learner sees; for HRD Corp-claimable courses the hint points to the provider's attendance record in the HRD Corp claim. Badges show the weakest evidence behind them. New table `course_evidence` (migration `20261021130000_m3_completion_evidence`), endpoints `POST /pathway/progress/evidence` (20/min), `GET|POST /pathway/verifications`. Also fixed: saved-plan progress uses the course facts stored with the plan, so a course retired later keeps its credit (review P1).
+- **Why**: A tick is only a claim; HR and career centres need a way to check it without the app pretending to certify anything.
+- **Affects**: M4 (new route `/org/verify` for the org navigation); contracts `Badge.evidence`, `Progress.evidence`
+- **Replaces**: none
+- **PR / branch**: `feat/pathway-sdg-guardrails`
+
+### M3-023: Review fixes for sync, shared limiter and pipeline docs
+- **Date**: 2026-10-20
+- **Feature**: F5, F8
+- **Type**: method
+- **Change**: When Coursera cannot be reached, the sync refreshes a course's facts but keeps its retirement state, so a failed check never brings a removed course back. The shared limiter now prunes rows older than two of its longest windows (was a fixed hour, which forgot the previous hour of the hourly sync buckets). The pathway and SDG pipeline READMEs now use `PYTHONPATH=src/api:src`.
+- **Why**: Greptile review on PR #2.
+- **Affects**: none outside M3
+- **Replaces**: none
+- **PR / branch**: `feat/pathway-sdg-guardrails`
+
 ---
 
 ## M4: Core & Organisation (Core, F7)
