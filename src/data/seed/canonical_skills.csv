@@ -1,0 +1,111 @@
+skill_id,skill_label,category,automation_exposure
+prompt-engineering,Prompt engineering,emerging_ai_native,0.20
+llm-fine-tuning,LLM fine-tuning & adaptation,emerging_ai_native,0.40
+rag-systems,Retrieval-augmented generation (RAG),emerging_ai_native,0.35
+ai-literacy,AI literacy & responsible AI,emerging_ai_native,0.15
+mlops,MLOps & model deployment,emerging_ai_native,0.42
+vector-databases,Vector database design,emerging_ai_native,0.38
+ai-agents,Autonomous AI agent design,emerging_ai_native,0.30
+multimodal-ai,Multimodal AI (vision + language),emerging_ai_native,0.33
+ai-safety,AI safety & alignment evaluation,emerging_ai_native,0.12
+explainable-ai,Explainable AI (XAI) methods,emerging_ai_native,0.18
+ai-ethics,AI ethics & governance,emerging_ai_native,0.10
+llm-evaluation,LLM evaluation & red-teaming,emerging_ai_native,0.22
+data-pipelines,Data pipeline engineering,emerging_ai_native,0.45
+synthetic-data-gen,Synthetic data generation,emerging_ai_native,0.40
+feature-engineering,Feature engineering for ML,emerging_ai_native,0.44
+model-monitoring,ML model monitoring & drift detection,emerging_ai_native,0.30
+federated-learning,Federated & privacy-preserving ML,emerging_ai_native,0.28
+ai-product-management,AI product management,emerging_ai_native,0.20
+cloud-ai-services,Cloud AI services (AWS/Azure/GCP),emerging_ai_native,0.38
+low-code-ai,Low-code / no-code AI tooling,emerging_ai_native,0.48
+nlp-engineering,NLP engineering & text processing,emerging_ai_native,0.42
+computer-vision,Computer vision engineering,emerging_ai_native,0.40
+time-series-forecasting,Time-series forecasting,emerging_ai_native,0.44
+causal-inference,Causal inference & A/B testing,emerging_ai_native,0.32
+graph-ml,Graph ML & knowledge graphs,emerging_ai_native,0.36
+recommendation-systems,Recommendation system design,emerging_ai_native,0.40
+robotic-process-automation,Robotic process automation (RPA),emerging_ai_native,0.52
+ai-assisted-coding,AI-assisted software development,emerging_ai_native,0.46
+generative-design,Generative design & creative AI,emerging_ai_native,0.35
+security-ai,AI-powered cybersecurity,emerging_ai_native,0.30
+climate-ai,Climate & sustainability AI modelling,emerging_ai_native,0.28
+healthcare-ai,Healthcare AI & clinical NLP,emerging_ai_native,0.25
+fintech-ai,FinTech AI & algorithmic trading,emerging_ai_native,0.38
+digital-twin,Digital twin simulation,emerging_ai_native,0.42
+edge-ai,Edge AI & on-device inference,emerging_ai_native,0.40
+quantum-ml,Quantum ML (nascent),emerging_ai_native,0.20
+data-governance-ai,Data governance for AI systems,emerging_ai_native,0.22
+bias-auditing,Bias auditing & fairness testing,emerging_ai_native,0.15
+human-ai-collaboration,Human–AI collaboration design,emerging_ai_native,0.18
+conversational-ai,Conversational AI & chatbot design,emerging_ai_native,0.38
+manual-data-entry,Manual data entry,at_risk_routine,0.88
+bookkeeping,Bookkeeping & accounts payable/receivable,at_risk_routine,0.82
+payroll-processing,Payroll processing,at_risk_routine,0.80
+document-filing,Document filing & records management,at_risk_routine,0.85
+invoice-processing,Invoice processing & verification,at_risk_routine,0.84
+report-generation,Standard report generation & formatting,at_risk_routine,0.78
+scheduling-admin,Meeting scheduling & calendar management,at_risk_routine,0.75
+data-entry-forms,Form-based data entry & validation,at_risk_routine,0.87
+bank-reconciliation,Bank reconciliation,at_risk_routine,0.81
+excel-basic,Basic spreadsheet (Excel) data manipulation,at_risk_routine,0.70
+copy-editing-routine,Routine copy-editing & proofreading,at_risk_routine,0.72
+claims-processing,Insurance claims processing,at_risk_routine,0.83
+ticket-routing,IT helpdesk ticket routing & triage,at_risk_routine,0.74
+order-entry,Order entry & purchase order management,at_risk_routine,0.85
+inventory-counting,Physical inventory counting & cycle checks,at_risk_routine,0.76
+loan-application-processing,Loan application processing (routine),at_risk_routine,0.79
+hr-admin-routine,"HR administrative processing (leave, attendance)",at_risk_routine,0.77
+customer-id-verification,Customer identity verification (KYC routine),at_risk_routine,0.73
+tax-form-filing,Standard tax form preparation & filing,at_risk_routine,0.78
+contract-template-drafting,Boilerplate contract template drafting,at_risk_routine,0.70
+supply-chain-tracking,Supply chain shipment tracking & status updates,at_risk_routine,0.74
+call-centre-scripted,Scripted call-centre customer queries,at_risk_routine,0.80
+email-triage,Email triage & routing,at_risk_routine,0.76
+expense-reporting,Expense report processing & reimbursement,at_risk_routine,0.82
+procurement-admin,Routine procurement administration,at_risk_routine,0.78
+data-cleaning-manual,Manual data cleaning & deduplication,at_risk_routine,0.83
+translation-routine,Routine language translation (structured text),at_risk_routine,0.72
+report-distribution,Report distribution & stakeholder emailing,at_risk_routine,0.75
+basic-sql-queries,Basic SQL query writing (templated),at_risk_routine,0.62
+spreadsheet-macros,Spreadsheet macro recording,at_risk_routine,0.68
+logistics-dispatch,Logistics dispatch coordination (scripted),at_risk_routine,0.74
+sla-monitoring,SLA / KPI monitoring & alerting (rule-based),at_risk_routine,0.70
+label-annotation,Data labelling & annotation (image/text),at_risk_routine,0.72
+churn-flag-alerts,Rule-based churn / anomaly flagging,at_risk_routine,0.71
+vendor-master-data,Vendor master-data maintenance,at_risk_routine,0.80
+technical-writing-routine,Routine technical documentation update,at_risk_routine,0.67
+asset-tracking,IT / physical asset tracking,at_risk_routine,0.76
+meeting-minutes,Meeting minutes transcription & distribution,at_risk_routine,0.77
+trade-confirmation,Trade confirmation & settlement (back-office),at_risk_routine,0.82
+risk-compliance,Risk & compliance review and advisory,stable_oversight,0.22
+audit-internal,Internal audit & control testing,stable_oversight,0.25
+python,Python programming (general),stable_oversight,0.48
+data-visualisation,Data visualisation & storytelling,stable_oversight,0.42
+sql-advanced,Advanced SQL & query optimisation,stable_oversight,0.52
+process-mapping,Business process mapping & redesign,stable_oversight,0.38
+customer-service,Customer service (complex / empathic),stable_oversight,0.35
+logistics-planning,Logistics & supply chain planning,stable_oversight,0.40
+stakeholder-management,Stakeholder management & communication,stable_oversight,0.18
+project-management,Project management (Agile / PMI),stable_oversight,0.28
+change-management,Organisational change management,stable_oversight,0.15
+critical-thinking,Critical thinking & problem framing,stable_oversight,0.12
+negotiation,Negotiation & conflict resolution,stable_oversight,0.10
+coaching-mentoring,Coaching & mentoring,stable_oversight,0.12
+regulatory-affairs,Regulatory affairs & policy interpretation,stable_oversight,0.22
+cybersecurity-governance,Cybersecurity governance & policy,stable_oversight,0.20
+data-privacy,Data privacy & PDPA / GDPR compliance,stable_oversight,0.24
+financial-analysis,Financial analysis & modelling,stable_oversight,0.44
+ux-research,UX research & usability testing,stable_oversight,0.28
+supply-chain-strategy,Supply chain strategy & resilience,stable_oversight,0.25
+enterprise-architecture,Enterprise architecture & systems design,stable_oversight,0.30
+learning-development,Learning & development programme design,stable_oversight,0.22
+workforce-planning,Workforce planning & talent strategy,stable_oversight,0.20
+esg-reporting,ESG & sustainability reporting,stable_oversight,0.28
+cross-cultural-communication,Cross-cultural communication,stable_oversight,0.10
+public-speaking,Public speaking & executive communication,stable_oversight,0.08
+strategic-planning,Strategic planning & competitive analysis,stable_oversight,0.18
+knowledge-management,Knowledge management & documentation strategy,stable_oversight,0.30
+vendor-management,Vendor management & contract governance,stable_oversight,0.32
+clinical-judgement,Clinical judgement & patient assessment,stable_oversight,0.15
+legal-research,Legal research & case analysis,stable_oversight,0.35

@@ -1,0 +1,112 @@
+soc_code,occupation_title,employment_2023_thousands,employment_2033_thousands,change_thousands,percent_change_2023_2033,annualized_rate
+00-0000,All occupations,161813,166814,5001,3.1,0.31
+11-1011,Chief executives,3302,3341,39,1.2,0.12
+11-3031,Financial managers,722,787,65,9.0,0.90
+11-3121,Human resources managers,186,197,11,5.9,0.59
+11-9013,Farmers and ranchers (self-employed),881,843,-38,-4.3,-0.43
+13-1071,Human resources specialists,918,987,69,7.5,0.75
+13-1161,Market research analysts,884,972,88,9.9,0.99
+13-2011,Accountants and auditors,1392,1423,31,2.2,0.22
+13-2031,Budget analysts,53,54,1,2.1,0.21
+13-2041,Credit analysts,71,73,2,2.8,0.28
+13-2051,Financial and investment analysts,365,401,36,9.9,0.99
+13-2052,Personal financial advisors,290,316,26,9.0,0.90
+13-2061,Financial examiners,37,40,3,8.1,0.81
+13-2081,Tax examiners and collectors,55,55,0,0.5,0.05
+13-2082,Tax preparers,91,92,1,0.8,0.08
+15-1211,Computer systems analysts,535,543,8,1.5,0.15
+15-1212,Information security analysts,168,205,37,22.0,2.20
+15-1221,Computer and information research scientists,35,42,7,20.4,2.04
+15-1231,Computer network support specialists,194,197,3,1.6,0.16
+15-1241,Computer network architects,169,175,6,3.4,0.34
+15-1242,Database administrators,101,108,7,7.4,0.74
+15-1243,Database architects,39,45,6,16.5,1.65
+15-1244,Network and computer systems administrators,354,358,4,1.2,0.12
+15-1251,Computer programmers,149,140,-9,-6.0,-0.60
+15-1252,Software developers,1914,2092,178,9.3,0.93
+15-1253,Software quality assurance analysts,232,257,25,10.7,1.07
+15-1254,Web developers,195,207,12,6.1,0.61
+15-1255,Web and digital interface designers,46,48,2,4.4,0.44
+15-1299,Computer occupations, all other,244,257,13,5.4,0.54
+17-2061,Computer hardware engineers,76,80,4,5.6,0.56
+17-2071,Electrical engineers,200,215,15,7.5,0.75
+17-2072,Electronics engineers,145,149,4,2.5,0.25
+19-2041,Environmental scientists and specialists,102,108,6,5.9,0.59
+19-3011,Economists,24,26,2,7.5,0.75
+19-3021,Market research analysts (social science),884,972,88,9.9,0.99
+21-1012,Educational, guidance, and career counselors,380,419,39,10.3,1.03
+21-1015,Rehabilitation counselors,132,144,12,9.1,0.91
+23-1011,Lawyers,852,914,62,7.3,0.73
+23-1012,Judicial law clerks,28,28,0,0.7,0.07
+25-1011,Business teachers, postsecondary,91,100,9,9.9,0.99
+25-2011,Preschool teachers,480,504,24,5.0,0.50
+25-9021,Farm and home management educators,6,6,0,0.5,0.05
+27-1011,Art directors,96,97,1,1.0,0.10
+27-1024,Graphic designers,249,252,3,1.1,0.11
+27-3011,Broadcast announcers and radio disc jockeys,30,29,-1,-3.7,-0.37
+27-3041,Editors,111,106,-5,-4.7,-0.47
+27-3043,Writers and authors,150,154,4,2.7,0.27
+29-1141,Registered nurses,3268,3538,270,8.3,0.83
+29-1171,Nurse practitioners,355,434,79,22.2,2.22
+29-1211,Anesthesiologists,34,37,3,8.8,0.88
+29-1212,Cardiologists,23,26,3,13.0,1.30
+29-1215,Family medicine physicians,105,111,6,5.7,0.57
+29-1292,Dental hygienists,228,248,20,8.8,0.88
+29-2010,Clinical laboratory technologists and technicians,367,392,25,6.8,0.68
+29-2031,Cardiovascular technologists,61,66,5,8.2,0.82
+29-2052,Pharmacy technicians,469,501,32,6.8,0.68
+29-2055,Surgical technologists,132,145,13,9.8,0.98
+33-3021,Detectives and criminal investigators,120,123,3,2.5,0.25
+33-9032,Security guards,1186,1218,32,2.7,0.27
+35-2014,Cooks, restaurant,1624,1682,58,3.6,0.36
+35-3023,Fast food and counter workers,3797,3945,148,3.9,0.39
+37-2011,Janitors and cleaners,2361,2384,23,1.0,0.10
+39-5012,Hairdressers, hairstylists,321,330,9,2.9,0.29
+41-1011,First-line supervisors of retail workers,1312,1316,4,0.3,0.03
+41-2011,Cashiers,3292,3076,-216,-6.6,-0.66
+41-4012,Sales representatives, wholesale,1472,1485,13,0.9,0.09
+41-9022,Real estate sales agents,150,153,3,1.9,0.19
+43-1011,First-line supervisors of office and admin workers,1437,1402,-35,-2.4,-0.24
+43-3011,Bill and account collectors,198,184,-14,-7.1,-0.71
+43-3021,Billing and posting clerks,497,483,-14,-2.8,-0.28
+43-3031,Bookkeeping, accounting, and auditing clerks,1369,1186,-183,-13.4,-1.34
+43-3041,Gambling cage workers,17,17,0,-0.1,-0.01
+43-3051,Payroll and timekeeping clerks,131,123,-8,-6.2,-0.62
+43-3061,Procurement clerks,62,57,-5,-8.1,-0.81
+43-3071,Tellers,304,256,-48,-15.7,-1.57
+43-4031,Court, municipal, and license clerks,91,88,-3,-3.3,-0.33
+43-4051,Customer service representatives,2964,2866,-98,-3.3,-0.33
+43-4071,File clerks,106,88,-18,-16.7,-1.67
+43-4111,Interviewers, except eligibility and loan,182,174,-8,-4.7,-0.47
+43-4121,Library assistants, clerical,83,77,-6,-7.6,-0.76
+43-4151,Order clerks,152,133,-19,-12.5,-1.25
+43-4161,Human resources assistants,148,143,-5,-3.7,-0.37
+43-4199,Information and record clerks, all other,154,145,-9,-5.8,-0.58
+43-5011,Cargo and freight agents,97,96,-1,-1.0,-0.10
+43-5021,Couriers and messengers,72,69,-3,-4.4,-0.44
+43-5031,Public safety telecommunicators,104,107,3,2.7,0.27
+43-5041,Meter readers, utilities,26,20,-6,-23.1,-2.31
+43-5061,Production, planning, and expediting clerks,289,284,-5,-1.6,-0.16
+43-5071,Shipping, receiving, and inventory clerks,737,729,-8,-1.1,-0.11
+43-5111,Weighers, measurers, checkers,66,64,-2,-3.0,-0.30
+43-6011,Executive secretaries and executive administrative assistants,544,488,-56,-10.3,-1.03
+43-6012,Legal secretaries,152,139,-13,-8.5,-0.85
+43-6013,Medical secretaries and administrative assistants,768,815,47,6.1,0.61
+43-6014,Secretaries and administrative assistants, except legal, medical, and executive,1736,1612,-124,-7.1,-0.71
+43-9011,Computer operators,57,47,-10,-18.1,-1.81
+43-9021,Data entry keyers,157,126,-31,-19.8,-1.98
+43-9041,Insurance claims and policy processing clerks,249,235,-14,-5.7,-0.57
+43-9051,Mail clerks and mail machine operators,97,82,-15,-15.1,-1.51
+43-9061,Office clerks, general,2922,2818,-104,-3.6,-0.36
+43-9071,Office machine operators, except computer,22,17,-5,-24.0,-2.40
+47-2061,Construction laborers,1175,1238,63,5.3,0.53
+47-2152,Plumbers, pipefitters, and steamfitters,492,524,32,6.5,0.65
+49-2022,Telecommunications equipment installers,207,200,-7,-3.2,-0.32
+49-9071,Maintenance and repair workers, general,1470,1549,79,5.4,0.54
+51-2028,Electrical and electronic equipment assemblers,133,131,-2,-1.5,-0.15
+51-4041,Machinists,324,329,5,1.5,0.15
+51-9161,Computer numerically controlled tool operators,241,241,0,0.0,0.00
+53-3032,Heavy and tractor-trailer truck drivers,2029,2068,39,1.9,0.19
+53-3033,Light truck drivers,1071,1060,-11,-1.0,-0.10
+53-7051,Industrial truck and tractor operators,565,557,-8,-1.4,-0.14
+53-7062,Laborers and freight, stock, and material movers,3363,3428,65,1.9,0.19

@@ -70,6 +70,17 @@
 
 <!-- M1 adds entries below this line -->
 
+### M1-001: Trend signal layer, disruption scenarios, and snapshot contract
+- **Date**: 2026-10-20
+- **Feature**: F2 (AI-trend signal layer), F3 (Scenarios & uncertainty)
+- **Type**: contract, formula, pipeline, data source, schema
+- **Change**: Implemented the patched TrendSnapshotResponse contract in `src/api/app/contracts/trends.py`, canonical taxonomy (110 skills across 3 categories), BLS 2023-2033 labor decay baseline with explicit citations, sentence-chunked arXiv semantic matching with `all-MiniLM-L6-v2` (threshold >= 0.55), deterministic composite scoring formula with scenario fast-amplification transform and clamping [-2.0, 2.0], mock fixture `mock_trends.json`, database migration for pgvector embeddings and signal tables, and GET `/api/v1/trends/snapshot`.
+- **Why**: F2 continuously tracks emerging vs declining skill velocity without ML fine-tuning or live GPU dependency. F3 provides deterministic scenario modeling (moderate vs fast) using curated editorial automation exposure coefficients documented in `docs/skill-exposure-methodology.md`. All outputs trace to measured frequencies, BLS data, or disclosed coefficients with zero invented entities.
+- **Pipeline** (data/ML only): arXiv cs.AI RSS + BLS 2023-2033 projections → clean HTML, normalize, sentence-chunk → 384-d MiniLM embeddings (CPU zero-shot) → max sentence cosine similarity (>= 0.55), log-ratio research velocity, composite velocity V = 0.6*RV + 0.4*LD, fast scenario transform with exposure amplification and [-2.0, 2.0] clamping → PostgreSQL `trend_snapshots` + cached JSON serving at GET `/api/v1/trends/snapshot`.
+- **Affects**: M2 (taxonomy skill IDs and snapshot format), M4 (scenario toggle & radar frontend consumption)
+- **Replaces**: none
+- **PR / branch**: `feat/m1-trends-contract`
+
 ---
 
 ## M2: Profile Intake & Matching (F1, F4)
