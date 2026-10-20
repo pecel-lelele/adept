@@ -25,6 +25,8 @@ from app.contracts.pathway import (
     ProgressUpdate,
     ReplanStatus,
     ReviewDecision,
+    RoleComparison,
+    RoleOption,
     SavedPlan,
     SavePlanIn,
     VerificationItem,
@@ -35,7 +37,15 @@ from app.contracts.sdg import SdgTarget
 from app.core.auth import CurrentUser
 from app.core.errors import AppError, NotFoundError
 from app.features.org import repository as org_repository
-from app.features.pathway import data, engine, progress, replan, repository, verification
+from app.features.pathway import (
+    data,
+    engine,
+    progress,
+    replan,
+    repository,
+    trend_port,
+    verification,
+)
 from app.features.profile import service as profile_service
 from app.features.sdg import repository as sdg_repository
 
@@ -76,7 +86,8 @@ def _meta(
             if prev is None or src.retrieved_at < prev.retrieved_at:
                 sources[src.name] = src  # oldest verification date is the honest one
     if snapshot:
-        sources.setdefault(snapshot.source.name, snapshot.source)
+        for src in snapshot.all_sources():
+            sources.setdefault(src.name, src)
     if not sources:
         courses = data.catalogue()
         oldest = min((c.verified_at for c in courses), default=date.today())
@@ -101,15 +112,21 @@ def build_pathway(
     learner: engine.Learner,
     role_id: str,
     scenario: ScenarioId,
-    snapshot: data.Snapshot | None = None,
+    trend: trend_port.TrendView | None = None,
     catalogue: Sequence[Course] | None = None,
+    snapshot_date: date | None = None,
 ) -> Pathway:
+    """Plan towards `role_id` on the given trend view (default: the latest, or `snapshot_date`
+    to replay an older M1 snapshot)."""
     reqs = data.requirements(role_id)
     labels = data.role_labels()
     if role_id not in labels or not reqs:
         raise NotFoundError(f"No pathway for role {role_id}")
-    snapshot = snapshot or data.latest_snapshot()
-    growth = data.skill_growth(snapshot.id) if snapshot else {}
+    trend = trend or trend_port.current(scenario, snapshot_date)
+    if trend is None and snapshot_date is not None:
+        raise NotFoundError(f"No trend snapshot for {snapshot_date.isoformat()}")
+    snapshot = trend.snapshot if trend else None
+    growth = trend.growth if trend else {}
     plan = engine.build(
         reqs,
         learner,
@@ -119,6 +136,7 @@ def build_pathway(
         growth,
         data.skill_labels(),
         _sdg_by_skill([r.skill_id for r in reqs]),
+        scenario_weighted=trend.scenario_weighted if trend else False,
     )
     return Pathway(
         role_id=role_id,
@@ -135,16 +153,122 @@ def build_pathway(
         hrd_eligible=learner.hrd_eligible,
         gaps=plan.gaps,
         unmet=plan.unmet,
-        warnings=plan.warnings,
+        warnings=plan.warnings + _trend_warnings(trend, [r.skill_id for r in reqs]),
         snapshot_version=snapshot.version if snapshot else "",
     )
 
 
-def get_pathway(user: CurrentUser, role_id: str, scenario: ScenarioId) -> Pathway:
+def _trend_warnings(trend: trend_port.TrendView | None, skill_ids: list[str]) -> list[str]:
+    if trend is None:
+        return ["No trend snapshot is available; skills are ordered by gap and importance only."]
+    missing = trend.uncovered(skill_ids)
+    if not missing:
+        return []
+    names = data.skill_labels()
+    listed = ", ".join(names.get(s, s) for s in missing)
+    return [
+        f"The trend snapshot ({trend.snapshot.version}) has no signal for {listed}; "
+        "they are treated as neutral demand, not rising or declining."
+    ]
+
+
+def get_pathway(
+    user: CurrentUser, role_id: str, scenario: ScenarioId, snapshot_date: date | None = None
+) -> Pathway:
     profile = profile_service.get_my_profile(user)
-    plan = build_pathway(_learner(profile), role_id, scenario)
+    plan = build_pathway(_learner(profile), role_id, scenario, snapshot_date=snapshot_date)
     # Attached after building, so the segment can only change guidance text, never the plan.
     return plan.model_copy(update={"segment": profile.segment})
+
+
+# --- comparing roles before choosing ----------------------------------------------------
+
+DIRECTION_BAND = 0.05  # same thresholds as M1's direction_<scenario> labels
+
+
+def role_trend(
+    reqs: Sequence[data.Requirement], trend: trend_port.TrendView | None
+) -> tuple[float | None, float]:
+    """Importance-weighted trend signal of a role's skills and the share of weight covered."""
+    total = sum(r.importance for r in reqs)
+    if not trend or total == 0:
+        return None, 0.0
+    covered = [r for r in reqs if r.skill_id in trend.growth]
+    weight = sum(r.importance for r in covered)
+    if weight == 0:
+        return None, 0.0
+    signal = sum(r.importance * trend.growth[r.skill_id] for r in covered) / weight
+    return round(signal, 4), round(weight / total, 3)
+
+
+def _direction(signal: float | None) -> str:
+    if signal is None:
+        return "unknown"
+    if signal > DIRECTION_BAND:
+        return "rising"
+    if signal < -DIRECTION_BAND:
+        return "declining"
+    return "stable"
+
+
+def compare_roles(
+    user: CurrentUser,
+    role_ids: Sequence[str],
+    scenario: ScenarioId,
+    snapshot_date: date | None = None,
+) -> RoleComparison:
+    """What each candidate role would take for this learner, side by side, before they choose."""
+    learner = learner_for(user)
+    trend = trend_port.current(scenario, snapshot_date)
+    if trend is None and snapshot_date is not None:
+        raise NotFoundError(f"No trend snapshot for {snapshot_date.isoformat()}")
+    saved = repository.get_plan(user.id)
+    known = data.target_role_ids()
+    chosen = [r for r in dict.fromkeys(role_ids) if r in known] if role_ids else known
+    options: list[RoleOption] = []
+    plans: list[Pathway] = []
+    for role_id in chosen:
+        plan = build_pathway(learner, role_id, scenario, trend=trend)
+        plans.append(plan)
+        signal, coverage = role_trend(data.requirements(role_id), trend)
+        options.append(
+            RoleOption(
+                role_id=role_id,
+                role_label=plan.role_label,
+                total_weeks=plan.total_weeks,
+                total_hours=plan.total_hours,
+                out_of_pocket_myr=plan.out_of_pocket_myr,
+                within_budget=plan.within_budget,
+                skills_to_close=sum(1 for g in plan.gaps if g.status != "have"),
+                unmet_skills=len(plan.unmet),
+                trend_signal=signal,
+                trend_direction=_direction(signal),  # type: ignore[arg-type]
+                trend_coverage=coverage,
+                sdg_targets=[link.target for link in sdg_repository.role_links(role_id)],
+                is_saved_choice=bool(saved and saved.role_id == role_id),
+            )
+        )
+    snapshot = trend.snapshot if trend else None
+    meta = _meta([step for p in plans for step in p.steps], snapshot, scenario)
+    return RoleComparison(
+        options=options,
+        saved_role_id=saved.role_id if saved else None,
+        snapshot_version=snapshot.version if snapshot else "",
+        available_snapshots=list(trend.available_dates) if trend else [],
+        meta=meta,
+    )
+
+
+def skills_gap(levels: Mapping[str, int], role_id: str) -> dict[str, list[str]]:
+    """have / partial / missing skill ids for a role, using each skill's required level.
+
+    The one gap rule for the app: F4 matching and the F7 heatmap should call this instead of
+    their own thresholds, so a skill never shows as "missing" on one page and "partial" on another.
+    """
+    out: dict[str, list[str]] = {"have": [], "partial": [], "missing": []}
+    for gap in engine.compute_gaps(data.requirements(role_id), levels, data.skill_labels()):
+        out[gap.status].append(gap.skill_id)
+    return out
 
 
 @dataclass(frozen=True)
@@ -208,7 +332,8 @@ def get_saved_plan(user: CurrentUser) -> SavedPlan | None:
 
 def replan_status(user: CurrentUser) -> ReplanStatus:
     saved = repository.get_plan(user.id)
-    latest = data.latest_snapshot()
+    latest_view = trend_port.current(saved.scenario if saved else "moderate")
+    latest = latest_view.snapshot if latest_view else None
     latest_version = latest.version if latest else ""
     if saved is None:
         return ReplanStatus(

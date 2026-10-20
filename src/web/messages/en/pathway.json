@@ -157,5 +157,26 @@
       "link": "Compare roles"
     },
     "sameplan": "This advice depends on your situation; the plan itself is the same for anyone with your skills, time and budget."
+  },
+  "compare": {
+    "link": "Compare other roles",
+    "title": "Compare roles before you choose",
+    "description": "What each future role would take for you: time, cost, skills to close, its trend outlook and SDG links. You decide; nothing is chosen for you.",
+    "yourChoice": "Your choice",
+    "direction": {
+      "rising": "Demand rising",
+      "stable": "Demand stable",
+      "declining": "Demand declining",
+      "unknown": "No trend data"
+    },
+    "outOfPocket": "you pay RM {amount}",
+    "skillsToClose": "{count} skill(s) to close",
+    "unmet": "{count} not covered by our catalogue",
+    "coverage": "Trend data covers {percent}% of this role's skills; the rest count as neutral.",
+    "preview": "Preview pathway",
+    "choose": "Choose this role",
+    "snapshot": "Trend snapshot {version}.",
+    "seeMatches": "See your ranked matches",
+    "humanInCharge": "This comparison supports your decision; it does not rank or select roles for you."
   }
 }

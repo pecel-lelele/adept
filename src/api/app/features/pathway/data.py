@@ -3,7 +3,8 @@
 - `courses/courses.csv` (F5, written by `pipelines.pathway`): the only courses we recommend.
 - `pathway/skill_prerequisites.csv` (F5): the prerequisite graph.
 - `taxonomy/*.csv` (F4, read-only here): roles, skills and role requirements.
-- `trends/*.csv` (F2, read-only here): dated snapshots and per-skill growth.
+- `trends/*.csv` (F2, read-only here): the legacy seed snapshot, used only as a fallback when
+  M1's trend layer has no snapshot (see `trend_port.py`).
 """
 
 from __future__ import annotations
@@ -28,6 +29,10 @@ class Snapshot:
     id: str
     version: str
     source: Source
+    sources: tuple[Source, ...] = ()  # every source behind the snapshot (M1 has two)
+
+    def all_sources(self) -> tuple[Source, ...]:
+        return self.sources or (self.source,)
 
 
 def catalogue() -> list[Course]:
@@ -84,6 +89,13 @@ def requirements(role_id: str) -> list[Requirement]:
         for r in seed.rows("taxonomy", "role_skills")
         if r["role_id"] == role_id
     ]
+
+
+def target_role_ids() -> list[str]:
+    """Roles a pathway can be built for (they have requirements), ordered by label."""
+    labels = role_labels()
+    ids = {r["role_id"] for r in seed.rows("taxonomy", "role_skills")}
+    return sorted((r for r in ids if r in labels), key=lambda r: labels[r])
 
 
 def prerequisites() -> dict[str, dict[str, str]]:
