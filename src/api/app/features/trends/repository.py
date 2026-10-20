@@ -11,8 +11,9 @@ pipeline scripts (Part 5 and Part 3 respectively).
 
 from __future__ import annotations
 
+import time
 from datetime import date
-from functools import lru_cache
+from typing import Literal
 
 from app.contracts.common import ScenarioId
 from app.contracts.trends import EntityType, TrendSignal, TrendSnapshotResponse
@@ -20,23 +21,68 @@ from app.core.errors import NotFoundError
 from app.features.trends import mocks
 
 # ---------------------------------------------------------------------------
-# Live DB reader (used when Postgres has scored snapshots)
+# Source resolution & DB availability (short-TTL negative cache)
 # ---------------------------------------------------------------------------
 
+SourceType = Literal["db", "fixture"]
 
-@lru_cache(maxsize=1)
+_db_status_cache: tuple[bool, float] | None = None
+DB_FAILED_RETRY_TTL_S: float = 5.0
+
+
+def _reset_db_cache() -> None:
+    """Reset DB availability cache (used by unit tests to simulate recovery)."""
+    global _db_status_cache
+    _db_status_cache = None
+
+
 def _db_available() -> bool:
+    """Check if Postgres is reachable with short-TTL negative caching.
+
+    - Successful checks are cached indefinitely for process lifetime.
+    - Failed checks are cached only for DB_FAILED_RETRY_TTL_S (5s), allowing
+      transient container startup races to recover automatically.
+    """
+    global _db_status_cache
+    now = time.monotonic()
+    if _db_status_cache is not None:
+        status, timestamp = _db_status_cache
+        if status:
+            return True
+        if now - timestamp < DB_FAILED_RETRY_TTL_S:
+            return False
+
     try:
         from app.core.config import get_settings
 
-        if not get_settings().database_url:
+        db_url = get_settings().database_url
+        if not db_url:
+            _db_status_cache = (False, now)
             return False
 
         from app.core.db import database_status
 
-        return database_status() == "ok"
+        is_ok = database_status() == "ok"
+        _db_status_cache = (is_ok, now)
+        return is_ok
     except Exception:
+        _db_status_cache = (False, now)
         return False
+
+
+def resolve_source() -> SourceType:
+    """Decide authoritatively whether requests should be served from DB or fixtures.
+
+    Rule: Use 'db' ONLY if the database is reachable AND trend_snapshots has at
+    least one row. If the DB is unreachable OR reachable-but-empty, resolve to
+    'fixture'.
+    """
+    if not _db_available():
+        return "fixture"
+    dates = _list_snapshot_dates_db()
+    if not dates:
+        return "fixture"
+    return "db"
 
 
 def _list_snapshot_dates_db() -> list[date]:
@@ -142,28 +188,36 @@ def _load_snapshot_db(snapshot_date: date, scenario: str) -> TrendSnapshotRespon
 # ---------------------------------------------------------------------------
 
 
-def list_available_dates() -> list[date]:
-    """Return all snapshot dates, from DB if available, else from mock."""
-    if _db_available():
-        dates = _list_snapshot_dates_db()
-        if dates:
-            return dates
+def list_available_dates(source: SourceType | None = None) -> list[date]:
+    """Return all snapshot dates for the authoritative source."""
+    if source is None:
+        source = resolve_source()
+    if source == "db":
+        return _list_snapshot_dates_db()
     return list(mocks.AVAILABLE_MOCK_DATES)
 
 
-def get_snapshot(snapshot_date: date | None, scenario: str) -> TrendSnapshotResponse:
+def get_snapshot(
+    snapshot_date: date | None,
+    scenario: str,
+    source: SourceType | None = None,
+) -> TrendSnapshotResponse:
+    """Return a TrendSnapshotResponse from the authoritative source.
+
+    Both list_available_dates and get_snapshot use the exact same resolved source,
+    guaranteeing they never disagree (e.g. empty DB resolves to fixture for both).
     """
-    Return a TrendSnapshotResponse.
-    Falls back to the mock fixture if no live data is available.
-    """
-    available = list_available_dates()
+    if source is None:
+        source = resolve_source()
+
+    available = list_available_dates(source=source)
     if snapshot_date is None:
         snapshot_date = available[-1] if available else date.today()
 
     if snapshot_date not in available:
         raise NotFoundError(f"Snapshot for date {snapshot_date.isoformat()} not found")
 
-    if _db_available():
+    if source == "db":
         result = _load_snapshot_db(snapshot_date, scenario)
         if result is not None:
             return result

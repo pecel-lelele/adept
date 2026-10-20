@@ -109,6 +109,20 @@
 - **Replaces**: none
 - **PR / branch**: `feat/m1-trends-contract`
 
+### M1-004: False-negative TTL recovery, authoritative source resolution, and genuine DB fixture export
+- **Date**: 2026-10-20
+- **Feature**: F2 (AI-trend signal layer), F3 (Disruption scenarios)
+- **Type**: method | contract | data source | schema
+- **Change**: 
+  1. Part 1 (Short-TTL Negative Cache): Replaced permanent `lru_cache` in `_db_available()` with a dual-policy cache: successful checks are cached indefinitely; failed checks are cached with a 5.0-second TTL using `time.monotonic()`. Allows transient container startup race conditions to recover automatically without process restarts, proven by `test_db_availability_recovers_after_short_ttl`.
+  2. Part 2 (Authoritative Source Resolution): Implemented `resolve_source() -> Literal["db", "fixture"]` in `repository.py`, called once per request in `service.py`. Treats reachable-but-empty database (`trend_snapshots` count == 0) identically to unreachable DB, resolving to "fixture". Threaded `source` through `list_available_dates()` and `get_snapshot()` so they never disagree, eliminating 404s on advertised dates.
+  3. Part 3 (Genuine DB Fixture Export): Implemented `src/pipelines/trends/export_fixtures_from_db.py` to export the 110 genuine scored rows from PostgreSQL `trend_snapshots` directly into `mock_trends_2026-10-13.json`, `mock_trends_2026-10-20.json`, and `mock_trends.json`. Retired `BASE_ITEMS` generation path in `generate_mock_fixtures.py` by repointing it to `export_fixtures_from_db.py`. Formulated accurate `data_provenance_note` disclosing that files are frozen offline exports of the real arXiv Query API pipeline runs.
+  4. Consistency Tests: Updated `test_mock_fixture_consistency.py` to assert verbatim field-level matches against PostgreSQL `trend_snapshots` rows, alongside pure formula consistency. Added `tests/api/trends/test_source_resolution.py`.
+- **Why**: Eliminates permanent fallback lock-in on initial DB failure, guarantees consistent contract behavior on newly migrated empty databases, removes all synthetic base items from demo fixtures, and ensures full transparency under SDG 4 ethics.
+- **Affects**: M2 (matching trend dependency), M4 (scenario toggle & radar frontend)
+- **Replaces**: none
+- **PR / branch**: `feat/m1-trends-contract`
+
 ---
 
 ## M2: Profile Intake & Matching (F1, F4)

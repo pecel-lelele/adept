@@ -30,7 +30,8 @@ def get_snapshot(snapshot_date: date | None, scenario: ScenarioId) -> TrendSnaps
     meta.available_snapshots lists every stored date for the frontend
     trend-replay toggle.
     """
-    return repository.get_snapshot(snapshot_date, scenario)
+    source = repository.resolve_source()
+    return repository.get_snapshot(snapshot_date, scenario, source=source)
 
 
 # ---------------------------------------------------------------------------
