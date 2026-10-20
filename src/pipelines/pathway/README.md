@@ -11,5 +11,5 @@ courses in that file.
 | Serving | seed CSV (DB via `make seed`; API reads it directly in mock mode) |
 
 ```bash
-PYTHONPATH=src .venv/bin/python -m pipelines.pathway.run
+PYTHONPATH=src/api:src .venv/bin/python -m pipelines.pathway.run
 ```

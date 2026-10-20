@@ -31,7 +31,7 @@ log = get_logger("app.pathway.sync")
 
 SOURCE = "Course catalogue (Microsoft Learn API, Coursera, HRD Corp providers)"
 
-_UPSERT = """
+_UPSERT_SQL = """
 INSERT INTO courses (id, title, provider, url, hours, cost_myr, hrd_claimable, verified_at,
     skill_ids, level, source_name, source_url, hrd_note, language, duration_note, provider_ref,
     format, audience, price_basis, currency, list_price, provider_type, location, price_note,
@@ -50,8 +50,13 @@ ON CONFLICT (id) DO UPDATE SET
     price_basis = EXCLUDED.price_basis, currency = EXCLUDED.currency,
     list_price = EXCLUDED.list_price, provider_type = EXCLUDED.provider_type,
     location = EXCLUDED.location, price_note = EXCLUDED.price_note,
-    last_synced_at = now(), retired_at = NULL
+    last_synced_at = now(){retired}
 """
+# Confirmed available: clear any earlier retirement.
+_UPSERT = _UPSERT_SQL.format(retired=", retired_at = NULL")
+# Provider could not be checked: refresh the facts but keep whatever retirement state it had,
+# so a failed check never brings a course the provider removed back into recommendations.
+_UPSERT_KEEP_RETIRED = _UPSERT_SQL.format(retired="")
 _RETIRE = "UPDATE courses SET retired_at = now() WHERE id = ANY(%s) AND retired_at IS NULL"
 
 
@@ -80,16 +85,18 @@ def _job(
         src.validate(rows, skills)
         gone = [c.id for c in src.missing_curated(payload)]
         unknown: list[str] = []
+        unknown_ids: set[str] = set()
         for row in src.COURSERA:
             status = coursera_check(row.provider_ref)
             if status is False:
                 gone.append(row.id)
             elif status is None:
                 unknown.append(row.provider_ref)
+                unknown_ids.add(row.id)
         live = [r for r in rows if r.id not in gone]
         for r in live:
             conn.execute(
-                _UPSERT,
+                _UPSERT_KEEP_RETIRED if r.id in unknown_ids else _UPSERT,
                 (
                     r.id, r.title, r.provider, r.url, r.hours, r.cost_myr, r.hrd_claimable,
                     r.verified_at, list(r.skill_ids), r.level, r.source_name, r.source_url,

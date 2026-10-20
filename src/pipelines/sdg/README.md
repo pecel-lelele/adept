@@ -10,6 +10,6 @@ Official SDG goals and targets → `src/data/seed/sdg/sdg_goals.csv`, `sdg_targe
 | Serving | seed CSVs (DB via `make seed`; read directly by the API in mock mode) |
 
 ```bash
-PYTHONPATH=src .venv/bin/python -m pipelines.sdg.run                  # live API
-PYTHONPATH=src .venv/bin/python -m pipelines.sdg.run --from-file x.json   # saved response
+PYTHONPATH=src/api:src .venv/bin/python -m pipelines.sdg.run                  # live API
+PYTHONPATH=src/api:src .venv/bin/python -m pipelines.sdg.run --from-file x.json   # saved response
 ```

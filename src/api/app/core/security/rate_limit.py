@@ -164,7 +164,6 @@ SELECT up.hits, COALESCE((
 """
 _PRUNE = "DELETE FROM rate_limit_counters WHERE window_start < %s"
 _PRUNE_EVERY = 1000
-_KEEP_S = 3600
 
 
 class PostgresCounter:
@@ -183,6 +182,9 @@ class PostgresCounter:
         self.fallback = fallback or SlidingWindowCounter(route_limits, default)
         self.clock = clock
         self._hits = 0
+        # The estimate reads the previous window too, so pruning keeps two of the longest windows.
+        longest = max(window for _, window in [*self.route_limits.values(), default])
+        self._keep_s = 2 * longest
         self.pool = ConnectionPool(
             conninfo,
             min_size=0,
@@ -211,7 +213,7 @@ class PostgresCounter:
                 row = conn.execute(_UPSERT, params).fetchone()
                 self._hits += 1
                 if self._hits % _PRUNE_EVERY == 0:
-                    conn.execute(_PRUNE, (int(now) - _KEEP_S,))
+                    conn.execute(_PRUNE, (int(now) - self._keep_s,))
         except (psycopg.Error, PoolTimeout) as exc:
             log.warning("shared rate limiter unavailable, using in-memory counter: %s", exc)
             return self.fallback.hit(ip, path)

@@ -8,6 +8,7 @@ import uuid
 
 import pytest
 
+from app.core.security import rate_limit
 from app.core.security.rate_limit import PostgresCounter
 
 PG_URL = os.environ.get("ADEPT_TEST_DATABASE_URL", "")
@@ -47,3 +48,15 @@ def test_unreachable_database_falls_back_to_memory() -> None:
     ip = _client()
     assert c.hit(ip, "/x")[0] is True
     assert c.hit(ip, "/x")[0] is False, "still limited, by the in-memory fallback"
+
+
+def test_pruning_keeps_the_previous_hourly_window() -> None:
+    clock = [360_000_100.0]  # 100 s into an hourly window
+    c = PostgresCounter(PG_URL, {}, (4, 3600), clock=lambda: clock[0])
+    ip = _client()
+    for _ in range(4):
+        assert c.hit(ip, "/sync")[0]
+    clock[0] = 360_003_610.0  # 10 s into the next hour: the last hour still weighs ~4
+    c._hits = rate_limit._PRUNE_EVERY - 1  # the next hit prunes
+    assert c.hit(ip, "/sync")[0] is False
+    assert c.hit(ip, "/sync")[0] is False, "pruning must not forget the previous hour"

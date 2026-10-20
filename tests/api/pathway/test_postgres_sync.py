@@ -78,6 +78,27 @@ def test_unknown_coursera_status_keeps_the_course() -> None:
     assert "Coursera unreachable" in report.detail
 
 
+def test_unknown_coursera_status_does_not_bring_a_retired_course_back() -> None:
+    gone = "coursera-supply-chain-logistics"
+    try:
+        sync_catalogue(
+            _catalog(),
+            date(2026, 10, 20),
+            coursera_check=lambda slug: slug != "supply-chain-logistics",
+            fx=_fx,
+        )
+        report = sync_catalogue(
+            _catalog(), date(2026, 10, 21), coursera_check=lambda slug: None, fx=_fx
+        )
+        assert report.status == "ok", report.detail
+        refdata.invalidate()
+        assert gone not in {c.id for c in data.catalogue()}, "still retired after a failed check"
+    finally:
+        sync_catalogue(_catalog(), date(2026, 10, 20), coursera_check=lambda slug: True, fx=_fx)
+        refdata.invalidate()
+    assert gone in {c.id for c in data.catalogue()}, "Coursera confirming it brings it back"
+
+
 def test_failed_source_is_logged_and_changes_nothing() -> None:
     before = {c.id for c in data.catalogue()}
     report = sync_catalogue({"modules": "not-a-list"}, date(2026, 10, 20), lambda s: True, _fx)
