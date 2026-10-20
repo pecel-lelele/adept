@@ -198,3 +198,29 @@ class TestClamp:
 
     def test_at_max(self) -> None:
         assert clamp(2.0, -2.0, 2.0) == 2.0
+
+
+# ---------------------------------------------------------------------------
+# Signal aggregation across multiple pulls in same period
+# ---------------------------------------------------------------------------
+
+
+class TestSignalAggregation:
+    def test_two_same_week_pulls_aggregate_both_count_and_total(self) -> None:
+        """Simulates two same-week pulls of (10 mentions, 100 papers) each.
+        Asserts frequency is 20/200 = 0.10, not 10/200 (overwritten count) or 10/100."""
+        from pipelines.trends.score import aggregate_period_runs
+
+        pull1 = ({"python": 10.0, "sql": 5.0}, 100)
+        pull2 = ({"python": 10.0, "sql": 5.0}, 100)
+
+        combined_counts, combined_total = aggregate_period_runs([pull1, pull2])
+
+        assert combined_total == 200, f"Expected 200 total papers, got {combined_total}"
+        assert combined_counts["python"] == 20.0, (
+            f"Expected 20 mentions for python, got {combined_counts['python']}"
+        )
+        assert combined_counts["sql"] == 10.0
+
+        freq_python = combined_counts["python"] / combined_total
+        assert freq_python == pytest.approx(0.10, abs=1e-9)

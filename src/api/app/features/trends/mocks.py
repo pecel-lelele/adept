@@ -148,16 +148,21 @@ def signals(scenario: ScenarioId) -> list[TrendSignal]:
     ]
 
 
+AVAILABLE_MOCK_DATES: list[date] = [date(2026, 10, 13), date(2026, 10, 20)]
+
 _REPO_ROOT = Path(__file__).resolve().parents[5]
-_MOCK_FILE = _REPO_ROOT / "src" / "data" / "seed" / "mock_trends.json"
+_SEED_DIR = _REPO_ROOT / "src" / "data" / "seed"
+_MOCK_FILE = _SEED_DIR / "mock_trends.json"
 
 
-def _load_raw() -> dict:
+def _load_raw(snapshot_date: date | None = None) -> dict:
+    if snapshot_date is not None:
+        dated_file = _SEED_DIR / f"mock_trends_{snapshot_date.isoformat()}.json"
+        if dated_file.exists():
+            with dated_file.open(encoding="utf-8") as fh:
+                return json.load(fh)
     with _MOCK_FILE.open(encoding="utf-8") as fh:
         return json.load(fh)
-
-
-_RAW: dict = _load_raw()
 
 
 def _parse_meta(raw_meta: dict, scenario: str) -> TrendSnapshotMeta:
@@ -180,6 +185,7 @@ def _parse_meta(raw_meta: dict, scenario: str) -> TrendSnapshotMeta:
         available_snapshots=[
             date.fromisoformat(d) for d in raw_meta.get("available_snapshots", [])
         ],
+        data_provenance_note=raw_meta.get("data_provenance_note"),
     )
 
 
@@ -203,8 +209,14 @@ def _parse_items(raw_items: list[dict], scenario: str) -> list[SkillVelocity]:
     return items
 
 
-def snapshot(scenario: str) -> TrendSnapshotResponse:
-    """Return a mock TrendSnapshotResponse for the given scenario."""
-    meta = _parse_meta(_RAW["meta"], scenario)
-    items = _parse_items(_RAW["items"], scenario)
+def snapshot(scenario: str, snapshot_date: date | None = None) -> TrendSnapshotResponse:
+    """Return a mock TrendSnapshotResponse for the given scenario and date."""
+    if snapshot_date is None:
+        snapshot_date = AVAILABLE_MOCK_DATES[-1]
+
+    raw = _load_raw(snapshot_date)
+    meta = _parse_meta(raw["meta"], scenario)
+    meta.available_snapshots = list(AVAILABLE_MOCK_DATES)
+    meta.snapshot_date = snapshot_date
+    items = _parse_items(raw["items"], scenario)
     return TrendSnapshotResponse(meta=meta, items=items)

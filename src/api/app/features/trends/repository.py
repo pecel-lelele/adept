@@ -12,9 +12,11 @@ pipeline scripts (Part 5 and Part 3 respectively).
 from __future__ import annotations
 
 from datetime import date
+from functools import lru_cache
 
 from app.contracts.common import ScenarioId
 from app.contracts.trends import EntityType, TrendSignal, TrendSnapshotResponse
+from app.core.errors import NotFoundError
 from app.features.trends import mocks
 
 # ---------------------------------------------------------------------------
@@ -22,14 +24,17 @@ from app.features.trends import mocks
 # ---------------------------------------------------------------------------
 
 
+@lru_cache(maxsize=1)
 def _db_available() -> bool:
     try:
-        import psycopg  # noqa: F401 – optional runtime dep
-
         from app.core.config import get_settings
+
+        if not get_settings().database_url:
+            return False
+
         from app.core.db import database_status
 
-        return database_status() == "ok" and get_settings().database_url != ""
+        return database_status() == "ok"
     except Exception:
         return False
 
@@ -125,6 +130,7 @@ def _load_snapshot_db(snapshot_date: date, scenario: str) -> TrendSnapshotRespon
             weights={"research_velocity": 0.6, "labor_decay": 0.4},
             labor_decay_is_static=True,
             available_snapshots=all_dates,
+            data_provenance_note=("Measured from arXiv cs.AI query API historical date windows."),
         )
         return TrendSnapshotResponse(meta=meta, items=items)
     except Exception:
@@ -142,7 +148,7 @@ def list_available_dates() -> list[date]:
         dates = _list_snapshot_dates_db()
         if dates:
             return dates
-    return [date.fromisoformat(d) for d in ["2026-10-13", "2026-10-20"]]
+    return list(mocks.AVAILABLE_MOCK_DATES)
 
 
 def get_snapshot(snapshot_date: date | None, scenario: str) -> TrendSnapshotResponse:
@@ -150,17 +156,21 @@ def get_snapshot(snapshot_date: date | None, scenario: str) -> TrendSnapshotResp
     Return a TrendSnapshotResponse.
     Falls back to the mock fixture if no live data is available.
     """
+    available = list_available_dates()
     if snapshot_date is None:
-        available = list_available_dates()
         snapshot_date = available[-1] if available else date.today()
+
+    if snapshot_date not in available:
+        raise NotFoundError(f"Snapshot for date {snapshot_date.isoformat()} not found")
 
     if _db_available():
         result = _load_snapshot_db(snapshot_date, scenario)
         if result is not None:
             return result
+        raise NotFoundError(f"Snapshot for date {snapshot_date.isoformat()} not found")
 
-    # Fallback: mock fixture
-    return mocks.snapshot(scenario)
+    # Fallback: date-aware mock fixture
+    return mocks.snapshot(scenario, snapshot_date)
 
 
 # ---------------------------------------------------------------------------

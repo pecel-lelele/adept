@@ -127,11 +127,28 @@ def load_automation_exposure() -> dict[str, float]:
     return result
 
 
+def aggregate_period_runs(
+    runs_data: list[tuple[dict[str, float], int]],
+) -> tuple[dict[str, float], int]:
+    """
+    Given a list of (counts_dict, total_papers) for multiple ingestion runs within a period,
+    sums BOTH mention counts per skill and total papers.
+    Ensures that multiple runs combine (e.g. 10/100 + 10/100 -> 20/200), preserving frequency.
+    """
+    combined_counts: dict[str, float] = {}
+    combined_total = 0
+    for counts, total in runs_data:
+        combined_total += total
+        for sid, c in counts.items():
+            combined_counts[sid] = combined_counts.get(sid, 0.0) + c
+    return combined_counts, max(combined_total, 1)
+
+
 def load_signal_raw(db_url: str, period: str) -> tuple[dict[str, float], int]:
     """
-    Load mention counts from skill_signal_raw for the given ISO-week period.
-    Returns ({skill_id: count}, total_papers_in_period).
-    total_papers is taken from arxiv_fetch_log for the matching week.
+    Load and aggregate mention counts from skill_signal_raw for the given ISO-week period.
+    Sums BOTH count and total_papers across all fetch_date rows in that period.
+    Returns ({skill_id: total_count}, total_papers_in_period).
     """
     import psycopg  # type: ignore[import]
     from psycopg.rows import dict_row  # type: ignore[import]
@@ -141,23 +158,42 @@ def load_signal_raw(db_url: str, period: str) -> tuple[dict[str, float], int]:
     with psycopg.connect(db_url, row_factory=dict_row) as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT skill_id, value FROM skill_signal_raw "
-                "WHERE source = 'arxiv' AND metric = 'mention_count' AND period = %s",
+                """
+                SELECT skill_id, SUM(value) AS total_count
+                FROM skill_signal_raw
+                WHERE source = 'arxiv' AND metric = 'mention_count' AND period = %s
+                GROUP BY skill_id
+                """,
                 (period,),
             )
             for row in cur.fetchall():
-                counts[row["skill_id"]] = float(row["value"])
+                counts[row["skill_id"]] = float(row["total_count"])
 
-            # Get total papers from the log (approximate: use max fetch in the period)
             cur.execute(
-                "SELECT COALESCE(SUM(paper_count), 0) AS total "
-                "FROM arxiv_fetch_log "
-                "WHERE to_char(fetch_date, 'IYYY-\"W\"IW') = %s",
+                """
+                SELECT COALESCE(SUM(total_papers), 0) AS period_total
+                FROM (
+                    SELECT DISTINCT retrieved_at, total_papers
+                    FROM skill_signal_raw
+                    WHERE source = 'arxiv' AND metric = 'mention_count' AND period = %s
+                ) sub
+                """,
                 (period,),
             )
             row = cur.fetchone()
-            if row:
-                total = int(row["total"]) or 1  # avoid div-by-zero
+            if row and row["period_total"] > 0:
+                total = int(row["period_total"])
+            else:
+                cur.execute(
+                    """
+                    SELECT COALESCE(SUM(paper_count), 0) AS total
+                    FROM arxiv_fetch_log
+                    WHERE to_char(fetch_date, 'IYYY-\"W\"IW') = %s
+                    """,
+                    (period,),
+                )
+                r_log = cur.fetchone()
+                total = int(r_log["total"]) if r_log else 1
     return counts, max(total, 1)
 
 

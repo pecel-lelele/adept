@@ -82,6 +82,14 @@ class TestSnapshotEndpoint:
         items2 = {i.skill_id: i.velocity_moderate for i in snap2.items}
         assert items1 != items2, "Expected items to differ between different snapshot dates"
 
+    def test_requesting_unavailable_date_returns_404(self, client: TestClient) -> None:
+        """Requesting a snapshot_date not in available_snapshots must return 404."""
+        resp = client.get("/api/v1/trends/snapshot?snapshot_date=1999-01-01")
+        assert resp.status_code == 404
+        data = resp.json()
+        assert "error" in data
+        assert data["error"]["code"] == "not_found"
+
     def test_snapshot_default_scenario_is_moderate(self, client: TestClient) -> None:
         """Default scenario when not specified must be 'moderate'."""
         resp = client.get("/api/v1/trends/snapshot")

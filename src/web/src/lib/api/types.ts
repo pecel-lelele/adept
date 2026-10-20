@@ -1871,6 +1871,11 @@ export interface components {
             labor_decay_is_static: boolean;
             /** Available Snapshots */
             available_snapshots: string[];
+            /**
+             * Data Provenance Note
+             * @description Optional explanation of data provenance, e.g. for historical arXiv date-window pulls or demo calibration.
+             */
+            data_provenance_note?: string | null;
         };
         /** TrendSnapshotResponse */
         TrendSnapshotResponse: {

@@ -5138,6 +5138,18 @@
             },
             "type": "array",
             "title": "Available Snapshots"
+          },
+          "data_provenance_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data Provenance Note",
+            "description": "Optional explanation of data provenance, e.g. for historical arXiv date-window pulls or demo calibration."
           }
         },
         "type": "object",

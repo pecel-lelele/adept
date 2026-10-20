@@ -93,6 +93,20 @@
 - **Why**: Ensures trend-replay (C1) and disruption scenarios work deterministically against real data while keeping clear cross-team boundaries.
 - **Affects**: M2 (matching dynamic trend scoring), M4 (scenario toggle & trend replay UI)
 - **Replaces**: none
+### M1-003: Five defect fixes (BLS quoting, weekly aggregation, arXiv date windows, fallback 404s, mock fixture consistency)
+- **Date**: 2026-10-20
+- **Feature**: F2 (AI-trend signal layer), F3 (Disruption scenarios)
+- **Type**: model | method | data source | formula | contract | schema
+- **Change**: 
+  1. Part 1 (CSV Quoting): Corrected unquoted embedded commas in BLS occupation titles within `src/data/seed/bls_projections_2023_2033.csv` using Python's `csv.writer(quoting=csv.QUOTE_MINIMAL)`. Regenerated `labor_decay.csv` from scratch: verified `bookkeeping` shifted from corrupted -1.83 to -0.0134 (-1.3%/yr) and `scheduling-admin` from 16.12 to -0.0071 (-0.7%/yr); all 110 skills verified within sanity bounds `[-0.5, 0.5]`. Added `tests/pipelines/trends/test_labor_baseline.py`.
+  2. Part 2 (Weekly Signal Aggregation): Added database migration `20261021140000_m1_signal_aggregation_by_fetch_date.sql` adding `total_papers` column to `skill_signal_raw` with unique constraint `(skill_id, source, metric, period, retrieved_at)`. Redesigned `score.py` (`aggregate_period_runs`) to sum BOTH `value` (mention count) and `total_papers` across all fetch runs for each period bucket (preserving frequency e.g. 10/100 + 10/100 -> 20/200). Added unit test in `tests/pipelines/trends/test_score.py`.
+  3. Part 3 (Historical Snapshots & Provenance): Replaced arbitrary single-feed splitting with genuine date-bounded historical window queries via the arXiv Query API (`http://export.arxiv.org/api/query`, query: `cat:cs.AI AND submittedDate:[YYYYMMDDHHMM TO YYYYMMDDHHMM]`). Pulled and cached two real non-overlapping submission windows (2024-10-06..2024-10-12 and 2024-10-13..2024-10-19, 350 papers each) under `src/data/seed/arxiv_raw/<start>_<end>.json` calibrated to 2026-W42 and 2026-W43. Added optional `data_provenance_note: str | None` field to `TrendSnapshotMeta`.
+  4. Part 4 (Fallback Date-Awareness & 404s): Restructured fallback mode to serve distinct per-date fixtures (`mock_trends_2026-10-13.json` and `mock_trends_2026-10-20.json`). In both DB and fallback modes, requesting an unavailable `snapshot_date` returns HTTP 404 with `NotFoundError`. Updated `test_multiple_available_snapshots_and_dates_differ` and added `test_requesting_unavailable_date_returns_404`.
+  5. Part 5 (Mock Fixture Consistency): Built `src/pipelines/trends/generate_mock_fixtures.py` to derive `velocity_fast`, `direction_moderate`, and `direction_fast` directly from `score.py` functions (`scenario_fast`, `direction`), completely eliminating hand-authored derived values. Fixed `trade-confirmation` direction ("declining", not "stable") and `audit-internal` fast velocity (0.10625, not 0.13). Added `tests/pipelines/trends/test_mock_fixture_consistency.py`.
+- **Why**: Resolves Greptile automated review flags and CI failures, guarantees data integrity against official BLS sources, prevents artificial frequency drops on repeated ingestion, complies with SDG ethical constraints against invented statistics, and ensures robust fallback in database-free CI.
+- **Pipeline** (data/ML only): BLS CSV (properly quoted) -> `labor_baseline.py` -> `labor_decay.csv` -> arXiv Query API (two dated windows) -> sentence-chunked MiniLM embedding -> mention aggregation -> `score.py` -> `generate_mock_fixtures.py` -> dated JSON fixtures + Postgres `trend_snapshots`.
+- **Affects**: M2 (matching trend consumption), M4 (scenario toggle & trend replay frontend)
+- **Replaces**: none
 - **PR / branch**: `feat/m1-trends-contract`
 
 ---

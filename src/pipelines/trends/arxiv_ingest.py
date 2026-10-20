@@ -280,13 +280,13 @@ def write_signal_rows(
                 cur.execute(
                     """
                     INSERT INTO skill_signal_raw
-                        (skill_id, source, metric, value, period, retrieved_at)
-                    VALUES (%s, 'arxiv', 'mention_count', %s, %s, %s)
-                    ON CONFLICT (skill_id, source, metric, period)
+                        (skill_id, source, metric, value, total_papers, period, retrieved_at)
+                    VALUES (%s, 'arxiv', 'mention_count', %s, %s, %s, %s)
+                    ON CONFLICT (skill_id, source, metric, period, retrieved_at)
                     DO UPDATE SET value = EXCLUDED.value,
-                                  retrieved_at = EXCLUDED.retrieved_at
+                                  total_papers = EXCLUDED.total_papers
                     """,
-                    (skill_id, float(count), period, retrieved_at),
+                    (skill_id, float(count), total_papers, period, retrieved_at),
                 )
             # Log the fetch
             cur.execute(

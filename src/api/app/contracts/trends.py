@@ -106,6 +106,13 @@ class TrendSnapshotMeta(BaseModel):
         ),
     )
     available_snapshots: list[date]
+    data_provenance_note: str | None = Field(
+        default=None,
+        description=(
+            "Optional explanation of data provenance, e.g. for historical "
+            "arXiv date-window pulls or demo calibration."
+        ),
+    )
 
 
 class TrendSnapshotResponse(BaseModel):
