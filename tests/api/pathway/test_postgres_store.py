@@ -80,7 +80,13 @@ def test_evidence_and_review_persist(client: TestClient) -> None:
     )
     fresh = repository.PostgresStore()
     assert fresh.evidence("aisyah", ROLE)[course].kind == "self_reported"
-    decision = {"user_id": "aisyah", "role_id": ROLE, "course_id": course, "decision": "confirm"}
+    decision = {
+        "user_id": "aisyah",
+        "role_id": ROLE,
+        "course_id": course,
+        "decision": "confirm",
+        "submitted_at": fresh.evidence("aisyah", ROLE)[course].submitted_at.isoformat(),
+    }
     resp = client.post(
         "/api/v1/pathway/verifications", json=decision, headers={"X-Demo-User": "demo-company"}
     )

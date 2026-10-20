@@ -66,6 +66,11 @@ ON CONFLICT (currency, rate_date) DO UPDATE SET selling_rate = EXCLUDED.selling_
     fetched_at = now()
 """
 
+_LAST_FX = (
+    "SELECT selling_rate, rate_date FROM fx_rates WHERE currency = %s "
+    "ORDER BY rate_date DESC LIMIT 1"
+)
+
 
 def _job(
     payload: dict[str, Any],
@@ -82,6 +87,16 @@ def _job(
             rows = src.with_fx(rows, rate, on)
             conn.execute(_FX, ("USD", on, rate, src.BNM_SOURCE))
             fx_detail = f"; USD at {rate:g} MYR ({on.isoformat()}, Bank Negara Malaysia)"
+        else:
+            # Rate unavailable: price with the last saved rate, so prices never go back to the seed.
+            last = conn.execute(_LAST_FX, ("USD",)).fetchone()
+            if last is not None and isinstance(last[1], date):
+                saved_rate, saved_on = float(str(last[0])), last[1]
+                rows = src.with_fx(rows, saved_rate, saved_on)
+                fx_detail = (
+                    f"; BNM rate unavailable, kept USD at {saved_rate:g} MYR "
+                    f"({saved_on.isoformat()})"
+                )
         src.validate(rows, skills)
         gone = [c.id for c in src.missing_curated(payload)]
         unknown: list[str] = []
@@ -123,7 +138,8 @@ def sync_catalogue(
     fx: Callable[[], tuple[float, date] | None] | None = None,
 ) -> SyncReport:
     """`fx` returns (MYR per USD, date); by default the live Bank Negara Malaysia rate. If the
-    rate is unavailable the seed rate stays, and its date shows how old it is."""
+    rate is unavailable the last saved rate is used (the seed rate only if none was ever saved),
+    and the price note's date shows how old it is."""
 
     def live_fx() -> tuple[float, date] | None:
         try:

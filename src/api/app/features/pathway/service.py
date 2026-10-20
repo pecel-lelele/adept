@@ -368,9 +368,10 @@ def submit_evidence(
     user: CurrentUser,
     body: EvidenceSubmit,
     scenario: ScenarioId,
-    check: verification.Probe = verification.probe,
+    check: verification.Probe | None = None,
 ) -> Progress:
     """Attach a certificate link; marks the course done. A new link resets any review."""
+    check = check or verification.probe  # looked up per call, not frozen at import
     plan = _plan_for_progress(user, body.role_id, scenario)
     course = _require_planned(plan, body.role_id, body.course_id)
     now = datetime.now(UTC)
@@ -454,6 +455,13 @@ def review_completion(user: CurrentUser, body: ReviewDecision) -> VerificationIt
     if course is None:
         raise NotFoundError(f"Unknown course {body.course_id}")
     previous = repository.evidence(body.user_id, body.role_id).get(body.course_id)
+    changed = AppError(
+        "The learner changed this proof after you opened it. Reload and review it again.",
+        status_code=409,
+        code="evidence_changed",
+    )
+    if (previous.submitted_at if previous else None) != body.submitted_at:
+        raise changed
     now = datetime.now(UTC)
     ev = (previous or CompletionEvidence(
         role_id=body.role_id, course_id=body.course_id, kind="self_reported", submitted_at=now
@@ -465,7 +473,9 @@ def review_completion(user: CurrentUser, body: ReviewDecision) -> VerificationIt
             "review_note": body.note,
         }
     )  # fmt: skip
-    repository.save_evidence(body.user_id, ev)
+    # Checked again in the same write, so a submission arriving now cannot be confirmed unseen.
+    if not repository.review_evidence(body.user_id, ev, body.submitted_at):
+        raise changed
     return VerificationItem(
         user_id=body.user_id,
         display_name=members[body.user_id],

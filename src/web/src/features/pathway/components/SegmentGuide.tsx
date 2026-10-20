@@ -2,18 +2,24 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components";
-import type { Schemas } from "@/lib/api";
+import type { ScenarioId, Schemas } from "@/lib/api";
 
 type Segment = NonNullable<Schemas["Pathway"]["segment"]>;
 
-const NEXT_LINK: Record<Segment, string> = {
-  working: "/app/courses?hrd_claimable=true",
-  graduate: "/app/courses?max_cost_myr=0",
-  switcher: "/app/matches",
-};
+function nextLink(segment: Segment, scenario: ScenarioId): string {
+  if (segment === "working") return "/app/courses?hrd_claimable=true";
+  if (segment === "graduate") return "/app/courses?max_cost_myr=0";
+  return `/app/matches?scenario=${scenario}`; // keep the scenario the learner is viewing
+}
 
 /** What to do next, worded for the learner's segment. The plan above is the same for everyone. */
-export async function SegmentGuide({ segment }: { segment: Segment | null | undefined }) {
+export async function SegmentGuide({
+  segment,
+  scenario,
+}: {
+  segment: Segment | null | undefined;
+  scenario: ScenarioId;
+}) {
   if (!segment) return null;
   const t = await getTranslations("pathway");
   return (
@@ -23,7 +29,7 @@ export async function SegmentGuide({ segment }: { segment: Segment | null | unde
       </CardHeader>
       <CardContent className="space-y-2 text-sm">
         <p>{t(`guide.${segment}.body`)}</p>
-        <Link href={NEXT_LINK[segment]} className="underline">
+        <Link href={nextLink(segment, scenario)} className="underline">
           {t(`guide.${segment}.link`)}
         </Link>
         <p className="text-xs text-muted-foreground">{t("guide.sameplan")}</p>

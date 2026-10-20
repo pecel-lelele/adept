@@ -67,6 +67,7 @@ export async function VerificationQueueView() {
                           user_id: item.user_id,
                           role_id: item.role_id,
                           course_id: item.course.id,
+                          submitted_at: ev?.submitted_at ?? "",
                         }}
                       />
                     </CardContent>

@@ -136,3 +136,19 @@ def test_usd_prices_follow_the_live_exchange_rate() -> None:
         ).fetchone()
     assert row is not None and float(row[0]) == 4.2
     assert src.usd_to_myr(1, 4.2) == 4.2
+
+
+def test_exchange_rate_outage_keeps_the_last_saved_rate() -> None:
+    later = (4.3, date(2099, 1, 1))  # newest saved rate; removed again below
+    try:
+        sync_catalogue(_catalog(), date(2026, 10, 21), lambda s: True, fx=lambda: later)
+        report = sync_catalogue(_catalog(), date(2026, 10, 22), lambda s: True, fx=lambda: None)
+        assert report.status == "ok" and "kept USD at 4.3 MYR" in report.detail
+        refdata.invalidate()
+        plus = {c.id: c for c in data.catalogue()}["coursera-plus-annual"]
+        assert plus.cost_myr == round(239 * 4.3, 2), "not back to the seed rate"
+    finally:
+        with psycopg.connect(get_settings().database_url) as conn:
+            conn.execute("DELETE FROM fx_rates WHERE rate_date = %s", (later[1],))
+        sync_catalogue(_catalog(), date(2026, 10, 21), lambda s: True, fx=_fx)
+        refdata.invalidate()

@@ -111,7 +111,7 @@ export async function PathwayView({ roleId, scenario }: { roleId: string; scenar
       </PageHeader>
       {status.ok && savedHere ? <ReplanBanner status={status.data} /> : null}
       <Summary plan={plan} />
-      <SegmentGuide segment={plan.segment} />
+      <SegmentGuide segment={plan.segment} scenario={scenario} />
       <div className="flex flex-wrap items-center gap-2">
         {savedHere ? (
           <Badge variant="success">

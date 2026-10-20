@@ -181,6 +181,10 @@ class ReviewDecision(BaseModel):
     course_id: str = Field(max_length=120)
     decision: Literal["confirm", "reject"]
     note: str = Field(default="", max_length=300)
+    submitted_at: datetime | None = Field(
+        description="`submitted_at` of the evidence the reviewer saw (null if none). The review "
+        "is refused with 409 if the learner has changed the evidence since."
+    )
 
 
 class VerificationItem(BaseModel):

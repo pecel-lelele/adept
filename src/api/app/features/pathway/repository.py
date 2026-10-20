@@ -11,7 +11,8 @@ Reference data (catalogue, taxonomy, trends) lives in `data.py`.
 
 from __future__ import annotations
 
-from datetime import date
+import threading
+from datetime import date, datetime
 from typing import Protocol
 
 import psycopg
@@ -34,6 +35,9 @@ class Store(Protocol):
     def evidence(self, user_id: str, role_id: str) -> dict[str, CompletionEvidence]: ...
     def save_evidence(self, user_id: str, ev: CompletionEvidence) -> None: ...
     def delete_evidence(self, user_id: str, role_id: str, course_id: str) -> None: ...
+    def review_evidence(
+        self, user_id: str, ev: CompletionEvidence, seen: datetime | None
+    ) -> bool: ...
     def progress_of(self, user_ids: list[str]) -> list[tuple[str, str, str, CourseStatus]]: ...
     def reset(self) -> None: ...
 
@@ -44,6 +48,7 @@ class MemoryStore:
         self._progress: dict[tuple[str, str], dict[str, CourseStatus]] = {}
         self._badges: dict[str, dict[str, date]] = {}
         self._evidence: dict[tuple[str, str, str], CompletionEvidence] = {}
+        self._lock = threading.Lock()
 
     def get_plan(self, user_id: str) -> SavedPlan | None:
         return self._plans.get(user_id)
@@ -82,6 +87,15 @@ class MemoryStore:
 
     def delete_evidence(self, user_id: str, role_id: str, course_id: str) -> None:
         self._evidence.pop((user_id, role_id, course_id), None)
+
+    def review_evidence(self, user_id: str, ev: CompletionEvidence, seen: datetime | None) -> bool:
+        key = (user_id, ev.role_id, ev.course_id)
+        with self._lock:
+            current = self._evidence.get(key)
+            if (current.submitted_at if current else None) != seen:
+                return False
+            self._evidence[key] = ev
+            return True
 
     def progress_of(self, user_ids: list[str]) -> list[tuple[str, str, str, CourseStatus]]:
         wanted = set(user_ids)
@@ -237,6 +251,34 @@ class PostgresStore:
             (user_id, role_id, course_id),
         )
 
+    def review_evidence(self, user_id: str, ev: CompletionEvidence, seen: datetime | None) -> bool:
+        """Save a review only if the stored submission is still the one the reviewer saw."""
+        if ev.reviewed_by:
+            self._ensure_user(ev.reviewed_by)
+        if seen is None:  # nothing was stored: insert, unless something arrived meanwhile
+            self._ensure_user(user_id)
+            rows = self._run(
+                f"INSERT INTO course_evidence (user_id, {self._EVIDENCE_COLS}) "
+                "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) "
+                "ON CONFLICT (user_id, role_id, course_id) DO NOTHING RETURNING 1",
+                (
+                    user_id, ev.role_id, ev.course_id, ev.kind, ev.url, ev.link_status,
+                    ev.link_checked_at, ev.submitted_at, ev.reviewed_by, ev.reviewed_at,
+                    ev.review_note,
+                ),
+            )  # fmt: skip
+            return bool(rows)
+        rows = self._run(
+            "UPDATE course_evidence SET kind = %s, reviewed_by = %s, reviewed_at = %s, "
+            "review_note = %s WHERE user_id = %s AND role_id = %s AND course_id = %s "
+            "AND submitted_at = %s RETURNING 1",
+            (
+                ev.kind, ev.reviewed_by, ev.reviewed_at, ev.review_note,
+                user_id, ev.role_id, ev.course_id, seen,
+            ),
+        )  # fmt: skip
+        return bool(rows)
+
     def progress_of(self, user_ids: list[str]) -> list[tuple[str, str, str, CourseStatus]]:
         if not user_ids:
             return []
@@ -292,6 +334,11 @@ def save_evidence(user_id: str, ev: CompletionEvidence) -> None:
 
 def delete_evidence(user_id: str, role_id: str, course_id: str) -> None:
     store().delete_evidence(user_id, role_id, course_id)
+
+
+def review_evidence(user_id: str, ev: CompletionEvidence, seen: datetime | None) -> bool:
+    """Apply a review atomically; False if the evidence changed since `seen`."""
+    return store().review_evidence(user_id, ev, seen)
 
 
 def progress_of(user_ids: list[str]) -> list[tuple[str, str, str, CourseStatus]]:

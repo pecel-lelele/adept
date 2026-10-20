@@ -10,6 +10,17 @@ from app.features.pathway import data, verification
 
 ROLE = "process-automation-analyst"
 HR = {"X-Demo-User": "demo-company"}
+
+
+def _seen(client: TestClient, course_id: str) -> str | None:
+    """`submitted_at` of the evidence HR sees in the queue for this course."""
+    queue = VerificationQueue.model_validate(
+        client.get("/api/v1/pathway/verifications", headers=HR).json()
+    )
+    ev = next(i.evidence for i in queue.items if i.course.id == course_id)
+    return ev.submitted_at.isoformat() if ev else None
+
+
 ADVISOR = {"X-Demo-User": "demo-institution"}
 
 
@@ -114,6 +125,7 @@ def test_hr_sees_members_completions_and_confirms(client: TestClient) -> None:
         "course_id": first,
         "decision": "confirm",
         "note": "Attendance on HRD Corp claim",
+        "submitted_at": _seen(client, first),
     }
     item = VerificationItem.model_validate(
         client.post("/api/v1/pathway/verifications", json=decision, headers=HR).json()
@@ -135,6 +147,7 @@ def test_rejected_completion_stops_counting(client: TestClient) -> None:
         "course_id": first,
         "decision": "reject",
         "note": "Certificate is for another course",
+        "submitted_at": _seen(client, first),
     }
     assert (
         client.post("/api/v1/pathway/verifications", json=decision, headers=HR).status_code == 200
@@ -151,10 +164,61 @@ def test_reviewers_only_see_their_own_members(client: TestClient) -> None:
     _save_and_complete(client)  # Aisyah belongs to Demo Bank, not the polytechnic
     queue = client.get("/api/v1/pathway/verifications", headers=ADVISOR).json()
     assert queue["items"] == []
-    other = {"user_id": "aisyah", "role_id": ROLE, "course_id": "x", "decision": "confirm"}
+    other = {
+        "user_id": "aisyah",
+        "role_id": ROLE,
+        "course_id": "x",
+        "decision": "confirm",
+        "submitted_at": None,
+    }
     assert (
         client.post("/api/v1/pathway/verifications", json=other, headers=ADVISOR).status_code == 403
     )
+
+
+def test_review_of_changed_proof_is_refused(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    first, _ = _save_and_complete(client)
+    seen = _seen(client, first)  # HR opens the self-reported completion
+    monkeypatch.setattr(verification, "probe", lambda url: 200)
+    client.post(  # the learner then submits a certificate link
+        "/api/v1/pathway/progress/evidence",
+        json={"role_id": ROLE, "course_id": first, "url": "https://www.credly.com/badges/new"},
+    )
+    decision = {
+        "user_id": "aisyah",
+        "role_id": ROLE,
+        "course_id": first,
+        "decision": "confirm",
+        "submitted_at": seen,
+    }
+    resp = client.post("/api/v1/pathway/verifications", json=decision, headers=HR)
+    assert resp.status_code == 409 and resp.json()["error"]["code"] == "evidence_changed"
+    ev = Progress.model_validate(
+        client.get("/api/v1/pathway/progress", params={"role_id": ROLE}).json()
+    ).evidence[first]
+    assert ev.kind == "certificate_link", "the unseen link was not confirmed"
+    decision["submitted_at"] = _seen(client, first)
+    resp = client.post("/api/v1/pathway/verifications", json=decision, headers=HR)
+    assert resp.status_code == 200, "a review of what is stored now succeeds"
+
+
+def test_probe_is_looked_up_per_call(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    first, _ = _save_and_complete(client)
+    calls: list[str] = []
+
+    def fake_probe(url: str) -> int:
+        calls.append(url)
+        return 200
+
+    monkeypatch.setattr(verification, "probe", fake_probe)
+    url = "https://www.credly.com/badges/offline-test"
+    client.post(
+        "/api/v1/pathway/progress/evidence",
+        json={"role_id": ROLE, "course_id": first, "url": url},
+    )
+    assert calls == [url], "the patched probe is used, so tests never reach live pages"
 
 
 def test_learners_cannot_review(client: TestClient) -> None:

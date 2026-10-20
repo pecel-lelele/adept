@@ -89,6 +89,7 @@ export async function reviewCompletionAction(
         course_id: text(form, "course_id"),
         decision,
         note: (form.get("note")?.toString() ?? "").slice(0, 300),
+        submitted_at: text(form, "submitted_at") || null,
       },
     }),
     "/org/verify",

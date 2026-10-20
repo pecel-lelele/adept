@@ -1397,6 +1397,11 @@ export interface components {
              * @default
              */
             note: string;
+            /**
+             * Submitted At
+             * @description `submitted_at` of the evidence the reviewer saw (null if none). The review is refused with 409 if the learner has changed the evidence since.
+             */
+            submitted_at: string | null;
         };
         /** RoleMatch */
         RoleMatch: {
