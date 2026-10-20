@@ -157,6 +157,20 @@
 - **Replaces**: none
 - **PR / branch**: `feat/matching-scoring-engine`
 
+### M2-002: F1 Profile intake pipeline (CV parsing, questionnaire intake, and skill confirmation normalisation)
+- **Date**: 2026-10-20
+- **Feature**: F1 (Skills Profile Intake)
+- **Type**: model | method | formula | contract | data source
+- **Change**:
+  1. Implemented rule-based CV parsing pipeline in `src/api/app/features/profile/cv_parser.py` (M2-01) supporting PDF and raw text, text cleaning (URL/email stripping), regex alias index matching against official taxonomy `src/data/seed/taxonomy/skills.csv`, context-based proficiency level estimation (1–5 scale), and confidence scoring.
+  2. Implemented questionnaire intake in `src/api/app/features/profile/schemas.py` and `router.py` (M2-02) at `POST /api/v1/profile/questionnaire` capturing segment, target roles, weekly commitment, learning preferences, and HRD eligibility.
+  3. Implemented skill confirmation endpoint in `src/api/app/features/profile/service.py` and `router.py` (M2-03) at `PUT /api/v1/profile/skills/confirm`, validating taxonomy IDs, rejecting duplicates, persisting confirmed skills, and returning normalised proficiency values on `[0.0, 1.0]` using `(level - 1) / 4.0` for downstream F4 matching engine compatibility.
+- **Why**: Standardises profile intake across diverse entry points (CV upload and questionnaire), eliminates hallucinated skill entities by strictly grounding in taxonomy seed data, and aligns integer user skill levels (1-5) with the downstream matching engine's unit float scale [0.0, 1.0].
+- **Pipeline** (data/ML only): PDF/text resume -> clean_text() -> alias/regex scanner against taxonomy skills -> context level estimation (1-5) -> human-in-the-loop review/confirmation -> (level - 1) / 4.0 normalisation -> persistent user profile.
+- **Affects**: M2 (matching engine input), M4 (profile onboarding frontend)
+- **Replaces**: none
+- **PR / branch**: `feat/matching-scoring-engine`
+
 ---
 
 ## M3: Pathway, SDG & Guardrails (F5, F6, F8)
