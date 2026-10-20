@@ -16,3 +16,7 @@ testpaths = ["tests"]
 # src/api makes `import app...` work; src makes `import pipelines...` work.
 pythonpath = ["src/api", "src"]
 addopts = "-q --import-mode=importlib"
+
+[tool.pyright]
+extraPaths = ["src/api", "src"]
+
