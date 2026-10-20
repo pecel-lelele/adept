@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
 
-import { ApiError, MetaBar, PageHeader, StubBanner } from "@/components";
+import { ApiError, MetaBar, PageHeader } from "@/components";
 import type { ScenarioId } from "@/lib/api";
 import { percent } from "@/lib/utils";
 
@@ -12,7 +12,6 @@ export async function GapsView({ scenario }: { scenario: ScenarioId }) {
   const result = await fetchGaps(scenario);
   return (
     <section>
-      <StubBanner feature="F7 Organisation mode" endpoint="GET /api/v1/org/gaps" />
       <PageHeader title={t("gapsTitle")} description={t("gapLegend")} />
       {!result.ok ? (
         <ApiError message={result.message} />

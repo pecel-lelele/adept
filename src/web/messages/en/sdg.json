@@ -1,7 +1,26 @@
 {
   "title": "How your path contributes to the SDGs",
   "orgTitle": "Your organisation's SDG contribution",
+  "regionTitle": "SDG contribution in {region}",
+  "description": "All 17 Sustainable Development Goals are shown; this domain focuses on goals 4, 5, 8, 9 and 10. Goals your path does not touch stay visible.",
   "goals": "Goals",
   "links": "Links",
-  "linkCount": "{count} links"
+  "linkCount": "{count} links",
+  "focus": "focus",
+  "direct": "direct",
+  "enabling": "enabling",
+  "strengthHint": "Direct: the work itself advances the target. Enabling: it builds capacity the target needs.",
+  "contributors": "{count} people",
+  "draft": "draft, pending review",
+  "forRoles": "For role: {roles}",
+  "via": {
+    "role": "role",
+    "skill": "skill",
+    "pathway": "your plan"
+  },
+  "scope": {
+    "organisation": "Organisation",
+    "region": "Region"
+  },
+  "evidence": "Evidence"
 }

@@ -1,10 +1,26 @@
 {
   "title": "关于 Adept",
   "llmTitle": "AI 披露",
-  "llmNone": "当前版本未使用任何语言模型。如有添加，将在此列出其名称和用途。",
+  "llmNone": "本版本未使用任何语言模型。计划、评分和 SDG 关联均由确定且可解释的规则计算。",
+  "llmProvider": "提供方：{provider} · 模型：{model}",
+  "llmCalls": "已记录 {calls} 次模型调用；已拒绝 {rejected} 个虚构的 ID。",
   "methodTitle": "方法",
-  "methodBody": "趋势信号在两种情景下生成职位前景；匹配结合技能重合度、趋势前景和兴趣契合度；学习路径使用经核实日期的课程目录。",
+  "methodBody": "趋势快照在温和与快速两种 AI 冲击情景下生成职位前景。匹配综合技能重合度、趋势前景和兴趣契合度。路径只使用我们目录中的课程来弥补技能差距，按前置关系和趋势加权优先级排序，并根据您每周的学习时间安排进度。每个职位和技能都附理由关联到官方 SDG 具体目标。",
+  "rulesTitle": "防护规则",
   "sourcesTitle": "数据来源",
-  "limitsTitle": "局限性",
-  "limitsBody": "所有预测均为估计值。演示数据为合成数据。Adept 辅助人类决策，从不做出招聘决定。"
+  "sourceKind": {
+    "live_api": "实时 API",
+    "verified_page": "已核实页面",
+    "curated": "人工整理",
+    "synthetic": "合成数据",
+    "mock": "模拟数据"
+  },
+  "records": "{count} 条记录",
+  "fairnessTitle": "公平性检查",
+  "fairnessPassed": "所有公平性检查均通过",
+  "fairnessFailed": "有一项公平性检查未通过",
+  "protectedTitle": "从不作为输入",
+  "limitsTitle": "局限",
+  "limitsBody": "所有预测均为估计。演示中的人员和团队均为合成数据。SDG 关联在审核前为草稿。课程水平为我们的估计。Adept 支持人的决策，从不做出招聘决定。",
+  "lastSynced": "最近同步 {date} UTC"
 }

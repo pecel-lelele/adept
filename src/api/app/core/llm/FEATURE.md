@@ -8,9 +8,12 @@
 
 ## Status
 
-Skeleton: `LLM_PROVIDER=none`, so `NullProvider` raises `LLMUnavailableError` and callers
-fall back to non-LLM logic. `validate_ids` rejects any ID not in the allowed set.
-When a model is enabled, name it on `/about` and in the README.
+`LLM_PROVIDER=none` (no model is used). The gateway redacts PII and filters prompt injection
+before any prompt, rejects unknown IDs, has a circuit breaker, logs every call, and
+`select_ids_or_fallback` degrades to deterministic logic. Related F8 code:
+`app/core/security/` (rate limit, body limit, headers, sanitiser, PII, Supabase JWT),
+`app/core/fairness.py`, and `app/features/guardrails/` (`/guardrails/disclosure`, `/sources`,
+`/fairness`, rendered on `/about`).
 
 ## Goal and tasks (from docs/TASKS.md)
 
@@ -27,13 +30,11 @@ When a model is enabled, name it on `/about` and in the README.
 
 ## Pipeline
 
-Fill this in as the feature takes shape (copy it into the `docs/decisions.md` entry).
-
 | Stage | Choice | Notes |
 |---|---|---|
-| Source | | |
-| Preprocessing / cleaning | | |
-| Features | | |
-| Model / method | | |
-| Evaluation | | metric + result |
-| Serving | | endpoint(s) |
+| Source | catalogue (id → label) supplied by the calling feature | the model can only answer with those IDs |
+| Preprocessing / cleaning | `clean_extracted_text` (injection patterns → `[filtered]`) then `redact_text` (email, NRIC, passport, phone) | patterns from KerjaCerdas, Malaysian formats |
+| Features | none | |
+| Model / method | none configured; provider protocol + structured output | name the model here, on `/about` and in the README when enabled |
+| Evaluation | tests: unknown IDs rejected, prompts redacted, breaker opens/closes, fallback used; CI sweep: every recommendation endpoint returns dated sources; fairness scan of every API input and DB column | `tests/api/llm`, `tests/api/guardrails` |
+| Serving | `select_ids`, `select_ids_or_fallback`; `/guardrails/*` endpoints | |

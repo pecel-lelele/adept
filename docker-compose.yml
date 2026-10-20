@@ -6,7 +6,9 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-adept}
       POSTGRES_DB: ${POSTGRES_DB:-adept}
     ports:
-      - "${POSTGRES_PORT:-5433}:5432"
+      # Localhost only: the default credentials are public. To expose the database to
+      # other machines, set POSTGRES_BIND=0.0.0.0 deliberately (and change the password).
+      - "${POSTGRES_BIND:-127.0.0.1}:${POSTGRES_PORT:-5433}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:

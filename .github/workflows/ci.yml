@@ -1,0 +1,175 @@
+# CI: the same quality gate as `make check`, plus a real database and a production web build.
+# Structure adapted from KerjaCerdas .github/workflows/ci.yml (gated jobs, concurrency,
+# pgvector service for migrations).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  PYTHON_VERSION: "3.11"
+  NODE_VERSION: "22"
+  PNPM_VERSION: "10.29.3"
+
+jobs:
+  check:
+    name: make check (lint, i18n, tests, typecheck, contract drift)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: requirements.txt
+
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: src/web/pnpm-lock.yaml
+
+      - name: Install Python dependencies into .venv
+        run: |
+          uv venv --python "$PYTHON_VERSION" .venv
+          uv pip install --python .venv/bin/python -r requirements.txt
+
+      - name: Install web dependencies
+        working-directory: src/web
+        run: pnpm install --frozen-lockfile
+
+      - name: make check
+        run: python3 src/scripts/dev.py check
+
+  web-build:
+    name: Next.js production build
+    runs-on: ubuntu-latest
+    needs: check
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: src/web/pnpm-lock.yaml
+
+      - name: Build
+        working-directory: src/web
+        env:
+          API_URL: http://localhost:8000
+          NEXT_TELEMETRY_DISABLED: "1"
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build
+
+  database:
+    name: Migrations and seeds on PostgreSQL 16 + pgvector
+    runs-on: ubuntu-latest
+    needs: check
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: adept
+          POSTGRES_PASSWORD: adept-ci-only
+          POSTGRES_DB: adept
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U adept -d adept"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgresql://adept:adept-ci-only@localhost:5432/adept
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0 # the skeleton commit is needed for the upgrade test
+
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+
+      - name: Install Python dependencies
+        run: |
+          uv venv --python "$PYTHON_VERSION" .venv
+          uv pip install --python .venv/bin/python -r requirements.txt
+
+      # Upgrade path: build the database exactly as the merged skeleton did (its own
+      # migrations and mock seeds), then apply today's migrations and seeds on top.
+      - name: Seed a database from the skeleton release
+        run: |
+          mkdir -p "$RUNNER_TEMP/skeleton"
+          git archive "$SKELETON_SHA" src/db src/data/seed | tar -x -C "$RUNNER_TEMP/skeleton"
+          .venv/bin/python "$RUNNER_TEMP/skeleton/src/db/migrate.py" up
+          .venv/bin/python "$RUNNER_TEMP/skeleton/src/db/seed.py"
+        env:
+          SKELETON_SHA: 010f048e0bafc81d7734061939dc366f9ccaf3f8
+
+      - name: Apply migrations
+        run: .venv/bin/python src/db/migrate.py up
+
+      - name: Load seeds
+        run: .venv/bin/python src/db/seed.py
+
+      # Re-running must be a no-op: migrations are recorded, seeds use ON CONFLICT DO NOTHING.
+      - name: Migrations and seeds are idempotent
+        run: |
+          .venv/bin/python src/db/migrate.py up | tee migrate.out
+          grep -q "0 migration(s) applied" migrate.out
+          .venv/bin/python src/db/seed.py
+
+      - name: Seeded data matches the catalogue and SDG rules
+        run: |
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -At <<'SQL'
+          DO $$
+          BEGIN
+            IF (SELECT count(*) FROM sdg_goals) <> 17 THEN RAISE EXCEPTION 'expected 17 goals'; END IF;
+            IF (SELECT count(*) FROM sdg_targets) <> 169 THEN RAISE EXCEPTION 'expected 169 targets'; END IF;
+            IF EXISTS (SELECT 1 FROM sdg_targets WHERE retrieved_at IS NULL)
+              THEN RAISE EXCEPTION 'a skeleton SDG target survived the upgrade'; END IF;
+            IF EXISTS (SELECT 1 FROM roles r WHERE NOT EXISTS
+                       (SELECT 1 FROM role_sdg_map m WHERE m.role_id = r.id))
+              THEN RAISE EXCEPTION 'a role has no SDG link'; END IF;
+            IF EXISTS (SELECT 1 FROM skills s WHERE NOT EXISTS
+                       (SELECT 1 FROM skill_sdg_map m WHERE m.skill_id = s.id))
+              THEN RAISE EXCEPTION 'a skill has no SDG link'; END IF;
+            IF EXISTS (SELECT 1 FROM role_sdg_map WHERE reason ILIKE '%mock%' OR evidence_url = ''
+                       UNION ALL
+                       SELECT 1 FROM skill_sdg_map WHERE reason ILIKE '%mock%' OR evidence_url = '')
+              THEN RAISE EXCEPTION 'an SDG link is a mock or has no evidence'; END IF;
+            IF EXISTS (SELECT 1 FROM courses WHERE url NOT LIKE 'https://%' OR source_url = ''
+                       OR url LIKE 'https://example.org/%')
+              THEN RAISE EXCEPTION 'a course is a placeholder or lacks an https URL or source'; END IF;
+          END $$;
+          SQL
+
+      # Plans, progress, badges, reference reads, live sync (from fixtures) and shared rate
+      # limits against the real database.
+      - name: PostgreSQL integration tests
+        run: |
+          .venv/bin/python -m pytest -q tests/api/pathway/test_postgres_store.py tests/api/pathway/test_postgres_refdata.py tests/api/pathway/test_postgres_sync.py tests/api/guardrails/test_rate_limit_postgres.py
+        env:
+          ADEPT_TEST_DATABASE_URL: ${{ env.DATABASE_URL }}

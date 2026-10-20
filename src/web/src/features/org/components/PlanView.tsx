@@ -1,16 +1,19 @@
 import { getTranslations } from "next-intl/server";
 
-import { ApiError, MetaBar, PageHeader, StubBanner } from "@/components";
+import { ApiError, MetaBar, PageHeader } from "@/components";
 import { PathwaySteps } from "@/features/pathway";
+import type { ScenarioId } from "@/lib/api";
 
-import { fetchPlan } from "../api";
+import { fetchMembers, fetchPlan } from "../api";
 
-export async function PlanView() {
+export async function PlanView({ scenario }: { scenario: ScenarioId }) {
   const t = await getTranslations("org");
-  const result = await fetchPlan();
+  const [result, members] = await Promise.all([fetchPlan(scenario), fetchMembers()]);
+  const names = Object.fromEntries(
+    (members.ok ? members.data.members : []).map((m) => [m.id, m.display_name]),
+  );
   return (
     <section>
-      <StubBanner feature="F7 Organisation mode" endpoint="GET /api/v1/org/plan" />
       <PageHeader title={t("planTitle")} />
       {!result.ok ? (
         <ApiError message={result.message} />
@@ -21,7 +24,7 @@ export async function PlanView() {
             {t("assigned", { count: result.data.assigned_member_ids.length })}
           </p>
           <MetaBar meta={result.data.meta} />
-          <PathwaySteps steps={result.data.steps} />
+          <PathwaySteps steps={result.data.steps} memberNames={names} />
         </div>
       )}
     </section>

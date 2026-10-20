@@ -1,5 +1,7 @@
-import { SdgContributionView } from "@/features/sdg";
+import { OrgSdgView } from "@/features/sdg";
+import { firstParam, parseScenario, type SearchParams } from "@/lib/scenario";
 
-export default function Page() {
-  return <SdgContributionView context="organisation" />;
+export default async function Page({ searchParams }: { searchParams: Promise<SearchParams> }) {
+  const params = await searchParams;
+  return <OrgSdgView region={firstParam(params.region)} scenario={parseScenario(params.scenario)} />;
 }

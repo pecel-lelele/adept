@@ -38,6 +38,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/guardrails/disclosure": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Disclosure
+         * @description Which language model (if any) is used, for what, and under which rules.
+         */
+        get: operations["guardrails_get_disclosure"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/guardrails/sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Sources
+         * @description Every data source behind a recommendation, with its date and kind.
+         */
+        get: operations["guardrails_get_sources"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/guardrails/fairness": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Fairness
+         * @description Live fairness checks: protected attributes excluded, counterfactual invariance.
+         */
+        get: operations["guardrails_get_fairness"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/matches": {
         parameters: {
             query?: never;
@@ -130,7 +190,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Plan */
+        /**
+         * Get Plan
+         * @description Group pathway for a target role; each step lists the members who need it.
+         */
         get: operations["org_get_plan"];
         put?: never;
         post?: never;
@@ -151,6 +214,166 @@ export interface paths {
         get: operations["pathway_get_pathway"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pathway/catalogue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Catalogue
+         * @description Every course the pathway may recommend, with its source and verification date.
+         */
+        get: operations["pathway_get_catalogue"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pathway/catalogue/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sync Catalogue
+         * @description Refresh the catalogue from its live sources (needs X-Sync-Token, M3_BACKEND=postgres).
+         */
+        post: operations["pathway_sync_catalogue"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pathway/plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Save Plan
+         * @description Save the learner's chosen target role and its pathway (the learner decides).
+         */
+        post: operations["pathway_save_plan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pathway/plans/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Replan Status
+         * @description The saved plan, and a proposed re-plan if newer trend data changes it.
+         */
+        get: operations["pathway_get_replan_status"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pathway/plans/me/accept-replan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Accept Replan */
+        post: operations["pathway_accept_replan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pathway/progress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Progress */
+        get: operations["pathway_get_progress"];
+        put?: never;
+        /** Update Progress */
+        post: operations["pathway_update_progress"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pathway/progress/evidence": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Submit Evidence
+         * @description Attach a certificate link to a completed course; it is checked against the provider's
+         *     official verification pages and shown to the learner's HR or career advisor.
+         */
+        post: operations["pathway_submit_evidence"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pathway/verifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Verification Queue
+         * @description HR / career-centre staff: completions by members of their organisation to review.
+         */
+        get: operations["pathway_get_verification_queue"];
+        put?: never;
+        /**
+         * Review Completion
+         * @description Confirm or reject a member's completion (with an optional note).
+         */
+        post: operations["pathway_review_completion"];
         delete?: never;
         options?: never;
         head?: never;
@@ -259,6 +482,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/sdg/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sync Sdg
+         * @description Refresh goals/targets from the UN API and the curated links (needs X-Sync-Token).
+         */
+        post: operations["sdg_sync_sdg"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sdg/goals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Goals
+         * @description All 17 goals and 169 targets (UN SDG API), with the domain focus goals flagged.
+         */
+        get: operations["sdg_list_goals"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/sdg/roles/{role_id}": {
         parameters: {
             query?: never;
@@ -268,6 +531,26 @@ export interface paths {
         };
         /** Get Role Sdg */
         get: operations["sdg_get_role_sdg"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sdg/roles/{role_id}/alignment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Role Alignment
+         * @description SDG alignment score for SDG-weighted ranking (F4). Defaults to the focus goals.
+         */
+        get: operations["sdg_get_role_alignment"];
         put?: never;
         post?: never;
         delete?: never;
@@ -300,8 +583,62 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get My Contribution */
+        /**
+         * Get My Contribution
+         * @description How the learner's chosen path contributes (role, skills built, plan facts).
+         */
         get: operations["sdg_get_my_contribution"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sdg/contribution/org": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Org Contribution */
+        get: operations["sdg_get_org_contribution"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sdg/regions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Regions */
+        get: operations["sdg_list_regions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sdg/contribution/region/{state}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Region Contribution */
+        get: operations["sdg_get_region_contribution"];
         put?: never;
         post?: never;
         delete?: never;
@@ -348,10 +685,93 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** Badge */
+        Badge: {
+            /** Id */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "skill" | "milestone";
+            /** Label */
+            label: string;
+            /**
+             * Earned At
+             * Format: date
+             */
+            earned_at: string;
+            /**
+             * Evidence
+             * @description Weakest evidence behind the badge.
+             * @default self_reported
+             * @enum {string}
+             */
+            evidence: "self_reported" | "certificate_link" | "org_confirmed";
+            /** Skill Id */
+            skill_id?: string | null;
+        };
         /** Body_profile_upload_cv */
         Body_profile_upload_cv: {
             /** File */
             file: string;
+        };
+        /** CatalogueResponse */
+        CatalogueResponse: {
+            /** Courses */
+            courses: components["schemas"]["Course"][];
+            meta: components["schemas"]["RecommendationMeta"];
+        };
+        /** CompletionEvidence */
+        CompletionEvidence: {
+            /** Role Id */
+            role_id: string;
+            /** Course Id */
+            course_id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "self_reported" | "certificate_link" | "org_confirmed" | "org_rejected";
+            /**
+             * Url
+             * @description Certificate or credential link.
+             */
+            url?: string | null;
+            /**
+             * Link Status
+             * @default not_submitted
+             * @enum {string}
+             */
+            link_status: "not_submitted" | "provider_verified" | "unreachable" | "not_provider_page";
+            /** Link Checked At */
+            link_checked_at?: string | null;
+            /**
+             * Submitted At
+             * Format: date-time
+             */
+            submitted_at: string;
+            /**
+             * Reviewed By
+             * @description HR or advisor who reviewed it.
+             */
+            reviewed_by?: string | null;
+            /** Reviewed At */
+            reviewed_at?: string | null;
+            /**
+             * Review Note
+             * @default
+             */
+            review_note: string;
+        };
+        /** CounterfactualResult */
+        CounterfactualResult: {
+            /** Name */
+            name: string;
+            /** Passed */
+            passed: boolean;
+            /** Detail */
+            detail: string;
         };
         /** Course */
         Course: {
@@ -374,6 +794,71 @@ export interface components {
              * Format: date
              */
             verified_at: string;
+            /** Skill Ids */
+            skill_ids?: string[];
+            /**
+             * Level
+             * @description Skill level the course brings you to (estimate).
+             * @default 2
+             */
+            level: number;
+            /**
+             * Hrd Note
+             * @default
+             */
+            hrd_note: string;
+            /**
+             * Duration Note
+             * @default
+             */
+            duration_note: string;
+            source?: components["schemas"]["Source"] | null;
+            /**
+             * Format
+             * @default self_paced
+             * @enum {string}
+             */
+            format: "self_paced" | "live_online" | "in_person" | "hybrid" | "subscription";
+            /**
+             * Audience
+             * @default individual
+             * @enum {string}
+             */
+            audience: "individual" | "corporate" | "both";
+            /**
+             * Price Basis
+             * @default per_course
+             * @enum {string}
+             */
+            price_basis: "per_course" | "per_user_year" | "per_user_month" | "per_group";
+            /**
+             * Currency
+             * @description Currency of the provider's list price.
+             * @default MYR
+             */
+            currency: string;
+            /**
+             * List Price
+             * @description Price in `currency`.
+             */
+            list_price?: number | null;
+            /**
+             * Provider Type
+             * @default private_provider
+             * @enum {string}
+             */
+            provider_type: "mooc" | "university" | "industry_body" | "professional_body" | "private_provider" | "government";
+            /**
+             * Location
+             * @default
+             */
+            location: string;
+            /**
+             * Price Note
+             * @description How cost_myr was derived (e.g. FX rate).
+             * @default
+             */
+            price_note: string;
         };
         /** CvExtractionResult */
         CvExtractionResult: {
@@ -393,6 +878,55 @@ export interface components {
             /** Is Mock */
             is_mock: boolean;
         };
+        /** DataSourceInfo */
+        DataSourceInfo: {
+            /** Name */
+            name: string;
+            /** Url */
+            url: string;
+            /**
+             * Retrieved At
+             * Format: date
+             */
+            retrieved_at: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "live_api" | "verified_page" | "curated" | "synthetic" | "mock";
+            /** Used For */
+            used_for: string;
+            /** Records */
+            records: number;
+            /**
+             * Last Synced At
+             * @description Last successful live sync (M3_BACKEND=postgres only).
+             */
+            last_synced_at?: string | null;
+        };
+        /** Disclosure */
+        Disclosure: {
+            /** Llm Enabled */
+            llm_enabled: boolean;
+            /**
+             * Provider
+             * @description Configured LLM provider ('none' = no model is used).
+             */
+            provider: string;
+            /** Model */
+            model: string;
+            /** Purpose */
+            purpose: string[];
+            /** Rules */
+            rules: string[];
+            /** Calls Logged */
+            calls_logged: number;
+            /**
+             * Rejected Ids
+             * @description IDs the model returned that we rejected.
+             */
+            rejected_ids: number;
+        };
         /** EntitySdgLinks */
         EntitySdgLinks: {
             /**
@@ -406,6 +940,15 @@ export interface components {
             links: components["schemas"]["SdgLink"][];
             meta: components["schemas"]["RecommendationMeta"];
         };
+        /** EvidenceSubmit */
+        EvidenceSubmit: {
+            /** Role Id */
+            role_id: string;
+            /** Course Id */
+            course_id: string;
+            /** Url */
+            url: string;
+        };
         /** ExtractedSkill */
         ExtractedSkill: {
             /** Skill Id */
@@ -416,6 +959,19 @@ export interface components {
             level: number;
             /** Confidence */
             confidence: number;
+        };
+        /** FairnessReport */
+        FairnessReport: {
+            /** Protected Attributes */
+            protected_attributes: string[];
+            /** Api Inputs Checked */
+            api_inputs_checked: number;
+            /** Protected Inputs Found */
+            protected_inputs_found: string[];
+            /** Counterfactual Checks */
+            counterfactual_checks: components["schemas"]["CounterfactualResult"][];
+            /** Passed */
+            passed: boolean;
         };
         /** GapHeatmapCell */
         GapHeatmapCell: {
@@ -447,6 +1003,28 @@ export interface components {
             label: string;
             /** Link Count */
             link_count: number;
+            /**
+             * Direct Count
+             * @default 0
+             */
+            direct_count: number;
+            /**
+             * Enabling Count
+             * @default 0
+             */
+            enabling_count: number;
+            /**
+             * Is Focus
+             * @description One of the domain focus goals.
+             * @default false
+             */
+            is_focus: boolean;
+            /**
+             * Contributors
+             * @description People whose plan links to this goal.
+             * @default 0
+             */
+            contributors: number;
         };
         /** GroupPlan */
         GroupPlan: {
@@ -540,6 +1118,64 @@ export interface components {
             /** Total Weeks */
             total_weeks: number;
             meta: components["schemas"]["RecommendationMeta"];
+            /**
+             * Role Label
+             * @default
+             */
+            role_label: string;
+            /**
+             * Hours Per Week
+             * @default 0
+             */
+            hours_per_week: number;
+            /**
+             * Total Hours
+             * @default 0
+             */
+            total_hours: number;
+            /**
+             * Total Cost Myr
+             * @description List price of all courses.
+             * @default 0
+             */
+            total_cost_myr: number;
+            /**
+             * Out Of Pocket Myr
+             * @description What the learner pays after HRD Corp claims.
+             * @default 0
+             */
+            out_of_pocket_myr: number;
+            /**
+             * Budget Myr
+             * @default 0
+             */
+            budget_myr: number;
+            /**
+             * Within Budget
+             * @default true
+             */
+            within_budget: boolean;
+            /**
+             * Hrd Eligible
+             * @default false
+             */
+            hrd_eligible: boolean;
+            /** Gaps */
+            gaps?: components["schemas"]["SkillGap"][];
+            /** Unmet */
+            unmet?: components["schemas"]["UnmetSkill"][];
+            /** Warnings */
+            warnings?: string[];
+            /**
+             * Snapshot Version
+             * @default
+             */
+            snapshot_version: string;
+            /**
+             * Segment
+             * @description The learner's segment, for guidance text only; it never changes the plan.
+             */
+            segment?: ("working" | "graduate" | "switcher") | null;
         };
         /** PathwayStep */
         PathwayStep: {
@@ -557,6 +1193,59 @@ export interface components {
             week_end: number;
             /** Reason */
             reason: string;
+            /**
+             * Skill Label
+             * @default
+             */
+            skill_label: string;
+            /**
+             * Current Level
+             * @default 0
+             */
+            current_level: number;
+            /**
+             * Target Level
+             * @default 1
+             */
+            target_level: number;
+            /**
+             * Reaches Level
+             * @default 1
+             */
+            reaches_level: number;
+            /**
+             * Priority
+             * @default 0
+             */
+            priority: number;
+            /** Prerequisites */
+            prerequisites?: string[];
+            /** Alternatives */
+            alternatives?: components["schemas"]["Course"][];
+            /**
+             * Out Of Pocket Myr
+             * @default 0
+             */
+            out_of_pocket_myr: number;
+            /** Sdg Targets */
+            sdg_targets?: components["schemas"]["SdgTarget"][];
+            /**
+             * Member Ids
+             * @description Group plans: members who need this step.
+             */
+            member_ids?: string[];
+        };
+        /** PlanChange */
+        PlanChange: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "added" | "removed" | "reordered" | "courses_changed";
+            /** Skill Id */
+            skill_id: string;
+            /** Detail */
+            detail: string;
         };
         /** Profile */
         Profile: {
@@ -598,6 +1287,50 @@ export interface components {
             /** Hrd Eligible */
             hrd_eligible: boolean;
         };
+        /** Progress */
+        Progress: {
+            /** Role Id */
+            role_id: string;
+            /** Course Status */
+            course_status: {
+                [key: string]: "not_started" | "in_progress" | "completed";
+            };
+            /**
+             * Percent Complete
+             * @description Share of planned hours completed.
+             */
+            percent_complete: number;
+            /** Skills */
+            skills: components["schemas"]["SkillProgress"][];
+            /** Gap Closed */
+            gap_closed: number;
+            /** Gap Total */
+            gap_total: number;
+            /** Badges */
+            badges: components["schemas"]["Badge"][];
+            /**
+             * Evidence
+             * @description Course id -> completion evidence.
+             */
+            evidence?: {
+                [key: string]: components["schemas"]["CompletionEvidence"];
+            };
+            /** @description The plan this progress is tracked against. */
+            pathway: components["schemas"]["Pathway"];
+            meta: components["schemas"]["RecommendationMeta"];
+        };
+        /** ProgressUpdate */
+        ProgressUpdate: {
+            /** Role Id */
+            role_id: string;
+            /** Course Id */
+            course_id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "not_started" | "in_progress" | "completed";
+        };
         /** RadarResponse */
         RadarResponse: {
             /** Items */
@@ -626,6 +1359,49 @@ export interface components {
              * @default true
              */
             is_estimate: boolean;
+        };
+        /** RegionListResponse */
+        RegionListResponse: {
+            /** Regions */
+            regions: string[];
+        };
+        /** ReplanStatus */
+        ReplanStatus: {
+            saved: components["schemas"]["SavedPlan"] | null;
+            /** Latest Snapshot Version */
+            latest_snapshot_version: string;
+            /** Needs Replan */
+            needs_replan: boolean;
+            /** Changes */
+            changes: components["schemas"]["PlanChange"][];
+            proposed: components["schemas"]["Pathway"] | null;
+            /** Message */
+            message: string;
+            meta: components["schemas"]["RecommendationMeta"];
+        };
+        /** ReviewDecision */
+        ReviewDecision: {
+            /** User Id */
+            user_id: string;
+            /** Role Id */
+            role_id: string;
+            /** Course Id */
+            course_id: string;
+            /**
+             * Decision
+             * @enum {string}
+             */
+            decision: "confirm" | "reject";
+            /**
+             * Note
+             * @default
+             */
+            note: string;
+            /**
+             * Submitted At
+             * @description `submitted_at` of the evidence the reviewer saw (null if none). The review is refused with 409 if the learner has changed the evidence since.
+             */
+            submitted_at: string | null;
         };
         /** RoleMatch */
         RoleMatch: {
@@ -672,6 +1448,35 @@ export interface components {
             signal: components["schemas"]["TrendSignal"];
             meta: components["schemas"]["RecommendationMeta"];
         };
+        /** SavePlanIn */
+        SavePlanIn: {
+            /** Role Id */
+            role_id: string;
+            /**
+             * Scenario
+             * @default moderate
+             * @enum {string}
+             */
+            scenario: "moderate" | "fast";
+        };
+        /** SavedPlan */
+        SavedPlan: {
+            /** Role Id */
+            role_id: string;
+            /**
+             * Scenario
+             * @enum {string}
+             */
+            scenario: "moderate" | "fast";
+            /** Snapshot Version */
+            snapshot_version: string;
+            /**
+             * Saved At
+             * Format: date-time
+             */
+            saved_at: string;
+            pathway: components["schemas"]["Pathway"];
+        };
         /** Scenario */
         Scenario: {
             /**
@@ -711,6 +1516,23 @@ export interface components {
             /** Explanation */
             explanation: string;
         };
+        /** SdgAlignment */
+        SdgAlignment: {
+            /** Role Id */
+            role_id: string;
+            /** Goals */
+            goals: number[];
+            /**
+             * Score
+             * @description Strength-weighted links to the chosen goals.
+             */
+            score: number;
+            /** Explanation */
+            explanation: string;
+            /** Links */
+            links: components["schemas"]["SdgLink"][];
+            meta: components["schemas"]["RecommendationMeta"];
+        };
         /** SdgContribution */
         SdgContribution: {
             /** Goals Summary */
@@ -718,12 +1540,77 @@ export interface components {
             /** Links */
             links: components["schemas"]["SdgLink"][];
             meta: components["schemas"]["RecommendationMeta"];
+            /**
+             * Scope
+             * @default person
+             * @enum {string}
+             */
+            scope: "person" | "organisation" | "region";
+            /**
+             * Scope Id
+             * @default
+             */
+            scope_id: string;
+            /** Role Ids */
+            role_ids?: string[];
+        };
+        /**
+         * SdgEvidence
+         * @description The published source that justifies a link, and what in it does.
+         */
+        SdgEvidence: {
+            source: components["schemas"]["Source"];
+            /** Note */
+            note: string;
+        };
+        /** SdgGoal */
+        SdgGoal: {
+            /** Goal */
+            goal: number;
+            /** Title */
+            title: string;
+            /** Short Title */
+            short_title: string;
+            /** Is Focus */
+            is_focus: boolean;
+            /** Targets */
+            targets: components["schemas"]["SdgTarget"][];
+            source: components["schemas"]["Source"];
+        };
+        /** SdgGoalListResponse */
+        SdgGoalListResponse: {
+            /** Goals */
+            goals: components["schemas"]["SdgGoal"][];
+            /** Focus Goals */
+            focus_goals: number[];
+            meta: components["schemas"]["RecommendationMeta"];
         };
         /** SdgLink */
         SdgLink: {
             target: components["schemas"]["SdgTarget"];
             /** Reason */
             reason: string;
+            /**
+             * Strength
+             * @description direct: the work itself advances the target; enabling: builds capacity.
+             * @default enabling
+             * @enum {string}
+             */
+            strength: "direct" | "enabling";
+            /**
+             * Via
+             * @description What the link comes from, e.g. 'skill:sql'.
+             * @default
+             */
+            via: string;
+            /**
+             * Reviewed
+             * @description False = draft pending human review.
+             * @default false
+             */
+            reviewed: boolean;
+            /** @description Source justifying the link (UN metadata, ILO, UNESCO). */
+            evidence?: components["schemas"]["SdgEvidence"] | null;
         };
         /** SdgTarget */
         SdgTarget: {
@@ -743,6 +1630,39 @@ export interface components {
             id: string;
             /** Label */
             label: string;
+        };
+        /** SkillGap */
+        SkillGap: {
+            /** Skill Id */
+            skill_id: string;
+            /** Label */
+            label: string;
+            /** Current Level */
+            current_level: number;
+            /** Required Level */
+            required_level: number;
+            /** Importance */
+            importance: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "have" | "partial" | "missing";
+        };
+        /** SkillProgress */
+        SkillProgress: {
+            /** Skill Id */
+            skill_id: string;
+            /** Label */
+            label: string;
+            /** Start Level */
+            start_level: number;
+            /** Current Level */
+            current_level: number;
+            /** Target Level */
+            target_level: number;
+            /** Closed */
+            closed: boolean;
         };
         /** SkillsUpdate */
         SkillsUpdate: {
@@ -766,6 +1686,49 @@ export interface components {
              * Format: date
              */
             retrieved_at: string;
+        };
+        /** SourcesResponse */
+        SourcesResponse: {
+            /** Sources */
+            sources: components["schemas"]["DataSourceInfo"][];
+        };
+        /**
+         * SyncReport
+         * @description Result of refreshing reference data from its live source.
+         */
+        SyncReport: {
+            /** Source */
+            source: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "failed";
+            /**
+             * Records
+             * @description Rows written or refreshed.
+             */
+            records: number;
+            /**
+             * Retired
+             * @description Rows the source no longer lists (kept, flagged).
+             */
+            retired: number;
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /**
+             * Finished At
+             * Format: date-time
+             */
+            finished_at: string;
+            /**
+             * Detail
+             * @default
+             */
+            detail: string;
         };
         /** TrendSignal */
         TrendSignal: {
@@ -795,6 +1758,24 @@ export interface components {
             /** Augmentation Share */
             augmentation_share: number;
         };
+        /** UnmetSkill */
+        UnmetSkill: {
+            /** Skill Id */
+            skill_id: string;
+            /** Label */
+            label: string;
+            /** Current Level */
+            current_level: number;
+            /** Required Level */
+            required_level: number;
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "no_catalogue_course" | "over_budget" | "catalogue_tops_out";
+            /** Detail */
+            detail: string;
+        };
         /** UserSkill */
         UserSkill: {
             /** Skill Id */
@@ -819,6 +1800,34 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /** VerificationItem */
+        VerificationItem: {
+            /** User Id */
+            user_id: string;
+            /** Display Name */
+            display_name: string;
+            /** Role Id */
+            role_id: string;
+            course: components["schemas"]["Course"];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "not_started" | "in_progress" | "completed";
+            evidence: components["schemas"]["CompletionEvidence"] | null;
+        };
+        /** VerificationQueue */
+        VerificationQueue: {
+            /** Org Id */
+            org_id: string;
+            /**
+             * Pending
+             * @description Completions not yet confirmed or rejected.
+             */
+            pending: number;
+            /** Items */
+            items: components["schemas"]["VerificationItem"][];
         };
     };
     responses: never;
@@ -869,6 +1878,66 @@ export interface operations {
             };
         };
     };
+    guardrails_get_disclosure: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Disclosure"];
+                };
+            };
+        };
+    };
+    guardrails_get_sources: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourcesResponse"];
+                };
+            };
+        };
+    };
+    guardrails_get_fairness: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FairnessReport"];
+                };
+            };
+        };
+    };
     matching_list_matches: {
         parameters: {
             query?: {
@@ -876,6 +1945,7 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
+                authorization?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -909,6 +1979,7 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
+                authorization?: string | null;
             };
             path: {
                 role_id: string;
@@ -942,6 +2013,7 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
+                authorization?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -973,6 +2045,7 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
+                authorization?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -1006,6 +2079,7 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
+                authorization?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -1034,9 +2108,13 @@ export interface operations {
     };
     org_get_plan: {
         parameters: {
-            query?: never;
+            query?: {
+                scenario?: "moderate" | "fast";
+                role_id?: string | null;
+            };
             header?: {
                 "x-demo-user"?: string | null;
+                authorization?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -1071,6 +2149,7 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
+                authorization?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -1097,11 +2176,358 @@ export interface operations {
             };
         };
     };
+    pathway_get_catalogue: {
+        parameters: {
+            query?: {
+                skill?: string | null;
+                format?: ("self_paced" | "live_online" | "in_person" | "hybrid" | "subscription") | null;
+                audience?: ("individual" | "corporate") | null;
+                provider_type?: ("mooc" | "university" | "industry_body" | "professional_body" | "private_provider" | "government") | null;
+                hrd_claimable?: boolean | null;
+                max_cost_myr?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CatalogueResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    pathway_sync_catalogue: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-sync-token"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncReport"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    pathway_save_plan: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SavePlanIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedPlan"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    pathway_get_replan_status: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReplanStatus"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    pathway_accept_replan: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedPlan"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    pathway_get_progress: {
+        parameters: {
+            query: {
+                role_id: string;
+                scenario?: "moderate" | "fast";
+            };
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Progress"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    pathway_update_progress: {
+        parameters: {
+            query?: {
+                scenario?: "moderate" | "fast";
+            };
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProgressUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Progress"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    pathway_submit_evidence: {
+        parameters: {
+            query?: {
+                scenario?: "moderate" | "fast";
+            };
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EvidenceSubmit"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Progress"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    pathway_get_verification_queue: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VerificationQueue"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    pathway_review_completion: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewDecision"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VerificationItem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     profile_upsert_profile: {
         parameters: {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
+                authorization?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -1137,6 +2563,7 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
+                authorization?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -1168,6 +2595,7 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
+                authorization?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -1203,6 +2631,7 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
+                authorization?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -1284,6 +2713,57 @@ export interface operations {
             };
         };
     };
+    sdg_sync_sdg: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-sync-token"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncReport"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sdg_list_goals: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SdgGoalListResponse"];
+                };
+            };
+        };
+    };
     sdg_get_role_sdg: {
         parameters: {
             query?: never;
@@ -1302,6 +2782,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EntitySdgLinks"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sdg_get_role_alignment: {
+        parameters: {
+            query?: {
+                goals?: number[] | null;
+            };
+            header?: never;
+            path: {
+                role_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SdgAlignment"];
                 };
             };
             /** @description Validation Error */
@@ -1348,11 +2861,102 @@ export interface operations {
     };
     sdg_get_my_contribution: {
         parameters: {
-            query?: never;
+            query?: {
+                role_id?: string | null;
+                scenario?: "moderate" | "fast";
+            };
             header?: {
                 "x-demo-user"?: string | null;
+                authorization?: string | null;
             };
             path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SdgContribution"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sdg_get_org_contribution: {
+        parameters: {
+            query?: {
+                scenario?: "moderate" | "fast";
+            };
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SdgContribution"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sdg_list_regions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegionListResponse"];
+                };
+            };
+        };
+    };
+    sdg_get_region_contribution: {
+        parameters: {
+            query?: {
+                scenario?: "moderate" | "fast";
+            };
+            header?: never;
+            path: {
+                state: string;
+            };
             cookie?: never;
         };
         requestBody?: never;

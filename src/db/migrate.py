@@ -16,7 +16,7 @@ from pathlib import Path
 import psycopg
 
 MIGRATIONS = Path(__file__).resolve().parent / "migrations"
-DEFAULT_URL = "postgresql://adept:adept@localhost:5433/adept"
+DEFAULT_URL = "postgresql://adept:adept@127.0.0.1:5433/adept"
 
 
 def up_section(sql: str) -> str:

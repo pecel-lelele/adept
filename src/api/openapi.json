@@ -47,6 +47,72 @@
         }
       }
     },
+    "/api/v1/guardrails/disclosure": {
+      "get": {
+        "tags": [
+          "guardrails"
+        ],
+        "summary": "Get Disclosure",
+        "description": "Which language model (if any) is used, for what, and under which rules.",
+        "operationId": "guardrails_get_disclosure",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Disclosure"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/guardrails/sources": {
+      "get": {
+        "tags": [
+          "guardrails"
+        ],
+        "summary": "Get Sources",
+        "description": "Every data source behind a recommendation, with its date and kind.",
+        "operationId": "guardrails_get_sources",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourcesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/guardrails/fairness": {
+      "get": {
+        "tags": [
+          "guardrails"
+        ],
+        "summary": "Get Fairness",
+        "description": "Live fairness checks: protected attributes excluded, counterfactual invariance.",
+        "operationId": "guardrails_get_fairness",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FairnessReport"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/matches": {
       "get": {
         "tags": [
@@ -83,6 +149,22 @@
                 }
               ],
               "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
             }
           }
         ],
@@ -156,6 +238,22 @@
               ],
               "title": "X-Demo-User"
             }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
           }
         ],
         "responses": {
@@ -205,6 +303,22 @@
               ],
               "title": "X-Demo-User"
             }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
           }
         ],
         "responses": {
@@ -253,6 +367,22 @@
                 }
               ],
               "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
             }
           }
         ],
@@ -317,6 +447,22 @@
               ],
               "title": "X-Demo-User"
             }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
           }
         ],
         "responses": {
@@ -349,8 +495,39 @@
           "org"
         ],
         "summary": "Get Plan",
+        "description": "Group pathway for a target role; each step lists the members who need it.",
         "operationId": "org_get_plan",
         "parameters": [
+          {
+            "name": "scenario",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "moderate",
+                "fast"
+              ],
+              "type": "string",
+              "default": "moderate",
+              "title": "Scenario"
+            }
+          },
+          {
+            "name": "role_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Role Id"
+            }
+          },
           {
             "name": "x-demo-user",
             "in": "header",
@@ -365,6 +542,22 @@
                 }
               ],
               "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
             }
           }
         ],
@@ -438,6 +631,22 @@
               ],
               "title": "X-Demo-User"
             }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
           }
         ],
         "responses": {
@@ -447,6 +656,819 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Pathway"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pathway/catalogue": {
+      "get": {
+        "tags": [
+          "pathway"
+        ],
+        "summary": "Get Catalogue",
+        "description": "Every course the pathway may recommend, with its source and verification date.",
+        "operationId": "pathway_get_catalogue",
+        "parameters": [
+          {
+            "name": "skill",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 60
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Skill"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "self_paced",
+                    "live_online",
+                    "in_person",
+                    "hybrid",
+                    "subscription"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Format"
+            }
+          },
+          {
+            "name": "audience",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "individual",
+                    "corporate"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Audience"
+            }
+          },
+          {
+            "name": "provider_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "mooc",
+                    "university",
+                    "industry_body",
+                    "professional_body",
+                    "private_provider",
+                    "government"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Provider Type"
+            }
+          },
+          {
+            "name": "hrd_claimable",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Hrd Claimable"
+            }
+          },
+          {
+            "name": "max_cost_myr",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Max Cost Myr"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogueResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pathway/catalogue/sync": {
+      "post": {
+        "tags": [
+          "pathway"
+        ],
+        "summary": "Sync Catalogue",
+        "description": "Refresh the catalogue from its live sources (needs X-Sync-Token, M3_BACKEND=postgres).",
+        "operationId": "pathway_sync_catalogue",
+        "parameters": [
+          {
+            "name": "x-sync-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Sync-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncReport"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pathway/plans": {
+      "post": {
+        "tags": [
+          "pathway"
+        ],
+        "summary": "Save Plan",
+        "description": "Save the learner's chosen target role and its pathway (the learner decides).",
+        "operationId": "pathway_save_plan",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SavePlanIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedPlan"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pathway/plans/me": {
+      "get": {
+        "tags": [
+          "pathway"
+        ],
+        "summary": "Get Replan Status",
+        "description": "The saved plan, and a proposed re-plan if newer trend data changes it.",
+        "operationId": "pathway_get_replan_status",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReplanStatus"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pathway/plans/me/accept-replan": {
+      "post": {
+        "tags": [
+          "pathway"
+        ],
+        "summary": "Accept Replan",
+        "operationId": "pathway_accept_replan",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedPlan"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pathway/progress": {
+      "get": {
+        "tags": [
+          "pathway"
+        ],
+        "summary": "Get Progress",
+        "operationId": "pathway_get_progress",
+        "parameters": [
+          {
+            "name": "role_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Role Id"
+            }
+          },
+          {
+            "name": "scenario",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "moderate",
+                "fast"
+              ],
+              "type": "string",
+              "default": "moderate",
+              "title": "Scenario"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Progress"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "pathway"
+        ],
+        "summary": "Update Progress",
+        "operationId": "pathway_update_progress",
+        "parameters": [
+          {
+            "name": "scenario",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "moderate",
+                "fast"
+              ],
+              "type": "string",
+              "default": "moderate",
+              "title": "Scenario"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProgressUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Progress"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pathway/progress/evidence": {
+      "post": {
+        "tags": [
+          "pathway"
+        ],
+        "summary": "Submit Evidence",
+        "description": "Attach a certificate link to a completed course; it is checked against the provider's\nofficial verification pages and shown to the learner's HR or career advisor.",
+        "operationId": "pathway_submit_evidence",
+        "parameters": [
+          {
+            "name": "scenario",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "moderate",
+                "fast"
+              ],
+              "type": "string",
+              "default": "moderate",
+              "title": "Scenario"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvidenceSubmit"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Progress"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pathway/verifications": {
+      "get": {
+        "tags": [
+          "pathway"
+        ],
+        "summary": "Get Verification Queue",
+        "description": "HR / career-centre staff: completions by members of their organisation to review.",
+        "operationId": "pathway_get_verification_queue",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerificationQueue"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "pathway"
+        ],
+        "summary": "Review Completion",
+        "description": "Confirm or reject a member's completion (with an optional note).",
+        "operationId": "pathway_review_completion",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewDecision"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerificationItem"
                 }
               }
             }
@@ -486,6 +1508,22 @@
                 }
               ],
               "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
             }
           }
         ],
@@ -546,6 +1584,22 @@
               ],
               "title": "X-Demo-User"
             }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
           }
         ],
         "responses": {
@@ -594,6 +1648,22 @@
                 }
               ],
               "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
             }
           }
         ],
@@ -653,6 +1723,22 @@
                 }
               ],
               "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
             }
           }
         ],
@@ -760,6 +1846,78 @@
         }
       }
     },
+    "/api/v1/sdg/sync": {
+      "post": {
+        "tags": [
+          "sdg"
+        ],
+        "summary": "Sync Sdg",
+        "description": "Refresh goals/targets from the UN API and the curated links (needs X-Sync-Token).",
+        "operationId": "sdg_sync_sdg",
+        "parameters": [
+          {
+            "name": "x-sync-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Sync-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncReport"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sdg/goals": {
+      "get": {
+        "tags": [
+          "sdg"
+        ],
+        "summary": "List Goals",
+        "description": "All 17 goals and 169 targets (UN SDG API), with the domain focus goals flagged.",
+        "operationId": "sdg_list_goals",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SdgGoalListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/sdg/roles/{role_id}": {
       "get": {
         "tags": [
@@ -785,6 +1943,70 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/EntitySdgLinks"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sdg/roles/{role_id}/alignment": {
+      "get": {
+        "tags": [
+          "sdg"
+        ],
+        "summary": "Get Role Alignment",
+        "description": "SDG alignment score for SDG-weighted ranking (F4). Defaults to the focus goals.",
+        "operationId": "sdg_get_role_alignment",
+        "parameters": [
+          {
+            "name": "role_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Role Id"
+            }
+          },
+          {
+            "name": "goals",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "maximum": 17,
+                    "minimum": 1
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Goals"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SdgAlignment"
                 }
               }
             }
@@ -850,8 +2072,39 @@
           "sdg"
         ],
         "summary": "Get My Contribution",
+        "description": "How the learner's chosen path contributes (role, skills built, plan facts).",
         "operationId": "sdg_get_my_contribution",
         "parameters": [
+          {
+            "name": "role_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Role Id"
+            }
+          },
+          {
+            "name": "scenario",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "moderate",
+                "fast"
+              ],
+              "type": "string",
+              "default": "moderate",
+              "title": "Scenario"
+            }
+          },
           {
             "name": "x-demo-user",
             "in": "header",
@@ -866,6 +2119,178 @@
                 }
               ],
               "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SdgContribution"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sdg/contribution/org": {
+      "get": {
+        "tags": [
+          "sdg"
+        ],
+        "summary": "Get Org Contribution",
+        "operationId": "sdg_get_org_contribution",
+        "parameters": [
+          {
+            "name": "scenario",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "moderate",
+                "fast"
+              ],
+              "type": "string",
+              "default": "moderate",
+              "title": "Scenario"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SdgContribution"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sdg/regions": {
+      "get": {
+        "tags": [
+          "sdg"
+        ],
+        "summary": "List Regions",
+        "operationId": "sdg_list_regions",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegionListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sdg/contribution/region/{state}": {
+      "get": {
+        "tags": [
+          "sdg"
+        ],
+        "summary": "Get Region Contribution",
+        "operationId": "sdg_get_region_contribution",
+        "parameters": [
+          {
+            "name": "state",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "State"
+            }
+          },
+          {
+            "name": "scenario",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "moderate",
+                "fast"
+              ],
+              "type": "string",
+              "default": "moderate",
+              "title": "Scenario"
             }
           }
         ],
@@ -999,6 +2424,61 @@
   },
   "components": {
     "schemas": {
+      "Badge": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "skill",
+              "milestone"
+            ],
+            "title": "Kind"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "earned_at": {
+            "type": "string",
+            "format": "date",
+            "title": "Earned At"
+          },
+          "evidence": {
+            "type": "string",
+            "enum": [
+              "self_reported",
+              "certificate_link",
+              "org_confirmed"
+            ],
+            "title": "Evidence",
+            "description": "Weakest evidence behind the badge.",
+            "default": "self_reported"
+          },
+          "skill_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Skill Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "label",
+          "earned_at"
+        ],
+        "title": "Badge"
+      },
       "Body_profile_upload_cv": {
         "properties": {
           "file": {
@@ -1012,6 +2492,148 @@
           "file"
         ],
         "title": "Body_profile_upload_cv"
+      },
+      "CatalogueResponse": {
+        "properties": {
+          "courses": {
+            "items": {
+              "$ref": "#/components/schemas/Course"
+            },
+            "type": "array",
+            "title": "Courses"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RecommendationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "courses",
+          "meta"
+        ],
+        "title": "CatalogueResponse"
+      },
+      "CompletionEvidence": {
+        "properties": {
+          "role_id": {
+            "type": "string",
+            "title": "Role Id"
+          },
+          "course_id": {
+            "type": "string",
+            "title": "Course Id"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "self_reported",
+              "certificate_link",
+              "org_confirmed",
+              "org_rejected"
+            ],
+            "title": "Kind"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url",
+            "description": "Certificate or credential link."
+          },
+          "link_status": {
+            "type": "string",
+            "enum": [
+              "not_submitted",
+              "provider_verified",
+              "unreachable",
+              "not_provider_page"
+            ],
+            "title": "Link Status",
+            "default": "not_submitted"
+          },
+          "link_checked_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Link Checked At"
+          },
+          "submitted_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Submitted At"
+          },
+          "reviewed_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed By",
+            "description": "HR or advisor who reviewed it."
+          },
+          "reviewed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed At"
+          },
+          "review_note": {
+            "type": "string",
+            "title": "Review Note",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "role_id",
+          "course_id",
+          "kind",
+          "submitted_at"
+        ],
+        "title": "CompletionEvidence"
+      },
+      "CounterfactualResult": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "passed": {
+            "type": "boolean",
+            "title": "Passed"
+          },
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "passed",
+          "detail"
+        ],
+        "title": "CounterfactualResult"
       },
       "Course": {
         "properties": {
@@ -1049,6 +2671,117 @@
             "type": "string",
             "format": "date",
             "title": "Verified At"
+          },
+          "skill_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Skill Ids"
+          },
+          "level": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Level",
+            "description": "Skill level the course brings you to (estimate).",
+            "default": 2
+          },
+          "hrd_note": {
+            "type": "string",
+            "title": "Hrd Note",
+            "default": ""
+          },
+          "duration_note": {
+            "type": "string",
+            "title": "Duration Note",
+            "default": ""
+          },
+          "source": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Source"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "self_paced",
+              "live_online",
+              "in_person",
+              "hybrid",
+              "subscription"
+            ],
+            "title": "Format",
+            "default": "self_paced"
+          },
+          "audience": {
+            "type": "string",
+            "enum": [
+              "individual",
+              "corporate",
+              "both"
+            ],
+            "title": "Audience",
+            "default": "individual"
+          },
+          "price_basis": {
+            "type": "string",
+            "enum": [
+              "per_course",
+              "per_user_year",
+              "per_user_month",
+              "per_group"
+            ],
+            "title": "Price Basis",
+            "default": "per_course"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency",
+            "description": "Currency of the provider's list price.",
+            "default": "MYR"
+          },
+          "list_price": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "List Price",
+            "description": "Price in `currency`."
+          },
+          "provider_type": {
+            "type": "string",
+            "enum": [
+              "mooc",
+              "university",
+              "industry_body",
+              "professional_body",
+              "private_provider",
+              "government"
+            ],
+            "title": "Provider Type",
+            "default": "private_provider"
+          },
+          "location": {
+            "type": "string",
+            "title": "Location",
+            "default": ""
+          },
+          "price_note": {
+            "type": "string",
+            "title": "Price Note",
+            "description": "How cost_myr was derived (e.g. FX rate).",
+            "default": ""
           }
         },
         "type": "object",
@@ -1111,6 +2844,119 @@
         ],
         "title": "DataFreshness"
       },
+      "DataSourceInfo": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "retrieved_at": {
+            "type": "string",
+            "format": "date",
+            "title": "Retrieved At"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "live_api",
+              "verified_page",
+              "curated",
+              "synthetic",
+              "mock"
+            ],
+            "title": "Kind"
+          },
+          "used_for": {
+            "type": "string",
+            "title": "Used For"
+          },
+          "records": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Records"
+          },
+          "last_synced_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Synced At",
+            "description": "Last successful live sync (M3_BACKEND=postgres only)."
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "url",
+          "retrieved_at",
+          "kind",
+          "used_for",
+          "records"
+        ],
+        "title": "DataSourceInfo"
+      },
+      "Disclosure": {
+        "properties": {
+          "llm_enabled": {
+            "type": "boolean",
+            "title": "Llm Enabled"
+          },
+          "provider": {
+            "type": "string",
+            "title": "Provider",
+            "description": "Configured LLM provider ('none' = no model is used)."
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "purpose": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Purpose"
+          },
+          "rules": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Rules"
+          },
+          "calls_logged": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Calls Logged"
+          },
+          "rejected_ids": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Rejected Ids",
+            "description": "IDs the model returned that we rejected."
+          }
+        },
+        "type": "object",
+        "required": [
+          "llm_enabled",
+          "provider",
+          "model",
+          "purpose",
+          "rules",
+          "calls_logged",
+          "rejected_ids"
+        ],
+        "title": "Disclosure"
+      },
       "EntitySdgLinks": {
         "properties": {
           "entity_type": {
@@ -1145,6 +2991,34 @@
         ],
         "title": "EntitySdgLinks"
       },
+      "EvidenceSubmit": {
+        "properties": {
+          "role_id": {
+            "type": "string",
+            "maxLength": 80,
+            "title": "Role Id"
+          },
+          "course_id": {
+            "type": "string",
+            "maxLength": 120,
+            "title": "Course Id"
+          },
+          "url": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 12,
+            "pattern": "^https://",
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role_id",
+          "course_id",
+          "url"
+        ],
+        "title": "EvidenceSubmit"
+      },
       "ExtractedSkill": {
         "properties": {
           "skill_id": {
@@ -1176,6 +3050,49 @@
           "confidence"
         ],
         "title": "ExtractedSkill"
+      },
+      "FairnessReport": {
+        "properties": {
+          "protected_attributes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Protected Attributes"
+          },
+          "api_inputs_checked": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Api Inputs Checked"
+          },
+          "protected_inputs_found": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Protected Inputs Found"
+          },
+          "counterfactual_checks": {
+            "items": {
+              "$ref": "#/components/schemas/CounterfactualResult"
+            },
+            "type": "array",
+            "title": "Counterfactual Checks"
+          },
+          "passed": {
+            "type": "boolean",
+            "title": "Passed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "protected_attributes",
+          "api_inputs_checked",
+          "protected_inputs_found",
+          "counterfactual_checks",
+          "passed"
+        ],
+        "title": "FairnessReport"
       },
       "GapHeatmapCell": {
         "properties": {
@@ -1254,6 +3171,28 @@
           "link_count": {
             "type": "integer",
             "title": "Link Count"
+          },
+          "direct_count": {
+            "type": "integer",
+            "title": "Direct Count",
+            "default": 0
+          },
+          "enabling_count": {
+            "type": "integer",
+            "title": "Enabling Count",
+            "default": 0
+          },
+          "is_focus": {
+            "type": "boolean",
+            "title": "Is Focus",
+            "description": "One of the domain focus goals.",
+            "default": false
+          },
+          "contributors": {
+            "type": "integer",
+            "title": "Contributors",
+            "description": "People whose plan links to this goal.",
+            "default": 0
           }
         },
         "type": "object",
@@ -1508,6 +3447,96 @@
           },
           "meta": {
             "$ref": "#/components/schemas/RecommendationMeta"
+          },
+          "role_label": {
+            "type": "string",
+            "title": "Role Label",
+            "default": ""
+          },
+          "hours_per_week": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Hours Per Week",
+            "default": 0
+          },
+          "total_hours": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Total Hours",
+            "default": 0
+          },
+          "total_cost_myr": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Total Cost Myr",
+            "description": "List price of all courses.",
+            "default": 0
+          },
+          "out_of_pocket_myr": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Out Of Pocket Myr",
+            "description": "What the learner pays after HRD Corp claims.",
+            "default": 0
+          },
+          "budget_myr": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Budget Myr",
+            "default": 0
+          },
+          "within_budget": {
+            "type": "boolean",
+            "title": "Within Budget",
+            "default": true
+          },
+          "hrd_eligible": {
+            "type": "boolean",
+            "title": "Hrd Eligible",
+            "default": false
+          },
+          "gaps": {
+            "items": {
+              "$ref": "#/components/schemas/SkillGap"
+            },
+            "type": "array",
+            "title": "Gaps"
+          },
+          "unmet": {
+            "items": {
+              "$ref": "#/components/schemas/UnmetSkill"
+            },
+            "type": "array",
+            "title": "Unmet"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          },
+          "snapshot_version": {
+            "type": "string",
+            "title": "Snapshot Version",
+            "default": ""
+          },
+          "segment": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "working",
+                  "graduate",
+                  "switcher"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Segment",
+            "description": "The learner's segment, for guidance text only; it never changes the plan."
           }
         },
         "type": "object",
@@ -1555,6 +3584,73 @@
           "reason": {
             "type": "string",
             "title": "Reason"
+          },
+          "skill_label": {
+            "type": "string",
+            "title": "Skill Label",
+            "default": ""
+          },
+          "current_level": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 0.0,
+            "title": "Current Level",
+            "default": 0
+          },
+          "target_level": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Target Level",
+            "default": 1
+          },
+          "reaches_level": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 0.0,
+            "title": "Reaches Level",
+            "default": 1
+          },
+          "priority": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Priority",
+            "default": 0
+          },
+          "prerequisites": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Prerequisites"
+          },
+          "alternatives": {
+            "items": {
+              "$ref": "#/components/schemas/Course"
+            },
+            "type": "array",
+            "title": "Alternatives"
+          },
+          "out_of_pocket_myr": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Out Of Pocket Myr",
+            "default": 0
+          },
+          "sdg_targets": {
+            "items": {
+              "$ref": "#/components/schemas/SdgTarget"
+            },
+            "type": "array",
+            "title": "Sdg Targets"
+          },
+          "member_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Member Ids",
+            "description": "Group plans: members who need this step."
           }
         },
         "type": "object",
@@ -1568,6 +3664,35 @@
           "reason"
         ],
         "title": "PathwayStep"
+      },
+      "PlanChange": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "added",
+              "removed",
+              "reordered",
+              "courses_changed"
+            ],
+            "title": "Kind"
+          },
+          "skill_id": {
+            "type": "string",
+            "title": "Skill Id"
+          },
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "skill_id",
+          "detail"
+        ],
+        "title": "PlanChange"
       },
       "Profile": {
         "properties": {
@@ -1684,6 +3809,115 @@
         ],
         "title": "ProfileIn"
       },
+      "Progress": {
+        "properties": {
+          "role_id": {
+            "type": "string",
+            "title": "Role Id"
+          },
+          "course_status": {
+            "additionalProperties": {
+              "type": "string",
+              "enum": [
+                "not_started",
+                "in_progress",
+                "completed"
+              ]
+            },
+            "type": "object",
+            "title": "Course Status"
+          },
+          "percent_complete": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Percent Complete",
+            "description": "Share of planned hours completed."
+          },
+          "skills": {
+            "items": {
+              "$ref": "#/components/schemas/SkillProgress"
+            },
+            "type": "array",
+            "title": "Skills"
+          },
+          "gap_closed": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Gap Closed"
+          },
+          "gap_total": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Gap Total"
+          },
+          "badges": {
+            "items": {
+              "$ref": "#/components/schemas/Badge"
+            },
+            "type": "array",
+            "title": "Badges"
+          },
+          "evidence": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/CompletionEvidence"
+            },
+            "type": "object",
+            "title": "Evidence",
+            "description": "Course id -> completion evidence."
+          },
+          "pathway": {
+            "$ref": "#/components/schemas/Pathway",
+            "description": "The plan this progress is tracked against."
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RecommendationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role_id",
+          "course_status",
+          "percent_complete",
+          "skills",
+          "gap_closed",
+          "gap_total",
+          "badges",
+          "pathway",
+          "meta"
+        ],
+        "title": "Progress"
+      },
+      "ProgressUpdate": {
+        "properties": {
+          "role_id": {
+            "type": "string",
+            "maxLength": 80,
+            "title": "Role Id"
+          },
+          "course_id": {
+            "type": "string",
+            "maxLength": 120,
+            "title": "Course Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "not_started",
+              "in_progress",
+              "completed"
+            ],
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role_id",
+          "course_id",
+          "status"
+        ],
+        "title": "ProgressUpdate"
+      },
       "RadarResponse": {
         "properties": {
           "items": {
@@ -1741,6 +3975,134 @@
         ],
         "title": "RecommendationMeta",
         "description": "Attached to every response that contains a recommendation, score or trend."
+      },
+      "RegionListResponse": {
+        "properties": {
+          "regions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Regions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "regions"
+        ],
+        "title": "RegionListResponse"
+      },
+      "ReplanStatus": {
+        "properties": {
+          "saved": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SavedPlan"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "latest_snapshot_version": {
+            "type": "string",
+            "title": "Latest Snapshot Version"
+          },
+          "needs_replan": {
+            "type": "boolean",
+            "title": "Needs Replan"
+          },
+          "changes": {
+            "items": {
+              "$ref": "#/components/schemas/PlanChange"
+            },
+            "type": "array",
+            "title": "Changes"
+          },
+          "proposed": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Pathway"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RecommendationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "saved",
+          "latest_snapshot_version",
+          "needs_replan",
+          "changes",
+          "proposed",
+          "message",
+          "meta"
+        ],
+        "title": "ReplanStatus"
+      },
+      "ReviewDecision": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "maxLength": 120,
+            "title": "User Id"
+          },
+          "role_id": {
+            "type": "string",
+            "maxLength": 80,
+            "title": "Role Id"
+          },
+          "course_id": {
+            "type": "string",
+            "maxLength": 120,
+            "title": "Course Id"
+          },
+          "decision": {
+            "type": "string",
+            "enum": [
+              "confirm",
+              "reject"
+            ],
+            "title": "Decision"
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 300,
+            "title": "Note",
+            "default": ""
+          },
+          "submitted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submitted At",
+            "description": "`submitted_at` of the evidence the reviewer saw (null if none). The review is refused with 409 if the learner has changed the evidence since."
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "role_id",
+          "course_id",
+          "decision",
+          "submitted_at"
+        ],
+        "title": "ReviewDecision"
       },
       "RoleMatch": {
         "properties": {
@@ -1858,6 +4220,66 @@
         ],
         "title": "RoleTrendResponse"
       },
+      "SavePlanIn": {
+        "properties": {
+          "role_id": {
+            "type": "string",
+            "maxLength": 80,
+            "title": "Role Id"
+          },
+          "scenario": {
+            "type": "string",
+            "enum": [
+              "moderate",
+              "fast"
+            ],
+            "title": "Scenario",
+            "default": "moderate"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role_id"
+        ],
+        "title": "SavePlanIn"
+      },
+      "SavedPlan": {
+        "properties": {
+          "role_id": {
+            "type": "string",
+            "title": "Role Id"
+          },
+          "scenario": {
+            "type": "string",
+            "enum": [
+              "moderate",
+              "fast"
+            ],
+            "title": "Scenario"
+          },
+          "snapshot_version": {
+            "type": "string",
+            "title": "Snapshot Version"
+          },
+          "saved_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Saved At"
+          },
+          "pathway": {
+            "$ref": "#/components/schemas/Pathway"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role_id",
+          "scenario",
+          "snapshot_version",
+          "saved_at",
+          "pathway"
+        ],
+        "title": "SavedPlan"
+      },
       "Scenario": {
         "properties": {
           "id": {
@@ -1950,6 +4372,52 @@
         ],
         "title": "ScoreComponent"
       },
+      "SdgAlignment": {
+        "properties": {
+          "role_id": {
+            "type": "string",
+            "title": "Role Id"
+          },
+          "goals": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Goals"
+          },
+          "score": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Score",
+            "description": "Strength-weighted links to the chosen goals."
+          },
+          "explanation": {
+            "type": "string",
+            "title": "Explanation"
+          },
+          "links": {
+            "items": {
+              "$ref": "#/components/schemas/SdgLink"
+            },
+            "type": "array",
+            "title": "Links"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RecommendationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role_id",
+          "goals",
+          "score",
+          "explanation",
+          "links",
+          "meta"
+        ],
+        "title": "SdgAlignment"
+      },
       "SdgContribution": {
         "properties": {
           "goals_summary": {
@@ -1968,6 +4436,28 @@
           },
           "meta": {
             "$ref": "#/components/schemas/RecommendationMeta"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "person",
+              "organisation",
+              "region"
+            ],
+            "title": "Scope",
+            "default": "person"
+          },
+          "scope_id": {
+            "type": "string",
+            "title": "Scope Id",
+            "default": ""
+          },
+          "role_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Role Ids"
           }
         },
         "type": "object",
@@ -1978,6 +4468,94 @@
         ],
         "title": "SdgContribution"
       },
+      "SdgEvidence": {
+        "properties": {
+          "source": {
+            "$ref": "#/components/schemas/Source"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source",
+          "note"
+        ],
+        "title": "SdgEvidence",
+        "description": "The published source that justifies a link, and what in it does."
+      },
+      "SdgGoal": {
+        "properties": {
+          "goal": {
+            "type": "integer",
+            "maximum": 17.0,
+            "minimum": 1.0,
+            "title": "Goal"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "short_title": {
+            "type": "string",
+            "title": "Short Title"
+          },
+          "is_focus": {
+            "type": "boolean",
+            "title": "Is Focus"
+          },
+          "targets": {
+            "items": {
+              "$ref": "#/components/schemas/SdgTarget"
+            },
+            "type": "array",
+            "title": "Targets"
+          },
+          "source": {
+            "$ref": "#/components/schemas/Source"
+          }
+        },
+        "type": "object",
+        "required": [
+          "goal",
+          "title",
+          "short_title",
+          "is_focus",
+          "targets",
+          "source"
+        ],
+        "title": "SdgGoal"
+      },
+      "SdgGoalListResponse": {
+        "properties": {
+          "goals": {
+            "items": {
+              "$ref": "#/components/schemas/SdgGoal"
+            },
+            "type": "array",
+            "title": "Goals"
+          },
+          "focus_goals": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Focus Goals"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RecommendationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "goals",
+          "focus_goals",
+          "meta"
+        ],
+        "title": "SdgGoalListResponse"
+      },
       "SdgLink": {
         "properties": {
           "target": {
@@ -1986,6 +4564,39 @@
           "reason": {
             "type": "string",
             "title": "Reason"
+          },
+          "strength": {
+            "type": "string",
+            "enum": [
+              "direct",
+              "enabling"
+            ],
+            "title": "Strength",
+            "description": "direct: the work itself advances the target; enabling: builds capacity.",
+            "default": "enabling"
+          },
+          "via": {
+            "type": "string",
+            "title": "Via",
+            "description": "What the link comes from, e.g. 'skill:sql'.",
+            "default": ""
+          },
+          "reviewed": {
+            "type": "boolean",
+            "title": "Reviewed",
+            "description": "False = draft pending human review.",
+            "default": false
+          },
+          "evidence": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SdgEvidence"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Source justifying the link (UN metadata, ILO, UNESCO)."
           }
         },
         "type": "object",
@@ -2041,6 +4652,98 @@
         ],
         "title": "Skill"
       },
+      "SkillGap": {
+        "properties": {
+          "skill_id": {
+            "type": "string",
+            "title": "Skill Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "current_level": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 0.0,
+            "title": "Current Level"
+          },
+          "required_level": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Required Level"
+          },
+          "importance": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Importance"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "have",
+              "partial",
+              "missing"
+            ],
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "skill_id",
+          "label",
+          "current_level",
+          "required_level",
+          "importance",
+          "status"
+        ],
+        "title": "SkillGap"
+      },
+      "SkillProgress": {
+        "properties": {
+          "skill_id": {
+            "type": "string",
+            "title": "Skill Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "start_level": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 0.0,
+            "title": "Start Level"
+          },
+          "current_level": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 0.0,
+            "title": "Current Level"
+          },
+          "target_level": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Target Level"
+          },
+          "closed": {
+            "type": "boolean",
+            "title": "Closed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "skill_id",
+          "label",
+          "start_level",
+          "current_level",
+          "target_level",
+          "closed"
+        ],
+        "title": "SkillProgress"
+      },
       "SkillsUpdate": {
         "properties": {
           "skills": {
@@ -2084,6 +4787,76 @@
           "retrieved_at"
         ],
         "title": "Source"
+      },
+      "SourcesResponse": {
+        "properties": {
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/DataSourceInfo"
+            },
+            "type": "array",
+            "title": "Sources"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sources"
+        ],
+        "title": "SourcesResponse"
+      },
+      "SyncReport": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "records": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Records",
+            "description": "Rows written or refreshed."
+          },
+          "retired": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Retired",
+            "description": "Rows the source no longer lists (kept, flagged)."
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At"
+          },
+          "finished_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Finished At"
+          },
+          "detail": {
+            "type": "string",
+            "title": "Detail",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "source",
+          "status",
+          "records",
+          "retired",
+          "started_at",
+          "finished_at"
+        ],
+        "title": "SyncReport",
+        "description": "Result of refreshing reference data from its live source."
       },
       "TrendSignal": {
         "properties": {
@@ -2148,6 +4921,49 @@
           "augmentation_share"
         ],
         "title": "TrendSignal"
+      },
+      "UnmetSkill": {
+        "properties": {
+          "skill_id": {
+            "type": "string",
+            "title": "Skill Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "current_level": {
+            "type": "integer",
+            "title": "Current Level"
+          },
+          "required_level": {
+            "type": "integer",
+            "title": "Required Level"
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "no_catalogue_course",
+              "over_budget",
+              "catalogue_tops_out"
+            ],
+            "title": "Reason"
+          },
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "skill_id",
+          "label",
+          "current_level",
+          "required_level",
+          "reason",
+          "detail"
+        ],
+        "title": "UnmetSkill"
       },
       "UserSkill": {
         "properties": {
@@ -2218,6 +5034,82 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "VerificationItem": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
+          },
+          "role_id": {
+            "type": "string",
+            "title": "Role Id"
+          },
+          "course": {
+            "$ref": "#/components/schemas/Course"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "not_started",
+              "in_progress",
+              "completed"
+            ],
+            "title": "Status"
+          },
+          "evidence": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CompletionEvidence"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "display_name",
+          "role_id",
+          "course",
+          "status",
+          "evidence"
+        ],
+        "title": "VerificationItem"
+      },
+      "VerificationQueue": {
+        "properties": {
+          "org_id": {
+            "type": "string",
+            "title": "Org Id"
+          },
+          "pending": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Pending",
+            "description": "Completions not yet confirmed or rejected."
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/VerificationItem"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "org_id",
+          "pending",
+          "items"
+        ],
+        "title": "VerificationQueue"
       }
     }
   }

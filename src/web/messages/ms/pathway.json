@@ -8,5 +8,154 @@
   "hrdClaimable": "Boleh dituntut HRD Corp",
   "verified": "disahkan {date}",
   "progressTitle": "Kemajuan anda",
-  "progressBody": "Penjejakan kemajuan dan lencana kemahiran akan datang kemudian (F5 Akhir)."
+  "progressBody": "Tandakan kursus apabila selesai. Setiap lencana menunjukkan bukti kursusnya: laporan sendiri, pautan sijil, atau disahkan oleh organisasi anda. Lencana bukan penilaian.",
+  "estimateNote": "Bilangan minggu dan tahap yang dicapai bagi setiap kursus ialah anggaran.",
+  "catalogueOnly": "Kursus hanya daripada katalog kami, setiap satu dengan sumber dan tarikh semakan.",
+  "summary": {
+    "title": "Ringkasan pelan",
+    "pace": "{hours} j/minggu",
+    "totalHours": "{hours} j keseluruhan",
+    "outOfPocket": "Anda bayar RM {amount} daripada bajet RM {budget}",
+    "listPrice": "Harga senarai RM {amount}",
+    "hrdNote": "Kursus yang boleh dituntut HRD Corp tiada kos kepada anda: majikan memohon geran levi sebelum kursus bermula.",
+    "overBudget": "Melebihi bajet anda"
+  },
+  "step": {
+    "levels": "Tahap {current} → {reaches} (peranan memerlukan {target})",
+    "prerequisites": "Dibina atas: {skills}",
+    "alternatives": "Pilihan katalog lain ({count})",
+    "members": "Diperlukan oleh {count} ahli: {members}",
+    "source": "Sumber: {name}",
+    "sdg": "Sasaran SDG"
+  },
+  "unmet": {
+    "title": "Jurang yang belum dapat ditutup oleh katalog kami",
+    "no_catalogue_course": "Tiada kursus dalam katalog",
+    "over_budget": "Melebihi bajet",
+    "catalogue_tops_out": "Perlu latihan di luar kursus"
+  },
+  "plan": {
+    "save": "Pilih peranan ini dan simpan pelan",
+    "saved": "Disimpan sebagai pelan anda ({date})",
+    "decide": "Anda yang membuat keputusan. Menyimpan tidak mengikat anda dan boleh diubah bila-bila masa.",
+    "sdgLink": "Sumbangan laluan ini kepada SDG",
+    "progressLink": "Jejak kemajuan"
+  },
+  "replan": {
+    "title": "Data trend baharu mengubah pelan anda",
+    "accept": "Terima pelan yang dikemas kini",
+    "keep": "Kekalkan pelan semasa",
+    "change": {
+      "added": "Ditambah",
+      "removed": "Dibuang",
+      "reordered": "Disusun semula",
+      "courses_changed": "Kursus berubah"
+    }
+  },
+  "progress": {
+    "percent": "{percent} daripada jam yang dirancang selesai",
+    "gapClosed": "{closed} daripada {total} jurang kemahiran ditutup",
+    "markDone": "Tanda selesai",
+    "markUndone": "Batal",
+    "badges": "Lencana",
+    "noBadges": "Belum ada lencana. Selesaikan satu kursus untuk lencana pertama.",
+    "skills": "Kemahiran",
+    "level": "Tahap {current} daripada {target}",
+    "courses": "Kursus dalam pelan anda"
+  },
+  "actionFailed": "Tidak disimpan: {message}",
+  "saving": "Menyimpan…",
+  "saved": "Disimpan. Kemajuan dan lencana anda dikemas kini.",
+  "catalogue": {
+    "title": "Katalog kursus",
+    "description": "Setiap kursus yang mungkin dicadangkan oleh Adept: percuma dan berbayar, dalam talian dan bersemuka, dengan status HRD Corp, asas harga, sumber dan tarikh semakan.",
+    "browse": "Lihat semua kursus",
+    "any": "Semua",
+    "skills": "Kemahiran",
+    "level": "mencapai tahap {level} (anggaran)",
+    "formatLabel": "Format",
+    "providerLabel": "Jenis penyedia",
+    "audienceLabel": "Untuk",
+    "maxCost": "Maks RM",
+    "apply": "Tapis",
+    "reset": "Set semula",
+    "count": "{count} kursus",
+    "price": {
+      "per_course": "RM {amount}",
+      "per_user_year": "RM {amount} / pengguna / tahun",
+      "per_user_month": "RM {amount} / pengguna / bulan",
+      "per_group": "RM {amount} / kumpulan"
+    },
+    "format": {
+      "self_paced": "Kendiri dalam talian",
+      "live_online": "Langsung dalam talian",
+      "in_person": "Bersemuka",
+      "hybrid": "Hibrid",
+      "subscription": "Langganan"
+    },
+    "provider": {
+      "mooc": "Platform dalam talian",
+      "university": "Universiti",
+      "industry_body": "Badan industri",
+      "professional_body": "Badan profesional",
+      "private_provider": "Penyedia latihan",
+      "government": "Kerajaan"
+    },
+    "audience": {
+      "individual": "Individu",
+      "corporate": "Syarikat",
+      "both": "Individu dan syarikat"
+    }
+  },
+  "evidence": {
+    "hint": "Menanda kursus ialah laporan sendiri. Tambah pautan sijil penyedia untuk mengukuhkannya; HR atau penasihat kerjaya anda boleh mengesahkannya.",
+    "addProof": "Tambah pautan sijil",
+    "urlPlaceholder": "https://www.coursera.org/account/accomplishments/verify/…",
+    "sent": "Pautan disimpan dan disemak.",
+    "reviewNote": "Nota penyemak: {note}",
+    "kind": {
+      "self_reported": "Dilaporkan sendiri",
+      "certificate_link": "Pautan sijil",
+      "org_confirmed": "Disahkan oleh organisasi anda",
+      "org_rejected": "Tidak diterima oleh organisasi anda"
+    },
+    "link": {
+      "not_submitted": "belum ada pautan",
+      "provider_verified": "halaman rasmi penyedia, disemak",
+      "unreachable": "pautan tidak dapat dibuka",
+      "not_provider_page": "bukan halaman pengesahan rasmi: perlu disemak secara manual"
+    }
+  },
+  "verify": {
+    "title": "Semak penyiapan kursus",
+    "description": "Sahkan atau tolak penyiapan yang dilaporkan oleh ahli organisasi anda. Pelajar melihat keputusan dan nota anda.",
+    "hrdHint": "Bagi kursus yang boleh dituntut HRD Corp, rekod kehadiran penyedia dalam tuntutan HRD Corp anda ialah bukti untuk disemak.",
+    "pending": "{count} menunggu semakan",
+    "empty": "Belum ada penyiapan dilaporkan.",
+    "forRole": "Pelan: {role}",
+    "openProof": "Buka pautan sijil",
+    "checkName": "semak nama dan kursus sepadan",
+    "note": "Nota kepada pelajar",
+    "notePlaceholder": "Nota pilihan kepada pelajar",
+    "confirm": "Sahkan",
+    "reject": "Tolak"
+  },
+  "guide": {
+    "working": {
+      "title": "Sebelum mendaftar",
+      "body": "Langkah yang boleh dituntut HRD Corp dituntut oleh majikan anda, bukan oleh anda. Kongsi pelan ini dengan HR sebelum mendaftar; apabila selesai, mereka boleh mengesahkan penyiapan anda.",
+      "link": "Lihat kursus boleh tuntut HRD Corp"
+    },
+    "graduate": {
+      "title": "Mula percuma, simpan bukti",
+      "body": "Mulakan dengan langkah percuma. Setiap kali selesai, tambah pautan sijilnya di halaman kemajuan supaya anda boleh menunjukkannya kepada majikan dan pusat kerjaya anda.",
+      "link": "Lihat kursus percuma"
+    },
+    "switcher": {
+      "title": "Bina atas apa yang anda ada",
+      "body": "Pelan anda hanya meliputi jurang: kemahiran yang sudah anda miliki tidak diajar semula. Bandingkan peranan untuk melihat kemahiran anda yang boleh dibawa.",
+      "link": "Bandingkan peranan"
+    },
+    "sameplan": "Nasihat ini bergantung pada situasi anda; pelan itu sendiri sama bagi sesiapa yang mempunyai kemahiran, masa dan bajet yang sama."
+  }
 }

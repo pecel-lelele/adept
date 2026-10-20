@@ -1,7 +1,7 @@
 # Seed data (synthetic only)
 
-Tiny synthetic samples so every table has something to show. **No real people, CVs or
-course claims.** Load with `make seed` (runs `src/db/seed.py`).
+Tiny synthetic samples so every table has something to show. **No real people or CVs.** Courses
+and SDG targets are real, public, dated records (see their folders). Load with `make seed` (runs `src/db/seed.py`).
 
 - One folder per area; each owner edits only their folder.
 - File name = table name (`skills.csv` → `skills`), header row = column names.
@@ -13,6 +13,7 @@ course claims.** Load with `make seed` (runs `src/db/seed.py`).
 | `taxonomy/` | M2 (F4) | skills, roles, role_skills |
 | `personas/` | M2 (F1) | users, profiles, user_skills |
 | `trends/` | M1 (F2) | snapshots, trend_signals |
-| `courses/` | M3 (F5) | courses |
-| `sdg/` | M3 (F6) | sdg_targets, role_sdg_map, skill_sdg_map |
+| `courses/` | M3 (F5) | courses (written by `pipelines.pathway`) |
+| `pathway/` | M3 (F5) | skill_prerequisites |
+| `sdg/` | M3 (F6) | sdg_goals, sdg_targets (written by `pipelines.sdg`), role_sdg_map, skill_sdg_map, org_regions |
 | `org/` | M4 (F7) | users (employees), organizations, memberships |

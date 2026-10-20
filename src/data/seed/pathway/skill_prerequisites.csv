@@ -1,0 +1,4 @@
+skill_id,prerequisite_id,reason
+data-visualisation,sql,Dashboards are built on data you can already query.
+rpa,process-mapping,You automate a process after you have mapped it.
+prompt-engineering,ai-literacy,Know what AI can and cannot do before relying on its output.

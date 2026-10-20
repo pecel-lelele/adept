@@ -153,28 +153,47 @@ def task_dev() -> None:
     db_up(required=False)
     api_port = os.environ.get("API_PORT", "8000")
     log(f"API on http://localhost:{api_port}/docs  |  web on http://localhost:3000")
-    procs = [
-        subprocess.Popen(
+    procs = {
+        "API": subprocess.Popen(
             py("-m", "uvicorn", "app.main:app", "--reload", "--port", api_port),
             cwd=API,
             env=os.environ,
         ),
-        subprocess.Popen([*pnpm(), "dev"], cwd=WEB, env=os.environ),
-    ]
+        "web": subprocess.Popen([*pnpm(), "dev"], cwd=WEB, env=os.environ),
+    }
+    supervise(procs)
+
+
+def supervise(procs: dict[str, subprocess.Popen[bytes]], poll_s: float = 0.5) -> None:
+    """Wait until any child exits, stop the rest, and fail if a child died on its own.
+
+    Ctrl+C is a normal stop. Any other exit (e.g. the web server cannot bind :3000)
+    raises TaskError with the child's exit code, so `make dev` does not report success.
+    """
+    first: tuple[str, int] | None = None
     try:
-        while all(p.poll() is None for p in procs):
-            time.sleep(0.5)
+        while first is None:
+            for name, p in procs.items():
+                code = p.poll()
+                if code is not None:
+                    first = (name, code)
+                    break
+            else:
+                time.sleep(poll_s)
     except KeyboardInterrupt:
         pass
     finally:
-        for p in procs:
+        for p in procs.values():
             if p.poll() is None:
                 p.terminate()
-        for p in procs:
+        for p in procs.values():
             try:
                 p.wait(timeout=10)
             except subprocess.TimeoutExpired:
                 p.kill()
+    if first is not None:
+        name, code = first
+        raise TaskError(f"{name} server exited unexpectedly (exit code {code}).")
 
 
 # --- quality ------------------------------------------------------------------

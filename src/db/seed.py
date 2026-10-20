@@ -19,7 +19,7 @@ import psycopg
 from psycopg import sql
 
 SEED = Path(__file__).resolve().parent.parent / "data" / "seed"
-DEFAULT_URL = "postgresql://adept:adept@localhost:5433/adept"
+DEFAULT_URL = "postgresql://adept:adept@127.0.0.1:5433/adept"
 
 # Insert order respects foreign keys (see src/db/migrations).
 TABLE_ORDER = [
@@ -34,9 +34,12 @@ TABLE_ORDER = [
     "snapshots",
     "trend_signals",
     "courses",
+    "skill_prerequisites",
+    "sdg_goals",
     "sdg_targets",
     "role_sdg_map",
     "skill_sdg_map",
+    "org_regions",
 ]
 SERIAL_TABLES = {"snapshots", "trend_signals"}
 

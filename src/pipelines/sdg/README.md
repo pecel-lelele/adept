@@ -1,14 +1,15 @@
-# src/pipelines/sdg (F6, M3)
+# pipelines.sdg (F6, M3)
 
-SDG mapping: load the 17 goals and targets, map roles/skills to targets with a reason, export for human review.
-
-Placeholder only. Run: `PYTHONPATH=src .venv/bin/python -m pipelines.sdg.run`
+Official SDG goals and targets → `src/data/seed/sdg/sdg_goals.csv`, `sdg_targets.csv`.
 
 | Stage | Choice |
 |---|---|
-| Source | |
-| Preprocessing / cleaning | |
-| Features | |
-| Model / method | |
-| Evaluation | |
-| Serving | |
+| Source | UN Statistics Division SDG API `GET /v1/sdg/Goal/List?includechildren=true` (public, no key) |
+| Preprocessing | keep goal and target codes and official titles; drop indicators/series; normalise whitespace |
+| Validation | exactly goals 1..17; target codes prefixed by their goal; no duplicates; every goal has targets |
+| Serving | seed CSVs (DB via `make seed`; read directly by the API in mock mode) |
+
+```bash
+PYTHONPATH=src/api:src .venv/bin/python -m pipelines.sdg.run                  # live API
+PYTHONPATH=src/api:src .venv/bin/python -m pipelines.sdg.run --from-file x.json   # saved response
+```

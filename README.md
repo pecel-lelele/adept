@@ -11,13 +11,28 @@ Every recommendation shows its source and date, its scenario (moderate vs fast A
 and is labelled as an estimate. The product supports human decisions; it never makes hiring
 decisions. Demo data is synthetic only.
 
-> **Status: skeleton.** Every page is a stub that renders mock data from the API
-> (`source: MOCK DATA`). No real trend ingestion, matching or LLM calls yet.
+> **Status: in progress.** Pathway (F5), SDG mapping (F6), guardrails (F8) and the organisation
+> heatmap / group plan run on real, dated data: a course catalogue from the Microsoft Learn
+> Catalog API plus a verified HRD Corp-claimable provider page, and all 17 SDGs / 169 targets from
+> the UN SDG API. Trends and matching still serve mock data (`source: MOCK DATA`), and the UI
+> says so wherever it is used.
 
 ## AI disclosure
 
-No language model is used in the current version. When one is added (F8 LLM gateway,
-`src/api/app/core/llm/`), its provider, model name and purpose will be listed here and on `/about`.
+**No language model is used in the current version** (`LLM_PROVIDER=none`). Pathways, scores
+and SDG links come from deterministic, explainable rules over the catalogue and seed data.
+
+If a model is enabled later, it goes through the F8 gateway (`src/api/app/core/llm/`), which:
+
+- lets the model only *select* IDs from a catalogue we supply and rejects any unknown ID;
+- redacts personal data (email, MyKad NRIC, passport, phone) and filters prompt-injection text
+  before any prompt is sent;
+- falls back to the deterministic logic when the model is unavailable or invents an ID;
+- logs every call with provider, model and outcome.
+
+The provider and model are then read from configuration and shown live on `/about`
+(`GET /api/v1/guardrails/disclosure`), so this disclosure cannot drift from what runs. Update
+this section with the provider, model name and purpose in the same PR that enables one.
 
 ## Prerequisites
 
@@ -60,7 +75,8 @@ docs/                     project context, team rules, tasks, decisions log, arc
 src/
   api/                    FastAPI + Pydantic v2
     app/main.py           auto-discovers app/features/*/router.py
-    app/core/             config, db, auth (AUTH_MODE=demo), logging, errors, llm/ (F8 gateway)
+    app/core/             config, db, auth (demo + Supabase JWT), logging, errors, seed reader,
+                          llm/ (F8 gateway), security/ (rate limit, PII, sanitiser), fairness
     app/contracts/        shared Pydantic contracts, one file per feature
     app/features/<f>/     router, service, repository, schemas, mocks, FEATURE.md
     openapi.json          generated contract (make contracts)
@@ -70,7 +86,7 @@ src/
     src/features/<f>/     feature UI: components/, hooks/, api.ts, index.ts
     src/components/       shared UI (ScenarioToggle, SourceBadge, EstimateLabel, ...)
     src/lib/api/          typed API client + generated types.ts
-  pipelines/<f>/          offline data / ML jobs (trends, matching, sdg)
+  pipelines/<f>/          offline data / ML jobs (trends, matching, sdg, pathway)
   db/                     migrations/ (timestamped SQL), migrate.py, seed.py
   data/seed/<f>/          tiny synthetic samples; data/raw/ is gitignored
   scripts/dev.py          cross-platform task runner behind the Makefile
@@ -82,7 +98,9 @@ requirements.txt          Python dependencies
 pyproject.toml            ruff + pytest settings only
 ```
 
-See [docs/architecture.md](docs/architecture.md) for the system flow.
+See [docs/architecture.md](docs/architecture.md) for the system flow and
+[docs/SOLUTION_DESIGN.md](docs/SOLUTION_DESIGN.md) for the problem, the solution and how each of
+the four target users moves through the app.
 
 ## Features and owners
 
@@ -92,10 +110,10 @@ See [docs/architecture.md](docs/architecture.md) for the system flow.
 | F2 AI-trend signal layer | M1 | `trends`, `src/pipelines/trends` |
 | F3 Scenarios & uncertainty | M1 | `scenarios` |
 | F4 Future-role matching | M2 | `matching`, `src/pipelines/matching` |
-| F5 Reskilling pathway | M3 | `pathway` |
+| F5 Reskilling pathway | M3 | `pathway`, `src/pipelines/pathway` |
 | F6 SDG mapping | M3 | `sdg`, `src/pipelines/sdg` |
 | F7 Organisation mode | M4 | `org` |
-| F8 Guardrails & transparency | M3 | `src/api/app/core/llm`, web `guardrails` |
+| F8 Guardrails & transparency | M3 | `guardrails`, `src/api/app/core/{llm,security,fairness.py}` |
 | Core | M4 | shells, shared UI, auth, `src/web/src/features/core` |
 
 ## Team docs

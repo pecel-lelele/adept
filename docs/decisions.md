@@ -82,6 +82,264 @@
 
 <!-- M3 adds entries below this line -->
 
+### M3-001: Problem framing and solution design
+- **Date**: 2026-10-20
+- **Feature**: F5, F6, F8 (and the whole journey)
+- **Type**: other
+- **Change**: Added `docs/SOLUTION_DESIGN.md`: the "skills-signal gap" problem, the skills-signal engine, how each of the four target users moves through the routes, M3 feature design, KerjaCerdas reuse map, routing summary and M3 risks with fallbacks.
+- **Why**: The proposal needs one problem → approach → outcome narrative a cold listener can repeat; the four users needed concrete journeys, not just a list.
+- **Affects**: everyone (reference doc; no shared file edited)
+- **Replaces**: none
+- **PR / branch**: `feat/pathway-sdg-guardrails`
+
+### M3-002: Fixes for the six skeleton review findings (cross-feature, requested by M3)
+- **Date**: 2026-10-20
+- **Feature**: Core, F1, F4, F7 (fixes requested in review; owners please re-review)
+- **Type**: other
+- **Change**: (1) `docker-compose.yml` publishes Postgres on `${POSTGRES_BIND:-127.0.0.1}` (new `POSTGRES_BIND` in `.env.example`). (2) `POST /profile/cv` reads in 64 KB chunks and returns 413 `payload_too_large` above `MAX_UPLOAD_BYTES` (5 MB). (3) Every match now has a pathway: F5 builds plans for any taxonomy role instead of two mock plans (test `test_every_suggested_match_has_a_pathway`). (4) `JourneyStepper` preserves `?role=` as well as `?scenario=`. (5) `/org/plan` takes `scenario` (and optional `role_id`) through page → client → endpoint → pathway. (6) `make dev` raises `TaskError` with the exit code of the first server that exits (`supervise()` in `src/scripts/dev.py`).
+- **Why**: P1/P2 review findings on the skeleton PR.
+- **Affects**: M4 (compose, dev.py, stepper, org plan), M2 (CV upload, matches link)
+- **Replaces**: none
+- **PR / branch**: `feat/pathway-sdg-guardrails`
+
+### M3-003: API security layer reused from KerjaCerdas
+- **Date**: 2026-10-20
+- **Feature**: F8 (shared core)
+- **Type**: method | dependency
+- **Change**: `app/core/security/`: per (IP, route bucket) sliding-window rate limiter (LRU-capped, never evicts a throttled key, `X-Real-IP` trusted only with `PROXY_SHARED_SECRET`), Content-Length body limits (1 MB JSON, upload cap + slack), security headers (CSP `default-src 'none'` except `/docs`), prompt-injection sanitiser, filename sanitiser, regex PII redaction adapted to Malaysia (MyKad NRIC, passport, +60/0 phones; specific phone patterns so date ranges like 2019-2024 survive). Installed once from `create_app` before CORS. The web server forwards the client IP with the secret (`src/web/src/lib/api/server.ts`). `AUTH_MODE=supabase` now verifies Supabase HS256 JWTs (`aud=authenticated`, `exp`/`sub` required), fails closed (503) without `SUPABASE_JWT_SECRET`, and takes privilege only from `app_metadata`. New dependency: `pyjwt>=2.8,<3`. New env vars documented in `.env.example`.
+- **Why**: The demo API needs no credentials, so abuse limits matter; KerjaCerdas already solved these with tests and a threat model. Simplified the limiter (no per-key locks: the critical section has no `await`).
+- **Affects**: everyone (middleware on every route; `main.py`, `auth.py`, `config.py`, `requirements.txt` touched)
+- **Replaces**: none
+- **PR / branch**: `feat/pathway-sdg-guardrails`
+
+### M3-004: LLM gateway hardening; no model enabled
+- **Date**: 2026-10-20
+- **Feature**: F8
+- **Type**: model | method
+- **Change**: Prompts are injection-filtered and PII-redacted before sending; circuit breaker (3 failures → 30 s open); bounded call log with provider, model, outcome and rejected IDs (`llm_calls` table for the DB move); `select_ids_or_fallback` returns deterministic results when the model is unavailable or invents an ID. Provider stays `none`; `disclosure()` reads provider/model from settings for `/about` and README.
+- **Why**: Catalogue-only rule needs defence in depth; the deterministic engine already meets every must-have, so no model is required for the demo.
+- **Affects**: any feature that adds LLM calls
+- **Replaces**: none
+- **PR / branch**: `feat/pathway-sdg-guardrails`
+
+### M3-005: Fairness guards
+- **Date**: 2026-10-20
+- **Feature**: F8 (used by F4, F5, F7)
+- **Type**: method
+- **Change**: `app/core/fairness.py` with protected-attribute detection (age, sex/gender, race/ethnicity, religion, nationality, marital status, disability, names, …; grounds from Federal Constitution Art. 8 and SDG 10.2) and `counterfactual_diffs`. CI tests fail if any API input or DB column carries a protected attribute; pathway tests give three personas identical inputs via the API and require identical plans. `/guardrails/fairness` runs the checks live.
+- **Why**: Handbook good-to-have; also makes the "human-centred, non-discriminatory" claim checkable.
+- **Affects**: M2 (matching should add its own counterfactual tests with the same helper)
+- **Replaces**: none
+- **PR / branch**: `feat/pathway-sdg-guardrails`
+
+### M3-006: SDG data source and mapping method
+- **Date**: 2026-10-20
+- **Feature**: F6
+- **Type**: data source | method | contract
+- **Change**: All 17 goals and 169 targets from the UN Statistics Division SDG API via `src/pipelines/sdg`. Every taxonomy role (7) and skill (12) links to official targets with a one-line reason and a `strength` (direct / enabling); 32 links across goals 4, 5, 8, 9, 10 and 16. Contribution views for person, organisation and region (synthetic `org_regions`); plan-level links computed from plan facts (4.4 when skills are built, 4.3 when out-of-pocket cost is RM 0). `GET /sdg/roles/{id}/alignment?goals=` scores roles (direct 1.0, enabling 0.5, ÷ 2, cap 1) for F4's SDG-weighted ranking. Contract additions: `SdgLink.strength/via/reviewed`, `GoalSummary.direct_count/enabling_count/is_focus/contributors`, `SdgContribution.scope/scope_id/role_ids`, new `SdgGoal`, `SdgGoalListResponse`, `SdgAlignment`, `RegionListResponse`.
+- **Why**: Official source avoids typing targets from memory; strength + reason + computed plan links keep the mapping meaningful rather than decorative. Considered 17.18 for data roles and rejected it (it is about national statistical capacity).
+- **Pipeline**: UN SDG API → keep codes/titles, validate 1..17 → curated role/skill links + plan facts → union per scope, strength-weighted alignment → tests (all mapped, targets exist, reasons name their target) and CI SQL check → `/sdg/*`, `/app/sdg`, `/org/sdg`.
+- **Open**: `reviewed_by`/`reviewed_at` are empty; the UI shows "draft, pending review" until a human reviewer signs the mappings off. M2 can call `alignment` for the SDG slider.
+- **Affects**: M2 (alignment for ranking), M4 (org SDG page now has organisation/region tabs)
+- **Replaces**: none
+- **PR / branch**: `feat/pathway-sdg-guardrails`
+
+### M3-007: Course catalogue sources
+- **Date**: 2026-10-20
+- **Feature**: F5
+- **Type**: data source
+- **Change**: `src/pipelines/pathway` builds `courses.csv` from the Microsoft Learn Catalog API (16 curated free modules/paths for ai-literacy, prompt-engineering, python, sql, data-visualisation, process-mapping, rpa, risk-compliance; title, URL and duration from the API) plus one HRD Corp-claimable course checked on the provider's page on 2026-10-20 (AITraining2U "AI Data Analytics", RM 3,500 HRDC-claimable fee before SST; 14 h assumes 7 h/day for the stated 2 days). Each row carries `level` (Adept's estimate of the level reached), `source_name/url`, `hrd_note`, `duration_note`, `verified_at`. Weekly workflow re-fetches and warns on drift or retired courses.
+- **Why**: A public API keeps hours and URLs current; HRD Corp claimability is only claimed where the provider states it. Kaggle Learn was considered but its pages could not be verified (client-rendered). No catalogue course yet for Excel, customer service or logistics planning; those gaps show as unmet rather than invented.
+- **Affects**: none
+- **Replaces**: the example.org placeholder courses
+- **PR / branch**: `feat/pathway-sdg-guardrails`
+
+### M3-008: Pathway engine (ordering, selection, time estimate)
+- **Date**: 2026-10-20
+- **Feature**: F5
+- **Type**: method | formula | contract
+- **Change**: Pure engine (`features/pathway/engine.py`): gap from role requirements vs profile levels; priority = importance × gap share × (1 + clip(growth, −0.5, 1) × w), w = 1 moderate / 2 fast; Kahn topological sort over `skill_prerequisites` where a prerequisite inherits the highest priority of what it unlocks; per skill, ascending-level catalogue courses, cheapest out-of-pocket (HRD Corp-claimable = RM 0 when eligible) then fewest hours, within remaining budget; a multi-skill course is booked once; weeks from cumulative hours ÷ profile hours/week (5 h assumed with a warning if 0). Unmet skills are reported (`no_catalogue_course`, `over_budget`, `catalogue_tops_out`). Contract additions on `Course`, `PathwayStep`, `Pathway` (all defaulted) plus `SkillGap`, `UnmetSkill`, `CatalogueResponse`.
+- **Why**: Deterministic and explainable (each step states its priority formula); respects time, budget and HRD Corp funding; scenario and trend data change the order.
+- **Pipeline**: catalogue + taxonomy + prerequisites + latest trend snapshot → gap → priority → order → select → schedule → 38 tests (catalogue-only, budget, HRD, prerequisites, every match has a pathway, counterfactual fairness) → `GET /pathway`.
+- **Affects**: M4 (org plan uses `group_pathway`), M1 (reads `trends/*.csv` read-only)
+- **Replaces**: mock pathway plans
+- **PR / branch**: `feat/pathway-sdg-guardrails`
+
+### M3-009: Saved plans, automatic re-planning, progress and badges
+- **Date**: 2026-10-20
+- **Feature**: F5
+- **Type**: method | schema | contract
+- **Change**: `POST /pathway/plans` saves the learner's chosen role (human decision) with the trend snapshot version. `GET /pathway/plans/me` rebuilds the plan on the latest snapshot and, if it is newer and the plan changed, proposes it with a diff (added / removed / reordered / courses changed) and a dated message; `POST …/accept-replan` adopts it. `GET|POST /pathway/progress` records course status (only courses in the plan), raises skill levels to each completed course's level, and awards skill and milestone badges labelled *self-reported* (KerjaCerdas proof-level idea). In-memory store for the demo; migration `20261020120000_m3_pathway_sdg_guardrails.sql` adds `pathway_plans`, `course_progress`, `user_badges`, `skill_prerequisites`, `sdg_goals`, `org_regions`, `llm_calls` and additive columns (tested: up, down, up, seed).
+- **Why**: Handbook "re-planning when trend data changes" without silently replacing a plan the learner chose.
+- **Affects**: M1 (a new snapshot row in `trends/` triggers the re-plan notice), everyone (new migration)
+- **Replaces**: none
+- **PR / branch**: `feat/pathway-sdg-guardrails`
+
+### M3-010: Organisation heatmap and group plan from real member skills (F7 wiring)
+- **Date**: 2026-10-20
+- **Feature**: F7 (M4's feature; requested by M3, please review)
+- **Type**: method
+- **Change**: `/org/gaps` cells = share of completed-intake members below the role's required level (F5 `team_gaps`); `/org/plan` = F5 `group_pathway` (each skill starts from the weakest member who needs it, hours = team median, company plans may use HRD Corp) with `member_ids` per step; `member_plans` feeds the organisation/region SDG views. Synthetic `TEAM_SKILLS` added in `org/mocks.py` for members without a persona profile. The fake "fast scenario widens gaps" factor is removed: required levels do not change by scenario, so the heatmap does not either.
+- **Why**: Good-to-have "workforce-level skills-gap heatmap and reskilling plan" from the same engine, without duplicated logic.
+- **Affects**: M4
+- **Replaces**: mock heatmap values
+- **PR / branch**: `feat/pathway-sdg-guardrails`
+
+### M3-011: Source-on-every-recommendation sweep and guardrail endpoints
+- **Date**: 2026-10-20
+- **Feature**: F8
+- **Type**: method | contract
+- **Change**: `tests/api/guardrails/test_sources_everywhere.py` finds every GET endpoint whose response schema has `meta` and fails if a live response lacks dated sources (19 endpoints × 2 personas). New `GET /guardrails/disclosure`, `/guardrails/sources` (register with kind: live API, verified page, curated, synthetic, mock) and `/guardrails/fairness`, rendered on `/about`; README AI-disclosure section rewritten.
+- **Why**: Makes the handbook rules regression-proof for every feature, including new ones.
+- **Affects**: everyone (a new recommendation endpoint without sources fails CI)
+- **Replaces**: none
+- **PR / branch**: `feat/pathway-sdg-guardrails`
+
+### M3-012: CI workflow
+- **Date**: 2026-10-20
+- **Feature**: all (root config)
+- **Type**: other
+- **Change**: `.github/workflows/ci.yml` (on PRs and pushes to main): `make check` via `src/scripts/dev.py check` (ruff, eslint, i18n parity, pytest, tsc, contract drift); `next build`; PostgreSQL 16 + pgvector service applying migrations and seeds twice (idempotency) plus SQL checks (17 goals, 169 targets, every role/skill mapped, every course has an https URL and source). `.github/workflows/data-sources.yml` runs weekly against the live UN and Microsoft Learn APIs and warns on drift. Structure adapted from KerjaCerdas CI.
+- **Why**: `main` must always run; the migration job is the only place migrations meet a real pgvector database.
+- **Affects**: everyone
+- **Replaces**: none
+- **PR / branch**: `feat/pathway-sdg-guardrails`
+
+### M3-013: M3 web pages and translations
+- **Date**: 2026-10-20
+- **Feature**: F5, F6, F8
+- **Type**: UI
+- **Change**: `/app/pathway` (summary with hours, weeks, out-of-pocket vs budget, HRD note; steps with levels, priority reason, prerequisites, courses with source and verified date, alternatives, SDG badges; unmet gaps; save plan; re-plan banner), `/app/progress` (mark courses done via server actions, skill levels, badges), `/app/sdg` and `/org/sdg` (17-goal grid, direct/enabling links, draft label, organisation and region tabs), `/about` (live disclosure, rules, sources, fairness). Stub banners removed on these pages. en/ms/zh messages added; ms and zh are drafts for native-speaker review.
+- **Why**: Must-haves 4 and 5 and the transparency rules visible to users.
+- **Affects**: M4 (org plan shows member names; heatmap stub banner removed)
+- **Replaces**: none
+- **PR / branch**: `feat/pathway-sdg-guardrails`
+
+### M3-014: Fixes for the eight automated review findings on PR #2
+- **Date**: 2026-10-20
+- **Feature**: F5, F8 (+ Core web helper and CI that this PR added)
+- **Type**: other
+- **Change**: (1) Seed reads are cached per file version (path, mtime, size), so a new trend snapshot reaches saved plans without a restart. (2) When every rate-limit counter is throttled, newcomers get 429 instead of an active block being evicted. (3) Body size is counted as bytes arrive (pure ASGI middleware), so chunked uploads without Content-Length are stopped before multipart parsing. (4) The web server forwards only the client address appended by `TRUSTED_PROXY_HOPS` trusted proxies (default 0 = never). (5) Pathway and progress pages show the saved plan when its role and scenario match; progress returns the plan it is tracked against; profile changes are proposed as a re-plan, not applied. (6) A new migration deletes the skeleton's mock courses, mock links and shortened targets so `make seed` reloads the real rows; CI builds a DB from the skeleton commit and upgrades it. (7) Server actions report API errors (422, 429) next to the button instead of silently refreshing. (8) GitHub Actions pinned to commit SHAs.
+- **Why**: Review findings (greptile) on PR #2.
+- **Affects**: everyone using `make dev`/web server (TRUSTED_PROXY_HOPS), existing local databases (run `make db-migrate seed`)
+- **Replaces**: none
+- **PR / branch**: `feat/pathway-sdg-guardrails`
+
+### M3-015: PostgreSQL storage for M3 (M3_BACKEND)
+- **Date**: 2026-10-20
+- **Feature**: F5, F6, F8
+- **Type**: schema | method | dependency
+- **Change**: `M3_BACKEND=csv|postgres` (`app/core/refdata.py`). With `postgres`: saved plans (whole Pathway as jsonb), per-role course progress and badges live in `pathway_plans`, `course_progress`, `user_badges` (`PostgresStore`, users row created for new authenticated users); catalogue and SDG reads come from the DB with a 30 s cache and a seed-file fallback if the DB is down; writes fail with 503 rather than being lost. Migration `20261021090000_m3_live_data_and_shared_state.sql`: evidence columns on the SDG maps, `provider_ref`/`last_synced_at`/`retired_at` on courses, `data_syncs` log, per-role progress key, UNLOGGED `rate_limit_counters`, skeleton data upgrade. Tested against pgvector/pg16 locally (upgrade from a skeleton-seeded DB, down/up round trip) and in CI. `DATABASE_URL` defaults now use 127.0.0.1 (the port is bound to IPv4 loopback; `localhost` cost 5 s per connection on Windows).
+- **Why**: State must survive restarts and be shared by every instance on Replit (whose own PostgreSQL can be used by setting `DATABASE_URL` and `M3_BACKEND=postgres`).
+- **Affects**: deployment config (set `M3_BACKEND=postgres` once the Replit database exists)
+- **Replaces**: in-memory-only state from M3-009
+- **PR / branch**: `feat/pathway-sdg-guardrails`
+
+### M3-016: Rate limits shared across API instances
+- **Date**: 2026-10-20
+- **Feature**: F8
+- **Type**: method | dependency
+- **Change**: With `M3_BACKEND=postgres` the limiter keeps one counter per (client, bucket, window) in `rate_limit_counters`, updated in one atomic upsert and read as a sliding window (`previous * (1 - elapsed/window) + current`); the call runs off the event loop through a small `psycopg-pool` pool (new dependency `psycopg-pool>=3.2`); if the DB fails it falls back to the in-memory limiter. Sync endpoints get a 5-per-hour bucket. Tested with two counters standing in for two instances.
+- **Why**: Per-process counters let N instances allow N times the limit.
+- **Affects**: everyone (requirements.txt)
+- **Replaces**: per-process-only limits from M3-003
+- **PR / branch**: `feat/pathway-sdg-guardrails`
+
+### M3-017: Live data sync and a deeper catalogue
+- **Date**: 2026-10-20
+- **Feature**: F5, F6, F8
+- **Type**: data source | method
+- **Change**: `python -m app.features.pathway.sync` / `POST /api/v1/pathway/catalogue/sync` and `python -m app.features.sdg.sync` / `POST /api/v1/sdg/sync` (header `X-Sync-Token` = `SYNC_TOKEN`, needs postgres) refresh reference data from live sources in one transaction, log every run in `data_syncs`, roll back on failure, and flag courses a provider no longer lists as `retired_at` (never recommended, progress kept). Catalogue now 31 courses: 20 Microsoft Learn items (API), 5 free-to-enrol Coursera courses (hours = module sums on the page; existence checked live through Coursera's catalog API) and 6 HRD Corp-claimable provider courses quoted from their own pages or brochures (AITraining2U x2, UNIMAS Excel Intermediate RM1,100 and Advanced RM1,300, FMM Supply Chain & Logistics RM1,350, MAICSA AML/CFT STR RM490); past run dates are stated, not hidden. UN SDG goals/targets now come from the light `Goal/List` + `Target/List` endpoints (~100 KB; the 11 MB tree failed mid-download). Source logic moved into `app/features/{pathway/catalogue_sources,sdg/sources}.py`, shared by pipelines and sync. Weekly workflow re-fetches, checks Coursera and checks that all 42 course and evidence links resolve (`pipelines.guardrails.check_links`).
+- **Why**: Thin, static data was the main gap; the app now has real live connections and can be refreshed on a schedule (e.g. a Replit scheduled job running the two CLIs).
+- **Pipeline**: Microsoft Learn API + Coursera API + provider pages / UN SDG API → validate (UIDs listed, skill IDs, https, HRD quote) → upsert + retire → `data_syncs` → API reads DB → `/guardrails/sources` shows last sync.
+- **Open**: still no catalogue course for customer service; risk & compliance stops at level 2; HRD Corp course hours assume 7 h/day where only days are stated.
+- **Affects**: none outside M3
+- **Replaces**: M3-007
+- **PR / branch**: `feat/pathway-sdg-guardrails`
+
+### M3-018: Evidence-backed SDG mappings
+- **Date**: 2026-10-20
+- **Feature**: F6
+- **Type**: method | data source | contract
+- **Change**: Every role and skill link now cites a published source with a note on what it says: UN SDG indicator metadata (4.4.1 ICT skill types incl. spreadsheets, coding, charts, information verification and online courses; 4.3.1; 8.2.1; 8.10.2; 9.1.2; 9.5.1; 10.5.1; 16.4.1; 16.5.2), ILO Working Paper 140 (2025) on generative-AI exposure ("clerical occupations continue to have the highest exposure levels"; "transformation of jobs is the most likely impact"), the UNESCO Recommendation on the Ethics of AI (2021) and UNESCO/EQUALS (2019) via the UNESCO GCED Clearinghouse record (unesdoc's certificate had expired). Links the evidence does not support were dropped (data analyst → 9.5, Python → 9.5, data visualisation → 8.2) or downgraded to enabling (AI ops → 9.5, compliance → 16.5, data analyst → 8.2). Plan-level links carry 4.4.1/4.3.1 evidence. 29 links in total. Contract: `SdgLink.evidence {source, note}`. Tests require an authoritative evidence URL on every link.
+- **Why**: "Meaningful, not decorative" needs a justification a judge can open, not just a reason we wrote.
+- **Open**: `reviewed_by` is still empty; a human reviewer should sign the mappings off.
+- **Affects**: M2 (alignment scores changed for data-analyst and ai-operations-specialist)
+- **Replaces**: M3-006 (mapping content)
+- **PR / branch**: `feat/pathway-sdg-guardrails`
+
+### M3-019: Progress page gives feedback and tracks the saved plan
+- **Date**: 2026-10-20
+- **Feature**: F5
+- **Type**: UI | method
+- **Change**: "Mark done" / "Undo" now show "Saving…" then a confirmation or the API error (server actions return a state through `useActionState`). The course list comes from the plan the API tracks, so every button maps to a valid course. Undoing a course revokes badges it no longer supports (the first-earned date is kept if it is earned again).
+- **Why**: Clicking did nothing visible; buttons for courses outside the saved plan failed silently; badges outlived the progress behind them.
+- **Affects**: none outside M3
+- **Replaces**: none
+- **PR / branch**: `feat/pathway-sdg-guardrails`
+
+### M3-020: Paid, Malaysian and bundled courses; live exchange rate
+- **Date**: 2026-10-20
+- **Feature**: F5
+- **Type**: data source | schema | contract
+- **Change**: Courses gain `format` (self-paced, live online, in person, hybrid, subscription), `audience` (individual, corporate, both), `price_basis`, `currency`, `list_price`, `provider_type`, `location` and `price_note` (migration `20261021120000_m3_catalogue_formats_and_fx`, new `fx_rates` table). Added two paid HRD Corp-claimable courses quoted from the provider pages: UKM Professional Certificate in Data Analytics (RM3,000, online, 3 months) and FMM Power BI (RM1,080 non-member incl. 8% SST). Added the Coursera Plus annual subscription (USD 239) as a bundle; it shows in the catalogue but is never booked as a pathway step. USD prices are converted with Bank Negara Malaysia's live USD selling rate (`api.bnm.gov.my`, 4.088 on 2026-10-19) on every sync, with the rate and date in the price note. 34 courses in total.
+- **Why**: The user asked for paid courses, Malaysian providers and corporate bundles; one hard-coded exchange rate would go stale.
+- **Pipeline**: Microsoft Learn API + Coursera API + provider pages + BNM OpenAPI → validate (incl. FX note on converted prices) → upsert → `fx_rates` + `data_syncs` → API.
+- **Open**: Coursera for Teams price is not shown publicly; Udemy and UiPath pages could not be read, so they are not listed.
+- **Affects**: none outside M3 (new optional fields on `Course`)
+- **Replaces**: none
+- **PR / branch**: `feat/pathway-sdg-guardrails`
+
+### M3-021: Course browse page for learners and HR
+- **Date**: 2026-10-20
+- **Feature**: F5
+- **Type**: UI | contract
+- **Change**: `GET /api/v1/pathway/catalogue` takes filters (skill, format, audience, provider type, HRD Corp-claimable, max cost in RM), sorted by cost then hours. New routes `/app/courses` and `/org/courses` (thin pages importing `CatalogueView`); the pathway and group plan link to them.
+- **Why**: Learners and HR wanted to see what exists beyond the recommended steps, e.g. corporate HRD Corp-claimable programmes.
+- **Affects**: M4 (two new routes the navigation can link to)
+- **Replaces**: none
+- **PR / branch**: `feat/pathway-sdg-guardrails`
+
+### M3-022: Verified course completions
+- **Date**: 2026-10-20
+- **Feature**: F5, F7 (read-only use of org membership)
+- **Type**: method | schema | contract | UI
+- **Change**: Each completion has evidence on a ladder `self_reported` < `certificate_link` < `org_confirmed`; `org_rejected` removes the completion from progress. The learner can attach an https certificate link on `/app/progress`; the API checks whether it is an official verification page (Coursera accomplishments/verify, Microsoft Learn `/users/`, Credly badges) and whether it opens (HEAD then GET, 5 s). HR or a career advisor (`org_admin`) reviews members of their own organisation only at `/org/verify`, confirming or rejecting with a note the learner sees; for HRD Corp-claimable courses the hint points to the provider's attendance record in the HRD Corp claim. Badges show the weakest evidence behind them. New table `course_evidence` (migration `20261021130000_m3_completion_evidence`), endpoints `POST /pathway/progress/evidence` (20/min), `GET|POST /pathway/verifications`. Also fixed: saved-plan progress uses the course facts stored with the plan, so a course retired later keeps its credit (review P1).
+- **Why**: A tick is only a claim; HR and career centres need a way to check it without the app pretending to certify anything.
+- **Affects**: M4 (new route `/org/verify` for the org navigation); contracts `Badge.evidence`, `Progress.evidence`
+- **Replaces**: none
+- **PR / branch**: `feat/pathway-sdg-guardrails`
+
+### M3-023: Review fixes for sync, shared limiter and pipeline docs
+- **Date**: 2026-10-20
+- **Feature**: F5, F8
+- **Type**: method
+- **Change**: When Coursera cannot be reached, the sync refreshes a course's facts but keeps its retirement state, so a failed check never brings a removed course back. The shared limiter now prunes rows older than two of its longest windows (was a fixed hour, which forgot the previous hour of the hourly sync buckets). The pathway and SDG pipeline READMEs now use `PYTHONPATH=src/api:src`.
+- **Why**: Greptile review on PR #2.
+- **Affects**: none outside M3
+- **Replaces**: none
+- **PR / branch**: `feat/pathway-sdg-guardrails`
+
+### M3-024: Segment guidance on the pathway and a UX flows proposal
+- **Date**: 2026-10-20
+- **Feature**: F5 (proposal touches Core, F7)
+- **Type**: UI | contract | other
+- **Change**: `Pathway.segment` (added after the plan is built, so it cannot change it) drives a "next step" card: working adults are sent to HR first with an HRD Corp-claimable filter, graduates to free courses and certificate links, switchers to comparing roles. The fairness test now also checks the segment is echoed while plans stay identical. New `docs/UX_FLOWS.md`: per-audience flows and routes, dashboard contents for HR and career centres, the verification flow, comparable platforms (MyMahir, MYFutureJobs, HRD Corp, MySPIKE, MyTVET.my, Handshake, Gloat, Eightfold) and business-model options.
+- **Why**: The user asked for clear, audience-specific flows; the shells and org navigation belong to M4, so those parts are written as proposals.
+- **Affects**: M4 (navigation proposals in `docs/UX_FLOWS.md` §3.3 and §4.3: add Verify and Courses to the org rail, "My plan" shortcut), M2 (proposed per-segment panels on matches), M1 (proposed per-segment radar highlight)
+- **Replaces**: none
+- **PR / branch**: `feat/pathway-sdg-guardrails`
+
+### M3-025: Second review round on verification and FX
+- **Date**: 2026-10-20
+- **Feature**: F5
+- **Type**: contract | method
+- **Change**: `ReviewDecision.submitted_at` (required, nullable) names the submission the reviewer saw; the review is saved in one conditional write (`UPDATE … WHERE submitted_at = seen`, or insert-if-absent), and a changed proof returns 409 `evidence_changed`. When Bank Negara Malaysia's rate cannot be fetched, the sync prices USD courses with the last rate in `fx_rates` instead of the seed rate. The link checker is looked up per call, so tests never reach live pages. The switcher card's "Compare roles" link keeps the current scenario.
+- **Why**: Greptile review on PR #2: HR could confirm a certificate they never opened; an FX outage moved prices backwards; one test made a live request.
+- **Affects**: anyone calling `POST /pathway/verifications` (must send `submitted_at`)
+- **Replaces**: none
+- **PR / branch**: `feat/pathway-sdg-guardrails`
+
 ---
 
 ## M4: Core & Organisation (Core, F7)
