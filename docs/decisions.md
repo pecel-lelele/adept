@@ -310,6 +310,16 @@
 - **Replaces**: none
 - **PR / branch**: `feat/pathway-sdg-guardrails`
 
+### M3-024: Segment guidance on the pathway and a UX flows proposal
+- **Date**: 2026-10-20
+- **Feature**: F5 (proposal touches Core, F7)
+- **Type**: UI | contract | other
+- **Change**: `Pathway.segment` (added after the plan is built, so it cannot change it) drives a "next step" card: working adults are sent to HR first with an HRD Corp-claimable filter, graduates to free courses and certificate links, switchers to comparing roles. The fairness test now also checks the segment is echoed while plans stay identical. New `docs/UX_FLOWS.md`: per-audience flows and routes, dashboard contents for HR and career centres, the verification flow, comparable platforms (MyMahir, MYFutureJobs, HRD Corp, MySPIKE, MyTVET.my, Handshake, Gloat, Eightfold) and business-model options.
+- **Why**: The user asked for clear, audience-specific flows; the shells and org navigation belong to M4, so those parts are written as proposals.
+- **Affects**: M4 (navigation proposals in `docs/UX_FLOWS.md` §3.3 and §4.3: add Verify and Courses to the org rail, "My plan" shortcut), M2 (proposed per-segment panels on matches), M1 (proposed per-segment radar highlight)
+- **Replaces**: none
+- **PR / branch**: `feat/pathway-sdg-guardrails`
+
 ---
 
 ## M4: Core & Organisation (Core, F7)
