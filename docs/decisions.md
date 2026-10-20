@@ -54,6 +54,16 @@
 - **Replaces**: none
 - **PR / branch**: `chore/skeleton`
 
+### TEAM-003: Universal AGENTS.md operating standard
+- **Date**: 2026-10-20
+- **Feature**: Core / all
+- **Type**: other
+- **Change**: Added root `AGENTS.md` as the unified master operating standard and instruction manual for all AI coding agents and IDE tools (Cursor, Copilot, Windsurf, Qoder, Roo Code, Aider, Devin).
+- **Why**: Non-Claude/Gemini agents do not expand `@docs/...` file include macros and require a self-contained, authoritative specification of guardrails, architecture, contracts, and team conventions.
+- **Affects**: everyone
+- **Replaces**: none
+- **PR / branch**: `main`
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)
