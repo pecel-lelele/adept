@@ -17,6 +17,7 @@ import { acceptReplanAction, savePlanAction } from "../actions";
 import { fetchPathway, fetchPlanStatus } from "../api";
 import { ActionForm } from "./ActionForm";
 import { PathwaySteps } from "./PathwaySteps";
+import { SegmentGuide } from "./SegmentGuide";
 
 async function Summary({ plan }: { plan: Schemas["Pathway"] }) {
   const t = await getTranslations("pathway");
@@ -110,6 +111,7 @@ export async function PathwayView({ roleId, scenario }: { roleId: string; scenar
       </PageHeader>
       {status.ok && savedHere ? <ReplanBanner status={status.data} /> : null}
       <Summary plan={plan} />
+      <SegmentGuide segment={plan.segment} />
       <div className="flex flex-wrap items-center gap-2">
         {savedHere ? (
           <Badge variant="success">

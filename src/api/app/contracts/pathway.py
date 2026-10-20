@@ -6,6 +6,7 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 from app.contracts.common import RecommendationMeta, ScenarioId, Source
+from app.contracts.profile import Segment
 from app.contracts.sdg import SdgTarget
 
 GapStatus = Literal["have", "partial", "missing"]
@@ -104,6 +105,10 @@ class Pathway(BaseModel):
     unmet: list[UnmetSkill] = Field(default_factory=list)
     warnings: list[str] = Field(default_factory=list)
     snapshot_version: str = ""
+    segment: Segment | None = Field(
+        default=None,
+        description="The learner's segment, for guidance text only; it never changes the plan.",
+    )
 
 
 class CatalogueResponse(BaseModel):

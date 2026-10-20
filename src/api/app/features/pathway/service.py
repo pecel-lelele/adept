@@ -30,6 +30,7 @@ from app.contracts.pathway import (
     VerificationItem,
     VerificationQueue,
 )
+from app.contracts.profile import Profile
 from app.contracts.sdg import SdgTarget
 from app.core.auth import CurrentUser
 from app.core.errors import AppError, NotFoundError
@@ -46,7 +47,10 @@ CATALOGUE_SOURCE_FALLBACK = "Adept course catalogue"
 
 def learner_for(user: CurrentUser) -> engine.Learner:
     """Only skills, time, budget and HRD Corp eligibility; never identity (fairness)."""
-    profile = profile_service.get_my_profile(user)
+    return _learner(profile_service.get_my_profile(user))
+
+
+def _learner(profile: Profile) -> engine.Learner:
     return engine.Learner(
         skill_levels={s.skill_id: s.level for s in profile.skills},
         hours_per_week=float(profile.hours_per_week),
@@ -137,7 +141,10 @@ def build_pathway(
 
 
 def get_pathway(user: CurrentUser, role_id: str, scenario: ScenarioId) -> Pathway:
-    return build_pathway(learner_for(user), role_id, scenario)
+    profile = profile_service.get_my_profile(user)
+    plan = build_pathway(_learner(profile), role_id, scenario)
+    # Attached after building, so the segment can only change guidance text, never the plan.
+    return plan.model_copy(update={"segment": profile.segment})
 
 
 @dataclass(frozen=True)

@@ -1171,6 +1171,11 @@ export interface components {
              * @default
              */
             snapshot_version: string;
+            /**
+             * Segment
+             * @description The learner's segment, for guidance text only; it never changes the plan.
+             */
+            segment?: ("working" | "graduate" | "switcher") | null;
         };
         /** PathwayStep */
         PathwayStep: {

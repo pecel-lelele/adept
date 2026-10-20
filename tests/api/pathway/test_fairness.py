@@ -57,6 +57,7 @@ def test_identical_profiles_get_identical_pathways_end_to_end(client: TestClient
                 headers=headers,
             ).json()
             keys[uid] = [(s["skill_id"], [c["id"] for c in s["courses"]]) for s in body["steps"]]
+            assert body["segment"] == segment, "echoed for guidance text only"
         assert keys["aisyah"] == keys["weijie"] == keys["ravi"]
     finally:
         for p in originals.values():
