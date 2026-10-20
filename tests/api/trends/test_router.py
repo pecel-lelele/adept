@@ -40,6 +40,18 @@ class TestSnapshotEndpoint:
         assert body.meta.is_estimate is True
         assert len(body.items) > 0
 
+    def test_velocity_moderate_is_scenario_invariant(self, client: TestClient) -> None:
+        mod = client.get("/api/v1/trends/snapshot?scenario=moderate").json()["items"]
+        fast = client.get("/api/v1/trends/snapshot?scenario=fast").json()["items"]
+        mod_by_id = {i["skill_id"]: i for i in mod}
+        assert len(mod) == len(fast)
+        for item in fast:
+            baseline = mod_by_id[item["skill_id"]]
+            assert item["velocity_moderate"] == baseline["velocity_moderate"]
+            assert item["velocity_fast"] == baseline["velocity_fast"]
+            assert item["direction_moderate"] == baseline["direction_moderate"]
+            assert item["direction_fast"] == baseline["direction_fast"]
+
     def test_snapshot_default_no_date(self, client: TestClient) -> None:
         """Omitting snapshot_date returns the latest available snapshot."""
         resp = client.get("/api/v1/trends/snapshot", params={"scenario": "moderate"})
@@ -47,6 +59,28 @@ class TestSnapshotEndpoint:
         body = TrendSnapshotResponse.model_validate(resp.json())
         assert body.meta.snapshot_date is not None
         assert body.meta.available_snapshots  # must be non-empty
+
+    def test_multiple_available_snapshots_and_dates_differ(self, client: TestClient) -> None:
+        """Assert at least 2 available snapshots exist and return non-identical item sets."""
+        resp = client.get("/api/v1/trends/snapshot")
+        assert resp.status_code == 200
+        body = TrendSnapshotResponse.model_validate(resp.json())
+        dates = body.meta.available_snapshots
+        assert len(dates) >= 2, f"Expected >= 2 available snapshots, got {dates}"
+
+        # Query first date and second date
+        d1, d2 = dates[0].isoformat(), dates[-1].isoformat()
+        r1 = client.get(f"/api/v1/trends/snapshot?snapshot_date={d1}")
+        r2 = client.get(f"/api/v1/trends/snapshot?snapshot_date={d2}")
+        assert r1.status_code == 200
+        assert r2.status_code == 200
+        snap1 = TrendSnapshotResponse.model_validate(r1.json())
+        snap2 = TrendSnapshotResponse.model_validate(r2.json())
+
+        # Non-identical items between the two snapshots
+        items1 = {i.skill_id: i.velocity_moderate for i in snap1.items}
+        items2 = {i.skill_id: i.velocity_moderate for i in snap2.items}
+        assert items1 != items2, "Expected items to differ between different snapshot dates"
 
     def test_snapshot_default_scenario_is_moderate(self, client: TestClient) -> None:
         """Default scenario when not specified must be 'moderate'."""

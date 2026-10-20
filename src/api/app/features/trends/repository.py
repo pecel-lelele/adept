@@ -88,13 +88,6 @@ def _load_snapshot_db(snapshot_date: date, scenario: str) -> TrendSnapshotRespon
 
         items: list[SkillVelocity] = []
         for r in rows:
-            if scenario == "fast":
-                v_mod = r["velocity_fast"]
-                dir_mod = r["direction_fast"]
-            else:
-                v_mod = r["velocity_moderate"]
-                dir_mod = r["direction_moderate"]
-
             items.append(
                 SkillVelocity(
                     skill_id=r["skill_id"],
@@ -103,9 +96,9 @@ def _load_snapshot_db(snapshot_date: date, scenario: str) -> TrendSnapshotRespon
                     labor_decay=r["labor_decay"],
                     labor_decay_source_note=r["labor_decay_source_note"],
                     automation_exposure=r["automation_exposure"],
-                    velocity_moderate=v_mod,
+                    velocity_moderate=r["velocity_moderate"],
                     velocity_fast=r["velocity_fast"],
-                    direction_moderate=dir_mod,
+                    direction_moderate=r["direction_moderate"],
                     direction_fast=r["direction_fast"],
                 )
             )
@@ -149,7 +142,7 @@ def list_available_dates() -> list[date]:
         dates = _list_snapshot_dates_db()
         if dates:
             return dates
-    return [date.fromisoformat(d) for d in ["2026-10-20"]]
+    return [date.fromisoformat(d) for d in ["2026-10-13", "2026-10-20"]]
 
 
 def get_snapshot(snapshot_date: date | None, scenario: str) -> TrendSnapshotResponse:

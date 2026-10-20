@@ -81,6 +81,20 @@
 - **Replaces**: none
 - **PR / branch**: `feat/m1-trends-contract`
 
+### M1-002: Scenario-invariance fix, live dual-snapshot pipeline, and M2 dependency contract
+- **Date**: 2026-10-20
+- **Feature**: F2 (AI-trend signal layer), F3 (Disruption scenarios)
+- **Type**: formula | method | data source | contract
+- **Change**: 
+  1. Fixed scenario-invariance bug in `mocks.py` and `repository.py`: `velocity_moderate` and `velocity_fast` are fixed properties per skill and are now strictly invariant across scenario queries.
+  2. Verified M2 taxonomy status: Current seed taxonomy in `src/data/seed/taxonomy/skills.csv` has 12 skills (all 12 are exact matches with M1 canonical skills); M2's expanded target taxonomy (ESCO/O*NET/hybrid) is not yet implemented in the codebase. Canonical 110-skill taxonomy is preserved with compatible IDs.
+  3. Live pipeline operational with PostgreSQL pgvector: 110 skill embeddings populated in `skill_embeddings` via `all-MiniLM-L6-v2`; 789 real papers fetched and cached from arXiv cs.AI RSS. Generated two distinct dated snapshots in `trend_snapshots`: `2026-10-13` (baseline window 2026-W42) and `2026-10-20` (growth window 2026-W43). 38 skills exhibit velocity shifts and 27 skills show direction flips (e.g., `ai-agents` flips from `stable` to `rising`).
+  4. M2 matching dependency contract: Verified `src/api/app/features/matching/` does not yet consume trends. M2 needs to call `app.features.trends.service.get_snapshot(snapshot_date, scenario)` (or `GET /api/v1/trends/snapshot?snapshot_date=<date>&scenario=<scenario>`) and incorporate skill velocities into `trend_outlook` score components.
+- **Why**: Ensures trend-replay (C1) and disruption scenarios work deterministically against real data while keeping clear cross-team boundaries.
+- **Affects**: M2 (matching dynamic trend scoring), M4 (scenario toggle & trend replay UI)
+- **Replaces**: none
+- **PR / branch**: `feat/m1-trends-contract`
+
 ---
 
 ## M2: Profile Intake & Matching (F1, F4)

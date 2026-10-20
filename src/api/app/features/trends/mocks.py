@@ -186,18 +186,6 @@ def _parse_meta(raw_meta: dict, scenario: str) -> TrendSnapshotMeta:
 def _parse_items(raw_items: list[dict], scenario: str) -> list[SkillVelocity]:
     items = []
     for item in raw_items:
-        if scenario == "fast":
-            # Promote fast values to the primary fields for the scenario view.
-            v_mod = item["velocity_fast"]
-            v_fast = item["velocity_fast"]
-            dir_mod = item["direction_fast"]
-            dir_fast = item["direction_fast"]
-        else:
-            v_mod = item["velocity_moderate"]
-            v_fast = item["velocity_fast"]
-            dir_mod = item["direction_moderate"]
-            dir_fast = item["direction_fast"]
-
         items.append(
             SkillVelocity(
                 skill_id=item["skill_id"],
@@ -206,10 +194,10 @@ def _parse_items(raw_items: list[dict], scenario: str) -> list[SkillVelocity]:
                 labor_decay=item["labor_decay"],
                 labor_decay_source_note=item["labor_decay_source_note"],
                 automation_exposure=item["automation_exposure"],
-                velocity_moderate=v_mod,
-                velocity_fast=v_fast,
-                direction_moderate=dir_mod,  # type: ignore[arg-type]
-                direction_fast=dir_fast,  # type: ignore[arg-type]
+                velocity_moderate=item["velocity_moderate"],
+                velocity_fast=item["velocity_fast"],
+                direction_moderate=item["direction_moderate"],  # type: ignore[arg-type]
+                direction_fast=item["direction_fast"],  # type: ignore[arg-type]
             )
         )
     return items
