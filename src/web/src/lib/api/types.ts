@@ -647,6 +647,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/trends/snapshot": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Snapshot
+         * @description Return the trend snapshot for a given date and scenario.
+         *
+         *     The response includes meta.available_snapshots listing every stored date,
+         *     enabling the frontend's trend-replay toggle.
+         *     All scores are pre-computed by the pipeline; no network call is made here.
+         */
+        get: operations["trends_get_snapshot"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/trends/radar": {
         parameters: {
             query?: never;
@@ -1664,6 +1688,49 @@ export interface components {
             /** Closed */
             closed: boolean;
         };
+        /** SkillVelocity */
+        SkillVelocity: {
+            /** Skill Id */
+            skill_id: string;
+            /** Skill Label */
+            skill_label: string;
+            /**
+             * Research Velocity
+             * @description Log-ratio growth of arXiv mention frequency, t0->t1
+             */
+            research_velocity: number;
+            /**
+             * Labor Decay
+             * @description Annualized labor-baseline projected change, as a fraction
+             */
+            labor_decay: number;
+            /**
+             * Labor Decay Source Note
+             * @description Citation for labor_decay, e.g. 'BLS 2023-2033 projection for SOC 43-3031 (Bookkeeping Clerks), -5.4%/yr'
+             */
+            labor_decay_source_note: string;
+            /**
+             * Automation Exposure
+             * @description Curated editorial exposure coefficient, criteria published in docs/skill-exposure-methodology.md
+             */
+            automation_exposure: number;
+            /** Velocity Moderate */
+            velocity_moderate: number;
+            /** Velocity Fast */
+            velocity_fast: number;
+            /**
+             * Direction Moderate
+             * @description rising if velocity_moderate > 0.05, declining if < -0.05, else stable
+             * @enum {string}
+             */
+            direction_moderate: "rising" | "declining" | "stable";
+            /**
+             * Direction Fast
+             * @description rising if velocity_fast > 0.05, declining if < -0.05, else stable
+             * @enum {string}
+             */
+            direction_fast: "rising" | "declining" | "stable";
+        };
         /** SkillsUpdate */
         SkillsUpdate: {
             /** Skills */
@@ -1680,6 +1747,18 @@ export interface components {
              * Url
              * @description Empty only for mock data.
              */
+            url: string;
+            /**
+             * Retrieved At
+             * Format: date
+             */
+            retrieved_at: string;
+        };
+        /** SourceRef */
+        SourceRef: {
+            /** Name */
+            name: string;
+            /** Url */
             url: string;
             /**
              * Retrieved At
@@ -1757,6 +1836,49 @@ export interface components {
             automation_share: number;
             /** Augmentation Share */
             augmentation_share: number;
+        };
+        /** TrendSnapshotMeta */
+        TrendSnapshotMeta: {
+            /** Sources */
+            sources: components["schemas"]["SourceRef"][];
+            /**
+             * Snapshot Date
+             * Format: date
+             */
+            snapshot_date: string;
+            /**
+             * Scenario
+             * @enum {string}
+             */
+            scenario: "moderate" | "fast";
+            /**
+             * Is Estimate
+             * @default true
+             */
+            is_estimate: boolean;
+            /** Weights */
+            weights: {
+                [key: string]: number;
+            };
+            /**
+             * Labor Decay Is Static
+             * @description If true, labor_decay does not change between snapshots unless manually refreshed; diffing logic should only compare velocity_moderate/velocity_fast between snapshots.
+             * @default true
+             */
+            labor_decay_is_static: boolean;
+            /** Available Snapshots */
+            available_snapshots: string[];
+            /**
+             * Data Provenance Note
+             * @description Optional explanation of data provenance, e.g. for historical arXiv date-window pulls or demo calibration.
+             */
+            data_provenance_note?: string | null;
+        };
+        /** TrendSnapshotResponse */
+        TrendSnapshotResponse: {
+            meta: components["schemas"]["TrendSnapshotMeta"];
+            /** Items */
+            items: components["schemas"]["SkillVelocity"][];
         };
         /** UnmetSkill */
         UnmetSkill: {
@@ -2968,6 +3090,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SdgContribution"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    trends_get_snapshot: {
+        parameters: {
+            query?: {
+                /** @description Snapshot date (YYYY-MM-DD). Omit to get the latest available. */
+                snapshot_date?: string | null;
+                /** @description Disruption scenario: 'moderate' or 'fast'. */
+                scenario?: "moderate" | "fast";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrendSnapshotResponse"];
                 };
             };
             /** @description Validation Error */

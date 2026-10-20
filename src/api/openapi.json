@@ -2318,6 +2318,75 @@
         }
       }
     },
+    "/api/v1/trends/snapshot": {
+      "get": {
+        "tags": [
+          "trends"
+        ],
+        "summary": "Get Snapshot",
+        "description": "Return the trend snapshot for a given date and scenario.\n\nThe response includes meta.available_snapshots listing every stored date,\nenabling the frontend's trend-replay toggle.\nAll scores are pre-computed by the pipeline; no network call is made here.",
+        "operationId": "trends_get_snapshot",
+        "parameters": [
+          {
+            "name": "snapshot_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Snapshot date (YYYY-MM-DD). Omit to get the latest available.",
+              "title": "Snapshot Date"
+            },
+            "description": "Snapshot date (YYYY-MM-DD). Omit to get the latest available."
+          },
+          {
+            "name": "scenario",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "moderate",
+                "fast"
+              ],
+              "type": "string",
+              "description": "Disruption scenario: 'moderate' or 'fast'.",
+              "default": "moderate",
+              "title": "Scenario"
+            },
+            "description": "Disruption scenario: 'moderate' or 'fast'."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrendSnapshotResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/trends/radar": {
       "get": {
         "tags": [
@@ -4744,6 +4813,82 @@
         ],
         "title": "SkillProgress"
       },
+      "SkillVelocity": {
+        "properties": {
+          "skill_id": {
+            "type": "string",
+            "title": "Skill Id"
+          },
+          "skill_label": {
+            "type": "string",
+            "title": "Skill Label"
+          },
+          "research_velocity": {
+            "type": "number",
+            "title": "Research Velocity",
+            "description": "Log-ratio growth of arXiv mention frequency, t0->t1"
+          },
+          "labor_decay": {
+            "type": "number",
+            "title": "Labor Decay",
+            "description": "Annualized labor-baseline projected change, as a fraction"
+          },
+          "labor_decay_source_note": {
+            "type": "string",
+            "title": "Labor Decay Source Note",
+            "description": "Citation for labor_decay, e.g. 'BLS 2023-2033 projection for SOC 43-3031 (Bookkeeping Clerks), -5.4%/yr'"
+          },
+          "automation_exposure": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Automation Exposure",
+            "description": "Curated editorial exposure coefficient, criteria published in docs/skill-exposure-methodology.md"
+          },
+          "velocity_moderate": {
+            "type": "number",
+            "title": "Velocity Moderate"
+          },
+          "velocity_fast": {
+            "type": "number",
+            "title": "Velocity Fast"
+          },
+          "direction_moderate": {
+            "type": "string",
+            "enum": [
+              "rising",
+              "declining",
+              "stable"
+            ],
+            "title": "Direction Moderate",
+            "description": "rising if velocity_moderate > 0.05, declining if < -0.05, else stable"
+          },
+          "direction_fast": {
+            "type": "string",
+            "enum": [
+              "rising",
+              "declining",
+              "stable"
+            ],
+            "title": "Direction Fast",
+            "description": "rising if velocity_fast > 0.05, declining if < -0.05, else stable"
+          }
+        },
+        "type": "object",
+        "required": [
+          "skill_id",
+          "skill_label",
+          "research_velocity",
+          "labor_decay",
+          "labor_decay_source_note",
+          "automation_exposure",
+          "velocity_moderate",
+          "velocity_fast",
+          "direction_moderate",
+          "direction_fast"
+        ],
+        "title": "SkillVelocity"
+      },
       "SkillsUpdate": {
         "properties": {
           "skills": {
@@ -4787,6 +4932,30 @@
           "retrieved_at"
         ],
         "title": "Source"
+      },
+      "SourceRef": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "retrieved_at": {
+            "type": "string",
+            "format": "date",
+            "title": "Retrieved At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "url",
+          "retrieved_at"
+        ],
+        "title": "SourceRef"
       },
       "SourcesResponse": {
         "properties": {
@@ -4921,6 +5090,97 @@
           "augmentation_share"
         ],
         "title": "TrendSignal"
+      },
+      "TrendSnapshotMeta": {
+        "properties": {
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/SourceRef"
+            },
+            "type": "array",
+            "title": "Sources"
+          },
+          "snapshot_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Snapshot Date"
+          },
+          "scenario": {
+            "type": "string",
+            "enum": [
+              "moderate",
+              "fast"
+            ],
+            "title": "Scenario"
+          },
+          "is_estimate": {
+            "type": "boolean",
+            "title": "Is Estimate",
+            "default": true
+          },
+          "weights": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Weights"
+          },
+          "labor_decay_is_static": {
+            "type": "boolean",
+            "title": "Labor Decay Is Static",
+            "description": "If true, labor_decay does not change between snapshots unless manually refreshed; diffing logic should only compare velocity_moderate/velocity_fast between snapshots.",
+            "default": true
+          },
+          "available_snapshots": {
+            "items": {
+              "type": "string",
+              "format": "date"
+            },
+            "type": "array",
+            "title": "Available Snapshots"
+          },
+          "data_provenance_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data Provenance Note",
+            "description": "Optional explanation of data provenance, e.g. for historical arXiv date-window pulls or demo calibration."
+          }
+        },
+        "type": "object",
+        "required": [
+          "sources",
+          "snapshot_date",
+          "scenario",
+          "weights",
+          "available_snapshots"
+        ],
+        "title": "TrendSnapshotMeta"
+      },
+      "TrendSnapshotResponse": {
+        "properties": {
+          "meta": {
+            "$ref": "#/components/schemas/TrendSnapshotMeta"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SkillVelocity"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "meta",
+          "items"
+        ],
+        "title": "TrendSnapshotResponse"
       },
       "UnmetSkill": {
         "properties": {
