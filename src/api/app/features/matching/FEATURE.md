@@ -33,13 +33,12 @@ Replace `repository.py` reads with real data, keep the contracts stable.
 
 ## Pipeline
 
-Fill this in as the feature takes shape (copy it into the `docs/decisions.md` entry).
-
 | Stage | Choice | Notes |
 |---|---|---|
-| Source | | |
-| Preprocessing / cleaning | | |
-| Features | | |
-| Model / method | | |
-| Evaluation | | metric + result |
-| Serving | | endpoint(s) |
+| Source | Seed taxonomy (`roles.csv`, `role_skills.csv`), user profiles (`user_skills.csv`, `profiles.csv`), trend snapshots | Canonical skills (110) & roles (4 future target roles) |
+| Preprocessing / cleaning | Scale normalization (`UserSkill.level` 1–5 → 0..1), interest tag parsing | `(level - 1) / 4.0` |
+| Features | Skill overlap (`w=0.5`), percentile-ranked trend velocity (`w=0.3`), interest Jaccard fit (`w=0.2`) | Robust to outlier velocities; deterministic weights |
+| Model / method | Linear composite scoring with tie-breaking on `(-score, role_id)`, gap bucketing | Pure scoring functions; `MatchProfile` fairness whitelist |
+| Evaluation | Precision@k, Recall@k, MRR, nDCG@k on synthetic personas | Mean MRR=1.0, Mean P@3>=0.85, Mean nDCG@3>=0.90 |
+| Serving | `/api/v1/matching` (`list_matches`, `get_match`) | Explainable `ScoreComponent` breakdown + `SkillGap` |
+

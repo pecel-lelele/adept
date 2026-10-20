@@ -141,6 +141,22 @@
 
 <!-- M2 adds entries below this line -->
 
+### M2-001: Explainable matching engine, snapshot replay, fairness guards, and offline evaluation benchmark
+- **Date**: 2026-10-20
+- **Feature**: F4 (Future-Role Matching & Gap)
+- **Type**: model | method | formula | contract | data source
+- **Change**:
+  1. Implemented explainable scoring in `src/api/app/features/matching/scoring.py` with pure functions (`skill_overlap`, `trend_scores`, `role_trend`, `interest_fit`, `skills_gap`, `rank_roles`) using default weights (0.5 skill, 0.3 trend, 0.2 interest) and percentile-rank normalization for velocities to resist outlier suppression.
+  2. Implemented `replay.py` for evaluating role movement across dated snapshots (`RoleMovement` delta_rank and delta_score).
+  3. Implemented `trend_port.py` thin adapter to extract velocities from M1's `TrendSnapshotResponse`.
+  4. Added fairness whitelist (`MatchProfile` restricted to skills and interests; no protected demographic attributes) and counterfactual invariance tests (`test_counterfactual_fairness_demographic_swaps`) proving identical rankings under identity swaps (M2-12, M2-13).
+  5. Implemented evaluation metrics in `evaluation.py` (Precision@k, Recall@k, Reciprocal Rank, nDCG@k) and benchmark harness `tests/api/matching/test_evaluation.py` against hand-labelled ground truth `src/data/seed/personas/expected_roles.csv` for synthetic personas (Aisyah, Wei Jie, Ravi), achieving 100% MRR and >= 0.90 nDCG@3.
+- **Why**: F4 requires explainable, human-in-the-loop role matching with clear skill gap attribution, zero hallucinated jobs/skills, strict non-discrimination (SDG 10.2 & Federal Constitution Art. 8), and quantitative validation on synthetic personas.
+- **Pipeline** (data/ML only): taxonomy roles/skills + user profile + trend snapshot velocities -> skill overlap + rank-based trend score + interest Jaccard fit -> composite score -> tie-broken rank ordering -> gap bucketing (have/partial/missing) -> evaluation harness (MRR=1.0, P@3>=0.85, nDCG@3>=0.90).
+- **Affects**: M1 (trend snapshot consumption), M3 (pathway gap intake), M4 (match UI and HR heatmap)
+- **Replaces**: none
+- **PR / branch**: `feat/matching-scoring-engine`
+
 ---
 
 ## M3: Pathway, SDG & Guardrails (F5, F6, F8)
