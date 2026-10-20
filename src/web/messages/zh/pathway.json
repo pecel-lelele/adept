@@ -8,7 +8,7 @@
   "hrdClaimable": "可申请 HRD Corp 报销",
   "verified": "核实于 {date}",
   "progressTitle": "您的进度",
-  "progressBody": "完成课程后请勾选。徽章依据您自行报告的进度，而非考核。",
+  "progressBody": "完成课程后请勾选。每个徽章会显示其课程的证明方式：自行报告、证书链接或由您的机构确认。徽章并非考核。",
   "estimateNote": "周数及每门课程可达到的水平均为估计。",
   "catalogueOnly": "课程仅来自我们的目录，每门课程都附有来源和核实日期。",
   "summary": {
@@ -59,7 +59,6 @@
     "markUndone": "撤销",
     "badges": "徽章",
     "noBadges": "还没有徽章。完成一门课程即可获得第一枚。",
-    "selfReported": "自行报告",
     "skills": "技能",
     "level": "水平 {current}/{target}",
     "courses": "计划中的课程"
@@ -107,5 +106,38 @@
       "corporate": "企业",
       "both": "个人与企业"
     }
+  },
+  "evidence": {
+    "hint": "勾选课程属于自行报告。添加提供方的证书链接可增强可信度；您的 HR 或职业顾问可以确认。",
+    "addProof": "添加证书链接",
+    "urlPlaceholder": "https://www.coursera.org/account/accomplishments/verify/…",
+    "sent": "链接已保存并检查。",
+    "reviewNote": "审核备注：{note}",
+    "kind": {
+      "self_reported": "自行报告",
+      "certificate_link": "证书链接",
+      "org_confirmed": "已由您的机构确认",
+      "org_rejected": "未被您的机构接受"
+    },
+    "link": {
+      "not_submitted": "尚无链接",
+      "provider_verified": "官方提供方页面，已检查",
+      "unreachable": "无法打开链接",
+      "not_provider_page": "非官方验证页面：需要人工核对"
+    }
+  },
+  "verify": {
+    "title": "审核课程完成情况",
+    "description": "确认或拒绝机构成员报告的课程完成情况。学员会看到您的决定和备注。",
+    "hrdHint": "对于可申请 HRD Corp 的课程，请以 HRD Corp 申请中提供方的出勤记录为依据。",
+    "pending": "{count} 项待审核",
+    "empty": "尚无报告的完成情况。",
+    "forRole": "计划：{role}",
+    "openProof": "打开证书链接",
+    "checkName": "请核对姓名和课程是否一致",
+    "note": "给学员的备注",
+    "notePlaceholder": "给学员的备注（可选）",
+    "confirm": "确认",
+    "reject": "拒绝"
   }
 }

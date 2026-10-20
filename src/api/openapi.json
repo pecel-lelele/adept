@@ -1256,6 +1256,236 @@
         }
       }
     },
+    "/api/v1/pathway/progress/evidence": {
+      "post": {
+        "tags": [
+          "pathway"
+        ],
+        "summary": "Submit Evidence",
+        "description": "Attach a certificate link to a completed course; it is checked against the provider's\nofficial verification pages and shown to the learner's HR or career advisor.",
+        "operationId": "pathway_submit_evidence",
+        "parameters": [
+          {
+            "name": "scenario",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "moderate",
+                "fast"
+              ],
+              "type": "string",
+              "default": "moderate",
+              "title": "Scenario"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvidenceSubmit"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Progress"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pathway/verifications": {
+      "get": {
+        "tags": [
+          "pathway"
+        ],
+        "summary": "Get Verification Queue",
+        "description": "HR / career-centre staff: completions by members of their organisation to review.",
+        "operationId": "pathway_get_verification_queue",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerificationQueue"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "pathway"
+        ],
+        "summary": "Review Completion",
+        "description": "Confirm or reject a member's completion (with an optional note).",
+        "operationId": "pathway_review_completion",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewDecision"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerificationItem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/profile": {
       "post": {
         "tags": [
@@ -2219,8 +2449,13 @@
           },
           "evidence": {
             "type": "string",
-            "const": "self_reported",
+            "enum": [
+              "self_reported",
+              "certificate_link",
+              "org_confirmed"
+            ],
             "title": "Evidence",
+            "description": "Weakest evidence behind the badge.",
             "default": "self_reported"
           },
           "skill_id": {
@@ -2277,6 +2512,105 @@
           "meta"
         ],
         "title": "CatalogueResponse"
+      },
+      "CompletionEvidence": {
+        "properties": {
+          "role_id": {
+            "type": "string",
+            "title": "Role Id"
+          },
+          "course_id": {
+            "type": "string",
+            "title": "Course Id"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "self_reported",
+              "certificate_link",
+              "org_confirmed",
+              "org_rejected"
+            ],
+            "title": "Kind"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url",
+            "description": "Certificate or credential link."
+          },
+          "link_status": {
+            "type": "string",
+            "enum": [
+              "not_submitted",
+              "provider_verified",
+              "unreachable",
+              "not_provider_page"
+            ],
+            "title": "Link Status",
+            "default": "not_submitted"
+          },
+          "link_checked_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Link Checked At"
+          },
+          "submitted_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Submitted At"
+          },
+          "reviewed_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed By",
+            "description": "HR or advisor who reviewed it."
+          },
+          "reviewed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed At"
+          },
+          "review_note": {
+            "type": "string",
+            "title": "Review Note",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "role_id",
+          "course_id",
+          "kind",
+          "submitted_at"
+        ],
+        "title": "CompletionEvidence"
       },
       "CounterfactualResult": {
         "properties": {
@@ -2656,6 +2990,34 @@
           "meta"
         ],
         "title": "EntitySdgLinks"
+      },
+      "EvidenceSubmit": {
+        "properties": {
+          "role_id": {
+            "type": "string",
+            "maxLength": 80,
+            "title": "Role Id"
+          },
+          "course_id": {
+            "type": "string",
+            "maxLength": 120,
+            "title": "Course Id"
+          },
+          "url": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 12,
+            "pattern": "^https://",
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role_id",
+          "course_id",
+          "url"
+        ],
+        "title": "EvidenceSubmit"
       },
       "ExtractedSkill": {
         "properties": {
@@ -3479,6 +3841,14 @@
             "type": "array",
             "title": "Badges"
           },
+          "evidence": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/CompletionEvidence"
+            },
+            "type": "object",
+            "title": "Evidence",
+            "description": "Course id -> completion evidence."
+          },
           "pathway": {
             "$ref": "#/components/schemas/Pathway",
             "description": "The plan this progress is tracked against."
@@ -3661,6 +4031,47 @@
           "meta"
         ],
         "title": "ReplanStatus"
+      },
+      "ReviewDecision": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "maxLength": 120,
+            "title": "User Id"
+          },
+          "role_id": {
+            "type": "string",
+            "maxLength": 80,
+            "title": "Role Id"
+          },
+          "course_id": {
+            "type": "string",
+            "maxLength": 120,
+            "title": "Course Id"
+          },
+          "decision": {
+            "type": "string",
+            "enum": [
+              "confirm",
+              "reject"
+            ],
+            "title": "Decision"
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 300,
+            "title": "Note",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "role_id",
+          "course_id",
+          "decision"
+        ],
+        "title": "ReviewDecision"
       },
       "RoleMatch": {
         "properties": {
@@ -4592,6 +5003,82 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "VerificationItem": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
+          },
+          "role_id": {
+            "type": "string",
+            "title": "Role Id"
+          },
+          "course": {
+            "$ref": "#/components/schemas/Course"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "not_started",
+              "in_progress",
+              "completed"
+            ],
+            "title": "Status"
+          },
+          "evidence": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CompletionEvidence"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "display_name",
+          "role_id",
+          "course",
+          "status",
+          "evidence"
+        ],
+        "title": "VerificationItem"
+      },
+      "VerificationQueue": {
+        "properties": {
+          "org_id": {
+            "type": "string",
+            "title": "Org Id"
+          },
+          "pending": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Pending",
+            "description": "Completions not yet confirmed or rejected."
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/VerificationItem"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "org_id",
+          "pending",
+          "items"
+        ],
+        "title": "VerificationQueue"
       }
     }
   }

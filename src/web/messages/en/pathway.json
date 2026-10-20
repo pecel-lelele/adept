@@ -8,7 +8,7 @@
   "hrdClaimable": "HRD Corp claimable",
   "verified": "verified {date}",
   "progressTitle": "Your progress",
-  "progressBody": "Tick courses as you finish them. Badges reflect what you report (self-reported), not an assessment.",
+  "progressBody": "Tick courses as you finish them. Each badge shows how its courses are evidenced: self-reported, certificate link, or confirmed by your organisation. Badges are not an assessment.",
   "estimateNote": "Weeks and the level each course brings you to are estimates.",
   "catalogueOnly": "Courses come only from our catalogue, each with its source and the date we checked it.",
   "summary": {
@@ -59,7 +59,6 @@
     "markUndone": "Undo",
     "badges": "Badges",
     "noBadges": "No badges yet. Finish a course to earn your first.",
-    "selfReported": "self-reported",
     "skills": "Skills",
     "level": "Level {current} of {target}",
     "courses": "Courses in your plan"
@@ -107,5 +106,38 @@
       "corporate": "Companies",
       "both": "Individuals and companies"
     }
+  },
+  "evidence": {
+    "hint": "Ticking a course is self-reported. Add the provider's certificate link to strengthen it; your HR or career advisor can confirm it.",
+    "addProof": "Add certificate link",
+    "urlPlaceholder": "https://www.coursera.org/account/accomplishments/verify/…",
+    "sent": "Link saved and checked.",
+    "reviewNote": "Reviewer's note: {note}",
+    "kind": {
+      "self_reported": "Self-reported",
+      "certificate_link": "Certificate link",
+      "org_confirmed": "Confirmed by your organisation",
+      "org_rejected": "Not accepted by your organisation"
+    },
+    "link": {
+      "not_submitted": "no link yet",
+      "provider_verified": "official provider page, checked",
+      "unreachable": "link could not be opened",
+      "not_provider_page": "not an official verification page: needs a manual check"
+    }
+  },
+  "verify": {
+    "title": "Review course completions",
+    "description": "Confirm or reject completions reported by members of your organisation. Learners see your decision and note.",
+    "hrdHint": "For HRD Corp-claimable courses, the provider's attendance record in your HRD Corp claim is the proof to check against.",
+    "pending": "{count} waiting for review",
+    "empty": "No completions reported yet.",
+    "forRole": "Plan: {role}",
+    "openProof": "Open certificate link",
+    "checkName": "check that the name and course match",
+    "note": "Note to the learner",
+    "notePlaceholder": "Optional note to the learner",
+    "confirm": "Confirm",
+    "reject": "Reject"
   }
 }

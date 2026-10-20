@@ -8,7 +8,7 @@
   "hrdClaimable": "Boleh dituntut HRD Corp",
   "verified": "disahkan {date}",
   "progressTitle": "Kemajuan anda",
-  "progressBody": "Tandakan kursus apabila selesai. Lencana berdasarkan laporan anda sendiri, bukan penilaian.",
+  "progressBody": "Tandakan kursus apabila selesai. Setiap lencana menunjukkan bukti kursusnya: laporan sendiri, pautan sijil, atau disahkan oleh organisasi anda. Lencana bukan penilaian.",
   "estimateNote": "Bilangan minggu dan tahap yang dicapai bagi setiap kursus ialah anggaran.",
   "catalogueOnly": "Kursus hanya daripada katalog kami, setiap satu dengan sumber dan tarikh semakan.",
   "summary": {
@@ -59,7 +59,6 @@
     "markUndone": "Batal",
     "badges": "Lencana",
     "noBadges": "Belum ada lencana. Selesaikan satu kursus untuk lencana pertama.",
-    "selfReported": "dilaporkan sendiri",
     "skills": "Kemahiran",
     "level": "Tahap {current} daripada {target}",
     "courses": "Kursus dalam pelan anda"
@@ -107,5 +106,38 @@
       "corporate": "Syarikat",
       "both": "Individu dan syarikat"
     }
+  },
+  "evidence": {
+    "hint": "Menanda kursus ialah laporan sendiri. Tambah pautan sijil penyedia untuk mengukuhkannya; HR atau penasihat kerjaya anda boleh mengesahkannya.",
+    "addProof": "Tambah pautan sijil",
+    "urlPlaceholder": "https://www.coursera.org/account/accomplishments/verify/…",
+    "sent": "Pautan disimpan dan disemak.",
+    "reviewNote": "Nota penyemak: {note}",
+    "kind": {
+      "self_reported": "Dilaporkan sendiri",
+      "certificate_link": "Pautan sijil",
+      "org_confirmed": "Disahkan oleh organisasi anda",
+      "org_rejected": "Tidak diterima oleh organisasi anda"
+    },
+    "link": {
+      "not_submitted": "belum ada pautan",
+      "provider_verified": "halaman rasmi penyedia, disemak",
+      "unreachable": "pautan tidak dapat dibuka",
+      "not_provider_page": "bukan halaman pengesahan rasmi: perlu disemak secara manual"
+    }
+  },
+  "verify": {
+    "title": "Semak penyiapan kursus",
+    "description": "Sahkan atau tolak penyiapan yang dilaporkan oleh ahli organisasi anda. Pelajar melihat keputusan dan nota anda.",
+    "hrdHint": "Bagi kursus yang boleh dituntut HRD Corp, rekod kehadiran penyedia dalam tuntutan HRD Corp anda ialah bukti untuk disemak.",
+    "pending": "{count} menunggu semakan",
+    "empty": "Belum ada penyiapan dilaporkan.",
+    "forRole": "Pelan: {role}",
+    "openProof": "Buka pautan sijil",
+    "checkName": "semak nama dan kursus sepadan",
+    "note": "Nota kepada pelajar",
+    "notePlaceholder": "Nota pilihan kepada pelajar",
+    "confirm": "Sahkan",
+    "reject": "Tolak"
   }
 }

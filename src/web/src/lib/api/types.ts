@@ -335,6 +335,51 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/pathway/progress/evidence": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Submit Evidence
+         * @description Attach a certificate link to a completed course; it is checked against the provider's
+         *     official verification pages and shown to the learner's HR or career advisor.
+         */
+        post: operations["pathway_submit_evidence"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pathway/verifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Verification Queue
+         * @description HR / career-centre staff: completions by members of their organisation to review.
+         */
+        get: operations["pathway_get_verification_queue"];
+        put?: never;
+        /**
+         * Review Completion
+         * @description Confirm or reject a member's completion (with an optional note).
+         */
+        post: operations["pathway_review_completion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/profile": {
         parameters: {
             query?: never;
@@ -658,10 +703,11 @@ export interface components {
             earned_at: string;
             /**
              * Evidence
+             * @description Weakest evidence behind the badge.
              * @default self_reported
-             * @constant
+             * @enum {string}
              */
-            evidence: "self_reported";
+            evidence: "self_reported" | "certificate_link" | "org_confirmed";
             /** Skill Id */
             skill_id?: string | null;
         };
@@ -675,6 +721,48 @@ export interface components {
             /** Courses */
             courses: components["schemas"]["Course"][];
             meta: components["schemas"]["RecommendationMeta"];
+        };
+        /** CompletionEvidence */
+        CompletionEvidence: {
+            /** Role Id */
+            role_id: string;
+            /** Course Id */
+            course_id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "self_reported" | "certificate_link" | "org_confirmed" | "org_rejected";
+            /**
+             * Url
+             * @description Certificate or credential link.
+             */
+            url?: string | null;
+            /**
+             * Link Status
+             * @default not_submitted
+             * @enum {string}
+             */
+            link_status: "not_submitted" | "provider_verified" | "unreachable" | "not_provider_page";
+            /** Link Checked At */
+            link_checked_at?: string | null;
+            /**
+             * Submitted At
+             * Format: date-time
+             */
+            submitted_at: string;
+            /**
+             * Reviewed By
+             * @description HR or advisor who reviewed it.
+             */
+            reviewed_by?: string | null;
+            /** Reviewed At */
+            reviewed_at?: string | null;
+            /**
+             * Review Note
+             * @default
+             */
+            review_note: string;
         };
         /** CounterfactualResult */
         CounterfactualResult: {
@@ -851,6 +939,15 @@ export interface components {
             /** Links */
             links: components["schemas"]["SdgLink"][];
             meta: components["schemas"]["RecommendationMeta"];
+        };
+        /** EvidenceSubmit */
+        EvidenceSubmit: {
+            /** Role Id */
+            role_id: string;
+            /** Course Id */
+            course_id: string;
+            /** Url */
+            url: string;
         };
         /** ExtractedSkill */
         ExtractedSkill: {
@@ -1206,6 +1303,13 @@ export interface components {
             gap_total: number;
             /** Badges */
             badges: components["schemas"]["Badge"][];
+            /**
+             * Evidence
+             * @description Course id -> completion evidence.
+             */
+            evidence?: {
+                [key: string]: components["schemas"]["CompletionEvidence"];
+            };
             /** @description The plan this progress is tracked against. */
             pathway: components["schemas"]["Pathway"];
             meta: components["schemas"]["RecommendationMeta"];
@@ -1269,6 +1373,25 @@ export interface components {
             /** Message */
             message: string;
             meta: components["schemas"]["RecommendationMeta"];
+        };
+        /** ReviewDecision */
+        ReviewDecision: {
+            /** User Id */
+            user_id: string;
+            /** Role Id */
+            role_id: string;
+            /** Course Id */
+            course_id: string;
+            /**
+             * Decision
+             * @enum {string}
+             */
+            decision: "confirm" | "reject";
+            /**
+             * Note
+             * @default
+             */
+            note: string;
         };
         /** RoleMatch */
         RoleMatch: {
@@ -1667,6 +1790,34 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /** VerificationItem */
+        VerificationItem: {
+            /** User Id */
+            user_id: string;
+            /** Display Name */
+            display_name: string;
+            /** Role Id */
+            role_id: string;
+            course: components["schemas"]["Course"];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "not_started" | "in_progress" | "completed";
+            evidence: components["schemas"]["CompletionEvidence"] | null;
+        };
+        /** VerificationQueue */
+        VerificationQueue: {
+            /** Org Id */
+            org_id: string;
+            /**
+             * Pending
+             * @description Completions not yet confirmed or rejected.
+             */
+            pending: number;
+            /** Items */
+            items: components["schemas"]["VerificationItem"][];
         };
     };
     responses: never;
@@ -2242,6 +2393,112 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Progress"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    pathway_submit_evidence: {
+        parameters: {
+            query?: {
+                scenario?: "moderate" | "fast";
+            };
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EvidenceSubmit"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Progress"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    pathway_get_verification_queue: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VerificationQueue"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    pathway_review_completion: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewDecision"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VerificationItem"];
                 };
             };
             /** @description Validation Error */

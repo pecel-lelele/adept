@@ -57,3 +57,40 @@ export async function updateProgressAction(_: ActionState, form: FormData): Prom
     "/app/progress",
   );
 }
+
+/** Learner attaches a certificate link; the API checks it against the provider's pages. */
+export async function submitEvidenceAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const api = await getApi();
+  return settle(
+    api.POST("/api/v1/pathway/progress/evidence", {
+      params: { query: { scenario: parseScenario(text(form, "scenario")) } },
+      body: {
+        role_id: text(form, "role_id"),
+        course_id: text(form, "course_id"),
+        url: (form.get("url")?.toString() ?? "").slice(0, 500),
+      },
+    }),
+    "/app/progress",
+  );
+}
+
+/** HR / advisor confirms or rejects a member's completion. */
+export async function reviewCompletionAction(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const decision = text(form, "decision") === "reject" ? "reject" : "confirm";
+  const api = await getApi();
+  return settle(
+    api.POST("/api/v1/pathway/verifications", {
+      body: {
+        user_id: text(form, "user_id"),
+        role_id: text(form, "role_id"),
+        course_id: text(form, "course_id"),
+        decision,
+        note: (form.get("note")?.toString() ?? "").slice(0, 300),
+      },
+    }),
+    "/org/verify",
+  );
+}
