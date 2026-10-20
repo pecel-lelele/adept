@@ -123,6 +123,18 @@
 - **Replaces**: none
 - **PR / branch**: `feat/m1-trends-contract`
 
+### M1-005: Line-ending normalization (.gitattributes), OpenAPI parity, and single-connection request resolution
+- **Date**: 2026-10-20
+- **Feature**: F2 (AI-trend signal layer), F3 (Disruption scenarios)
+- **Type**: contract | method | other
+- **Change**:
+  1. Part 0 (Contract Drift Root Cause & Fix): Root-caused CI contract drift to two sources: (a) FastAPI version divergence where CI resolved FastAPI 0.151.0 (via `fastapi>=0.115,<1` in `requirements.txt`) which formats UploadFile schemas using `"contentMediaType": "application/octet-stream"` instead of older `"format": "binary"`; and (b) missing `.gitattributes` allowing Windows CRLF conversion under `core.autocrlf=true`. Upgraded local virtualenv dependencies, created root `.gitattributes` enforcing deterministic LF line endings for text files and generated contracts (`src/api/openapi.json`, `src/web/src/lib/api/types.ts`), and renormalized the git tree. Confirmed 100% byte-for-byte identical output between Windows and Linux Docker container `python:3.11-slim`.
+  2. Part 1 (Greptile P2 - Single Connection & Dates Query): Refactored `repository.py` and `service.py` to resolve authoritative source ("db" vs "fixture") and available dates simultaneously in a single database round-trip via `ResolvedContext`. Reuses the open connection and pre-resolved date list across `get_snapshot()` and `_load_snapshot_db()`, eliminating redundant `SELECT DISTINCT snapshot_date` queries. Added unit test `test_snapshot_request_opens_single_connection_and_single_dates_query` verifying exactly 1 database connection and 1 dates query per live request.
+- **Why**: Eliminates recurring CI contract drift failures across operating systems and resolves Greptile P2 performance finding by removing redundant round-trips.
+- **Affects**: none (M1 internal optimization and contract parity)
+- **Replaces**: none
+- **PR / branch**: `feat/m1-trends-contract`
+
 ---
 
 ## M2: Profile Intake & Matching (F1, F4)

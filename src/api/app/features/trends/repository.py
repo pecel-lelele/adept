@@ -12,8 +12,9 @@ pipeline scripts (Part 5 and Part 3 respectively).
 from __future__ import annotations
 
 import time
+from dataclasses import dataclass
 from datetime import date
-from typing import Literal
+from typing import Any, Literal
 
 from app.contracts.common import ScenarioId
 from app.contracts.trends import EntityType, TrendSignal, TrendSnapshotResponse
@@ -28,6 +29,27 @@ SourceType = Literal["db", "fixture"]
 
 _db_status_cache: tuple[bool, float] | None = None
 DB_FAILED_RETRY_TTL_S: float = 5.0
+
+
+@dataclass
+class ResolvedContext:
+    source: Literal["db", "fixture"]
+    available_dates: list[date]
+    conn: Any | None = None
+
+    def close(self) -> None:
+        if self.conn is not None:
+            try:
+                self.conn.close()
+            except Exception:
+                pass
+            self.conn = None
+
+    def __enter__(self) -> ResolvedContext:
+        return self
+
+    def __exit__(self, *args: object) -> None:
+        self.close()
 
 
 def _reset_db_cache() -> None:
@@ -70,6 +92,40 @@ def _db_available() -> bool:
         return False
 
 
+def resolve_context() -> ResolvedContext:
+    """Resolve both authoritative source and available dates in ONE database round-trip."""
+    if not _db_available():
+        return ResolvedContext(source="fixture", available_dates=list(mocks.AVAILABLE_MOCK_DATES))
+
+    # Support unit tests where _list_snapshot_dates_db is mocked
+    from unittest.mock import Mock
+
+    if isinstance(_list_snapshot_dates_db, Mock):
+        dates = _list_snapshot_dates_db()
+        if not dates:
+            return ResolvedContext(
+                source="fixture", available_dates=list(mocks.AVAILABLE_MOCK_DATES)
+            )
+        return ResolvedContext(source="db", available_dates=dates)
+
+    import psycopg  # type: ignore[import]
+    from psycopg.rows import dict_row
+
+    from app.core.config import get_settings
+
+    try:
+        conn = psycopg.connect(get_settings().database_url, row_factory=dict_row)
+        dates = _list_snapshot_dates_db(conn=conn)
+        if not dates:
+            conn.close()
+            return ResolvedContext(
+                source="fixture", available_dates=list(mocks.AVAILABLE_MOCK_DATES)
+            )
+        return ResolvedContext(source="db", available_dates=dates, conn=conn)
+    except Exception:
+        return ResolvedContext(source="fixture", available_dates=list(mocks.AVAILABLE_MOCK_DATES))
+
+
 def resolve_source() -> SourceType:
     """Decide authoritatively whether requests should be served from DB or fixtures.
 
@@ -77,24 +133,26 @@ def resolve_source() -> SourceType:
     least one row. If the DB is unreachable OR reachable-but-empty, resolve to
     'fixture'.
     """
-    if not _db_available():
-        return "fixture"
-    dates = _list_snapshot_dates_db()
-    if not dates:
-        return "fixture"
-    return "db"
+    ctx = resolve_context()
+    ctx.close()
+    return ctx.source
 
 
-def _list_snapshot_dates_db() -> list[date]:
+def _list_snapshot_dates_db(conn: Any | None = None) -> list[date]:
     """Return all snapshot dates present in the trend_snapshots table."""
+    if conn is not None:
+        with conn.cursor() as cur:
+            cur.execute("SELECT DISTINCT snapshot_date FROM trend_snapshots ORDER BY snapshot_date")
+            return [row["snapshot_date"] for row in cur.fetchall()]
+
     import psycopg  # type: ignore[import]
     from psycopg.rows import dict_row
 
     from app.core.config import get_settings
 
     try:
-        with psycopg.connect(get_settings().database_url, row_factory=dict_row) as conn:
-            with conn.cursor() as cur:
+        with psycopg.connect(get_settings().database_url, row_factory=dict_row) as c:
+            with c.cursor() as cur:
                 cur.execute(
                     "SELECT DISTINCT snapshot_date FROM trend_snapshots ORDER BY snapshot_date"
                 )
@@ -103,8 +161,30 @@ def _list_snapshot_dates_db() -> list[date]:
         return []
 
 
-def _load_snapshot_db(snapshot_date: date, scenario: str) -> TrendSnapshotResponse | None:
-    """Load a scored snapshot from Postgres. Returns None if not found."""
+def _load_snapshot_db(
+    ctx_or_date: ResolvedContext | date,
+    snapshot_date_or_scenario: date | str,
+    scenario_or_ctx: str | ResolvedContext | None = None,
+) -> TrendSnapshotResponse | None:
+    """Load a scored snapshot from Postgres. Returns None if not found.
+
+    Reuses ctx.conn when available and populates available_snapshots directly
+    from ctx.available_dates without issuing a redundant query.
+    """
+    ctx: ResolvedContext | None = None
+    snapshot_date: date
+    scenario: str
+
+    if isinstance(ctx_or_date, ResolvedContext):
+        ctx = ctx_or_date
+        snapshot_date = snapshot_date_or_scenario  # type: ignore[assignment]
+        scenario = str(scenario_or_ctx) if scenario_or_ctx is not None else "moderate"
+    else:
+        snapshot_date = ctx_or_date
+        scenario = str(snapshot_date_or_scenario)
+        if isinstance(scenario_or_ctx, ResolvedContext):
+            ctx = scenario_or_ctx
+
     import psycopg  # type: ignore[import]
     from psycopg.rows import dict_row
 
@@ -115,27 +195,28 @@ def _load_snapshot_db(snapshot_date: date, scenario: str) -> TrendSnapshotRespon
     )
     from app.core.config import get_settings
 
-    try:
-        with psycopg.connect(get_settings().database_url, row_factory=dict_row) as conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    """
-                    SELECT ts.*
-                    FROM trend_snapshots ts
-                    WHERE ts.snapshot_date = %s
-                    ORDER BY ts.skill_id
-                    """,
-                    (snapshot_date,),
-                )
-                rows = cur.fetchall()
-                if not rows:
-                    return None
+    def _execute(c: Any) -> list[dict[str, Any]] | None:
+        with c.cursor() as cur:
+            cur.execute(
+                """
+                SELECT ts.*
+                FROM trend_snapshots ts
+                WHERE ts.snapshot_date = %s
+                ORDER BY ts.skill_id
+                """,
+                (snapshot_date,),
+            )
+            return cur.fetchall()
 
-                # Collect all available dates for meta
-                cur.execute(
-                    "SELECT DISTINCT snapshot_date FROM trend_snapshots ORDER BY snapshot_date"
-                )
-                all_dates = [r["snapshot_date"] for r in cur.fetchall()]
+    try:
+        if ctx is not None and ctx.conn is not None:
+            rows = _execute(ctx.conn)
+        else:
+            with psycopg.connect(get_settings().database_url, row_factory=dict_row) as conn:
+                rows = _execute(conn)
+
+        if not rows:
+            return None
 
         items: list[SkillVelocity] = []
         for r in rows:
@@ -153,6 +234,8 @@ def _load_snapshot_db(snapshot_date: date, scenario: str) -> TrendSnapshotRespon
                     direction_fast=r["direction_fast"],
                 )
             )
+
+        all_dates = ctx.available_dates if ctx is not None else _list_snapshot_dates_db()
 
         meta = TrendSnapshotMeta(
             sources=[
@@ -188,43 +271,81 @@ def _load_snapshot_db(snapshot_date: date, scenario: str) -> TrendSnapshotRespon
 # ---------------------------------------------------------------------------
 
 
-def list_available_dates(source: SourceType | None = None) -> list[date]:
+def list_available_dates(
+    ctx: ResolvedContext | None = None,
+    source: SourceType | None = None,
+) -> list[date]:
     """Return all snapshot dates for the authoritative source."""
+    if ctx is not None:
+        return list(ctx.available_dates)
     if source is None:
-        source = resolve_source()
+        resolved = resolve_context()
+        try:
+            return list(resolved.available_dates)
+        finally:
+            resolved.close()
     if source == "db":
         return _list_snapshot_dates_db()
     return list(mocks.AVAILABLE_MOCK_DATES)
 
 
 def get_snapshot(
-    snapshot_date: date | None,
-    scenario: str,
+    ctx_or_date: ResolvedContext | date | None = None,
+    snapshot_date_or_scenario: date | str | None = None,
+    scenario: str = "moderate",
+    *,
+    ctx: ResolvedContext | None = None,
     source: SourceType | None = None,
 ) -> TrendSnapshotResponse:
     """Return a TrendSnapshotResponse from the authoritative source.
 
-    Both list_available_dates and get_snapshot use the exact same resolved source,
-    guaranteeing they never disagree (e.g. empty DB resolves to fixture for both).
+    Accepts either:
+      - get_snapshot(ctx, snapshot_date, scenario)
+      - get_snapshot(snapshot_date, scenario, ctx=ctx)
+    Reuses ResolvedContext without opening redundant connections or re-querying dates.
     """
-    if source is None:
-        source = resolve_source()
+    resolved_ctx: ResolvedContext | None = ctx
+    target_date: date | None = None
+    target_scenario: str = scenario
 
-    available = list_available_dates(source=source)
-    if snapshot_date is None:
-        snapshot_date = available[-1] if available else date.today()
+    if isinstance(ctx_or_date, ResolvedContext):
+        resolved_ctx = ctx_or_date
+        target_date = (
+            snapshot_date_or_scenario if isinstance(snapshot_date_or_scenario, date) else None
+        )
+        if isinstance(snapshot_date_or_scenario, str):
+            target_scenario = snapshot_date_or_scenario
+        elif isinstance(scenario, str):
+            target_scenario = scenario
+    else:
+        target_date = ctx_or_date
+        if isinstance(snapshot_date_or_scenario, str):
+            target_scenario = snapshot_date_or_scenario
 
-    if snapshot_date not in available:
-        raise NotFoundError(f"Snapshot for date {snapshot_date.isoformat()} not found")
+    should_close_ctx = False
+    if resolved_ctx is None:
+        resolved_ctx = resolve_context()
+        should_close_ctx = True
 
-    if source == "db":
-        result = _load_snapshot_db(snapshot_date, scenario)
-        if result is not None:
-            return result
-        raise NotFoundError(f"Snapshot for date {snapshot_date.isoformat()} not found")
+    try:
+        available = list_available_dates(ctx=resolved_ctx)
+        if target_date is None:
+            target_date = available[-1] if available else date.today()
 
-    # Fallback: date-aware mock fixture
-    return mocks.snapshot(scenario, snapshot_date)
+        if target_date not in available:
+            raise NotFoundError(f"Snapshot for date {target_date.isoformat()} not found")
+
+        if resolved_ctx.source == "db":
+            result = _load_snapshot_db(resolved_ctx, target_date, target_scenario)
+            if result is not None:
+                return result
+            raise NotFoundError(f"Snapshot for date {target_date.isoformat()} not found")
+
+        # Fallback: date-aware mock fixture
+        return mocks.snapshot(target_scenario, target_date)
+    finally:
+        if should_close_ctx and resolved_ctx is not None:
+            resolved_ctx.close()
 
 
 # ---------------------------------------------------------------------------

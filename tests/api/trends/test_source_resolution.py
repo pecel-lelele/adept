@@ -106,3 +106,73 @@ def test_populated_database_resolves_to_db_and_reflects_db_dates(client: TestCli
         resp = client.get("/api/v1/trends/snapshot?snapshot_date=2026-10-13")
         assert resp.status_code == 404
         assert resp.json()["error"]["code"] == "not_found"
+
+
+def test_snapshot_request_opens_single_connection_and_single_dates_query(
+    client: TestClient,
+) -> None:
+    """Greptile P2: GET /api/v1/trends/snapshot opens exactly ONE DB connection
+    and ONE dates query.
+    """
+    repository._reset_db_cache()
+    # Cache positive DB availability so no extra SELECT 1 connection is made
+    repository._db_status_cache = (True, 9999999999.0)
+
+    from unittest.mock import MagicMock, patch
+
+    connect_calls = 0
+    executed_queries: list[str] = []
+
+    fake_conn = MagicMock()
+    fake_cursor = MagicMock()
+
+    sample_row = {
+        "snapshot_date": date(2026, 10, 20),
+        "skill_id": "prompt-engineering",
+        "research_velocity": 0.45,
+        "labor_decay": -0.05,
+        "labor_decay_source_note": "BLS 2023-2033",
+        "automation_exposure": 0.70,
+        "velocity_moderate": 0.25,
+        "velocity_fast": 0.55,
+        "direction_moderate": "rising",
+        "direction_fast": "rising",
+    }
+
+    def fake_execute(query: str, params: tuple | None = None) -> None:
+        executed_queries.append(query)
+        if "SELECT DISTINCT snapshot_date" in query:
+            fake_cursor.fetchall.return_value = [{"snapshot_date": date(2026, 10, 20)}]
+        elif "SELECT ts.*" in query:
+            fake_cursor.fetchall.return_value = [sample_row]
+
+    fake_cursor.execute.side_effect = fake_execute
+    fake_conn.cursor.return_value.__enter__.return_value = fake_cursor
+
+    def spy_connect(*args: object, **kwargs: object) -> MagicMock:
+        nonlocal connect_calls
+        connect_calls += 1
+        return fake_conn
+
+    with patch("psycopg.connect", side_effect=spy_connect):
+        resp = client.get("/api/v1/trends/snapshot")
+        assert resp.status_code == 200, resp.text
+        data = resp.json()
+        assert data["meta"]["scenario"] == "moderate"
+
+        # Assert exactly ONE database connection was opened
+        assert connect_calls == 1, f"Expected exactly 1 connection, got {connect_calls}"
+
+        # Assert exactly ONE dates query was issued (not 3)
+        dates_queries = [
+            q for q in executed_queries if "SELECT DISTINCT snapshot_date FROM trend_snapshots" in q
+        ]
+        assert len(dates_queries) == 1, (
+            f"Expected 1 dates query, got {len(dates_queries)}: {dates_queries}"
+        )
+
+        # Assert rows query was executed on the same connection
+        rows_queries = [
+            q for q in executed_queries if "SELECT ts.*" in q and "FROM trend_snapshots" in q
+        ]
+        assert len(rows_queries) == 1, f"Expected 1 rows query, got {len(rows_queries)}"

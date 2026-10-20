@@ -1,0 +1,4 @@
+# Force LF line endings across platforms for generated artifacts and text files
+* text=auto eol=lf
+src/api/openapi.json text eol=lf
+src/web/src/lib/api/types.ts text eol=lf

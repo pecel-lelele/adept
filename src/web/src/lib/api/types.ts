@@ -737,10 +737,7 @@ export interface components {
         };
         /** Body_profile_upload_cv */
         Body_profile_upload_cv: {
-            /**
-             * File
-             * Format: binary
-             */
+            /** File */
             file: string;
         };
         /** CatalogueResponse */
