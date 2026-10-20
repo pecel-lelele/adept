@@ -320,6 +320,16 @@
 - **Replaces**: none
 - **PR / branch**: `feat/pathway-sdg-guardrails`
 
+### M3-025: Second review round on verification and FX
+- **Date**: 2026-10-20
+- **Feature**: F5
+- **Type**: contract | method
+- **Change**: `ReviewDecision.submitted_at` (required, nullable) names the submission the reviewer saw; the review is saved in one conditional write (`UPDATE … WHERE submitted_at = seen`, or insert-if-absent), and a changed proof returns 409 `evidence_changed`. When Bank Negara Malaysia's rate cannot be fetched, the sync prices USD courses with the last rate in `fx_rates` instead of the seed rate. The link checker is looked up per call, so tests never reach live pages. The switcher card's "Compare roles" link keeps the current scenario.
+- **Why**: Greptile review on PR #2: HR could confirm a certificate they never opened; an FX outage moved prices backwards; one test made a live request.
+- **Affects**: anyone calling `POST /pathway/verifications` (must send `submitted_at`)
+- **Replaces**: none
+- **PR / branch**: `feat/pathway-sdg-guardrails`
+
 ---
 
 ## M4: Core & Organisation (Core, F7)
