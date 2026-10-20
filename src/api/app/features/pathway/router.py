@@ -1,3 +1,4 @@
+from datetime import date
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, Query
@@ -14,6 +15,7 @@ from app.contracts.pathway import (
     ProviderType,
     ReplanStatus,
     ReviewDecision,
+    RoleComparison,
     SavedPlan,
     SavePlanIn,
     VerificationItem,
@@ -26,9 +28,32 @@ from app.features.pathway import service, sync
 router = APIRouter(prefix="/pathway", tags=["pathway"])
 
 
+SnapshotDate = Annotated[
+    date | None,
+    Query(description="Replay an older M1 trend snapshot (YYYY-MM-DD). Omit for the latest."),
+]
+
+
 @router.get("")
-def get_pathway(role_id: str, user: CurrentUserDep, scenario: ScenarioId = "moderate") -> Pathway:
-    return service.get_pathway(user, role_id, scenario)
+def get_pathway(
+    role_id: str,
+    user: CurrentUserDep,
+    scenario: ScenarioId = "moderate",
+    snapshot_date: SnapshotDate = None,
+) -> Pathway:
+    return service.get_pathway(user, role_id, scenario, snapshot_date)
+
+
+@router.get("/compare")
+def compare_roles(
+    user: CurrentUserDep,
+    role_ids: Annotated[list[str] | None, Query(max_length=20)] = None,
+    scenario: ScenarioId = "moderate",
+    snapshot_date: SnapshotDate = None,
+) -> RoleComparison:
+    """Time, cost, gap, trend outlook and SDG links of candidate roles, side by side, so the
+    learner can compare before choosing. Omit `role_ids` to compare every target role."""
+    return service.compare_roles(user, role_ids or [], scenario, snapshot_date)
 
 
 @router.get("/catalogue")

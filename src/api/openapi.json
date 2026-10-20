@@ -617,6 +617,25 @@
             }
           },
           {
+            "name": "snapshot_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Replay an older M1 trend snapshot (YYYY-MM-DD). Omit for the latest.",
+              "title": "Snapshot Date"
+            },
+            "description": "Replay an older M1 trend snapshot (YYYY-MM-DD). Omit for the latest."
+          },
+          {
             "name": "x-demo-user",
             "in": "header",
             "required": false,
@@ -656,6 +675,125 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Pathway"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pathway/compare": {
+      "get": {
+        "tags": [
+          "pathway"
+        ],
+        "summary": "Compare Roles",
+        "description": "Time, cost, gap, trend outlook and SDG links of candidate roles, side by side, so the\nlearner can compare before choosing. Omit `role_ids` to compare every target role.",
+        "operationId": "pathway_compare_roles",
+        "parameters": [
+          {
+            "name": "role_ids",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "maxItems": 20
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Role Ids"
+            }
+          },
+          {
+            "name": "scenario",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "moderate",
+                "fast"
+              ],
+              "type": "string",
+              "default": "moderate",
+              "title": "Scenario"
+            }
+          },
+          {
+            "name": "snapshot_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Replay an older M1 trend snapshot (YYYY-MM-DD). Omit for the latest.",
+              "title": "Snapshot Date"
+            },
+            "description": "Replay an older M1 trend snapshot (YYYY-MM-DD). Omit for the latest."
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoleComparison"
                 }
               }
             }
@@ -4173,6 +4311,50 @@
         ],
         "title": "ReviewDecision"
       },
+      "RoleComparison": {
+        "properties": {
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/RoleOption"
+            },
+            "type": "array",
+            "title": "Options"
+          },
+          "saved_role_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Saved Role Id"
+          },
+          "snapshot_version": {
+            "type": "string",
+            "title": "Snapshot Version",
+            "default": ""
+          },
+          "available_snapshots": {
+            "items": {
+              "type": "string",
+              "format": "date"
+            },
+            "type": "array",
+            "title": "Available Snapshots"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RecommendationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "options",
+          "meta"
+        ],
+        "title": "RoleComparison"
+      },
       "RoleMatch": {
         "properties": {
           "role_id": {
@@ -4234,6 +4416,105 @@
           "meta"
         ],
         "title": "RoleMatch"
+      },
+      "RoleOption": {
+        "properties": {
+          "role_id": {
+            "type": "string",
+            "title": "Role Id"
+          },
+          "role_label": {
+            "type": "string",
+            "title": "Role Label"
+          },
+          "total_weeks": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Total Weeks"
+          },
+          "total_hours": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Total Hours"
+          },
+          "out_of_pocket_myr": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Out Of Pocket Myr"
+          },
+          "within_budget": {
+            "type": "boolean",
+            "title": "Within Budget"
+          },
+          "skills_to_close": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Skills To Close",
+            "description": "Required skills the learner lacks or is below."
+          },
+          "unmet_skills": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Unmet Skills",
+            "description": "Skills no catalogue course can close."
+          },
+          "trend_signal": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trend Signal",
+            "description": "Importance-weighted trend velocity of the role's skills (estimate); None when the snapshot scores none of them."
+          },
+          "trend_direction": {
+            "type": "string",
+            "enum": [
+              "rising",
+              "stable",
+              "declining",
+              "unknown"
+            ],
+            "title": "Trend Direction",
+            "default": "unknown"
+          },
+          "trend_coverage": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Trend Coverage",
+            "description": "Share of the role's skill importance that has trend data."
+          },
+          "sdg_targets": {
+            "items": {
+              "$ref": "#/components/schemas/SdgTarget"
+            },
+            "type": "array",
+            "title": "Sdg Targets"
+          },
+          "is_saved_choice": {
+            "type": "boolean",
+            "title": "Is Saved Choice",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "role_id",
+          "role_label",
+          "total_weeks",
+          "total_hours",
+          "out_of_pocket_myr",
+          "within_budget",
+          "skills_to_close",
+          "unmet_skills",
+          "trend_coverage"
+        ],
+        "title": "RoleOption",
+        "description": "One candidate target role, so the learner can compare before choosing.\n\nShows what the move would take (time, cost, gap) and the role's trend outlook. It does not\nrank roles (F4 matching does) and it never decides for the learner."
       },
       "RoleOutlook": {
         "properties": {

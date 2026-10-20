@@ -16,3 +16,18 @@ export async function fetchProgress(roleId: string, scenario: ScenarioId) {
     api.GET("/api/v1/pathway/progress", { params: { query: { role_id: roleId, scenario } } }),
   );
 }
+
+export async function fetchCompare(scenario: ScenarioId, roleIds: string[] = []) {
+  const api = await getApi();
+  return call(
+    api.GET("/api/v1/pathway/compare", {
+      params: { query: { scenario, ...(roleIds.length ? { role_ids: roleIds } : {}) } },
+    }),
+  );
+}
+
+/** The role the learner chose (their saved plan), or null when they have not chosen yet. */
+export async function savedRoleId(): Promise<string | null> {
+  const status = await fetchPlanStatus();
+  return status.ok ? (status.data.saved?.role_id ?? null) : null;
+}

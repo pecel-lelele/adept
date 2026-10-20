@@ -145,6 +145,45 @@ class ReplanStatus(BaseModel):
     meta: RecommendationMeta
 
 
+TrendDirection = Literal["rising", "stable", "declining", "unknown"]
+
+
+class RoleOption(BaseModel):
+    """One candidate target role, so the learner can compare before choosing.
+
+    Shows what the move would take (time, cost, gap) and the role's trend outlook. It does not
+    rank roles (F4 matching does) and it never decides for the learner.
+    """
+
+    role_id: str
+    role_label: str
+    total_weeks: int = Field(ge=0)
+    total_hours: float = Field(ge=0)
+    out_of_pocket_myr: float = Field(ge=0)
+    within_budget: bool
+    skills_to_close: int = Field(ge=0, description="Required skills the learner lacks or is below.")
+    unmet_skills: int = Field(ge=0, description="Skills no catalogue course can close.")
+    trend_signal: float | None = Field(
+        default=None,
+        description="Importance-weighted trend velocity of the role's skills (estimate); "
+        "None when the snapshot scores none of them.",
+    )
+    trend_direction: TrendDirection = "unknown"
+    trend_coverage: float = Field(
+        ge=0, le=1, description="Share of the role's skill importance that has trend data."
+    )
+    sdg_targets: list[SdgTarget] = Field(default_factory=list)
+    is_saved_choice: bool = False
+
+
+class RoleComparison(BaseModel):
+    options: list[RoleOption]
+    saved_role_id: str | None = None
+    snapshot_version: str = ""
+    available_snapshots: list[date] = Field(default_factory=list)
+    meta: RecommendationMeta
+
+
 class ProgressUpdate(BaseModel):
     role_id: str = Field(max_length=80)
     course_id: str = Field(max_length=120)

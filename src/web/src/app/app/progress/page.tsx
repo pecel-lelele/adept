@@ -1,8 +1,10 @@
-import { DEFAULT_TARGET_ROLE, ProgressView } from "@/features/pathway";
+import { CompareRolesView, ProgressView, savedRoleId } from "@/features/pathway";
 import { firstParam, parseScenario, type SearchParams } from "@/lib/scenario";
 
 export default async function Page({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const params = await searchParams;
-  const roleId = firstParam(params.role) ?? DEFAULT_TARGET_ROLE;
-  return <ProgressView roleId={roleId} scenario={parseScenario(params.scenario)} />;
+  const scenario = parseScenario(params.scenario);
+  const roleId = firstParam(params.role) ?? (await savedRoleId());
+  if (!roleId) return <CompareRolesView scenario={scenario} />;
+  return <ProgressView roleId={roleId} scenario={scenario} />;
 }

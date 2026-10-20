@@ -30,6 +30,7 @@ from app.contracts.sdg import (
     SdgGoalListResponse,
     SdgLink,
     SdgScope,
+    SdgTarget,
 )
 from app.core.auth import CurrentUser
 from app.core.errors import NotFoundError
@@ -42,7 +43,6 @@ FOCUS_GOALS: tuple[int, ...] = (4, 5, 8, 9, 10)
 STRENGTH_WEIGHT = {"direct": 1.0, "enabling": 0.5}
 # Strength-weighted sum at which a role counts as fully aligned with the chosen goals.
 ALIGNMENT_CAP = 2.0
-DEFAULT_ROLE_ID = "data-analyst"
 
 
 def _meta(scenario: ScenarioId = "moderate", is_estimate: bool = False) -> RecommendationMeta:
@@ -221,9 +221,18 @@ def my_contribution(
     user: CurrentUser, role_id: str | None, scenario: ScenarioId
 ) -> SdgContribution:
     saved = pathway_service.get_saved_plan(user)
-    chosen = role_id or (saved.role_id if saved else DEFAULT_ROLE_ID)
+    chosen = role_id or (saved.role_id if saved else None)
+    if chosen is None:
+        # No role chosen yet: show nothing rather than assume one for the learner.
+        return contribution_for_plans({}, "person", user.id, scenario)
     plan = pathway_service.get_pathway(user, chosen, scenario)
     return contribution_for_plans({user.id: plan}, "person", user.id, scenario)
+
+
+def role_badges(role_id: str) -> list[SdgTarget]:
+    """SDG targets to show as badges on a role (F4 matches, F5 compare): the reviewed mapping in
+    `role_sdg_map.csv`, never a hardcoded list. Empty when the role is not mapped yet."""
+    return [link.target for link in repository.role_links(role_id)]
 
 
 def org_contribution(org_id: str, scenario: ScenarioId) -> SdgContribution:

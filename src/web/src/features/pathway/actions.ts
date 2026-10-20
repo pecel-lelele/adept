@@ -18,14 +18,18 @@ function text(form: FormData, key: string): string {
 }
 
 /** Only refresh the page when the API accepted the change; otherwise report why not. */
-async function settle(request: Promise<ApiOutcome>, path: string): Promise<ActionState> {
+async function settle(
+  request: Promise<ApiOutcome>,
+  path: string,
+  type?: "layout" | "page",
+): Promise<ActionState> {
   try {
     const { error, response } = await request;
     if (error !== undefined || !response.ok) return { error: actionError(error, response.status) };
   } catch {
     return { error: "The API could not be reached." };
   }
-  revalidatePath(path);
+  revalidatePath(path, type);
   return { done: Date.now() };
 }
 
@@ -37,6 +41,7 @@ export async function savePlanAction(_: ActionState, form: FormData): Promise<Ac
       body: { role_id: text(form, "role_id"), scenario: parseScenario(text(form, "scenario")) },
     }),
     "/app/pathway",
+    "layout", // also refreshes /app/pathway/compare, where the learner can choose a role
   );
 }
 

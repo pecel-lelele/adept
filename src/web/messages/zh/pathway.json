@@ -157,5 +157,26 @@
       "link": "比较职位"
     },
     "sameplan": "此建议取决于您的情况；计划本身对拥有相同技能、时间和预算的任何人都一样。"
+  },
+  "compare": {
+    "link": "比较其他职位",
+    "title": "选择前先比较职位",
+    "description": "每个未来职位对你意味着什么：时间、费用、需补足的技能、趋势展望和SDG关联。由你决定，系统不会替你选择。",
+    "yourChoice": "你的选择",
+    "direction": {
+      "rising": "需求上升",
+      "stable": "需求稳定",
+      "declining": "需求下降",
+      "unknown": "无趋势数据"
+    },
+    "outOfPocket": "你需支付 RM {amount}",
+    "skillsToClose": "需补足 {count} 项技能",
+    "unmet": "{count} 项不在我们的课程目录中",
+    "coverage": "趋势数据覆盖该职位 {percent}% 的技能；其余按中性计算。",
+    "preview": "预览学习路径",
+    "choose": "选择此职位",
+    "snapshot": "趋势快照 {version}。",
+    "seeMatches": "查看你的匹配排名",
+    "humanInCharge": "此比较仅辅助你的决定，不会替你排序或选择职位。"
   }
 }

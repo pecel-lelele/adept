@@ -22,5 +22,7 @@
     "organisation": "机构",
     "region": "地区"
   },
-  "evidence": "依据"
+  "evidence": "依据",
+  "noRoleYet": "你尚未选择目标职位，因此暂无可显示的贡献。",
+  "compareRoles": "比较职位并选择一个"
 }

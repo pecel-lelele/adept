@@ -157,5 +157,26 @@
       "link": "Bandingkan peranan"
     },
     "sameplan": "Nasihat ini bergantung pada situasi anda; pelan itu sendiri sama bagi sesiapa yang mempunyai kemahiran, masa dan bajet yang sama."
+  },
+  "compare": {
+    "link": "Bandingkan peranan lain",
+    "title": "Bandingkan peranan sebelum anda memilih",
+    "description": "Apa yang diperlukan oleh setiap peranan masa depan untuk anda: masa, kos, kemahiran yang perlu dicapai, unjuran trend dan pautan SDG. Anda yang membuat keputusan; tiada apa dipilih untuk anda.",
+    "yourChoice": "Pilihan anda",
+    "direction": {
+      "rising": "Permintaan meningkat",
+      "stable": "Permintaan stabil",
+      "declining": "Permintaan menurun",
+      "unknown": "Tiada data trend"
+    },
+    "outOfPocket": "anda bayar RM {amount}",
+    "skillsToClose": "{count} kemahiran perlu dicapai",
+    "unmet": "{count} tidak diliputi katalog kami",
+    "coverage": "Data trend meliputi {percent}% kemahiran peranan ini; selebihnya dikira neutral.",
+    "preview": "Pratonton laluan",
+    "choose": "Pilih peranan ini",
+    "snapshot": "Petikan trend {version}.",
+    "seeMatches": "Lihat padanan anda mengikut kedudukan",
+    "humanInCharge": "Perbandingan ini menyokong keputusan anda; ia tidak menyusun atau memilih peranan untuk anda."
   }
 }

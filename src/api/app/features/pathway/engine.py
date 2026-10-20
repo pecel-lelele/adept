@@ -74,14 +74,19 @@ def compute_gaps(
     return gaps
 
 
-def trend_multiplier(growth: float, scenario: ScenarioId) -> float:
+def trend_multiplier(growth: float, scenario: ScenarioId, scenario_weighted: bool = False) -> float:
+    """1 + clipped growth x scenario weight. A source that already models the scenario (M1's
+    `velocity_<scenario>`) is not weighted a second time."""
     lo, hi = GROWTH_CLIP
-    return 1.0 + max(lo, min(hi, growth)) * TREND_WEIGHT[scenario]
+    weight = 1.0 if scenario_weighted else TREND_WEIGHT[scenario]
+    return 1.0 + max(lo, min(hi, growth)) * weight
 
 
-def priority(gap: SkillGap, growth: float, scenario: ScenarioId) -> float:
+def priority(
+    gap: SkillGap, growth: float, scenario: ScenarioId, scenario_weighted: bool = False
+) -> float:
     share = (gap.required_level - gap.current_level) / gap.required_level
-    return round(gap.importance * share * trend_multiplier(growth, scenario), 4)
+    return round(gap.importance * share * trend_multiplier(growth, scenario, scenario_weighted), 4)
 
 
 def order_skills(
@@ -222,6 +227,7 @@ def build(
     growth: Mapping[str, float],
     labels: Mapping[str, str],
     sdg_targets: Mapping[str, list[SdgTarget]] | None = None,
+    scenario_weighted: bool = False,
 ) -> Plan:
     warnings: list[str] = []
     hpw = learner.hours_per_week
@@ -233,7 +239,10 @@ def build(
 
     gaps = compute_gaps(reqs, learner.skill_levels, labels)
     open_gaps = {g.skill_id: g for g in gaps if g.status != "have"}
-    prio = {s: priority(g, growth.get(s, 0.0), scenario) for s, g in open_gaps.items()}
+    prio = {
+        s: priority(g, growth.get(s, 0.0), scenario, scenario_weighted)
+        for s, g in open_gaps.items()
+    }
     order = order_skills(list(open_gaps), prereqs, prio)
 
     budget_left = learner.budget_myr
@@ -292,7 +301,15 @@ def build(
                 est_hours=round(step_hours, 1),
                 week_start=start,
                 week_end=end,
-                reason=_reason(gap, prio[skill], growth.get(skill, 0.0), scenario, sel, booked),
+                reason=_reason(
+                    gap,
+                    prio[skill],
+                    growth.get(skill),
+                    scenario,
+                    sel,
+                    booked,
+                    scenario_weighted,
+                ),
                 current_level=gap.current_level,
                 target_level=gap.required_level,
                 reaches_level=sel.reaches_level,
@@ -320,16 +337,24 @@ def build(
 def _reason(
     gap: SkillGap,
     prio: float,
-    growth: float,
+    growth: float | None,
     scenario: ScenarioId,
     sel: Selection,
     booked: Mapping[str, int],
+    scenario_weighted: bool = False,
 ) -> str:
+    g = growth or 0.0
+    if growth is None:
+        signal = "no trend data for this skill, treated as neutral"
+    elif scenario_weighted:
+        signal = f"trend velocity {g:+.2f}"
+    else:
+        signal = f"growth {g:+.0%}"
     parts = [
         f"You are at level {gap.current_level}; the role needs {gap.required_level}.",
         f"Priority {prio:.2f} = importance {gap.importance:g} x gap "
         f"{(gap.required_level - gap.current_level) / gap.required_level:.0%} x trend "
-        f"{trend_multiplier(growth, scenario):.2f} ({scenario} scenario, growth {growth:+.0%}).",
+        f"{trend_multiplier(g, scenario, scenario_weighted):.2f} ({scenario} scenario, {signal}).",
     ]
     for c in sel.covered_by_earlier:
         parts.append(f"'{c.title}' is already in step {booked[c.id]}.")

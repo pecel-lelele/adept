@@ -109,6 +109,13 @@ async function ContributionBody({ title, result }: { title: string; result: ApiR
       </PageHeader>
       {data.role_ids && data.role_ids.length > 0 ? (
         <p className="text-sm">{t("forRoles", { roles: data.role_ids.join(", ") })}</p>
+      ) : data.scope === "person" ? (
+        <p className="text-sm">
+          {t("noRoleYet")}{" "}
+          <Link href="/app/pathway/compare" className="underline">
+            {t("compareRoles")}
+          </Link>
+        </p>
       ) : null}
       <Card>
         <CardHeader>

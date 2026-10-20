@@ -407,6 +407,19 @@
 
 ---
 
+### M3-026: Pathway reads M1's trend snapshot; compare roles before choosing; ports for M2
+- **Date**: 2026-10-21
+- **Feature**: F5, F6, F8
+- **Type**: data source | method | contract | UI
+- **Change**: New `pathway/trend_port.py` is the only place F5/F6/F8 get trend data: M1's `trends.service.get_snapshot` in process (no HTTP self-call), falling back to the legacy seed snapshot (`mock-0`) only when M1 has none. M1's `velocity_<scenario>` already models the scenario, so the engine no longer weights it again (`scenario_weighted`). Pathway meta cites M1's sources and date; re-plan fires when M1's snapshot date changes; skills M1 does not score (excel, rpa, sql today) are listed in a warning and treated as neutral. New `GET /pathway/compare` (+ web `/app/pathway/compare`) shows each target role's weeks, cost, skills to close, trend outlook and F6 SDG targets side by side before the learner chooses; `GET /pathway` takes an optional `snapshot_date` for trend replay. `/app/pathway`, `/app/progress` and `GET /sdg/contribution/me` no longer default to `data-analyst`: they use the saved choice, or ask the learner to compare and choose. The About page lists the trend sources actually used. Ports for M2: `pathway.service.skills_gap(levels, role_id)` (one have/partial/missing rule, based on `required_level`) and `sdg.service.role_badges(role_id)` (F6's reviewed mapping, to replace matching's hardcoded `_ROLE_SDG`).
+- **Why**: Pathway, re-plan and the About page still read the mock snapshot, so new M1 data never changed a plan (handbook: "output visibly changes when trend data changes"); the role choice was implicit with a hardcoded fallback; matching and pathway disagreed on gaps and SDG badges. M1's `resolve_context()` opens psycopg without `connect_timeout` and hung on this machine, so the port reads M1 on a daemon thread with a 3 s timeout and skips M1 for 60 s after an outage.
+- **Pipeline**: M1 snapshot (arXiv cs.AI + BLS projections, dated) → `velocity_<scenario>` per skill → clip to [-0.5, 1.0] → priority = importance × gap share × (1 + velocity) → prerequisite-ordered plan; role outlook = importance-weighted velocity over covered skills (rising > 0.05, declining < -0.05, as M1), with coverage shown → evaluation: `tests/api/pathway/test_integration_ports.py` (M1 source used, seed fallback, no double weighting, trend change reorders the plan, replay 404, compare uses F6 badges, required-level gap, no assumed SDG role) → serving: `GET /pathway`, `GET /pathway/compare`, `/app/pathway/compare`.
+- **Affects**: M1 (please add `connect_timeout` in `trends/repository.resolve_context`); M2 (switch matching to `skills_gap` and `role_badges`, link matches to `/app/pathway/compare?roles=…`); M4 (heatmap can call `skills_gap`)
+- **Replaces**: none
+- **PR / branch**: `refactor/pathway-trend-and-match-ports`
+
+---
+
 ## M4: Core & Organisation (Core, F7)
 
 <!-- M4 adds entries below this line -->
