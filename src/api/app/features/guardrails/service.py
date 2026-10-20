@@ -23,7 +23,7 @@ from app.core.fairness import PROTECTED_TERMS, counterfactual_diffs, protected_t
 from app.core.llm import CALL_LOG, disclosure
 from app.features.guardrails import datasync
 from app.features.pathway import data as pathway_data
-from app.features.pathway import engine
+from app.features.pathway import engine, trend_port
 from app.features.pathway import service as pathway_service
 from app.features.pathway import sync as pathway_sync
 from app.features.sdg import repository as sdg_repository
@@ -102,18 +102,20 @@ def get_sources() -> SourcesResponse:
             records=n_links,
         )
     )
-    signals = seed.rows("trends", "trend_signals")
-    for snap in pathway_data.snapshots():
-        out.append(
-            DataSourceInfo(
-                name=snap.source.name,
-                url=snap.source.url,
-                retrieved_at=snap.source.retrieved_at,
-                kind="mock" if snap.source.name == "MOCK DATA" else "live_api",
-                used_for=f"AI-trend snapshot {snap.version} (skill demand growth)",
-                records=sum(1 for r in signals if r["snapshot_id"] == snap.id),
+    # The trend data the pathway actually uses (M1's snapshot, or the seed fallback).
+    trend = trend_port.current("moderate")
+    if trend:
+        for src in trend.snapshot.all_sources():
+            out.append(
+                DataSourceInfo(
+                    name=src.name,
+                    url=src.url,
+                    retrieved_at=src.retrieved_at,
+                    kind="mock" if src.name == "MOCK DATA" else "live_api",
+                    used_for=f"AI-trend snapshot {trend.snapshot.version} (skill demand signal)",
+                    records=len(trend.growth),
+                )
             )
-        )
     out.append(
         DataSourceInfo(
             name="Synthetic personas and teams",

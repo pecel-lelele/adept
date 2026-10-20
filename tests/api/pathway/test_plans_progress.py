@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 
 from app.contracts.common import Source
 from app.contracts.pathway import Progress, ReplanStatus, SavedPlan
-from app.features.pathway import data
+from app.features.pathway import data, trend_port
 
 ROLE = "process-automation-analyst"
 
@@ -46,9 +46,11 @@ def test_new_trend_snapshot_proposes_a_replan(
     newer = data.Snapshot(
         "99", "synthetic-1", Source(name="SYNTHETIC TEST", url="", retrieved_at=date(2026, 11, 1))
     )
-    monkeypatch.setattr(data, "latest_snapshot", lambda: newer)
     # Python demand jumps in the new snapshot, so it should move up the plan.
-    monkeypatch.setattr(data, "skill_growth", lambda _id: {"python": 1.0, "rpa": -0.5})
+    view = trend_port.TrendView(
+        snapshot=newer, growth={"python": 1.0, "rpa": -0.5}, scenario_weighted=True
+    )
+    monkeypatch.setattr(trend_port, "current", lambda *_a, **_k: view)
     body = ReplanStatus.model_validate(client.get("/api/v1/pathway/plans/me").json())
     assert body.needs_replan and body.changes and body.proposed
     assert body.proposed.steps[0].skill_id == "python" != old_first

@@ -22,5 +22,7 @@
     "organisation": "Organisasi",
     "region": "Wilayah"
   },
-  "evidence": "Bukti"
+  "evidence": "Bukti",
+  "noRoleYet": "Anda belum memilih peranan sasaran, jadi tiada sumbangan untuk dipaparkan.",
+  "compareRoles": "Bandingkan peranan dan pilih satu"
 }

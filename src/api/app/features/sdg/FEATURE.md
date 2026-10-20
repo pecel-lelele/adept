@@ -16,7 +16,9 @@ published evidence (UN indicator metadata, ILO, UNESCO), as drafts until a human
 Goals, targets and links are refreshed live by `sync.py` (`POST /sdg/sync`). Endpoints: `GET /sdg/goals`,
 `/sdg/roles/{id}`, `/sdg/roles/{id}/alignment?goals=`, `/sdg/skills/{id}`,
 `/sdg/contribution/me?role_id=`, `/sdg/contribution/org`, `/sdg/regions`,
-`/sdg/contribution/region/{state}`.
+`/sdg/contribution/region/{state}`. `contribution/me` with no saved role returns an empty
+contribution (it never assumes a role). For F4: `service.role_badges(role_id)` returns the
+reviewed role → target mapping for badges; `GET /sdg/roles/{id}/alignment` feeds SDG-weighted ranking.
 
 ## Goal and tasks (from docs/TASKS.md)
 

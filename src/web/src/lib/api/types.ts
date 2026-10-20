@@ -220,6 +220,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/pathway/compare": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Compare Roles
+         * @description Time, cost, gap, trend outlook and SDG links of candidate roles, side by side, so the
+         *     learner can compare before choosing. Omit `role_ids` to compare every target role.
+         */
+        get: operations["pathway_compare_roles"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/pathway/catalogue": {
         parameters: {
             query?: never;
@@ -1585,6 +1606,21 @@ export interface components {
              */
             submitted_at: string | null;
         };
+        /** RoleComparison */
+        RoleComparison: {
+            /** Options */
+            options: components["schemas"]["RoleOption"][];
+            /** Saved Role Id */
+            saved_role_id?: string | null;
+            /**
+             * Snapshot Version
+             * @default
+             */
+            snapshot_version: string;
+            /** Available Snapshots */
+            available_snapshots?: string[];
+            meta: components["schemas"]["RecommendationMeta"];
+        };
         /** RoleMatch */
         RoleMatch: {
             /** Role Id */
@@ -1605,6 +1641,60 @@ export interface components {
             /** Sdg Targets */
             sdg_targets: components["schemas"]["SdgTarget"][];
             meta: components["schemas"]["RecommendationMeta"];
+        };
+        /**
+         * RoleOption
+         * @description One candidate target role, so the learner can compare before choosing.
+         *
+         *     Shows what the move would take (time, cost, gap) and the role's trend outlook. It does not
+         *     rank roles (F4 matching does) and it never decides for the learner.
+         */
+        RoleOption: {
+            /** Role Id */
+            role_id: string;
+            /** Role Label */
+            role_label: string;
+            /** Total Weeks */
+            total_weeks: number;
+            /** Total Hours */
+            total_hours: number;
+            /** Out Of Pocket Myr */
+            out_of_pocket_myr: number;
+            /** Within Budget */
+            within_budget: boolean;
+            /**
+             * Skills To Close
+             * @description Required skills the learner lacks or is below.
+             */
+            skills_to_close: number;
+            /**
+             * Unmet Skills
+             * @description Skills no catalogue course can close.
+             */
+            unmet_skills: number;
+            /**
+             * Trend Signal
+             * @description Importance-weighted trend velocity of the role's skills (estimate); None when the snapshot scores none of them.
+             */
+            trend_signal?: number | null;
+            /**
+             * Trend Direction
+             * @default unknown
+             * @enum {string}
+             */
+            trend_direction: "rising" | "stable" | "declining" | "unknown";
+            /**
+             * Trend Coverage
+             * @description Share of the role's skill importance that has trend data.
+             */
+            trend_coverage: number;
+            /** Sdg Targets */
+            sdg_targets?: components["schemas"]["SdgTarget"][];
+            /**
+             * Is Saved Choice
+             * @default false
+             */
+            is_saved_choice: boolean;
         };
         /** RoleOutlook */
         RoleOutlook: {
@@ -2482,6 +2572,8 @@ export interface operations {
             query: {
                 role_id: string;
                 scenario?: "moderate" | "fast";
+                /** @description Replay an older M1 trend snapshot (YYYY-MM-DD). Omit for the latest. */
+                snapshot_date?: string | null;
             };
             header?: {
                 "x-demo-user"?: string | null;
@@ -2499,6 +2591,43 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Pathway"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    pathway_compare_roles: {
+        parameters: {
+            query?: {
+                role_ids?: string[] | null;
+                scenario?: "moderate" | "fast";
+                /** @description Replay an older M1 trend snapshot (YYYY-MM-DD). Omit for the latest. */
+                snapshot_date?: string | null;
+            };
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoleComparison"];
                 };
             };
             /** @description Validation Error */
