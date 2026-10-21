@@ -148,6 +148,17 @@
 - **Replaces**: M1-004 and M1-005 request-path health probing only; default fallback and source/date semantics retained
 - **PR / branch**: `feat/m1-trends-contract`
 
+### M1-007: Interrupt established-connection network stalls
+- **Date**: 2026-10-21
+- **Feature**: F2 (Trends), F3 (Scenarios)
+- **Type**: method
+- **Change**: Wrap date and snapshot cursor operations in a three-second client watchdog. On expiry, shut down the socket in both directions to unblock pending libpq I/O locally; retain descriptor ownership in libpq, cancel/join the watchdog before connection cleanup, and use autocommit for read-only connections so cleanup cannot wait for COMMIT/ROLLBACK. Existing server and connection timeouts remain in place.
+- **Why**: Greptile P1: server-side statement/lock timeouts cannot release a client when an established connection stops replying. Merely timing out a future would leave request workers or database threads blocked. Socket shutdown interrupts the actual pending operation without waiting for server cancellation or TCP failure detection.
+- **Validation**: Real loopback peers complete PostgreSQL startup and then withhold every query reply. Tests cover date resolution, reused snapshot connections, both standalone loaders, strict errors versus existing default fallback/not-found behavior, peer-observed disconnect, and watchdog cancellation on success. No public contract changes.
+- **Affects**: M2 internal callers retain the same `strict=True` / `TrendsUnavailableError` interface
+- **Replaces**: M1-006 bounded-read claim (adds the missing client-side network deadline)
+- **PR / branch**: `feat/m1-trends-contract`
+
 ---
 
 ## M2: Profile Intake & Matching (F1, F4)

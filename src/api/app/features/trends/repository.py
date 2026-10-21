@@ -11,9 +11,13 @@ pipeline scripts (Part 5 and Part 3 respectively).
 
 from __future__ import annotations
 
+import socket
 import time
+from collections.abc import Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import date
+from threading import Event, Timer
 from typing import Any, Literal
 
 import psycopg
@@ -52,9 +56,49 @@ def _get_connection(
     return psycopg.connect(
         get_settings().database_url,
         row_factory=dict_row,
+        autocommit=True,
         connect_timeout=connect_timeout_s,
         options=f"-c statement_timeout={statement_timeout_ms} -c lock_timeout={lock_timeout_ms}",
     )
+
+
+@contextmanager
+def _read_deadline(conn: Any, timeout_s: float = 3.0) -> Iterator[None]:
+    """Interrupt stalled libpq I/O locally, even if PostgreSQL cannot reply.
+
+    Only the owning request thread uses/closes the psycopg connection. The
+    watchdog shuts down its socket without taking ownership or calling libpq.
+    Joining it before connection cleanup prevents a reused descriptor race.
+    """
+    expired = Event()
+    descriptor = conn.fileno()
+
+    def interrupt() -> None:
+        expired.set()
+        try:
+            transport = socket.socket(fileno=descriptor)
+            try:
+                transport.shutdown(socket.SHUT_RDWR)
+            finally:
+                # libpq still owns the descriptor and will close it itself.
+                transport.detach()
+        except (OSError, ValueError):
+            # The peer/driver may already have disconnected at the deadline.
+            pass
+
+    watchdog = Timer(timeout_s, interrupt)
+    watchdog.daemon = True
+    watchdog.start()
+    try:
+        yield
+    finally:
+        watchdog.cancel()
+        watchdog.join()
+        if expired.is_set():
+            # The socket is unusable; release libpq resources on the request thread.
+            conn.close()
+    if expired.is_set():
+        raise psycopg.OperationalError("Trend database client read deadline exceeded")
 
 
 @dataclass
@@ -179,13 +223,13 @@ def resolve_source(strict: bool = False) -> SourceType:
 def _list_snapshot_dates_db(conn: Any | None = None, strict: bool = False) -> list[date]:
     """Return all snapshot dates present in the trend_snapshots table."""
     if conn is not None:
-        with conn.cursor() as cur:
+        with _read_deadline(conn), conn.cursor() as cur:
             cur.execute("SELECT DISTINCT snapshot_date FROM trend_snapshots ORDER BY snapshot_date")
             return [row["snapshot_date"] for row in cur.fetchall()]
 
     try:
         with _get_connection() as c:
-            with c.cursor() as cur:
+            with _read_deadline(c), c.cursor() as cur:
                 cur.execute(
                     "SELECT DISTINCT snapshot_date FROM trend_snapshots ORDER BY snapshot_date"
                 )
@@ -229,7 +273,7 @@ def _load_snapshot_db(
     )
 
     def _execute(c: Any) -> list[dict[str, Any]] | None:
-        with c.cursor() as cur:
+        with _read_deadline(c), c.cursor() as cur:
             cur.execute(
                 """
                 SELECT ts.*
