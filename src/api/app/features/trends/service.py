@@ -23,16 +23,22 @@ from app.features.trends import repository
 # ---------------------------------------------------------------------------
 
 
-def get_snapshot(snapshot_date: date | None, scenario: ScenarioId) -> TrendSnapshotResponse:
+def get_snapshot(
+    snapshot_date: date | None, scenario: ScenarioId, strict: bool = False
+) -> TrendSnapshotResponse:
     """Return the trend snapshot for the given date and scenario.
 
     If snapshot_date is None, returns the latest available snapshot.
     meta.available_snapshots lists every stored date for the frontend
     trend-replay toggle.
+
+    strict=True requires database data and raises repository.TrendsUnavailableError
+    on database failure or an empty database. An unknown requested date remains
+    NotFoundError. HTTP callers retain the default demo fallback behavior.
     """
-    ctx = repository.resolve_context()
+    ctx = repository.resolve_context(strict=strict)
     try:
-        return repository.get_snapshot(ctx, snapshot_date, scenario)
+        return repository.get_snapshot(ctx, snapshot_date, scenario, strict=strict)
     finally:
         ctx.close()
 
