@@ -6,7 +6,12 @@
   "partial": "Sebahagian",
   "viewDetail": "Lihat pecahan",
   "viewPathway": "Rancang laluan",
+  "viewLatestPathway": "Rancang dengan data terkini",
   "breakdown": "Pecahan skor",
+  "snapshotDate": "Tarikh snapshot",
+  "replay": "Tunjukkan padanan",
+  "latestHint": "Biarkan tarikh kosong untuk snapshot terkini.",
+  "provenance": "Asal usul data",
   "component": {
     "skill_overlap": "Pertindihan kemahiran",
     "trend_outlook": "Tinjauan trend",

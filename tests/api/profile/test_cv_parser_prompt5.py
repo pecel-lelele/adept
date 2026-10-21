@@ -37,6 +37,16 @@ AISYAH = {"X-Demo-User": "aisyah"}
 
 
 class TestReDoSSafety:
+    def test_repeated_skill_mentions_stop_at_confidence_cap(self) -> None:
+        text = "sql " * 50_000
+        start = time.monotonic()
+        skills = extract_skills(text)
+        elapsed = time.monotonic() - start
+
+        sql_skill = next(skill for skill in skills if skill.skill_id == "sql")
+        assert sql_skill.confidence == pytest.approx(1.0)
+        assert elapsed < 1.0, f"50,000 repeated mentions took {elapsed:.3f}s"
+
     def test_large_text_no_at_sign_is_fast(self) -> None:
         """50 000 'a' chars must be cleaned in under 1 second."""
         big = "a" * 50_000

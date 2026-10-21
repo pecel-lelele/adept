@@ -26,11 +26,13 @@ Announce to team (package dependency):
 from __future__ import annotations
 
 import csv
+import math
 import re
 import unicodedata
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
+from typing import Any
 
 from app.core.errors import AppError, PdfNoText, PdfSupportUnavailable
 
@@ -45,6 +47,7 @@ MAX_TEXT_CHARS = 200_000
 #: Confidence increment per non-overlapping match, capped at 1.0.
 #: confidence = min(match_count * CONFIDENCE_PER_HIT, 1.0)
 CONFIDENCE_PER_HIT = 0.30
+MAX_CONFIDENCE_HITS = math.ceil(1.0 / CONFIDENCE_PER_HIT)
 
 _SEED = Path(__file__).resolve().parents[5] / "src" / "data" / "seed"
 
@@ -52,6 +55,7 @@ _SEED = Path(__file__).resolve().parents[5] / "src" / "data" / "seed"
 # Optional PyMuPDF import — must NOT fall back silently to decoding PDF bytes
 # ---------------------------------------------------------------------------
 
+fitz: Any = None
 try:
     import pymupdf as fitz  # type: ignore[import-not-found]
 
@@ -189,7 +193,7 @@ def extract_text(data: bytes | str, content_type: str = "text/plain") -> str:
         AppError (422):        the PDF is empty or cannot be opened.
         PdfNoText:             the PDF has no extractable text (scanned image).
     """
-    raw_bytes = data if isinstance(data, bytes) else str(data).encode("utf-8")
+    raw_bytes = data if isinstance(data, bytes) else data.encode("utf-8")
     mime = content_type.lower().split(";")[0].strip()
     if "pdf" in mime:
         return _extract_pdf(raw_bytes)
@@ -205,7 +209,7 @@ def _extract_pdf(data: bytes) -> str:
                                input problem, so it must not masquerade as 501.
         PdfNoText:             the PDF yields no text on any page (422).
     """
-    if not _HAS_FITZ:
+    if not _HAS_FITZ or fitz is None:
         raise PdfSupportUnavailable()
 
     if not data:
@@ -217,7 +221,7 @@ def _extract_pdf(data: bytes) -> str:
 
     try:
         doc = fitz.open(stream=data, filetype="pdf")
-        pages = [page.get_text() for page in doc]
+        pages = [str(page.get_text()) for page in doc]
         doc.close()
     except Exception as exc:
         raise AppError(
@@ -328,17 +332,21 @@ def extract_skills(text: str) -> list[ParsedSkill]:
     spans: dict[str, list[tuple[int, int]]] = {}
 
     for entry in index:
+        sid = entry.skill_id
+        existing = spans.get(sid, [])
+        if len(existing) >= MAX_CONFIDENCE_HITS:
+            continue
         for m in entry.pattern.finditer(normed):
-            sid = entry.skill_id
+            if len(existing) >= MAX_CONFIDENCE_HITS:
+                break
             s, e = m.start(), m.end()
 
-            existing = spans.get(sid, [])
             # Skip if this match overlaps any already-recorded span for this skill
             if any(s < ex_e and e > ex_s for ex_s, ex_e in existing):
                 continue
             if sid not in spans:
-                spans[sid] = []
-            spans[sid].append((s, e))
+                spans[sid] = existing
+            existing.append((s, e))
 
     if not spans:
         return []

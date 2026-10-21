@@ -5,10 +5,12 @@ Design:
   FastAPI already runs the sync handler on a thread-pool thread; calling ourselves
   over HTTP would hold two pool threads per request and starve the pool under load.
 - The trends service may call psycopg.connect(), which can block indefinitely on a
-  hung or slow DB.  We wrap the call on a daemon thread and join with SNAPSHOT_TIMEOUT_S,
-  matching M3''s pathway port pattern (``_call_with_timeout`` in pathway/trend_port.py).
+  hung or slow DB. We wait on a daemon worker for SNAPSHOT_TIMEOUT_S and allow only
+  one outstanding worker, even after a request times out.
 - On any failure or timeout, raise TrendUnavailable -> 503.  Never swallow errors
   or invent a date/source.
+- Demo mode uses M1's documented fixture fallback. Other auth modes require a
+  database snapshot, so an unavailable M1 source returns 503.
 
 In tests: patch ``fetch_snapshot`` in ``app.features.matching.service`` to inject a
 fake without touching the real trends module.
@@ -21,14 +23,33 @@ from dataclasses import dataclass
 from datetime import date
 
 from app.contracts.common import ScenarioId, Source
-from app.core.errors import TrendUnavailableError
+from app.contracts.trends import TrendSnapshotResponse
+from app.core.config import get_settings
+from app.core.errors import NotFoundError, TrendUnavailableError
 
 # Public alias so tests import from one place.
 TrendUnavailable = TrendUnavailableError
 
 # How long (seconds) to wait for M1''s snapshot before declaring it unavailable.
 # Mirrors M1_TIMEOUT_S in pathway/trend_port.py (both guard the same psycopg call).
+# A timed-out DB call holds the sole worker slot until it actually returns.
 SNAPSHOT_TIMEOUT_S: float = 2.0
+_WORKER_SLOT = threading.BoundedSemaphore(value=1)
+_IN_FLIGHT_LOCK = threading.Lock()
+
+
+@dataclass
+class _SnapshotCall:
+    done: threading.Event
+    scenario: ScenarioId
+    snapshot_date: date | None
+    strict: bool
+    value: TrendSnapshotResponse | None = None
+    error: BaseException | None = None
+    timed_out: bool = False
+
+
+_IN_FLIGHT: _SnapshotCall | None = None
 
 
 @dataclass(frozen=True)
@@ -43,9 +64,10 @@ class TrendSnapshot:
     sources: list[Source]  # from meta.sources, converted to common.Source
     scenario: ScenarioId  # the requested scenario
     is_estimate: bool  # from meta.is_estimate
+    data_provenance_note: str | None = None  # preserve M1's historical/fixture disclosure
 
 
-def fetch_snapshot(scenario: ScenarioId) -> TrendSnapshot:
+def fetch_snapshot(scenario: ScenarioId, snapshot_date: date | None = None) -> TrendSnapshot:
     """Return a ``TrendSnapshot`` from M1's trends service with a bounded wait.
 
     Raises ``TrendUnavailable`` if:
@@ -53,7 +75,12 @@ def fetch_snapshot(scenario: ScenarioId) -> TrendSnapshot:
     - M1's service raises any exception
     - the snapshot contains no items or no source attribution
     """
-    snap = _call_with_timeout(scenario)  # raises TrendUnavailable on any failure
+    snap = _call_with_timeout(scenario, snapshot_date)
+
+    if snap.meta.scenario != scenario or (
+        snapshot_date is not None and snap.meta.snapshot_date != snapshot_date
+    ):
+        raise TrendUnavailable("Trend service returned a snapshot for a different request.")
 
     if not snap.items:
         raise TrendUnavailable(f"Trend snapshot for scenario {scenario!r} returned no skill items.")
@@ -79,40 +106,100 @@ def fetch_snapshot(scenario: ScenarioId) -> TrendSnapshot:
         sources=sources,
         scenario=scenario,
         is_estimate=snap.meta.is_estimate,
+        data_provenance_note=snap.meta.data_provenance_note,
     )
 
 
-def _call_with_timeout(scenario: ScenarioId):  # type: ignore[return]
-    """Call M1''s get_snapshot on a daemon thread with a bounded join.
+def _call_with_timeout(
+    scenario: ScenarioId, snapshot_date: date | None = None
+) -> TrendSnapshotResponse:
+    """Share one bounded getter across concurrent requests.
 
-    A hung psycopg.connect() will neither block the request past SNAPSHOT_TIMEOUT_S
-    nor prevent the process from exiting (daemon=True).
-
-    Mirrors ``_call_with_timeout`` in pathway/trend_port.py.
+    Concurrent requests wait on the same snapshot. A timed-out thread holds the
+    worker slot until it exits; later requests fail fast while it remains stuck.
     """
     from app.features.trends import service as trends_service
 
-    box: dict[str, object] = {}
+    global _IN_FLIGHT
+    strict = get_settings().auth_mode != "demo"
+    with _IN_FLIGHT_LOCK:
+        call = _IN_FLIGHT
+        if call is not None and call.timed_out:
+            raise TrendUnavailable(
+                "Trend snapshot unavailable because the previous database read is still running."
+            )
+        if call is not None and (
+            call.scenario != scenario
+            or call.snapshot_date != snapshot_date
+            or call.strict != strict
+        ):
+            raise TrendUnavailable("A different trend snapshot read is still running.")
+        if call is None:
+            if not _WORKER_SLOT.acquire(blocking=False):
+                raise TrendUnavailable(
+                    "Trend snapshot unavailable because the previous database read "
+                    "is still running."
+                )
+            call = _SnapshotCall(
+                done=threading.Event(),
+                scenario=scenario,
+                snapshot_date=snapshot_date,
+                strict=strict,
+            )
+            _IN_FLIGHT = call
 
-    def _run() -> None:
-        try:
-            box["value"] = trends_service.get_snapshot(snapshot_date=None, scenario=scenario)
-        except BaseException as exc:  # noqa: BLE001 - re-raised below in the caller thread
-            box["error"] = exc
+            def _run() -> None:
+                global _IN_FLIGHT
+                try:
+                    from app.features.trends.repository import TrendsUnavailableError
+                except ImportError as exc:
+                    call.error = exc
+                else:
+                    try:
+                        if strict:
+                            call.value = trends_service.get_snapshot(
+                                snapshot_date=snapshot_date, scenario=scenario, strict=True
+                            )
+                        else:
+                            call.value = trends_service.get_snapshot(
+                                snapshot_date=snapshot_date, scenario=scenario
+                            )
+                    except TrendsUnavailableError as exc:
+                        call.error = exc
+                    except BaseException as exc:  # noqa: BLE001 - re-raised in caller thread
+                        call.error = exc
+                finally:
+                    with _IN_FLIGHT_LOCK:
+                        _WORKER_SLOT.release()
+                        if _IN_FLIGHT is call:
+                            _IN_FLIGHT = None
+                    call.done.set()
 
-    worker = threading.Thread(target=_run, name="matching-m1-trends", daemon=True)
-    worker.start()
-    worker.join(SNAPSHOT_TIMEOUT_S)
+            worker = threading.Thread(target=_run, name="matching-m1-trends", daemon=True)
+            try:
+                worker.start()
+            except RuntimeError:
+                _WORKER_SLOT.release()
+                _IN_FLIGHT = None
+                raise
 
-    if worker.is_alive():
-        raise TrendUnavailable(
-            f"Trend snapshot for scenario {scenario!r} timed out "
-            f"after {SNAPSHOT_TIMEOUT_S:g}s — M1 service may be unavailable."
-        )
-    if "error" in box:
-        exc = box["error"]
+    if not call.done.wait(SNAPSHOT_TIMEOUT_S):
+        with _IN_FLIGHT_LOCK:
+            if not call.done.is_set() and _IN_FLIGHT is call:
+                call.timed_out = True
+        if not call.done.is_set():
+            raise TrendUnavailable(
+                f"Trend snapshot for scenario {scenario!r} timed out "
+                f"after {SNAPSHOT_TIMEOUT_S:g}s — M1 service may be unavailable."
+            )
+
+    if call.error is not None:
+        exc = call.error
+        if isinstance(exc, NotFoundError):
+            raise exc
         raise TrendUnavailable(
             f"Trend snapshot unavailable for scenario {scenario!r}: {exc}"
-        ) from exc  # type: ignore[misc]
-
-    return box["value"]
+        ) from exc
+    if call.value is None:
+        raise TrendUnavailable("Trend service returned no snapshot.")
+    return call.value

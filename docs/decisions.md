@@ -344,6 +344,67 @@
 - **Replaces**: M2-001/M2-005 normalised-scale descriptions for matching; M2-011 benchmark metrics (weights unchanged)
 - **PR / branch**: PR #4 / feat/matching-scoring-engine
 
+### M2-016: Add taxonomy aliases to the skills schema
+- **Date**: 2026-10-21
+- **Feature**: F1 (Skills Profile Intake), F4 (Future-Role Matching & Gap)
+- **Type**: schema
+- **Change**: Add `skills.aliases text NOT NULL DEFAULT ''` using the append-only migration `20261021150000_m2_skill_aliases.sql`. This matches the `aliases` column in `src/data/seed/taxonomy/skills.csv` and allows the generic CSV seed loader to insert the field into both fresh and upgraded databases. The default preserves compatibility with older seed files that omit aliases. The down migration drops the added column.
+- **Why**: CI failed during the post-migration taxonomy seed: `skills.csv` included `aliases`, but the initial skills table did not. The seed loader correctly builds insert columns from the CSV header; the schema must support that data.
+- **Affects**: CI database migration/seed job and matching taxonomy consumers; no API contract change.
+- **Replaces**: none
+- **PR / branch**: `feat/matching-scoring-engine`
+
+### M2-017: Bound CV match counting and timed-out trend workers
+- **Date**: 2026-10-21
+- **Feature**: F1 (Skills Profile Intake), F4 (Future-Role Matching & Gap)
+- **Type**: method
+- **Change**: CV skill extraction stops scanning a skill after its confidence reaches 1.0. The matching trend adapter calls M1 `get_snapshot(..., strict=True)`, maps `TrendsUnavailableError` to the matching 503, and shares at most one outstanding getter among concurrent requests. A timed-out getter retains its slot until it exits; later requests fail fast while it remains occupied.
+- **Why**: Repeated CV aliases previously caused needless overlap comparisons after the score was already capped. A request timeout alone did not stop a stuck trend worker, so concurrent timeouts could start unbounded threads/connections. M1-006 now bounds its database connections and queries and exposes strict failure behavior; the M2 worker cap remains a resource guard.
+- **Affects**: M1 trend availability under a stuck database read; matching may return fast 503 responses while its sole trend worker remains stuck.
+- **Replaces**: none
+- **PR / branch**: `feat/matching-scoring-engine`
+
+### M2-018: Load match interest tags from the role catalogue
+- **Date**: 2026-10-21
+- **Feature**: F4 (Future-Role Matching & Gap)
+- **Type**: data source | method
+- **Change**: Store each role's interest tags in `taxonomy/roles.csv` and load them alongside role labels. Add an HTTP integration test covering saved profile intake, deterministic matching output, attribution, trend coverage, skill gaps, SDG badges, and strict trend failure.
+- **Why**: Matching must use catalogue-owned role attributes and produce explainable, attributed results from the saved profile; duplicated role tags in Python could drift from the catalogue.
+- **Affects**: matching score interest contribution; catalog consumers using `roles.csv`
+- **Replaces**: none
+- **PR / branch**: `feat/matching-scoring-engine`
+
+### M2-019: Replay matching against an explicit M1 snapshot
+- **Date**: 2026-10-21
+- **Feature**: F4 (Future-Role Matching & Gap)
+- **Type**: method | contract | UI
+- **Change**: Both matching endpoints accept an optional `snapshot_date` and obtain that scenario/date directly from M1's trend service. The API and matching pages also carry M1's provenance note, including fixture caveats. The matching page exposes a date control and preserves the date in role-detail links. While replaying, its pathway link explicitly points to the latest-data plan because F5's UI does not yet forward snapshot dates. Concurrent requests for different scenarios or dates cannot share one in-flight trend result. API gaps always come from F5's `skills_gap` port, and the role-detail route no longer shows F3's static mock outlook panel.
+- **Why**: A selected historical snapshot must drive the actual score and attribution, while a request for a different snapshot cannot inherit another caller's data. The static F3 range was not derived from M1 evidence.
+- **Pipeline**: M1 dated snapshot → validate requested scenario/date and source → skill velocities → existing F4 scoring formula → replay API check for both dates → matching API and UI
+- **Affects**: M1 snapshot service; M3 pathway UI still needs to forward a selected date before matching and pathway views can replay together.
+- **Replaces**: none
+- **PR / branch**: `feat/matching-scoring-engine`
+
+### M2-020: Use M1's disclosed fixture snapshot in demo mode
+- **Date**: 2026-10-21
+- **Feature**: F4 (Future-Role Matching & Gap)
+- **Type**: method
+- **Change**: Matching calls M1's in-process snapshot service in its documented demo mode when `auth_mode=demo`, allowing M1's fixture fallback and carrying its provenance note into the matching API and UI. Other auth modes request `strict=True` and return 503 if the database snapshot is unavailable. The bounded worker key includes the mode so concurrent demo and live reads cannot share a result.
+- **Why**: The explicit demo must work without a database and disclose its frozen source; live matching must still fail closed rather than silently substitute fixtures. This also aligns M2 with M1's existing demo contract without editing M1 or M3 features.
+- **Affects**: Matching availability and source disclosure; M1 snapshot service is consumed unchanged.
+- **Replaces**: M2-017's unconditional strict-read choice
+- **PR / branch**: `feat/matching-scoring-engine`
+
+### M2-021: Store role interest tags in the roles table
+- **Date**: 2026-10-21
+- **Feature**: F4 (Future-Role Matching & Gap)
+- **Type**: schema
+- **Change**: Add nullable `roles.interest_tags text` in the append-only `20261021160000_m2_role_interest_tags.sql` migration. Backfill the four synthetic future-role values for databases seeded before the migration; fresh seeds take the values from `taxonomy/roles.csv`.
+- **Why**: The generic seed loader inserts every CSV column, but the roles table lacked the newly added `interest_tags` column. GitHub's database job failed at `Load seeds` with `UndefinedColumn`. Blank role tags become SQL `NULL` in the seed loader, so the column must allow NULL. The backfill keeps upgraded role rows consistent because the seed loader skips existing IDs.
+- **Affects**: CI database migration and seed job; F4 role catalogue data.
+- **Replaces**: none
+- **PR / branch**: `feat/matching-scoring-engine`
+
 ---
 
 ## M3: Pathway, SDG & Guardrails (F5, F6, F8)
