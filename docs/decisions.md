@@ -405,6 +405,16 @@
 - **Replaces**: none
 - **PR / branch**: `feat/matching-scoring-engine`
 
+### M2-022: Queue distinct trend reads behind the bounded M2 worker
+- **Date**: 2026-10-22
+- **Feature**: F4 (Future-Role Matching & Gap)
+- **Type**: method
+- **Change**: Different scenario/date requests wait up to five seconds for the single M1 trend worker, using a condition that releases the state lock while waiting. Identical requests still share the active result; a timed-out worker retains the sole slot until it exits. A 503 is returned when the queue deadline expires.
+- **Why**: Immediate rejection of a different snapshot caused avoidable 503 responses during ordinary overlapping requests. Waiting on the semaphore while holding the state lock would prevent worker cleanup, so the port waits for a state change and acquires the semaphore outside that lock.
+- **Affects**: M2 matching latency under concurrent requests; M1 trend service is unchanged.
+- **Replaces**: M2-017's fast-fail policy for a busy worker
+- **PR / branch**: `feat/matching-scoring-engine`
+
 ---
 
 ## M3: Pathway, SDG & Guardrails (F5, F6, F8)
