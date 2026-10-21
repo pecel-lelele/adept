@@ -1846,7 +1846,7 @@
           "profile"
         ],
         "summary": "Upload CV for skill extraction (M2-01)",
-        "description": "Accept a PDF or plain-text CV, extract skills against the taxonomy.\n\nThe file is processed in memory and never stored (AGENTS.md §3 guardrails).\nReturns a list of ExtractedSkill objects ordered by confidence, each with\na proficiency level on the 1-5 scale ready for the confirmation screen (M2-03).",
+        "description": "Accept a PDF or plain-text CV, extract skills against the taxonomy.\n\nSafety rules:\n  - Content type must be application/pdf or text/plain (4xx otherwise).\n  - File must be under MAX_UPLOAD_BYTES (413 if exceeded).\n  - Extracted text is capped at 200,000 characters (truncated=True in response).\n  - The file is processed in memory and never stored (AGENTS.md §3).\n  - CPU-bound parsing runs in a thread via asyncio.to_thread to avoid\n    blocking the event loop.",
         "operationId": "profile_upload_cv",
         "parameters": [
           {
@@ -3166,6 +3166,11 @@
             },
             "type": "array",
             "title": "Skills"
+          },
+          "truncated": {
+            "type": "boolean",
+            "title": "Truncated",
+            "default": false
           },
           "meta": {
             "$ref": "#/components/schemas/RecommendationMeta"
@@ -4723,6 +4728,20 @@
             "type": "array",
             "title": "Sdg Targets"
           },
+          "trend_coverage": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trend Coverage",
+            "description": "Share of the role's skill importance that had a trend value in the snapshot; None for mock responses. Low coverage means many skills fell back to neutral."
+          },
           "meta": {
             "$ref": "#/components/schemas/RecommendationMeta"
           }
@@ -5029,7 +5048,14 @@
             "type": "number",
             "maximum": 1.0,
             "minimum": 0.0,
-            "title": "Value"
+            "title": "Value",
+            "description": "Component value 0..1 as used in the total. When `provided` is false this is the neutral 0.5, not a measurement."
+          },
+          "provided": {
+            "type": "boolean",
+            "title": "Provided",
+            "description": "False when the user did not give the data this component scores (e.g. no interests), so the UI can show 'not provided' without parsing the explanation.",
+            "default": true
           },
           "explanation": {
             "type": "string",

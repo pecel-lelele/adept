@@ -471,9 +471,13 @@ export interface paths {
          * Upload CV for skill extraction (M2-01)
          * @description Accept a PDF or plain-text CV, extract skills against the taxonomy.
          *
-         *     The file is processed in memory and never stored (AGENTS.md §3 guardrails).
-         *     Returns a list of ExtractedSkill objects ordered by confidence, each with
-         *     a proficiency level on the 1-5 scale ready for the confirmation screen (M2-03).
+         *     Safety rules:
+         *       - Content type must be application/pdf or text/plain (4xx otherwise).
+         *       - File must be under MAX_UPLOAD_BYTES (413 if exceeded).
+         *       - Extracted text is capped at 200,000 characters (truncated=True in response).
+         *       - The file is processed in memory and never stored (AGENTS.md §3).
+         *       - CPU-bound parsing runs in a thread via asyncio.to_thread to avoid
+         *         blocking the event loop.
          */
         post: operations["profile_upload_cv"];
         delete?: never;
@@ -966,6 +970,11 @@ export interface components {
         CvExtractionResult: {
             /** Skills */
             skills: components["schemas"]["ExtractedSkill"][];
+            /**
+             * Truncated
+             * @default false
+             */
+            truncated: boolean;
             meta: components["schemas"]["RecommendationMeta"];
         };
         /** DataFreshness */
@@ -1640,6 +1649,11 @@ export interface components {
             partial_skills: components["schemas"]["Skill"][];
             /** Sdg Targets */
             sdg_targets: components["schemas"]["SdgTarget"][];
+            /**
+             * Trend Coverage
+             * @description Share of the role's skill importance that had a trend value in the snapshot; None for mock responses. Low coverage means many skills fell back to neutral.
+             */
+            trend_coverage?: number | null;
             meta: components["schemas"]["RecommendationMeta"];
         };
         /**
@@ -1783,8 +1797,17 @@ export interface components {
             name: string;
             /** Weight */
             weight: number;
-            /** Value */
+            /**
+             * Value
+             * @description Component value 0..1 as used in the total. When `provided` is false this is the neutral 0.5, not a measurement.
+             */
             value: number;
+            /**
+             * Provided
+             * @description False when the user did not give the data this component scores (e.g. no interests), so the UI can show 'not provided' without parsing the explanation.
+             * @default true
+             */
+            provided: boolean;
             /** Explanation */
             explanation: string;
         };
