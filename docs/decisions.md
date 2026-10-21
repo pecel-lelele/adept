@@ -395,6 +395,16 @@
 - **Replaces**: M2-017's unconditional strict-read choice
 - **PR / branch**: `feat/matching-scoring-engine`
 
+### M2-021: Store role interest tags in the roles table
+- **Date**: 2026-10-21
+- **Feature**: F4 (Future-Role Matching & Gap)
+- **Type**: schema
+- **Change**: Add nullable `roles.interest_tags text` in the append-only `20261021160000_m2_role_interest_tags.sql` migration. Backfill the four synthetic future-role values for databases seeded before the migration; fresh seeds take the values from `taxonomy/roles.csv`.
+- **Why**: The generic seed loader inserts every CSV column, but the roles table lacked the newly added `interest_tags` column. GitHub's database job failed at `Load seeds` with `UndefinedColumn`. Blank role tags become SQL `NULL` in the seed loader, so the column must allow NULL. The backfill keeps upgraded role rows consistent because the seed loader skips existing IDs.
+- **Affects**: CI database migration and seed job; F4 role catalogue data.
+- **Replaces**: none
+- **PR / branch**: `feat/matching-scoring-engine`
+
 ---
 
 ## M3: Pathway, SDG & Guardrails (F5, F6, F8)
