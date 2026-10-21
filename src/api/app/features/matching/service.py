@@ -10,6 +10,8 @@ maps to 503.  Date and sources always come from the snapshot; never invented.
 
 from __future__ import annotations
 
+from datetime import date
+
 from app.contracts.common import RecommendationMeta, ScenarioId
 from app.contracts.matching import MatchResponse, RoleMatch
 from app.core.auth import CurrentUser
@@ -28,17 +30,26 @@ def _build_meta(snap, scenario: ScenarioId) -> RecommendationMeta:
     )
 
 
-def list_matches(user: CurrentUser, scenario: ScenarioId) -> MatchResponse:
-    snap = fetch_snapshot(scenario)  # raises TrendUnavailable if unavailable
+def list_matches(
+    user: CurrentUser, scenario: ScenarioId, snapshot_date: date | None = None
+) -> MatchResponse:
+    snap = fetch_snapshot(scenario, snapshot_date) if snapshot_date else fetch_snapshot(scenario)
     meta = _build_meta(snap, scenario)
     matches = repository.list_matches(user.id, scenario, snap.velocities, meta)
-    return MatchResponse(matches=matches, meta=meta)
+    if snap.data_provenance_note:
+        matches = [
+            match.model_copy(update={"data_provenance_note": snap.data_provenance_note})
+            for match in matches
+        ]
+    return MatchResponse(matches=matches, meta=meta, data_provenance_note=snap.data_provenance_note)
 
 
-def get_match(user: CurrentUser, role_id: str, scenario: ScenarioId) -> RoleMatch:
-    snap = fetch_snapshot(scenario)  # raises TrendUnavailable if unavailable
+def get_match(
+    user: CurrentUser, role_id: str, scenario: ScenarioId, snapshot_date: date | None = None
+) -> RoleMatch:
+    snap = fetch_snapshot(scenario, snapshot_date) if snapshot_date else fetch_snapshot(scenario)
     meta = _build_meta(snap, scenario)
     match = repository.get_match(user.id, role_id, scenario, snap.velocities, meta)
     if match is None:
         raise NotFoundError(f"No match for role {role_id}")
-    return match
+    return match.model_copy(update={"data_provenance_note": snap.data_provenance_note})

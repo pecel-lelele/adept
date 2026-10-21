@@ -1178,6 +1178,11 @@ export interface components {
             /** Matches */
             matches: components["schemas"]["RoleMatch"][];
             meta: components["schemas"]["RecommendationMeta"];
+            /**
+             * Data Provenance Note
+             * @description Trend provider's provenance disclosure, including any demo-fixture caveat.
+             */
+            data_provenance_note?: string | null;
         };
         /** Member */
         Member: {
@@ -1654,6 +1659,11 @@ export interface components {
              * @description Share of the role's skill importance that had a trend value in the snapshot; None for mock responses. Low coverage means many skills fell back to neutral.
              */
             trend_coverage?: number | null;
+            /**
+             * Data Provenance Note
+             * @description Trend provider's provenance disclosure, including any demo-fixture caveat.
+             */
+            data_provenance_note?: string | null;
             meta: components["schemas"]["RecommendationMeta"];
         };
         /**
@@ -2391,6 +2401,8 @@ export interface operations {
         parameters: {
             query?: {
                 scenario?: "moderate" | "fast";
+                /** @description Replay an older trend snapshot (YYYY-MM-DD). Omit for the latest. */
+                snapshot_date?: string | null;
             };
             header?: {
                 "x-demo-user"?: string | null;
@@ -2425,6 +2437,8 @@ export interface operations {
         parameters: {
             query?: {
                 scenario?: "moderate" | "fast";
+                /** @description Replay an older trend snapshot (YYYY-MM-DD). Omit for the latest. */
+                snapshot_date?: string | null;
             };
             header?: {
                 "x-demo-user"?: string | null;

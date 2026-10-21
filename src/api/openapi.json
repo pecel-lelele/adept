@@ -136,6 +136,25 @@
             }
           },
           {
+            "name": "snapshot_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Replay an older trend snapshot (YYYY-MM-DD). Omit for the latest.",
+              "title": "Snapshot Date"
+            },
+            "description": "Replay an older trend snapshot (YYYY-MM-DD). Omit for the latest."
+          },
+          {
             "name": "x-demo-user",
             "in": "header",
             "required": false,
@@ -222,6 +241,25 @@
               "default": "moderate",
               "title": "Scenario"
             }
+          },
+          {
+            "name": "snapshot_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Replay an older trend snapshot (YYYY-MM-DD). Omit for the latest.",
+              "title": "Snapshot Date"
+            },
+            "description": "Replay an older trend snapshot (YYYY-MM-DD). Omit for the latest."
           },
           {
             "name": "x-demo-user",
@@ -3670,6 +3708,18 @@
           },
           "meta": {
             "$ref": "#/components/schemas/RecommendationMeta"
+          },
+          "data_provenance_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data Provenance Note",
+            "description": "Trend provider's provenance disclosure, including any demo-fixture caveat."
           }
         },
         "type": "object",
@@ -4741,6 +4791,18 @@
             ],
             "title": "Trend Coverage",
             "description": "Share of the role's skill importance that had a trend value in the snapshot; None for mock responses. Low coverage means many skills fell back to neutral."
+          },
+          "data_provenance_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data Provenance Note",
+            "description": "Trend provider's provenance disclosure, including any demo-fixture caveat."
           },
           "meta": {
             "$ref": "#/components/schemas/RecommendationMeta"

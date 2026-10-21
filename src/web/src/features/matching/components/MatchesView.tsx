@@ -19,19 +19,47 @@ import { percent } from "@/lib/utils";
 
 import { fetchMatches } from "../api";
 
-export async function MatchesView({ scenario }: { scenario: ScenarioId }) {
+export async function MatchesView({
+  scenario,
+  snapshotDate,
+}: {
+  scenario: ScenarioId;
+  snapshotDate?: string;
+}) {
   const t = await getTranslations("matching");
-  const result = await fetchMatches(scenario);
+  const result = await fetchMatches(scenario, snapshotDate);
+  const replayQuery = snapshotDate ? `&snapshot_date=${encodeURIComponent(snapshotDate)}` : "";
 
   return (
     <section>
       <StubBanner feature="F4 Future-role matching" endpoint="GET /api/v1/matches" />
       <PageHeader title={t("title")} description={t("description")} />
+      <form action="/app/matches" method="get" className="flex flex-wrap items-end gap-2 pb-4">
+        <input type="hidden" name="scenario" value={scenario} />
+        <label className="flex flex-col gap-1 text-sm">
+          <span>{t("snapshotDate")}</span>
+          <input
+            type="date"
+            name="snapshot_date"
+            defaultValue={snapshotDate ?? ""}
+            className="rounded-md border px-3 py-2"
+          />
+        </label>
+        <button type="submit" className={buttonVariants({ variant: "outline", size: "sm" })}>
+          {t("replay")}
+        </button>
+        <span className="text-xs text-muted-foreground">{t("latestHint")}</span>
+      </form>
       {!result.ok ? (
         <ApiError message={result.message} />
       ) : (
         <div className="space-y-3">
           <MetaBar meta={result.data.meta} />
+          {result.data.data_provenance_note ? (
+            <p className="text-xs text-muted-foreground">
+              {t("provenance")}: {result.data.data_provenance_note}
+            </p>
+          ) : null}
           {result.data.matches.map((m, i) => (
             <Card key={m.role_id}>
               <CardHeader className="flex-row items-center justify-between">
@@ -56,16 +84,16 @@ export async function MatchesView({ scenario }: { scenario: ScenarioId }) {
                 </p>
                 <div className="flex gap-2 pt-1">
                   <Link
-                    href={`/app/matches/${m.role_id}?scenario=${scenario}`}
+                    href={`/app/matches/${encodeURIComponent(m.role_id)}?scenario=${scenario}${replayQuery}`}
                     className={buttonVariants({ variant: "outline", size: "sm" })}
                   >
                     {t("viewDetail")}
                   </Link>
                   <Link
-                    href={`/app/pathway?role=${m.role_id}&scenario=${scenario}`}
+                    href={`/app/pathway?role=${encodeURIComponent(m.role_id)}&scenario=${scenario}`}
                     className={buttonVariants({ size: "sm" })}
                   >
-                    {t("viewPathway")}
+                    {t(snapshotDate ? "viewLatestPathway" : "viewPathway")}
                   </Link>
                 </div>
               </CardContent>

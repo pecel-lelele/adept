@@ -22,6 +22,7 @@ from app.features.matching.scoring import (
     Role,
     RoleSkill,
     Weights,
+    _RoleScore,
     rank_roles,
 )
 from app.features.matching.sdg_port import fetch_role_badges
@@ -32,16 +33,8 @@ _SEED = Path(__file__).resolve().parents[4] / "data" / "seed"
 # Default weights — the canonical values live in scoring.Weights (M2-001, retuned in M2-011)
 _W = Weights()
 
-# Interest tags inferred from profiles.csv and mocks (kept in repo so that the
-# catalog is a pure CSV concern, without encoding UI strings in seed files).
-_ROLE_INTEREST_TAGS: dict[str, frozenset[str]] = {
-    "process-automation-analyst": frozenset(
-        {"process improvement", "operations", "automation", "finance"}
-    ),
-    "data-analyst": frozenset({"data", "analytics", "software"}),
-    "compliance-analytics-officer": frozenset({"finance", "risk", "data", "compliance"}),
-    "ai-operations-specialist": frozenset({"software", "AI", "automation"}),
-}
+# Loaded from the canonical role catalogue by _load_roles.
+_ROLE_INTEREST_TAGS: dict[str, frozenset[str]] = {}
 
 
 def role_interest_tags(role_id: str) -> frozenset[str]:
@@ -62,11 +55,14 @@ def _load_roles() -> list[Role]:
     """Build Role objects from current taxonomy seed CSV files without a cache."""
     global _ROLE_LABELS, _SKILL_LABELS  # noqa: PLW0603
 
-    # Role labels
+    # Role labels and interest tags from the canonical role catalogue.
     roles_path = _SEED / "taxonomy" / "roles.csv"
     with open(roles_path, encoding="utf-8") as f:
         for row in csv.DictReader(f):
             _ROLE_LABELS[row["id"]] = row["label"]
+            _ROLE_INTEREST_TAGS[row["id"]] = frozenset(
+                tag.strip() for tag in row.get("interest_tags", "").split("|") if tag.strip()
+            )
 
     # Skill labels
     skills_path = _SEED / "taxonomy" / "skills.csv"
@@ -129,23 +125,24 @@ def _load_profile(user_id: str) -> MatchProfile:
 
 
 def _score_to_contract(
-    role_score: object,
+    role_score: _RoleScore,
     scenario: ScenarioId,
     meta: RecommendationMeta,
-    user_levels: dict[str, int] | None = None,
+    user_levels: dict[str, int],
 ) -> RoleMatch:
     """Map a scoring._RoleScore to the API contract RoleMatch."""
     # Ensure labels are populated
     _load_roles()
 
-    role_id: str = role_score.role_id  # type: ignore[attr-defined]
-    bd: dict[str, float | None] = role_score.breakdown  # type: ignore[attr-defined]
+    role_id = role_score.role_id
+    bd = role_score.breakdown
+    skill_value = bd["skill"]
+    trend_value = bd["trend"]
+    if skill_value is None or trend_value is None:
+        raise ValueError("A scored role must have skill and trend values")
 
     # Gap status from unified gap port (pathway.service.skills_gap)
-    if user_levels is not None:
-        gap = fetch_skills_gap(user_levels, role_id)
-    else:
-        gap = role_score.gap  # type: ignore[attr-defined]
+    gap = fetch_skills_gap(user_levels, role_id)
 
     def _skill_obj(sid: str) -> Skill:
         return Skill(id=sid, label=_SKILL_LABELS.get(sid, sid))
@@ -154,13 +151,13 @@ def _score_to_contract(
         ScoreComponent(
             name="skill_overlap",
             weight=_W.skill,
-            value=round(bd["skill"], 4),
+            value=round(skill_value, 4),
             explanation="Share of required skills weighted by importance.",
         ),
         ScoreComponent(
             name="trend_outlook",
             weight=_W.trend,
-            value=round(bd["trend"], 4),
+            value=round(trend_value, 4),
             explanation=(
                 f"Importance-weighted percentile rank of skill velocity ({scenario} scenario)."
             ),
@@ -187,7 +184,7 @@ def _score_to_contract(
         missing_skills=[_skill_obj(s) for s in gap.get("missing", [])],
         partial_skills=[_skill_obj(s) for s in gap.get("partial", [])],
         sdg_targets=fetch_role_badges(role_id),
-        trend_coverage=round(float(role_score.trend_coverage), 4),  # type: ignore[attr-defined]
+        trend_coverage=round(role_score.trend_coverage, 4),
         meta=meta,
     )
 
@@ -203,7 +200,7 @@ def list_matches(
     roles = _load_roles()
     ranked = rank_roles(profile, roles, velocities, _W)
     user_levels = {k: int(round(v)) for k, v in profile.skills.items()}
-    return [_score_to_contract(r, scenario, meta, user_levels=user_levels) for r in ranked]
+    return [_score_to_contract(r, scenario, meta, user_levels) for r in ranked]
 
 
 def get_match(
@@ -220,5 +217,5 @@ def get_match(
     user_levels = {k: int(round(v)) for k, v in profile.skills.items()}
     for r in ranked:
         if r.role_id == role_id:
-            return _score_to_contract(r, scenario, meta, user_levels=user_levels)
+            return _score_to_contract(r, scenario, meta, user_levels)
     return None

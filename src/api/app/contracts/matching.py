@@ -45,9 +45,17 @@ class RoleMatch(BaseModel):
             "None for mock responses. Low coverage means many skills fell back to neutral."
         ),
     )
+    data_provenance_note: str | None = Field(
+        default=None,
+        description="Trend provider's provenance disclosure, including any demo-fixture caveat.",
+    )
     meta: RecommendationMeta
 
 
 class MatchResponse(BaseModel):
     matches: list[RoleMatch]
     meta: RecommendationMeta
+    data_provenance_note: str | None = Field(
+        default=None,
+        description="Trend provider's provenance disclosure, including any demo-fixture caveat.",
+    )
