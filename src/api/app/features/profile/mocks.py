@@ -47,6 +47,20 @@ PROFILES: dict[str, Profile] = {
             UserSkill(skill_id="excel", level=3, source="form"),
         ],
     ),
+    "demo-company": Profile(
+        user_id="demo-company",
+        display_name="Demo Bank HR",
+        segment="working",
+        interests=["finance", "operations", "data"],
+        hours_per_week=10,
+        budget_myr=1000,
+        hrd_eligible=True,
+        current_role_id="compliance-analytics-officer",
+        skills=[
+            UserSkill(skill_id="risk-compliance", level=3, source="confirmed"),
+            UserSkill(skill_id="sql", level=2, source="confirmed"),
+        ],
+    ),
 }
 
 # Fixed mock result for POST /profile/cv; real extraction is an F1 open choice.

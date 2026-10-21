@@ -6,7 +6,12 @@
   "partial": "Partly there",
   "viewDetail": "See breakdown",
   "viewPathway": "Plan a pathway",
+  "viewLatestPathway": "Plan with latest data",
   "breakdown": "Score breakdown",
+  "snapshotDate": "Snapshot date",
+  "replay": "Show matches",
+  "latestHint": "Leave the date blank for the latest snapshot.",
+  "provenance": "Data provenance",
   "component": {
     "skill_overlap": "Skill overlap",
     "trend_outlook": "Trend outlook",

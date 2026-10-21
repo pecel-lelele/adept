@@ -42,11 +42,15 @@ TABLE_ORDER = [
     "org_regions",
 ]
 SERIAL_TABLES = {"snapshots", "trend_signals"}
+# CSVs in src/data/seed/ that are evaluation benchmarks or ground truth, not database tables.
+NON_TABLE_CSVS = {"expected_roles"}
 
 
 def collect() -> dict[str, list[Path]]:
     files: dict[str, list[Path]] = defaultdict(list)
     for path in sorted(SEED.glob("*/*.csv")):
+        if path.stem in NON_TABLE_CSVS:
+            continue
         if path.stem not in TABLE_ORDER:
             raise ValueError(f"{path}: unknown table '{path.stem}' (add it to TABLE_ORDER)")
         files[path.stem].append(path)

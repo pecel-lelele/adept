@@ -165,6 +165,256 @@
 
 <!-- M2 adds entries below this line -->
 
+### M2-001: Explainable matching engine, snapshot replay, fairness guards, and offline evaluation benchmark
+- **Date**: 2026-10-20
+- **Feature**: F4 (Future-Role Matching & Gap)
+- **Type**: model | method | formula | contract | data source
+- **Change**:
+  1. Implemented explainable scoring in `src/api/app/features/matching/scoring.py` with pure functions (`skill_overlap`, `trend_scores`, `role_trend`, `interest_fit`, `skills_gap`, `rank_roles`) using default weights (0.5 skill, 0.3 trend, 0.2 interest) and percentile-rank normalization for velocities to resist outlier suppression.
+  2. Implemented `replay.py` for evaluating role movement across dated snapshots (`RoleMovement` delta_rank and delta_score).
+  3. Implemented `trend_port.py` thin adapter to extract velocities from M1's `TrendSnapshotResponse`.
+  4. Added fairness whitelist (`MatchProfile` restricted to skills and interests; no protected demographic attributes) and counterfactual invariance tests (`test_counterfactual_fairness_demographic_swaps`) proving identical rankings under identity swaps (M2-12, M2-13).
+  5. Implemented evaluation metrics in `evaluation.py` (Precision@k, Recall@k, Reciprocal Rank, nDCG@k) and benchmark harness `tests/api/matching/test_evaluation.py` against hand-labelled ground truth `src/data/seed/personas/expected_roles.csv` for synthetic personas (Aisyah, Wei Jie, Ravi), achieving 100% MRR and >= 0.90 nDCG@3.
+- **Why**: F4 requires explainable, human-in-the-loop role matching with clear skill gap attribution, zero hallucinated jobs/skills, strict non-discrimination (SDG 10.2 & Federal Constitution Art. 8), and quantitative validation on synthetic personas.
+- **Pipeline** (data/ML only): taxonomy roles/skills + user profile + trend snapshot velocities -> skill overlap + rank-based trend score + interest Jaccard fit -> composite score -> tie-broken rank ordering -> gap bucketing (have/partial/missing) -> evaluation harness (MRR=1.0, P@3>=0.85, nDCG@3>=0.90).
+- **Affects**: M1 (trend snapshot consumption), M3 (pathway gap intake), M4 (match UI and HR heatmap)
+- **Replaces**: none
+- **PR / branch**: `feat/matching-scoring-engine`
+
+### M2-002: F1 Profile intake pipeline (CV parsing, questionnaire intake, and skill confirmation normalisation)
+- **Date**: 2026-10-20
+- **Feature**: F1 (Skills Profile Intake)
+- **Type**: model | method | formula | contract | data source
+- **Change**:
+  1. Implemented rule-based CV parsing pipeline in `src/api/app/features/profile/cv_parser.py` (M2-01) supporting PDF and raw text, text cleaning (URL/email stripping), regex alias index matching against official taxonomy `src/data/seed/taxonomy/skills.csv`, context-based proficiency level estimation (1–5 scale), and confidence scoring.
+  2. Implemented questionnaire intake in `src/api/app/features/profile/schemas.py` and `router.py` (M2-02) at `POST /api/v1/profile/questionnaire` capturing segment, target roles, weekly commitment, learning preferences, and HRD eligibility.
+  3. Implemented skill confirmation endpoint in `src/api/app/features/profile/service.py` and `router.py` (M2-03) at `PUT /api/v1/profile/skills/confirm`, validating taxonomy IDs, rejecting duplicates, persisting confirmed skills, and returning normalised proficiency values on `[0.0, 1.0]` using `(level - 1) / 4.0` for downstream F4 matching engine compatibility.
+- **Why**: Standardises profile intake across diverse entry points (CV upload and questionnaire), eliminates hallucinated skill entities by strictly grounding in taxonomy seed data, and aligns integer user skill levels (1-5) with the downstream matching engine's unit float scale [0.0, 1.0].
+- **Pipeline** (data/ML only): PDF/text resume -> clean_text() -> alias/regex scanner against taxonomy skills -> context level estimation (1-5) -> human-in-the-loop review/confirmation -> (level - 1) / 4.0 normalisation -> persistent user profile.
+- **Affects**: M2 (matching engine input), M4 (profile onboarding frontend)
+- **Replaces**: none
+- **PR / branch**: `feat/matching-scoring-engine`
+
+### M2-003: Matching responses carry real snapshot date and sources (never invented)
+- **Date**: 2026-10-21
+- **Feature**: F4 (Future-Role Matching & Gap)
+- **Type**: contract | method
+- **Change**: `trend_port.py` now returns a typed `TrendSnapshot` dataclass whose every field (`velocities`, `snapshot_date`, `sources`, `scenario`, `is_estimate`) comes directly from M1's snapshot `meta` — no defaults, no invented values. `service.py` maps these field-by-field into `RecommendationMeta`. When the snapshot is unavailable (no items or no sources), the port raises `TrendUnavailable` (alias for `TrendUnavailableError`) → router converts to 503. Tests in `test_snapshot_meta.py` freeze "today" to 2026-10-21 while the fake snapshot is dated 2026-10-20, proving `meta.snapshot_date` never equals `date.today()`.
+- **Why**: Prompt-1 review item: the old implementation used `date.today()` and a hardcoded `"MOCK DATA"` source string in `RecommendationMeta`. This violates AGENTS.md §3 rule 4 (mandatory output attribution).
+- **Affects**: none (internal matching module only)
+- **Replaces**: none
+- **PR / branch**: `feat/matching-scoring-engine`
+
+### M2-004: Matching calls M1's trend service in-process with threading timeout (no HTTP)
+- **Date**: 2026-10-21
+- **Feature**: F4 (Future-Role Matching & Gap)
+- **Type**: method | dependency
+- **Change**: Removed all HTTP self-calls (previously `fetch_snapshot` called `GET /api/v1/trends/snapshot` over `requests`). `trend_port._call_with_timeout` now calls `app.features.trends.service.get_snapshot` on a daemon thread and joins with `SNAPSHOT_TIMEOUT_S=2.0` (same guard as M3's pathway port). A hung psycopg connect is bounded; any exception or timeout raises `TrendUnavailable` → 503. Removed dead `_SNAPSHOT_URL` constant, `_API_BASE` constant, `get_settings` import, and `base_url` parameter from `fetch_snapshot`. Added `tests/api/matching/conftest.py` patching M1's fixture snapshots (mirrors `tests/api/pathway/conftest.py`) so router tests never need a live DB.
+- **Why**: Prompt-2 review item: self-calling over HTTP held two thread-pool threads per request, starving the pool under concurrent load. The threading daemon + bounded join pattern is already established by M3's pathway port.
+- **Affects**: none (internal matching module only; trends service not modified)
+- **Replaces**: none
+- **PR / branch**: `feat/matching-scoring-engine`
+
+### M2-005: Matching uses live saved profile with no cache and raises 4xx when profile missing
+- **Date**: 2026-10-21
+- **Feature**: F4 (Future-Role Matching & Gap)
+- **Type**: method | contract
+- **Change**: Replaced cached CSV persona reading in matching repository (`_load_profile` with `@lru_cache`) with a direct integration to `profile_service.get_my_profile(user_id)`. Converted skill levels 1-5 to [0, 1] using `profile_service.normalise_level` (single conversion function). Built `MatchProfile` strictly adhering to the fairness whitelist (only skills and interests; demographic signals like age, gender, and background are never read). If a user has no saved profile or has no saved skills, `repository._load_profile` raises `ProfileRequiredError` (HTTP 400 Bad Request) instead of falling back to mock matches or an empty list. Removed `@lru_cache` so user profile edits immediately reflect in matches. Moved CSV persona loading into `app.features.matching.personas` solely for evaluation harness and demo seeding; verified production code does not import it.
+- **Why**: Prompt-3 review item: user's saved profile edits were not reaching matches because matching read from static cached CSV files. Additionally, unknown users received mock matches instead of a clear profile-required error.
+- **Affects**: F1 profile service (accepts user_id string and exports `has_profile`), F4 matching repository/personas
+- **Replaces**: none
+- **PR / branch**: `feat/matching-scoring-engine`
+
+### M2-006: Unified skills-gap rule with pathway and live SDG badges from SDG service
+- **Date**: 2026-10-21
+- **Feature**: F4 (Future-Role Matching & Gap)
+- **Type**: formula | method | contract
+- **Change**: Deleted the hardcoded gap thresholds (`HAVE, PARTIAL = 0.7, 0.3`) in `scoring.py`. Implemented `gap_state(user_level, required_level)` (integer levels 1-5: `have` if user_level >= required_level, `partial` if 0 < user_level < required_level, `missing` if <= 0) and aligned the overlap score rule with `credit = min(user_level / required_level, 1.0)`, ensuring overlap score and gap status never disagree. Added `gap_port.py` delegating to `pathway.service.skills_gap()`, and loaded each role's `required_level` directly from `taxonomy/role_skills.csv`. Removed the hardcoded `_ROLE_SDG` dictionary and added `sdg_port.py` delegating to `sdg.service.role_badges()`, mapping reviewed SDG targets from `role_sdg_map.csv` to `RoleMatch.sdg_targets`.
+- **Why**: Prompt-4 review item: matching and pathway previously used conflicting gap thresholds, and matching presented hardcoded SDG badges rather than the authoritative reviewed SDG mapping from M3.
+- **Affects**: F4 matching repository/scoring, F5 pathway (read-only gap caller), F6 SDG (read-only badges caller)
+- **Replaces**: none
+### M2-007: Safe, accurate CV parsing pipeline rewrite
+- **Date**: 2026-10-21
+- **Feature**: F1 (Skills Profile Intake)
+- **Type**: model | method | contract | security
+- **Change**:
+  1. Rewrote CV parser (`cv_parser.py`) for safe in-memory extraction with 200k char truncation (`truncated: bool` flag added to `CvExtractionResult`), ReDoS-safe linear regex patterns for PII stripping (`_EMAIL_RE`, `_URL_RE`, `_PHONE_RE`), non-overlapping span matching (`(?<!\w)phrase(?!\w)`), and count-based confidence capped at 1.0 (`CONFIDENCE_PER_HIT = 0.30`).
+  2. Routed CPU-bound parsing through `asyncio.to_thread` in `router.py`.
+  3. Enforced strict content-type validation (`application/pdf`, `text/plain` only; 415 on invalid types) and upload size check (413).
+  4. Added `PdfSupportUnavailable` (501 `pdf_unsupported`) and `PdfNoText` (422 `pdf_no_text`) typed errors; never decode PDF binary as text.
+  5. Isolated alias matching strictly to catalogue labels without word-splitting to eliminate false-positive subword matches (e.g. "data entry" matching "data analysis").
+  6. Added comprehensive test suite `tests/api/profile/test_cv_parser_prompt5.py` (18 tests covering ReDoS safety, word boundaries, non-overlapping spans, 413/415/422/501 error responses, catalogue guarantee, and end-to-end multipart HTTP upload).
+- **Why**: Prompt-5 review item: resolved ReDoS vulnerabilities in regex, unhandled PDF errors / silent binary fallback, sub-word false positives, event loop blocking during CV processing, and missing truncation signals.
+- **Pipeline** (data/ML only): raw bytes -> extract_text(fitz/utf-8) -> _truncate_text(200k) -> _clean_text(NFKC + linear PII strip) -> extract_skills(longest-alias-first, non-overlapping spans) -> context proficiency level -> confidence score -> sorted ParsedSkill list.
+- **Affects**: M2 (profile CV intake contract), M4 (UI receives `truncated` flag)
+- **Replaces**: M2-002 (item 1 only)
+- **PR / branch**: `feat/matching-scoring-engine`
+
+### M2-008: Benchmark tests run on production code only (item 12b)
+- **Date**: 2026-10-21
+- **Feature**: F4 (Future-Role Matching & Gap)
+- **Type**: method | data source
+- **Change**: Removed the benchmark's private copies from `tests/api/matching/test_evaluation.py`: the duplicated `interest_map` (a copy of `repository._ROLE_INTEREST_TAGS`) and `_load_catalog_roles()` (a re-implementation of `repository._load_roles` that silently dropped `required_level`). The benchmark now calls the production `repository.load_roles()` (new public wrapper; interest tags read through the new `repository.role_interest_tags()` getter), `personas.load_all_personas()` and the new `personas.load_expected_roles()` harness loader (moved from the test), and `scoring.rank_roles`. Added a guard test that monkeypatches the production role-tag getter and asserts the benchmark metrics change. Baseline `velocities` stay in the test as frozen benchmark inputs (production velocities come from M1's live snapshot via trend_port).
+- **Why**: Review item 12b: tests must not carry their own copy of production data or logic, or the benchmark proves nothing about what ships.
+- **Affects**: none (test-side + new public getters in matching repository/personas)
+- **Replaces**: none
+- **PR / branch**: `feat/matching-scoring-engine`
+
+### M2-009: Match response returns trend_coverage (item 12c)
+- **Date**: 2026-10-21
+- **Feature**: F4 (Future-Role Matching & Gap)
+- **Type**: contract
+- **Change**: Added optional `trend_coverage: float | None` (0..1) to `contracts.matching.RoleMatch`, filled in `repository._score_to_contract` from the scoring engine's `_RoleScore.trend_coverage` (computed by `scoring.role_trend` as the importance-weighted share of role skills present in the trend snapshot). Mock responses leave it None. Regenerated `openapi.json` and `src/web/src/lib/api/types.ts`; no frontend file edited. New tests in `tests/api/matching/test_trend_coverage.py` (field present and in [0,1] on list/get; exactly 0.0 when the snapshot covers none of the role's skills).
+- **Why**: Review item 12c: the UI must warn when many skills fell back to the neutral 0.5 trend instead of real data.
+- **Affects**: M4 (shared contract change — field added, additive and optional; UI may surface a low-coverage warning), M3 (pathway already exposes its own `trend_coverage`)
+- **Replaces**: none
+- **PR / branch**: `feat/matching-scoring-engine`
+
+### M2-010: Real Jaccard interest fit, exact-match interest sanitising, `provided` flag on score components
+- **Date**: 2026-10-21
+- **Feature**: F1 (Skills Profile Intake), F4 (Future-Role Matching & Gap)
+- **Type**: formula | method | contract
+- **Change**:
+  1. Part A (item 8): interests are free text (`contracts/profile.py`, questionnaire `interests: list[str]`), so `_sanitise_interests` (`profile/service.py`) now normalises each tag (lowercase, punctuation stripped, spaces collapsed) and drops it **only** when the whole normalised text equals a member of the module-level `BLOCKED_DEMOGRAPHIC_INTERESTS` = {age, gender, race, ethnicity, religion, nationality, disability}. Every `startswith`/substring test on the interest path is gone, so "agentic AI", "management", "language", "package" and "age-friendly design" survive while "age"/"Age"/"gender" are dropped.
+  2. Part B (item 12a): `scoring.interest_fit` is a real Jaccard, `len(interests & tags) / len(interests | tags)`, replacing the previous containment ratio `len(interests & tags) / len(interests)`. It returns `None` when the user has no interests; `score_role` then contributes `NEUTRAL` 0.5 for that weight, and `_RoleScore.breakdown` is typed `dict[str, float | None]`.
+  3. Contract: `ScoreComponent` gains `provided: bool` (default true). `repository._score_to_contract` sends `value = 0.5, provided = false, explanation = "Not provided: ..."` for a user with no interests, instead of a null value, so the UI can show "not provided" from a flag rather than by parsing English, and existing consumers that treat `value` as a number keep compiling.
+  4. Tests: `tests/api/profile/test_interest_sanitising.py` and `tests/api/matching/test_interest_jaccard.py` (0.2 / 1.0 / 0.0 / None + neutral contribution, plus API-level `provided` and a recomputed-Jaccard cross-check); `test_matching_scoring.py` updated to the Jaccard value.
+- **Why**: Review items 8 and 12a. The label said "Jaccard" while the formula was containment; the substring filter over-blocked (dropped "agentic AI" for starting with "age") and under-blocked nothing, since only an exact demographic tag can be a protected attribute.
+- **Affects**: M4 (`ScoreComponent.provided` is additive; `ScoreBreakdown.tsx` can render "not provided" from it — no M4 file was edited here), M3 (reads gap ports, not interest scores), benchmark (see below)
+- **Pipeline** (data/ML only): taxonomy role interest tags + free-text interests → normalise + exact-match demographic drop → Jaccard(interests, tags) or None → weighted composite (0.5 skill / 0.3 trend / 0.2 interest, neutral 0.5 when not provided) → evaluation: `tests/api/matching/test_evaluation.py` now reports mean P@3=0.7778, R@3=0.7778, MRR=0.8333, nDCG@3=0.8083 against gates MRR=1.0 / P>=0.85 / R>=0.85 / nDCG>=0.90 — **failing**, because Jaccard's magnitude is systematically smaller than containment on this tag vocabulary (max ~0.43 vs 1.0), which silently cut the interest signal's influence and let `ai-operations-specialist` overtake hand-labelled relevant roles for aisyah and ravi → serving: `GET /matches`, `GET /matches/{role_id}`.
+- **Affects (open)**: the benchmark gate needs a decision — re-tune `Weights` (a scan shows w_interest >= 0.3 restores MRR=1.0, P@3=0.8889, nDCG@3=0.9392 with tags unchanged), re-author the synthetic role interest tags, or revise `expected_roles.csv`. Gates were deliberately **not** weakened.
+- **Replaces**: none (supersedes the interest term inside M2-001 item 1)
+- **PR / branch**: `feat/matching-scoring-engine`
+
+### M2-011: Matching weights re-tuned to 0.45 skill / 0.25 trend / 0.30 interest
+- **Date**: 2026-10-21
+- **Feature**: F4 (Future-Role Matching & Gap)
+- **Type**: model | formula
+- **Change**: `scoring.Weights` defaults (the single canonical source) move from `skill=0.5, trend=0.3, interest=0.2` to `skill=0.45, trend=0.25, interest=0.30`. `repository._W`, `mocks.WEIGHTS`, and `replay._DEFAULT_WEIGHTS` follow; `repository._W` and the benchmark/scoring test constants now use `Weights()` instead of restating the numbers, so there is one place to change them. `matching/FEATURE.md` stage table updated.
+- **Why**: Real Jaccard (M2-010) has a systematically smaller magnitude than the previous containment ratio (max attainable ≈0.43 on this role-tag vocabulary versus 1.0), so keeping `w_interest=0.2` quietly defanged the interest term and the benchmark gate failed (P@3 0.7778, nDCG@3 0.8083 against P>=0.85 / nDCG>=0.90). Options were: re-tune the weights, re-author the synthetic role interest tags, or revise the hand-labelled `expected_roles.csv`. Re-tuning is the only one that touches no ground-truth data and weakens no assertion. A candidate scan over ratio-preserving and interest-heavy setups picked 0.45/0.25/0.30: it passes every gate with the widest nDCG margin (+0.0392) while keeping skill overlap the dominant term, which is the product's explainability claim.
+- **Pipeline** (data/ML only): role tags + free-text interests + M1 snapshot velocities → same preprocessing as M2-010 → percentile-ranked trend, weighted composite 0.45/0.25/0.30 (neutral 0.5 when interests not provided) → evaluation on `tests/api/matching/test_evaluation.py` (k=3, gates unchanged): per-persona P@3 1.0 / 1.0 / 0.6667, mean P@3=0.8889, mean R@3=0.8889, mean MRR=1.0, mean nDCG@3=0.9392 — **passing** → serving: `GET /matches`, `GET /matches/{role_id}`.
+- **Affects**: M4 — the weights arrive in the response payload, so `ScoreBreakdown` and any `/app` numbers shift automatically with no code change on their side; M2 benchmark tests (already wired to production, M2-008).
+- **Replaces**: M2-001 (item 1 — weight values only; the formula shape and the explainability contract are unchanged)
+- **PR / branch**: `feat/matching-scoring-engine`
+
+### M2-012: Synthetic CV fixtures generated by a stdlib PDF writer; PyMuPDF added as a read-only dependency
+- **Date**: 2026-10-21
+- **Feature**: F1 (Skills Profile Intake)
+- **Type**: dependency | data source | other
+- **Change**:
+  1. `src/scripts/generate_mock_cvs.py` writes eight fixtures to `tests/api/profile/fixtures/cvs/` — one CV per synthetic persona (`cv_aisyah/weijie/ravi.pdf`, name + segment + skills read from `src/data/seed/personas/*.csv`) plus `cv_data_entry.pdf`, `cv_python_programming.pdf`, `cv_java_javascript.pdf`, `cv_scanned.pdf` (image-only, no selectable text) and `cv_long.txt` (exactly 100,000 characters, no `@`). All names are invented, all emails are on `example.com`.
+  2. The PDFs are written by the script itself (PDF 1.4, Helvetica literal strings, one FlateDecode `DeviceGray` image XObject, hand-built xref), so **no PDF-writing dependency** was added. Output is deterministic: no `/CreationDate`, no timestamps, trailer `/ID` = MD5 of the body; `--check` compares a fresh generation against the files on disk (CI mode) and `--verify` re-parses them with the production parser.
+  3. `requirements.txt` gains `pymupdf>=1.24.0,<2` (runtime). The parser now imports `pymupdf` and falls back to the older `fitz` alias; the `<2` bound avoids the deprecated `fitz` shim and the four transitive packages PyMuPDF 2.x drags into every `make setup`.
+  4. `tests/api/profile/test_cv_fixtures.py` parses each fixture with the production parser and posts three of them through `POST /api/v1/profile/cv`. Expected persona skill IDs come from `matching.personas.load_persona_profile` (the shared seed loader), not a copy. PDF tests skip with an install hint when PyMuPDF is absent.
+- **Why**: Review item 9 — the CV endpoint had to be testable and demoable before M4's intake UI exists. Fixtures went to `tests/api/profile/fixtures/cvs/` because that follows the repo's existing fixture convention (`tests/pipelines/*/fixtures/`) and keeps non-CSV binaries out of `src/data/seed/`, which `src/db/seed.py` scans for table files. A PDF library for generation was rejected because a hand-written writer keeps the dependency surface at one read-only package.
+- **Pipeline** (data/ML only): seed personas + taxonomy → deterministic PDF/text writer (no LLM, no inference) → fixture files → serving: `POST /profile/cv` → evaluation: `test_cv_fixtures.py` (14 tests, all passing; 10 skip cleanly with PyMuPDF blocked)
+- **Affects**: M4 (they can upload these files against the intake UI once it exists), every teammate (`make setup` now installs PyMuPDF), CI (`generate_mock_cvs.py --check` can gate fixture drift)
+- **Replaces**: none
+- **PR / branch**: `feat/matching-scoring-engine`
+
+### M2-013: CV parser never decodes PDF bytes as text; unreadable PDFs are 422 pdf_unreadable
+- **Date**: 2026-10-21
+- **Feature**: F1 (Skills Profile Intake)
+- **Type**: method | contract
+- **Change**: Final sweep (Prompt 10) removed every `.decode("utf-8", errors="replace")` fallback that could be reached with PDF bytes in `profile/cv_parser.py`. Deleted the legacy `(filename, bytes)` branches of `extract_text`/`parse_cv` and the legacy `extract_text_from_pdf` helper — they existed only for tests, and the production path (`router` → `service.extract_cv` → `parse_cv(bytes, mime)`) already used the modern signature. `parse_cv` now always returns `(skills, truncated)`. An empty or unopenable PDF raises `AppError(422, "pdf_unreadable")`; `PdfSupportUnavailable` (501) is reserved for the server genuinely lacking PyMuPDF, and `PdfNoText` (422) for a PDF that opens but has no text. Tests migrated in `test_f1_intake.py`: three assertions that required the unsafe fallback (binary decoded into the skill scanner, `except Exception` swallowing `PdfNoText`) now require the refusal instead, and `test_parse_returns_sorted_by_confidence` lost its vacuous `if len(results) > 1` guard.
+- **Why**: The sweep's rule is that PDF bytes must never be treated as text. The fallbacks did exactly that, and worse, `except Exception` converted a scanned or corrupt upload into a silent `200` with an empty skill list, which the UI would render as "this CV shows no skills" instead of "I could not read this file". 501 for a corrupt file was also wrong: it tells the user PDF support is missing on a server that has it.
+- **Pipeline** (data/ML only): raw bytes → extract_text (PyMuPDF only; 422 if unreadable) → truncate → clean → taxonomy scan → serving: `POST /profile/cv` (unchanged success shape) → evaluation: `tests/api/profile/test_f1_intake.py`, `test_cv_parser_prompt5.py`, `test_cv_fixtures.py` (498 tests pass repo-wide)
+- **Affects**: M4 — `POST /profile/cv` can now answer `422 {"error":{"code":"pdf_unreadable"}}` for an empty or corrupt PDF (previously 200-with-empty-skills on the legacy path, 501-worded on the modern one). No OpenAPI schema change: error bodies are not schematised, so `openapi.json`/`types.ts` are untouched. Also reviewed `core/fairness.py:61`, which keeps a `startswith` prefix rule — it matches *field names* against protected stems (`ethnic` → `ethnicity`), not free-text interests, and does not sit on the interest path, so it is left as is.
+- **Replaces**: none (extends M2-007)
+- **PR / branch**: `feat/matching-scoring-engine`
+
+### M2-014: expected_roles.csv is benchmark ground truth, never a database table
+- **Date**: 2026-10-21
+- **Feature**: F4 (Future-Role Matching & Gap)
+- **Type**: data source | schema
+- **Change**: Records the decision already landed in commit `a2950c1`, which had no log entry. `src/db/seed.py` keeps `NON_TABLE_CSVS = {"expected_roles"}` and skips those files while collecting, so `make seed` never tries to insert hand-labelled relevance judgements into a table; every other CSV under `src/data/seed/` must name a table in `TABLE_ORDER` or seeding raises. The file stays in `src/data/seed/personas/` because it is persona-shaped data, and the benchmark reaches it through `matching/personas.py::load_expected_roles`.
+- **Why**: Prompt 10 asked for this entry explicitly. Ground truth is an evaluation artefact, not workforce data: seeding it would put M2's private labels in the demo database where F7 heatmaps or any future query could read them as if they were observations about real people, and it would make the benchmark self-fulfilling.
+- **Affects**: M4 (`make seed` output unchanged apart from the skip), M2 benchmark, anyone adding a new CSV to the seed tree
+- **Replaces**: none
+- **PR / branch**: `feat/matching-scoring-engine`
+
+### M2-015: Remove matching catalogue cache and align benchmark proficiency with production
+- **Date**: 2026-10-21
+- **Feature**: F1 (Skills Profile Intake), F4 (Future-Role Matching & Gap)
+- **Type**: method
+- **Change**: Removed matching's remaining `lru_cache` from the catalogue loader to satisfy review F1; the benchmark guard now reads fresh roles without cache-reset setup. Corrected the harness-only persona loader to preserve proficiency levels 1–5, matching saved-profile production input and role requirements, instead of normalising them to 0–1. Added review acceptance tests for cache absence, production/harness parity, real in-process trend calls under disabled HTTP clients and concurrency, frozen-date metadata, full-parser timings, truncation, explicit test-only Java boundaries and deterministic fixture generation.
+- **Why**: Session validation found the original suite green (498 passed, 21 skipped), but added acceptance checks exposed one cache violation and three persona scale mismatches. Neither benchmark thresholds, role tags, ground truth nor weights were changed. Java and JavaScript remain absent from the production catalogue; the scanner boundary test uses an isolated test catalogue only.
+- **Pipeline**: synthetic persona CSVs / saved profiles + taxonomy + frozen benchmark velocities → preserve levels 1–5 and interest tags → required-level skill credit + percentile trend + Jaccard → existing weighted ranking → 12 targeted benchmark/coverage/parity tests passed; mean P@3=0.8889, R@3=0.8889, MRR=1.0, nDCG@3=0.9650 → GET /api/v1/matches.
+- **Affects**: M2 evaluation; M4 owns the contract-check gate, which reports modified generated files even when regeneration is stable. No other lane's modules, contracts or dependencies were edited for these fixes.
+- **Replaces**: M2-001/M2-005 normalised-scale descriptions for matching; M2-011 benchmark metrics (weights unchanged)
+- **PR / branch**: PR #4 / feat/matching-scoring-engine
+
+### M2-016: Add taxonomy aliases to the skills schema
+- **Date**: 2026-10-21
+- **Feature**: F1 (Skills Profile Intake), F4 (Future-Role Matching & Gap)
+- **Type**: schema
+- **Change**: Add `skills.aliases text NOT NULL DEFAULT ''` using the append-only migration `20261021150000_m2_skill_aliases.sql`. This matches the `aliases` column in `src/data/seed/taxonomy/skills.csv` and allows the generic CSV seed loader to insert the field into both fresh and upgraded databases. The default preserves compatibility with older seed files that omit aliases. The down migration drops the added column.
+- **Why**: CI failed during the post-migration taxonomy seed: `skills.csv` included `aliases`, but the initial skills table did not. The seed loader correctly builds insert columns from the CSV header; the schema must support that data.
+- **Affects**: CI database migration/seed job and matching taxonomy consumers; no API contract change.
+- **Replaces**: none
+- **PR / branch**: `feat/matching-scoring-engine`
+
+### M2-017: Bound CV match counting and timed-out trend workers
+- **Date**: 2026-10-21
+- **Feature**: F1 (Skills Profile Intake), F4 (Future-Role Matching & Gap)
+- **Type**: method
+- **Change**: CV skill extraction stops scanning a skill after its confidence reaches 1.0. The matching trend adapter calls M1 `get_snapshot(..., strict=True)`, maps `TrendsUnavailableError` to the matching 503, and shares at most one outstanding getter among concurrent requests. A timed-out getter retains its slot until it exits; later requests fail fast while it remains occupied.
+- **Why**: Repeated CV aliases previously caused needless overlap comparisons after the score was already capped. A request timeout alone did not stop a stuck trend worker, so concurrent timeouts could start unbounded threads/connections. M1-006 now bounds its database connections and queries and exposes strict failure behavior; the M2 worker cap remains a resource guard.
+- **Affects**: M1 trend availability under a stuck database read; matching may return fast 503 responses while its sole trend worker remains stuck.
+- **Replaces**: none
+- **PR / branch**: `feat/matching-scoring-engine`
+
+### M2-018: Load match interest tags from the role catalogue
+- **Date**: 2026-10-21
+- **Feature**: F4 (Future-Role Matching & Gap)
+- **Type**: data source | method
+- **Change**: Store each role's interest tags in `taxonomy/roles.csv` and load them alongside role labels. Add an HTTP integration test covering saved profile intake, deterministic matching output, attribution, trend coverage, skill gaps, SDG badges, and strict trend failure.
+- **Why**: Matching must use catalogue-owned role attributes and produce explainable, attributed results from the saved profile; duplicated role tags in Python could drift from the catalogue.
+- **Affects**: matching score interest contribution; catalog consumers using `roles.csv`
+- **Replaces**: none
+- **PR / branch**: `feat/matching-scoring-engine`
+
+### M2-019: Replay matching against an explicit M1 snapshot
+- **Date**: 2026-10-21
+- **Feature**: F4 (Future-Role Matching & Gap)
+- **Type**: method | contract | UI
+- **Change**: Both matching endpoints accept an optional `snapshot_date` and obtain that scenario/date directly from M1's trend service. The API and matching pages also carry M1's provenance note, including fixture caveats. The matching page exposes a date control and preserves the date in role-detail links. While replaying, its pathway link explicitly points to the latest-data plan because F5's UI does not yet forward snapshot dates. Concurrent requests for different scenarios or dates cannot share one in-flight trend result. API gaps always come from F5's `skills_gap` port, and the role-detail route no longer shows F3's static mock outlook panel.
+- **Why**: A selected historical snapshot must drive the actual score and attribution, while a request for a different snapshot cannot inherit another caller's data. The static F3 range was not derived from M1 evidence.
+- **Pipeline**: M1 dated snapshot → validate requested scenario/date and source → skill velocities → existing F4 scoring formula → replay API check for both dates → matching API and UI
+- **Affects**: M1 snapshot service; M3 pathway UI still needs to forward a selected date before matching and pathway views can replay together.
+- **Replaces**: none
+- **PR / branch**: `feat/matching-scoring-engine`
+
+### M2-020: Use M1's disclosed fixture snapshot in demo mode
+- **Date**: 2026-10-21
+- **Feature**: F4 (Future-Role Matching & Gap)
+- **Type**: method
+- **Change**: Matching calls M1's in-process snapshot service in its documented demo mode when `auth_mode=demo`, allowing M1's fixture fallback and carrying its provenance note into the matching API and UI. Other auth modes request `strict=True` and return 503 if the database snapshot is unavailable. The bounded worker key includes the mode so concurrent demo and live reads cannot share a result.
+- **Why**: The explicit demo must work without a database and disclose its frozen source; live matching must still fail closed rather than silently substitute fixtures. This also aligns M2 with M1's existing demo contract without editing M1 or M3 features.
+- **Affects**: Matching availability and source disclosure; M1 snapshot service is consumed unchanged.
+- **Replaces**: M2-017's unconditional strict-read choice
+- **PR / branch**: `feat/matching-scoring-engine`
+
+### M2-021: Store role interest tags in the roles table
+- **Date**: 2026-10-21
+- **Feature**: F4 (Future-Role Matching & Gap)
+- **Type**: schema
+- **Change**: Add nullable `roles.interest_tags text` in the append-only `20261021160000_m2_role_interest_tags.sql` migration. Backfill the four synthetic future-role values for databases seeded before the migration; fresh seeds take the values from `taxonomy/roles.csv`.
+- **Why**: The generic seed loader inserts every CSV column, but the roles table lacked the newly added `interest_tags` column. GitHub's database job failed at `Load seeds` with `UndefinedColumn`. Blank role tags become SQL `NULL` in the seed loader, so the column must allow NULL. The backfill keeps upgraded role rows consistent because the seed loader skips existing IDs.
+- **Affects**: CI database migration and seed job; F4 role catalogue data.
+- **Replaces**: none
+- **PR / branch**: `feat/matching-scoring-engine`
+
+### M2-022: Queue distinct trend reads behind the bounded M2 worker
+- **Date**: 2026-10-22
+- **Feature**: F4 (Future-Role Matching & Gap)
+- **Type**: method
+- **Change**: Different scenario/date requests wait up to five seconds for the single M1 trend worker, using a condition that releases the state lock while waiting. Identical requests still share the active result; a timed-out worker retains the sole slot until it exits. A 503 is returned when the queue deadline expires.
+- **Why**: Immediate rejection of a different snapshot caused avoidable 503 responses during ordinary overlapping requests. Waiting on the semaphore while holding the state lock would prevent worker cleanup, so the port waits for a state change and acquires the semaphore outside that lock.
+- **Affects**: M2 matching latency under concurrent requests; M1 trend service is unchanged.
+- **Replaces**: M2-017's fast-fail policy for a busy worker
+- **PR / branch**: `feat/matching-scoring-engine`
+
 ---
 
 ## M3: Pathway, SDG & Guardrails (F5, F6, F8)

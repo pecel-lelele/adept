@@ -136,6 +136,25 @@
             }
           },
           {
+            "name": "snapshot_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Replay an older trend snapshot (YYYY-MM-DD). Omit for the latest.",
+              "title": "Snapshot Date"
+            },
+            "description": "Replay an older trend snapshot (YYYY-MM-DD). Omit for the latest."
+          },
+          {
             "name": "x-demo-user",
             "in": "header",
             "required": false,
@@ -222,6 +241,25 @@
               "default": "moderate",
               "title": "Scenario"
             }
+          },
+          {
+            "name": "snapshot_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Replay an older trend snapshot (YYYY-MM-DD). Omit for the latest.",
+              "title": "Snapshot Date"
+            },
+            "description": "Replay an older trend snapshot (YYYY-MM-DD). Omit for the latest."
           },
           {
             "name": "x-demo-user",
@@ -1624,12 +1662,88 @@
         }
       }
     },
+    "/api/v1/profile/questionnaire": {
+      "post": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Submit intake questionnaire (M2-02)",
+        "description": "Save working segment, interests, learning preferences and HRD eligibility.\n\nInterests are sanitised against the fairness whitelist (M2-12) before\nbeing passed to the matching engine.",
+        "operationId": "profile_submit_questionnaire",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuestionnaireIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuestionnaireResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/profile": {
       "post": {
         "tags": [
           "profile"
         ],
-        "summary": "Upsert Profile",
+        "summary": "Upsert core profile fields",
         "operationId": "profile_upsert_profile",
         "parameters": [
           {
@@ -1704,7 +1818,7 @@
         "tags": [
           "profile"
         ],
-        "summary": "Get My Profile",
+        "summary": "Get current user profile",
         "operationId": "profile_get_my_profile",
         "parameters": [
           {
@@ -1769,7 +1883,8 @@
         "tags": [
           "profile"
         ],
-        "summary": "Upload Cv",
+        "summary": "Upload CV for skill extraction (M2-01)",
+        "description": "Accept a PDF or plain-text CV, extract skills against the taxonomy.\n\nSafety rules:\n  - Content type must be application/pdf or text/plain (4xx otherwise).\n  - File must be under MAX_UPLOAD_BYTES (413 if exceeded).\n  - Extracted text is capped at 200,000 characters (truncated=True in response).\n  - The file is processed in memory and never stored (AGENTS.md §3).\n  - CPU-bound parsing runs in a thread via asyncio.to_thread to avoid\n    blocking the event loop.",
         "operationId": "profile_upload_cv",
         "parameters": [
           {
@@ -1839,12 +1954,89 @@
         }
       }
     },
+    "/api/v1/profile/skills/confirm": {
+      "put": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Confirm and persist final skill list (M2-03)",
+        "description": "Persist the user-edited skill list after the confirmation screen.\n\nValidates that every skill_id exists in the taxonomy (no hallucinated skills).\nNormalises level 1-5 → 0.0-1.0 for the matching engine and returns both\nrepresentations so the frontend can render the profile and the matching preview.",
+        "operationId": "profile_confirm_skills",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SkillConfirmationIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkillConfirmationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/profile/skills": {
       "put": {
         "tags": [
           "profile"
         ],
-        "summary": "Replace Skills",
+        "summary": "Replace skill list (legacy)",
+        "description": "Legacy endpoint. Prefer PUT /profile/skills/confirm for new integrations.",
         "operationId": "profile_replace_skills",
         "parameters": [
           {
@@ -3013,6 +3205,11 @@
             "type": "array",
             "title": "Skills"
           },
+          "truncated": {
+            "type": "boolean",
+            "title": "Truncated",
+            "default": false
+          },
           "meta": {
             "$ref": "#/components/schemas/RecommendationMeta"
           }
@@ -3511,6 +3708,18 @@
           },
           "meta": {
             "$ref": "#/components/schemas/RecommendationMeta"
+          },
+          "data_provenance_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data Provenance Note",
+            "description": "Trend provider's provenance disclosure, including any demo-fixture caveat."
           }
         },
         "type": "object",
@@ -3575,6 +3784,36 @@
           "members"
         ],
         "title": "MemberListResponse"
+      },
+      "NormalisedSkill": {
+        "properties": {
+          "skill_id": {
+            "type": "string",
+            "title": "Skill Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "level": {
+            "type": "integer",
+            "title": "Level"
+          },
+          "normalised_level": {
+            "type": "number",
+            "title": "Normalised Level",
+            "description": "Level mapped to 0.0 (novice) – 1.0 (expert), used by the scoring engine."
+          }
+        },
+        "type": "object",
+        "required": [
+          "skill_id",
+          "label",
+          "level",
+          "normalised_level"
+        ],
+        "title": "NormalisedSkill",
+        "description": "Read-only view of a skill with its 0.0–1.0 normalised level.\n\nFormula: (level - 1) / 4.0 — same as matching/repository.py."
       },
       "Organization": {
         "properties": {
@@ -4125,6 +4364,145 @@
         ],
         "title": "ProgressUpdate"
       },
+      "QuestionnaireIn": {
+        "properties": {
+          "segment": {
+            "type": "string",
+            "enum": [
+              "working",
+              "graduate",
+              "switcher"
+            ],
+            "title": "Segment",
+            "description": "Learner segment (working adult, fresh graduate, career switcher)."
+          },
+          "interests": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Interests",
+            "description": "Free-form interest tags. Only non-demographic interests are permitted; the matching engine's fairness whitelist rejects age/gender/race tags.",
+            "examples": [
+              [
+                "data",
+                "finance",
+                "AI"
+              ]
+            ]
+          },
+          "hours_per_week": {
+            "type": "integer",
+            "maximum": 80.0,
+            "minimum": 0.0,
+            "title": "Hours Per Week",
+            "description": "Hours per week available for learning or reskilling."
+          },
+          "learning_style": {
+            "type": "string",
+            "enum": [
+              "video",
+              "reading",
+              "hands-on",
+              "classroom",
+              "mixed"
+            ],
+            "title": "Learning Style",
+            "description": "Preferred learning modality.",
+            "default": "mixed"
+          },
+          "budget_myr": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Budget Myr",
+            "description": "Monthly training budget in Malaysian Ringgit."
+          },
+          "hrd_eligible": {
+            "type": "boolean",
+            "title": "Hrd Eligible",
+            "description": "Whether the learner's employer is enrolled in HRD Corp (Human Resource Development Corporation), enabling subsidised training."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "segment",
+          "hours_per_week",
+          "budget_myr",
+          "hrd_eligible"
+        ],
+        "title": "QuestionnaireIn",
+        "description": "Full intake questionnaire payload (M2-02).\n\nExtends ProfileIn with learning_style which is captured during intake but\nnot exposed in the public Profile contract to avoid scope creep in other\nfeatures. Demographic fields (gender, age, race, ethnicity, etc.) are\nstrictly rejected per the fairness whitelist."
+      },
+      "QuestionnaireResponse": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
+          },
+          "segment": {
+            "type": "string",
+            "enum": [
+              "working",
+              "graduate",
+              "switcher"
+            ],
+            "title": "Segment"
+          },
+          "interests": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Interests"
+          },
+          "hours_per_week": {
+            "type": "integer",
+            "title": "Hours Per Week"
+          },
+          "learning_style": {
+            "type": "string",
+            "enum": [
+              "video",
+              "reading",
+              "hands-on",
+              "classroom",
+              "mixed"
+            ],
+            "title": "Learning Style"
+          },
+          "budget_myr": {
+            "type": "number",
+            "title": "Budget Myr"
+          },
+          "hrd_eligible": {
+            "type": "boolean",
+            "title": "Hrd Eligible"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "Profile saved. Please confirm your skills."
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "display_name",
+          "segment",
+          "interests",
+          "hours_per_week",
+          "learning_style",
+          "budget_myr",
+          "hrd_eligible"
+        ],
+        "title": "QuestionnaireResponse",
+        "description": "Response after submitting the intake questionnaire."
+      },
       "RadarResponse": {
         "properties": {
           "items": {
@@ -4399,6 +4777,32 @@
             },
             "type": "array",
             "title": "Sdg Targets"
+          },
+          "trend_coverage": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trend Coverage",
+            "description": "Share of the role's skill importance that had a trend value in the snapshot; None for mock responses. Low coverage means many skills fell back to neutral."
+          },
+          "data_provenance_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data Provenance Note",
+            "description": "Trend provider's provenance disclosure, including any demo-fixture caveat."
           },
           "meta": {
             "$ref": "#/components/schemas/RecommendationMeta"
@@ -4706,7 +5110,14 @@
             "type": "number",
             "maximum": 1.0,
             "minimum": 0.0,
-            "title": "Value"
+            "title": "Value",
+            "description": "Component value 0..1 as used in the total. When `provided` is false this is the neutral 0.5, not a measurement."
+          },
+          "provided": {
+            "type": "boolean",
+            "title": "Provided",
+            "description": "False when the user did not give the data this component scores (e.g. no interests), so the UI can show 'not provided' without parsing the explanation.",
+            "default": true
           },
           "explanation": {
             "type": "string",
@@ -5001,6 +5412,95 @@
           "label"
         ],
         "title": "Skill"
+      },
+      "SkillConfirmationIn": {
+        "properties": {
+          "skills": {
+            "items": {
+              "$ref": "#/components/schemas/SkillEdit"
+            },
+            "type": "array",
+            "minItems": 0,
+            "title": "Skills",
+            "description": "Final list of skills after user review. Replaces any previous skill list."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "skills"
+        ],
+        "title": "SkillConfirmationIn",
+        "description": "Skill confirmation screen payload (M2-03).\n\nThe user reviews extracted skills, optionally adds/removes/edits levels,\nand submits this payload to persist the final confirmed profile."
+      },
+      "SkillConfirmationResponse": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "confirmed_skills": {
+            "items": {
+              "$ref": "#/components/schemas/UserSkill"
+            },
+            "type": "array",
+            "title": "Confirmed Skills"
+          },
+          "normalised_skills": {
+            "items": {
+              "$ref": "#/components/schemas/NormalisedSkill"
+            },
+            "type": "array",
+            "title": "Normalised Skills"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "Skills confirmed and saved."
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "confirmed_skills",
+          "normalised_skills"
+        ],
+        "title": "SkillConfirmationResponse",
+        "description": "Response after the user confirms their skill list.\n\nIncludes the normalised float representation that the scoring engine uses,\nso the frontend can preview the effective profile weights."
+      },
+      "SkillEdit": {
+        "properties": {
+          "skill_id": {
+            "type": "string",
+            "title": "Skill Id",
+            "description": "Must be a valid taxonomy skill ID."
+          },
+          "level": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Level",
+            "description": "Proficiency level 1 (novice) – 5 (expert)."
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "cv",
+              "form",
+              "confirmed"
+            ],
+            "title": "Source",
+            "default": "confirmed"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "skill_id",
+          "level"
+        ],
+        "title": "SkillEdit",
+        "description": "A single user-confirmed skill with their adjusted level."
       },
       "SkillGap": {
         "properties": {

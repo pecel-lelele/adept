@@ -1,8 +1,8 @@
-id,label,taxonomy
-bank-operations-executive,Bank Operations Executive,custom
-data-entry-clerk,Data Entry Clerk,custom
-logistics-supervisor,Logistics Supervisor,custom
-data-analyst,Data Analyst,custom
-ai-operations-specialist,AI Operations Specialist,custom
-process-automation-analyst,Process Automation Analyst,custom
-compliance-analytics-officer,Compliance Analytics Officer,custom
+id,label,taxonomy,interest_tags
+bank-operations-executive,Bank Operations Executive,custom,
+data-entry-clerk,Data Entry Clerk,custom,
+logistics-supervisor,Logistics Supervisor,custom,
+data-analyst,Data Analyst,custom,data|analytics|software
+ai-operations-specialist,AI Operations Specialist,custom,software|AI|automation
+process-automation-analyst,Process Automation Analyst,custom,process improvement|operations|automation|finance
+compliance-analytics-officer,Compliance Analytics Officer,custom,finance|risk|data|compliance

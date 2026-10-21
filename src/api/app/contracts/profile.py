@@ -49,4 +49,5 @@ class ExtractedSkill(BaseModel):
 
 class CvExtractionResult(BaseModel):
     skills: list[ExtractedSkill]
+    truncated: bool = False
     meta: RecommendationMeta

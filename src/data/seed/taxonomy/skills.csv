@@ -1,13 +1,13 @@
-id,label,taxonomy
-excel,Spreadsheet analysis,custom
-sql,SQL,custom
-python,Python programming,custom
-data-visualisation,Data visualisation,custom
-process-mapping,Business process mapping,custom
-rpa,Robotic process automation,custom
-prompt-engineering,Prompt engineering,custom
-ai-literacy,AI literacy & responsible AI,custom
-risk-compliance,Risk & compliance,custom
-customer-service,Customer service,custom
-logistics-planning,Logistics planning,custom
-manual-data-entry,Manual data entry,custom
+id,label,taxonomy,aliases
+excel,Spreadsheet analysis,custom,excel|spreadsheet
+sql,SQL,custom,sql
+python,Python programming,custom,python
+data-visualisation,Data visualisation,custom,data visualisation|data visualization
+process-mapping,Business process mapping,custom,business process mapping|process mapping
+rpa,Robotic process automation,custom,rpa|robotic process automation
+prompt-engineering,Prompt engineering,custom,prompt engineering
+ai-literacy,AI literacy & responsible AI,custom,ai literacy|responsible ai
+risk-compliance,Risk & compliance,custom,risk compliance|risk & compliance
+customer-service,Customer service,custom,customer service
+logistics-planning,Logistics planning,custom,logistics planning
+manual-data-entry,Manual data entry,custom,manual data entry

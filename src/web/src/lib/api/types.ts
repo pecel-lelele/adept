@@ -401,6 +401,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/profile/questionnaire": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Submit intake questionnaire (M2-02)
+         * @description Save working segment, interests, learning preferences and HRD eligibility.
+         *
+         *     Interests are sanitised against the fairness whitelist (M2-12) before
+         *     being passed to the matching engine.
+         */
+        post: operations["profile_submit_questionnaire"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/profile": {
         parameters: {
             query?: never;
@@ -410,7 +433,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Upsert Profile */
+        /** Upsert core profile fields */
         post: operations["profile_upsert_profile"];
         delete?: never;
         options?: never;
@@ -425,7 +448,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get My Profile */
+        /** Get current user profile */
         get: operations["profile_get_my_profile"];
         put?: never;
         post?: never;
@@ -444,8 +467,43 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Upload Cv */
+        /**
+         * Upload CV for skill extraction (M2-01)
+         * @description Accept a PDF or plain-text CV, extract skills against the taxonomy.
+         *
+         *     Safety rules:
+         *       - Content type must be application/pdf or text/plain (4xx otherwise).
+         *       - File must be under MAX_UPLOAD_BYTES (413 if exceeded).
+         *       - Extracted text is capped at 200,000 characters (truncated=True in response).
+         *       - The file is processed in memory and never stored (AGENTS.md §3).
+         *       - CPU-bound parsing runs in a thread via asyncio.to_thread to avoid
+         *         blocking the event loop.
+         */
         post: operations["profile_upload_cv"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/profile/skills/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Confirm and persist final skill list (M2-03)
+         * @description Persist the user-edited skill list after the confirmation screen.
+         *
+         *     Validates that every skill_id exists in the taxonomy (no hallucinated skills).
+         *     Normalises level 1-5 → 0.0-1.0 for the matching engine and returns both
+         *     representations so the frontend can render the profile and the matching preview.
+         */
+        put: operations["profile_confirm_skills"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -460,7 +518,10 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** Replace Skills */
+        /**
+         * Replace skill list (legacy)
+         * @description Legacy endpoint. Prefer PUT /profile/skills/confirm for new integrations.
+         */
         put: operations["profile_replace_skills"];
         post?: never;
         delete?: never;
@@ -909,6 +970,11 @@ export interface components {
         CvExtractionResult: {
             /** Skills */
             skills: components["schemas"]["ExtractedSkill"][];
+            /**
+             * Truncated
+             * @default false
+             */
+            truncated: boolean;
             meta: components["schemas"]["RecommendationMeta"];
         };
         /** DataFreshness */
@@ -1112,6 +1178,11 @@ export interface components {
             /** Matches */
             matches: components["schemas"]["RoleMatch"][];
             meta: components["schemas"]["RecommendationMeta"];
+            /**
+             * Data Provenance Note
+             * @description Trend provider's provenance disclosure, including any demo-fixture caveat.
+             */
+            data_provenance_note?: string | null;
         };
         /** Member */
         Member: {
@@ -1131,6 +1202,25 @@ export interface components {
         MemberListResponse: {
             /** Members */
             members: components["schemas"]["Member"][];
+        };
+        /**
+         * NormalisedSkill
+         * @description Read-only view of a skill with its 0.0–1.0 normalised level.
+         *
+         *     Formula: (level - 1) / 4.0 — same as matching/repository.py.
+         */
+        NormalisedSkill: {
+            /** Skill Id */
+            skill_id: string;
+            /** Label */
+            label: string;
+            /** Level */
+            level: number;
+            /**
+             * Normalised Level
+             * @description Level mapped to 0.0 (novice) – 1.0 (expert), used by the scoring engine.
+             */
+            normalised_level: number;
         };
         /** Organization */
         Organization: {
@@ -1376,6 +1466,88 @@ export interface components {
              */
             status: "not_started" | "in_progress" | "completed";
         };
+        /**
+         * QuestionnaireIn
+         * @description Full intake questionnaire payload (M2-02).
+         *
+         *     Extends ProfileIn with learning_style which is captured during intake but
+         *     not exposed in the public Profile contract to avoid scope creep in other
+         *     features. Demographic fields (gender, age, race, ethnicity, etc.) are
+         *     strictly rejected per the fairness whitelist.
+         */
+        QuestionnaireIn: {
+            /**
+             * Segment
+             * @description Learner segment (working adult, fresh graduate, career switcher).
+             * @enum {string}
+             */
+            segment: "working" | "graduate" | "switcher";
+            /**
+             * Interests
+             * @description Free-form interest tags. Only non-demographic interests are permitted; the matching engine's fairness whitelist rejects age/gender/race tags.
+             * @example [
+             *       "data",
+             *       "finance",
+             *       "AI"
+             *     ]
+             */
+            interests?: string[];
+            /**
+             * Hours Per Week
+             * @description Hours per week available for learning or reskilling.
+             */
+            hours_per_week: number;
+            /**
+             * Learning Style
+             * @description Preferred learning modality.
+             * @default mixed
+             * @enum {string}
+             */
+            learning_style: "video" | "reading" | "hands-on" | "classroom" | "mixed";
+            /**
+             * Budget Myr
+             * @description Monthly training budget in Malaysian Ringgit.
+             */
+            budget_myr: number;
+            /**
+             * Hrd Eligible
+             * @description Whether the learner's employer is enrolled in HRD Corp (Human Resource Development Corporation), enabling subsidised training.
+             */
+            hrd_eligible: boolean;
+        };
+        /**
+         * QuestionnaireResponse
+         * @description Response after submitting the intake questionnaire.
+         */
+        QuestionnaireResponse: {
+            /** User Id */
+            user_id: string;
+            /** Display Name */
+            display_name: string;
+            /**
+             * Segment
+             * @enum {string}
+             */
+            segment: "working" | "graduate" | "switcher";
+            /** Interests */
+            interests: string[];
+            /** Hours Per Week */
+            hours_per_week: number;
+            /**
+             * Learning Style
+             * @enum {string}
+             */
+            learning_style: "video" | "reading" | "hands-on" | "classroom" | "mixed";
+            /** Budget Myr */
+            budget_myr: number;
+            /** Hrd Eligible */
+            hrd_eligible: boolean;
+            /**
+             * Message
+             * @default Profile saved. Please confirm your skills.
+             */
+            message: string;
+        };
         /** RadarResponse */
         RadarResponse: {
             /** Items */
@@ -1482,6 +1654,16 @@ export interface components {
             partial_skills: components["schemas"]["Skill"][];
             /** Sdg Targets */
             sdg_targets: components["schemas"]["SdgTarget"][];
+            /**
+             * Trend Coverage
+             * @description Share of the role's skill importance that had a trend value in the snapshot; None for mock responses. Low coverage means many skills fell back to neutral.
+             */
+            trend_coverage?: number | null;
+            /**
+             * Data Provenance Note
+             * @description Trend provider's provenance disclosure, including any demo-fixture caveat.
+             */
+            data_provenance_note?: string | null;
             meta: components["schemas"]["RecommendationMeta"];
         };
         /**
@@ -1625,8 +1807,17 @@ export interface components {
             name: string;
             /** Weight */
             weight: number;
-            /** Value */
+            /**
+             * Value
+             * @description Component value 0..1 as used in the total. When `provided` is false this is the neutral 0.5, not a measurement.
+             */
             value: number;
+            /**
+             * Provided
+             * @description False when the user did not give the data this component scores (e.g. no interests), so the UI can show 'not provided' without parsing the explanation.
+             * @default true
+             */
+            provided: boolean;
             /** Explanation */
             explanation: string;
         };
@@ -1744,6 +1935,62 @@ export interface components {
             id: string;
             /** Label */
             label: string;
+        };
+        /**
+         * SkillConfirmationIn
+         * @description Skill confirmation screen payload (M2-03).
+         *
+         *     The user reviews extracted skills, optionally adds/removes/edits levels,
+         *     and submits this payload to persist the final confirmed profile.
+         */
+        SkillConfirmationIn: {
+            /**
+             * Skills
+             * @description Final list of skills after user review. Replaces any previous skill list.
+             */
+            skills: components["schemas"]["SkillEdit"][];
+        };
+        /**
+         * SkillConfirmationResponse
+         * @description Response after the user confirms their skill list.
+         *
+         *     Includes the normalised float representation that the scoring engine uses,
+         *     so the frontend can preview the effective profile weights.
+         */
+        SkillConfirmationResponse: {
+            /** User Id */
+            user_id: string;
+            /** Confirmed Skills */
+            confirmed_skills: components["schemas"]["UserSkill"][];
+            /** Normalised Skills */
+            normalised_skills: components["schemas"]["NormalisedSkill"][];
+            /**
+             * Message
+             * @default Skills confirmed and saved.
+             */
+            message: string;
+        };
+        /**
+         * SkillEdit
+         * @description A single user-confirmed skill with their adjusted level.
+         */
+        SkillEdit: {
+            /**
+             * Skill Id
+             * @description Must be a valid taxonomy skill ID.
+             */
+            skill_id: string;
+            /**
+             * Level
+             * @description Proficiency level 1 (novice) – 5 (expert).
+             */
+            level: number;
+            /**
+             * Source
+             * @default confirmed
+             * @enum {string}
+             */
+            source: "cv" | "form" | "confirmed";
         };
         /** SkillGap */
         SkillGap: {
@@ -2154,6 +2401,8 @@ export interface operations {
         parameters: {
             query?: {
                 scenario?: "moderate" | "fast";
+                /** @description Replay an older trend snapshot (YYYY-MM-DD). Omit for the latest. */
+                snapshot_date?: string | null;
             };
             header?: {
                 "x-demo-user"?: string | null;
@@ -2188,6 +2437,8 @@ export interface operations {
         parameters: {
             query?: {
                 scenario?: "moderate" | "fast";
+                /** @description Replay an older trend snapshot (YYYY-MM-DD). Omit for the latest. */
+                snapshot_date?: string | null;
             };
             header?: {
                 "x-demo-user"?: string | null;
@@ -2773,6 +3024,42 @@ export interface operations {
             };
         };
     };
+    profile_submit_questionnaire: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QuestionnaireIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuestionnaireResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     profile_upsert_profile: {
         parameters: {
             query?: never;
@@ -2864,6 +3151,42 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CvExtractionResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    profile_confirm_skills: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SkillConfirmationIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SkillConfirmationResponse"];
                 };
             };
             /** @description Validation Error */

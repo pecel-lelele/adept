@@ -32,7 +32,7 @@ _ROLES: dict[str, tuple[str, float, dict[ScenarioId, float], float, list[str], l
         [SDG_8_2, SDG_4_4]),
 }  # fmt: skip
 
-WEIGHTS = {"skill_overlap": 0.5, "trend_outlook": 0.3, "interest_fit": 0.2}
+WEIGHTS = {"skill_overlap": 0.45, "trend_outlook": 0.25, "interest_fit": 0.3}
 
 
 def _match(role_id: str, scenario: ScenarioId) -> RoleMatch:
@@ -44,7 +44,7 @@ def _match(role_id: str, scenario: ScenarioId) -> RoleMatch:
                        value=trend[scenario],
                        explanation=f"Projected demand under the {scenario} scenario (mock)."),
         ScoreComponent(name="interest_fit", weight=WEIGHTS["interest_fit"], value=interest,
-                       explanation="Fit with the interests in your profile (mock)."),
+                       explanation="Jaccard similarity with the interests in your profile (mock)."),
     ]  # fmt: skip
     return RoleMatch(
         role_id=role_id,

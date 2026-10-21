@@ -17,9 +17,17 @@ import type { ScenarioId } from "@/lib/api";
 import { fetchMatch } from "../api";
 import { componentLabels } from "./labels";
 
-export async function MatchDetailView({ roleId, scenario }: { roleId: string; scenario: ScenarioId }) {
+export async function MatchDetailView({
+  roleId,
+  scenario,
+  snapshotDate,
+}: {
+  roleId: string;
+  scenario: ScenarioId;
+  snapshotDate?: string;
+}) {
   const t = await getTranslations("matching");
-  const result = await fetchMatch(roleId, scenario);
+  const result = await fetchMatch(roleId, scenario, snapshotDate);
   if (!result.ok) return <ApiError message={result.message} />;
   const m = result.data;
 
@@ -28,6 +36,11 @@ export async function MatchDetailView({ roleId, scenario }: { roleId: string; sc
       <StubBanner feature="F4 Future-role matching" endpoint="GET /api/v1/matches/{role_id}" />
       <PageHeader title={m.label}>
         <MetaBar meta={m.meta} />
+        {m.data_provenance_note ? (
+          <p className="text-xs text-muted-foreground">
+            {t("provenance")}: {m.data_provenance_note}
+          </p>
+        ) : null}
       </PageHeader>
       <Card>
         <CardHeader>
