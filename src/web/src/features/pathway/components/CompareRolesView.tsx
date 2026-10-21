@@ -29,22 +29,28 @@ const DIRECTION_VARIANT = {
 async function OptionCard({
   option,
   scenario,
+  snapshotDate,
 }: {
   option: Schemas["RoleOption"];
   scenario: ScenarioId;
+  snapshotDate?: string;
 }) {
   const t = await getTranslations("pathway");
   const direction = option.trend_direction ?? "unknown";
-  const query = `?role=${encodeURIComponent(option.role_id)}&scenario=${scenario}`;
+  const query = `?role=${encodeURIComponent(option.role_id)}&scenario=${scenario}${snapshotDate ? "&snapshot_date=" + encodeURIComponent(snapshotDate) : ""}`;
   return (
     <Card>
       <CardHeader className="flex-row flex-wrap items-center justify-between gap-2">
         <CardTitle>{option.role_label}</CardTitle>
         <div className="flex flex-wrap gap-1">
-          {option.is_saved_choice ? <Badge variant="success">{t("compare.yourChoice")}</Badge> : null}
+          {option.is_saved_choice ? (
+            <Badge variant="success">{t("compare.yourChoice")}</Badge>
+          ) : null}
           <Badge variant={DIRECTION_VARIANT[direction]}>
             {t(`compare.direction.${direction}`)}
-            {option.trend_signal != null ? ` (${option.trend_signal.toFixed(2)})` : ""}
+            {option.trend_signal != null
+              ? ` (${option.trend_signal.toFixed(2)})`
+              : ""}
           </Badge>
         </div>
       </CardHeader>
@@ -61,10 +67,14 @@ async function OptionCard({
         </p>
         <p>
           {t("compare.skillsToClose", { count: option.skills_to_close })}
-          {option.unmet_skills > 0 ? ` · ${t("compare.unmet", { count: option.unmet_skills })}` : ""}
+          {option.unmet_skills > 0
+            ? ` · ${t("compare.unmet", { count: option.unmet_skills })}`
+            : ""}
         </p>
         <p className="text-xs text-muted-foreground">
-          {t("compare.coverage", { percent: Math.round(option.trend_coverage * 100) })}
+          {t("compare.coverage", {
+            percent: Math.round(option.trend_coverage * 100),
+          })}
         </p>
         {(option.sdg_targets ?? []).length > 0 ? (
           <div className="flex flex-wrap gap-1">
@@ -80,7 +90,7 @@ async function OptionCard({
           >
             {t("compare.preview")}
           </Link>
-          {option.is_saved_choice ? null : (
+          {option.is_saved_choice || snapshotDate ? null : (
             <ActionForm
               action={savePlanAction}
               fields={{ role_id: option.role_id, scenario }}
@@ -99,15 +109,20 @@ async function OptionCard({
 export async function CompareRolesView({
   scenario,
   roleIds = [],
+  snapshotDate,
 }: {
   scenario: ScenarioId;
   roleIds?: string[];
+  snapshotDate?: string;
 }) {
   const t = await getTranslations("pathway");
-  const result = await fetchCompare(scenario, roleIds);
+  const result = await fetchCompare(scenario, roleIds, snapshotDate);
   return (
     <section className="space-y-4">
-      <PageHeader title={t("compare.title")} description={t("compare.description")}>
+      <PageHeader
+        title={t("compare.title")}
+        description={t("compare.description")}
+      >
         {result.ok ? <MetaBar meta={result.data.meta} /> : null}
       </PageHeader>
       {!result.ok ? (
@@ -115,14 +130,24 @@ export async function CompareRolesView({
       ) : (
         <>
           <p className="text-xs text-muted-foreground">
-            {t("compare.snapshot", { version: result.data.snapshot_version || "-" })}{" "}
-            <Link href={`/app/matches?scenario=${scenario}`} className="underline">
+            {t("compare.snapshot", {
+              version: result.data.snapshot_version || "-",
+            })}{" "}
+            <Link
+              href={`/app/matches?scenario=${scenario}`}
+              className="underline"
+            >
               {t("compare.seeMatches")}
             </Link>
           </p>
           <div className="grid gap-3 md:grid-cols-2">
             {result.data.options.map((o) => (
-              <OptionCard key={o.role_id} option={o} scenario={scenario} />
+              <OptionCard
+                key={o.role_id}
+                option={o}
+                scenario={scenario}
+                snapshotDate={snapshotDate}
+              />
             ))}
           </div>
           <p className="text-xs text-muted-foreground">

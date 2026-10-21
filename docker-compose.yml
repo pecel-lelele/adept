@@ -1,4 +1,37 @@
 services:
+  api:
+    build:
+      context: .
+      dockerfile: src/docker/api.Dockerfile
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-adept}:${POSTGRES_PASSWORD:-adept}@db:5432/${POSTGRES_DB:-adept}
+      AUTH_MODE: demo
+      M3_BACKEND: postgres
+      CORS_ORIGINS: http://localhost:3000
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 40s
+  web:
+    build:
+      context: .
+      dockerfile: src/docker/web.Dockerfile
+    environment:
+      API_URL: http://api:8000
+      WEB_ORIGIN: http://localhost:3000
+      AUTH_MODE: demo
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      api:
+        condition: service_healthy
   db:
     image: pgvector/pgvector:pg16
     environment:

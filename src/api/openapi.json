@@ -1624,6 +1624,63 @@
         }
       }
     },
+    "/api/v1/preview/cv": {
+      "post": {
+        "tags": [
+          "preview"
+        ],
+        "summary": "Preview Cv",
+        "operationId": "preview_preview_cv",
+        "parameters": [
+          {
+            "name": "scenario",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "moderate",
+                "fast"
+              ],
+              "type": "string",
+              "default": "moderate",
+              "title": "Scenario"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_preview_preview_cv"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuestPreview"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/profile/questionnaire": {
       "post": {
         "tags": [
@@ -2840,6 +2897,25 @@
         ],
         "title": "Badge"
       },
+      "Body_preview_preview_cv": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          },
+          "synthetic_consent": {
+            "type": "boolean",
+            "title": "Synthetic Consent"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file",
+          "synthetic_consent"
+        ],
+        "title": "Body_preview_preview_cv"
+      },
       "Body_profile_upload_cv": {
         "properties": {
           "file": {
@@ -3612,6 +3688,53 @@
           "meta"
         ],
         "title": "GroupPlan"
+      },
+      "GuestPreview": {
+        "properties": {
+          "skills": {
+            "items": {
+              "$ref": "#/components/schemas/ExtractedSkill"
+            },
+            "type": "array",
+            "title": "Skills"
+          },
+          "top_role": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TopRole"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "other_role_count": {
+            "type": "integer",
+            "title": "Other Role Count"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RecommendationMeta"
+          },
+          "truncated": {
+            "type": "boolean",
+            "title": "Truncated"
+          },
+          "requires_skill_confirmation": {
+            "type": "boolean",
+            "const": true,
+            "title": "Requires Skill Confirmation",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "skills",
+          "top_role",
+          "other_role_count",
+          "meta",
+          "truncated"
+        ],
+        "title": "GuestPreview"
       },
       "HTTPValidationError": {
         "properties": {
@@ -5745,6 +5868,34 @@
         ],
         "title": "SyncReport",
         "description": "Result of refreshing reference data from its live source."
+      },
+      "TopRole": {
+        "properties": {
+          "role_id": {
+            "type": "string",
+            "title": "Role Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "score": {
+            "type": "number",
+            "title": "Score"
+          },
+          "trend_coverage": {
+            "type": "number",
+            "title": "Trend Coverage"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role_id",
+          "label",
+          "score",
+          "trend_coverage"
+        ],
+        "title": "TopRole"
       },
       "TrendSignal": {
         "properties": {

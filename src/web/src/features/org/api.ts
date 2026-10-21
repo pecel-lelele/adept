@@ -15,7 +15,11 @@ export async function fetchGaps(scenario: ScenarioId) {
   return call(api.GET("/api/v1/org/gaps", { params: { query: { scenario } } }));
 }
 
-export async function fetchPlan(scenario: ScenarioId) {
+export async function fetchPlan(scenario: ScenarioId, roleId?: string) {
   const api = await getApi();
-  return call(api.GET("/api/v1/org/plan", { params: { query: { scenario } } }));
+  return call(
+    api.GET("/api/v1/org/plan", {
+      params: { query: { scenario, role_id: roleId } },
+    }),
+  );
 }

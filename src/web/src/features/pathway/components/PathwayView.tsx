@@ -49,7 +49,9 @@ async function Summary({ plan }: { plan: Schemas["Pathway"] }) {
           </p>
         ) : null}
         {plan.hrd_eligible ? (
-          <p className="text-xs text-muted-foreground">{t("summary.hrdNote")}</p>
+          <p className="text-xs text-muted-foreground">
+            {t("summary.hrdNote")}
+          </p>
         ) : null}
         {(plan.warnings ?? []).map((w) => (
           <p key={w} className="text-xs text-amber-800">
@@ -83,21 +85,40 @@ async function ReplanBanner({ status }: { status: Schemas["ReplanStatus"] }) {
         </ul>
         <div className="flex gap-2">
           <ActionForm action={acceptReplanAction} label={t("replan.accept")} />
-          <span className="self-center text-xs text-muted-foreground">{t("replan.keep")}</span>
+          <span className="self-center text-xs text-muted-foreground">
+            {t("replan.keep")}
+          </span>
         </div>
       </CardContent>
     </Card>
   );
 }
 
-export async function PathwayView({ roleId, scenario }: { roleId: string; scenario: ScenarioId }) {
+export async function PathwayView({
+  roleId,
+  scenario,
+  snapshotDate,
+}: {
+  roleId: string;
+  scenario: ScenarioId;
+  snapshotDate?: string;
+}) {
   const t = await getTranslations("pathway");
-  const [result, status] = await Promise.all([fetchPathway(roleId, scenario), fetchPlanStatus()]);
+  const [result, status] = await Promise.all([
+    fetchPathway(roleId, scenario, snapshotDate),
+    fetchPlanStatus(),
+  ]);
   if (!result.ok) return <ApiError message={result.message} />;
   const saved = status.ok ? status.data.saved : null;
   // The saved plan is the one progress is tracked against; show it (not a fresh rebuild)
   // whenever it is for this role and scenario. Changes are offered by the re-plan banner.
-  const savedHere = saved && saved.role_id === roleId && saved.scenario === scenario ? saved : null;
+  const savedHere =
+    !snapshotDate &&
+    saved &&
+    saved.role_id === roleId &&
+    saved.scenario === scenario
+      ? saved
+      : null;
   const plan = savedHere ? savedHere.pathway : result.data;
   const query = `?role=${encodeURIComponent(roleId)}&scenario=${scenario}`;
 
@@ -111,9 +132,20 @@ export async function PathwayView({ roleId, scenario }: { roleId: string; scenar
       </PageHeader>
       {status.ok && savedHere ? <ReplanBanner status={status.data} /> : null}
       <Summary plan={plan} />
-      <SegmentGuide segment={plan.segment} scenario={scenario} />
+      <SegmentGuide
+        segment={plan.segment}
+        scenario={scenario}
+        roleId={roleId}
+      />
       <div className="flex flex-wrap items-center gap-2">
-        {savedHere ? (
+        {snapshotDate ? (
+          <Link
+            href={`/app/pathway${query}`}
+            className="workspace-button subtle"
+          >
+            Historical preview · open latest plan to save →
+          </Link>
+        ) : savedHere ? (
           <Badge variant="success">
             {t("plan.saved", { date: savedHere.saved_at.slice(0, 10) })}
           </Badge>
@@ -130,10 +162,13 @@ export async function PathwayView({ roleId, scenario }: { roleId: string; scenar
         <Link href={`/app/sdg${query}`} className="text-sm underline">
           {t("plan.sdgLink")}
         </Link>
-        <Link href="/app/courses" className="text-sm underline">
+        <Link href={`/app/courses${query}`} className="text-sm underline">
           {t("catalogue.browse")}
         </Link>
-        <Link href={`/app/pathway/compare?scenario=${scenario}`} className="text-sm underline">
+        <Link
+          href={`/app/pathway/compare${query}`}
+          className="text-sm underline"
+        >
           {t("compare.link")}
         </Link>
       </div>

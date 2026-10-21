@@ -1,0 +1,40 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { journeyHref, safeReturn } from "../src/web/src/lib/navigation.ts";
+
+test("preserves role, scenario and date without leaking local filters", () => {
+  const params = new URLSearchParams(
+    "role=data-analyst&scenario=fast&snapshot_date=2026-10-13&max_cost_myr=0",
+  );
+  assert.equal(
+    journeyHref("/app/progress", params),
+    "/app/progress?scenario=fast&role=data-analyst&snapshot_date=2026-10-13",
+  );
+});
+test("an explicit target role wins over previous context", () => {
+  assert.equal(
+    journeyHref(
+      "/app/pathway?role=data-analyst",
+      new URLSearchParams("role=old&scenario=fast"),
+    ),
+    "/app/pathway?role=data-analyst&scenario=fast",
+  );
+});
+test("rejects external, protocol-relative, cross-mode and deceptive return URLs", () => {
+  for (const input of [
+    "https://evil.example/app",
+    "//evil.example/app",
+    "/org",
+    "/application",
+    "/app/\\evil",
+    "/app/\n",
+  ]) {
+    assert.equal(safeReturn(input, "individual"), "/app");
+  }
+});
+test("retains a valid deep link after demo entry", () => {
+  assert.equal(
+    safeReturn("/org/plan?role=data-analyst&scenario=fast", "organisation"),
+    "/org/plan?role=data-analyst&scenario=fast",
+  );
+});

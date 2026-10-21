@@ -4,13 +4,19 @@ import { getLocale } from "next-intl/server";
 import type { ReactNode } from "react";
 
 import "./globals.css";
+import "./workspace.css";
 
 export const metadata: Metadata = {
   title: "Adept · Aiversecity Future-Ready Workforce",
-  description: "Future Skills Radar, role matching and reskilling pathways linked to the SDGs.",
+  description:
+    "Future Skills Radar, role matching and reskilling pathways linked to the SDGs.",
 };
 
-export default async function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
   const locale = await getLocale();
   return (
     <html lang={locale}>

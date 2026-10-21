@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import Link from "next/link";
 
 import { ApiError, MetaBar, PageHeader } from "@/components";
 import type { ScenarioId } from "@/lib/api";
@@ -33,16 +34,26 @@ export async function GapsView({ scenario }: { scenario: ScenarioId }) {
               <tbody>
                 {result.data.role_ids.map((roleId) => (
                   <tr key={roleId}>
-                    <th className="px-2 py-1 text-left font-medium">{roleId}</th>
+                    <th className="px-2 py-1 text-left font-medium">
+                      <Link
+                        href={`/org/plan?role=${encodeURIComponent(roleId)}&scenario=${scenario}`}
+                        className="underline"
+                      >
+                        {roleId.replaceAll("-", " ")} ↗
+                      </Link>
+                    </th>
                     {result.data.skills.map((s) => {
                       const gap =
-                        result.data.cells.find((c) => c.role_id === roleId && c.skill_id === s.id)
-                          ?.gap ?? 0;
+                        result.data.cells.find(
+                          (c) => c.role_id === roleId && c.skill_id === s.id,
+                        )?.gap ?? 0;
                       return (
                         <td
                           key={s.id}
                           className="px-2 py-1 text-center tabular-nums"
-                          style={{ backgroundColor: `rgba(220, 38, 38, ${gap * 0.8})` }}
+                          style={{
+                            backgroundColor: `rgba(220, 38, 38, ${gap * 0.8})`,
+                          }}
                         >
                           {percent(gap)}
                         </td>

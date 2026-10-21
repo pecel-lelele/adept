@@ -3,7 +3,17 @@ from fastapi.testclient import TestClient
 from app.contracts.common import DataFreshness, HealthResponse
 from app.main import discover_feature_routers
 
-FEATURES = {"guardrails", "matching", "org", "pathway", "profile", "scenarios", "sdg", "trends"}
+FEATURES = {
+    "guardrails",
+    "matching",
+    "org",
+    "pathway",
+    "preview",
+    "profile",
+    "scenarios",
+    "sdg",
+    "trends",
+}
 
 
 def test_health(client: TestClient) -> None:

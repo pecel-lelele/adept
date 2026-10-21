@@ -9,7 +9,7 @@ import { SCENARIO_PARAM } from "@/lib/scenario";
 import { cn } from "@/lib/utils";
 
 /** Query params that describe "the same plan" and must survive navigation. */
-const PRESERVED_PARAMS = [SCENARIO_PARAM, "role"] as const;
+const PRESERVED_PARAMS = [SCENARIO_PARAM, "role", "snapshot_date"] as const;
 
 /** Journey steps 1-4 plus extra links; keeps ?scenario and ?role when navigating. */
 export function JourneyStepper({ items }: { items: readonly NavItem[] }) {
@@ -27,7 +27,8 @@ export function JourneyStepper({ items }: { items: readonly NavItem[] }) {
   return (
     <nav className="flex flex-wrap gap-1 text-sm">
       {items.map((item) => {
-        const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+        const active =
+          pathname === item.href || pathname.startsWith(`${item.href}/`);
         return (
           <Link
             key={item.href}
@@ -39,7 +40,9 @@ export function JourneyStepper({ items }: { items: readonly NavItem[] }) {
             )}
           >
             {item.step ? (
-              <span className="text-xs opacity-70">{t("journey.step", { n: item.step })}</span>
+              <span className="text-xs opacity-70">
+                {t("journey.step", { n: item.step })}
+              </span>
             ) : null}
             {t(`nav.${item.key}`)}
           </Link>

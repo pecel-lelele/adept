@@ -401,6 +401,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/preview/cv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Preview Cv */
+        post: operations["preview_preview_cv"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/profile/questionnaire": {
         parameters: {
             query?: never;
@@ -817,6 +834,13 @@ export interface components {
             /** Skill Id */
             skill_id?: string | null;
         };
+        /** Body_preview_preview_cv */
+        Body_preview_preview_cv: {
+            /** File */
+            file: string;
+            /** Synthetic Consent */
+            synthetic_consent: boolean;
+        };
         /** Body_profile_upload_cv */
         Body_profile_upload_cv: {
             /** File */
@@ -1150,6 +1174,23 @@ export interface components {
             /** Total Weeks */
             total_weeks: number;
             meta: components["schemas"]["RecommendationMeta"];
+        };
+        /** GuestPreview */
+        GuestPreview: {
+            /** Skills */
+            skills: components["schemas"]["ExtractedSkill"][];
+            top_role: components["schemas"]["TopRole"] | null;
+            /** Other Role Count */
+            other_role_count: number;
+            meta: components["schemas"]["RecommendationMeta"];
+            /** Truncated */
+            truncated: boolean;
+            /**
+             * Requires Skill Confirmation
+             * @default true
+             * @constant
+             */
+            requires_skill_confirmation: true;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -2136,6 +2177,17 @@ export interface components {
              */
             detail: string;
         };
+        /** TopRole */
+        TopRole: {
+            /** Role Id */
+            role_id: string;
+            /** Label */
+            label: string;
+            /** Score */
+            score: number;
+            /** Trend Coverage */
+            trend_coverage: number;
+        };
         /** TrendSignal */
         TrendSignal: {
             /**
@@ -2997,6 +3049,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["VerificationItem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    preview_preview_cv: {
+        parameters: {
+            query?: {
+                scenario?: "moderate" | "fast";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_preview_preview_cv"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuestPreview"];
                 };
             };
             /** @description Validation Error */

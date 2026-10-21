@@ -621,6 +621,18 @@
 - **Replaces**: none
 - **PR / branch**: `refactor/pathway-trend-and-match-ports`
 
+### M3-027: Shared learning and HR workspaces, guest preview, and Compose startup
+
+- **Date**: 2026-10-21
+- **Feature**: F5, F6, F8; Core/F7 explicitly requested by M3
+- **Type**: UI | method | contract | schema | other
+- **Change**: Added API-backed learner and HR overview pages, responsive workspace shells, scenario/role/snapshot navigation, a clickable journey atlas, synthetic guest CV preview using M2 public parsing/scoring and M1 bounded snapshot ports, explicit demo consent and safe return links. Activity points are 100 per completed unique course and a level per 500 points, never a proficiency measure. Added backend/frontend Dockerfiles, fresh-db migration/seed startup, standalone Next.js output, and an append-only skills.aliases migration matching M2's CSV header. Guest API returns one role plus a count, never the full ranking or raw CV; no anonymous profile is saved into a demo identity.
+- **Why**: M3 can integrate presentation and deployment while M1/M2 retain ownership of their algorithms and in-flight changes. Container startup testing exposed the missing aliases column; relative allowlisted redirects avoid Docker-internal hostname leakage. Exact public-origin checks remain on preview submission.
+- **Pipeline**: synthetic CV → M2 capped parser and taxonomy extraction → unconfirmed skill levels → M2 rank_roles with M1 dated velocities → restricted top-one response with original sources and estimates → skill confirmation handoff (production account/draft claim pending).
+- **Affects**: M1/M2 (existing public interfaces consumed, no owned files edited), M4 (Core shell, routes, organisation target selection, Compose; landing CTA /try hook pending)
+- **Replaces**: none
+- **PR / branch**: feat/core-m3-workspace-navigation
+
 ---
 
 ## M4: Core & Organisation (Core, F7)

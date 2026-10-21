@@ -62,15 +62,15 @@ def py(*args: str) -> list[str]:
 
 
 def pnpm() -> list[str]:
-    found = shutil.which("pnpm")
-    if found:
-        return [found]
     package = json.loads((WEB / "package.json").read_text(encoding="utf-8"))
     version = package["packageManager"].split("@", 1)[1]
     npx = shutil.which("npx")
-    if not npx:
-        raise TaskError("Neither pnpm nor npx found. Install Node.js 20+ first.")
-    return [npx, "--yes", f"pnpm@{version}"]
+    if npx:
+        return [npx, "--yes", f"pnpm@{version}"]
+    found = shutil.which("pnpm")
+    if found:
+        return [found]
+    raise TaskError("Neither pnpm nor npx found. Install Node.js 20+ first.")
 
 
 def uv() -> list[str]:

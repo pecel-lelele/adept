@@ -1,50 +1,98 @@
+"use client";
 import Link from "next/link";
-import { getTranslations } from "next-intl/server";
-
-import {
-  buttonVariants,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  StubBanner,
-} from "@/components";
-
-type AuthPage = "login" | "signup" | "consent" | "join";
-
-/** Auth stubs. AUTH_MODE=demo uses /demo/*; real auth (Supabase) comes later. */
-export async function AuthView({ page }: { page: AuthPage }) {
-  const t = await getTranslations("common");
-  const title = {
-    login: t("auth.loginTitle"),
-    signup: t("auth.signupTitle"),
-    consent: t("auth.consentTitle"),
-    join: t("auth.joinTitle"),
-  }[page];
-
+import { useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { safeReturn } from "@/lib/navigation";
+import { DepthArt } from "./DepthArt";
+export function AuthView({
+  page,
+}: {
+  page: "login" | "signup" | "consent" | "join";
+}) {
+  const params = useSearchParams();
+  const [mode, setMode] = useState<"individual" | "organisation">(
+    params.get("mode") === "organisation" ||
+      params.get("next")?.startsWith("/org")
+      ? "organisation"
+      : "individual",
+  );
+  const [consent, setConsent] = useState(false);
+  const next = safeReturn(params.get("next"), mode);
   return (
-    <main className="mx-auto max-w-md px-4 py-10">
-      <StubBanner feature="Core auth" />
-      <Card>
-        <CardHeader>
-          <CardTitle>{title}</CardTitle>
-          <CardDescription>
-            {page === "consent" ? t("auth.consentBody") : t("auth.notImplemented")}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-2">
-          <a href="/demo/learner" className={buttonVariants()}>
-            {t("landing.individualDemo")}
-          </a>
-          <a href="/demo/org" className={buttonVariants({ variant: "outline" })}>
-            {t("landing.organisationDemo")}
-          </a>
-          <Link href="/" className="pt-2 text-center text-sm underline">
-            {t("appName")}
-          </Link>
-        </CardContent>
-      </Card>
+    <main className="preview-page">
+      <header>
+        <Link className="workspace-brand" href="/">
+          adept.
+        </Link>
+        <Link href="/try">Try a CV preview ↗</Link>
+      </header>
+      <span className="workspace-eyebrow">YOUR NEXT CHAPTER STARTS HERE</span>
+      <h1>
+        {page === "consent"
+          ? "You stay in control."
+          : "Find your space to grow."}
+      </h1>
+      <div className="preview-grid">
+        <section className="preview-result">
+          <h2>Choose your demo workspace</h2>
+          <p>
+            Use a synthetic persona to explore Adept. Account creation and
+            organisation invitation codes are not connected yet.
+          </p>
+          <label>
+            Workspace
+            <select
+              className="route-node"
+              value={mode}
+              onChange={(e) =>
+                setMode(
+                  e.target.value === "organisation"
+                    ? "organisation"
+                    : "individual",
+                )
+              }
+            >
+              <option value="individual">Individual · Aisyah</option>
+              <option value="organisation">Organisation · Demo Bank HR</option>
+            </select>
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              checked={consent}
+              onChange={(e) => setConsent(e.target.checked)}
+            />{" "}
+            I understand this is a synthetic demo, projections are estimates,
+            and I make the final decisions.
+          </label>
+          {consent ? (
+            <a
+              className="workspace-button"
+              href={`/demo/${mode === "organisation" ? "org" : "learner"}?next=${encodeURIComponent(next)}`}
+            >
+              Enter demo workspace →
+            </a>
+          ) : (
+            <button className="workspace-button" disabled>
+              Confirm above to continue
+            </button>
+          )}
+          <Link href="/about">Read about our sources and AI use ↗</Link>
+        </section>
+        <section className="preview-result">
+          <DepthArt variant={mode === "organisation" ? "people" : "steps"} />
+          <h2>
+            {mode === "organisation"
+              ? "Help your people take the next step."
+              : "Build a learning journey around you."}
+          </h2>
+          <p>
+            {mode === "organisation"
+              ? "Explore team skills, group learning plans, and evidence review."
+              : "Compare roles, build a pathway, and follow your learning progress."}
+          </p>
+        </section>
+      </div>
     </main>
   );
 }

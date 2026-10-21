@@ -5,8 +5,8 @@ export const DEMO_COOKIE = "adept_demo";
 export type AuthMode = "demo" | "supabase";
 
 export const DEMO_PERSONAS = {
-  learner: { id: "aisyah", home: "/app/radar" },
-  org: { id: "demo-company", home: "/org/gaps" },
+  learner: { id: "aisyah", home: "/app" },
+  org: { id: "demo-company", home: "/org" },
 } as const;
 
 export function getAuthMode(): AuthMode {
