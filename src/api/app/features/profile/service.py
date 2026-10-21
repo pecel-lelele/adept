@@ -12,6 +12,7 @@ Normalisation formula: (level - 1) / 4.0   (level 1 → 0.0, level 5 → 1.0)
 from __future__ import annotations
 
 import csv
+import re
 from functools import lru_cache
 from pathlib import Path
 
@@ -44,18 +45,31 @@ _SEED = Path(__file__).resolve().parents[5] / "src" / "data" / "seed"
 # M2-12 fairness whitelist: only non-demographic interest tags are permitted.
 # Demographic signals (age, gender, race, religion, disability) must never
 # reach the matching engine's MatchProfile.
-_BLOCKED_INTEREST_PREFIXES: frozenset[str] = frozenset(
-    {"male", "female", "gender", "race", "ethnicity", "religion", "age", "disability"}
+BLOCKED_DEMOGRAPHIC_INTERESTS: frozenset[str] = frozenset(
+    {"age", "gender", "race", "ethnicity", "religion", "nationality", "disability"}
 )
 
 
+def _normalise_interest_text(text: str) -> str:
+    """Normalise interest: lowercase, strip punctuation, collapse whitespace."""
+    no_punct = re.sub(r"[^\w\s]", " ", text)
+    return re.sub(r"\s+", " ", no_punct).strip().lower()
+
+
 def _sanitise_interests(raw: list[str]) -> list[str]:
-    """Strip any interest tags that could introduce demographic bias (M2-12)."""
-    cleaned = []
+    """Strip any interest tags that match blocked demographic attributes (M2-12).
+
+    Normalises each tag (lowercase, strip punctuation, collapse spaces) and drops
+    an interest only when the whole normalised text equals one of the blocked
+    demographic tokens. Substring and prefix matches (e.g. 'agentic AI',
+    'management', 'age-friendly design') are preserved.
+    """
+    cleaned: list[str] = []
     for tag in raw:
-        t = tag.strip().lower()
-        if not any(t.startswith(prefix) for prefix in _BLOCKED_INTEREST_PREFIXES):
-            cleaned.append(tag.strip())
+        norm = _normalise_interest_text(tag)
+        if norm and norm in BLOCKED_DEMOGRAPHIC_INTERESTS:
+            continue
+        cleaned.append(tag.strip())
     return cleaned
 
 
@@ -86,15 +100,18 @@ def normalise_level(level: int) -> float:
 # ---------------------------------------------------------------------------
 
 
-def extract_cv(filename: str, content: bytes) -> CvExtractionResult:
+def extract_cv(
+    filename: str,
+    content: bytes,
+    content_type: str = "text/plain",
+) -> CvExtractionResult:
     """Run the real CV parsing pipeline and return structured results.
 
-    Falls back gracefully:
-      - Unrecognised file types → treated as UTF-8 text.
-      - Empty text → returns empty skills list with a warning in meta.
-      - No taxonomy matches → returns empty skills list.
+    Raises:
+        PdfSupportUnavailable: fitz absent and a PDF was uploaded.
+        PdfNoText:             PDF has no extractable text.
     """
-    parsed = parse_cv(filename, content)
+    parsed, truncated = parse_cv(content, content_type)
     labels = _skill_labels()
 
     skills = [
@@ -107,7 +124,7 @@ def extract_cv(filename: str, content: bytes) -> CvExtractionResult:
         for ps in parsed
     ]
 
-    return CvExtractionResult(skills=skills, meta=mock_meta())
+    return CvExtractionResult(skills=skills, truncated=truncated, meta=mock_meta())
 
 
 # ---------------------------------------------------------------------------
@@ -115,14 +132,16 @@ def extract_cv(filename: str, content: bytes) -> CvExtractionResult:
 # ---------------------------------------------------------------------------
 
 
-def get_my_profile(user: CurrentUser) -> Profile:
+def get_my_profile(user: CurrentUser | str) -> Profile:
     """Load profile from in-memory store; return a default for unknown users."""
-    existing = repository.get_profile(user.id)
+    user_id = user if isinstance(user, str) else user.id
+    display_name = user_id if isinstance(user, str) else user.display_name
+    existing = repository.get_profile(user_id)
     if existing is not None:
         return existing
     return Profile(
-        user_id=user.id,
-        display_name=user.display_name,
+        user_id=user_id,
+        display_name=display_name,
         segment="working",
         interests=[],
         hours_per_week=0,
@@ -130,6 +149,11 @@ def get_my_profile(user: CurrentUser) -> Profile:
         hrd_eligible=False,
         skills=[],
     )
+
+
+def has_profile(user_id: str) -> bool:
+    """Return True if the user has an existing saved profile."""
+    return repository.get_profile(user_id) is not None
 
 
 def upsert_profile(user: CurrentUser, data: ProfileIn) -> Profile:

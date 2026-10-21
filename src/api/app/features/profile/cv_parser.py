@@ -1,37 +1,81 @@
-"""CV parsing pipeline (M2-01).
+"""CV parsing pipeline (M2-01) — Prompt 5 rewrite.
 
 Pipeline stages:
-  text input (PDF bytes / raw text)
-  → clean_text()            strip noise, normalise whitespace
-  → extract_skill_mentions() rule-based keyword scan against taxonomy
-  → estimate_level()         heuristic level 1-5 from proficiency signals
-  → deduplicate()            highest-confidence result per skill_id
+  raw bytes  (content_type validated by router)
+  → extract_text()             PDF via PyMuPDF only; text via UTF-8. PDF bytes are
+                               never decoded as text — unreadable PDFs raise.
+  → _truncate_text()           cap at MAX_TEXT_CHARS, set truncated flag
+  → _clean_text()              NFKC, ReDoS-safe PII removal, whitespace collapse
+  → extract_skills()           taxonomy-only, longest-alias-first, non-overlapping spans
+  → sorted by confidence desc
 
 Design constraints (AGENTS.md §3):
   - Never stores uploaded CVs; bytes are processed in-memory only.
   - Never invents skill IDs. Every result must resolve to a taxonomy entry.
   - No real PII; only synthetic CVs are used in demo mode.
+  - All regexes are bounded to prevent ReDoS.
+
+Announce to team (package dependency):
+  PDF support needs PyMuPDF, now declared in requirements.txt as
+    pymupdf>=1.24.0,<2
+  The PyPI package installs the ``pymupdf`` module (``fitz`` is its older alias);
+  both import names are accepted above. 2.x is excluded because it deprecates
+  ``fitz`` and pulls four extra packages into every ``make setup``.
 """
 
 from __future__ import annotations
 
 import csv
 import re
+import unicodedata
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 
-# Optional: use PyMuPDF (fitz) for PDF text extraction.  Imported lazily so
-# the app still boots when the library is absent (text-only mode).
-try:
-    import fitz  # type: ignore[import-not-found]
+from app.core.errors import AppError, PdfNoText, PdfSupportUnavailable
 
-    _HAS_FITZ = True
-except ImportError:
-    _HAS_FITZ = False
+# ---------------------------------------------------------------------------
+# Constants
+# ---------------------------------------------------------------------------
+
+#: Maximum characters of extracted text to scan. Content beyond this is dropped
+#: and the caller receives ``truncated=True``.
+MAX_TEXT_CHARS = 200_000
+
+#: Confidence increment per non-overlapping match, capped at 1.0.
+#: confidence = min(match_count * CONFIDENCE_PER_HIT, 1.0)
+CONFIDENCE_PER_HIT = 0.30
 
 _SEED = Path(__file__).resolve().parents[5] / "src" / "data" / "seed"
 
+# ---------------------------------------------------------------------------
+# Optional PyMuPDF import — must NOT fall back silently to decoding PDF bytes
+# ---------------------------------------------------------------------------
+
+try:
+    import pymupdf as fitz  # type: ignore[import-not-found]
+
+    _HAS_FITZ = True
+except ImportError:
+    try:
+        import fitz  # type: ignore[no-redef,import-not-found]
+
+        _HAS_FITZ = True
+    except ImportError:
+        _HAS_FITZ = False
+
+# ---------------------------------------------------------------------------
+# Safe, bounded PII-removal patterns (ReDoS-safe — all quantifiers are bounded)
+# ---------------------------------------------------------------------------
+
+#: Email pattern: local part <=64 chars, domain <=255 chars, both non-whitespace.
+_EMAIL_RE = re.compile(r"[^\s@]{1,64}@[^\s@]{1,255}")
+
+#: URLs: http/https scheme only, bounded to 2048 chars.
+_URL_RE = re.compile(r"https?://\S{1,2048}")
+
+#: Phone-like strings: 8+ consecutive digits (bounded at 20).
+_PHONE_RE = re.compile(r"\b\d{8,20}\b")
 
 # ---------------------------------------------------------------------------
 # Taxonomy loader
@@ -42,8 +86,10 @@ _SEED = Path(__file__).resolve().parents[5] / "src" / "data" / "seed"
 class TaxonomySkill:
     skill_id: str
     label: str
-    # Aliases help the keyword scanner match variants (e.g. "SQL" → "sql")
-    aliases: tuple[str, ...]
+    #: NFKC-normalised, lowercased label used for matching.
+    normalised_label: str
+    #: Explicit aliases loaded from taxonomy seed table (Prompt 5 rule 5).
+    aliases: tuple[str, ...] = ()
 
 
 @lru_cache(maxsize=1)
@@ -55,118 +101,164 @@ def _load_taxonomy() -> dict[str, TaxonomySkill]:
         for row in csv.DictReader(f):
             sid = row["id"]
             label = row["label"]
-            # Generate aliases: the label itself, each word, and the id tokens
-            alias_set: set[str] = {label.lower(), sid.lower()}
-            alias_set.update(w.lower() for w in label.split() if len(w) > 2)
-            alias_set.update(sid.replace("-", " ").split())
+            norm = unicodedata.normalize("NFKC", label).lower()
+            raw_aliases = row.get("aliases") or ""
+            aliases = tuple(
+                unicodedata.normalize("NFKC", a.strip()).lower()
+                for a in raw_aliases.split("|")
+                if a.strip()
+            )
             taxonomy[sid] = TaxonomySkill(
                 skill_id=sid,
                 label=label,
-                aliases=tuple(sorted(alias_set)),
+                normalised_label=norm,
+                aliases=aliases,
             )
     return taxonomy
 
 
 # ---------------------------------------------------------------------------
-# Text extraction helpers
+# Alias index — longest-alias-first, word-boundary patterns
 # ---------------------------------------------------------------------------
 
 
-def extract_text_from_pdf(content: bytes) -> str:
-    """Extract plain text from PDF bytes using PyMuPDF (fitz).
+@dataclass(frozen=True)
+class _AliasEntry:
+    pattern: re.Pattern[str]
+    skill_id: str
+    phrase_len: int
 
-    Falls back to decoding bytes as UTF-8 text when fitz is unavailable,
-    which is sufficient for synthetic text-format CVs used in demo mode.
+
+@lru_cache(maxsize=1)
+def _build_alias_index() -> list[_AliasEntry]:
+    """Build alias entries sorted longest-phrase-first.
+
+    Uses ``(?<!\\w)phrase(?!\\w)`` boundaries to avoid sub-word matches
+    (e.g. "java" must not match inside "javascript").
+    """
+    taxonomy = _load_taxonomy()
+    seen: set[tuple[str, str]] = set()
+    entries: list[tuple[str, str]] = []
+
+    for skill in taxonomy.values():
+        if (skill.normalised_label, skill.skill_id) not in seen:
+            seen.add((skill.normalised_label, skill.skill_id))
+            entries.append((skill.normalised_label, skill.skill_id))
+        for alias in skill.aliases:
+            if (alias, skill.skill_id) not in seen:
+                seen.add((alias, skill.skill_id))
+                entries.append((alias, skill.skill_id))
+
+    # Sort: longest phrase first so "python programming" wins over "python"
+    entries.sort(key=lambda t: len(t[0]), reverse=True)
+
+    return [
+        _AliasEntry(
+            pattern=re.compile(
+                r"(?<!\w)" + re.escape(phrase) + r"(?!\w)",
+                re.IGNORECASE,
+            ),
+            skill_id=sid,
+            phrase_len=len(phrase),
+        )
+        for phrase, sid in entries
+    ]
+
+
+# ---------------------------------------------------------------------------
+# Text extraction
+# ---------------------------------------------------------------------------
+
+
+def extract_text(data: bytes | str, content_type: str = "text/plain") -> str:
+    """Extract plain text from uploaded bytes.
+
+    PDF bytes are read *only* through PyMuPDF. They are never decoded as text:
+    a binary blob fed into the skill scanner is garbage in, garbage out, and an
+    unreadable file must surface as an error instead.
+
+    Args:
+        data:         Raw file bytes (a str is treated as the text itself).
+        content_type: MIME type as declared by the client.
+
+    Returns:
+        Extracted plain text string (may be empty for blank documents).
+
+    Raises:
+        PdfSupportUnavailable: fitz (PyMuPDF) is not installed.
+        AppError (422):        the PDF is empty or cannot be opened.
+        PdfNoText:             the PDF has no extractable text (scanned image).
+    """
+    raw_bytes = data if isinstance(data, bytes) else str(data).encode("utf-8")
+    mime = content_type.lower().split(";")[0].strip()
+    if "pdf" in mime:
+        return _extract_pdf(raw_bytes)
+    return raw_bytes.decode("utf-8", errors="replace")
+
+
+def _extract_pdf(data: bytes) -> str:
+    """Extract text from PDF bytes using PyMuPDF.
+
+    Raises:
+        PdfSupportUnavailable: fitz is absent (501) — a server capability problem.
+        AppError (422):        the file is empty or is not a readable PDF — a user
+                               input problem, so it must not masquerade as 501.
+        PdfNoText:             the PDF yields no text on any page (422).
     """
     if not _HAS_FITZ:
-        # Graceful degradation: treat content as raw text.
-        return content.decode("utf-8", errors="replace")
+        raise PdfSupportUnavailable()
+
+    if not data:
+        raise AppError(
+            "The uploaded PDF is empty. Attach the CV file itself, not a link.",
+            status_code=422,
+            code="pdf_unreadable",
+        )
+
     try:
-        doc = fitz.open(stream=content, filetype="pdf")
+        doc = fitz.open(stream=data, filetype="pdf")
         pages = [page.get_text() for page in doc]
         doc.close()
-        return "\n".join(pages)
-    except Exception:
-        return content.decode("utf-8", errors="replace")
+    except Exception as exc:
+        raise AppError(
+            "Could not read the uploaded PDF. It may be corrupted or not a PDF at all.",
+            status_code=422,
+            code="pdf_unreadable",
+        ) from exc
 
+    text = "\n".join(pages)
+    if not text.strip():
+        raise PdfNoText()
 
-def extract_text(filename: str, content: bytes) -> str:
-    """Dispatch to the correct extractor based on file extension."""
-    ext = Path(filename).suffix.lower()
-    if ext == ".pdf":
-        return extract_text_from_pdf(content)
-    # Plain text / unknown: decode directly.
-    return content.decode("utf-8", errors="replace")
+    return text
 
 
 # ---------------------------------------------------------------------------
-# Text cleaning
+# Text preparation
 # ---------------------------------------------------------------------------
 
-_NOISE_RE = re.compile(
-    r"https?://\S+|"  # URLs
-    r"\S+@\S+\.\S+|"  # Emails
-    r"\b\d{8,}\b|"  # Long number strings (phone numbers etc.)
-    r"[^\x20-\x7E\n]",  # Non-printable ASCII
-)
+
+def _truncate_text(text: str) -> tuple[str, bool]:
+    """Return (text[:MAX_TEXT_CHARS], truncated_flag)."""
+    if len(text) <= MAX_TEXT_CHARS:
+        return text, False
+    return text[:MAX_TEXT_CHARS], True
 
 
-def clean_text(raw: str) -> str:
-    """Strip PII and formatting noise, normalise whitespace."""
-    text = _NOISE_RE.sub(" ", raw)
-    # Collapse runs of whitespace/newlines into a single space
+def _clean_text(raw: str) -> str:
+    """Apply NFKC normalisation, strip PII, collapse whitespace.
+
+    All removal patterns are bounded and pre-compiled to prevent ReDoS.
+    """
+    text = unicodedata.normalize("NFKC", raw)
+    text = _URL_RE.sub(" ", text)
+    text = _EMAIL_RE.sub(" ", text)
+    text = _PHONE_RE.sub(" ", text)
+    text = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]", " ", text)
     return re.sub(r"\s+", " ", text).strip()
 
 
-# ---------------------------------------------------------------------------
-# Proficiency signal heuristics
-# ---------------------------------------------------------------------------
-
-# Keywords in the CV text that suggest a certain proficiency level (1-5).
-_LEVEL_SIGNALS: dict[int, tuple[str, ...]] = {
-    5: ("expert", "lead", "principal", "architect", "senior", "advanced", "mastery"),
-    4: ("proficient", "experienced", "strong", "solid", "extensive"),
-    3: ("intermediate", "working knowledge", "familiar", "confident"),
-    2: ("basic", "beginner", "learning", "exposure", "some experience"),
-    1: ("awareness", "interested", "studied"),
-}
-
-# Pre-compile a pattern for each level
-_LEVEL_PATTERNS: dict[int, re.Pattern[str]] = {
-    lvl: re.compile("|".join(re.escape(kw) for kw in kws), re.IGNORECASE)
-    for lvl, kws in _LEVEL_SIGNALS.items()
-}
-
-
-def _estimate_level_from_context(surrounding: str) -> int:
-    """Return the highest-priority level found in the surrounding text window.
-
-    Scans the text within ~50 characters of a skill mention.
-    Defaults to 2 (beginner) if no signal is found.
-    """
-    for lvl in (5, 4, 3, 2, 1):
-        if _LEVEL_PATTERNS[lvl].search(surrounding):
-            return lvl
-    return 2  # default: beginner
-
-
-# ---------------------------------------------------------------------------
-# Confidence score
-# ---------------------------------------------------------------------------
-
-
-def _confidence(num_occurrences: int, context_match: bool) -> float:
-    """Heuristic confidence between 0 and 1.
-
-    Factors:
-      - At least one mention: base 0.50
-      - Multiple mentions: +0.15 each, capped at 0.80
-      - Context (proficiency keyword nearby): +0.15
-    """
-    score = min(0.50 + 0.15 * (num_occurrences - 1), 0.80)
-    if context_match:
-        score = min(score + 0.15, 0.95)
-    return round(score, 2)
+clean_text = _clean_text
 
 
 # ---------------------------------------------------------------------------
@@ -178,78 +270,99 @@ def _confidence(num_occurrences: int, context_match: bool) -> float:
 class ParsedSkill:
     skill_id: str
     label: str
-    level: int  # 1-5 scale (maps to 0.0-1.0 in matching engine)
+    level: int  # 1-5 scale
     confidence: float  # 0.0-1.0
 
 
 # ---------------------------------------------------------------------------
-# Core extraction pipeline
+# Proficiency heuristic
+# ---------------------------------------------------------------------------
+
+_LEVEL_SIGNALS: dict[int, tuple[str, ...]] = {
+    5: ("expert", "lead", "principal", "architect", "senior", "advanced", "mastery"),
+    4: ("proficient", "experienced", "strong", "solid", "extensive"),
+    3: ("intermediate", "working knowledge", "familiar", "confident"),
+    2: ("basic", "beginner", "learning", "exposure", "some experience"),
+    1: ("awareness", "interested", "studied"),
+}
+
+_LEVEL_PATTERNS: dict[int, re.Pattern[str]] = {
+    lvl: re.compile("|".join(re.escape(kw) for kw in kws), re.IGNORECASE)
+    for lvl, kws in _LEVEL_SIGNALS.items()
+}
+
+
+def _estimate_level(context: str) -> int:
+    """Return highest-priority level found in the surrounding context text."""
+    for lvl in (5, 4, 3, 2, 1):
+        if _LEVEL_PATTERNS[lvl].search(context):
+            return lvl
+    return 2  # default: beginner
+
+
+# ---------------------------------------------------------------------------
+# Core skill extraction
 # ---------------------------------------------------------------------------
 
 
-def _build_alias_index(
-    taxonomy: dict[str, TaxonomySkill],
-) -> list[tuple[re.Pattern[str], str]]:
-    """Build a list of (compiled_pattern, skill_id) sorted longest-alias-first.
-
-    Longest-first ensures "machine learning" matches before "machine".
-    """
-    entries: list[tuple[str, str]] = []
-    for skill in taxonomy.values():
-        for alias in skill.aliases:
-            entries.append((alias, skill.skill_id))
-    # Sort by alias length descending to prefer longer (more specific) matches
-    entries.sort(key=lambda t: len(t[0]), reverse=True)
-    return [
-        (re.compile(r"\b" + re.escape(alias) + r"\b", re.IGNORECASE), sid) for alias, sid in entries
-    ]
-
-
-@lru_cache(maxsize=1)
-def _alias_index() -> list[tuple[re.Pattern[str], str]]:
-    return _build_alias_index(_load_taxonomy())
-
-
 def extract_skills(text: str) -> list[ParsedSkill]:
-    """Scan cleaned CV text and return matched skills sorted by confidence desc.
+    """Scan cleaned CV text; return only catalogue-registered skills.
 
-    Each skill_id appears at most once (highest-confidence occurrence wins).
+    Algorithm:
+      - NFKC + lowercase the text once for matching.
+      - Walk alias entries longest-first.
+      - Track matched (start, end) spans per skill; skip overlapping hits.
+      - confidence = min(non_overlapping_count * CONFIDENCE_PER_HIT, 1.0).
+      - Estimate level from context window around the first hit.
+
+    Returns:
+        Skills sorted by confidence desc, skill_id asc.
+        Every skill_id is guaranteed to exist in the taxonomy.
     """
     taxonomy = _load_taxonomy()
-    index = _alias_index()
+    index = _build_alias_index()
 
-    # Accumulate: {skill_id: (occurrences, max_level, any_context_match)}
-    hits: dict[str, list[int | bool]] = {}  # [count, level, context_found]
+    normed = unicodedata.normalize("NFKC", text).lower()
 
-    for pattern, sid in index:
-        for match in pattern.finditer(text):
-            start = max(0, match.start() - 50)
-            end = min(len(text), match.end() + 50)
-            context = text[start:end]
-            level = _estimate_level_from_context(context)
-            has_context = any(_LEVEL_PATTERNS[lvl].search(context) for lvl in _LEVEL_PATTERNS)
+    # {skill_id: list of non-overlapping (start, end) spans}
+    spans: dict[str, list[tuple[int, int]]] = {}
 
-            if sid not in hits:
-                hits[sid] = [1, level, has_context]
-            else:
-                hits[sid][0] += 1
-                if level > hits[sid][1]:
-                    hits[sid][1] = level
-                if has_context:
-                    hits[sid][2] = True
+    for entry in index:
+        for m in entry.pattern.finditer(normed):
+            sid = entry.skill_id
+            s, e = m.start(), m.end()
+
+            existing = spans.get(sid, [])
+            # Skip if this match overlaps any already-recorded span for this skill
+            if any(s < ex_e and e > ex_s for ex_s, ex_e in existing):
+                continue
+            if sid not in spans:
+                spans[sid] = []
+            spans[sid].append((s, e))
+
+    if not spans:
+        return []
 
     results: list[ParsedSkill] = []
-    for sid, (count, level, ctx) in hits.items():
+    for sid, hit_spans in spans.items():
+        count = len(hit_spans)
+        confidence = min(count * CONFIDENCE_PER_HIT, 1.0)
+        # Level from context around the first hit (using original-case text)
+        first_s, first_e = hit_spans[0]
+        ctx_start = max(0, first_s - 60)
+        ctx_end = min(len(text), first_e + 60)
+        context = text[ctx_start:ctx_end]
+        level = _estimate_level(context)
+
         results.append(
             ParsedSkill(
                 skill_id=sid,
                 label=taxonomy[sid].label,
-                level=int(level),
-                confidence=_confidence(int(count), bool(ctx)),
+                level=level,
+                confidence=round(confidence, 2),
             )
         )
 
-    # Sort: highest confidence first, then alphabetically for determinism
     results.sort(key=lambda s: (-s.confidence, s.skill_id))
     return results
 
@@ -259,17 +372,24 @@ def extract_skills(text: str) -> list[ParsedSkill]:
 # ---------------------------------------------------------------------------
 
 
-def parse_cv(filename: str, content: bytes) -> list[ParsedSkill]:
-    """Full pipeline: extract text → clean → scan for skills.
+def parse_cv(data: bytes | str, content_type: str = "text/plain") -> tuple[list[ParsedSkill], bool]:
+    """Full pipeline: extract text -> truncate -> clean -> scan skills.
 
     Args:
-        filename: Original filename; used to determine extraction strategy.
-        content:  Raw file bytes.  Never persisted.
+        data:         Raw file bytes (never persisted) or the text itself.
+        content_type: MIME type string from the HTTP request.
 
     Returns:
-        List of ParsedSkill ordered by confidence (highest first).
-        Empty list if the content yields no text or no taxonomy matches.
+        (parsed_skills, truncated) — every skill_id is guaranteed to exist in
+        the taxonomy, and `truncated` reports whether text past MAX_TEXT_CHARS
+        was dropped before scanning.
+
+    Raises:
+        PdfSupportUnavailable: fitz absent and a PDF was uploaded.
+        AppError (422):        empty or unreadable PDF.
+        PdfNoText:             PDF has no extractable text.
     """
-    raw_text = extract_text(filename, content)
-    cleaned = clean_text(raw_text)
-    return extract_skills(cleaned)
+    raw_text = extract_text(data, content_type)
+    truncated_text, truncated = _truncate_text(raw_text)
+    cleaned = _clean_text(truncated_text)
+    return extract_skills(cleaned), truncated

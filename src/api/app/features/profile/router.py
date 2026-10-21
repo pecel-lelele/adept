@@ -2,7 +2,7 @@
 
 Endpoints:
   POST   /profile/questionnaire  → M2-02 intake questionnaire
-  GET    /profile/me             → current user profile
+  GET    /profile/me             → cur  rent user profile
   POST   /profile                → upsert core profile fields (legacy)
   POST   /profile/cv             → M2-01 CV parsing pipeline
   PUT    /profile/skills         → M2-03 legacy skill replacement
@@ -11,6 +11,8 @@ Endpoints:
 All endpoints require authentication via the X-Demo-User header (demo mode)
 or a Bearer token (Supabase mode). See app/core/auth.py.
 """
+
+import asyncio
 
 from fastapi import APIRouter, UploadFile
 
@@ -83,17 +85,30 @@ def get_my_profile(user: CurrentUserDep) -> Profile:
 # M2-01: CV upload and parsing
 # ---------------------------------------------------------------------------
 
+_ALLOWED_CONTENT_TYPES = {"application/pdf", "text/plain"}
+
 
 @router.post("/cv", summary="Upload CV for skill extraction (M2-01)")
 async def upload_cv(file: UploadFile, user: CurrentUserDep) -> CvExtractionResult:
     """Accept a PDF or plain-text CV, extract skills against the taxonomy.
 
-    The file is processed in memory and never stored (AGENTS.md §3 guardrails).
-    Returns a list of ExtractedSkill objects ordered by confidence, each with
-    a proficiency level on the 1-5 scale ready for the confirmation screen (M2-03).
+    Safety rules:
+      - Content type must be application/pdf or text/plain (4xx otherwise).
+      - File must be under MAX_UPLOAD_BYTES (413 if exceeded).
+      - Extracted text is capped at 200,000 characters (truncated=True in response).
+      - The file is processed in memory and never stored (AGENTS.md §3).
+      - CPU-bound parsing runs in a thread via asyncio.to_thread to avoid
+        blocking the event loop.
     """
+    ct = (file.content_type or "").lower().split(";")[0].strip()
+    if ct not in _ALLOWED_CONTENT_TYPES:
+        raise AppError(
+            f"Unsupported file type '{ct}'. Only application/pdf and text/plain are accepted.",
+            status_code=415,
+            code="unsupported_media_type",
+        )
     content = await read_capped(file, get_settings().max_upload_bytes)
-    return service.extract_cv(file.filename or "cv", content)
+    return await asyncio.to_thread(service.extract_cv, file.filename or "cv", content, ct)
 
 
 # ---------------------------------------------------------------------------

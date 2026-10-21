@@ -17,7 +17,6 @@ from app.features.profile.cv_parser import (
     clean_text,
     extract_skills,
     extract_text,
-    extract_text_from_pdf,
     parse_cv,
 )
 from app.features.profile.schemas import (
@@ -59,14 +58,18 @@ class TestCleanText:
 class TestExtractText:
     def test_plain_text_roundtrip(self) -> None:
         content = b"I know Python and SQL"
-        assert extract_text("cv.txt", content) == "I know Python and SQL"
+        assert extract_text(content, "text/plain") == "I know Python and SQL"
 
-    def test_pdf_falls_back_to_text_without_fitz(self) -> None:
-        """Without fitz installed, PDF bytes are decoded as UTF-8."""
-        content = b"Python developer with SQL skills"
-        result = extract_text("cv.pdf", content)
-        # Should not raise; result may be garbled but non-empty
-        assert isinstance(result, str)
+    def test_pdf_without_fitz_raises_instead_of_decoding_bytes(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Without PyMuPDF the upload is refused (501); PDF bytes are never read as text."""
+        from app.core.errors import PdfSupportUnavailable
+
+        monkeypatch.setattr("app.features.profile.cv_parser._HAS_FITZ", False)
+        with pytest.raises(PdfSupportUnavailable) as exc_info:
+            extract_text(b"%PDF-1.4\nPython developer with SQL skills", "application/pdf")
+        assert exc_info.value.status_code == 501
 
 
 class TestExtractSkills:
@@ -127,16 +130,17 @@ class TestParseCvIntegration:
             b"Aisyah has 3 years of experience with Excel and risk compliance. "
             b"She is learning Python."
         )
-        results = parse_cv("aisyah_cv.txt", cv_text)
+        results, truncated = parse_cv(cv_text, "text/plain")
         ids = [r.skill_id for r in results]
         assert "excel" in ids or "risk-compliance" in ids or "python" in ids
+        assert truncated is False
 
     def test_parse_returns_sorted_by_confidence(self) -> None:
         cv_text = b"Expert Excel user. Basic Python awareness."
-        results = parse_cv("cv.txt", cv_text)
-        if len(results) > 1:
-            confidences = [r.confidence for r in results]
-            assert confidences == sorted(confidences, reverse=True)
+        results, _ = parse_cv(cv_text, "text/plain")
+        assert len(results) > 1, "expected both excel and python to be found"
+        confidences = [r.confidence for r in results]
+        assert confidences == sorted(confidences, reverse=True)
 
 
 # ---------------------------------------------------------------------------
@@ -369,49 +373,58 @@ class TestSkillConfirmEndpoint:
 
 
 class TestCvParserMalformedAndCorruptedInputs:
-    def test_corrupted_pdf_stream_falls_back_without_error(self) -> None:
-        """Corrupted PDF binary should not throw unhandled exceptions."""
+    """An unreadable PDF is a clean 422 — never binary content decoded as text."""
+
+    def test_corrupted_pdf_stream_is_a_422(self) -> None:
+        """Corrupted PDF bytes raise AppError(422); no skills come out of garbage."""
+        from app.core.errors import AppError
+
         corrupted_bytes = b"%PDF-1.4\ncorrupted stream \xff\xfe\x00\x01\x80\x99 garbage binary"
-        extracted = extract_text_from_pdf(corrupted_bytes)
-        assert isinstance(extracted, str)
-        # parse_cv should also run safely
-        result = parse_cv("corrupted.pdf", corrupted_bytes)
-        assert isinstance(result, list)
+        with pytest.raises(AppError) as exc_info:
+            parse_cv(corrupted_bytes, "application/pdf")
+        assert exc_info.value.status_code == 422
+        assert exc_info.value.code == "pdf_unreadable"
 
     def test_truncated_pdf_header(self) -> None:
         """Truncated PDF header should not crash the parser."""
-        truncated = b"%PDF-"
-        result = parse_cv("truncated.pdf", truncated)
-        assert isinstance(result, list)
+        from app.core.errors import AppError
 
-    def test_mocked_fitz_failure_gracefully_degrades(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """When fitz raises an exception, extract_text_from_pdf falls back to text decoding."""
-        import sys
+        with pytest.raises(AppError) as exc_info:
+            parse_cv(b"%PDF-", "application/pdf")
+        assert exc_info.value.code == "pdf_unreadable"
 
-        # Create a mock fitz module that raises on open()
+    def test_mocked_fitz_failure_never_decodes_pdf_bytes(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """When the PDF reader itself fails, the upload is refused — not text-decoded."""
+        from app.core.errors import AppError
+
         class BrokenFitz:
             @staticmethod
             def open(*args: object, **kwargs: object) -> object:
                 raise RuntimeError("Damaged PDF: stream corrupted")
 
         monkeypatch.setattr("app.features.profile.cv_parser._HAS_FITZ", True)
-        monkeypatch.setitem(sys.modules, "fitz", BrokenFitz)
+        monkeypatch.setattr("app.features.profile.cv_parser.fitz", BrokenFitz)
 
-        text_content = b"Candidate knows Python and SQL"
-        result = extract_text_from_pdf(text_content)
-        assert "Python" in result
-        assert "SQL" in result
+        with pytest.raises(AppError) as exc_info:
+            extract_text(b"Candidate knows Python and SQL", "application/pdf")
+        assert exc_info.value.code == "pdf_unreadable"
 
     def test_empty_pdf_and_text_bytes(self) -> None:
-        """Empty input bytes must return an empty list without error."""
-        assert parse_cv("empty.pdf", b"") == []
-        assert parse_cv("empty.txt", b"") == []
-        assert extract_text("empty.pdf", b"") == ""
+        """Empty text is fine and yields no skills; an empty PDF is a 422."""
+        from app.core.errors import AppError
+
+        assert parse_cv(b"", "text/plain") == ([], False)
+        assert extract_text(b"", "text/plain") == ""
+        with pytest.raises(AppError) as exc_info:
+            parse_cv(b"", "application/pdf")
+        assert exc_info.value.code == "pdf_unreadable"
 
     def test_malformed_utf8_binary_replacement(self) -> None:
         """Bytes with non-UTF-8 characters should safely decode using replacement."""
         malformed = b"Python programmer with \xff\xfe\xfa SQL competence"
-        skills = parse_cv("malformed.txt", malformed)
+        skills, _ = parse_cv(malformed, "text/plain")
         ids = [s.skill_id for s in skills]
         assert "python" in ids
         assert "sql" in ids
@@ -422,7 +435,7 @@ class TestCvParserMalformedAndCorruptedInputs:
         cleaned = clean_text(raw_dirty.decode("utf-8", errors="replace"))
         assert "\x00" not in cleaned
         assert "\x01" not in cleaned
-        skills = parse_cv("dirty.txt", raw_dirty)
+        skills, _ = parse_cv(raw_dirty, "text/plain")
         ids = [s.skill_id for s in skills]
         assert "python" in ids
         assert "sql" in ids
