@@ -1,49 +1,36 @@
 """Data access for matching (F4).
 
-Reads taxonomy and persona seed files, runs the real scoring engine, and
+Reads taxonomy seed files and the saved profile, runs the real scoring engine, and
 maps internal `_RoleScore` objects to the API contract type `RoleMatch`.
 
-Falls back to mocks for unknown user IDs so the stub `/demo/org` flow
-and contract tests keep working without seed rows.
+Missing profiles or skills raise ProfileRequiredError; production never loads personas.
 """
 
 from __future__ import annotations
 
 import csv
-from datetime import date
-from functools import lru_cache
 from pathlib import Path
 
-from app.contracts.common import MOCK_SOURCE, RecommendationMeta, ScenarioId
+from app.contracts.common import RecommendationMeta, ScenarioId
 from app.contracts.matching import RoleMatch, ScoreComponent
 from app.contracts.profile import Skill
-from app.contracts.sdg import SdgTarget
-from app.features.matching import mocks
-from app.features.matching.scoring import MatchProfile, Role, RoleSkill, Weights, rank_roles
+from app.core.errors import ProfileRequiredError
+from app.features.matching.gap_port import fetch_skills_gap
+from app.features.matching.scoring import (
+    NEUTRAL,
+    MatchProfile,
+    Role,
+    RoleSkill,
+    Weights,
+    rank_roles,
+)
+from app.features.matching.sdg_port import fetch_role_badges
+from app.features.profile import service as profile_service
 
 _SEED = Path(__file__).resolve().parents[4] / "data" / "seed"
 
-# Default weights (M2-001)
-_W = Weights(skill=0.5, trend=0.3, interest=0.2)
-
-# SDG badges sourced from M3-006 / M3-018 evidence mappings.
-_ROLE_SDG: dict[str, list[SdgTarget]] = {
-    "data-analyst": [
-        SdgTarget(goal=4, target="4.4", label="Relevant skills for employment and decent jobs"),
-        SdgTarget(goal=8, target="8.5", label="Full and productive employment for all"),
-    ],
-    "ai-operations-specialist": [
-        SdgTarget(goal=8, target="8.2", label="Productivity through technology and innovation"),
-        SdgTarget(goal=4, target="4.4", label="Relevant skills for employment and decent jobs"),
-    ],
-    "process-automation-analyst": [
-        SdgTarget(goal=8, target="8.2", label="Productivity through technology and innovation"),
-        SdgTarget(goal=4, target="4.4", label="Relevant skills for employment and decent jobs"),
-    ],
-    "compliance-analytics-officer": [
-        SdgTarget(goal=8, target="8.5", label="Full and productive employment for all"),
-    ],
-}
+# Default weights — the canonical values live in scoring.Weights (M2-001, retuned in M2-011)
+_W = Weights()
 
 # Interest tags inferred from profiles.csv and mocks (kept in repo so that the
 # catalog is a pure CSV concern, without encoding UI strings in seed files).
@@ -56,14 +43,23 @@ _ROLE_INTEREST_TAGS: dict[str, frozenset[str]] = {
     "ai-operations-specialist": frozenset({"software", "AI", "automation"}),
 }
 
-# Human-readable labels from roles.csv (loaded once below).
+
+def role_interest_tags(role_id: str) -> frozenset[str]:
+    """Production getter for a role's interest tags (single source of truth).
+
+    The evaluation benchmark and its tests must read tags through this
+    function, never a copy of their own.
+    """
+    return _ROLE_INTEREST_TAGS.get(role_id, frozenset())
+
+
+# Human-readable labels refreshed from the catalogue below.
 _ROLE_LABELS: dict[str, str] = {}
 _SKILL_LABELS: dict[str, str] = {}
 
 
-@lru_cache(maxsize=1)
 def _load_roles() -> list[Role]:
-    """Build Role objects from taxonomy seed CSV files (cached)."""
+    """Build Role objects from current taxonomy seed CSV files without a cache."""
     global _ROLE_LABELS, _SKILL_LABELS  # noqa: PLW0603
 
     # Role labels
@@ -84,57 +80,72 @@ def _load_roles() -> list[Role]:
     with open(rs_path, encoding="utf-8") as f:
         for row in csv.DictReader(f):
             skills_by_role.setdefault(row["role_id"], []).append(
-                RoleSkill(skill_id=row["skill_id"], importance=float(row["importance"]))
+                RoleSkill(
+                    skill_id=row["skill_id"],
+                    importance=float(row["importance"]),
+                    required_level=int(row["required_level"]) if "required_level" in row else 1,
+                )
             )
 
     return [
         Role(
             role_id=role_id,
             skills=tuple(skill_list),
-            interest_tags=_ROLE_INTEREST_TAGS.get(role_id, frozenset()),
+            interest_tags=role_interest_tags(role_id),
         )
         for role_id, skill_list in skills_by_role.items()
     ]
 
 
-@lru_cache(maxsize=8)
-def _load_profile(user_id: str) -> MatchProfile | None:
-    """Build MatchProfile from persona seed files (cached per user_id)."""
-    # Interests from profiles.csv
-    found = False
-    with open(_SEED / "personas" / "profiles.csv", encoding="utf-8") as f:
-        for row in csv.DictReader(f):
-            if row["user_id"] == user_id:
-                raw = row["interests"].strip("{}")
-                interests = {t.strip() for t in raw.split(",") if t.strip()}
-                found = True
-                break
-    if not found:
-        return None  # user_id not found
+def load_roles() -> list[Role]:
+    """Public entry point to the catalog loader (production + benchmark)."""
+    return _load_roles()
 
-    # Skills from user_skills.csv (normalise level 1-5 → 0..1)
-    skills: dict[str, float] = {}
-    with open(_SEED / "personas" / "user_skills.csv", encoding="utf-8") as f:
-        for row in csv.DictReader(f):
-            if row["user_id"] == user_id:
-                lvl = int(row["level"])
-                skills[row["skill_id"]] = (lvl - 1) / 4.0
 
-    return MatchProfile(skills=skills, interests=frozenset(interests))
+def _load_profile(user_id: str) -> MatchProfile:
+    """Build MatchProfile from saved profile (via profile_service.get_my_profile).
+
+    Fairness whitelist (M2-12): only skills and interests are extracted.
+    Demographic signals (age, gender, background) are never read here.
+    No caching: edits to the profile take effect immediately.
+    """
+    if not profile_service.has_profile(user_id):
+        raise ProfileRequiredError(
+            f"Profile required: user '{user_id}' has no saved profile. "
+            "Please complete your profile intake first."
+        )
+    profile = profile_service.get_my_profile(user_id)
+    if not profile.skills:
+        raise ProfileRequiredError(
+            f"Profile required: user '{user_id}' has no saved skills. "
+            "Please confirm your skills before matching roles."
+        )
+
+    # Use user's skill level (1-5 scale) directly for required_level comparison
+    skills = {s.skill_id: float(s.level) for s in profile.skills}
+    interests = frozenset(profile.interests)
+
+    return MatchProfile(skills=skills, interests=interests)
 
 
 def _score_to_contract(
     role_score: object,
     scenario: ScenarioId,
-    snapshot_date: date,
+    meta: RecommendationMeta,
+    user_levels: dict[str, int] | None = None,
 ) -> RoleMatch:
     """Map a scoring._RoleScore to the API contract RoleMatch."""
     # Ensure labels are populated
     _load_roles()
 
     role_id: str = role_score.role_id  # type: ignore[attr-defined]
-    bd: dict[str, float] = role_score.breakdown  # type: ignore[attr-defined]
-    gap: dict[str, list[str]] = role_score.gap  # type: ignore[attr-defined]
+    bd: dict[str, float | None] = role_score.breakdown  # type: ignore[attr-defined]
+
+    # Gap status from unified gap port (pathway.service.skills_gap)
+    if user_levels is not None:
+        gap = fetch_skills_gap(user_levels, role_id)
+    else:
+        gap = role_score.gap  # type: ignore[attr-defined]
 
     def _skill_obj(sid: str) -> Skill:
         return Skill(id=sid, label=_SKILL_LABELS.get(sid, sid))
@@ -157,8 +168,14 @@ def _score_to_contract(
         ScoreComponent(
             name="interest_fit",
             weight=_W.interest,
-            value=round(bd["interest"], 4),
-            explanation="Jaccard overlap between your interests and this role's tags.",
+            value=(round(bd["interest"], 4) if bd["interest"] is not None else NEUTRAL),
+            provided=bd["interest"] is not None,
+            explanation=(
+                "Jaccard similarity (intersection over union) between your interests and this"
+                " role's tags."
+                if bd["interest"] is not None
+                else "Not provided: you have no saved interests, so a neutral 0.5 is used here."
+            ),
         ),
     ]
 
@@ -169,13 +186,9 @@ def _score_to_contract(
         components=components,
         missing_skills=[_skill_obj(s) for s in gap.get("missing", [])],
         partial_skills=[_skill_obj(s) for s in gap.get("partial", [])],
-        sdg_targets=_ROLE_SDG.get(role_id, []),
-        meta=RecommendationMeta(
-            sources=[MOCK_SOURCE],
-            snapshot_date=snapshot_date,
-            scenario=scenario,
-            is_estimate=True,
-        ),
+        sdg_targets=fetch_role_badges(role_id),
+        trend_coverage=round(float(role_score.trend_coverage), 4),  # type: ignore[attr-defined]
+        meta=meta,
     )
 
 
@@ -183,19 +196,14 @@ def list_matches(
     user_id: str,
     scenario: ScenarioId,
     velocities: dict[str, float],
-    snapshot_date: date,
+    meta: RecommendationMeta,
 ) -> list[RoleMatch]:
-    """Run the real scoring engine and return ranked RoleMatch objects.
-
-    Falls back to mocks if the user_id has no seed row.
-    """
+    """Run the real scoring engine and return ranked RoleMatch objects."""
     profile = _load_profile(user_id)
-    if profile is None:
-        return mocks.matches(scenario)
-
     roles = _load_roles()
     ranked = rank_roles(profile, roles, velocities, _W)
-    return [_score_to_contract(r, scenario, snapshot_date) for r in ranked]
+    user_levels = {k: int(round(v)) for k, v in profile.skills.items()}
+    return [_score_to_contract(r, scenario, meta, user_levels=user_levels) for r in ranked]
 
 
 def get_match(
@@ -203,16 +211,14 @@ def get_match(
     role_id: str,
     scenario: ScenarioId,
     velocities: dict[str, float],
-    snapshot_date: date,
+    meta: RecommendationMeta,
 ) -> RoleMatch | None:
     """Return the scored RoleMatch for a single role, or None if not found."""
     profile = _load_profile(user_id)
-    if profile is None:
-        return mocks.match(role_id, scenario)
-
     roles = _load_roles()
     ranked = rank_roles(profile, roles, velocities, _W)
+    user_levels = {k: int(round(v)) for k, v in profile.skills.items()}
     for r in ranked:
         if r.role_id == role_id:
-            return _score_to_contract(r, scenario, snapshot_date)
+            return _score_to_contract(r, scenario, meta, user_levels=user_levels)
     return None

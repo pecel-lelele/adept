@@ -4,17 +4,22 @@ Validates:
 1. Correctness of IR ranking metrics (Precision@k, Recall@k, MRR, nDCG@k).
 2. Offline ranking benchmark over synthetic personas (Aisyah, Wei Jie, Ravi)
    against ground-truth expected future roles from `expected_roles.csv`.
+
+The benchmark must not carry its own copy of production data or logic:
+catalog roles come from ``repository.load_roles`` (role interest tags via the
+production getter), personas and ground truth come from ``personas.py`` (the
+harness loader), and scoring comes from ``scoring.rank_roles``.
 """
 
 from __future__ import annotations
 
-import csv
-from pathlib import Path
-
 import pytest
 
 # pyrefly: ignore[missing-import]
+from app.features.matching import repository
 from app.features.matching.evaluation import (  # type: ignore
+    BenchmarkSummary,
+    RankingMetrics,
     aggregate_benchmark,
     evaluate_ranking,
     ndcg_at_k,
@@ -24,15 +29,29 @@ from app.features.matching.evaluation import (  # type: ignore
 )
 
 # pyrefly: ignore[missing-import]
-from app.features.matching.scoring import (  # type: ignore
-    MatchProfile,
-    Role,
-    RoleSkill,
-    Weights,
-    rank_roles,
-)
+from app.features.matching.personas import load_all_personas, load_expected_roles
 
-SEED_DIR = Path(__file__).resolve().parents[3] / "src" / "data" / "seed"
+# pyrefly: ignore[missing-import]
+from app.features.matching.scoring import Weights, rank_roles
+
+K = 3
+_WEIGHTS = Weights()  # production defaults (M2-011) — the benchmark must score with them
+
+# Canonical baseline velocities for the offline benchmark.  These are frozen
+# benchmark inputs (ground-truth-adjacent data, like expected_roles.csv), not a
+# copy of production logic; production velocities come from M1's live snapshot
+# via trend_port and would make the benchmark drift with M1 data.
+_BASELINE_VELOCITIES = {
+    "python": 0.05,
+    "sql": 0.03,
+    "data-visualisation": 0.02,
+    "rpa": 0.04,
+    "prompt-engineering": 0.04,
+    "ai-literacy": 0.03,
+    "process-mapping": 0.01,
+    "risk-compliance": 0.02,
+    "excel": 0.01,
+}
 
 
 # ---------------------------------------------------------------------------
@@ -89,129 +108,81 @@ def test_dcg_and_ndcg_properties() -> None:
 # ---------------------------------------------------------------------------
 
 
-def _load_expected_roles() -> dict[str, dict[str, float]]:
-    path = SEED_DIR / "personas" / "expected_roles.csv"
-    gt: dict[str, dict[str, float]] = {}
-    with open(path, encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            uid = row["user_id"]
-            if uid not in gt:
-                gt[uid] = {}
-            gt[uid][row["role_id"]] = float(row["relevance"])
-    return gt
+def _run_benchmark() -> tuple[list[RankingMetrics], BenchmarkSummary]:
+    """Rank every synthetic persona with the production engine and score the ranking.
+
+    Everything below comes from production code: catalog roles and interest
+    tags from repository.load_roles(), personas and ground truth from the
+    personas.py harness loader, scoring from scoring.rank_roles.
+    """
+    expected = load_expected_roles()
+    personas = load_all_personas()
+    roles = repository.load_roles()
+
+    results: list[RankingMetrics] = []
+    for user_id, profile in personas.items():
+        ranked_role_ids = [
+            r.role_id for r in rank_roles(profile, roles, _BASELINE_VELOCITIES, _WEIGHTS)
+        ]
+        results.append(evaluate_ranking(ranked_role_ids, expected[user_id], k=K))
+    return results, aggregate_benchmark(results)
 
 
-def _load_catalog_roles() -> list[Role]:
-    """Build Role objects from taxonomy seed files (roles.csv, role_skills.csv)."""
-    skills_by_role: dict[str, list[RoleSkill]] = {}
-    rs_path = SEED_DIR / "taxonomy" / "role_skills.csv"
-    with open(rs_path, encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            skills_by_role.setdefault(row["role_id"], []).append(
-                RoleSkill(
-                    skill_id=row["skill_id"],
-                    importance=float(row["importance"]),
-                )
-            )
-
-    interest_map = {
-        "process-automation-analyst": frozenset(
-            {"process improvement", "operations", "automation", "finance"}
-        ),
-        "data-analyst": frozenset({"data", "analytics", "software"}),
-        "compliance-analytics-officer": frozenset({"finance", "risk", "data", "compliance"}),
-        "ai-operations-specialist": frozenset({"software", "AI", "automation"}),
-    }
-
-    roles: list[Role] = []
-    for role_id, skills in skills_by_role.items():
-        roles.append(
-            Role(
-                role_id=role_id,
-                skills=tuple(skills),
-                interest_tags=interest_map.get(role_id, frozenset()),
-            )
-        )
-    return roles
+def _per_persona_report(results: list[RankingMetrics]) -> str:
+    return "\n".join(
+        f"  persona {i}: P@{m.k}={m.precision_at_k} R@{m.k}={m.recall_at_k} "
+        f"MRR={m.reciprocal_rank} nDCG@{m.k}={m.ndcg_at_k}"
+        for i, m in enumerate(results, 1)
+    )
 
 
-def _load_personas() -> dict[str, MatchProfile]:
-    """Build MatchProfile objects from personas seed data (user_skills.csv, profiles.csv)."""
-    # 1. Interests from profiles.csv
-    interests: dict[str, set[str]] = {}
-    with open(SEED_DIR / "personas" / "profiles.csv", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            raw = row["interests"].strip("{}")
-            tags = {t.strip() for t in raw.split(",") if t.strip()}
-            interests[row["user_id"]] = tags
-
-    # 2. Skills from user_skills.csv (convert level 1-5 to float 0..1)
-    skills: dict[str, dict[str, float]] = {}
-    with open(SEED_DIR / "personas" / "user_skills.csv", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            lvl = int(row["level"])
-            norm = (lvl - 1) / 4.0  # 1->0.0, 3->0.5, 5->1.0
-            skills.setdefault(row["user_id"], {})[row["skill_id"]] = norm
-
-    return {
-        uid: MatchProfile(
-            skills=skills.get(uid, {}),
-            interests=frozenset(interests.get(uid, set())),
-        )
-        for uid in ("aisyah", "weijie", "ravi")
-    }
-
-
-def test_synthetic_personas_evaluation_benchmark() -> None:
+def test_synthetic_personas_evaluation_benchmark(capsys: pytest.CaptureFixture[str]) -> None:
     """Benchmark matching engine against hand-labelled ground truth (M2-09).
 
     Asserts that precision@3, recall@3, and nDCG@3 exceed quality thresholds
     across all synthetic personas.
     """
-    expected = _load_expected_roles()
-    personas = _load_personas()
-    roles = _load_catalog_roles()
+    results, summary = _run_benchmark()
 
-    # Canonical baseline velocities
-    velocities = {
-        "python": 0.05,
-        "sql": 0.03,
-        "data-visualisation": 0.02,
-        "rpa": 0.04,
-        "prompt-engineering": 0.04,
-        "ai-literacy": 0.03,
-        "process-mapping": 0.01,
-        "risk-compliance": 0.02,
-        "excel": 0.01,
-    }
-
-    results = []
-    for user_id, profile in personas.items():
-        ranked_scores = rank_roles(
-            profile, roles, velocities, Weights(skill=0.5, trend=0.3, interest=0.2)
-        )
-        ranked_role_ids = [r.role_id for r in ranked_scores]
-
-        metrics = evaluate_ranking(ranked_role_ids, expected[user_id], k=3)
-        results.append(metrics)
-
-        # Each persona's top recommendation should be an established relevant role (MRR == 1.0)
-        assert metrics.reciprocal_rank == 1.0, (
-            f"{user_id} top recommendation {ranked_role_ids[0]} not in ground truth"
-        )
+    for metrics in results:
         # At least 2 of top 3 must be relevant
-        assert metrics.precision_at_k >= 0.66, (
-            f"{user_id} Precision@3 too low: {metrics.precision_at_k}"
-        )
+        assert metrics.precision_at_k >= 0.66, f"Precision@3 too low: {metrics.precision_at_k}"
 
-    summary = aggregate_benchmark(results)
+    print("\n=== Matching benchmark (production code path) ===")
+    print(_per_persona_report(results))
+    print(
+        f"  mean: P@3={summary.mean_precision_at_k} R@3={summary.mean_recall_at_k} "
+        f"MRR={summary.mean_mrr} nDCG@3={summary.mean_ndcg_at_k} "
+        f"(personas={summary.persona_count})"
+    )
 
     # Benchmark acceptance gates
     assert summary.mean_mrr == 1.0
     assert summary.mean_precision_at_k >= 0.85
     assert summary.mean_recall_at_k >= 0.85
     assert summary.mean_ndcg_at_k >= 0.90
+
+
+def test_benchmark_is_wired_to_production_role_tags(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Guard (12b): patching production role tags must change the benchmark result.
+
+    Proves the benchmark reads interest tags through repository, not a copy.
+    """
+    baseline_results, baseline_summary = _run_benchmark()
+
+    real_getter = repository.role_interest_tags
+    target = "compliance-analytics-officer"
+
+    def patched_getter(role_id: str) -> frozenset[str]:
+        if role_id == target:
+            return frozenset()  # strip this role's interest tags
+        return real_getter(role_id)
+
+    monkeypatch.setattr(repository, "role_interest_tags", patched_getter)
+    patched_results, patched_summary = _run_benchmark()
+
+    assert any(r1 != r2 for r1, r2 in zip(baseline_results, patched_results, strict=True)), (
+        "benchmark ranking did not change when production role tags were patched — "
+        "the test is not wired to production code"
+    )
+    assert patched_summary != baseline_summary

@@ -36,7 +36,7 @@ from app.features.matching.scoring import (  # type: ignore
 # Fixtures
 # ---------------------------------------------------------------------------
 
-WEIGHTS = Weights(skill=0.5, trend=0.3, interest=0.2)
+WEIGHTS = Weights()  # production defaults (M2-011) — do not restate the numbers here
 
 # Two roles from the mock catalogue, expressed as scoring.Role objects.
 # ROLE_AI_OPS is dominated by ai-agents (weight 0.8) so the velocity jump
@@ -157,13 +157,14 @@ def test_skill_overlap_empty_role() -> None:
 
 def test_interest_fit_full() -> None:
     full = MatchProfile(skills={}, interests=frozenset({"data", "ai"}))
-    # ROLE_DATA has {"data", "reporting"} → 1/2 match
-    assert interest_fit(full, ROLE_DATA) == pytest.approx(0.5)
+    # ROLE_DATA has {"data", "reporting"} -> Jaccard = 1/3
+    # (intersection {data}, union {data, ai, reporting})
+    assert interest_fit(full, ROLE_DATA) == pytest.approx(1 / 3)
 
 
-def test_interest_fit_no_interests_returns_neutral() -> None:
+def test_interest_fit_no_interests_returns_none() -> None:
     no_interest = MatchProfile(skills={})
-    assert interest_fit(no_interest, ROLE_DATA) == NEUTRAL
+    assert interest_fit(no_interest, ROLE_DATA) is None
 
 
 # ---------------------------------------------------------------------------

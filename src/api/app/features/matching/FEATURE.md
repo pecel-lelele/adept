@@ -10,8 +10,9 @@
 
 ## Status
 
-Skeleton: endpoints return mock data from `mocks.py` with `meta.sources = MOCK DATA`.
-Replace `repository.py` reads with real data, keep the contracts stable.
+Endpoints read saved profiles, the taxonomy catalogue and M1's in-process trend service.
+Missing profiles return 400; unavailable trends return 503. Snapshot metadata comes from M1.
+Gap responses and SDG badges use M3's service ports. Persona CSVs are harness-only.
 
 ## Goal and tasks (from docs/TASKS.md)
 
@@ -36,9 +37,9 @@ Replace `repository.py` reads with real data, keep the contracts stable.
 | Stage | Choice | Notes |
 |---|---|---|
 | Source | Seed taxonomy (`roles.csv`, `role_skills.csv`), user profiles (`user_skills.csv`, `profiles.csv`), trend snapshots | Canonical skills (110) & roles (4 future target roles) |
-| Preprocessing / cleaning | Scale normalization (`UserSkill.level` 1–5 → 0..1), interest tag parsing | `(level - 1) / 4.0` |
-| Features | Skill overlap (`w=0.5`), percentile-ranked trend velocity (`w=0.3`), interest Jaccard fit (`w=0.2`) | Robust to outlier velocities; deterministic weights |
+| Preprocessing / cleaning | Preserve proficiency levels 1–5 in production and evaluation; parse interest tags | Absent skill = 0; credit = `min(user_level / required_level, 1)` |
+| Features | Skill overlap (`w=0.45`), percentile-ranked trend velocity (`w=0.25`), interest Jaccard fit (`w=0.3`) | Robust to outlier velocities; deterministic weights |
 | Model / method | Linear composite scoring with tie-breaking on `(-score, role_id)`, gap bucketing | Pure scoring functions; `MatchProfile` fairness whitelist |
 | Evaluation | Precision@k, Recall@k, MRR, nDCG@k on synthetic personas | Mean MRR=1.0, Mean P@3>=0.85, Mean nDCG@3>=0.90 |
-| Serving | `/api/v1/matching` (`list_matches`, `get_match`) | Explainable `ScoreComponent` breakdown + `SkillGap` |
+| Serving | `/api/v1/matches` (`list_matches`, `get_match`) | Explainable `ScoreComponent` breakdown, missing/partial skills and trend coverage |
 
