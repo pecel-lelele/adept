@@ -135,6 +135,19 @@
 - **Replaces**: none
 - **PR / branch**: `feat/m1-trends-contract`
 
+### M1-006: Bounded snapshot reads and internal fail-closed mode
+- **Date**: 2026-10-21
+- **Feature**: F2 (Trends), F3 (Scenarios)
+- **Type**: method
+- **Change**: All snapshot-read connections use `_get_connection(connect_timeout_s=2, statement_timeout_ms=2000, lock_timeout_ms=1000)`, passing integer `connect_timeout=2` and libpq startup `options="-c statement_timeout=2000 -c lock_timeout=1000"`. Resolution performs the bounded dates query directly, eliminating the separate health probe from the request path; demo failures retain the five-second negative cache. Offline pipelines are unchanged.
+- **Why**: Bound connection establishment, statements and lock waits while preserving default HTTP fallback/not-found behavior. Strict calls bypass the demo cache and raise on database errors, empty databases, or fixture contexts; unknown requested dates still raise `NotFoundError`. No HTTP parameter, schema or generated contract changes.
+- **Manual verification**: Isolated PostgreSQL 16 with psycopg 3.3.6 reported connection parameter `connect_timeout=2`, `SHOW statement_timeout = 2s`, and `SHOW lock_timeout = 1s`. `SELECT pg_sleep(10)` raised `QueryCanceled` at 2.000 s; an access-exclusive table lock caused a strict snapshot call to raise `TrendsUnavailableError` (cause `LockNotAvailable`) at 1.031 s. Temporarily setting process-only `DATABASE_URL` to `192.0.2.1:5432` raised `TrendsUnavailableError` (cause `ConnectionTimeout`) at 2.000 s; the environment was restored and `.env` was untouched.
+- **Quality gate**: `python src/scripts/dev.py check` passed in all three states: unavailable database (332 passed / 21 skipped), migrated empty database (332 / 21), and standard seeds plus 220 rows from the committed two-date trend exports (334 / 19). Existing tests were unchanged. Standalone `python src/scripts/dev.py contracts` followed by `git diff --exit-code -- src/api/openapi.json src/web/src/lib/api/types.ts` confirmed zero drift.
+- **M2 calling contract**: Import `get_snapshot` from `app.features.trends.service`; signature `get_snapshot(snapshot_date: date | None, scenario: ScenarioId, strict: bool = False) -> TrendSnapshotResponse`. Call `get_snapshot(snapshot_date, scenario, strict=True)` (`None` selects latest). Catch `TrendsUnavailableError` imported from `app.features.trends.repository` and map it to M2's own HTTP 503 inside matching. The exception propagates unchanged through the service; successful database results are identical in both modes. M2's adapter is not modified here.
+- **Affects**: M2 (opt-in internal adapter call)
+- **Replaces**: M1-004 and M1-005 request-path health probing only; default fallback and source/date semantics retained
+- **PR / branch**: `feat/m1-trends-contract`
+
 ---
 
 ## M2: Profile Intake & Matching (F1, F4)

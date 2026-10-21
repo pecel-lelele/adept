@@ -5,7 +5,7 @@ Strategy:
   2. Fall back to mock fixture (mock_trends.json) if DB is unavailable or
      has no data yet — so the endpoint is always callable in demo mode.
 
-No network calls are made here; arXiv and BLS data are pre-fetched by the
+No external source API calls are made here; arXiv and BLS data are pre-fetched by the
 pipeline scripts (Part 5 and Part 3 respectively).
 """
 
@@ -16,8 +16,12 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Any, Literal
 
+import psycopg
+from psycopg.rows import dict_row
+
 from app.contracts.common import ScenarioId
 from app.contracts.trends import EntityType, TrendSignal, TrendSnapshotResponse
+from app.core.config import get_settings
 from app.core.errors import NotFoundError
 from app.features.trends import mocks
 
@@ -29,6 +33,28 @@ SourceType = Literal["db", "fixture"]
 
 _db_status_cache: tuple[bool, float] | None = None
 DB_FAILED_RETRY_TTL_S: float = 5.0
+
+
+class TrendsUnavailableError(Exception):
+    """The authoritative trend database could not supply a snapshot."""
+
+
+def _get_connection(
+    connect_timeout_s: int = 2,
+    statement_timeout_ms: int = 2000,
+    lock_timeout_ms: int = 1000,
+) -> psycopg.Connection[dict[str, Any]]:
+    """Bound request-path connections and queries using libpq startup options.
+
+    libpq requires integer seconds for connect_timeout (minimum effective 2s).
+    Server timeouts apply before the first query, including date discovery.
+    """
+    return psycopg.connect(
+        get_settings().database_url,
+        row_factory=dict_row,
+        connect_timeout=connect_timeout_s,
+        options=f"-c statement_timeout={statement_timeout_ms} -c lock_timeout={lock_timeout_ms}",
+    )
 
 
 @dataclass
@@ -59,7 +85,9 @@ def _reset_db_cache() -> None:
 
 
 def _db_available() -> bool:
-    """Check if Postgres is reachable with short-TTL negative caching.
+    """Legacy health-check compatibility; snapshot reads use resolve_context directly.
+
+    Check if Postgres is reachable with short-TTL negative caching.
 
     - Successful checks are cached indefinitely for process lifetime.
     - Failed checks are cached only for DB_FAILED_RETRY_TTL_S (5s), allowing
@@ -92,72 +120,79 @@ def _db_available() -> bool:
         return False
 
 
-def resolve_context() -> ResolvedContext:
-    """Resolve both authoritative source and available dates in ONE database round-trip."""
-    if not _db_available():
-        return ResolvedContext(source="fixture", available_dates=list(mocks.AVAILABLE_MOCK_DATES))
+def resolve_context(strict: bool = False) -> ResolvedContext:
+    """Resolve source and dates on one bounded connection.
 
-    # Support unit tests where _list_snapshot_dates_db is mocked
+    Strict callers always try the database, bypassing the demo negative cache.
+    They never accept an empty database or a fixture-backed context.
+    """
+    global _db_status_cache
+    now = time.monotonic()
+    if not strict and _db_status_cache is not None:
+        status, timestamp = _db_status_cache
+        if not status and now - timestamp < DB_FAILED_RETRY_TTL_S:
+            return ResolvedContext(
+                source="fixture", available_dates=list(mocks.AVAILABLE_MOCK_DATES)
+            )
+
+    # Preserve the legacy date-loader test seam without opening a connection.
     from unittest.mock import Mock
 
-    if isinstance(_list_snapshot_dates_db, Mock):
-        dates = _list_snapshot_dates_db()
-        if not dates:
-            return ResolvedContext(
-                source="fixture", available_dates=list(mocks.AVAILABLE_MOCK_DATES)
-            )
-        return ResolvedContext(source="db", available_dates=dates)
-
-    import psycopg  # type: ignore[import]
-    from psycopg.rows import dict_row
-
-    from app.core.config import get_settings
-
+    conn = None
+    dates: list[date] = []
     try:
-        conn = psycopg.connect(get_settings().database_url, row_factory=dict_row)
-        dates = _list_snapshot_dates_db(conn=conn)
-        if not dates:
-            conn.close()
-            return ResolvedContext(
-                source="fixture", available_dates=list(mocks.AVAILABLE_MOCK_DATES)
-            )
-        return ResolvedContext(source="db", available_dates=dates, conn=conn)
-    except Exception:
-        return ResolvedContext(source="fixture", available_dates=list(mocks.AVAILABLE_MOCK_DATES))
+        if isinstance(_list_snapshot_dates_db, Mock):
+            dates = _list_snapshot_dates_db()
+        else:
+            conn = _get_connection()
+            dates = _list_snapshot_dates_db(conn=conn, strict=strict)
+        _db_status_cache = (True, now)
+        if dates:
+            return ResolvedContext(source="db", available_dates=dates, conn=conn)
+        if strict:
+            raise TrendsUnavailableError("No database trend snapshots available")
+    except TrendsUnavailableError:
+        raise
+    except Exception as exc:
+        _db_status_cache = (False, now)
+        if strict:
+            raise TrendsUnavailableError("Trend database unavailable") from exc
+    finally:
+        # Ownership transfers to ResolvedContext only on a successful dates read.
+        if conn is not None and not dates:
+            ResolvedContext("db", [], conn).close()
+    return ResolvedContext(source="fixture", available_dates=list(mocks.AVAILABLE_MOCK_DATES))
 
 
-def resolve_source() -> SourceType:
+def resolve_source(strict: bool = False) -> SourceType:
     """Decide authoritatively whether requests should be served from DB or fixtures.
 
     Rule: Use 'db' ONLY if the database is reachable AND trend_snapshots has at
     least one row. If the DB is unreachable OR reachable-but-empty, resolve to
     'fixture'.
     """
-    ctx = resolve_context()
+    ctx = resolve_context(strict=strict)
     ctx.close()
     return ctx.source
 
 
-def _list_snapshot_dates_db(conn: Any | None = None) -> list[date]:
+def _list_snapshot_dates_db(conn: Any | None = None, strict: bool = False) -> list[date]:
     """Return all snapshot dates present in the trend_snapshots table."""
     if conn is not None:
         with conn.cursor() as cur:
             cur.execute("SELECT DISTINCT snapshot_date FROM trend_snapshots ORDER BY snapshot_date")
             return [row["snapshot_date"] for row in cur.fetchall()]
 
-    import psycopg  # type: ignore[import]
-    from psycopg.rows import dict_row
-
-    from app.core.config import get_settings
-
     try:
-        with psycopg.connect(get_settings().database_url, row_factory=dict_row) as c:
+        with _get_connection() as c:
             with c.cursor() as cur:
                 cur.execute(
                     "SELECT DISTINCT snapshot_date FROM trend_snapshots ORDER BY snapshot_date"
                 )
                 return [row["snapshot_date"] for row in cur.fetchall()]
-    except Exception:
+    except Exception as exc:
+        if strict:
+            raise TrendsUnavailableError("Trend dates unavailable") from exc
         return []
 
 
@@ -165,6 +200,8 @@ def _load_snapshot_db(
     ctx_or_date: ResolvedContext | date,
     snapshot_date_or_scenario: date | str,
     scenario_or_ctx: str | ResolvedContext | None = None,
+    *,
+    strict: bool = False,
 ) -> TrendSnapshotResponse | None:
     """Load a scored snapshot from Postgres. Returns None if not found.
 
@@ -185,15 +222,11 @@ def _load_snapshot_db(
         if isinstance(scenario_or_ctx, ResolvedContext):
             ctx = scenario_or_ctx
 
-    import psycopg  # type: ignore[import]
-    from psycopg.rows import dict_row
-
     from app.contracts.trends import (
         SkillVelocity,
         SourceRef,
         TrendSnapshotMeta,
     )
-    from app.core.config import get_settings
 
     def _execute(c: Any) -> list[dict[str, Any]] | None:
         with c.cursor() as cur:
@@ -212,7 +245,7 @@ def _load_snapshot_db(
         if ctx is not None and ctx.conn is not None:
             rows = _execute(ctx.conn)
         else:
-            with psycopg.connect(get_settings().database_url, row_factory=dict_row) as conn:
+            with _get_connection() as conn:
                 rows = _execute(conn)
 
         if not rows:
@@ -235,7 +268,9 @@ def _load_snapshot_db(
                 )
             )
 
-        all_dates = ctx.available_dates if ctx is not None else _list_snapshot_dates_db()
+        all_dates = (
+            ctx.available_dates if ctx is not None else _list_snapshot_dates_db(strict=strict)
+        )
 
         meta = TrendSnapshotMeta(
             sources=[
@@ -262,7 +297,11 @@ def _load_snapshot_db(
             data_provenance_note=("Measured from arXiv cs.AI query API historical date windows."),
         )
         return TrendSnapshotResponse(meta=meta, items=items)
-    except Exception:
+    except TrendsUnavailableError:
+        raise
+    except Exception as exc:
+        if strict:
+            raise TrendsUnavailableError("Trend snapshot unavailable") from exc
         return None
 
 
@@ -274,18 +313,23 @@ def _load_snapshot_db(
 def list_available_dates(
     ctx: ResolvedContext | None = None,
     source: SourceType | None = None,
+    strict: bool = False,
 ) -> list[date]:
     """Return all snapshot dates for the authoritative source."""
     if ctx is not None:
+        if strict and ctx.source != "db":
+            raise TrendsUnavailableError("Fixture context is unavailable in strict mode")
         return list(ctx.available_dates)
     if source is None:
-        resolved = resolve_context()
+        resolved = resolve_context(strict=strict)
         try:
             return list(resolved.available_dates)
         finally:
             resolved.close()
     if source == "db":
-        return _list_snapshot_dates_db()
+        return _list_snapshot_dates_db(strict=strict)
+    if strict:
+        raise TrendsUnavailableError("Fixture source is unavailable in strict mode")
     return list(mocks.AVAILABLE_MOCK_DATES)
 
 
@@ -296,6 +340,7 @@ def get_snapshot(
     *,
     ctx: ResolvedContext | None = None,
     source: SourceType | None = None,
+    strict: bool = False,
 ) -> TrendSnapshotResponse:
     """Return a TrendSnapshotResponse from the authoritative source.
 
@@ -324,11 +369,11 @@ def get_snapshot(
 
     should_close_ctx = False
     if resolved_ctx is None:
-        resolved_ctx = resolve_context()
+        resolved_ctx = resolve_context(strict=strict)
         should_close_ctx = True
 
     try:
-        available = list_available_dates(ctx=resolved_ctx)
+        available = list_available_dates(ctx=resolved_ctx, strict=strict)
         if target_date is None:
             target_date = available[-1] if available else date.today()
 
@@ -336,9 +381,11 @@ def get_snapshot(
             raise NotFoundError(f"Snapshot for date {target_date.isoformat()} not found")
 
         if resolved_ctx.source == "db":
-            result = _load_snapshot_db(resolved_ctx, target_date, target_scenario)
+            result = _load_snapshot_db(resolved_ctx, target_date, target_scenario, strict=strict)
             if result is not None:
                 return result
+            if strict:
+                raise TrendsUnavailableError("Resolved database snapshot is no longer available")
             raise NotFoundError(f"Snapshot for date {target_date.isoformat()} not found")
 
         # Fallback: date-aware mock fixture
