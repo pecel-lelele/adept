@@ -103,19 +103,17 @@ def get_outlook(role_id: str | None) -> OutlookResponse:
         if role_id not in roles:
             raise NotFoundError(f"No outlook for role {role_id}")
         roles = [role_id]
-    latest_by_scenario = {sid: repository.snapshot(sid) for sid in SCENARIO_IDS}
-    dates = latest_by_scenario["moderate"].meta.available_snapshots
-    history: dict[ScenarioId, list[dict[str, float]]] = {}
-    for sid in SCENARIO_IDS:
-        key = f"velocity_{sid}"
-        snaps = [repository.snapshot(sid, d) for d in dates] or [latest_by_scenario[sid]]
-        history[sid] = [{i.skill_id: float(getattr(i, key)) for i in s.items} for s in snaps]
+    snaps = repository.history()  # oldest first; the last one is the latest
+    latest = snaps[-1]
+    history: dict[ScenarioId, list[dict[str, float]]] = {
+        sid: [{i.skill_id: float(getattr(i, f"velocity_{sid}")) for i in s.items} for s in snaps]
+        for sid in SCENARIO_IDS
+    }
     outlooks: list[RoleOutlook] = []
     for rid in roles:
         reqs = [(r.skill_id, r.importance) for r in repository.role_requirements(rid)]
         for sid in SCENARIO_IDS:
-            key = f"velocity_{sid}"
-            latest_v = {i.skill_id: float(getattr(i, key)) for i in latest_by_scenario[sid].items}
+            latest_v = history[sid][-1]
             signal, coverage = role_signal(reqs, latest_v)
             if signal is None:
                 continue
@@ -132,6 +130,4 @@ def get_outlook(role_id: str | None) -> OutlookResponse:
             )
     if role_id is not None and not outlooks:
         raise NotFoundError(f"No trend coverage for role {role_id}")
-    return OutlookResponse(
-        outlooks=outlooks, meta=_meta(latest_by_scenario["moderate"], "moderate")
-    )
+    return OutlookResponse(outlooks=outlooks, meta=_meta(latest, "moderate"))
