@@ -33,6 +33,13 @@ backfills existing records from the surviving saved plan, or otherwise the curre
 
 ## Integration points (M1, M2, M4)
 
+Completed course facts and evidence are read independently of the remaining plan.
+`Progress.history` keeps completed courses visible with their original target and editable
+evidence/undo actions after re-planning. Saved plan contexts are archived for badge
+re-evaluation; rejection and undo revoke current eligibility. Team inputs use one joined
+`learning_records(user_ids)` read across members and targets, and reuse loaded members when
+choosing the default target.
+
 | Port | Who calls it | What it gives |
 |---|---|---|
 | `trend_port.current(scenario, snapshot_date=None)` | F5, F6, F8 internally | M1's snapshot (in process, 3 s timeout, 60 s back-off) or the seed fallback; `growth`, sources, `available_dates`, `uncovered()` |

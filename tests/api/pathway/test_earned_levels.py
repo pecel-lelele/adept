@@ -8,7 +8,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.contracts.org import Member
-from app.contracts.pathway import CompletionEvidence, Course, SavedPlan
+from app.contracts.pathway import CompletionEvidence, Course, Progress, SavedPlan
 from app.core.auth import CurrentUser
 from app.core.db import connection
 from app.features.matching import repository as matching_repository
@@ -284,6 +284,73 @@ def test_migration_backfills_saved_and_replaced_target_progress(client: TestClie
         assert facts["old-target"].level == course.level
 
 
+def test_replan_preserves_completed_history_badges_and_undo(
+    client: TestClient, learning_backend: None
+) -> None:
+    course, skill = _complete_and_confirm(client)
+    before = Progress.model_validate(client.get("/api/v1/pathway/progress").json())
+    before_badges = {badge.id for badge in before.badges}
+    assert "milestone:first" in before_badges
+    response = client.post("/api/v1/pathway/plans/me/accept-replan")
+    assert response.status_code == 200, response.text
+    after = Progress.model_validate(client.get("/api/v1/pathway/progress").json())
+    assert course.id not in {c.id for s in after.pathway.steps for c in s.courses}
+    assert any(item.role_id == ROLE and item.course == course for item in after.history)
+    assert before_badges <= {badge.id for badge in after.badges}
+    assert after.percent_complete > 0
+    assert repository.plan_history("aisyah")
+    if isinstance(repository.store(), repository.PostgresStore):
+        assert repository.PostgresStore().plan_history("aisyah")
+    response = client.post(
+        "/api/v1/pathway/progress",
+        json={"role_id": ROLE, "course_id": course.id, "status": "not_started"},
+    )
+    assert response.status_code == 200, response.text
+    undone = Progress.model_validate(response.json())
+    assert course.id not in {item.course.id for item in undone.history}
+    assert "milestone:first" not in {badge.id for badge in undone.badges}
+    assert skill not in pathway_service.evidenced_levels("aisyah")
+
+
+def test_new_target_keeps_old_history_and_badges(client: TestClient) -> None:
+    course, _skill = _complete_and_confirm(client)
+    other = next(role for role in data.target_role_ids() if role != ROLE)
+    assert client.post("/api/v1/pathway/plans", json={"role_id": other}).status_code == 200
+    body = Progress.model_validate(client.get("/api/v1/pathway/progress").json())
+    assert body.role_id == other
+    assert any(item.role_id == ROLE and item.course == course for item in body.history)
+    assert "milestone:first" in {badge.id for badge in body.badges}
+    assert (
+        pathway_service.get_progress(
+            CurrentUser("ravi", "Ravi", "learner"), other, "moderate"
+        ).history
+        == []
+    )
+
+
+def test_rejection_after_replan_removes_badges_but_keeps_reviewable_history(
+    client: TestClient,
+) -> None:
+    course, _skill = _complete_and_confirm(client)
+    assert client.post("/api/v1/pathway/plans/me/accept-replan").status_code == 200
+    evidence = repository.evidence("aisyah", ROLE)[course.id]
+    response = client.post(
+        "/api/v1/pathway/verifications",
+        json={
+            "user_id": "aisyah",
+            "role_id": ROLE,
+            "course_id": course.id,
+            "decision": "reject",
+            "submitted_at": evidence.submitted_at.isoformat(),
+        },
+        headers={"X-Demo-User": "demo-company"},
+    )
+    assert response.status_code == 200, response.text
+    body = Progress.model_validate(client.get("/api/v1/pathway/progress").json())
+    assert "milestone:first" not in {badge.id for badge in body.badges}
+    assert body.history[0].evidence.kind == "org_rejected"
+
+
 def test_team_earned_learning_is_one_batch_read_and_members_are_loaded_once(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -313,7 +380,6 @@ def test_team_earned_learning_is_one_batch_read_and_members_are_loaded_once(
     assert len(calls) == 1
 
 
-
 def test_postgres_learning_read_joins_all_targets_in_one_query(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -340,4 +406,3 @@ def test_postgres_learning_read_joins_all_targets_in_one_query(
     assert "LEFT JOIN course_evidence" in calls[0][0]
     calls.clear()
     assert store.learning_records([]) == [] and calls == []
-

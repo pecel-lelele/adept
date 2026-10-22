@@ -51,8 +51,14 @@ def skill_progress(
     return out
 
 
-def percent_complete(plan: Pathway, statuses: Mapping[str, CourseStatus]) -> float:
+def percent_complete(
+    plan: Pathway,
+    statuses: Mapping[str, CourseStatus],
+    completed_history: Mapping[str, float] | None = None,
+) -> float:
     hours = planned_courses(plan)
+    if completed_history:
+        hours.update(completed_history)
     total = sum(hours.values())
     if not total:
         return 0.0

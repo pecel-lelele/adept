@@ -946,3 +946,14 @@
 - **Affects**: M3 F5 internal repository read; M4 F7 team inputs. No API or schema change.
 - **Replaces**: M4-022 per-target lookup implementation; earned-credit policy remains unchanged.
 - **PR / branch**: https://github.com/pecel-lelele/adept/pull/7 / feat/core-insight-design
+
+### M4-025: Retain completed course history and badges after re-planning
+- **Date**: 2026-10-22
+- **Feature**: F5 (Core integration)
+- **Type**: schema | contract | UI
+- **Change**: Saved plan contexts are archived atomically in pathway_plan_history. Progress returns completed course history independently of the remaining plan. The Progress page keeps historical evidence and undo controls, and badges are re-evaluated against original plans with current evidence so rejection and undo still revoke credit.
+- **Why**: Greptile PR #7 finding “Completed courses disappear after re-planning”. Replacing a saved plan hid completed courses and badge context. The migration backfills the surviving saved plan; overwritten pre-migration plan contexts cannot be reconstructed, although captured course facts remain available.
+- **Pipeline**: source = completed course snapshots, evidence and archived plans → preprocessing = apply current evidence policy → features = historical course facts and original requirements → method = evaluate badges against original plans and merge completed hours with remaining work → evaluation = memory/PostgreSQL regressions for re-plan, history, badges, undo, rejection and isolation → serving = progress API and EN/MS/ZH Progress page.
+- **Affects**: M3 F5 additive history/badge fields and one append-only migration; M4 progress presentation.
+- **Replaces**: none
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/7 / feat/core-insight-design

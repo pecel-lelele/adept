@@ -184,5 +184,9 @@
     "halfway": "Separuh jalan",
     "complete": "Pelan selesai",
     "skill": "{skill} pada tahap sasaran"
+  },
+  "history": {
+    "title": "Sejarah pembelajaran yang selesai",
+    "description": "Kursus yang selesai kekal di sini apabila sasaran atau pelan yang masih perlu diselesaikan berubah. Anda boleh menyemak bukti atau membatalkan penyiapan."
   }
 }

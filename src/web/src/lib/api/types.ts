@@ -1042,6 +1042,11 @@ export interface components {
             evidence: "self_reported" | "certificate_link" | "org_confirmed";
             /** Skill Id */
             skill_id?: string | null;
+            /**
+             * Skill Label
+             * @default
+             */
+            skill_label: string;
         };
         /** Body_preview_preview_cv */
         Body_preview_preview_cv: {
@@ -1198,6 +1203,20 @@ export interface components {
              * @default
              */
             price_note: string;
+        };
+        /** CourseHistoryItem */
+        CourseHistoryItem: {
+            /** Role Id */
+            role_id: string;
+            /** Role Label */
+            role_label: string;
+            course: components["schemas"]["Course"];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "not_started" | "in_progress" | "completed";
+            evidence?: components["schemas"]["CompletionEvidence"] | null;
         };
         /** CvExtractionResult */
         CvExtractionResult: {
@@ -1851,6 +1870,11 @@ export interface components {
             gap_total: number;
             /** Badges */
             badges: components["schemas"]["Badge"][];
+            /**
+             * History
+             * @description Completed courses across targets, independent of the remaining plan.
+             */
+            history?: components["schemas"]["CourseHistoryItem"][];
             /**
              * Evidence
              * @description Course id -> completion evidence.

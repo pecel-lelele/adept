@@ -3675,6 +3675,11 @@
               }
             ],
             "title": "Skill Id"
+          },
+          "skill_label": {
+            "type": "string",
+            "title": "Skill Label",
+            "default": ""
           }
         },
         "type": "object",
@@ -4022,6 +4027,48 @@
           "verified_at"
         ],
         "title": "Course"
+      },
+      "CourseHistoryItem": {
+        "properties": {
+          "role_id": {
+            "type": "string",
+            "title": "Role Id"
+          },
+          "role_label": {
+            "type": "string",
+            "title": "Role Label"
+          },
+          "course": {
+            "$ref": "#/components/schemas/Course"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "not_started",
+              "in_progress",
+              "completed"
+            ],
+            "title": "Status"
+          },
+          "evidence": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CompletionEvidence"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "role_id",
+          "role_label",
+          "course",
+          "status"
+        ],
+        "title": "CourseHistoryItem"
       },
       "CvExtractionResult": {
         "properties": {
@@ -5484,6 +5531,14 @@
             },
             "type": "array",
             "title": "Badges"
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/CourseHistoryItem"
+            },
+            "type": "array",
+            "title": "History",
+            "description": "Completed courses across targets, independent of the remaining plan."
           },
           "evidence": {
             "additionalProperties": {

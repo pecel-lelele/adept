@@ -250,6 +250,7 @@ class Badge(BaseModel):
         default="self_reported", description="Weakest evidence behind the badge."
     )
     skill_id: str | None = None
+    skill_label: str = ""
 
 
 class SkillProgress(BaseModel):
@@ -261,6 +262,14 @@ class SkillProgress(BaseModel):
     closed: bool
 
 
+class CourseHistoryItem(BaseModel):
+    role_id: str
+    role_label: str
+    course: Course
+    status: CourseStatus
+    evidence: CompletionEvidence | None = None
+
+
 class Progress(BaseModel):
     role_id: str
     course_status: dict[str, CourseStatus]
@@ -269,6 +278,10 @@ class Progress(BaseModel):
     gap_closed: int = Field(ge=0)
     gap_total: int = Field(ge=0)
     badges: list[Badge]
+    history: list[CourseHistoryItem] = Field(
+        default_factory=list,
+        description="Completed courses across targets, independent of the remaining plan.",
+    )
     evidence: dict[str, CompletionEvidence] = Field(
         default_factory=dict, description="Course id -> completion evidence."
     )

@@ -18,6 +18,7 @@ from app.contracts.pathway import (
     CatalogueResponse,
     CompletionEvidence,
     Course,
+    CourseHistoryItem,
     EvidenceSubmit,
     Pathway,
     PathwayStep,
@@ -458,7 +459,6 @@ def evidenced_levels(user_id: str) -> dict[str, int]:
     return evidenced_levels_many([user_id])[user_id]
 
 
-
 def evidenced_levels_many(user_ids: list[str]) -> dict[str, dict[str, int]]:
     """All requested learners' accepted levels, with one batch read regardless of history."""
     out: dict[str, dict[str, int]] = {uid: {} for uid in user_ids}
@@ -493,42 +493,86 @@ def _plan_courses(plan: Pathway) -> dict[str, Course]:
     return out
 
 
-def get_progress(user: CurrentUser, role_id: str, scenario: ScenarioId) -> Progress:
-    plan = _plan_for_progress(user, role_id, scenario)
-    raw = repository.course_status(user.id, role_id)
-    evidence = repository.evidence(user.id, role_id)
-    statuses = verification.effective_statuses(raw, evidence)
-    courses = _plan_courses(plan)
-    levels = {cid: {s: c.level for s in c.skill_ids} for cid, c in courses.items()}
-    skills = progress.skill_progress(plan, statuses, levels)
-    # Badges reflect current progress (undoing or a rejected completion removes what it
-    # earned), keep the date each was first earned, and show the weakest evidence behind them.
-    current = progress.earned_badges(plan, statuses, skills)
-    first_earned = repository.record_badges(user.id, current, date.today())
-    done = [cid for cid, st in statuses.items() if st == "completed" and cid in courses]
+def _history_badges(
+    user: CurrentUser, plan: Pathway, records: list[repository.LearningRecord]
+) -> list[Badge]:
+    """Re-evaluate earned badges against their original plans, including revoked proof."""
+    contexts = [saved.pathway for saved in repository.plan_history(user.id)] + [plan]
+    proofs: dict[str, str] = {}
+    for context in contexts:
+        rows = [row for row in records if row.role_id == context.role_id]
+        raw = {row.course_id: row.status for row in rows}
+        evidence = {row.course_id: row.evidence for row in rows if row.evidence is not None}
+        statuses = verification.effective_statuses(raw, evidence)
+        courses = _plan_courses(context)
+        for row in rows:
+            if row.course is not None and row.course_id in courses:
+                courses[row.course_id] = row.course
+        levels = {cid: {s: c.level for s in c.skill_ids} for cid, c in courses.items()}
+        skills = progress.skill_progress(context, statuses, levels)
+        done = [cid for cid, st in statuses.items() if st == "completed" and cid in courses]
+        for badge_id in progress.earned_badges(context, statuses, skills):
+            skill_id = badge_id.partition(":")[2] if badge_id.startswith("skill:") else None
+            behind = [cid for cid in done if skill_id is None or skill_id in courses[cid].skill_ids]
+            proof = verification.weakest(behind, evidence)
+            if verification.RANK[proof] >= verification.RANK.get(proofs.get(badge_id, ""), -1):
+                proofs[badge_id] = proof
+    first_earned = repository.record_badges(user.id, list(proofs), date.today())
     labels = data.skill_labels()
     badges = []
-    for badge_id in sorted(current):
+    for badge_id in sorted(proofs):
         kind, skill_id, label = _badge_label(badge_id, labels)
-        behind = [cid for cid in done if skill_id is None or skill_id in courses[cid].skill_ids]
         badges.append(
             Badge(
                 id=badge_id,
                 kind=kind,
                 label=label,
                 earned_at=first_earned[badge_id],
-                evidence=verification.weakest(behind, evidence),  # type: ignore[arg-type]
+                evidence=proofs[badge_id],  # type: ignore[arg-type]
                 skill_id=skill_id,
+                skill_label=labels.get(skill_id, skill_id) if skill_id else "",
             )
         )
+    return badges
+
+
+def get_progress(user: CurrentUser, role_id: str, scenario: ScenarioId) -> Progress:
+    plan = _plan_for_progress(user, role_id, scenario)
+    records = repository.learning_records([user.id])
+    rows = [row for row in records if row.role_id == role_id]
+    raw = {row.course_id: row.status for row in rows}
+    evidence = {row.course_id: row.evidence for row in rows if row.evidence is not None}
+    statuses = verification.effective_statuses(raw, evidence)
+    courses = _plan_courses(plan)
+    levels = {cid: {s: c.level for s in c.skill_ids} for cid, c in courses.items()}
+    skills = progress.skill_progress(plan, statuses, levels)
+    role_labels = data.role_labels()
+    history = [
+        CourseHistoryItem(
+            role_id=row.role_id,
+            role_label=role_labels.get(row.role_id, row.role_id),
+            course=row.course,
+            status=row.status,
+            evidence=row.evidence,
+        )
+        for row in records
+        if row.status == "completed" and row.course is not None
+    ]
+    history.sort(key=lambda item: (item.role_label, item.course.title, item.course.id))
+    completed_hours = {
+        row.course_id: row.course.hours
+        for row in rows
+        if row.status == "completed" and row.course is not None
+    }
     return Progress(
         role_id=role_id,
         course_status=raw,
-        percent_complete=progress.percent_complete(plan, statuses),
+        percent_complete=progress.percent_complete(plan, statuses, completed_hours),
         skills=skills,
         gap_closed=sum(1 for s in skills if s.closed),
         gap_total=len(skills),
-        badges=badges,
+        badges=_history_badges(user, plan, records),
+        history=history,
         evidence=evidence,
         pathway=plan,
         meta=plan.meta,

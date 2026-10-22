@@ -11,6 +11,7 @@ Reference data (catalogue, taxonomy, trends) lives in `data.py`.
 
 from __future__ import annotations
 
+import hashlib
 import threading
 from dataclasses import dataclass
 from datetime import date, datetime
@@ -35,10 +36,14 @@ class LearningRecord:
     evidence: CompletionEvidence | None
 
 
+def _plan_key(plan: SavedPlan) -> str:
+    return hashlib.sha256(plan.pathway.model_dump_json().encode()).hexdigest()
+
 
 class Store(Protocol):
     def get_plan(self, user_id: str) -> SavedPlan | None: ...
     def save_plan(self, user_id: str, plan: SavedPlan) -> SavedPlan: ...
+    def plan_history(self, user_id: str) -> list[SavedPlan]: ...
     def course_status(self, user_id: str, role_id: str) -> dict[str, CourseStatus]: ...
     def course_facts(self, user_id: str, role_id: str) -> dict[str, Course]: ...
     def set_course_status(
@@ -64,6 +69,7 @@ class Store(Protocol):
 class MemoryStore:
     def __init__(self) -> None:
         self._plans: dict[str, SavedPlan] = {}
+        self._plan_history: dict[tuple[str, str], SavedPlan] = {}
         self._progress: dict[tuple[str, str], dict[str, CourseStatus]] = {}
         self._badges: dict[str, dict[str, date]] = {}
         self._evidence: dict[tuple[str, str, str], CompletionEvidence] = {}
@@ -74,8 +80,16 @@ class MemoryStore:
         return self._plans.get(user_id)
 
     def save_plan(self, user_id: str, plan: SavedPlan) -> SavedPlan:
+        self._plan_history.setdefault((user_id, _plan_key(plan)), plan.model_copy(deep=True))
         self._plans[user_id] = plan
         return plan
+
+    def plan_history(self, user_id: str) -> list[SavedPlan]:
+        return [
+            plan.model_copy(deep=True)
+            for (uid, _key), plan in self._plan_history.items()
+            if uid == user_id
+        ]
 
     def course_status(self, user_id: str, role_id: str) -> dict[str, CourseStatus]:
         return dict(self._progress.get((user_id, role_id), {}))
@@ -152,9 +166,9 @@ class MemoryStore:
             for uid, rid, cid, status in self.progress_of(user_ids)
         ]  # fmt: skip
 
-
     def reset(self) -> None:
         self._plans.clear()
+        self._plan_history.clear()
         self._progress.clear()
         self._badges.clear()
         self._evidence.clear()
@@ -201,12 +215,23 @@ class PostgresStore:
     def save_plan(self, user_id: str, plan: SavedPlan) -> SavedPlan:
         self._ensure_user(user_id)
         self._run(
+            "WITH archived AS (INSERT INTO pathway_plan_history "
+            "(user_id, plan_key, role_id, scenario, snapshot_version, steps, saved_at) "
+            "VALUES (%s, %s, %s, %s, %s, %s, %s) "
+            "ON CONFLICT (user_id, plan_key) DO NOTHING) "
             "INSERT INTO pathway_plans (user_id, role_id, scenario, snapshot_version, steps, "
             "saved_at) VALUES (%s, %s, %s, %s, %s, %s) ON CONFLICT (user_id) DO UPDATE SET "
             "role_id = EXCLUDED.role_id, scenario = EXCLUDED.scenario, "
             "snapshot_version = EXCLUDED.snapshot_version, steps = EXCLUDED.steps, "
             "saved_at = EXCLUDED.saved_at",
             (
+                user_id,
+                _plan_key(plan),
+                plan.role_id,
+                plan.scenario,
+                plan.snapshot_version,
+                Jsonb(plan.pathway.model_dump(mode="json")),
+                plan.saved_at,
                 user_id,
                 plan.role_id,
                 plan.scenario,
@@ -216,6 +241,20 @@ class PostgresStore:
             ),
         )
         return plan
+
+    def plan_history(self, user_id: str) -> list[SavedPlan]:
+        rows = self._run(
+            "SELECT role_id, scenario, snapshot_version, saved_at, steps "
+            "FROM pathway_plan_history WHERE user_id = %s ORDER BY saved_at, plan_key",
+            (user_id,),
+        )
+        return [
+            SavedPlan(
+                role_id=str(role), scenario=scenario, snapshot_version=str(version),
+                saved_at=saved_at, pathway=Pathway.model_validate(pathway),
+            )
+            for role, scenario, version, saved_at, pathway in rows
+        ]  # fmt: skip
 
     def course_status(self, user_id: str, role_id: str) -> dict[str, CourseStatus]:
         rows = self._run(
@@ -377,10 +416,15 @@ class PostgresStore:
             for uid, rid, cid, status, facts, evidence in rows
         ]  # fmt: skip
 
-
     def reset(self) -> None:
         """Test hook: clears pathway state (not users or reference data)."""
-        for table in ("course_evidence", "course_progress", "user_badges", "pathway_plans"):
+        for table in (
+            "course_evidence",
+            "course_progress",
+            "user_badges",
+            "pathway_plans",
+            "pathway_plan_history",
+        ):
             self._run(f"DELETE FROM {table}", ())
 
 
@@ -398,6 +442,11 @@ def get_plan(user_id: str) -> SavedPlan | None:
 
 def save_plan(user_id: str, plan: SavedPlan) -> SavedPlan:
     return store().save_plan(user_id, plan)
+
+
+def plan_history(user_id: str) -> list[SavedPlan]:
+    """Prior plan contexts keep earned badges independent of the remaining plan."""
+    return store().plan_history(user_id)
 
 
 def course_status(user_id: str, role_id: str) -> dict[str, CourseStatus]:
@@ -449,7 +498,6 @@ def progress_of(user_ids: list[str]) -> list[tuple[str, str, str, CourseStatus]]
 def learning_records(user_ids: list[str]) -> list[LearningRecord]:
     """Batch progress, immutable course facts and evidence in one store read."""
     return store().learning_records(user_ids)
-
 
 
 def reset() -> None:

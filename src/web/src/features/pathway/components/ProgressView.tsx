@@ -20,15 +20,18 @@ export async function ProgressView({ roleId, scenario }: { roleId: string; scena
   // Courses come from the plan the API tracks progress against, so every button is valid.
   const courses = p.pathway.steps.flatMap((s) => s.courses.map((c) => ({ ...c, step: s.order })));
   const unique = courses.filter((c, i) => courses.findIndex((x) => x.id === c.id) === i);
+  const history = p.history ?? [];
+  const past = history.filter((item) => item.role_id !== roleId || !unique.some((c) => c.id === item.course.id));
   // Badge names come from translations keyed by the stable badge id, not the API's English text.
   const skillLabel = new Map(p.skills.map((s) => [s.skill_id, s.label]));
   const badgeLabel = (b: (typeof p.badges)[number]) => {
     const [kind, key] = b.id.split(":");
-    if (kind === "skill" && b.skill_id) return t("badge.skill", { skill: skillLabel.get(b.skill_id) ?? b.skill_id });
+    if (kind === "skill" && b.skill_id) return t("badge.skill", { skill: b.skill_label || skillLabel.get(b.skill_id) || b.skill_id });
     if (key === "first" || key === "halfway" || key === "complete") return t(`badge.${key}`);
     return b.label;
   };
-  const done = unique.filter((c) => p.course_status[c.id] === "completed").length;
+  const done = new Set(history.filter((item) => item.role_id === roleId && item.evidence?.kind !== "org_rejected").map((item) => item.course.id)).size;
+  const tracked = new Set([...unique.map((c) => c.id), ...history.filter((item) => item.role_id === roleId).map((item) => item.course.id)]).size;
 
   return (
     <div className="a-view">
@@ -52,7 +55,7 @@ export async function ProgressView({ roleId, scenario }: { roleId: string; scena
           {
             label: tp("kCoursesDone2"),
             value: done,
-            unit: `/ ${unique.length}`,
+            unit: `/ ${tracked}`,
             icon: <BookOpen size={15} />,
             note: tp("kHoursWeighted"),
           },
@@ -159,6 +162,45 @@ export async function ProgressView({ roleId, scenario }: { roleId: string; scena
           </div>
         </aside>
       </div>
+
+      {past.length > 0 ? (
+        <section className="a-card">
+          <div className="a-card-head"><h2>{t("history.title")}</h2></div>
+          <p className="a-small a-muted">{t("history.description")}</p>
+          <ul className="a-checklist-rows">
+            {past.map((item) => {
+              const c = item.course;
+              const ev = item.evidence;
+              return (
+                <li key={`${item.role_id}:${c.id}`} data-done={ev?.kind !== "org_rejected"}>
+                  <span className="a-tickmark" aria-hidden><Check size={14} /></span>
+                  <div className="a-checklist-main">
+                    <a href={c.url} target="_blank" rel="noreferrer">{c.title} <ArrowUpRight size={13} aria-hidden /></a>
+                    <small>{c.provider} · {t("hours", { hours: c.hours })} · {item.role_label}</small>
+                    <details className="a-disclosure">
+                      <summary>{d("details")}</summary>
+                      <div>
+                        <EvidenceBadge evidence={ev ?? null} />
+                        {ev?.review_note ? <p className="a-small a-muted">{t("evidence.reviewNote", { note: ev.review_note })}</p> : null}
+                        {ev?.kind !== "org_confirmed" ? (
+                          <EvidenceForm action={submitEvidenceAction} fields={{ role_id: item.role_id, scenario, course_id: c.id }} />
+                        ) : null}
+                      </div>
+                    </details>
+                  </div>
+                  <ActionForm
+                    action={updateProgressAction}
+                    className="a-inline-form"
+                    fields={{ role_id: item.role_id, scenario, course_id: c.id, status: "not_started" }}
+                    label={t("progress.markUndone")}
+                    variant="outline"
+                  />
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      ) : null}
     </div>
   );
 }
