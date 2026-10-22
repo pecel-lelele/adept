@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useActionState, useState } from "react";
 
-import { BrandMark } from "@/components/shell/Brand";
+import { BrandLogo } from "@/components/shell/Brand";
 import { RiseArt } from "@/components/viz/RiseArt";
 import { Scene3D } from "@/components/viz/Scene3D";
 
@@ -34,10 +34,7 @@ export function AuthView({ page }: { page: Page }) {
   return (
     <main className="a-page" data-mode={team ? "organisation" : "individual"}>
       <header className="a-page-top">
-        <Link href="/" className="a-brand" style={{ padding: 0 }}>
-          <BrandMark />
-          adept
-        </Link>
+        <BrandLogo href="/" />
         <nav>
           <Link href="/try">{tl("try")}</Link>
         </nav>
