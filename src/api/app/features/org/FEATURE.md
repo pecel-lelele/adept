@@ -10,8 +10,13 @@
 
 ## Status
 
-Skeleton: endpoints return mock data from `mocks.py` with `meta.sources = MOCK DATA`.
-Replace `repository.py` reads with real data, keep the contracts stable.
+Real data in PostgreSQL (`organizations`, `memberships`, `users`, member `profiles`). A manager
+creates the organisation at sign-up (`POST /auth/signup`, workspace `organisation`) and shares
+its join code; learners join at sign-up or with `POST /org/join`. Endpoints: `GET|PUT /org/me`,
+`POST /org/me/join-code`, `GET /org/members`, `DELETE /org/members/{id}`, `POST /org/join`,
+`GET /org/gaps` (every taxonomy target role × skills, share of completed members below the
+required level), `GET /org/plan` (default role = largest average team gap). No built-in
+organisations; tests install fixtures from `tests/harness/fixtures.py`.
 
 ## Goal and tasks (from docs/TASKS.md)
 

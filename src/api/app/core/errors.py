@@ -1,7 +1,14 @@
 """Shared error types, rendered as {"error": {"code", "message"}}."""
 
+import psycopg
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
+from app.core.logging import get_logger
+
+log = get_logger("app.errors")
 
 
 class AppError(Exception):
@@ -79,7 +86,53 @@ class TrendUnavailableError(Exception):
         self.message = message
 
 
+def _validation_message(exc: RequestValidationError) -> str:
+    """One readable line, e.g. "query.role_id: Field required; body.level: ..."."""
+    parts: list[str] = []
+    for err in exc.errors()[:5]:
+        loc = ".".join(str(p) for p in err.get("loc", ()) if p != "body") or "request"
+        parts.append(f"{loc}: {err.get('msg', 'invalid value')}")
+    return "; ".join(parts) or "Invalid request"
+
+
 def register_error_handlers(app: FastAPI) -> None:
+    """Every error leaves the API as {"error": {"code", "message"}} so the web client can
+    show one consistent message (validation, unknown routes and database outages included)."""
+
+    @app.exception_handler(RequestValidationError)
+    async def _handle_validation(_: Request, exc: RequestValidationError) -> JSONResponse:
+        return JSONResponse(
+            status_code=422,
+            content={"error": {"code": "validation_error", "message": _validation_message(exc)}},
+        )
+
+    @app.exception_handler(StarletteHTTPException)
+    async def _handle_http(_: Request, exc: StarletteHTTPException) -> JSONResponse:
+        codes = {404: "not_found", 405: "method_not_allowed", 401: "unauthorized"}
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={
+                "error": {
+                    "code": codes.get(exc.status_code, "http_error"),
+                    "message": str(exc.detail),
+                }
+            },
+            headers=getattr(exc, "headers", None),
+        )
+
+    @app.exception_handler(psycopg.OperationalError)
+    async def _handle_db_down(_: Request, exc: psycopg.OperationalError) -> JSONResponse:
+        log.warning("database unavailable: %s", exc)
+        return JSONResponse(
+            status_code=503,
+            content={
+                "error": {
+                    "code": "storage_unavailable",
+                    "message": "The database is unavailable right now. Please try again shortly.",
+                }
+            },
+        )
+
     @app.exception_handler(AppError)
     async def _handle_app_error(_: Request, exc: AppError) -> JSONResponse:
         return JSONResponse(

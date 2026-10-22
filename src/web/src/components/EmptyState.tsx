@@ -1,3 +1,4 @@
+import { Inbox } from "lucide-react";
 import type { ReactNode } from "react";
 
 export function EmptyState({
@@ -10,9 +11,12 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed p-8 text-center">
-      <p className="font-medium">{title}</p>
-      {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
+    <div className="a-card is-flat a-empty">
+      <span className="a-empty-icon">
+        <Inbox size={22} strokeWidth={1.6} aria-hidden />
+      </span>
+      <strong style={{ color: "var(--a-ink)", fontWeight: 500 }}>{title}</strong>
+      {description ? <p className="a-muted a-small" style={{ margin: 0, maxWidth: 440 }}>{description}</p> : null}
       {action}
     </div>
   );

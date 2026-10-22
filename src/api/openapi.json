@@ -32,6 +32,7 @@
           "core"
         ],
         "summary": "Data Freshness",
+        "description": "Date and sources of the latest trend snapshot (database, else the frozen export).",
         "operationId": "core_data_freshness",
         "responses": {
           "200": {
@@ -40,6 +41,176 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DataFreshness"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/meta/overview": {
+      "get": {
+        "tags": [
+          "core"
+        ],
+        "summary": "Platform Overview",
+        "description": "Live figures for the home page: trends, roles, courses and SDG coverage (no sign-in).",
+        "operationId": "core_platform_overview",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformOverview"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/signup": {
+      "post": {
+        "tags": [
+          "accounts"
+        ],
+        "summary": "Signup",
+        "description": "Create an account (and, for an organisation workspace, the organisation).",
+        "operationId": "accounts_signup",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignupIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "tags": [
+          "accounts"
+        ],
+        "summary": "Login",
+        "operationId": "accounts_login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "tags": [
+          "accounts"
+        ],
+        "summary": "Me",
+        "operationId": "accounts_me",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Account"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -155,6 +326,20 @@
             "description": "Replay an older trend snapshot (YYYY-MM-DD). Omit for the latest."
           },
           {
+            "name": "sdg_weight",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "maximum": 1,
+              "minimum": 0,
+              "description": "How much the UN Goals count in the ranking, 0..1. 0 (default) keeps the standard score; above 0 adds an 'sdg_impact' part and scales the others down.",
+              "default": 0.0,
+              "title": "Sdg Weight"
+            },
+            "description": "How much the UN Goals count in the ranking, 0..1. 0 (default) keeps the standard score; above 0 adds an 'sdg_impact' part and scales the others down."
+          },
+          {
             "name": "x-demo-user",
             "in": "header",
             "required": false,
@@ -194,6 +379,131 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/MatchResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/matches/replay": {
+      "get": {
+        "tags": [
+          "matching"
+        ],
+        "summary": "Replay",
+        "description": "What changed in the learner's role ranking between two snapshots, and why.",
+        "operationId": "matching_replay",
+        "parameters": [
+          {
+            "name": "from_date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "description": "The earlier snapshot (YYYY-MM-DD).",
+              "title": "From Date"
+            },
+            "description": "The earlier snapshot (YYYY-MM-DD)."
+          },
+          {
+            "name": "scenario",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "moderate",
+                "fast"
+              ],
+              "type": "string",
+              "default": "moderate",
+              "title": "Scenario"
+            }
+          },
+          {
+            "name": "to_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The later snapshot; latest if omitted.",
+              "title": "To Date"
+            },
+            "description": "The later snapshot; latest if omitted."
+          },
+          {
+            "name": "sdg_weight",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "maximum": 1,
+              "minimum": 0,
+              "description": "How much the UN Goals count in the ranking, 0..1. 0 (default) keeps the standard score; above 0 adds an 'sdg_impact' part and scales the others down.",
+              "default": 0.0,
+              "title": "Sdg Weight"
+            },
+            "description": "How much the UN Goals count in the ranking, 0..1. 0 (default) keeps the standard score; above 0 adds an 'sdg_impact' part and scales the others down."
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReplayResponse"
                 }
               }
             }
@@ -260,6 +570,20 @@
               "title": "Snapshot Date"
             },
             "description": "Replay an older trend snapshot (YYYY-MM-DD). Omit for the latest."
+          },
+          {
+            "name": "sdg_weight",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "maximum": 1,
+              "minimum": 0,
+              "description": "How much the UN Goals count in the ranking, 0..1. 0 (default) keeps the standard score; above 0 adds an 'sdg_impact' part and scales the others down.",
+              "default": 0.0,
+              "title": "Sdg Weight"
+            },
+            "description": "How much the UN Goals count in the ranking, 0..1. 0 (default) keeps the standard score; above 0 adds an 'sdg_impact' part and scales the others down."
           },
           {
             "name": "x-demo-user",
@@ -381,6 +705,222 @@
             }
           }
         }
+      },
+      "put": {
+        "tags": [
+          "org"
+        ],
+        "summary": "Update My Org",
+        "description": "Edit organisation setup (managers and advisors only).",
+        "operationId": "org_update_my_org",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrganizationIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Organization"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/org/me/join-code": {
+      "post": {
+        "tags": [
+          "org"
+        ],
+        "summary": "Rotate Join Code",
+        "description": "Issue a new join code; the old one stops working (managers only).",
+        "operationId": "org_rotate_join_code",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Organization"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/org/join": {
+      "post": {
+        "tags": [
+          "org"
+        ],
+        "summary": "Join Org",
+        "description": "A signed-in learner joins with the code their manager or advisor shared.",
+        "operationId": "org_join_org",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JoinOrgIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Organization"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v1/org/members": {
@@ -434,6 +974,73 @@
                 }
               }
             }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/org/members/{member_id}": {
+      "delete": {
+        "tags": [
+          "org"
+        ],
+        "summary": "Remove Member",
+        "operationId": "org_remove_member",
+        "parameters": [
+          {
+            "name": "member_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Member Id"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
           },
           "422": {
             "description": "Validation Error",
@@ -629,14 +1236,22 @@
           "pathway"
         ],
         "summary": "Get Pathway",
+        "description": "The plan for `role_id`; without it, the learner's saved target role.",
         "operationId": "pathway_get_pathway",
         "parameters": [
           {
             "name": "role_id",
             "in": "query",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": "string",
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
               "title": "Role Id"
             }
           },
@@ -1263,14 +1878,22 @@
           "pathway"
         ],
         "summary": "Get Progress",
+        "description": "Progress on `role_id`; without it, on the learner's saved target role.",
         "operationId": "pathway_get_progress",
         "parameters": [
           {
             "name": "role_id",
             "in": "query",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": "string",
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
               "title": "Role Id"
             }
           },
@@ -1662,6 +2285,63 @@
         }
       }
     },
+    "/api/v1/preview/cv": {
+      "post": {
+        "tags": [
+          "preview"
+        ],
+        "summary": "Preview Cv",
+        "operationId": "preview_preview_cv",
+        "parameters": [
+          {
+            "name": "scenario",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "moderate",
+                "fast"
+              ],
+              "type": "string",
+              "default": "moderate",
+              "title": "Scenario"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_preview_preview_cv"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuestPreview"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/profile/questionnaire": {
       "post": {
         "tags": [
@@ -1806,6 +2486,27 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/profile/skills/catalogue": {
+      "get": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Skill bank for the skill picker",
+        "operationId": "profile_skill_catalogue",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkillCatalogueResponse"
                 }
               }
             }
@@ -2133,6 +2834,7 @@
           "scenarios"
         ],
         "summary": "Get Outlook",
+        "description": "Role outlooks; ``snapshot_date`` limits the history to that snapshot and earlier.",
         "operationId": "scenarios_get_outlook",
         "parameters": [
           {
@@ -2149,6 +2851,23 @@
                 }
               ],
               "title": "Role Id"
+            }
+          },
+          {
+            "name": "snapshot_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Snapshot Date"
             }
           }
         ],
@@ -2498,6 +3217,7 @@
           "sdg"
         ],
         "summary": "Get Org Contribution",
+        "description": "The team's contribution towards ``role_id`` (the role chosen on the team plan), or,\nwhen omitted, the role where the team's average gap is largest.",
         "operationId": "sdg_get_org_contribution",
         "parameters": [
           {
@@ -2512,6 +3232,22 @@
               "type": "string",
               "default": "moderate",
               "title": "Scenario"
+            }
+          },
+          {
+            "name": "role_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Role Id"
             }
           },
           {
@@ -2621,6 +3357,22 @@
               "type": "string",
               "default": "moderate",
               "title": "Scenario"
+            }
+          },
+          {
+            "name": "role_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Role Id"
             }
           }
         ],
@@ -2823,6 +3575,62 @@
   },
   "components": {
     "schemas": {
+      "Account": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "learner",
+              "org_admin"
+            ],
+            "title": "Kind"
+          },
+          "org_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Org Id"
+          },
+          "has_profile": {
+            "type": "boolean",
+            "title": "Has Profile",
+            "description": "False until the intake questionnaire is saved."
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "display_name",
+          "email",
+          "kind",
+          "has_profile"
+        ],
+        "title": "Account"
+      },
       "Badge": {
         "properties": {
           "id": {
@@ -2867,6 +3675,11 @@
               }
             ],
             "title": "Skill Id"
+          },
+          "skill_label": {
+            "type": "string",
+            "title": "Skill Label",
+            "default": ""
           }
         },
         "type": "object",
@@ -2877,6 +3690,25 @@
           "earned_at"
         ],
         "title": "Badge"
+      },
+      "Body_preview_preview_cv": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          },
+          "synthetic_consent": {
+            "type": "boolean",
+            "title": "Synthetic Consent"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file",
+          "synthetic_consent"
+        ],
+        "title": "Body_preview_preview_cv"
       },
       "Body_profile_upload_cv": {
         "properties": {
@@ -3195,6 +4027,48 @@
           "verified_at"
         ],
         "title": "Course"
+      },
+      "CourseHistoryItem": {
+        "properties": {
+          "role_id": {
+            "type": "string",
+            "title": "Role Id"
+          },
+          "role_label": {
+            "type": "string",
+            "title": "Role Label"
+          },
+          "course": {
+            "$ref": "#/components/schemas/Course"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "not_started",
+              "in_progress",
+              "completed"
+            ],
+            "title": "Status"
+          },
+          "evidence": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CompletionEvidence"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "role_id",
+          "role_label",
+          "course",
+          "status"
+        ],
+        "title": "CourseHistoryItem"
       },
       "CvExtractionResult": {
         "properties": {
@@ -3533,6 +4407,14 @@
             "type": "array",
             "title": "Role Ids"
           },
+          "role_labels": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Role Labels",
+            "description": "role_id -> label"
+          },
           "skills": {
             "items": {
               "$ref": "#/components/schemas/Skill"
@@ -3546,6 +4428,14 @@
             },
             "type": "array",
             "title": "Cells"
+          },
+          "role_gaps": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Role Gaps",
+            "description": "role_id -> average gap over that role's required skills only (the figure that picks the default team target). Cells for skills a role does not require are 0 and must not be averaged."
           },
           "meta": {
             "$ref": "#/components/schemas/RecommendationMeta"
@@ -3617,6 +4507,11 @@
             "type": "string",
             "title": "Target Role Id"
           },
+          "target_role_label": {
+            "type": "string",
+            "title": "Target Role Label",
+            "default": ""
+          },
           "assigned_member_ids": {
             "items": {
               "type": "string"
@@ -3650,6 +4545,61 @@
           "meta"
         ],
         "title": "GroupPlan"
+      },
+      "GuestPreview": {
+        "properties": {
+          "skills": {
+            "items": {
+              "$ref": "#/components/schemas/ExtractedSkill"
+            },
+            "type": "array",
+            "title": "Skills"
+          },
+          "skill_trends": {
+            "items": {
+              "$ref": "#/components/schemas/SkillTrend"
+            },
+            "type": "array",
+            "title": "Skill Trends",
+            "default": []
+          },
+          "top_role": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TopRole"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "other_role_count": {
+            "type": "integer",
+            "title": "Other Role Count"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RecommendationMeta"
+          },
+          "truncated": {
+            "type": "boolean",
+            "title": "Truncated"
+          },
+          "requires_skill_confirmation": {
+            "type": "boolean",
+            "const": true,
+            "title": "Requires Skill Confirmation",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "skills",
+          "top_role",
+          "other_role_count",
+          "meta",
+          "truncated"
+        ],
+        "title": "GuestPreview"
       },
       "HTTPValidationError": {
         "properties": {
@@ -3696,6 +4646,44 @@
           "database"
         ],
         "title": "HealthResponse"
+      },
+      "JoinOrgIn": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "maxLength": 16,
+            "minLength": 4,
+            "title": "Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code"
+        ],
+        "title": "JoinOrgIn",
+        "description": "A signed-in learner joins an organisation with the code their manager shared."
+      },
+      "LoginIn": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "maxLength": 254,
+            "minLength": 3,
+            "title": "Email"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "LoginIn"
       },
       "MatchResponse": {
         "properties": {
@@ -3841,6 +4829,18 @@
             "type": "integer",
             "minimum": 0.0,
             "title": "Size"
+          },
+          "join_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Join Code",
+            "description": "Code members enter to join. Shown to managers only."
           }
         },
         "type": "object",
@@ -3852,6 +4852,44 @@
           "size"
         ],
         "title": "Organization"
+      },
+      "OrganizationIn": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "company",
+              "institution"
+            ],
+            "title": "Type"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 2,
+            "title": "Name"
+          },
+          "industry": {
+            "type": "string",
+            "maxLength": 120,
+            "title": "Industry",
+            "default": ""
+          },
+          "size": {
+            "type": "integer",
+            "maximum": 1000000.0,
+            "minimum": 0.0,
+            "title": "Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "name",
+          "size"
+        ],
+        "title": "OrganizationIn",
+        "description": "Editable organisation setup (PUT /org/me)."
       },
       "OutlookResponse": {
         "properties": {
@@ -3872,6 +4910,74 @@
           "meta"
         ],
         "title": "OutlookResponse"
+      },
+      "OverviewRole": {
+        "properties": {
+          "role_id": {
+            "type": "string",
+            "title": "Role Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "outlook": {
+            "type": "number",
+            "title": "Outlook",
+            "description": "Demand index under the moderate scenario (1 = today)."
+          },
+          "low": {
+            "type": "number",
+            "title": "Low"
+          },
+          "high": {
+            "type": "number",
+            "title": "High"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role_id",
+          "label",
+          "outlook",
+          "low",
+          "high"
+        ],
+        "title": "OverviewRole"
+      },
+      "OverviewSkill": {
+        "properties": {
+          "skill_id": {
+            "type": "string",
+            "title": "Skill Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "velocity": {
+            "type": "number",
+            "title": "Velocity",
+            "description": "Moderate-scenario velocity from the latest snapshot."
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "rising",
+              "declining",
+              "stable"
+            ],
+            "title": "Direction"
+          }
+        },
+        "type": "object",
+        "required": [
+          "skill_id",
+          "label",
+          "velocity",
+          "direction"
+        ],
+        "title": "OverviewSkill"
       },
       "Pathway": {
         "properties": {
@@ -4140,6 +5246,102 @@
         ],
         "title": "PlanChange"
       },
+      "PlatformOverview": {
+        "properties": {
+          "skills_in_bank": {
+            "type": "integer",
+            "title": "Skills In Bank",
+            "description": "Skills a learner can pick (taxonomy)."
+          },
+          "skills_tracked": {
+            "type": "integer",
+            "title": "Skills Tracked",
+            "description": "Skills with a trend in the latest snapshot."
+          },
+          "rising": {
+            "type": "integer",
+            "title": "Rising"
+          },
+          "stable": {
+            "type": "integer",
+            "title": "Stable"
+          },
+          "declining": {
+            "type": "integer",
+            "title": "Declining"
+          },
+          "top_rising": {
+            "items": {
+              "$ref": "#/components/schemas/OverviewSkill"
+            },
+            "type": "array",
+            "title": "Top Rising"
+          },
+          "top_declining": {
+            "items": {
+              "$ref": "#/components/schemas/OverviewSkill"
+            },
+            "type": "array",
+            "title": "Top Declining"
+          },
+          "roles": {
+            "type": "integer",
+            "title": "Roles",
+            "description": "Future roles the matcher ranks."
+          },
+          "top_roles": {
+            "items": {
+              "$ref": "#/components/schemas/OverviewRole"
+            },
+            "type": "array",
+            "title": "Top Roles"
+          },
+          "courses": {
+            "type": "integer",
+            "title": "Courses"
+          },
+          "free_courses": {
+            "type": "integer",
+            "title": "Free Courses"
+          },
+          "hrd_claimable_courses": {
+            "type": "integer",
+            "title": "Hrd Claimable Courses"
+          },
+          "providers": {
+            "type": "integer",
+            "title": "Providers"
+          },
+          "sdg_goals_linked": {
+            "type": "integer",
+            "title": "Sdg Goals Linked",
+            "description": "Distinct SDGs linked to at least one role."
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RecommendationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "skills_in_bank",
+          "skills_tracked",
+          "rising",
+          "stable",
+          "declining",
+          "top_rising",
+          "top_declining",
+          "roles",
+          "top_roles",
+          "courses",
+          "free_courses",
+          "hrd_claimable_courses",
+          "providers",
+          "sdg_goals_linked",
+          "meta"
+        ],
+        "title": "PlatformOverview",
+        "description": "Live figures for the public home page, computed from the same data the app uses."
+      },
       "Profile": {
         "properties": {
           "segment": {
@@ -4172,6 +5374,19 @@
           "hrd_eligible": {
             "type": "boolean",
             "title": "Hrd Eligible"
+          },
+          "learning_style": {
+            "type": "string",
+            "enum": [
+              "video",
+              "reading",
+              "hands-on",
+              "classroom",
+              "mixed"
+            ],
+            "title": "Learning Style",
+            "description": "Preferred way to learn.",
+            "default": "mixed"
           },
           "user_id": {
             "type": "string",
@@ -4244,6 +5459,19 @@
           "hrd_eligible": {
             "type": "boolean",
             "title": "Hrd Eligible"
+          },
+          "learning_style": {
+            "type": "string",
+            "enum": [
+              "video",
+              "reading",
+              "hands-on",
+              "classroom",
+              "mixed"
+            ],
+            "title": "Learning Style",
+            "description": "Preferred way to learn.",
+            "default": "mixed"
           }
         },
         "type": "object",
@@ -4303,6 +5531,14 @@
             },
             "type": "array",
             "title": "Badges"
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/CourseHistoryItem"
+            },
+            "type": "array",
+            "title": "History",
+            "description": "Completed courses across targets, independent of the remaining plan."
           },
           "evidence": {
             "additionalProperties": {
@@ -4550,6 +5786,32 @@
             "type": "boolean",
             "title": "Is Estimate",
             "default": true
+          },
+          "observed_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed From",
+            "description": "Start of the period the source data measures; may predate snapshot_date."
+          },
+          "observed_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed To",
+            "description": "End of the period the source data measures."
           }
         },
         "type": "object",
@@ -4633,6 +5895,88 @@
           "meta"
         ],
         "title": "ReplanStatus"
+      },
+      "ReplayDriver": {
+        "properties": {
+          "skill_id": {
+            "type": "string",
+            "title": "Skill Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "velocity_before": {
+            "type": "number",
+            "title": "Velocity Before"
+          },
+          "velocity_after": {
+            "type": "number",
+            "title": "Velocity After"
+          },
+          "position_before": {
+            "type": "number",
+            "title": "Position Before",
+            "description": "Percentile of the skill's velocity among all skills, earlier snapshot.",
+            "default": 0.0
+          },
+          "position_after": {
+            "type": "number",
+            "title": "Position After",
+            "description": "Percentile of the skill's velocity among all skills, later snapshot.",
+            "default": 0.0
+          },
+          "effect": {
+            "type": "number",
+            "title": "Effect",
+            "description": "Score points this skill moved the role: change in its percentile position times its share of the role's importance times the trend weight; > 0 pushed up."
+          }
+        },
+        "type": "object",
+        "required": [
+          "skill_id",
+          "label",
+          "velocity_before",
+          "velocity_after",
+          "effect"
+        ],
+        "title": "ReplayDriver"
+      },
+      "ReplayResponse": {
+        "properties": {
+          "scenario": {
+            "type": "string",
+            "title": "Scenario"
+          },
+          "from_date": {
+            "type": "string",
+            "title": "From Date"
+          },
+          "to_date": {
+            "type": "string",
+            "title": "To Date"
+          },
+          "movements": {
+            "items": {
+              "$ref": "#/components/schemas/RoleMovement"
+            },
+            "type": "array",
+            "title": "Movements"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RecommendationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "scenario",
+          "from_date",
+          "to_date",
+          "movements",
+          "meta"
+        ],
+        "title": "ReplayResponse",
+        "description": "What changed between two trend snapshots for this learner, and why."
       },
       "ReviewDecision": {
         "properties": {
@@ -4820,6 +6164,55 @@
           "meta"
         ],
         "title": "RoleMatch"
+      },
+      "RoleMovement": {
+        "properties": {
+          "role_id": {
+            "type": "string",
+            "title": "Role Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "rank_before": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Rank Before"
+          },
+          "rank_after": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Rank After"
+          },
+          "score_before": {
+            "type": "number",
+            "title": "Score Before"
+          },
+          "score_after": {
+            "type": "number",
+            "title": "Score After"
+          },
+          "drivers": {
+            "items": {
+              "$ref": "#/components/schemas/ReplayDriver"
+            },
+            "type": "array",
+            "title": "Drivers",
+            "description": "The required skills whose trend moved this role most between the dates."
+          }
+        },
+        "type": "object",
+        "required": [
+          "role_id",
+          "label",
+          "rank_before",
+          "rank_after",
+          "score_before",
+          "score_after",
+          "drivers"
+        ],
+        "title": "RoleMovement"
       },
       "RoleOption": {
         "properties": {
@@ -5053,7 +6446,7 @@
             "maximum": 1.0,
             "minimum": 0.0,
             "title": "Adoption Rate",
-            "description": "Share of tasks adopting AI by horizon."
+            "description": "Mean automation exposure of the tracked skills under this scenario."
           },
           "description": {
             "type": "string",
@@ -5395,6 +6788,97 @@
         ],
         "title": "SdgTarget"
       },
+      "SessionResponse": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "title": "Token",
+            "description": "Signed session token; keep it in an httpOnly cookie."
+          },
+          "account": {
+            "$ref": "#/components/schemas/Account"
+          },
+          "next_path": {
+            "type": "string",
+            "title": "Next Path",
+            "description": "Where the web app should send the user next."
+          }
+        },
+        "type": "object",
+        "required": [
+          "token",
+          "account",
+          "next_path"
+        ],
+        "title": "SessionResponse"
+      },
+      "SignupIn": {
+        "properties": {
+          "display_name": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 2,
+            "title": "Display Name"
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 254,
+            "minLength": 5,
+            "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
+            "title": "Email"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Password"
+          },
+          "workspace": {
+            "type": "string",
+            "enum": [
+              "individual",
+              "organisation"
+            ],
+            "title": "Workspace",
+            "default": "individual"
+          },
+          "organisation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OrganizationIn"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "join_code": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 16
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Join Code"
+          },
+          "consent": {
+            "type": "boolean",
+            "title": "Consent",
+            "description": "Accepted the data-use and estimates notice."
+          }
+        },
+        "type": "object",
+        "required": [
+          "display_name",
+          "email",
+          "password",
+          "consent"
+        ],
+        "title": "SignupIn"
+      },
       "Skill": {
         "properties": {
           "id": {
@@ -5412,6 +6896,30 @@
           "label"
         ],
         "title": "Skill"
+      },
+      "SkillCatalogueResponse": {
+        "properties": {
+          "skills": {
+            "items": {
+              "$ref": "#/components/schemas/SkillOption"
+            },
+            "type": "array",
+            "title": "Skills"
+          },
+          "interests": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Interests",
+            "description": "Interest tags used by role matching (roles.csv)."
+          }
+        },
+        "type": "object",
+        "required": [
+          "skills"
+        ],
+        "title": "SkillCatalogueResponse"
       },
       "SkillConfirmationIn": {
         "properties": {
@@ -5550,6 +7058,31 @@
         ],
         "title": "SkillGap"
       },
+      "SkillOption": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "group": {
+            "type": "string",
+            "title": "Group",
+            "description": "e.g. 'Emerging AI-native skill'; empty if ungrouped."
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "group"
+        ],
+        "title": "SkillOption",
+        "description": "One entry of the skill bank a learner picks from (taxonomy/skills.csv)."
+      },
       "SkillProgress": {
         "properties": {
           "skill_id": {
@@ -5593,6 +7126,35 @@
           "closed"
         ],
         "title": "SkillProgress"
+      },
+      "SkillTrend": {
+        "properties": {
+          "skill_id": {
+            "type": "string",
+            "title": "Skill Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "rising",
+              "stable",
+              "declining"
+            ],
+            "title": "Direction"
+          }
+        },
+        "type": "object",
+        "required": [
+          "skill_id",
+          "label",
+          "direction"
+        ],
+        "title": "SkillTrend",
+        "description": "How one extracted skill moves in the latest snapshot (free part of the preview)."
       },
       "SkillVelocity": {
         "properties": {
@@ -5808,6 +7370,34 @@
         "title": "SyncReport",
         "description": "Result of refreshing reference data from its live source."
       },
+      "TopRole": {
+        "properties": {
+          "role_id": {
+            "type": "string",
+            "title": "Role Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "score": {
+            "type": "number",
+            "title": "Score"
+          },
+          "trend_coverage": {
+            "type": "number",
+            "title": "Trend Coverage"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role_id",
+          "label",
+          "score",
+          "trend_coverage"
+        ],
+        "title": "TopRole"
+      },
       "TrendSignal": {
         "properties": {
           "entity_type": {
@@ -5931,6 +7521,32 @@
             ],
             "title": "Data Provenance Note",
             "description": "Optional explanation of data provenance, e.g. for historical arXiv date-window pulls or demo calibration."
+          },
+          "observed_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed From",
+            "description": "Start of the period the source data measures; may predate snapshot_date."
+          },
+          "observed_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed To",
+            "description": "End of the period the source data measures."
           }
         },
         "type": "object",

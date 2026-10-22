@@ -9,7 +9,11 @@
   "scenario": {
     "label": "Senario",
     "moderate": "Gangguan AI sederhana",
-    "fast": "Gangguan AI pantas"
+    "fast": "Gangguan AI pantas",
+    "pace": "Kadar AI",
+    "moderateShort": "Sederhana",
+    "fastShort": "Pantas",
+    "hint": "Seberapa pantas AI mengubah kerja. Kedudukan dan unjuran ialah anggaran bagi setiap kadar."
   },
   "estimate": {
     "label": "Anggaran",
@@ -24,6 +28,9 @@
     "unavailable": "Data trend tidak tersedia"
   },
   "nav": {
+    "overview": "Gambaran keseluruhan",
+    "courses": "Katalog kursus",
+    "verify": "Semakan bukti",
     "onboarding": "Mula",
     "profile": "Profil",
     "radar": "Radar Kemahiran",
@@ -38,9 +45,6 @@
     "about": "Perihal",
     "sources": "Sumber",
     "snapshots": "Snapshot"
-  },
-  "journey": {
-    "step": "Langkah {n}"
   },
   "landing": {
     "individual": "Individu",
@@ -70,5 +74,39 @@
   },
   "locale": {
     "label": "Bahasa"
+  },
+  "design": {
+    "more": "Lagi",
+    "signOut": "Log keluar",
+    "details": "Butiran & sumber",
+    "filters": "Tapis kursus",
+    "courseDetails": "Butiran kursus",
+    "continue": "Teruskan belajar",
+    "progress": "Kemajuan anda",
+    "evidence": "Sumber & kaedah",
+    "options": "Pilihan pembelajaran",
+    "pathBody": "Urutan yang jelas. Rentak yang sesuai dengan anda.",
+    "snapshot": "Edisi data",
+    "rising": "Meningkat",
+    "stable": "Stabil",
+    "declining": "Menurun",
+    "search": "Cari kemahiran",
+    "all": "Semua kemahiran",
+    "pace": "Jam seminggu",
+    "duration": "Minggu",
+    "cost": "Anggaran kos",
+    "complete": "Kursus selesai",
+    "next": "Seterusnya",
+    "saved": "Hala tuju pilihan anda",
+    "choose": "Teroka peranan",
+    "stepDetails": "Kenapa langkah ini?",
+    "visit": "Lihat kursus",
+    "skillBank": "Bank kemahiran anda",
+    "skillBankBody": "Bina daripada apa yang anda tahu. Pilih kemahiran untuk melihat kursus.",
+    "skillLevel": "Tahap {level} daripada 5",
+    "review": "Semak",
+    "moreSkills": "Tunjuk {count} lagi kemahiran",
+    "addSkills": "Semak kemahiran anda",
+    "observed": "data diukur {from} hingga {to}"
   }
 }

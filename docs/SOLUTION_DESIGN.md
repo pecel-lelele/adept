@@ -56,7 +56,7 @@ re-plans. Adept never makes hiring decisions.
 
 | Step | Route | What she sees | Engine |
 |---|---|---|---|
-| Start | `/demo/learner` → `/app/onboarding` | Segment = *working* | F1 |
+| Start | `/` CV upload → partial result → `/auth/signup` → `/app/onboarding` (skills from the CV carried over) | Segment = *working* | F1 |
 | 1 | `/app/profile` | Confirms extracted skills and levels; sets 6 h/week, RM 500, HRD Corp eligible | F1 |
 | 2 | `/app/radar` | Her current role is *declining* (high automation share); adjacent skills are *rising* | F2/F3 |
 | 3 | `/app/matches` | Ranked roles with score parts; chooses *Process Automation Analyst* | F4 |
@@ -80,7 +80,7 @@ Same `/app/*` journey with `learner.segment = graduate | switcher`:
 
 | Step | Route | What they see | Engine |
 |---|---|---|---|
-| Start | `/demo/org` → `/org/setup` | Company, industry, size | F7 |
+| Start | `/auth/signup` (For my team) → `/org` → share the join code | Company, industry, size | F7 |
 | 1 | `/org/members` | Who has completed intake | F7 |
 | 2 | `/org/radar` | Radar for the banking industry | F2 |
 | 3 | `/org/gaps` | Heatmap: share of members missing each skill for each target role | F7 (+ F5 gap function) |
@@ -175,15 +175,23 @@ problems. Adapted, not copied blindly:
 ## 6. Routing summary
 
 ```
-/                         landing: Individual | Organisation
-├─ /demo/learner  ─► /app/onboarding ─► /app/profile ─► /app/radar ─► /app/matches ─► /app/pathway?role=
-│                                                                    └─ /app/matches/[roleId]   │
-│                                                     /app/progress?role=  ◄──────────────────────┤
-│                                                     /app/sdg?role=       ◄──────────────────────┘
-├─ /demo/org      ─► /org/setup ─► /org/members ─► /org/radar ─► /org/gaps ─► /org/plan ─► /org/sdg
-├─ /about         LLM disclosure, methodology, sources (with dates), guardrails, fairness
-└─ /admin/*       sources, snapshots (internal)
+/  (Individual | Teams)  CV upload ─► partial result ─► /auth/signup ─┐      /auth/login ─┐
+                                                                     ▼                   ▼
+learner:  /app/onboarding ─► /app (home) ─► /app/radar ─► /app/matches ─► /app/matches/[roleId]
+                                 │                              └─► /app/pathway?role= (save plan)
+                                 │                                        ├─► /app/progress
+                                 │                                        └─► /app/sdg
+                                 └─ /app/profile (skills, organisation) ─► /app/join?code=
+team:     /auth/signup (For my team) ─► /org ─► /org/members (join code) ─► /org/gaps ─► /org/plan
+                                          └─► /org/radar, /org/sdg, /org/courses, /org/verify, /org/setup
+/about    LLM disclosure, methodology, sources (with dates), guardrails, fairness
 ```
+
+API chain behind the pages: `POST /auth/signup|login` → `POST /profile/questionnaire` +
+`PUT /profile/skills/confirm` → `GET /trends/snapshot` → `GET /matches` (needs a profile:
+`profile_required`) → `GET /pathway?role_id=` → `POST /pathway/plans` → `GET /pathway` and
+`/pathway/progress` default to the saved role (`role_required` until one is saved) →
+`GET /sdg/contribution/me`. Teams: `POST /org/join` → `GET /org/members|gaps|plan`.
 
 `?scenario=` and `?role=` are preserved by the journey stepper so every page describes the same
 plan under the same scenario.

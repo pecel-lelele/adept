@@ -15,6 +15,22 @@
   "component": {
     "skill_overlap": "技能重合度",
     "trend_outlook": "趋势前景",
-    "interest_fit": "兴趣契合度"
+    "interest_fit": "兴趣契合度",
+    "sdg_impact": "SDG 影响"
+  },
+  "sdgWeight": "联合国目标应占多大比重？",
+  "sdgWeightHint": "调高后，与可持续发展目标关联更强的职位会更靠前。每个分数中会显示 SDG 部分。",
+  "sdgWeightOff": "不计入",
+  "changes": {
+    "title": "从 {from} 到 {to} 的变化",
+    "same": "无变化",
+    "up": "上升 {count}",
+    "down": "下降 {count}",
+    "rankWas": "之前第 {rank}",
+    "because": "变化的技能：",
+    "rose": "上升",
+    "fell": "下降",
+    "noDrivers": "这两个日期之间，此职位的技能都没有变化。",
+    "note": "你的技能没有变，只有趋势数据变了。排名是相对的：其他职位下降更多时，某个职位也可能上升。排名为估计。"
   }
 }

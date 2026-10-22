@@ -93,6 +93,21 @@ def _load_roles() -> list[Role]:
     ]
 
 
+def load_profile(user_id: str) -> MatchProfile:
+    """Public entry point to the saved-profile loader (replay and other services)."""
+    return _load_profile(user_id)
+
+
+def role_label(role_id: str) -> str:
+    _load_roles()
+    return _ROLE_LABELS.get(role_id, role_id)
+
+
+def skill_label(skill_id: str) -> str:
+    _load_roles()
+    return _SKILL_LABELS.get(skill_id, skill_id)
+
+
 def load_roles() -> list[Role]:
     """Public entry point to the catalog loader (production + benchmark)."""
     return _load_roles()
@@ -118,7 +133,16 @@ def _load_profile(user_id: str) -> MatchProfile:
         )
 
     # Use user's skill level (1-5 scale) directly for required_level comparison
-    skills = {s.skill_id: float(s.level) for s in profile.skills}
+    # Completed learning with accepted evidence (reviewer-confirmed, or a certificate on the
+    # provider's verification page) raises a level; self-reported ticks do not (H08).
+    from app.features.pathway import service as pathway_service
+
+    skills = {
+        skill_id: float(level)
+        for skill_id, level in pathway_service.combined_levels(
+            user_id, {s.skill_id: s.level for s in profile.skills}
+        ).items()
+    }
     interests = frozenset(profile.interests)
 
     return MatchProfile(skills=skills, interests=interests)

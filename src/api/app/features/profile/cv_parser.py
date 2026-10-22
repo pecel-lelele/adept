@@ -131,6 +131,7 @@ class _AliasEntry:
     pattern: re.Pattern[str]
     skill_id: str
     phrase_len: int
+    phrase: str = ""
 
 
 @lru_cache(maxsize=1)
@@ -164,6 +165,7 @@ def _build_alias_index() -> list[_AliasEntry]:
             ),
             skill_id=sid,
             phrase_len=len(phrase),
+            phrase=phrase.lower(),
         )
         for phrase, sid in entries
     ]
@@ -335,6 +337,10 @@ def extract_skills(text: str) -> list[ParsedSkill]:
         sid = entry.skill_id
         existing = spans.get(sid, [])
         if len(existing) >= MAX_CONFIDENCE_HITS:
+            continue
+        # Cheap substring check first: most of the 110+ skills are absent from any one CV,
+        # and a regex scan per absent alias dominated parsing time on long texts.
+        if entry.phrase and entry.phrase not in normed:
             continue
         for m in entry.pattern.finditer(normed):
             if len(existing) >= MAX_CONFIDENCE_HITS:

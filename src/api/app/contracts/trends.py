@@ -113,6 +113,13 @@ class TrendSnapshotMeta(BaseModel):
             "arXiv date-window pulls or demo calibration."
         ),
     )
+    observed_from: date | None = Field(
+        default=None,
+        description="Start of the period the source data measures; may predate snapshot_date.",
+    )
+    observed_to: date | None = Field(
+        default=None, description="End of the period the source data measures."
+    )
 
 
 class TrendSnapshotResponse(BaseModel):

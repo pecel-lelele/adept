@@ -235,18 +235,23 @@ def role_badges(role_id: str) -> list[SdgTarget]:
     return [link.target for link in repository.role_links(role_id)]
 
 
-def org_contribution(org_id: str, scenario: ScenarioId) -> SdgContribution:
-    plans = org_service.member_plans(org_id, scenario)
+def org_contribution(
+    org_id: str, scenario: ScenarioId, role_id: str | None = None
+) -> SdgContribution:
+    """Aggregate of every counted member's plan towards the selected (or default) role."""
+    plans = org_service.member_plans(org_id, scenario, role_id)
     return contribution_for_plans(plans, "organisation", org_id, scenario)
 
 
-def region_contribution(state: str, scenario: ScenarioId) -> SdgContribution:
+def region_contribution(
+    state: str, scenario: ScenarioId, role_id: str | None = None
+) -> SdgContribution:
     org_ids = repository.orgs_in_state(state)
     if not org_ids:
         raise NotFoundError(f"No organisations in region {state}")
     plans: dict[str, Pathway] = {}
     for org_id in org_ids:
-        plans.update(org_service.member_plans(org_id, scenario))
+        plans.update(org_service.member_plans(org_id, scenario, role_id))
     return contribution_for_plans(plans, "region", state, scenario)
 
 

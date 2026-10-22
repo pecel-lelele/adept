@@ -692,8 +692,278 @@
 - **Replaces**: none
 - **PR / branch**: `refactor/pathway-trend-and-match-ports`
 
+### M3-027: Shared learning and HR workspaces, guest preview, and Compose startup
+
+- **Date**: 2026-10-21
+- **Feature**: F5, F6, F8; Core/F7 explicitly requested by M3
+- **Type**: UI | method | contract | schema | other
+- **Change**: Added API-backed learner and HR overview pages, responsive workspace shells, scenario/role/snapshot navigation, a clickable journey atlas, synthetic guest CV preview using M2 public parsing/scoring and M1 bounded snapshot ports, explicit demo consent and safe return links. Activity points are 100 per completed unique course and a level per 500 points, never a proficiency measure. Added backend/frontend Dockerfiles, fresh-db migration/seed startup, standalone Next.js output, and an append-only skills.aliases migration matching M2's CSV header. Guest API returns one role plus a count, never the full ranking or raw CV; no anonymous profile is saved into a demo identity.
+- **Why**: M3 can integrate presentation and deployment while M1/M2 retain ownership of their algorithms and in-flight changes. Container startup testing exposed the missing aliases column; relative allowlisted redirects avoid Docker-internal hostname leakage. Exact public-origin checks remain on preview submission.
+- **Pipeline**: synthetic CV → M2 capped parser and taxonomy extraction → unconfirmed skill levels → M2 rank_roles with M1 dated velocities → restricted top-one response with original sources and estimates → skill confirmation handoff (production account/draft claim pending).
+- **Affects**: M1/M2 (existing public interfaces consumed, no owned files edited), M4 (Core shell, routes, organisation target selection, Compose; landing CTA /try hook pending)
+- **Replaces**: none
+- **PR / branch**: feat/core-m3-workspace-navigation
+
 ---
 
 ## M4: Core & Organisation (Core, F7)
 
 <!-- M4 adds entries below this line -->
+
+### M4-001: Real accounts, PostgreSQL-first storage, no built-in personas
+- **Date**: 2026-10-22
+- **Feature**: Core, F1, F7 (cross-feature, requested by the user on `feat/core-insight-design`)
+- **Type**: contract | schema | method | data source
+- **Change**: Sign-up / sign-in replace the persona shortcuts. New `POST /auth/signup`, `POST /auth/login`, `GET /auth/me` (`features/accounts`, `core/accounts.py`): scrypt password hashes in `users.password_hash`, HMAC-signed 14-day session tokens (`core/security/session.py`, `SESSION_SECRET`) kept by Next.js in an httpOnly `adept_session` cookie and forwarded as `X-Demo-User`. Organisation sign-up creates the organisation and a manager/advisor membership with a join code (`organizations.join_code`); learners join with `POST /org/join` or a code at sign-up. Migration `20261022090000_core_local_accounts.sql`. `M3_BACKEND` now defaults to `postgres`; profiles (`profiles`, `user_skills`) and organisations/memberships are read from and written to PostgreSQL, and user-data reads fail with 503 instead of silently falling back to memory. `DEMO_USERS`, `features/profile/mocks.py`, `features/org/mocks.py`, the proxy's persona allow-list and `/demo/*` routes are removed; `src/db/seed.py` no longer loads `seed/personas` and `seed/org` (they stay as test fixtures, installed by `tests/harness/fixtures.py`). Saving a profile moves the member's intake status forward.
+- **Why**: Profiles lived in a Python dict (lost on restart) and only five hard-coded ids could use the app, so a live demo could not use real app logic. Persona data in the database was fake data.
+- **Affects**: everyone (shared contracts, migration, `.env.example`, `tests/conftest.py`); M2 (profile repository); tests use `AUTH_RAW_USER_IDS` / `AUTH_DEFAULT_USER` (test-only settings).
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design
+
+### M4-002: Hard-coded scenario outlooks, radar signals and data-freshness replaced by snapshot-derived values
+- **Date**: 2026-10-22
+- **Feature**: F2, F3, Core (cross-feature)
+- **Type**: formula | data source | contract
+- **Change**: `GET /scenarios` and `/scenarios/outlook`, `GET /trends/radar` and `/trends/roles/{id}`, `GET /meta/data-freshness` and the CV extraction meta no longer return `MOCK DATA`; they are computed from M1's dated snapshot and the taxonomy and cite its sources. `adoption_rate` = mean `automation_exposure` of tracked skills (fast: × (1 + k), k = 1.5 from `pipelines/trends/score.py`, capped at 1).
+- **Pipeline**: M1 snapshot (arXiv cs.AI + BLS, dated) → per-scenario skill velocity → role signal = importance-weighted velocity over covered required skills → outlook = 1 + signal; low/high = min/max over every stored snapshot, widened by (1 − coverage) × |signal| → evaluation: `tests/api/scenarios/test_outlook_method.py` (range contains outlook, fast ≥ moderate adoption, no mock sources) → serving: the endpoints above.
+- **Affects**: M1 (owner of F2/F3: please review the method)
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design
+
+### M4-003: Skill bank enriched to 113 skills with cited SDG links
+- **Date**: 2026-10-22
+- **Feature**: F1, F4, F6
+- **Type**: data source
+- **Change**: `seed/taxonomy/skills.csv` now includes all 110 canonical skills M1's trend pipeline scores (labels, aliases, group in `description`), and `GET /profile/skills/catalogue` serves the bank plus the role interest tags for the intake. Every new skill has ≥ 1 `skill_sdg_map` link with a reason and an authoritative source (ILO WP140, UN indicator metadata, UNESCO), still `pending review`.
+- **Why**: Learners could only pick 12 skills, most of which the trend snapshot did not cover; must-have 5 requires every skill to be SDG-tagged.
+- **Affects**: M2 (taxonomy, CV aliases), M3 (SDG map review)
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design
+
+### M4-004: Rebuilt shell, navigation, dashboards and intake (visual-first)
+- **Date**: 2026-10-22
+- **Feature**: Core, F1, F4, F7 UI
+- **Type**: UI | contract
+- **Change**: New design system `app/adept.css` and `ui` message namespace (EN/BM/ZH). One `Shell` for all workspaces: desktop sidebar grouped by journey with numbered steps (ticked when done), page title and an AI-scenario switch only on pages where it matters; mobile uses a fixed 5-tab bar (4 destinations + "More" bottom sheet), no horizontal scrolling. Learner home shows one next step, top-3 fit rings, the learner's own skills as a diverging trend chart, the plan as a step track and SDG goal tiles; organisation home moves from invite (join code) → waiting → act, with an intake stacked bar, gap heatmap, team-plan track and SDG tiles. New 4-step intake (stage, interests, time/budget, skills from CV or the skill bank) — previously there was no way to enter skills. Org settings edit, join-code rotation and member removal (`PUT /org/me`, `POST /org/me/join-code`, `DELETE /org/members/{id}`); gap heatmap and plan carry role labels. API errors always use `{"error": {code, message}}` (validation, 404/405, database outages → 503) and the web client keeps status and code to show the right fix (sign in, finish profile, retry). Looping CSS-3D scenes (no library): staircase climb (pathway), signal gyroscope (radar), role-card carousel (matches), cube heatmap (team), SDG globe; paused for reduced motion.
+- **Why**: Users asked for a visual hierarchy, a coherent route/navigation model and mobile navigation without sideways scrolling.
+- **Affects**: all features' pages render inside the new shell; feature-owned pages beyond radar/matches/org were not restyled.
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design
+
+### M4-005: Local reliability fixes
+- **Date**: 2026-10-22
+- **Feature**: Core
+- **Type**: other
+- **Change**: `DATABASE_URL` hosts `localhost` are normalised to `127.0.0.1` (Docker binds IPv4 only; on Windows every connection waited the 2 s timeout on `::1`, which made matching return 503). `migrate.py status` reports the duplicate-version alias migration correctly. GET requests from the web retry once on a dropped connection.
+- **Affects**: everyone running locally on Windows
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design
+
+### M4-006: Upload-first home with a For me ⇄ For my team switch; refined visual system
+- **Date**: 2026-10-22
+- **Feature**: Core, F1 (anonymous preview), F7 (team pitch)
+- **Type**: UI | contract
+- **Change**: The home page is upload-first: anyone uploads a CV and immediately sees the skills found, how those skills trend, and their best-fit role (fit ring); more roles, the skills gap, the learning plan and SDG impact are shown blurred behind a free sign-up. Skills found carry into the intake after sign-up (browser storage only, cleared once saved). `POST /preview/cv` adds `skill_trends` (direction per extracted skill from the snapshot, ±0.05 band). A "For me ⇄ For my team" switch re-themes the whole landing (light ⇄ dark, colours animated via registered CSS properties) and swaps to the team pitch; `/?for=teams` links to it. Design tokens: white base, 1.2 type scale, 8-pt spacing, motion tokens, hover lift on cards, entrance stagger, ring labels scale with ring size (no overflow on phones). Sidebar is white; secondary pages sit in one collapsible "More" group. The CSS staircase scene (broken on phones) is replaced by an SVG line-art object (a skill lifting from your stack to a future role); the other 3D scenes are kept. `/try` redirects to `/#start`; the developer route atlas `/journey` is removed; About-page wording is user-facing.
+- **Why**: User feedback: visual-first, minimal white, sign-in from the landing, CV preview without login with the rest locked, and a teams landing that feels like a theme switch.
+- **Affects**: M2/M3 (preview response gains a field; About copy)
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design
+
+### M4-007: Trend snapshots live in PostgreSQL with their provenance; route chain fixes
+- **Date**: 2026-10-22
+- **Feature**: F2, F3, F5 (cross-feature)
+- **Type**: schema | data source | contract | formula
+- **Change**: `make seed` loads the pipeline's exported, dated snapshots (`src/data/seed/mock_trends_<date>.json`) into `trend_snapshots`, and their sources and provenance note into the new `trend_snapshot_meta` table (migration `20261022120000_core_trend_snapshot_meta.sql`); the trends repository now cites the stored sources (it used to hard-code "arXiv cs.AI RSS" even for Query-API runs) and uses taxonomy labels instead of title-cased ids. `GET /pathway` and `GET /pathway/progress` take an optional `role_id` and fall back to the saved plan (`409 role_required` until one exists); planning endpoints require a saved profile (`profile_required`, same rule as matching). Role outlook clips the signal to the engine's growth band so the index stays in [0.5, 2.0]. Tests never touch a developer database (`tests/conftest.py` points `DATABASE_URL` at an unreachable address unless `ADEPT_TEST_DATABASE_URL` is set).
+- **Pipeline**: pipeline export (arXiv cs.AI Query API windows + BLS, dated) → seed loader (no overwrite) → `trend_snapshots` + `trend_snapshot_meta` → repository (DB first, frozen export as fallback) → radar, matching, scenarios, pathway, freshness.
+- **Affects**: M1 (pipeline runs can write `trend_snapshot_meta` too), M3 (pathway defaults)
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design
+
+### M4-008: Docs brought up to date
+- **Date**: 2026-10-22
+- **Feature**: Core
+- **Type**: other
+- **Change**: PROJECT_CONTEXT §11.3 routes and §11.5 personas (now design/test fixtures only), SOLUTION_DESIGN start rows and routing summary with the API chain, README quick start, architecture auth section; WORKSPACE_IMPLEMENTATION marked superseded.
+- **Affects**: everyone (shared AI context, edited at the user's request)
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design
+
+### M4-009: CI split into backend and frontend jobs
+- **Date**: 2026-10-22
+- **Feature**: Core
+- **Type**: other
+- **Change**: `.github/workflows/ci.yml` now runs Backend (ruff lint + format, pytest), Frontend (eslint, tsc, translation keys, Next.js build) and Contracts (OpenAPI + TS types drift) as parallel jobs instead of one `make check` job; the database job waits on Backend only. A failure now shows which side broke. `make check` locally is unchanged.
+- **Affects**: everyone (root config); required status checks in branch protection, if any, must be renamed to the new job names
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design
+
+### M4-010: Review fixes on PR #7 (sessions, sign-up, membership, outlooks, web)
+- **Date**: 2026-10-22
+- **Feature**: Core, F7 (also touches F3 scenarios)
+- **Type**: other
+- **Change**: Session fallback key is now random (`.session-secret`, gitignored, or in memory) instead of derived from the public default `DATABASE_URL`; compose passes `SESSION_SECRET` to the API. A team sign-up whose organisation can't be created is undone, so the email is free to retry. A member joining a second organisation gets 409 `already_member` (one organisation per member; removal clears it). Role outlooks load each snapshot date once over one connection instead of twice per date with a new connection each. Web: every selected skill is saved (no 60 cap), Server Action body limit raised to 6 MB for 5 MB CVs, the home page no longer claims "path complete" when progress fails to load, `a-span-3` added, Compare link uses `roles`, the mobile More sheet traps and restores focus.
+- **Affects**: everyone running compose (set `SESSION_SECRET` in `.env` to keep sessions across restarts); F3 owner (outlook loading)
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design
+
+### M4-011: Partner design applied (frontend/adept): palette, type, sidebar, public header and footer
+- **Date**: 2026-10-22
+- **Feature**: Core (also restyles F5, F6, F8 pages)
+- **Type**: other
+- **Change**: Tokens now follow the partner design: Arial/Helvetica, charcoal-green ink `#18231C`, green actions `#22C55E` with a pressed edge, sage surfaces, `#E4E9E4` dividers, 20px cards, weight-500 editorial headings. The workspace keeps the sidebar (no top bar); the AI-scenario switch is an "AI pace: Moderate | Fast" control at the top right of the pages it changes. New public `SiteHeader` (pinned, hamburger on phones, EN/BM/中文 pill) and `SiteFooter` used by the landing and About pages. Pathway, progress, courses, compare, reviews, SDG and About pages rebuilt on shared `a-` components (metric cards, step rail, course rows, goal tiles, filters). The partner app itself (Vite/Cloudflare, its own database) was not merged: only its design was ported; `frontend/` stays out of the repo.
+- **Affects**: everyone (shared UI); F5/F6/F8 owners (M3) please review the restyled pages, F3 (scenario switch placement)
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design
+
+### M4-012: Landing page: live data, isometric objects, team view
+- **Date**: 2026-10-22
+- **Feature**: Core
+- **Type**: feature
+- **Change**: New public `GET /api/v1/meta/overview` (cached 60 s) computes the landing figures from the app's own data (snapshot rising/stable/declining and top movers, role outlooks, course and HRD Corp counts, SDG goals linked) with sources and date; it feeds the "How it works" stepper (auto-advancing, no layout jumps) and the team numbers band, replacing the partner's illustrative sample profile. Monochrome isometric line-art objects (one projection, one green accent) for every feature, a "where you are → where you could be" career scene for individuals and an office scene for organisations. "For me | For my team" is a segmented control in the header; switching wipes to the other audience's hero (View Transitions). Teams get a sage/forest-green theme, their own features (roster, gap heatmap, target role, group plan, HRD Corp, reviews), steps and FAQ. Scroll reveals, count-ups and hover motion all respect reduced motion.
+- **Affects**: none outside Core
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design
+
+### M4-013: Checklist gaps closed: SDG-weighted ranking, trend replay "what changed and why", learning style
+- **Date**: 2026-10-22
+- **Feature**: F4, F2, F1 (built by M4 at the team's request; M2 please review)
+- **Type**: feature
+- **Change**: (1) `GET /matches?sdg_weight=0..1`: each role gets an SDG impact value from its reviewed SDG links (direct = 1, enabling = 0.5, divided by the strongest role); existing parts keep their relative weights scaled by (1 − λ) and "sdg_impact" is added with weight λ, so the score stays a visible weighted sum; λ = 0 is unchanged. Slider on the matches page. (2) `GET /matches/replay?from_date=&to_date=` ranks the saved profile on two snapshots (`replay.py`) and names, per role, the required skills whose velocity × importance moved most; shown as "What changed from … to …" when an older snapshot is picked. (3) Learning style is now asked in the intake and stored (`profiles.learning_style`, migration `20261022150000`); a profile update without it keeps the saved value. Tests: `tests/api/matching/test_sdg_weight_and_replay.py`, `tests/api/profile/test_learning_style.py`.
+- **Affects**: M2 (F1/F4 code and contracts: `RoleMatch` unchanged, new `ReplayResponse`, `ProfileIn.learning_style`), shared migration
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design
+- **Pipeline**: source = trend snapshots + reviewed SDG links → features = SDG link weight, velocity deltas → method = linear blend (λ) / rank diff with importance-weighted drivers → evaluation = unit + API tests → serving = `/api/v1/matches`, `/api/v1/matches/replay`
+
+### M4-014: Partner prototype folder removed; app icon added
+- **Date**: 2026-10-22
+- **Feature**: Core
+- **Type**: chore
+- **Change**: The partner's prototype (`frontend/adept`, never committed) was deleted after checking its colours, type, logo and layout patterns are all in `src/web` (M4-011, M4-012). Its sample CV and team files were fake data and its favicon was a template icon, so neither was kept. Added `src/web/src/app/icon.svg`, the Adept "A" mark, as the browser-tab icon.
+- **Affects**: none
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design
+
+### M4-015: Consistent dashboard layouts and restored workspace CSS
+- **Date**: 2026-10-22
+- **Feature**: Core; F1, F2, F4, F5 and F6 presentation
+- **Type**: UI
+- **Change**: Added shared KPI strips, level pips, score bars and trend labels, grouped desktop navigation, and consistent layouts for Home, My skills, Radar, Roles, Plan, Progress, Courses and Impact. Restored the missing dashboard styles from the design handoff, scoped them to `.a-shell`, and adjusted compact charts and responsive KPI layouts. Dashboard labels have matching English, Bahasa Melayu and Chinese keys.
+- **Why**: Revised page components referenced CSS that had not been saved, leaving the dashboard layout broken. A shared visual rhythm makes metrics, skills gaps, learning steps and evidence easier to compare across screens. The landing page and backend were excluded from this work.
+- **Affects**: All workspace UI; feature owners should review their screens. API contracts, dependencies and backend behavior are unchanged.
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design
+
+### M4-016: Same ranking context across matches, role detail, replay and outlook (H04, H03 wording)
+- **Date**: 2026-10-22
+- **Feature**: F4, F3 (Core integration)
+- **Type**: fix
+- **Change**: (1) The UN Goals weight now travels from the matches list to the role detail (`?sdg=`) and to `GET /matches/replay?sdg_weight=`, which blends SDG impact into both snapshots' scores the same way as the list. (2) Replay reasons now use the scorer's own input: each skill's percentile position among all skills in the snapshot. Effect = change in position × the skill's share of the role's importance × trend weight, i.e. the score points it moved. `ReplayDriver` gains `position_before` / `position_after`. (3) `GET /scenarios/outlook?snapshot_date=` uses only snapshots up to that date, so a historical match page cites its own period. (4) The SDG part of the score no longer calls its links "reviewed"; its explanation says how many of the role's links a person has reviewed. Role detail restyled to the shared layout (score arithmetic, gap list, outlook range bars).
+- **Why**: Greptile review on PR #7 and handoff H04/H03: the same choice showed different scores and ranks between views, replay could explain a fall as a rise, and draft mappings were described as reviewed.
+- **Affects**: M2 (matching contracts/service), M1 (outlook endpoint); contract additions only.
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design
+- **Pipeline**: source = trend snapshots + SDG links → features = percentile positions (`trend_scores`), SDG impact → method = linear blend (1 − λ)·score + λ·impact on both dates; driver effect = Δposition × importance share × w_trend → evaluation = regression tests (percentile vs raw velocity, weighted replay order = weighted list order, detail score = list score, outlook date) → serving = `/matches`, `/matches/{id}`, `/matches/replay`, `/scenarios/outlook`
+
+### M4-017: Handoff fixes H05, H06, H07, H09, H10 and landing headline sizing
+- **Date**: 2026-10-22
+- **Feature**: Core; F2, F5, F6, F7 integration
+- **Type**: fix
+- **Change**: H05: `GET /sdg/contribution/org` and `/contribution/region/{state}` take `role_id`; the organisation Impact page passes the role chosen on the team plan and keeps it on the scope tabs (unknown roles 404). H06: translated every BM/Chinese string still in English that the app uses; removed about 100 unused keys (`common.workspace`, `common.journey`, unused `common.design`); progress badges are named from their stable id via `pathway.badge.*` instead of the API's English label. H07: the Next.js dev indicator is off, since it intercepted clicks on the sidebar language switch and on the mobile "More" tab. H09: snapshot and recommendation metadata gain optional `observed_from` / `observed_to` (from stored metadata, else parsed from the provenance note; `trends/provenance.py`); the sources line shows "data measured … to …" and the Radar warns when the evidence is a historical replay. H10: evidence wording says a certificate link only shows the page opens on the provider's site; a reviewer confirms ownership; landing "Verified completions" became "Reviewed completions". Landing: both hero headlines share one rule (same size, line height and spacing, larger), and BM/Chinese headlines flow as one balanced paragraph.
+- **Why**: Handoff `docs/FEATURE_STATUS_AND_FIX_HANDOFF.md` items H05–H10 and user feedback on the landing headlines.
+- **Affects**: M3 (SDG contribution endpoints, evidence wording, badge names), M1 (snapshot metadata fields), shared `RecommendationMeta` (two optional fields), all locales.
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design
+
+### M4-018: Scheduled trend refresh (H01), data audit, team pages, join entry, auth panel, dropdowns
+- **Date**: 2026-10-22
+- **Feature**: F2 (pipeline), Core, F7
+- **Type**: feature / fix
+- **Change**: (1) `pipelines/trends/run.py` replaces the placeholder: ingest → `score.score_rows` (extracted, pure) → `validate` → `publish` (rows + `trend_snapshot_meta` in one transaction; note names the measured ISO week). `.github/workflows/trends-refresh.yml` runs it weekly when `TREND_DATABASE_URL` is set, installing CPU torch 2.5.1 and sentence-transformers 3.3.1 in the job only. (2) Data audit: sidebar ticks follow the same rule as the Home/team journeys (saved plan → steps 1-3; completed member profile → team steps 1-4); My skills follows the AI pace; "110+ skills" copy no longer hard-codes a count; replan banner shows skill names. (3) Team dashboard, Team, Skill gaps, Team plan, Reviews and Settings on the shared layout (no 3D scenes on dashboards). (4) "Join a team" in the sidebar, mobile menu and Home for learners without an organisation; join page explains what is shared. (5) Auth pages: one top-aligned framed panel with the landing drawings (career path; office on the forest background for teams), stable scrollbar gutter, so switching sign-in/sign-up does not jump. (6) All `<select>` elements styled; option lists styled where `appearance: base-select` is supported. (7) `docs/FEATURE_STATUS_AND_FIX_HANDOFF.md` gains a fix-status table.
+- **Why**: Handoff H01 and user review of data consistency, team flow, auth and dropdowns.
+- **Affects**: M1 (pipeline, new workflow, CI secret `TREND_DATABASE_URL`), M2/M3 screens (layout only), root config (`.github/`).
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design
+- **Pipeline**: source = arXiv cs.AI listing + BLS 2023-2033 → preprocessing = HTML strip, sentence split → features = MiniLM sentence-cosine mention counts per ISO week → method = log-ratio velocity + labour baseline + fast-scenario transform → evaluation = publish-time validation (two weeks, ≥ 50 skills, taxonomy ids, finite values) → serving = `trend_snapshots` / `trend_snapshot_meta` read by `/trends/snapshot`
+
+### M4-019: Smooth page transitions, loading skeletons and steady auth panel
+- **Date**: 2026-10-22
+- **Feature**: Core
+- **Type**: UI
+- **Change**: (1) `components/shell/Motion.tsx`: a top progress bar from any internal link click or GET form submit until the next route renders; a page entrance (fade and rise, sections and rows staggered) keyed by path; key numbers count up. (2) `app/app/loading.tsx` and `app/org/loading.tsx` show `PageSkeleton` (header, number strip, two cards) while the server renders. (3) `useBusy`: the AI pace, snapshot, UN Goals slider and Radar snapshot controls mark the page busy (bar runs, content dims) until new data arrives; course filters and the team-plan role picker use `next/form` (client navigation, no full reload). (4) Buttons lift on hover, arrows nudge, presses sink; pending buttons show a spinner. (5) Auth: `/auth/login` and `/auth/signup` share `app/auth/(entry)/layout.tsx`, which keeps one `AuthView` mounted; tabs are links (`replace`, no scroll), the pill slides, the form cross-fades. On sign-up, team and personal fields share one slot sized to the taller set and cross-fade, so the panel never changes size; the inactive fieldset is disabled (not validated or submitted). The art panel cross-fades between sage and forest. All motion is off under `prefers-reduced-motion`.
+- **Why**: User review: switching pages and auth tabs felt jumpy, waits had no feedback.
+- **Affects**: shared shell and UI only; no API or contract change.
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design
+
+### M4-020: Review fixes on PR #7: exposure score wording, refresh freshness and dates, team gap averages
+- **Date**: 2026-10-22
+- **Feature**: F2, F7, Core
+- **Type**: fix
+- **Change**: (1) `automation_exposure` is shown as a 0–1 score ("Exposure score"), not a percentage, with an explanation that reviewers assigned it from published research (`docs/skill-exposure-methodology.md`); EN/BM/ZH. (2) `pipelines.trends.run` refuses to publish after an ingest that stored no signals today (empty or unreadable feed), so older evidence is never republished as new. (3) The measured period and source retrieval date come from the days signals were actually collected (`collected_dates`), not the calendar ISO week, so a Monday run does not claim future days. (4) `GapHeatmapResponse.role_gaps` returns each role's average gap over its required skills only (the figure that picks the default team target); the Skill gaps page and team dashboard use it instead of averaging zero cells for unrelated skills.
+- **Why**: Greptile review comments on PR #7.
+- **Affects**: M1 (pipeline), M4 F7 contract addition (`role_gaps`).
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design
+
+### M4-021: H08 evidence policy for matching; H02 closed by design
+- **Date**: 2026-10-22
+- **Feature**: F4, F5 (Core integration)
+- **Type**: feature / decision
+- **Change**: Completed learning now feeds role matching under the policy the user chose: a course's skill level counts when the completion is confirmed by the organisation's reviewer (`org_confirmed`) or has a certificate link that opens on the provider's own verification page (`certificate_link` with `provider_verified`). Self-reported, unreachable or rejected completions do not change matches. `pathway.service.earned_levels` (pure) and `evidenced_levels(user_id)` compute the levels from the saved plan; `matching.repository._load_profile` takes the higher of the intake and evidenced level per skill, so the skills gap, score and pathway update together. H02 (synthetic-only enforcement) is closed by design: the app behaves as a real product and the team runs the demo with synthetic data only.
+- **Why**: Handoff H08 and H02, decided by the user.
+- **Affects**: M2 (matching profile input), M3 (evidence semantics now affect matching).
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design
+
+### M4-022: Keep evidenced learning across targets and share effective skill levels
+- **Date**: 2026-10-22
+- **Feature**: Core integration; F4, F5, F7
+- **Type**: schema | method
+- **Change**: Progress records retain an immutable `Course` snapshot in `course_progress.course_snapshot` (append-only migration `20261022220000`). Accepted learning is aggregated across every target instead of the current saved plan. Matching, pathway generation/comparison/re-planning and organisation member inputs use `pathway.service.combined_levels`, the per-skill maximum of intake and accepted learning. Review queues use historical course facts; rejection and undo still revoke credit.
+- **Why**: Greptile PR #7 findings “Changing targets loses earned credit” and “Plans ignore earned skills”. Replacing a target previously removed earned levels, and the same learner had inconsistent gaps across matching, pathways and team views. Retaining facts with progress also prevents catalogue edits or retirement from changing past learning. Existing rows are backfilled from their surviving saved plan, otherwise from the current catalogue; facts lost before this migration cannot be reconstructed.
+- **Pipeline**: source = confirmed intake, persisted course facts, completion status and evidence → preprocessing = include only completed courses with accepted evidence → features = highest evidenced course level per skill across targets → method = maximum of intake and earned levels → evaluation = regression tests for target changes, retired/edited courses, consistent individual/team planning, rejection, undo, user isolation, PostgreSQL persistence and migration backfill → serving = matching, pathway and organisation services.
+- **Affects**: M2 (matching input), M3 (progress persistence and planning), M4 (team gaps); one new database column, no API contract change.
+- **Replaces**: M4-021 (current-target-only earned-level lookup; the evidence acceptance policy is unchanged)
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/7 / feat/core-insight-design
+
+### M4-023: Submission drafts and readable, interactive documentation diagrams
+- **Date**: 2026-10-22
+- **Feature**: Core (submission and documentation)
+- **Type**: other
+- **Change**: Added proposal and technical-tools Markdown drafts following the supplied PDF sections and narrative limits. README branding reuses the existing Adept mark with a centered title and technology badges; diagrams are editable Mermaid, checked against routes and migrations, with large schemas split by domain. A standalone offline viewer adds zoom, pan, resize, fullscreen and SVG/Mermaid downloads; documentation-only Mermaid 11.12.0 tooling generates it without changing application dependencies.
+- **Why**: The existing submission links had no target files and screenshot diagrams were unreadable. GitHub Markdown cannot run interactive controls, so a local browser viewer complements the native source blocks. Declarations separate verified local functionality from planned cloud/sponsor use and leave personal, legal and registration attestations for the team. The proposed 20% planning-time reduction is an evaluation target, not a measured outcome; the draft specifies a matched synthetic manual-catalogue comparison before claiming results.
+- **Affects**: M4 submission assembly; all owners review their technical disclosures. No API contract or application dependency changes for documentation.
+- **Replaces**: none
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/7 / feat/core-insight-design
+
+### M4-024: Batch accepted learning across team members and targets
+- **Date**: 2026-10-22
+- **Feature**: F5, F7 (Core integration)
+- **Type**: method
+- **Change**: One joined learning-record query loads progress, immutable course facts and evidence for all requested members across every target. Team planning reuses its loaded members when choosing the default target; accepted per-skill levels are calculated from the supplied batch.
+- **Why**: Greptile PR #7 finding “Team reads grow with history”. Per-member, per-target connections multiplied with learning history, and default target selection loaded members twice.
+- **Pipeline**: source = persisted progress, course snapshots and evidence → preprocessing = batch by requested user IDs → features = per-skill accepted maximum → method = reuse batch inputs for team gaps and planning → evaluation = one-query regression for 100 members with three targets and single-member-load checks → serving = pathway earned levels and organisation planning.
+- **Affects**: M3 F5 internal repository read; M4 F7 team inputs. No API or schema change.
+- **Replaces**: M4-022 per-target lookup implementation; earned-credit policy remains unchanged.
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/7 / feat/core-insight-design
+
+### M4-025: Retain completed course history and badges after re-planning
+- **Date**: 2026-10-22
+- **Feature**: F5 (Core integration)
+- **Type**: schema | contract | UI
+- **Change**: Saved plan contexts are archived atomically in pathway_plan_history. Progress returns completed course history independently of the remaining plan. The Progress page keeps historical evidence and undo controls, and badges are re-evaluated against original plans with current evidence so rejection and undo still revoke credit.
+- **Why**: Greptile PR #7 finding “Completed courses disappear after re-planning”. Replacing a saved plan hid completed courses and badge context. The migration backfills the surviving saved plan; overwritten pre-migration plan contexts cannot be reconstructed, although captured course facts remain available.
+- **Pipeline**: source = completed course snapshots, evidence and archived plans → preprocessing = apply current evidence policy → features = historical course facts and original requirements → method = evaluate badges against original plans and merge completed hours with remaining work → evaluation = memory/PostgreSQL regressions for re-plan, history, badges, undo, rejection and isolation → serving = progress API and EN/MS/ZH Progress page.
+- **Affects**: M3 F5 additive history/badge fields and one append-only migration; M4 progress presentation.
+- **Replaces**: none
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/7 / feat/core-insight-design
+
+### M4-026: Exclude rejected past courses from progress totals
+- **Date**: 2026-10-22
+- **Feature**: F5 (Core integration)
+- **Type**: formula | UI
+- **Change**: Historical hours join the progress denominator only when their effective status is completed. Rejected courses remain visible and editable in history; a rejected course still present in the current plan remains unfinished required work. The course-count KPI applies the same rule to historical entries.
+- **Why**: Greptile PR #7 finding “Finished plans still look incomplete”. Raw completed records with rejected evidence added historical hours to the denominator without adding completed hours, leaving a finished replacement plan below 100%.
+- **Affects**: M3 F5 progress calculation; progress page KPI. No API or schema changes.
+- **Replaces**: M4-025 inclusion of rejected historical hours in progress totals.
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/7 / feat/core-insight-design

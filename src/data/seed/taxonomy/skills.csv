@@ -1,13 +1,114 @@
-id,label,taxonomy,aliases
-excel,Spreadsheet analysis,custom,excel|spreadsheet
-sql,SQL,custom,sql
-python,Python programming,custom,python
-data-visualisation,Data visualisation,custom,data visualisation|data visualization
-process-mapping,Business process mapping,custom,business process mapping|process mapping
-rpa,Robotic process automation,custom,rpa|robotic process automation
-prompt-engineering,Prompt engineering,custom,prompt engineering
-ai-literacy,AI literacy & responsible AI,custom,ai literacy|responsible ai
-risk-compliance,Risk & compliance,custom,risk compliance|risk & compliance
-customer-service,Customer service,custom,customer service
-logistics-planning,Logistics planning,custom,logistics planning
-manual-data-entry,Manual data entry,custom,manual data entry
+id,label,taxonomy,aliases,description
+excel,Spreadsheet analysis,custom,excel|spreadsheet,Core workplace skill
+sql,SQL,custom,sql,Core workplace skill
+python,Python programming,custom,python,Durable human-oversight skill
+data-visualisation,Data visualisation,custom,data visualisation|data visualization,Durable human-oversight skill
+process-mapping,Business process mapping,custom,business process mapping|process mapping,Durable human-oversight skill
+rpa,Robotic process automation,custom,rpa|robotic process automation,Core workplace skill
+prompt-engineering,Prompt engineering,custom,prompt engineering,Emerging AI-native skill
+ai-literacy,AI literacy & responsible AI,custom,ai literacy|responsible ai,Emerging AI-native skill
+risk-compliance,Risk & compliance,custom,risk compliance|risk & compliance,Durable human-oversight skill
+customer-service,Customer service,custom,customer service,Durable human-oversight skill
+logistics-planning,Logistics planning,custom,logistics planning,Durable human-oversight skill
+manual-data-entry,Manual data entry,custom,manual data entry,Routine skill at risk of automation
+llm-fine-tuning,LLM fine-tuning & adaptation,adept-canonical,llm fine-tuning & adaptation|llm fine tuning,Emerging AI-native skill
+rag-systems,Retrieval-augmented generation (RAG),adept-canonical,retrieval-augmented generation|rag systems,Emerging AI-native skill
+mlops,MLOps & model deployment,adept-canonical,mlops & model deployment|mlops,Emerging AI-native skill
+vector-databases,Vector database design,adept-canonical,vector database design|vector databases,Emerging AI-native skill
+ai-agents,Autonomous AI agent design,adept-canonical,autonomous ai agent design|ai agents,Emerging AI-native skill
+multimodal-ai,Multimodal AI (vision + language),adept-canonical,multimodal ai,Emerging AI-native skill
+ai-safety,AI safety & alignment evaluation,adept-canonical,ai safety & alignment evaluation|ai safety,Emerging AI-native skill
+explainable-ai,Explainable AI (XAI) methods,adept-canonical,explainable ai methods|explainable ai,Emerging AI-native skill
+ai-ethics,AI ethics & governance,adept-canonical,ai ethics & governance|ai ethics,Emerging AI-native skill
+llm-evaluation,LLM evaluation & red-teaming,adept-canonical,llm evaluation & red-teaming|llm evaluation,Emerging AI-native skill
+data-pipelines,Data pipeline engineering,adept-canonical,data pipeline engineering|data pipelines,Emerging AI-native skill
+synthetic-data-gen,Synthetic data generation,adept-canonical,synthetic data generation|synthetic data gen,Emerging AI-native skill
+feature-engineering,Feature engineering for ML,adept-canonical,feature engineering for ml|feature engineering,Emerging AI-native skill
+model-monitoring,ML model monitoring & drift detection,adept-canonical,ml model monitoring & drift detection|model monitoring,Emerging AI-native skill
+federated-learning,Federated & privacy-preserving ML,adept-canonical,federated & privacy-preserving ml|federated learning,Emerging AI-native skill
+ai-product-management,AI product management,adept-canonical,ai product management,Emerging AI-native skill
+cloud-ai-services,Cloud AI services (AWS/Azure/GCP),adept-canonical,cloud ai services,Emerging AI-native skill
+low-code-ai,Low-code / no-code AI tooling,adept-canonical,low-code / no-code ai tooling|low code ai,Emerging AI-native skill
+nlp-engineering,NLP engineering & text processing,adept-canonical,nlp engineering & text processing|nlp engineering,Emerging AI-native skill
+computer-vision,Computer vision engineering,adept-canonical,computer vision engineering|computer vision,Emerging AI-native skill
+time-series-forecasting,Time-series forecasting,adept-canonical,time-series forecasting|time series forecasting,Emerging AI-native skill
+causal-inference,Causal inference & A/B testing,adept-canonical,causal inference & a/b testing|causal inference,Emerging AI-native skill
+graph-ml,Graph ML & knowledge graphs,adept-canonical,graph ml & knowledge graphs|graph ml,Emerging AI-native skill
+recommendation-systems,Recommendation system design,adept-canonical,recommendation system design|recommendation systems,Emerging AI-native skill
+robotic-process-automation,Robotic process automation (RPA),adept-canonical,robotic process automation,Emerging AI-native skill
+ai-assisted-coding,AI-assisted software development,adept-canonical,ai-assisted software development|ai assisted coding,Emerging AI-native skill
+generative-design,Generative design & creative AI,adept-canonical,generative design & creative ai|generative design,Emerging AI-native skill
+security-ai,AI-powered cybersecurity,adept-canonical,ai-powered cybersecurity|security ai,Emerging AI-native skill
+climate-ai,Climate & sustainability AI modelling,adept-canonical,climate & sustainability ai modelling|climate ai,Emerging AI-native skill
+healthcare-ai,Healthcare AI & clinical NLP,adept-canonical,healthcare ai & clinical nlp|healthcare ai,Emerging AI-native skill
+fintech-ai,FinTech AI & algorithmic trading,adept-canonical,fintech ai & algorithmic trading|fintech ai,Emerging AI-native skill
+digital-twin,Digital twin simulation,adept-canonical,digital twin simulation|digital twin,Emerging AI-native skill
+edge-ai,Edge AI & on-device inference,adept-canonical,edge ai & on-device inference|edge ai,Emerging AI-native skill
+quantum-ml,Quantum ML (nascent),adept-canonical,quantum ml,Emerging AI-native skill
+data-governance-ai,Data governance for AI systems,adept-canonical,data governance for ai systems|data governance ai,Emerging AI-native skill
+bias-auditing,Bias auditing & fairness testing,adept-canonical,bias auditing & fairness testing|bias auditing,Emerging AI-native skill
+human-ai-collaboration,Human–AI collaboration design,adept-canonical,human–ai collaboration design|human ai collaboration,Emerging AI-native skill
+conversational-ai,Conversational AI & chatbot design,adept-canonical,conversational ai & chatbot design|conversational ai,Emerging AI-native skill
+bookkeeping,Bookkeeping & accounts payable/receivable,adept-canonical,bookkeeping & accounts payable/receivable|bookkeeping,Routine skill at risk of automation
+payroll-processing,Payroll processing,adept-canonical,payroll processing,Routine skill at risk of automation
+document-filing,Document filing & records management,adept-canonical,document filing & records management|document filing,Routine skill at risk of automation
+invoice-processing,Invoice processing & verification,adept-canonical,invoice processing & verification|invoice processing,Routine skill at risk of automation
+report-generation,Standard report generation & formatting,adept-canonical,standard report generation & formatting|report generation,Routine skill at risk of automation
+scheduling-admin,Meeting scheduling & calendar management,adept-canonical,meeting scheduling & calendar management|scheduling admin,Routine skill at risk of automation
+data-entry-forms,Form-based data entry & validation,adept-canonical,form-based data entry & validation|data entry forms,Routine skill at risk of automation
+bank-reconciliation,Bank reconciliation,adept-canonical,bank reconciliation,Routine skill at risk of automation
+excel-basic,Basic spreadsheet (Excel) data manipulation,adept-canonical,basic spreadsheet data manipulation|excel basic,Routine skill at risk of automation
+copy-editing-routine,Routine copy-editing & proofreading,adept-canonical,routine copy-editing & proofreading|copy editing routine,Routine skill at risk of automation
+claims-processing,Insurance claims processing,adept-canonical,insurance claims processing|claims processing,Routine skill at risk of automation
+ticket-routing,IT helpdesk ticket routing & triage,adept-canonical,it helpdesk ticket routing & triage|ticket routing,Routine skill at risk of automation
+order-entry,Order entry & purchase order management,adept-canonical,order entry & purchase order management|order entry,Routine skill at risk of automation
+inventory-counting,Physical inventory counting & cycle checks,adept-canonical,physical inventory counting & cycle checks|inventory counting,Routine skill at risk of automation
+loan-application-processing,Loan application processing (routine),adept-canonical,loan application processing,Routine skill at risk of automation
+hr-admin-routine,"HR administrative processing (leave, attendance)",adept-canonical,hr administrative processing|hr admin routine,Routine skill at risk of automation
+customer-id-verification,Customer identity verification (KYC routine),adept-canonical,customer identity verification|customer id verification,Routine skill at risk of automation
+tax-form-filing,Standard tax form preparation & filing,adept-canonical,standard tax form preparation & filing|tax form filing,Routine skill at risk of automation
+contract-template-drafting,Boilerplate contract template drafting,adept-canonical,boilerplate contract template drafting|contract template drafting,Routine skill at risk of automation
+supply-chain-tracking,Supply chain shipment tracking & status updates,adept-canonical,supply chain shipment tracking & status updates|supply chain tracking,Routine skill at risk of automation
+call-centre-scripted,Scripted call-centre customer queries,adept-canonical,scripted call-centre customer queries|call centre scripted,Routine skill at risk of automation
+email-triage,Email triage & routing,adept-canonical,email triage & routing|email triage,Routine skill at risk of automation
+expense-reporting,Expense report processing & reimbursement,adept-canonical,expense report processing & reimbursement|expense reporting,Routine skill at risk of automation
+procurement-admin,Routine procurement administration,adept-canonical,routine procurement administration|procurement admin,Routine skill at risk of automation
+data-cleaning-manual,Manual data cleaning & deduplication,adept-canonical,manual data cleaning & deduplication|data cleaning manual,Routine skill at risk of automation
+translation-routine,Routine language translation (structured text),adept-canonical,routine language translation|translation routine,Routine skill at risk of automation
+report-distribution,Report distribution & stakeholder emailing,adept-canonical,report distribution & stakeholder emailing|report distribution,Routine skill at risk of automation
+basic-sql-queries,Basic SQL query writing (templated),adept-canonical,basic sql query writing|basic sql queries,Routine skill at risk of automation
+spreadsheet-macros,Spreadsheet macro recording,adept-canonical,spreadsheet macro recording|spreadsheet macros,Routine skill at risk of automation
+logistics-dispatch,Logistics dispatch coordination (scripted),adept-canonical,logistics dispatch coordination|logistics dispatch,Routine skill at risk of automation
+sla-monitoring,SLA / KPI monitoring & alerting (rule-based),adept-canonical,sla / kpi monitoring & alerting|sla monitoring,Routine skill at risk of automation
+label-annotation,Data labelling & annotation (image/text),adept-canonical,data labelling & annotation|label annotation,Routine skill at risk of automation
+churn-flag-alerts,Rule-based churn / anomaly flagging,adept-canonical,rule-based churn / anomaly flagging|churn flag alerts,Routine skill at risk of automation
+vendor-master-data,Vendor master-data maintenance,adept-canonical,vendor master-data maintenance|vendor master data,Routine skill at risk of automation
+technical-writing-routine,Routine technical documentation update,adept-canonical,routine technical documentation update|technical writing routine,Routine skill at risk of automation
+asset-tracking,IT / physical asset tracking,adept-canonical,it / physical asset tracking|asset tracking,Routine skill at risk of automation
+meeting-minutes,Meeting minutes transcription & distribution,adept-canonical,meeting minutes transcription & distribution|meeting minutes,Routine skill at risk of automation
+trade-confirmation,Trade confirmation & settlement (back-office),adept-canonical,trade confirmation & settlement|trade confirmation,Routine skill at risk of automation
+audit-internal,Internal audit & control testing,adept-canonical,internal audit & control testing|audit internal,Durable human-oversight skill
+sql-advanced,Advanced SQL & query optimisation,adept-canonical,advanced sql & query optimisation|sql advanced,Durable human-oversight skill
+stakeholder-management,Stakeholder management & communication,adept-canonical,stakeholder management & communication|stakeholder management,Durable human-oversight skill
+project-management,Project management (Agile / PMI),adept-canonical,project management,Durable human-oversight skill
+change-management,Organisational change management,adept-canonical,organisational change management|change management,Durable human-oversight skill
+critical-thinking,Critical thinking & problem framing,adept-canonical,critical thinking & problem framing|critical thinking,Durable human-oversight skill
+negotiation,Negotiation & conflict resolution,adept-canonical,negotiation & conflict resolution|negotiation,Durable human-oversight skill
+coaching-mentoring,Coaching & mentoring,adept-canonical,coaching & mentoring|coaching mentoring,Durable human-oversight skill
+regulatory-affairs,Regulatory affairs & policy interpretation,adept-canonical,regulatory affairs & policy interpretation|regulatory affairs,Durable human-oversight skill
+cybersecurity-governance,Cybersecurity governance & policy,adept-canonical,cybersecurity governance & policy|cybersecurity governance,Durable human-oversight skill
+data-privacy,Data privacy & PDPA / GDPR compliance,adept-canonical,data privacy & pdpa / gdpr compliance|data privacy,Durable human-oversight skill
+financial-analysis,Financial analysis & modelling,adept-canonical,financial analysis & modelling|financial analysis,Durable human-oversight skill
+ux-research,UX research & usability testing,adept-canonical,ux research & usability testing|ux research,Durable human-oversight skill
+supply-chain-strategy,Supply chain strategy & resilience,adept-canonical,supply chain strategy & resilience|supply chain strategy,Durable human-oversight skill
+enterprise-architecture,Enterprise architecture & systems design,adept-canonical,enterprise architecture & systems design|enterprise architecture,Durable human-oversight skill
+learning-development,Learning & development programme design,adept-canonical,learning & development programme design|learning development,Durable human-oversight skill
+workforce-planning,Workforce planning & talent strategy,adept-canonical,workforce planning & talent strategy|workforce planning,Durable human-oversight skill
+esg-reporting,ESG & sustainability reporting,adept-canonical,esg & sustainability reporting|esg reporting,Durable human-oversight skill
+cross-cultural-communication,Cross-cultural communication,adept-canonical,cross-cultural communication|cross cultural communication,Durable human-oversight skill
+public-speaking,Public speaking & executive communication,adept-canonical,public speaking & executive communication|public speaking,Durable human-oversight skill
+strategic-planning,Strategic planning & competitive analysis,adept-canonical,strategic planning & competitive analysis|strategic planning,Durable human-oversight skill
+knowledge-management,Knowledge management & documentation strategy,adept-canonical,knowledge management & documentation strategy|knowledge management,Durable human-oversight skill
+vendor-management,Vendor management & contract governance,adept-canonical,vendor management & contract governance|vendor management,Durable human-oversight skill
+clinical-judgement,Clinical judgement & patient assessment,adept-canonical,clinical judgement & patient assessment|clinical judgement,Durable human-oversight skill
+legal-research,Legal research & case analysis,adept-canonical,legal research & case analysis|legal research,Durable human-oversight skill

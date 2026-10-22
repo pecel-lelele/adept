@@ -18,6 +18,7 @@ from app.contracts.pathway import (
     CatalogueResponse,
     CompletionEvidence,
     Course,
+    CourseHistoryItem,
     EvidenceSubmit,
     Pathway,
     PathwayStep,
@@ -35,7 +36,7 @@ from app.contracts.pathway import (
 from app.contracts.profile import Profile
 from app.contracts.sdg import SdgTarget
 from app.core.auth import CurrentUser
-from app.core.errors import AppError, NotFoundError
+from app.core.errors import AppError, NotFoundError, ProfileRequiredError
 from app.features.org import repository as org_repository
 from app.features.pathway import (
     data,
@@ -56,13 +57,32 @@ CATALOGUE_SOURCE_FALLBACK = "Adept course catalogue"
 
 
 def learner_for(user: CurrentUser) -> engine.Learner:
-    """Only skills, time, budget and HRD Corp eligibility; never identity (fairness)."""
-    return _learner(profile_service.get_my_profile(user))
+    """Only skills, time, budget and HRD Corp eligibility; never identity (fairness).
+
+    A plan needs a saved profile (same rule as matching): planning for an empty profile would
+    show weeks and costs for skills the learner was never asked about."""
+    if not profile_service.has_profile(user.id):
+        raise ProfileRequiredError()
+    return _learner(profile_service.get_my_profile(user), user.id)
 
 
-def _learner(profile: Profile) -> engine.Learner:
+def resolve_role(user: CurrentUser, role_id: str | None) -> str:
+    """The requested role, else the learner's saved target role; the learner always chooses."""
+    if role_id:
+        return role_id
+    saved = repository.get_plan(user.id)
+    if saved is None:
+        raise AppError(
+            "Choose a target role first: compare your matches and save a plan.",
+            status_code=409,
+            code="role_required",
+        )
+    return saved.role_id
+
+
+def _learner(profile: Profile, user_id: str) -> engine.Learner:
     return engine.Learner(
-        skill_levels={s.skill_id: s.level for s in profile.skills},
+        skill_levels=combined_levels(user_id, {s.skill_id: s.level for s in profile.skills}),
         hours_per_week=float(profile.hours_per_week),
         budget_myr=float(profile.budget_myr),
         hrd_eligible=profile.hrd_eligible,
@@ -176,7 +196,7 @@ def get_pathway(
     user: CurrentUser, role_id: str, scenario: ScenarioId, snapshot_date: date | None = None
 ) -> Pathway:
     profile = profile_service.get_my_profile(user)
-    plan = build_pathway(_learner(profile), role_id, scenario, snapshot_date=snapshot_date)
+    plan = build_pathway(_learner(profile, user.id), role_id, scenario, snapshot_date=snapshot_date)
     # Attached after building, so the segment can only change guidance text, never the plan.
     return plan.model_copy(update={"segment": profile.segment})
 
@@ -406,6 +426,63 @@ def _badge_label(
     return "milestone", None, names.get(key, key)
 
 
+# Evidence that lets completed learning raise a skill level for matching (H08, decided
+# 2026-10-22): a reviewer's confirmation, or a certificate link that opens on the provider's
+# own verification page. Self-ticked courses show progress but do not change matches.
+EARNED_EVIDENCE = frozenset({"org_confirmed", "certificate_link"})
+
+
+def earned_levels(
+    courses: Mapping[str, Course],
+    statuses: Mapping[str, str],
+    evidence: Mapping[str, CompletionEvidence],
+) -> dict[str, int]:
+    """Skill -> highest level reached by completed, evidenced courses (pure)."""
+    out: dict[str, int] = {}
+    for cid, status in statuses.items():
+        course = courses.get(cid)
+        if status != "completed" or course is None:
+            continue
+        if verification.evidence_strength(evidence.get(cid)) not in EARNED_EVIDENCE:
+            continue
+        for sid in course.skill_ids:
+            out[sid] = max(out.get(sid, 0), course.level)
+    return out
+
+
+def evidenced_levels(user_id: str) -> dict[str, int]:
+    """Accepted learning across every target, using the course facts saved with progress.
+
+    Changing the saved target or retiring a catalogue course must not erase credit. Evidence
+    is read afresh so undoing a completion or rejecting its proof still removes that credit.
+    """
+    return evidenced_levels_many([user_id])[user_id]
+
+
+def evidenced_levels_many(user_ids: list[str]) -> dict[str, dict[str, int]]:
+    """All requested learners' accepted levels, with one batch read regardless of history."""
+    out: dict[str, dict[str, int]] = {uid: {} for uid in user_ids}
+    for row in repository.learning_records(user_ids):
+        if row.status != "completed" or row.course is None:
+            continue
+        if verification.evidence_strength(row.evidence) not in EARNED_EVIDENCE:
+            continue
+        levels = out[row.user_id]
+        for sid in row.course.skill_ids:
+            levels[sid] = max(levels.get(sid, 0), row.course.level)
+    return out
+
+
+def combined_levels(
+    user_id: str, intake: Mapping[str, int], earned: Mapping[str, int] | None = None
+) -> dict[str, int]:
+    """One effective skill input for matching, individual pathways and team gaps."""
+    out = dict(intake)
+    for sid, level in (evidenced_levels(user_id) if earned is None else earned).items():
+        out[sid] = max(out.get(sid, 0), level)
+    return out
+
+
 def _plan_courses(plan: Pathway) -> dict[str, Course]:
     """Course facts as saved in the plan. Progress uses these, never the live catalogue, so a
     course retired later keeps the credit a learner already earned with it."""
@@ -416,42 +493,86 @@ def _plan_courses(plan: Pathway) -> dict[str, Course]:
     return out
 
 
-def get_progress(user: CurrentUser, role_id: str, scenario: ScenarioId) -> Progress:
-    plan = _plan_for_progress(user, role_id, scenario)
-    raw = repository.course_status(user.id, role_id)
-    evidence = repository.evidence(user.id, role_id)
-    statuses = verification.effective_statuses(raw, evidence)
-    courses = _plan_courses(plan)
-    levels = {cid: {s: c.level for s in c.skill_ids} for cid, c in courses.items()}
-    skills = progress.skill_progress(plan, statuses, levels)
-    # Badges reflect current progress (undoing or a rejected completion removes what it
-    # earned), keep the date each was first earned, and show the weakest evidence behind them.
-    current = progress.earned_badges(plan, statuses, skills)
-    first_earned = repository.record_badges(user.id, current, date.today())
-    done = [cid for cid, st in statuses.items() if st == "completed" and cid in courses]
+def _history_badges(
+    user: CurrentUser, plan: Pathway, records: list[repository.LearningRecord]
+) -> list[Badge]:
+    """Re-evaluate earned badges against their original plans, including revoked proof."""
+    contexts = [saved.pathway for saved in repository.plan_history(user.id)] + [plan]
+    proofs: dict[str, str] = {}
+    for context in contexts:
+        rows = [row for row in records if row.role_id == context.role_id]
+        raw = {row.course_id: row.status for row in rows}
+        evidence = {row.course_id: row.evidence for row in rows if row.evidence is not None}
+        statuses = verification.effective_statuses(raw, evidence)
+        courses = _plan_courses(context)
+        for row in rows:
+            if row.course is not None and row.course_id in courses:
+                courses[row.course_id] = row.course
+        levels = {cid: {s: c.level for s in c.skill_ids} for cid, c in courses.items()}
+        skills = progress.skill_progress(context, statuses, levels)
+        done = [cid for cid, st in statuses.items() if st == "completed" and cid in courses]
+        for badge_id in progress.earned_badges(context, statuses, skills):
+            skill_id = badge_id.partition(":")[2] if badge_id.startswith("skill:") else None
+            behind = [cid for cid in done if skill_id is None or skill_id in courses[cid].skill_ids]
+            proof = verification.weakest(behind, evidence)
+            if verification.RANK[proof] >= verification.RANK.get(proofs.get(badge_id, ""), -1):
+                proofs[badge_id] = proof
+    first_earned = repository.record_badges(user.id, list(proofs), date.today())
     labels = data.skill_labels()
     badges = []
-    for badge_id in sorted(current):
+    for badge_id in sorted(proofs):
         kind, skill_id, label = _badge_label(badge_id, labels)
-        behind = [cid for cid in done if skill_id is None or skill_id in courses[cid].skill_ids]
         badges.append(
             Badge(
                 id=badge_id,
                 kind=kind,
                 label=label,
                 earned_at=first_earned[badge_id],
-                evidence=verification.weakest(behind, evidence),  # type: ignore[arg-type]
+                evidence=proofs[badge_id],  # type: ignore[arg-type]
                 skill_id=skill_id,
+                skill_label=labels.get(skill_id, skill_id) if skill_id else "",
             )
         )
+    return badges
+
+
+def get_progress(user: CurrentUser, role_id: str, scenario: ScenarioId) -> Progress:
+    plan = _plan_for_progress(user, role_id, scenario)
+    records = repository.learning_records([user.id])
+    rows = [row for row in records if row.role_id == role_id]
+    raw = {row.course_id: row.status for row in rows}
+    evidence = {row.course_id: row.evidence for row in rows if row.evidence is not None}
+    statuses = verification.effective_statuses(raw, evidence)
+    courses = _plan_courses(plan)
+    levels = {cid: {s: c.level for s in c.skill_ids} for cid, c in courses.items()}
+    skills = progress.skill_progress(plan, statuses, levels)
+    role_labels = data.role_labels()
+    history = [
+        CourseHistoryItem(
+            role_id=row.role_id,
+            role_label=role_labels.get(row.role_id, row.role_id),
+            course=row.course,
+            status=row.status,
+            evidence=row.evidence,
+        )
+        for row in records
+        if row.status == "completed" and row.course is not None
+    ]
+    history.sort(key=lambda item: (item.role_label, item.course.title, item.course.id))
+    completed_hours = {
+        row.course_id: row.course.hours
+        for row in rows
+        if statuses.get(row.course_id) == "completed" and row.course is not None
+    }
     return Progress(
         role_id=role_id,
         course_status=raw,
-        percent_complete=progress.percent_complete(plan, statuses),
+        percent_complete=progress.percent_complete(plan, statuses, completed_hours),
         skills=skills,
         gap_closed=sum(1 for s in skills if s.closed),
         gap_total=len(skills),
-        badges=badges,
+        badges=_history_badges(user, plan, records),
+        history=history,
         evidence=evidence,
         pathway=plan,
         meta=plan.meta,
@@ -471,8 +592,10 @@ def _require_planned(plan: Pathway, role_id: str, course_id: str) -> Course:
 
 def update_progress(user: CurrentUser, body: ProgressUpdate, scenario: ScenarioId) -> Progress:
     plan = _plan_for_progress(user, body.role_id, scenario)
-    _require_planned(plan, body.role_id, body.course_id)
-    repository.set_course_status(user.id, body.role_id, body.course_id, body.status)
+    course = repository.course_facts(user.id, body.role_id).get(body.course_id) or _require_planned(
+        plan, body.role_id, body.course_id
+    )
+    repository.set_course_status(user.id, body.role_id, body.course_id, body.status, course)
     if body.status == "completed":
         if body.course_id not in repository.evidence(user.id, body.role_id):
             repository.save_evidence(
@@ -498,9 +621,11 @@ def submit_evidence(
     """Attach a certificate link; marks the course done. A new link resets any review."""
     check = check or verification.probe  # looked up per call, not frozen at import
     plan = _plan_for_progress(user, body.role_id, scenario)
-    course = _require_planned(plan, body.role_id, body.course_id)
+    course = repository.course_facts(user.id, body.role_id).get(body.course_id) or _require_planned(
+        plan, body.role_id, body.course_id
+    )
     now = datetime.now(UTC)
-    repository.set_course_status(user.id, body.role_id, body.course_id, "completed")
+    repository.set_course_status(user.id, body.role_id, body.course_id, "completed", course)
     repository.save_evidence(
         user.id,
         CompletionEvidence(
@@ -532,7 +657,7 @@ def _reviewer_org(user: CurrentUser) -> str:
 def _course_facts(user_id: str, role_id: str) -> dict[str, Course]:
     saved = repository.get_plan(user_id)
     facts = _plan_courses(saved.pathway) if saved and saved.role_id == role_id else {}
-    return {**data.course_index(), **facts}  # saved facts win over the live catalogue
+    return {**data.course_index(), **facts, **repository.course_facts(user_id, role_id)}
 
 
 def verification_queue(user: CurrentUser) -> VerificationQueue:

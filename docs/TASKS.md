@@ -1,5 +1,7 @@
 # Tasks by Feature
 
+For the audited implementation status, known defects, reproduction steps and suggested fixes, read [Feature status and fix handoff](FEATURE_STATUS_AND_FIX_HANDOFF.md) (22 October 2026, revision `968182b`). It distinguishes completed work, partial integrations, unverified behaviour and proposed enhancements; keep all six must-have features when addressing the backlog.
+
 Work is organised **per feature**. Each feature has an owner who leads it end to end (data → logic → API → page) and decides its additional tech. The same breakdown is in `aiversecity_team_tasks.xlsx` for progress tracking.
 
 - **Primary stack (fixed for all features):** Python, Next.js (TypeScript), PostgreSQL, Git + GitHub.

@@ -27,8 +27,10 @@ def test_pathway(client: TestClient) -> None:
     assert body.meta.scenario == "fast"
 
 
-def test_pathway_requires_role(client: TestClient) -> None:
-    assert client.get("/api/v1/pathway").status_code == 422
+def test_pathway_without_role_uses_the_saved_plan_or_asks_to_choose(client: TestClient) -> None:
+    resp = client.get("/api/v1/pathway", headers={"X-Demo-User": "ravi"})
+    assert resp.status_code == 409
+    assert resp.json()["error"]["code"] == "role_required"
 
 
 def test_pathway_unknown_role(client: TestClient) -> None:

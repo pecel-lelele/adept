@@ -17,136 +17,12 @@ import json
 from datetime import date
 from pathlib import Path
 
-from app.contracts.common import ScenarioId
 from app.contracts.trends import (
     SkillVelocity,
-    TrendSignal,
     TrendSnapshotMeta,
     TrendSnapshotResponse,
 )
-
-BASE_SIGNALS: list[TrendSignal] = [
-    TrendSignal(
-        entity_type="role",
-        entity_id="data-analyst",
-        label="Data Analyst",
-        direction="rising",
-        growth_rate=0.14,
-        ai_exposure=0.55,
-        automation_share=0.25,
-        augmentation_share=0.75,
-    ),
-    TrendSignal(
-        entity_type="role",
-        entity_id="ai-operations-specialist",
-        label="AI Operations Specialist",
-        direction="rising",
-        growth_rate=0.22,
-        ai_exposure=0.70,
-        automation_share=0.20,
-        augmentation_share=0.80,
-    ),
-    TrendSignal(
-        entity_type="role",
-        entity_id="process-automation-analyst",
-        label="Process Automation Analyst",
-        direction="rising",
-        growth_rate=0.18,
-        ai_exposure=0.65,
-        automation_share=0.30,
-        augmentation_share=0.70,
-    ),
-    TrendSignal(
-        entity_type="role",
-        entity_id="compliance-analytics-officer",
-        label="Compliance Analytics Officer",
-        direction="stable",
-        growth_rate=0.04,
-        ai_exposure=0.45,
-        automation_share=0.35,
-        augmentation_share=0.65,
-    ),
-    TrendSignal(
-        entity_type="role",
-        entity_id="bank-operations-executive",
-        label="Bank Operations Executive",
-        direction="declining",
-        growth_rate=-0.09,
-        ai_exposure=0.80,
-        automation_share=0.70,
-        augmentation_share=0.30,
-    ),
-    TrendSignal(
-        entity_type="role",
-        entity_id="data-entry-clerk",
-        label="Data Entry Clerk",
-        direction="declining",
-        growth_rate=-0.15,
-        ai_exposure=0.90,
-        automation_share=0.85,
-        augmentation_share=0.15,
-    ),
-    TrendSignal(
-        entity_type="skill",
-        entity_id="prompt-engineering",
-        label="Prompt engineering",
-        direction="rising",
-        growth_rate=0.30,
-        ai_exposure=0.90,
-        automation_share=0.10,
-        augmentation_share=0.90,
-    ),
-    TrendSignal(
-        entity_type="skill",
-        entity_id="python",
-        label="Python programming",
-        direction="rising",
-        growth_rate=0.12,
-        ai_exposure=0.50,
-        automation_share=0.20,
-        augmentation_share=0.80,
-    ),
-    TrendSignal(
-        entity_type="skill",
-        entity_id="data-visualisation",
-        label="Data visualisation",
-        direction="rising",
-        growth_rate=0.10,
-        ai_exposure=0.40,
-        automation_share=0.25,
-        augmentation_share=0.75,
-    ),
-    TrendSignal(
-        entity_type="skill",
-        entity_id="excel",
-        label="Spreadsheet analysis",
-        direction="stable",
-        growth_rate=0.01,
-        ai_exposure=0.60,
-        automation_share=0.50,
-        augmentation_share=0.50,
-    ),
-    TrendSignal(
-        entity_type="skill",
-        entity_id="manual-data-entry",
-        label="Manual data entry",
-        direction="declining",
-        growth_rate=-0.20,
-        ai_exposure=0.95,
-        automation_share=0.90,
-        augmentation_share=0.10,
-    ),
-]
-
-SCENARIO_GROWTH_FACTOR: dict[ScenarioId, float] = {"moderate": 1.0, "fast": 1.6}
-
-
-def signals(scenario: ScenarioId) -> list[TrendSignal]:
-    factor = SCENARIO_GROWTH_FACTOR[scenario]
-    return [
-        s.model_copy(update={"growth_rate": round(s.growth_rate * factor, 3)}) for s in BASE_SIGNALS
-    ]
-
+from app.features.trends.provenance import observation_window
 
 AVAILABLE_MOCK_DATES: list[date] = [date(2026, 10, 13), date(2026, 10, 20)]
 
@@ -168,6 +44,7 @@ def _load_raw(snapshot_date: date | None = None) -> dict:
 def _parse_meta(raw_meta: dict, scenario: str) -> TrendSnapshotMeta:
     from app.contracts.trends import SourceRef
 
+    window = observation_window(raw_meta, raw_meta.get("data_provenance_note"))
     return TrendSnapshotMeta(
         sources=[
             SourceRef(
@@ -186,6 +63,8 @@ def _parse_meta(raw_meta: dict, scenario: str) -> TrendSnapshotMeta:
             date.fromisoformat(d) for d in raw_meta.get("available_snapshots", [])
         ],
         data_provenance_note=raw_meta.get("data_provenance_note"),
+        observed_from=window[0],
+        observed_to=window[1],
     )
 
 

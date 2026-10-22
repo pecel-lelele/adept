@@ -69,6 +69,8 @@ class TrendSnapshot:
     scenario: ScenarioId  # the requested scenario
     is_estimate: bool  # from meta.is_estimate
     data_provenance_note: str | None = None  # preserve M1's historical/fixture disclosure
+    observed_from: date | None = None  # period the source data measures (H09)
+    observed_to: date | None = None
 
 
 def fetch_snapshot(scenario: ScenarioId, snapshot_date: date | None = None) -> TrendSnapshot:
@@ -111,6 +113,8 @@ def fetch_snapshot(scenario: ScenarioId, snapshot_date: date | None = None) -> T
         scenario=scenario,
         is_estimate=snap.meta.is_estimate,
         data_provenance_note=snap.meta.data_provenance_note,
+        observed_from=snap.meta.observed_from,
+        observed_to=snap.meta.observed_to,
     )
 
 

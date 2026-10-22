@@ -3,7 +3,18 @@ from fastapi.testclient import TestClient
 from app.contracts.common import DataFreshness, HealthResponse
 from app.main import discover_feature_routers
 
-FEATURES = {"guardrails", "matching", "org", "pathway", "profile", "scenarios", "sdg", "trends"}
+FEATURES = {
+    "accounts",
+    "guardrails",
+    "matching",
+    "org",
+    "pathway",
+    "preview",
+    "profile",
+    "scenarios",
+    "sdg",
+    "trends",
+}
 
 
 def test_health(client: TestClient) -> None:
@@ -16,7 +27,9 @@ def test_data_freshness(client: TestClient) -> None:
     resp = client.get("/api/v1/meta/data-freshness")
     assert resp.status_code == 200
     body = DataFreshness.model_validate(resp.json())
-    assert body.sources[0].name == "MOCK DATA"
+    # Real snapshot sources, never the old placeholder.
+    assert body.is_mock is False
+    assert body.sources and all(s.name != "MOCK DATA" and s.url for s in body.sources)
 
 
 def test_all_feature_routers_discovered() -> None:

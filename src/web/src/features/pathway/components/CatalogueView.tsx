@@ -1,16 +1,11 @@
+import Form from "next/form";
 import Link from "next/link";
+import { ArrowUpRight, BadgeCheck, BookOpen, Clock3, Gift, SlidersHorizontal } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
-import {
-  ApiError,
-  Badge,
-  buttonVariants,
-  Card,
-  CardContent,
-  MetaBar,
-  PageHeader,
-} from "@/components";
+import { ApiError, Kpis, MetaBar, PageHeader } from "@/components";
 import { call, getApi, type Schemas } from "@/lib/api";
+import { journeyHref } from "@/lib/navigation";
 
 type Course = Schemas["Course"];
 
@@ -23,7 +18,13 @@ export type CatalogueQuery = {
   max_cost_myr?: number;
 };
 
-const FORMATS = ["self_paced", "live_online", "in_person", "hybrid", "subscription"] as const;
+const FORMATS = [
+  "self_paced",
+  "live_online",
+  "in_person",
+  "hybrid",
+  "subscription",
+] as const;
 const PROVIDERS = [
   "mooc",
   "university",
@@ -35,143 +36,183 @@ const PROVIDERS = [
 
 async function CourseCard({ course }: { course: Course }) {
   const t = await getTranslations("pathway");
+  const d = await getTranslations("common.design");
   const basis = course.price_basis ?? "per_course";
+  const free = course.cost_myr === 0;
   return (
-    <Card>
-      <CardContent className="space-y-1 pt-4 text-sm">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <a href={course.url} target="_blank" rel="noreferrer" className="font-medium underline">
-            {course.title}
-          </a>
-          <span className="font-semibold tabular-nums">
-            {course.cost_myr === 0
-              ? t("free")
-              : t(`catalogue.price.${basis}`, { amount: course.cost_myr.toLocaleString("en-MY") })}
+    <article className="a-card a-coursecard">
+      <div className="a-coursecard-top">
+        <span className="a-course-icon" aria-hidden>
+          <BookOpen size={18} strokeWidth={1.6} />
+        </span>
+        <span className="a-coursecard-provider">
+          <strong>{course.provider}</strong>
+          <small>{t(`catalogue.format.${course.format ?? "self_paced"}`)}</small>
+        </span>
+      </div>
+      <h2>{course.title}</h2>
+      <div className="a-chips">
+        <span className="a-chip">
+          <Clock3 size={12} aria-hidden /> {t("hours", { hours: course.hours })}
+        </span>
+        {course.hrd_claimable ? (
+          <span className="a-chip" data-tone="dark">
+            {t("hrdClaimable")}
           </span>
-        </div>
-        <div className="flex flex-wrap items-center gap-1 text-xs">
-          <span className="text-muted-foreground">{course.provider}</span>
-          <Badge variant="outline">{t(`catalogue.provider.${course.provider_type ?? "mooc"}`)}</Badge>
-          <Badge variant="outline">{t(`catalogue.format.${course.format ?? "self_paced"}`)}</Badge>
-          {course.location ? <Badge variant="outline">{course.location}</Badge> : null}
-          {course.hrd_claimable ? <Badge variant="success">{t("hrdClaimable")}</Badge> : null}
-          {course.audience && course.audience !== "individual" ? (
-            <Badge variant="secondary">{t(`catalogue.audience.${course.audience}`)}</Badge>
-          ) : null}
-        </div>
-        <p className="text-xs text-muted-foreground">
-          {t("hours", { hours: course.hours })} · {t("catalogue.skills")}:{" "}
-          {(course.skill_ids ?? []).join(", ")} · {t("catalogue.level", { level: course.level ?? 1 })}
-        </p>
-        {course.hrd_note ? <p className="text-xs">{course.hrd_note}</p> : null}
-        {course.price_note ? <p className="text-xs text-muted-foreground">{course.price_note}</p> : null}
-        {course.duration_note ? (
-          <p className="text-xs text-muted-foreground">{course.duration_note}</p>
         ) : null}
-        <p className="text-xs text-muted-foreground">
-          {course.source ? `${t("step.source", { name: course.source.name })} · ` : null}
-          {t("verified", { date: course.verified_at })}
-        </p>
-      </CardContent>
-    </Card>
+      </div>
+      <details className="a-disclosure">
+        <summary>{d("courseDetails")}</summary>
+        <div>
+          <p>
+            {t("catalogue.skills")}:{" "}
+            {(course.skill_ids ?? []).map((x) => x.replaceAll("-", " ").replaceAll("_", " ")).join(", ")}
+          </p>
+          <p>
+            {t("catalogue.level", { level: course.level ?? 1 })}
+            {course.location ? " · " + course.location : ""}
+          </p>
+          {course.hrd_claimable ? (
+            <p>
+              {t("hrdClaimable")}. {course.hrd_note}
+            </p>
+          ) : null}
+          {course.price_note ? <p>{course.price_note}</p> : null}
+          {course.duration_note ? <p>{course.duration_note}</p> : null}
+          <p className="a-muted">
+            {course.source ? course.source.name + " · " : ""}
+            {t("verified", { date: course.verified_at })}
+          </p>
+        </div>
+      </details>
+      <footer className="a-coursecard-foot">
+        <strong data-free={free || undefined}>
+          {free ? t("free") : t(`catalogue.price.${basis}`, { amount: course.cost_myr.toLocaleString("en-MY") })}
+        </strong>
+        <a href={course.url} target="_blank" rel="noreferrer" className="a-link">
+          {d("visit")} <ArrowUpRight size={15} aria-hidden />
+        </a>
+      </footer>
+    </article>
   );
 }
 
 /** Browse every course the pathway may recommend, with filters for learners and HR/L&D. */
-export async function CatalogueView({ query, basePath }: { query: CatalogueQuery; basePath: string }) {
+export async function CatalogueView({
+  query,
+  basePath,
+  context = {},
+}: {
+  query: CatalogueQuery;
+  basePath: string;
+  context?: Record<string, string>;
+}) {
   const t = await getTranslations("pathway");
+  const d = await getTranslations("common.design");
+  const tp = await getTranslations("ui.page");
   const api = await getApi();
   const [result, all] = await Promise.all([
     call(api.GET("/api/v1/pathway/catalogue", { params: { query } })),
     call(api.GET("/api/v1/pathway/catalogue")),
   ]);
-  const skills = all.ok
-    ? [...new Set(all.data.courses.flatMap((c) => c.skill_ids ?? []))].sort()
-    : [];
-  const select = "rounded-md border bg-background px-2 py-1 text-sm";
+  const skills = all.ok ? [...new Set(all.data.courses.flatMap((c) => c.skill_ids ?? []))].sort() : [];
+  const every = all.ok ? all.data.courses : [];
+  const shown = result.ok ? result.data.courses.length : 0;
 
   return (
-    <section className="space-y-4">
-      <PageHeader title={t("catalogue.title")} description={t("catalogue.description")} />
-      <form method="get" action={basePath} className="flex flex-wrap items-end gap-2 text-sm">
-        <label className="flex flex-col gap-1">
-          {t("catalogue.skills")}
-          <select name="skill" defaultValue={query.skill ?? ""} className={select}>
-            <option value="">{t("catalogue.any")}</option>
-            {skills.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="flex flex-col gap-1">
-          {t("catalogue.formatLabel")}
-          <select name="format" defaultValue={query.format ?? ""} className={select}>
-            <option value="">{t("catalogue.any")}</option>
-            {FORMATS.map((f) => (
-              <option key={f} value={f}>
-                {t(`catalogue.format.${f}`)}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="flex flex-col gap-1">
-          {t("catalogue.providerLabel")}
-          <select name="provider_type" defaultValue={query.provider_type ?? ""} className={select}>
-            <option value="">{t("catalogue.any")}</option>
-            {PROVIDERS.map((p) => (
-              <option key={p} value={p}>
-                {t(`catalogue.provider.${p}`)}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="flex flex-col gap-1">
-          {t("catalogue.audienceLabel")}
-          <select name="audience" defaultValue={query.audience ?? ""} className={select}>
-            <option value="">{t("catalogue.any")}</option>
-            <option value="individual">{t("catalogue.audience.individual")}</option>
-            <option value="corporate">{t("catalogue.audience.corporate")}</option>
-          </select>
-        </label>
-        <label className="flex flex-col gap-1">
-          {t("catalogue.maxCost")}
-          <input
-            type="number"
-            name="max_cost_myr"
-            min={0}
-            step={50}
-            defaultValue={query.max_cost_myr ?? ""}
-            className={`${select} w-28`}
-          />
-        </label>
-        <label className="flex items-center gap-1">
-          <input type="checkbox" name="hrd_claimable" value="true" defaultChecked={!!query.hrd_claimable} />
-          {t("hrdClaimable")}
-        </label>
-        <button type="submit" className={buttonVariants({ size: "sm" })}>
-          {t("catalogue.apply")}
-        </button>
-        <Link href={basePath} className="text-sm underline">
-          {t("catalogue.reset")}
-        </Link>
-      </form>
+    <div className="a-view">
+      <PageHeader eyebrow={d("options")} title={t("catalogue.title")} description={t("catalogue.description")}>
+        {result.ok ? <MetaBar meta={result.data.meta} /> : null}
+      </PageHeader>
+      <Kpis
+        items={[
+          { label: tp("kCourses"), value: every.length, icon: <BookOpen size={15} />, note: tp("kProviders", { count: new Set(every.map((c) => c.provider)).size }) },
+          { label: tp("kFree"), value: every.filter((c) => c.cost_myr === 0).length, icon: <Gift size={15} />, tone: "up", note: tp("kFreeNote") },
+          { label: tp("kHrd"), value: every.filter((c) => c.hrd_claimable).length, icon: <BadgeCheck size={15} />, note: tp("kHrdNote") },
+          { label: tp("kSelfPaced"), value: every.filter((c) => c.format === "self_paced").length, icon: <Clock3 size={15} />, note: tp("kSelfPacedNote") },
+        ]}
+      />
+      <section className="a-card a-filters" aria-labelledby="h-filters">
+        <div className="a-card-head">
+          <h2 id="h-filters">
+            <SlidersHorizontal size={16} aria-hidden /> {d("filters")}
+          </h2>
+        </div>
+        <Form action={basePath} className="a-filter-grid">
+          {Object.entries(context).map(([key, value]) => (
+            <input key={key} type="hidden" name={key} value={value} />
+          ))}
+          <label className="a-field">
+            {t("catalogue.skills")}
+            <select name="skill" defaultValue={query.skill ?? ""} className="a-select">
+              <option value="">{t("catalogue.any")}</option>
+              {skills.map((x) => (
+                <option key={x} value={x}>
+                  {x}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="a-field">
+            {t("catalogue.formatLabel")}
+            <select name="format" defaultValue={query.format ?? ""} className="a-select">
+              <option value="">{t("catalogue.any")}</option>
+              {FORMATS.map((f) => (
+                <option key={f} value={f}>
+                  {t(`catalogue.format.${f}`)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="a-field">
+            {t("catalogue.providerLabel")}
+            <select name="provider_type" defaultValue={query.provider_type ?? ""} className="a-select">
+              <option value="">{t("catalogue.any")}</option>
+              {PROVIDERS.map((x) => (
+                <option key={x} value={x}>
+                  {t(`catalogue.provider.${x}`)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="a-field">
+            {t("catalogue.audienceLabel")}
+            <select name="audience" defaultValue={query.audience ?? ""} className="a-select">
+              <option value="">{t("catalogue.any")}</option>
+              <option value="individual">{t("catalogue.audience.individual")}</option>
+              <option value="corporate">{t("catalogue.audience.corporate")}</option>
+            </select>
+          </label>
+          <label className="a-field">
+            {t("catalogue.maxCost")}
+            <input type="number" name="max_cost_myr" min={0} step={50} defaultValue={query.max_cost_myr ?? ""} className="a-input" />
+          </label>
+          <label className="a-check" style={{ alignSelf: "end", minHeight: 46, alignItems: "center" }}>
+            <input type="checkbox" name="hrd_claimable" value="true" defaultChecked={!!query.hrd_claimable} />
+            {t("hrdClaimable")}
+          </label>
+          <div className="a-filter-actions">
+            <button type="submit" className="a-btn is-small">
+              {t("catalogue.apply")}
+            </button>
+            <Link href={journeyHref(basePath, new URLSearchParams(context))} className="a-link">
+              {t("catalogue.reset")}
+            </Link>
+          </div>
+        </Form>
+      </section>
       {!result.ok ? (
         <ApiError message={result.message} />
       ) : (
         <>
-          <MetaBar meta={result.data.meta} />
-          <p className="text-sm text-muted-foreground">
-            {t("catalogue.count", { count: result.data.courses.length })}
-          </p>
-          <div className="grid gap-3 md:grid-cols-2">
+          <p className="a-results-count">{t("catalogue.count", { count: shown })}</p>
+          <div className="a-coursegrid">
             {result.data.courses.map((c) => (
               <CourseCard key={c.id} course={c} />
             ))}
           </div>
         </>
       )}
-    </section>
+    </div>
   );
 }

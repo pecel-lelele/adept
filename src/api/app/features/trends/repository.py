@@ -23,11 +23,19 @@ from typing import Any, Literal
 import psycopg
 from psycopg.rows import dict_row
 
-from app.contracts.common import ScenarioId
-from app.contracts.trends import EntityType, TrendSignal, TrendSnapshotResponse
+from app.contracts.trends import TrendSnapshotResponse
 from app.core.config import get_settings
 from app.core.errors import NotFoundError
 from app.features.trends import mocks
+from app.features.trends.provenance import observation_window
+
+
+def _skill_labels() -> dict[str, str]:
+    """Readable skill names from the taxonomy (falls back to the id when a skill is new)."""
+    from app.core import seed
+
+    return {r["id"]: r["label"] for r in seed.rows("taxonomy", "skills")}
+
 
 # ---------------------------------------------------------------------------
 # Source resolution & DB availability (short-TTL negative cache)
@@ -272,7 +280,10 @@ def _load_snapshot_db(
         TrendSnapshotMeta,
     )
 
+    stored_meta: dict[str, Any] | None = None
+
     def _execute(c: Any) -> list[dict[str, Any]] | None:
+        nonlocal stored_meta
         with _read_deadline(c), c.cursor() as cur:
             cur.execute(
                 """
@@ -283,7 +294,17 @@ def _load_snapshot_db(
                 """,
                 (snapshot_date,),
             )
-            return cur.fetchall()
+            found = cur.fetchall()
+            try:
+                cur.execute(
+                    "SELECT sources, provenance_note FROM trend_snapshot_meta "
+                    "WHERE snapshot_date = %s",
+                    (snapshot_date,),
+                )
+                stored_meta = cur.fetchone()
+            except psycopg.errors.UndefinedTable:
+                stored_meta = None  # database not migrated yet: use the default citation
+            return found
 
     try:
         if ctx is not None and ctx.conn is not None:
@@ -300,7 +321,9 @@ def _load_snapshot_db(
             items.append(
                 SkillVelocity(
                     skill_id=r["skill_id"],
-                    skill_label=r["skill_id"].replace("-", " ").title(),
+                    skill_label=_skill_labels().get(
+                        r["skill_id"], r["skill_id"].replace("-", " ").title()
+                    ),
                     research_velocity=r["research_velocity"],
                     labor_decay=r["labor_decay"],
                     labor_decay_source_note=r["labor_decay_source_note"],
@@ -316,11 +339,22 @@ def _load_snapshot_db(
             ctx.available_dates if ctx is not None else _list_snapshot_dates_db(strict=strict)
         )
 
-        meta = TrendSnapshotMeta(
-            sources=[
+        if stored_meta and stored_meta.get("sources"):
+            # Provenance recorded with the snapshot (loader or pipeline run).
+            sources = [
                 SourceRef(
-                    name="arXiv cs.AI RSS",
-                    url="https://rss.arxiv.org/rss/cs.AI",
+                    name=str(src["name"]),
+                    url=str(src["url"]),
+                    retrieved_at=date.fromisoformat(str(src["retrieved_at"])),
+                )
+                for src in stored_meta["sources"]
+            ]
+            note = str(stored_meta.get("provenance_note") or "") or None
+        else:
+            sources = [
+                SourceRef(
+                    name="arXiv cs.AI",
+                    url="https://arxiv.org/list/cs.AI/recent",
                     retrieved_at=snapshot_date,
                 ),
                 SourceRef(
@@ -331,14 +365,21 @@ def _load_snapshot_db(
                     ),
                     retrieved_at=snapshot_date,
                 ),
-            ],
+            ]
+            note = "Scored by the Adept trend pipeline from arXiv cs.AI papers and BLS projections."
+
+        observed_from, observed_to = observation_window(stored_meta, note)
+        meta = TrendSnapshotMeta(
+            sources=sources,
             snapshot_date=snapshot_date,
+            observed_from=observed_from,
+            observed_to=observed_to,
             scenario=scenario,  # type: ignore[arg-type]
             is_estimate=True,
             weights={"research_velocity": 0.6, "labor_decay": 0.4},
             labor_decay_is_static=True,
             available_snapshots=all_dates,
-            data_provenance_note=("Measured from arXiv cs.AI query API historical date windows."),
+            data_provenance_note=note,
         )
         return TrendSnapshotResponse(meta=meta, items=items)
     except TrendsUnavailableError:
@@ -437,25 +478,3 @@ def get_snapshot(
     finally:
         if should_close_ctx and resolved_ctx is not None:
             resolved_ctx.close()
-
-
-# ---------------------------------------------------------------------------
-# Legacy data access (kept for backward compat with existing tests)
-# ---------------------------------------------------------------------------
-
-
-def list_signals(scenario: ScenarioId) -> list[TrendSignal]:
-    return mocks.signals(scenario)
-
-
-def get_signal(
-    entity_type: EntityType | None, entity_id: str, scenario: ScenarioId
-) -> TrendSignal | None:
-    return next(
-        (
-            s
-            for s in mocks.signals(scenario)
-            if (entity_type is None or s.entity_type == entity_type) and s.entity_id == entity_id
-        ),
-        None,
-    )

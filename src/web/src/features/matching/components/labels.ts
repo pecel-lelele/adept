@@ -6,5 +6,6 @@ export async function componentLabels(): Promise<Record<string, string>> {
     skill_overlap: t("skill_overlap"),
     trend_outlook: t("trend_outlook"),
     interest_fit: t("interest_fit"),
+    sdg_impact: t("sdg_impact"),
   };
 }

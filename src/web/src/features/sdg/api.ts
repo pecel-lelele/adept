@@ -9,16 +9,19 @@ export async function fetchMyContribution(roleId: string | undefined, scenario: 
   );
 }
 
-export async function fetchOrgContribution(scenario: ScenarioId) {
+/** The team's contribution towards the role chosen on the team plan (default: largest gap). */
+export async function fetchOrgContribution(scenario: ScenarioId, roleId?: string) {
   const api = await getApi();
-  return call(api.GET("/api/v1/sdg/contribution/org", { params: { query: { scenario } } }));
+  return call(
+    api.GET("/api/v1/sdg/contribution/org", { params: { query: { scenario, role_id: roleId || undefined } } }),
+  );
 }
 
-export async function fetchRegionContribution(state: string, scenario: ScenarioId) {
+export async function fetchRegionContribution(state: string, scenario: ScenarioId, roleId?: string) {
   const api = await getApi();
   return call(
     api.GET("/api/v1/sdg/contribution/region/{state}", {
-      params: { path: { state }, query: { scenario } },
+      params: { path: { state }, query: { scenario, role_id: roleId || undefined } },
     }),
   );
 }

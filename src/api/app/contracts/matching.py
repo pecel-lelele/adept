@@ -59,3 +59,44 @@ class MatchResponse(BaseModel):
         default=None,
         description="Trend provider's provenance disclosure, including any demo-fixture caveat.",
     )
+
+
+class ReplayDriver(BaseModel):
+    skill_id: str
+    label: str
+    velocity_before: float
+    velocity_after: float
+    position_before: float = Field(
+        0.0, description="Percentile of the skill's velocity among all skills, earlier snapshot."
+    )
+    position_after: float = Field(
+        0.0, description="Percentile of the skill's velocity among all skills, later snapshot."
+    )
+    effect: float = Field(
+        description=(
+            "Score points this skill moved the role: change in its percentile position times "
+            "its share of the role's importance times the trend weight; > 0 pushed up."
+        )
+    )
+
+
+class RoleMovement(BaseModel):
+    role_id: str
+    label: str
+    rank_before: int = Field(ge=1)
+    rank_after: int = Field(ge=1)
+    score_before: float
+    score_after: float
+    drivers: list[ReplayDriver] = Field(
+        description="The required skills whose trend moved this role most between the dates."
+    )
+
+
+class ReplayResponse(BaseModel):
+    """What changed between two trend snapshots for this learner, and why."""
+
+    scenario: str
+    from_date: str
+    to_date: str
+    movements: list[RoleMovement]
+    meta: RecommendationMeta

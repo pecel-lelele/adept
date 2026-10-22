@@ -9,7 +9,11 @@
   "scenario": {
     "label": "情景",
     "moderate": "AI 温和冲击",
-    "fast": "AI 快速冲击"
+    "fast": "AI 快速冲击",
+    "pace": "AI 速度",
+    "moderateShort": "温和",
+    "fastShort": "快速",
+    "hint": "AI 改变工作的速度。排名和前景都是在各速度下的估计。"
   },
   "estimate": {
     "label": "估计值",
@@ -24,6 +28,9 @@
     "unavailable": "趋势数据不可用"
   },
   "nav": {
+    "overview": "总览",
+    "courses": "课程库",
+    "verify": "学习凭证审核",
     "onboarding": "开始",
     "profile": "个人资料",
     "radar": "技能雷达",
@@ -38,9 +45,6 @@
     "about": "关于",
     "sources": "数据来源",
     "snapshots": "快照"
-  },
-  "journey": {
-    "step": "第 {n} 步"
   },
   "landing": {
     "individual": "个人",
@@ -70,5 +74,39 @@
   },
   "locale": {
     "label": "语言"
+  },
+  "design": {
+    "more": "更多",
+    "signOut": "退出登录",
+    "details": "详情与来源",
+    "filters": "筛选课程",
+    "courseDetails": "课程详情",
+    "continue": "继续学习",
+    "progress": "你的进度",
+    "evidence": "来源与方法",
+    "options": "学习选项",
+    "pathBody": "清晰的顺序，适合你的节奏。",
+    "snapshot": "数据版本",
+    "rising": "上升",
+    "stable": "稳定",
+    "declining": "下降",
+    "search": "搜索技能",
+    "all": "全部技能",
+    "pace": "每周小时数",
+    "duration": "周数",
+    "cost": "估计费用",
+    "complete": "已完成课程",
+    "next": "下一步",
+    "saved": "你选择的方向",
+    "choose": "探索职位",
+    "stepDetails": "为什么是这一步？",
+    "visit": "查看课程",
+    "skillBank": "你的技能库",
+    "skillBankBody": "以已有技能为基础。选择一项技能查看课程。",
+    "skillLevel": "第 {level} 级（共 5 级）",
+    "review": "审核",
+    "moreSkills": "显示另外 {count} 项技能",
+    "addSkills": "查看你的技能",
+    "observed": "数据测量期 {from} 至 {to}"
   }
 }

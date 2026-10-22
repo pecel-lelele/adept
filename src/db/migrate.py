@@ -10,12 +10,17 @@ uses, so the team can switch to dbmate later without re-running anything.
 from __future__ import annotations
 
 import os
+import re
 import sys
 from pathlib import Path
 
 import psycopg
 
 MIGRATIONS = Path(__file__).resolve().parent / "migrations"
+ALIAS_MIGRATIONS = {
+    "20261021150000_core_skill_aliases.sql",
+    "20261021150000_m2_skill_aliases.sql",
+}
 DEFAULT_URL = "postgresql://adept:adept@127.0.0.1:5433/adept"
 
 
@@ -42,7 +47,29 @@ def version_of(path: Path) -> str:
 
 def pending(applied: set[str]) -> list[Path]:
     files = sorted(MIGRATIONS.glob("*.sql"))
-    return [f for f in files if version_of(f) not in applied]
+    unique: dict[str, Path] = {}
+    for file in files:
+        version = version_of(file)
+        previous = unique.get(version)
+        if previous is not None:
+            # Two branches independently added the same aliases column at the same
+            # timestamp. Preserve both immutable files, but apply the schema once.
+            # Ignore only existence guards and comments; any other collision fails.
+            if {previous.name, file.name} != ALIAS_MIGRATIONS or normalized_sql(
+                previous
+            ) != normalized_sql(file):
+                raise ValueError(
+                    f"Conflicting migration version {version}: {previous.name}, {file.name}"
+                )
+            continue
+        unique[version] = file
+    return [file for version, file in unique.items() if version not in applied]
+
+
+def normalized_sql(path: Path) -> str:
+    sql = re.sub(r"--[^\n]*", "", path.read_text(encoding="utf-8"))
+    sql = re.sub(r"\bIF\s+(?:NOT\s+)?EXISTS\b", "", sql, flags=re.IGNORECASE)
+    return " ".join(sql.split())
 
 
 def main(argv: list[str]) -> int:
@@ -56,7 +83,8 @@ def main(argv: list[str]) -> int:
         todo = pending(applied)
         if command == "status":
             for f in sorted(MIGRATIONS.glob("*.sql")):
-                print(f"{'applied' if f not in todo else 'pending'}  {f.name}")
+                state = "applied" if version_of(f) in applied else "pending"
+                print(f"{state}  {f.name}")
             return 0
         if command != "up":
             print("usage: migrate.py [up|status]", file=sys.stderr)

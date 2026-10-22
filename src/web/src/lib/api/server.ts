@@ -1,6 +1,6 @@
 import { headers } from "next/headers";
 
-import { getDemoUser } from "@/lib/auth/session";
+import { getSessionToken } from "@/lib/auth/session";
 
 import { createApiClient, type ApiClient } from "./client";
 
@@ -26,10 +26,10 @@ export function trustedClientIp(forwardedFor: string | null, hops: number): stri
   return chain.length >= hops ? chain[chain.length - hops] : undefined;
 }
 
-/** API client for Server Components; forwards the demo persona and client IP to the API. */
+/** API client for Server Components; forwards the session token and client IP to the API. */
 export async function getApi(): Promise<ApiClient> {
-  const user = await getDemoUser();
-  const forward: Record<string, string> = user ? { "X-Demo-User": user } : {};
+  const token = await getSessionToken();
+  const forward: Record<string, string> = token ? { "X-Demo-User": token } : {};
   if (PROXY_SECRET) {
     const ip = trustedClientIp((await headers()).get("x-forwarded-for"), TRUSTED_PROXY_HOPS);
     if (ip) {

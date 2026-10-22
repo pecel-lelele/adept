@@ -1,106 +1,170 @@
+import { ArrowRight, CircleDashed, Circle } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
-import {
-  ApiError,
-  Badge,
-  buttonVariants,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  MetaBar,
-  PageHeader,
-  SdgBadge,
-  StubBanner,
-} from "@/components";
-import type { ScenarioId } from "@/lib/api";
-import { percent } from "@/lib/utils";
+import { MetaBar, PageHeader } from "@/components";
+import { ErrorState } from "@/components/ErrorState";
+import { scoreColour, SdgTiles } from "@/components/viz";
+import { fetchRadar } from "@/features/trends/api";
+import type { ScenarioId, Schemas } from "@/lib/api";
 
-import { fetchMatches } from "../api";
+import { fetchMatches, fetchReplay } from "../api";
+import { ReplayChanges } from "./ReplayChanges";
+import { SdgWeightSlider } from "./SdgWeightSlider";
+import { componentLabels } from "./labels";
+import { SnapshotPicker } from "./SnapshotPicker";
 
+/** One horizontal bar per score part: how much each part contributed to the fit. */
+function ScoreParts({ parts, labels }: { parts: Schemas["ScoreComponent"][]; labels: Record<string, string> }) {
+  return (
+    <div className="a-bars">
+      {parts.map((c) => (
+        <div className="a-bar a-bar-plain" key={c.name} title={c.explanation}>
+          <span className="a-bar-label">{labels[c.name] ?? c.name.replaceAll("_", " ")}</span>
+          <span className="a-bar-track">
+            <span className="a-bar-fill" style={{ width: `${Math.round(c.value * 100)}%`, opacity: c.provided ? 1 : 0.35 }} />
+          </span>
+          <span className="a-bar-value">{Math.round(c.value * 100)}%</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * Step 3: ranked future roles. Ranking options first, then one card per role: rank, name and
+ * fit; what drives the score, which skills are missing, which goals the role serves; actions.
+ */
 export async function MatchesView({
   scenario,
   snapshotDate,
+  sdgWeight = 0,
 }: {
   scenario: ScenarioId;
   snapshotDate?: string;
+  sdgWeight?: number;
 }) {
   const t = await getTranslations("matching");
-  const result = await fetchMatches(scenario, snapshotDate);
-  const replayQuery = snapshotDate ? `&snapshot_date=${encodeURIComponent(snapshotDate)}` : "";
+  const th = await getTranslations("ui.home");
+  const tp = await getTranslations("ui.page");
+  const [result, radar, changes] = await Promise.all([
+    fetchMatches(scenario, snapshotDate, sdgWeight),
+    fetchRadar(scenario),
+    snapshotDate ? fetchReplay(scenario, snapshotDate, sdgWeight) : Promise.resolve(null),
+  ]);
+  const labels = await componentLabels();
+  // The detail page must explain the same ranking: carry the snapshot and the UN Goals weight.
+  const replay =
+    (snapshotDate ? `&snapshot_date=${encodeURIComponent(snapshotDate)}` : "") +
+    (sdgWeight > 0 ? `&sdg=${sdgWeight.toFixed(2)}` : "");
 
   return (
-    <section>
-      <StubBanner feature="F4 Future-role matching" endpoint="GET /api/v1/matches" />
-      <PageHeader title={t("title")} description={t("description")} />
-      <form action="/app/matches" method="get" className="flex flex-wrap items-end gap-2 pb-4">
-        <input type="hidden" name="scenario" value={scenario} />
-        <label className="flex flex-col gap-1 text-sm">
-          <span>{t("snapshotDate")}</span>
-          <input
-            type="date"
-            name="snapshot_date"
-            defaultValue={snapshotDate ?? ""}
-            className="rounded-md border px-3 py-2"
+    <div className="a-view">
+      <PageHeader eyebrow={tp("stepOf", { step: 3 })} title={t("title")} description={t("description")}>
+        {result.ok ? <MetaBar meta={result.data.meta} /> : null}
+      </PageHeader>
+
+      <section className="a-card a-controls" aria-label={tp("rankingOptions")}>
+        {radar.ok ? (
+          <SnapshotPicker
+            dates={radar.data.meta.available_snapshots}
+            value={snapshotDate ?? ""}
+            latestLabel={th("latest")}
+            label={t("snapshotDate")}
           />
-        </label>
-        <button type="submit" className={buttonVariants({ variant: "outline", size: "sm" })}>
-          {t("replay")}
-        </button>
-        <span className="text-xs text-muted-foreground">{t("latestHint")}</span>
-      </form>
+        ) : null}
+        <SdgWeightSlider value={sdgWeight} label={t("sdgWeight")} hint={t("sdgWeightHint")} offLabel={t("sdgWeightOff")} />
+      </section>
+
+      {changes?.ok ? <ReplayChanges data={changes.data} /> : null}
       {!result.ok ? (
-        <ApiError message={result.message} />
+        <ErrorState failure={result} />
       ) : (
-        <div className="space-y-3">
-          <MetaBar meta={result.data.meta} />
+        <>
+          <ol className="a-rolecards">
+            {result.data.matches.map((m, i) => {
+              const goals = [...new Map(m.sdg_targets.map((s) => [s.goal, { goal: s.goal, title: s.label }])).values()];
+              const pct = Math.round(m.score * 100);
+              const detail = `/app/matches/${encodeURIComponent(m.role_id)}?scenario=${scenario}${replay}`;
+              return (
+                <li key={m.role_id}>
+                  <article className="a-card a-rolecard" data-top={i === 0 || undefined}>
+                    <header className="a-rolecard-head">
+                      <span className="a-rank-num">{i + 1}</span>
+                      <div className="a-rolecard-title">
+                        {i === 0 ? <span className="a-eyebrow">{tp("bestFit")}</span> : null}
+                        <h2>
+                          <Link href={detail}>{m.label}</Link>
+                        </h2>
+                        <span className="a-chips">
+                          <span className="a-chip" data-tone={m.missing_skills.length ? "down" : "up"}>
+                            {tp("toLearn", { count: m.missing_skills.length })}
+                          </span>
+                          <span className="a-chip" data-tone={m.partial_skills.length ? "warn" : "up"}>
+                            {tp("toImprove", { count: m.partial_skills.length })}
+                          </span>
+                        </span>
+                      </div>
+                      <div className="a-fit" style={{ color: scoreColour(m.score) }}>
+                        <strong>{pct}%</strong>
+                        <small>{tp("fit")}</small>
+                        <span className="a-fit-track" aria-hidden>
+                          <i style={{ width: `${pct}%`, background: scoreColour(m.score) }} />
+                        </span>
+                      </div>
+                    </header>
+                    <div className="a-rolecard-body">
+                      <div>
+                        <h3>{tp("drivers")}</h3>
+                        <ScoreParts parts={m.components} labels={labels} />
+                      </div>
+                      <div>
+                        <h3>{tp("gapTitle")}</h3>
+                        {m.missing_skills.length || m.partial_skills.length ? (
+                          <ul className="a-gaplist">
+                            {m.missing_skills.slice(0, 4).map((s) => (
+                              <li key={s.id}>
+                                <Circle size={11} aria-hidden data-tone="down" /> {s.label}
+                              </li>
+                            ))}
+                            {m.partial_skills.slice(0, Math.max(0, 4 - m.missing_skills.length)).map((s) => (
+                              <li key={s.id}>
+                                <CircleDashed size={11} aria-hidden data-tone="warn" /> {s.label}
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="a-muted a-small">{tp("noGap")}</p>
+                        )}
+                      </div>
+                      <div>
+                        <h3>{tp("goals")}</h3>
+                        {goals.length ? <SdgTiles goals={goals.slice(0, 4)} /> : <p className="a-muted a-small">—</p>}
+                      </div>
+                    </div>
+                    <footer className="a-rolecard-foot">
+                      <Link className="a-btn is-ghost is-small" href={detail}>
+                        {t("viewDetail")}
+                      </Link>
+                      <Link
+                        className="a-btn is-small"
+                        href={`/app/pathway?role=${encodeURIComponent(m.role_id)}&scenario=${scenario}`}
+                      >
+                        {t(snapshotDate ? "viewLatestPathway" : "viewPathway")} <ArrowRight size={14} aria-hidden />
+                      </Link>
+                    </footer>
+                  </article>
+                </li>
+              );
+            })}
+          </ol>
           {result.data.data_provenance_note ? (
-            <p className="text-xs text-muted-foreground">
+            <p className="a-small a-muted">
               {t("provenance")}: {result.data.data_provenance_note}
             </p>
           ) : null}
-          {result.data.matches.map((m, i) => (
-            <Card key={m.role_id}>
-              <CardHeader className="flex-row items-center justify-between">
-                <CardTitle>
-                  {i + 1}. {m.label}
-                </CardTitle>
-                <Badge>{t("score", { score: percent(m.score) })}</Badge>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm">
-                <div className="flex flex-wrap gap-1">
-                  {m.sdg_targets.map((s) => (
-                    <SdgBadge key={s.target} target={s} />
-                  ))}
-                </div>
-                <p>
-                  <span className="text-muted-foreground">{t("missing")}:</span>{" "}
-                  {m.missing_skills.map((s) => s.label).join(", ") || "—"}
-                </p>
-                <p>
-                  <span className="text-muted-foreground">{t("partial")}:</span>{" "}
-                  {m.partial_skills.map((s) => s.label).join(", ") || "—"}
-                </p>
-                <div className="flex gap-2 pt-1">
-                  <Link
-                    href={`/app/matches/${encodeURIComponent(m.role_id)}?scenario=${scenario}${replayQuery}`}
-                    className={buttonVariants({ variant: "outline", size: "sm" })}
-                  >
-                    {t("viewDetail")}
-                  </Link>
-                  <Link
-                    href={`/app/pathway?role=${encodeURIComponent(m.role_id)}&scenario=${scenario}`}
-                    className={buttonVariants({ size: "sm" })}
-                  >
-                    {t(snapshotDate ? "viewLatestPathway" : "viewPathway")}
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        </>
       )}
-    </section>
+    </div>
   );
 }

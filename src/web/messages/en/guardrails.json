@@ -9,11 +9,11 @@
   "rulesTitle": "Guardrails",
   "sourcesTitle": "Data sources",
   "sourceKind": {
-    "live_api": "live API",
+    "live_api": "live data feed",
     "verified_page": "verified page",
     "curated": "curated",
-    "synthetic": "synthetic",
-    "mock": "mock"
+    "synthetic": "sample data",
+    "mock": "placeholder"
   },
   "records": "{count} records",
   "fairnessTitle": "Fairness checks",
@@ -21,6 +21,6 @@
   "fairnessFailed": "A fairness check failed",
   "protectedTitle": "Never accepted as input",
   "limitsTitle": "Limitations",
-  "limitsBody": "All predictions are estimates. Demo people and teams are synthetic. SDG mappings are drafts until reviewed. Course levels are our estimate. Adept supports human decisions and never makes hiring decisions.",
+  "limitsBody": "All predictions are estimates from public data. Your CV is read in memory and never stored. SDG links are drafts until a reviewer signs them off. Course levels are our estimate. Adept supports your decisions and never makes hiring decisions.",
   "lastSynced": "last synced {date} UTC"
 }

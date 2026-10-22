@@ -24,7 +24,21 @@ members; evidence in `course_evidence`). F7 uses `group_pathway` and `team_gaps`
 Web: `/app/pathway`, `/app/progress`, `/app/courses`, `/org/plan`, `/org/courses`, `/org/verify`.
 Flows per audience: `docs/UX_FLOWS.md`.
 
+Progress stores immutable course facts in `course_progress.course_snapshot`. Accepted course
+evidence across all target roles contributes to `service.evidenced_levels`; changing the saved
+target or retiring a course does not erase earned credit. `service.combined_levels` merges it
+with intake skills for matching, individual plans/comparisons/re-planning and team gaps/plans.
+Undo and rejected evidence still revoke the corresponding credit. Migration `20261022220000`
+backfills existing records from the surviving saved plan, or otherwise the current catalogue.
+
 ## Integration points (M1, M2, M4)
+
+Completed course facts and evidence are read independently of the remaining plan.
+`Progress.history` keeps completed courses visible with their original target and editable
+evidence/undo actions after re-planning. Saved plan contexts are archived for badge
+re-evaluation; rejection and undo revoke current eligibility. Team inputs use one joined
+`learning_records(user_ids)` read across members and targets, and reuse loaded members when
+choosing the default target.
 
 | Port | Who calls it | What it gives |
 |---|---|---|

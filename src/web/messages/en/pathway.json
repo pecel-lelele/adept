@@ -108,10 +108,10 @@
     }
   },
   "evidence": {
-    "hint": "Ticking a course is self-reported. Add the provider's certificate link to strengthen it; your HR or career advisor can confirm it.",
+    "hint": "Ticking a course is self-reported. A certificate link shows the course page exists, not that you have the skill; your HR or career advisor can confirm it.",
     "addProof": "Add certificate link",
     "urlPlaceholder": "https://www.coursera.org/account/accomplishments/verify/…",
-    "sent": "Link saved and checked.",
+    "sent": "Link saved. We only checked that it opens on the provider's site; a reviewer confirms whether it is yours.",
     "reviewNote": "Reviewer's note: {note}",
     "kind": {
       "self_reported": "Self-reported",
@@ -121,7 +121,7 @@
     },
     "link": {
       "not_submitted": "no link yet",
-      "provider_verified": "official provider page, checked",
+      "provider_verified": "link opens on the provider's site (ownership and content not checked)",
       "unreachable": "link could not be opened",
       "not_provider_page": "not an official verification page: needs a manual check"
     }
@@ -178,5 +178,15 @@
     "snapshot": "Trend snapshot {version}.",
     "seeMatches": "See your ranked matches",
     "humanInCharge": "This comparison supports your decision; it does not rank or select roles for you."
+  },
+  "badge": {
+    "first": "First course done",
+    "halfway": "Halfway there",
+    "complete": "Plan complete",
+    "skill": "{skill} at target level"
+  },
+  "history": {
+    "title": "Completed learning history",
+    "description": "Completed courses stay here when your target or remaining plan changes. You can review the evidence or undo a completion."
   }
 }

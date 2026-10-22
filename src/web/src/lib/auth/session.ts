@@ -1,18 +1,31 @@
 import { cookies } from "next/headers";
 
-export const DEMO_COOKIE = "adept_demo";
+/** httpOnly cookie holding the API-signed session token (never a raw user id). */
+export const SESSION_COOKIE = "adept_session";
+const TOKEN_PREFIX = "v1.";
+const MAX_AGE_S = 14 * 24 * 3600; // matches the API token lifetime
 
 export type AuthMode = "demo" | "supabase";
-
-export const DEMO_PERSONAS = {
-  learner: { id: "aisyah", home: "/app/radar" },
-  org: { id: "demo-company", home: "/org/gaps" },
-} as const;
 
 export function getAuthMode(): AuthMode {
   return process.env.AUTH_MODE === "supabase" ? "supabase" : "demo";
 }
 
-export async function getDemoUser(): Promise<string | undefined> {
-  return (await cookies()).get(DEMO_COOKIE)?.value;
+export async function getSessionToken(): Promise<string | undefined> {
+  const value = (await cookies()).get(SESSION_COOKIE)?.value;
+  return value?.startsWith(TOKEN_PREFIX) ? value : undefined;
+}
+
+export async function setSessionToken(token: string): Promise<void> {
+  (await cookies()).set(SESSION_COOKIE, token, {
+    path: "/",
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    maxAge: MAX_AGE_S,
+  });
+}
+
+export async function clearSession(): Promise<void> {
+  (await cookies()).delete(SESSION_COOKIE);
 }

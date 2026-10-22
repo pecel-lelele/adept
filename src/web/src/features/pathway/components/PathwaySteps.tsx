@@ -1,41 +1,35 @@
-import Link from "next/link";
+import { ArrowUpRight, BookOpen, Clock3 } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
-import { Badge, Card, CardContent, CardHeader, CardTitle, SdgBadge } from "@/components";
+import { SdgBadge } from "@/components";
 import type { Schemas } from "@/lib/api";
 
-type Course = Schemas["Course"];
-
-async function CourseLine({ course }: { course: Course }) {
+/** One course in a step: icon tile, title (opens the provider), provider and hours, cost. */
+export async function CourseLine({ course }: { course: Schemas["Course"] }) {
   const t = await getTranslations("pathway");
+  const free = course.cost_myr === 0;
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <a href={course.url} className="underline" target="_blank" rel="noreferrer">
-        {course.title}
-      </a>
-      <span className="text-xs text-muted-foreground">
-        {course.provider} · {t("hours", { hours: course.hours })}
+    <a className="a-course-row" href={course.url} target="_blank" rel="noreferrer">
+      <span className="a-course-icon" aria-hidden>
+        <BookOpen size={18} strokeWidth={1.6} />
       </span>
-      <Badge variant="outline">
-        {course.cost_myr === 0 ? t("free") : t("cost", { amount: course.cost_myr })}
-      </Badge>
-      {course.hrd_claimable ? (
-        <Badge variant="success" title={course.hrd_note}>
-          {t("hrdClaimable")}
-        </Badge>
-      ) : null}
-      <span className="text-xs text-muted-foreground" title={course.duration_note}>
-        {course.source ? `${t("step.source", { name: course.source.name })} · ` : null}
-        {t("verified", { date: course.verified_at })}
+      <span className="a-course-main">
+        <strong>
+          {course.title} <ArrowUpRight size={13} aria-hidden />
+        </strong>
+        <small>
+          {course.provider} · {t("hours", { hours: course.hours })}
+          {course.hrd_claimable ? ` · ${t("hrdClaimable")}` : ""}
+        </small>
       </span>
-      {course.hrd_claimable && course.duration_note ? (
-        <span className="basis-full text-xs text-muted-foreground">{course.duration_note}</span>
-      ) : null}
-    </div>
+      <span className="a-chip" data-tone={free ? "up" : undefined}>
+        {free ? t("free") : t("cost", { amount: course.cost_myr })}
+      </span>
+    </a>
   );
 }
 
-/** Ordered pathway steps. Also used by the organisation group plan (shows member counts). */
+/** The ordered plan: numbered step cards on a rail, each with its courses and reasons. */
 export async function PathwaySteps({
   steps,
   memberNames,
@@ -44,82 +38,85 @@ export async function PathwaySteps({
   memberNames?: Record<string, string>;
 }) {
   const t = await getTranslations("pathway");
+  const d = await getTranslations("common.design");
   const label = (id: string) => steps.find((s) => s.skill_id === id)?.skill_label || id;
   return (
-    <>
-      {memberNames ? (
-        <p className="mb-3 flex flex-wrap gap-3 text-sm">
-          <Link href="/org/verify" className="underline">
-            {t("verify.title")}
-          </Link>
-          <Link href="/org/courses?audience=corporate" className="underline">
-            {t("catalogue.browse")}
-          </Link>
-        </p>
-      ) : null}
-      <ol className="space-y-3">
-        {steps.map((step) => (
-          <li key={step.order}>
-            <Card>
-              <CardHeader className="flex-row flex-wrap items-center justify-between gap-2">
-                <CardTitle>
-                  {step.order}. {step.skill_label || step.skill_id}
-                </CardTitle>
-                <span className="text-xs text-muted-foreground">
-                  {t("weeks", { start: step.week_start, end: step.week_end })} ·{" "}
-                  {t("hours", { hours: step.est_hours })}
+    <ol className="a-steps">
+      {steps.map((step) => (
+        <li key={step.order} className="a-step-item">
+          <span className="a-step-num" aria-hidden>
+            {String(step.order).padStart(2, "0")}
+          </span>
+          <article className="a-card a-step-card">
+            <header className="a-step-head">
+              <div>
+                <span className="a-eyebrow">
+                  {t("weeks", { start: step.week_start, end: step.week_end })}
                 </span>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm">
-                <p className="font-medium">
+                <h2>{step.skill_label || step.skill_id}</h2>
+              </div>
+              <span className="a-chip">
+                <Clock3 size={12} aria-hidden /> {t("hours", { hours: step.est_hours })}
+              </span>
+            </header>
+            <div className="a-course-list">
+              {step.courses.map((c) => (
+                <CourseLine key={c.id} course={c} />
+              ))}
+            </div>
+            {step.sdg_targets?.length ? (
+              <div className="a-chips">
+                {step.sdg_targets.map((s) => (
+                  <SdgBadge key={s.target} target={s} />
+                ))}
+              </div>
+            ) : null}
+            <details className="a-disclosure">
+              <summary>{d("stepDetails")}</summary>
+              <div>
+                <p>{step.reason}</p>
+                <p>
                   {t("step.levels", {
                     current: step.current_level ?? 0,
                     reaches: step.reaches_level ?? 0,
                     target: step.target_level ?? 1,
                   })}
                 </p>
-                <p className="text-xs text-muted-foreground">{step.reason}</p>
-                {step.prerequisites && step.prerequisites.length > 0 ? (
-                  <p className="text-xs">
-                    {t("step.prerequisites", { skills: step.prerequisites.map(label).join(", ") })}
-                  </p>
+                {step.prerequisites?.length ? (
+                  <p>{t("step.prerequisites", { skills: step.prerequisites.map(label).join(", ") })}</p>
                 ) : null}
                 {step.courses.map((c) => (
-                  <CourseLine key={c.id} course={c} />
+                  <p key={c.id} className="a-small a-muted">
+                    {c.source?.name} · {t("verified", { date: c.verified_at })}
+                    {c.hrd_claimable ? ` · ${t("hrdClaimable")}` : ""}
+                    {c.price_note ? ` · ${c.price_note}` : ""}
+                    {c.hrd_note ? ` · ${c.hrd_note}` : ""}
+                    {c.duration_note ? ` · ${c.duration_note}` : ""}
+                  </p>
                 ))}
-                {step.sdg_targets && step.sdg_targets.length > 0 ? (
-                  <div className="flex flex-wrap items-center gap-1">
-                    <span className="text-xs text-muted-foreground">{t("step.sdg")}:</span>
-                    {step.sdg_targets.map((s) => (
-                      <SdgBadge key={s.target} target={s} />
-                    ))}
-                  </div>
-                ) : null}
-                {memberNames && step.member_ids && step.member_ids.length > 0 ? (
-                  <p className="text-xs">
+                {memberNames && step.member_ids?.length ? (
+                  <p>
                     {t("step.members", {
                       count: step.member_ids.length,
                       members: step.member_ids.map((id) => memberNames[id] ?? id).join(", "),
                     })}
                   </p>
                 ) : null}
-                {step.alternatives && step.alternatives.length > 0 ? (
-                  <details className="text-xs">
-                    <summary className="cursor-pointer text-muted-foreground">
-                      {t("step.alternatives", { count: step.alternatives.length })}
-                    </summary>
-                    <div className="mt-2 space-y-1">
-                      {step.alternatives.map((c) => (
-                        <CourseLine key={c.id} course={c} />
-                      ))}
-                    </div>
-                  </details>
-                ) : null}
-              </CardContent>
-            </Card>
-          </li>
-        ))}
-      </ol>
-    </>
+              </div>
+            </details>
+            {step.alternatives?.length ? (
+              <details className="a-disclosure">
+                <summary>{t("step.alternatives", { count: step.alternatives.length })}</summary>
+                <div className="a-course-list">
+                  {step.alternatives.map((c) => (
+                    <CourseLine key={c.id} course={c} />
+                  ))}
+                </div>
+              </details>
+            ) : null}
+          </article>
+        </li>
+      ))}
+    </ol>
   );
 }

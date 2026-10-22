@@ -1,72 +1,136 @@
+import { ArrowRight, Circle, CircleCheck, CircleDashed, Leaf } from "lucide-react";
+import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
-import {
-  ApiError,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  MetaBar,
-  PageHeader,
-  ScoreBreakdown,
-  SdgBadge,
-  StubBanner,
-} from "@/components";
+import { MetaBar, PageHeader, ScoreBreakdown } from "@/components";
+import { ErrorState } from "@/components/ErrorState";
+import { scoreColour, SdgTiles } from "@/components/viz";
+import { RoleOutlookPanel } from "@/features/scenarios/components/RoleOutlookPanel";
 import type { ScenarioId } from "@/lib/api";
 
 import { fetchMatch } from "../api";
 import { componentLabels } from "./labels";
 
+/**
+ * One role, in the same context as the list it was opened from (scenario, snapshot date and
+ * UN Goals weight): fit and next action, then why (score parts), the gap, the outlook.
+ */
 export async function MatchDetailView({
   roleId,
   scenario,
   snapshotDate,
+  sdgWeight = 0,
 }: {
   roleId: string;
   scenario: ScenarioId;
   snapshotDate?: string;
+  sdgWeight?: number;
 }) {
   const t = await getTranslations("matching");
-  const result = await fetchMatch(roleId, scenario, snapshotDate);
-  if (!result.ok) return <ApiError message={result.message} />;
+  const th = await getTranslations("ui.home");
+  const tp = await getTranslations("ui.page");
+  const tsc = await getTranslations("scenarios");
+  const result = await fetchMatch(roleId, scenario, snapshotDate, sdgWeight);
+  if (!result.ok) return <ErrorState failure={result} />;
   const m = result.data;
+  const goals = [...new Map(m.sdg_targets.map((s) => [s.goal, { goal: s.goal, title: `${s.target} ${s.label}` }])).values()];
+  const pct = Math.round(m.score * 100);
+  const back =
+    `/app/matches?scenario=${scenario}` +
+    (snapshotDate ? `&snapshot_date=${encodeURIComponent(snapshotDate)}` : "") +
+    (sdgWeight > 0 ? `&sdg=${sdgWeight.toFixed(2)}` : "");
 
   return (
-    <section className="space-y-4">
-      <StubBanner feature="F4 Future-role matching" endpoint="GET /api/v1/matches/{role_id}" />
-      <PageHeader title={m.label}>
-        <MetaBar meta={m.meta} />
-        {m.data_provenance_note ? (
-          <p className="text-xs text-muted-foreground">
-            {t("provenance")}: {m.data_provenance_note}
-          </p>
-        ) : null}
+    <div className="a-view">
+      <PageHeader
+        eyebrow={tp("stepOf", { step: 3 })}
+        title={m.label}
+        actions={
+          <>
+            <Link className="a-btn is-ghost" href={`/app/pathway/compare?scenario=${scenario}&roles=${encodeURIComponent(m.role_id)}`}>
+              {th("compare")}
+            </Link>
+            <Link className="a-btn" href={`/app/pathway?role=${encodeURIComponent(m.role_id)}&scenario=${scenario}`}>
+              {t(snapshotDate ? "viewLatestPathway" : "viewPathway")} <ArrowRight size={16} aria-hidden />
+            </Link>
+          </>
+        }
+      >
+        <div className="a-chips">
+          <Link className="a-chip" href={back}>
+            ← {tp("backToRoles")}
+          </Link>
+          {snapshotDate ? <span className="a-chip">{tp("asOf", { date: snapshotDate })}</span> : null}
+          {sdgWeight > 0 ? (
+            <span className="a-chip" data-tone="up">
+              <Leaf size={12} aria-hidden /> {tp("sdgWeighted", { weight: Math.round(sdgWeight * 100) })}
+            </span>
+          ) : null}
+          <MetaBar meta={m.meta} />
+        </div>
       </PageHeader>
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("breakdown")}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ScoreBreakdown score={m.score} components={m.components} labels={await componentLabels()} />
-        </CardContent>
-      </Card>
-      <Card>
-        <CardContent className="space-y-2 pt-4 text-sm">
-          <div className="flex flex-wrap gap-1">
-            {m.sdg_targets.map((s) => (
-              <SdgBadge key={s.target} target={s} />
-            ))}
+
+      <div className="a-split">
+        <section className="a-card" aria-labelledby="h-breakdown">
+          <div className="a-card-head">
+            <h2 id="h-breakdown">{t("breakdown")}</h2>
+            <span className="a-fit is-inline" style={{ color: scoreColour(m.score) }}>
+              <strong>{pct}%</strong>
+              <small>{tp("fit")}</small>
+            </span>
           </div>
-          <p>
-            <span className="text-muted-foreground">{t("missing")}:</span>{" "}
-            {m.missing_skills.map((s) => s.label).join(", ") || "—"}
-          </p>
-          <p>
-            <span className="text-muted-foreground">{t("partial")}:</span>{" "}
-            {m.partial_skills.map((s) => s.label).join(", ") || "—"}
-          </p>
-        </CardContent>
-      </Card>
-    </section>
+          <ScoreBreakdown score={m.score} components={m.components} labels={await componentLabels()} />
+        </section>
+
+        <aside className="a-aside">
+          <section className="a-card" aria-labelledby="h-gap">
+            <div className="a-card-head">
+              <h2 id="h-gap">{tp("gapTitle")}</h2>
+            </div>
+            {m.missing_skills.length || m.partial_skills.length ? (
+              <ul className="a-gaplist">
+                {m.missing_skills.map((s) => (
+                  <li key={s.id}>
+                    <Circle size={11} aria-hidden data-tone="down" /> {s.label}
+                    <span className="a-chip" data-tone="down">{t("missing")}</span>
+                  </li>
+                ))}
+                {m.partial_skills.map((s) => (
+                  <li key={s.id}>
+                    <CircleDashed size={11} aria-hidden data-tone="warn" /> {s.label}
+                    <span className="a-chip" data-tone="warn">{t("partial")}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="a-muted a-small a-inline">
+                <CircleCheck size={14} aria-hidden /> {tp("noGap")}
+              </p>
+            )}
+          </section>
+          {goals.length ? (
+            <section className="a-card" aria-labelledby="h-goals">
+              <div className="a-card-head">
+                <h2 id="h-goals">{tp("goals")}</h2>
+              </div>
+              <SdgTiles goals={goals} />
+            </section>
+          ) : null}
+        </aside>
+      </div>
+
+      <section className="a-card" aria-labelledby="h-outlook">
+        <div className="a-card-head">
+          <h2 id="h-outlook">{tsc("outlook")}</h2>
+        </div>
+        <p className="a-card-sub">{tp("outlookHint")}</p>
+        <RoleOutlookPanel roleId={m.role_id} scenario={scenario} snapshotDate={snapshotDate} />
+      </section>
+      {m.data_provenance_note ? (
+        <p className="a-small a-muted">
+          {t("provenance")}: {m.data_provenance_note}
+        </p>
+      ) : null}
+    </div>
   );
 }

@@ -1,35 +1,102 @@
 import type { Messages } from "next-intl";
 
-export type NavKey = keyof Messages["common"]["nav"];
+export type NavKey = keyof Messages["ui"]["nav"];
+/** Icon names resolved on the client (lucide-react), so config stays serialisable. */
+export type IconName =
+  | "home" | "skills" | "radar" | "roles" | "plan" | "progress" | "courses" | "impact"
+  | "team" | "gaps" | "verify" | "settings" | "sources" | "snapshots";
 
 export type NavItem = {
   key: NavKey;
   href: string;
-  /** Handbook journey step (1-4), if this page is one. */
+  icon: IconName;
+  /** Handbook journey step (1-4). */
   step?: 1 | 2 | 3 | 4;
-  feature: string;
+  /** Pages that show the AI-scenario switch. */
+  scenario?: boolean;
 };
 
-export const individualNav: readonly NavItem[] = [
-  { key: "onboarding", href: "/app/onboarding", feature: "F1" },
-  { key: "profile", href: "/app/profile", step: 1, feature: "F1" },
-  { key: "radar", href: "/app/radar", step: 2, feature: "F2" },
-  { key: "matches", href: "/app/matches", step: 3, feature: "F4" },
-  { key: "pathway", href: "/app/pathway", step: 4, feature: "F5" },
-  { key: "sdg", href: "/app/sdg", feature: "F6" },
-  { key: "progress", href: "/app/progress", feature: "F5" },
-];
+export type NavGroup = { label: NavKey; items: readonly NavItem[] };
 
-export const organisationNav: readonly NavItem[] = [
-  { key: "setup", href: "/org/setup", feature: "F7" },
-  { key: "members", href: "/org/members", step: 1, feature: "F7" },
-  { key: "radar", href: "/org/radar", step: 2, feature: "F2" },
-  { key: "gaps", href: "/org/gaps", step: 3, feature: "F7" },
-  { key: "plan", href: "/org/plan", step: 4, feature: "F7" },
-  { key: "sdg", href: "/org/sdg", feature: "F6" },
-];
+export type Workspace = {
+  mode: "individual" | "organisation" | "admin";
+  home: string;
+  groups: readonly NavGroup[];
+  /** Exactly four destinations for the mobile tab bar; the fifth tab opens "More". */
+  tabs: readonly NavKey[];
+};
 
-export const adminNav: readonly NavItem[] = [
-  { key: "sources", href: "/admin/sources", feature: "F2" },
-  { key: "snapshots", href: "/admin/snapshots", feature: "F2" },
-];
+const learnerItems = {
+  home: { key: "home", href: "/app", icon: "home" },
+  skills: { key: "skills", href: "/app/profile", icon: "skills", step: 1, scenario: true },
+  radar: { key: "radar", href: "/app/radar", icon: "radar", step: 2, scenario: true },
+  roles: { key: "roles", href: "/app/matches", icon: "roles", step: 3, scenario: true },
+  plan: { key: "plan", href: "/app/pathway", icon: "plan", step: 4, scenario: true },
+  progress: { key: "progress", href: "/app/progress", icon: "progress", scenario: true },
+  courses: { key: "courses", href: "/app/courses", icon: "courses" },
+  impact: { key: "impact", href: "/app/sdg", icon: "impact", scenario: true },
+} satisfies Record<string, NavItem>;
+
+export const learnerWorkspace: Workspace = {
+  mode: "individual",
+  home: "/app",
+  groups: [
+    {
+      label: "journey",
+      items: [learnerItems.home, learnerItems.skills, learnerItems.radar, learnerItems.roles, learnerItems.plan],
+    },
+    { label: "track", items: [learnerItems.progress, learnerItems.courses, learnerItems.impact] },
+  ],
+  tabs: ["home", "radar", "roles", "plan"],
+};
+
+const orgItems = {
+  home: { key: "home", href: "/org", icon: "home" },
+  team: { key: "team", href: "/org/members", icon: "team", step: 1 },
+  radar: { key: "radar", href: "/org/radar", icon: "radar", step: 2, scenario: true },
+  gaps: { key: "gaps", href: "/org/gaps", icon: "gaps", step: 3, scenario: true },
+  teamPlan: { key: "teamPlan", href: "/org/plan", icon: "plan", step: 4, scenario: true },
+  impact: { key: "impact", href: "/org/sdg", icon: "impact", scenario: true },
+  courses: { key: "courses", href: "/org/courses", icon: "courses" },
+  verify: { key: "verify", href: "/org/verify", icon: "verify" },
+  settings: { key: "settings", href: "/org/setup", icon: "settings" },
+} satisfies Record<string, NavItem>;
+
+export const orgWorkspace: Workspace = {
+  mode: "organisation",
+  home: "/org",
+  groups: [
+    {
+      label: "journey",
+      items: [orgItems.home, orgItems.team, orgItems.radar, orgItems.gaps, orgItems.teamPlan],
+    },
+    { label: "manage", items: [orgItems.impact, orgItems.courses, orgItems.verify, orgItems.settings] },
+  ],
+  tabs: ["home", "team", "gaps", "teamPlan"],
+};
+
+export const adminWorkspace: Workspace = {
+  mode: "admin",
+  home: "/admin",
+  groups: [
+    {
+      label: "admin",
+      items: [
+        { key: "sources", href: "/admin/sources", icon: "sources" },
+        { key: "snapshots", href: "/admin/snapshots", icon: "snapshots" },
+      ],
+    },
+  ],
+  tabs: ["sources", "snapshots"],
+};
+
+export function allItems(ws: Workspace): NavItem[] {
+  return ws.groups.flatMap((g) => g.items);
+}
+
+/** The nav item a pathname belongs to (longest matching prefix wins). */
+export function activeItem(ws: Workspace, pathname: string): NavItem | undefined {
+  return allItems(ws)
+    .filter((i) => pathname === i.href || (i.href !== ws.home && pathname.startsWith(i.href + "/")) || pathname === i.href)
+    .sort((a, b) => b.href.length - a.href.length)[0];
+}

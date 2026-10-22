@@ -1,5 +1,6 @@
-import { AuthView } from "@/features/core";
+import { redirect } from "next/navigation";
 
+/** Consent is part of sign-up now; keep the old link working. */
 export default function Page() {
-  return <AuthView page="consent" />;
+  redirect("/auth/signup");
 }

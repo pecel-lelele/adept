@@ -9,11 +9,11 @@
   "rulesTitle": "防护规则",
   "sourcesTitle": "数据来源",
   "sourceKind": {
-    "live_api": "实时 API",
+    "live_api": "实时数据源",
     "verified_page": "已核实页面",
     "curated": "人工整理",
-    "synthetic": "合成数据",
-    "mock": "模拟数据"
+    "synthetic": "示例数据",
+    "mock": "占位"
   },
   "records": "{count} 条记录",
   "fairnessTitle": "公平性检查",
@@ -21,6 +21,6 @@
   "fairnessFailed": "有一项公平性检查未通过",
   "protectedTitle": "从不作为输入",
   "limitsTitle": "局限",
-  "limitsBody": "所有预测均为估计。演示中的人员和团队均为合成数据。SDG 关联在审核前为草稿。课程水平为我们的估计。Adept 支持人的决策，从不做出招聘决定。",
+  "limitsBody": "所有预测均为基于公开数据的估计。你的简历仅在内存中读取，从不保存。SDG 关联在审核前为草稿。课程难度为我们的估计。Adept 支持你的决定，从不做招聘决定。",
   "lastSynced": "最近同步 {date} UTC"
 }

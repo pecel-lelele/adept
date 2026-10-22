@@ -9,7 +9,11 @@
   "scenario": {
     "label": "Scenario",
     "moderate": "Moderate AI disruption",
-    "fast": "Fast AI disruption"
+    "fast": "Fast AI disruption",
+    "pace": "AI pace",
+    "moderateShort": "Moderate",
+    "fastShort": "Fast",
+    "hint": "How fast AI changes work. Rankings and outlooks are estimates under each pace."
   },
   "estimate": {
     "label": "Estimate",
@@ -24,23 +28,23 @@
     "unavailable": "Trend data unavailable"
   },
   "nav": {
+    "overview": "Overview",
+    "courses": "Explore courses",
+    "verify": "Review completions",
     "onboarding": "Start",
     "profile": "Profile",
-    "radar": "Skills Radar",
-    "matches": "Matches",
-    "pathway": "Pathway",
-    "sdg": "SDG impact",
-    "progress": "Progress",
-    "setup": "Setup",
+    "radar": "Trends",
+    "matches": "Career matches",
+    "pathway": "My learning",
+    "sdg": "My impact",
+    "progress": "Achievements",
+    "setup": "Settings",
     "members": "Members",
-    "gaps": "Skills gaps",
-    "plan": "Group plan",
+    "gaps": "Skills insights",
+    "plan": "Team learning",
     "about": "About",
     "sources": "Sources",
     "snapshots": "Snapshots"
-  },
-  "journey": {
-    "step": "Step {n}"
   },
   "landing": {
     "individual": "Individual",
@@ -70,5 +74,39 @@
   },
   "locale": {
     "label": "Language"
+  },
+  "design": {
+    "more": "More",
+    "signOut": "Sign out",
+    "details": "Details & sources",
+    "filters": "Filter courses",
+    "courseDetails": "Course details",
+    "continue": "Continue learning",
+    "progress": "Your progress",
+    "evidence": "Sources & methodology",
+    "options": "Learning options",
+    "pathBody": "A clear sequence. A pace that works for you.",
+    "snapshot": "Data edition",
+    "rising": "Rising",
+    "stable": "Steady",
+    "declining": "Declining",
+    "search": "Search skills",
+    "all": "All skills",
+    "pace": "Hours per week",
+    "duration": "Weeks",
+    "cost": "Estimated cost",
+    "complete": "Courses completed",
+    "next": "Up next",
+    "saved": "Your chosen direction",
+    "choose": "Explore roles",
+    "stepDetails": "Why this step?",
+    "visit": "Explore course",
+    "skillBank": "Your skill bank",
+    "skillBankBody": "Build on what you know. Select a skill to explore courses.",
+    "skillLevel": "Level {level} of 5",
+    "review": "Review",
+    "moreSkills": "Show {count} more skills",
+    "addSkills": "Review your skills",
+    "observed": "data measured {from} to {to}"
   }
 }

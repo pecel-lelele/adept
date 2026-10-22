@@ -14,5 +14,5 @@
   "budget": "预算 RM {amount}",
   "hrdEligible": "符合 HRD Corp 资格",
   "interests": "兴趣",
-  "cvNote": "简历上传（POST /profile/cv）返回模拟提取结果。仅使用合成简历。"
+  "cvNote": "使用示例简历探索您的技能。请勿上传真实个人信息。"
 }

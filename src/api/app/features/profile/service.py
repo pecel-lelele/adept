@@ -13,19 +13,23 @@ from __future__ import annotations
 
 import csv
 import re
+from datetime import date
 from functools import lru_cache
 from pathlib import Path
 
-from app.contracts.common import mock_meta
+from app.contracts.common import RecommendationMeta, Source
 from app.contracts.profile import (
     CvExtractionResult,
     ExtractedSkill,
     Profile,
     ProfileIn,
+    SkillCatalogueResponse,
+    SkillOption,
     UserSkill,
 )
 from app.core.auth import CurrentUser
 from app.core.errors import AppError
+from app.features.org import repository as org_repository
 from app.features.profile import repository
 from app.features.profile.cv_parser import parse_cv
 from app.features.profile.schemas import (
@@ -34,6 +38,20 @@ from app.features.profile.schemas import (
     QuestionnaireResponse,
     SkillConfirmationIn,
     SkillConfirmationResponse,
+)
+
+# Extracted skills are matched against the Adept taxonomy; levels and confidence are estimates.
+TAXONOMY_META = RecommendationMeta(
+    sources=[
+        Source(
+            name="Adept skill taxonomy (skills.csv)",
+            url="https://github.com/pecel-lelele/adept/blob/main/src/data/seed/taxonomy/skills.csv",
+            retrieved_at=date(2026, 10, 22),
+        )
+    ],
+    snapshot_date=date(2026, 10, 22),
+    scenario="moderate",
+    is_estimate=True,
 )
 
 _SEED = Path(__file__).resolve().parents[5] / "src" / "data" / "seed"
@@ -84,6 +102,27 @@ def _skill_labels() -> dict[str, str]:
     return labels
 
 
+def skill_catalogue() -> SkillCatalogueResponse:
+    """Every taxonomy skill, sorted by label, for the skill picker."""
+    path = _SEED / "taxonomy" / "skills.csv"
+    with open(path, encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+    options = [
+        SkillOption(id=r["id"], label=r["label"], group=r.get("description") or "") for r in rows
+    ]
+    with open(_SEED / "taxonomy" / "roles.csv", encoding="utf-8") as f:
+        tags = {
+            tag.strip()
+            for row in csv.DictReader(f)
+            for tag in (row.get("interest_tags") or "").split("|")
+            if tag.strip()
+        }
+    return SkillCatalogueResponse(
+        skills=sorted(options, key=lambda o: o.label.lower()),
+        interests=sorted(tags, key=str.lower),
+    )
+
+
 @lru_cache(maxsize=1)
 def _valid_skill_ids() -> frozenset[str]:
     """Return the set of valid taxonomy skill IDs."""
@@ -124,7 +163,7 @@ def extract_cv(
         for ps in parsed
     ]
 
-    return CvExtractionResult(skills=skills, truncated=truncated, meta=mock_meta())
+    return CvExtractionResult(skills=skills, truncated=truncated, meta=TAXONOMY_META)
 
 
 # ---------------------------------------------------------------------------
@@ -162,6 +201,8 @@ def upsert_profile(user: CurrentUser, data: ProfileIn) -> Profile:
     # Sanitise interests for the fairness whitelist
     clean_data = data.model_dump()
     clean_data["interests"] = _sanitise_interests(clean_data.get("interests", []))
+    if "learning_style" not in data.model_fields_set:
+        clean_data.pop("learning_style")  # keep the saved choice when a form omits it
     return repository.save_profile(current.model_copy(update=clean_data))
 
 
@@ -178,8 +219,10 @@ def upsert_questionnaire(user: CurrentUser, data: QuestionnaireIn) -> Questionna
         hours_per_week=data.hours_per_week,
         budget_myr=data.budget_myr,
         hrd_eligible=data.hrd_eligible,
+        learning_style=data.learning_style,
     )
     saved = upsert_profile(user, profile_data)
+    org_repository.set_intake_status(user.id, "complete" if saved.skills else "in_progress")
 
     return QuestionnaireResponse(
         user_id=saved.user_id,
@@ -187,7 +230,7 @@ def upsert_questionnaire(user: CurrentUser, data: QuestionnaireIn) -> Questionna
         segment=saved.segment,
         interests=saved.interests,
         hours_per_week=saved.hours_per_week,
-        learning_style=data.learning_style,
+        learning_style=saved.learning_style,
         budget_myr=saved.budget_myr,
         hrd_eligible=saved.hrd_eligible,
     )
@@ -201,7 +244,9 @@ def upsert_questionnaire(user: CurrentUser, data: QuestionnaireIn) -> Questionna
 def replace_skills(user: CurrentUser, skills: list[UserSkill]) -> Profile:
     """Replace the user's skill list (used by the legacy PUT /profile/skills)."""
     current = get_my_profile(user)
-    return repository.save_profile(current.model_copy(update={"skills": skills}))
+    saved = repository.save_profile(current.model_copy(update={"skills": skills}))
+    org_repository.set_intake_status(user.id, "complete" if skills else "in_progress")
+    return saved
 
 
 def confirm_skills(user: CurrentUser, data: SkillConfirmationIn) -> SkillConfirmationResponse:
@@ -251,6 +296,7 @@ def confirm_skills(user: CurrentUser, data: SkillConfirmationIn) -> SkillConfirm
     # Persist
     current = get_my_profile(user)
     repository.save_profile(current.model_copy(update={"skills": confirmed}))
+    org_repository.set_intake_status(user.id, "complete" if confirmed else "in_progress")
 
     # Build normalised view for the API response
     normalised: list[NormalisedSkill] = [

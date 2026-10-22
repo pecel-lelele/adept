@@ -15,6 +15,22 @@
   "component": {
     "skill_overlap": "Skill overlap",
     "trend_outlook": "Trend outlook",
-    "interest_fit": "Interest fit"
+    "interest_fit": "Interest fit",
+    "sdg_impact": "SDG impact"
+  },
+  "sdgWeight": "How much should the UN Goals count?",
+  "sdgWeightHint": "Raise it to favour roles with stronger links to the Sustainable Development Goals. The SDG part then shows in each score.",
+  "sdgWeightOff": "Not counted",
+  "changes": {
+    "title": "What changed from {from} to {to}",
+    "same": "No change",
+    "up": "Up {count}",
+    "down": "Down {count}",
+    "rankWas": "Was #{rank}",
+    "because": "Skills that moved:",
+    "rose": "rose",
+    "fell": "fell",
+    "noDrivers": "None of this role’s skills moved between these dates.",
+    "note": "Your skills stayed the same; only the trend data changed. Ranks are relative, so a role can move up when others fall further. Rankings are estimates."
   }
 }

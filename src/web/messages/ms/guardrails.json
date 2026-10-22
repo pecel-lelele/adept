@@ -9,11 +9,11 @@
   "rulesTitle": "Pagar keselamatan",
   "sourcesTitle": "Sumber data",
   "sourceKind": {
-    "live_api": "API langsung",
+    "live_api": "suapan data langsung",
     "verified_page": "halaman disahkan",
     "curated": "dikurasi",
-    "synthetic": "sintetik",
-    "mock": "olok-olok"
+    "synthetic": "data sampel",
+    "mock": "pemegang tempat"
   },
   "records": "{count} rekod",
   "fairnessTitle": "Semakan keadilan",
@@ -21,6 +21,6 @@
   "fairnessFailed": "Satu semakan keadilan gagal",
   "protectedTitle": "Tidak pernah diterima sebagai input",
   "limitsTitle": "Had",
-  "limitsBody": "Semua ramalan ialah anggaran. Individu dan pasukan demo adalah sintetik. Pemetaan SDG ialah draf sehingga disemak. Tahap kursus ialah anggaran kami. Adept menyokong keputusan manusia dan tidak pernah membuat keputusan pengambilan pekerja.",
+  "limitsBody": "Semua ramalan ialah anggaran daripada data awam. CV anda dibaca dalam memori dan tidak pernah disimpan. Pautan SDG ialah draf sehingga disemak. Tahap kursus ialah anggaran kami. Adept menyokong keputusan anda dan tidak pernah membuat keputusan pengambilan pekerja.",
   "lastSynced": "kali terakhir disegerak {date} UTC"
 }

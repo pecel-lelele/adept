@@ -1,0 +1,91 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+
+import { call, getApi } from "@/lib/api";
+import { clearSession, setSessionToken } from "@/lib/auth/session";
+import { safeReturn } from "@/lib/navigation";
+
+export type AuthState = { error?: string; values?: Record<string, string> };
+
+function text(form: FormData, key: string, max = 254): string {
+  const value = form.get(key);
+  return typeof value === "string" ? value.trim().slice(0, max) : "";
+}
+
+/** Keep what the person typed (never the password) so an error does not wipe the form. */
+function keep(form: FormData): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [key, value] of form.entries()) {
+    if (key !== "password" && !key.startsWith("$") && typeof value === "string") out[key] = value;
+  }
+  return out;
+}
+
+function destination(next: string, apiNext: string): string {
+  // A deep link only wins when it belongs to the workspace the account lands in.
+  if (!next) return apiNext;
+  const mode = apiNext.startsWith("/org") ? "organisation" : "individual";
+  const safe = safeReturn(next, mode);
+  // New learners must finish intake first.
+  return apiNext === "/app/onboarding" ? apiNext : safe;
+}
+
+export async function signupAction(_: AuthState, form: FormData): Promise<AuthState> {
+  const workspace = text(form, "workspace") === "organisation" ? "organisation" : "individual";
+  const size = Number.parseInt(text(form, "size", 7), 10);
+  const api = await getApi();
+  const result = await call(
+    api.POST("/api/v1/auth/signup", {
+      body: {
+        display_name: text(form, "display_name", 80),
+        email: text(form, "email"),
+        password: typeof form.get("password") === "string" ? String(form.get("password")).slice(0, 128) : "",
+        workspace,
+        consent: form.get("consent") === "on",
+        join_code: workspace === "individual" ? text(form, "join_code", 16) || null : null,
+        organisation:
+          workspace === "organisation"
+            ? {
+                type: text(form, "org_type") === "institution" ? "institution" : "company",
+                name: text(form, "org_name", 120),
+                industry: text(form, "industry", 120),
+                size: Number.isFinite(size) && size >= 0 ? size : 0,
+              }
+            : null,
+      },
+    }),
+  );
+  if (!result.ok) return { error: result.message, values: keep(form) };
+  await setSessionToken(result.data.token);
+  redirect(destination(text(form, "next", 300), result.data.next_path));
+}
+
+export async function loginAction(_: AuthState, form: FormData): Promise<AuthState> {
+  const api = await getApi();
+  const result = await call(
+    api.POST("/api/v1/auth/login", {
+      body: {
+        email: text(form, "email"),
+        password: typeof form.get("password") === "string" ? String(form.get("password")).slice(0, 128) : "",
+      },
+    }),
+  );
+  if (!result.ok) return { error: result.message, values: keep(form) };
+  await setSessionToken(result.data.token);
+  redirect(destination(text(form, "next", 300), result.data.next_path));
+}
+
+export async function joinOrgAction(_: AuthState, form: FormData): Promise<AuthState> {
+  const api = await getApi();
+  const result = await call(api.POST("/api/v1/org/join", { body: { code: text(form, "code", 16) } }));
+  if (!result.ok) return { error: result.message, values: keep(form) };
+  revalidatePath("/app", "layout");
+  return { values: { joined: result.data.name } };
+}
+
+export async function signOutAction(): Promise<void> {
+  await clearSession();
+  redirect("/");
+}

@@ -10,10 +10,15 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.contracts.common import RecommendationMeta
+from app.features.trends import repository as trends_repository
 from app.main import app
 
 PATH_VALUES = {"role_id": "data-analyst", "skill_id": "python", "state": "Kuala Lumpur"}
-QUERY_VALUES = {"role_id": "data-analyst"}
+QUERY_VALUES = {
+    "role_id": "data-analyst",
+    # Trend replay compares against an earlier snapshot: use the oldest stored one.
+    "from_date": trends_repository.list_available_dates()[0].isoformat(),
+}
 
 
 def _schema_has_meta(schema: dict[str, Any], defs: dict[str, Any]) -> bool:
@@ -39,7 +44,9 @@ def _recommendation_gets() -> list[tuple[str, dict[str, str]]]:
         query = {
             p["name"]: QUERY_VALUES[p["name"]]
             for p in op.get("parameters", [])
-            if p["in"] == "query" and p.get("required")
+            # Required parameters, plus a role for endpoints that otherwise fall back to the
+            # learner's saved plan (the fixtures have none).
+            if p["in"] == "query" and (p.get("required") or p["name"] in QUERY_VALUES)
         }
         out.append((url, query))
     return out

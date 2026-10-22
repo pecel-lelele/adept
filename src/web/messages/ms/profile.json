@@ -14,5 +14,5 @@
   "budget": "Bajet RM {amount}",
   "hrdEligible": "Layak HRD Corp",
   "interests": "Minat",
-  "cvNote": "Muat naik CV (POST /profile/cv) memulangkan pengekstrakan olok-olok. Gunakan CV sintetik sahaja."
+  "cvNote": "Gunakan CV contoh untuk meneroka kemahiran anda. Jangan muat naik maklumat peribadi sebenar."
 }

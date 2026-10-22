@@ -36,12 +36,13 @@ SnapshotDate = Annotated[
 
 @router.get("")
 def get_pathway(
-    role_id: str,
     user: CurrentUserDep,
+    role_id: str | None = None,
     scenario: ScenarioId = "moderate",
     snapshot_date: SnapshotDate = None,
 ) -> Pathway:
-    return service.get_pathway(user, role_id, scenario, snapshot_date)
+    """The plan for `role_id`; without it, the learner's saved target role."""
+    return service.get_pathway(user, service.resolve_role(user, role_id), scenario, snapshot_date)
 
 
 @router.get("/compare")
@@ -95,8 +96,11 @@ def accept_replan(user: CurrentUserDep) -> SavedPlan:
 
 
 @router.get("/progress")
-def get_progress(role_id: str, user: CurrentUserDep, scenario: ScenarioId = "moderate") -> Progress:
-    return service.get_progress(user, role_id, scenario)
+def get_progress(
+    user: CurrentUserDep, role_id: str | None = None, scenario: ScenarioId = "moderate"
+) -> Progress:
+    """Progress on `role_id`; without it, on the learner's saved target role."""
+    return service.get_progress(user, service.resolve_role(user, role_id), scenario)
 
 
 @router.post("/progress")

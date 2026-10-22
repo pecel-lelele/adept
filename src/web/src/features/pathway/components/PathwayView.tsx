@@ -1,160 +1,193 @@
+import {
+  ArrowRight,
+  ArrowUpRight,
+  BookOpen,
+  CalendarRange,
+  Check,
+  Clock3,
+  GitCompareArrows,
+  Hourglass,
+  Leaf,
+  Target,
+  Wallet,
+} from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
-import {
-  ApiError,
-  Badge,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  MetaBar,
-  PageHeader,
-} from "@/components";
+import { ApiError, Kpis, MetaBar, PageHeader } from "@/components";
 import type { ScenarioId, Schemas } from "@/lib/api";
 
 import { acceptReplanAction, savePlanAction } from "../actions";
 import { fetchPathway, fetchPlanStatus } from "../api";
 import { ActionForm } from "./ActionForm";
 import { PathwaySteps } from "./PathwaySteps";
-import { SegmentGuide } from "./SegmentGuide";
 
+/** The plan's four numbers: how long, how many hours a week, hours in total, what it costs. */
 async function Summary({ plan }: { plan: Schemas["Pathway"] }) {
+  const tp = await getTranslations("ui.page");
   const t = await getTranslations("pathway");
+  const over = plan.within_budget === false;
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t("summary.title")}</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-1 text-sm">
-        <p>
-          {t("totalWeeks", { weeks: plan.total_weeks })} ·{" "}
-          {t("summary.pace", { hours: plan.hours_per_week ?? 0 })} ·{" "}
-          {t("summary.totalHours", { hours: plan.total_hours ?? 0 })}
-        </p>
-        <p>
-          {t("summary.outOfPocket", {
-            amount: plan.out_of_pocket_myr ?? 0,
-            budget: plan.budget_myr ?? 0,
-          })}
-          {plan.within_budget === false ? (
-            <Badge variant="danger" className="ml-2">
-              {t("summary.overBudget")}
-            </Badge>
-          ) : null}
-        </p>
-        {(plan.total_cost_myr ?? 0) > 0 ? (
-          <p className="text-muted-foreground">
-            {t("summary.listPrice", { amount: plan.total_cost_myr ?? 0 })}
-          </p>
-        ) : null}
-        {plan.hrd_eligible ? (
-          <p className="text-xs text-muted-foreground">{t("summary.hrdNote")}</p>
-        ) : null}
-        {(plan.warnings ?? []).map((w) => (
-          <p key={w} className="text-xs text-amber-800">
-            {w}
-          </p>
-        ))}
-        <p className="text-xs text-muted-foreground">
-          {t("catalogueOnly")} {t("estimateNote")}
-        </p>
-      </CardContent>
-    </Card>
+    <Kpis
+      items={[
+        { label: tp("kDuration"), value: plan.total_weeks, unit: tp("weeksUnit"), icon: <CalendarRange size={15} />, note: tp("estimate") },
+        { label: tp("kTime"), value: plan.hours_per_week ?? 0, unit: tp("hPerWeek"), icon: <Clock3 size={15} />, note: tp("fromProfile") },
+        { label: tp("kTotalHours"), value: plan.total_hours ?? 0, unit: "h", icon: <Hourglass size={15} />, note: tp("kSteps", { count: plan.steps.length }) },
+        {
+          label: tp("kCost"),
+          value: `RM ${(plan.out_of_pocket_myr ?? 0).toLocaleString("en-MY")}`,
+          icon: <Wallet size={15} />,
+          tone: over ? "warn" : undefined,
+          note: over ? t("summary.overBudget") : tp("withinBudget", { budget: plan.budget_myr ?? 0 }),
+        },
+      ]}
+    />
+  );
+}
+
+/** Side column: where to go from the plan, then the plan's notes in full. */
+async function PlanAside({ plan, query }: { plan: Schemas["Pathway"]; query: string }) {
+  const t = await getTranslations("pathway");
+  const tp = await getTranslations("ui.page");
+  const links = [
+    { to: `/app/progress${query}`, icon: <Target size={16} aria-hidden />, label: t("plan.progressLink") },
+    { to: `/app/sdg${query}`, icon: <Leaf size={16} aria-hidden />, label: t("plan.sdgLink") },
+    { to: `/app/courses${query}`, icon: <BookOpen size={16} aria-hidden />, label: t("catalogue.browse") },
+    { to: `/app/pathway/compare${query}`, icon: <GitCompareArrows size={16} aria-hidden />, label: t("compare.link") },
+  ];
+  return (
+    <aside className="a-aside is-sticky">
+      <nav className="a-card a-flush" aria-label={tp("usePlan")}>
+        <div className="a-card-head a-pad">
+          <h2>{tp("usePlan")}</h2>
+        </div>
+        <ul className="a-linklist">
+          {links.map((l) => (
+            <li key={l.to}>
+              <Link href={l.to}>
+                {l.icon}
+                <span>{l.label}</span>
+                <ArrowRight size={14} aria-hidden />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
+      <section className="a-card is-sage" aria-labelledby="h-notes">
+        <div className="a-card-head">
+          <h2 id="h-notes">{tp("planNotes")}</h2>
+        </div>
+        <ul className="a-notes">
+          <li>{t("summary.outOfPocket", { amount: plan.out_of_pocket_myr ?? 0, budget: plan.budget_myr ?? 0 })}</li>
+          {plan.hrd_eligible ? <li>{t("summary.hrdNote")}</li> : null}
+          {(plan.warnings ?? []).map((w) => (
+            <li key={w}>{w}</li>
+          ))}
+          <li>{t("estimateNote")}</li>
+        </ul>
+      </section>
+    </aside>
   );
 }
 
 async function ReplanBanner({ status }: { status: Schemas["ReplanStatus"] }) {
   const t = await getTranslations("pathway");
   if (!status.needs_replan) return null;
+  // Show skill names, not ids: they appear in the saved plan or the proposed one.
+  const names = new Map(
+    [...(status.saved?.pathway.steps ?? []), ...(status.proposed?.steps ?? [])].map((s) => [s.skill_id, s.skill_label]),
+  );
+  const skillName = (id: string) => names.get(id) || id;
   return (
-    <Card className="border-amber-400 bg-amber-50">
-      <CardHeader>
-        <CardTitle>{t("replan.title")}</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-2 text-sm">
-        <p>{status.message}</p>
-        <ul className="list-disc pl-5 text-xs">
+    <section className="a-notice a-replan" role="status">
+      <div style={{ display: "grid", gap: 8, minWidth: 0 }}>
+        <strong>{t("replan.title")}</strong>
+        <span>{status.message}</span>
+        <ul>
           {status.changes.map((c) => (
             <li key={`${c.kind}-${c.skill_id}`}>
-              {t(`replan.change.${c.kind}`)}: {c.skill_id}. {c.detail}
+              {t(`replan.change.${c.kind}`)}: {skillName(c.skill_id)}. {c.detail}
             </li>
           ))}
         </ul>
-        <div className="flex gap-2">
+        <div className="a-hero-actions">
           <ActionForm action={acceptReplanAction} label={t("replan.accept")} />
-          <span className="self-center text-xs text-muted-foreground">{t("replan.keep")}</span>
+          <span className="a-small">{t("replan.keep")}</span>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   );
 }
 
-export async function PathwayView({ roleId, scenario }: { roleId: string; scenario: ScenarioId }) {
+export async function PathwayView({
+  roleId,
+  scenario,
+  snapshotDate,
+}: {
+  roleId: string;
+  scenario: ScenarioId;
+  snapshotDate?: string;
+}) {
   const t = await getTranslations("pathway");
-  const [result, status] = await Promise.all([fetchPathway(roleId, scenario), fetchPlanStatus()]);
+  const d = await getTranslations("common.design");
+  const tp = await getTranslations("ui.page");
+  const [result, status] = await Promise.all([fetchPathway(roleId, scenario, snapshotDate), fetchPlanStatus()]);
   if (!result.ok) return <ApiError message={result.message} />;
   const saved = status.ok ? status.data.saved : null;
   // The saved plan is the one progress is tracked against; show it (not a fresh rebuild)
   // whenever it is for this role and scenario. Changes are offered by the re-plan banner.
-  const savedHere = saved && saved.role_id === roleId && saved.scenario === scenario ? saved : null;
+  const savedHere =
+    !snapshotDate && saved && saved.role_id === roleId && saved.scenario === scenario ? saved : null;
   const plan = savedHere ? savedHere.pathway : result.data;
   const query = `?role=${encodeURIComponent(roleId)}&scenario=${scenario}`;
 
+  const action = snapshotDate ? (
+    <Link href={`/app/pathway${query}`} className="a-btn is-ghost is-small">
+      {d("continue")} <ArrowUpRight size={15} aria-hidden />
+    </Link>
+  ) : savedHere ? (
+    <span className="a-chip" data-tone="up">
+      <Check size={13} aria-hidden /> {t("plan.saved", { date: savedHere.saved_at.slice(0, 10) })}
+    </span>
+  ) : (
+    <ActionForm action={savePlanAction} fields={{ role_id: roleId, scenario }} label={t("plan.save")} className="a-inline-form" />
+  );
+
   return (
-    <section className="space-y-4">
+    <div className="a-view">
       <PageHeader
-        title={`${t("title")}: ${plan.role_label || plan.role_id}`}
-        description={t("totalWeeks", { weeks: plan.total_weeks })}
+        eyebrow={tp("stepOf", { step: 4 })}
+        title={plan.role_label || plan.role_id}
+        description={`${t("totalWeeks", { weeks: plan.total_weeks })} · ${d("pathBody")}`}
+        actions={action}
       >
         <MetaBar meta={plan.meta} />
       </PageHeader>
+      {!savedHere && !snapshotDate ? <p className="a-notice" data-tone="info">{t("plan.decide")}</p> : null}
       {status.ok && savedHere ? <ReplanBanner status={status.data} /> : null}
       <Summary plan={plan} />
-      <SegmentGuide segment={plan.segment} scenario={scenario} />
-      <div className="flex flex-wrap items-center gap-2">
-        {savedHere ? (
-          <Badge variant="success">
-            {t("plan.saved", { date: savedHere.saved_at.slice(0, 10) })}
-          </Badge>
-        ) : (
-          <ActionForm
-            action={savePlanAction}
-            fields={{ role_id: roleId, scenario }}
-            label={t("plan.save")}
-          />
-        )}
-        <Link href={`/app/progress${query}`} className="text-sm underline">
-          {t("plan.progressLink")}
-        </Link>
-        <Link href={`/app/sdg${query}`} className="text-sm underline">
-          {t("plan.sdgLink")}
-        </Link>
-        <Link href="/app/courses" className="text-sm underline">
-          {t("catalogue.browse")}
-        </Link>
-        <Link href={`/app/pathway/compare?scenario=${scenario}`} className="text-sm underline">
-          {t("compare.link")}
-        </Link>
-      </div>
-      <p className="text-xs text-muted-foreground">{t("plan.decide")}</p>
-      <PathwaySteps steps={plan.steps} />
-      {(plan.unmet ?? []).length > 0 ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>{t("unmet.title")}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            {(plan.unmet ?? []).map((u) => (
-              <div key={u.skill_id}>
-                <span className="font-medium">{u.label}</span>{" "}
-                <Badge variant="warning">{t(`unmet.${u.reason}`)}</Badge>
-                <p className="text-xs text-muted-foreground">{u.detail}</p>
+
+      <div className="a-split is-wide">
+        <div className="a-stack">
+          <PathwaySteps steps={plan.steps} />
+          {(plan.unmet ?? []).length > 0 ? (
+            <section className="a-card">
+              <div className="a-card-head">
+                <h2>{t("unmet.title")}</h2>
               </div>
-            ))}
-          </CardContent>
-        </Card>
-      ) : null}
-    </section>
+              <div className="a-card-body">
+                {(plan.unmet ?? []).map((u) => (
+                  <div key={u.skill_id} className="a-unmet">
+                    <strong>{u.label}</strong> <span className="a-chip" data-tone="warn">{t(`unmet.${u.reason}`)}</span>
+                    <p className="a-small a-muted">{u.detail}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          ) : null}
+        </div>
+        <PlanAside plan={plan} query={query} />
+      </div>
+    </div>
   );
 }
