@@ -1,8 +1,9 @@
-"""Core endpoints (owner M4): health and data freshness."""
+"""Core endpoints (owner M4): health, data freshness and the public platform overview."""
 
 from fastapi import APIRouter
 
-from app.contracts.common import DataFreshness, HealthResponse, Source
+from app.contracts.common import DataFreshness, HealthResponse, PlatformOverview, Source
+from app.core import overview
 from app.core.config import get_settings
 from app.core.db import database_status
 
@@ -33,3 +34,9 @@ def data_freshness() -> DataFreshness:
         ],
         is_mock=False,
     )
+
+
+@router.get("/meta/overview")
+def platform_overview() -> PlatformOverview:
+    """Live figures for the home page: trends, roles, courses and SDG coverage (no sign-in)."""
+    return overview.get()

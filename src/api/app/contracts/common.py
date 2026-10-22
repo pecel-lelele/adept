@@ -57,3 +57,38 @@ def mock_meta(scenario: ScenarioId = "moderate", is_estimate: bool = True) -> Re
         scenario=scenario,
         is_estimate=is_estimate,
     )
+
+
+class OverviewSkill(BaseModel):
+    skill_id: str
+    label: str
+    velocity: float = Field(description="Moderate-scenario velocity from the latest snapshot.")
+    direction: Literal["rising", "declining", "stable"]
+
+
+class OverviewRole(BaseModel):
+    role_id: str
+    label: str
+    outlook: float = Field(description="Demand index under the moderate scenario (1 = today).")
+    low: float
+    high: float
+
+
+class PlatformOverview(BaseModel):
+    """Live figures for the public home page, computed from the same data the app uses."""
+
+    skills_in_bank: int = Field(description="Skills a learner can pick (taxonomy).")
+    skills_tracked: int = Field(description="Skills with a trend in the latest snapshot.")
+    rising: int
+    stable: int
+    declining: int
+    top_rising: list[OverviewSkill]
+    top_declining: list[OverviewSkill]
+    roles: int = Field(description="Future roles the matcher ranks.")
+    top_roles: list[OverviewRole]
+    courses: int
+    free_courses: int
+    hrd_claimable_courses: int
+    providers: int
+    sdg_goals_linked: int = Field(description="Distinct SDGs linked to at least one role.")
+    meta: RecommendationMeta
