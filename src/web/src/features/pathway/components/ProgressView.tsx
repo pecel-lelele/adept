@@ -1,10 +1,8 @@
-import { ArrowUpRight, Award, BookOpen, Check } from "lucide-react";
+import { ArrowUpRight, Award, BookOpen, Check, Layers, Target } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
-import { ApiError, MetaBar, PageHeader } from "@/components";
-import { Ring } from "@/components/viz";
+import { ApiError, Kpis, MetaBar, PageHeader } from "@/components";
 import type { ScenarioId } from "@/lib/api";
-import { percent } from "@/lib/utils";
 
 import { submitEvidenceAction, updateProgressAction } from "../actions";
 import { fetchProgress } from "../api";
@@ -15,6 +13,7 @@ import { EvidenceForm } from "./EvidenceForm";
 export async function ProgressView({ roleId, scenario }: { roleId: string; scenario: ScenarioId }) {
   const t = await getTranslations("pathway");
   const d = await getTranslations("common.design");
+  const tp = await getTranslations("ui.page");
   const progress = await fetchProgress(roleId, scenario);
   if (!progress.ok) return <ApiError message={progress.message} />;
   const p = progress.data;
@@ -24,38 +23,44 @@ export async function ProgressView({ roleId, scenario }: { roleId: string; scena
   const done = unique.filter((c) => p.course_status[c.id] === "completed").length;
 
   return (
-    <div className="a-stack" style={{ gap: 24 }}>
-      <PageHeader eyebrow={d("progress")} title={t("progressTitle")} description={d("progressBody")}>
+    <div className="a-view">
+      <PageHeader eyebrow={p.pathway.role_label || d("progress")} title={t("progressTitle")} description={tp("progressDesc")}>
         <MetaBar meta={p.meta} />
       </PageHeader>
 
-      <section className="a-metrics">
-        <div className="a-card a-metric is-ring">
-          <Ring value={p.percent_complete} size={120} stroke={11} caption={d("progress")} colour="var(--a-up)" />
-          <span className="a-small a-muted">{t("progress.percent", { percent: percent(p.percent_complete) })}</span>
-        </div>
-        <div className="a-card a-metric">
-          <span className="a-eyebrow">{t("progress.courses")}</span>
-          <strong>
-            {done}
-            <small>/ {unique.length}</small>
-          </strong>
-          <div className="a-meter" aria-hidden>
-            <i style={{ width: `${unique.length ? (done / unique.length) * 100 : 0}%` }} />
-          </div>
-        </div>
-        <div className="a-card a-metric">
-          <span className="a-eyebrow">{t("progress.skills")}</span>
-          <strong>
-            {p.gap_closed}
-            <small>/ {p.gap_total}</small>
-          </strong>
-          <span className="a-small a-muted">{t("progress.gapClosed", { closed: p.gap_closed, total: p.gap_total })}</span>
-        </div>
-      </section>
+      <Kpis
+        items={[
+          {
+            label: tp("kComplete"),
+            value: `${Math.round(p.percent_complete * 100)}%`,
+            icon: <Target size={15} />,
+            tone: p.percent_complete >= 1 ? "up" : undefined,
+            note: (
+              <span className="a-kpi-bar" aria-hidden>
+                <i style={{ width: `${Math.round(p.percent_complete * 100)}%` }} />
+              </span>
+            ),
+          },
+          {
+            label: tp("kCoursesDone2"),
+            value: done,
+            unit: `/ ${unique.length}`,
+            icon: <BookOpen size={15} />,
+            note: tp("kHoursWeighted"),
+          },
+          {
+            label: tp("kGapClosed"),
+            value: p.gap_closed,
+            unit: `/ ${p.gap_total}`,
+            icon: <Layers size={15} />,
+            note: t("progress.gapClosed", { closed: p.gap_closed, total: p.gap_total }),
+          },
+          { label: tp("kBadges"), value: p.badges.length, icon: <Award size={15} />, note: tp("badgeNote") },
+        ]}
+      />
 
-      <section className="a-grid" style={{ alignItems: "start" }}>
-        <div className="a-card a-span-7">
+      <div className="a-split is-wide">
+        <section className="a-card">
           <div className="a-card-head">
             <h2>{t("progress.courses")}</h2>
           </div>
@@ -102,8 +107,8 @@ export async function ProgressView({ roleId, scenario }: { roleId: string; scena
               );
             })}
           </ul>
-        </div>
-        <div className="a-span-5 a-stack">
+        </section>
+        <aside className="a-aside">
           <div className="a-card">
             <div className="a-card-head">
               <h2>{t("progress.skills")}</h2>
@@ -144,8 +149,8 @@ export async function ProgressView({ roleId, scenario }: { roleId: string; scena
               </div>
             )}
           </div>
-        </div>
-      </section>
+        </aside>
+      </div>
     </div>
   );
 }
