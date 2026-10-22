@@ -8,7 +8,9 @@ import { Ring, Scene3D, scoreColour, SdgTiles } from "@/components/viz";
 import { fetchRadar } from "@/features/trends/api";
 import type { ScenarioId, Schemas } from "@/lib/api";
 
-import { fetchMatches } from "../api";
+import { fetchMatches, fetchReplay } from "../api";
+import { ReplayChanges } from "./ReplayChanges";
+import { SdgWeightSlider } from "./SdgWeightSlider";
 import { componentLabels } from "./labels";
 import { SnapshotPicker } from "./SnapshotPicker";
 
@@ -30,10 +32,22 @@ function ScoreParts({ parts, labels }: { parts: Schemas["ScoreComponent"][]; lab
 }
 
 /** Step 3: ranked future roles. Each card: fit ring, what drives it, the gap, the goals. */
-export async function MatchesView({ scenario, snapshotDate }: { scenario: ScenarioId; snapshotDate?: string }) {
+export async function MatchesView({
+  scenario,
+  snapshotDate,
+  sdgWeight = 0,
+}: {
+  scenario: ScenarioId;
+  snapshotDate?: string;
+  sdgWeight?: number;
+}) {
   const t = await getTranslations("matching");
   const th = await getTranslations("ui.home");
-  const [result, radar] = await Promise.all([fetchMatches(scenario, snapshotDate), fetchRadar(scenario)]);
+  const [result, radar, changes] = await Promise.all([
+    fetchMatches(scenario, snapshotDate, sdgWeight),
+    fetchRadar(scenario),
+    snapshotDate ? fetchReplay(scenario, snapshotDate) : Promise.resolve(null),
+  ]);
   const labels = await componentLabels();
   const replay = snapshotDate ? `&snapshot_date=${encodeURIComponent(snapshotDate)}` : "";
 
@@ -51,9 +65,11 @@ export async function MatchesView({ scenario, snapshotDate }: { scenario: Scenar
               label={t("snapshotDate")}
             />
           ) : null}
+          <SdgWeightSlider value={sdgWeight} label={t("sdgWeight")} hint={t("sdgWeightHint")} offLabel={t("sdgWeightOff")} />
         </div>
         <Scene3D variant="cards" />
       </section>
+      {changes?.ok ? <ReplayChanges data={changes.data} /> : null}
       {!result.ok ? (
         <ErrorState failure={result} />
       ) : (

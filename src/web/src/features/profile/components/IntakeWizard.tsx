@@ -12,6 +12,7 @@ import { saveIntakeAction, uploadCvAction, type IntakeInput } from "../actions";
 type Option = Schemas["SkillOption"];
 type Picked = { skill_id: string; level: number; fromCv?: boolean };
 type Segment = IntakeInput["segment"];
+const STYLES = ["video", "reading", "hands-on", "classroom", "mixed"] as const;
 
 const SEGMENTS: { id: Segment; icon: typeof Briefcase }[] = [
   { id: "working", icon: Briefcase },
@@ -37,6 +38,7 @@ export function IntakeWizard({
   const [hours, setHours] = useState(initial?.hours_per_week || 6);
   const [budget, setBudget] = useState(initial?.budget_myr ?? 300);
   const [hrd, setHrd] = useState(initial?.hrd_eligible ?? false);
+  const [style, setStyle] = useState<IntakeInput["learning_style"]>(initial?.learning_style ?? "mixed");
   const [skills, setSkills] = useState<Picked[]>(
     (initial?.skills ?? []).map((s) => ({ skill_id: s.skill_id, level: s.level })),
   );
@@ -108,6 +110,7 @@ export function IntakeWizard({
         hours_per_week: hours,
         budget_myr: budget,
         hrd_eligible: hrd,
+        learning_style: style,
         skills: skills.map(({ skill_id, level }) => ({ skill_id, level })),
       });
       if (result?.error) setError(result.error);
@@ -194,6 +197,17 @@ export function IntakeWizard({
               <span className="a-range-value">RM {budget}</span>
               <input className="a-range" type="range" min={0} max={3000} step={50} value={budget} onChange={(e) => setBudget(Number(e.target.value))} />
             </label>
+            <fieldset className="a-field" style={{ border: 0, padding: 0, margin: 0 }}>
+              <legend style={{ marginBottom: 8 }}>{t("styleTitle")}</legend>
+              <div className="a-pills">
+                {STYLES.map((s) => (
+                  <label key={s} className="a-pill">
+                    <input type="radio" name="learning_style" value={s} checked={style === s} onChange={() => setStyle(s)} />
+                    <span>{t(`style.${s}`)}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
             <label className="a-check">
               <input type="checkbox" checked={hrd} onChange={(e) => setHrd(e.target.checked)} />
               {t("hrd")}

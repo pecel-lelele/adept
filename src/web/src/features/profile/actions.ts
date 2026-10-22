@@ -13,6 +13,7 @@ export type IntakeInput = {
   hours_per_week: number;
   budget_myr: number;
   hrd_eligible: boolean;
+  learning_style: "video" | "reading" | "hands-on" | "classroom" | "mixed";
   skills: { skill_id: string; level: number }[];
 };
 
@@ -33,7 +34,7 @@ export async function saveIntakeAction(input: IntakeInput): Promise<IntakeResult
         hours_per_week: clamp(input.hours_per_week, 0, 80),
         budget_myr: clamp(input.budget_myr, 0, 100000),
         hrd_eligible: Boolean(input.hrd_eligible),
-        learning_style: "mixed",
+        learning_style: input.learning_style,
       },
     }),
   );
