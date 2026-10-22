@@ -202,3 +202,52 @@ def test_m1_strict_timeout_maps_to_matching_503(client: TestClient, strict_match
 
     assert response.status_code == 503, response.text
     assert response.json()["error"]["code"] == "trend_unavailable"
+
+
+def test_identical_reads_are_shared() -> None:
+    """Many requests for the same snapshot start one database read."""
+    from app.features.matching import trend_port
+
+    calls = 0
+    gate = threading.Event()
+    good = trends_mocks.snapshot("moderate", trends_mocks.AVAILABLE_MOCK_DATES[-1])
+
+    def getter(snapshot_date, scenario, strict=False):  # noqa: ANN001,ARG001
+        nonlocal calls
+        calls += 1
+        gate.wait(timeout=2)
+        return good
+
+    with patch("app.features.trends.service.get_snapshot", side_effect=getter):
+        with ThreadPoolExecutor(max_workers=10) as pool:
+            futures = [pool.submit(trend_port._call_with_timeout, "moderate") for _ in range(10)]
+            time.sleep(0.2)
+            gate.set()
+            assert all(f.result(timeout=3) is good for f in futures)
+    assert calls == 1
+
+
+def test_outstanding_reads_are_bounded(strict_matching: None) -> None:
+    """When every slot holds a stuck read, new callers fail fast instead of queueing."""
+    from app.features.matching import trend_port
+
+    release = threading.Event()
+
+    def stuck(snapshot_date, scenario, strict=False):  # noqa: ANN001,ARG001
+        release.wait(timeout=3)
+
+    with (
+        patch("app.features.trends.service.get_snapshot", side_effect=stuck),
+        patch.object(trend_port, "SNAPSHOT_TIMEOUT_S", 0.05),
+        patch.object(trend_port, "_slots", threading.BoundedSemaphore(2)),
+    ):
+        try:
+            for _ in range(2):  # each timed-out caller leaves its read holding a slot
+                with pytest.raises(trend_port.TrendUnavailable, match="timed out"):
+                    trend_port._call_with_timeout("moderate")
+            started = time.monotonic()
+            with pytest.raises(trend_port.TrendUnavailable, match="backed up"):
+                trend_port._call_with_timeout("moderate")
+            assert time.monotonic() - started < 0.2
+        finally:
+            release.set()

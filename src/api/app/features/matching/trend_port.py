@@ -17,7 +17,8 @@ fake without touching the real trends module.
 
 from __future__ import annotations
 
-from concurrent.futures import ThreadPoolExecutor
+import threading
+from concurrent.futures import Future, ThreadPoolExecutor
 from concurrent.futures import TimeoutError as FuturesTimeout
 from dataclasses import dataclass
 from datetime import date
@@ -34,6 +35,13 @@ TrendUnavailable = TrendUnavailableError
 SNAPSHOT_TIMEOUT_S: float = 2.0
 # Shared by every request; threads are created on demand and reused.
 _EXECUTOR = ThreadPoolExecutor(max_workers=8, thread_name_prefix="matching-m1-trends")
+# Reads that may be queued or running at once. Beyond this, callers get 503 at once instead of
+# queueing work that would outlive their request (a slow database cannot grow the queue).
+MAX_OUTSTANDING = 16
+_slots = threading.BoundedSemaphore(MAX_OUTSTANDING)
+# Concurrent requests for the same snapshot share one read.
+_inflight: dict[tuple[date | None, str, bool], Future[TrendSnapshotResponse]] = {}
+_inflight_lock = threading.Lock()
 
 
 @dataclass(frozen=True)
@@ -98,20 +106,53 @@ def fetch_snapshot(scenario: ScenarioId, snapshot_date: date | None = None) -> T
     )
 
 
+def _start_read(
+    key: tuple[date | None, str, bool], scenario: ScenarioId, snapshot_date: date | None
+) -> Future[TrendSnapshotResponse]:
+    """The running read for `key`, or a new one if a slot is free (else TrendUnavailable)."""
+    from app.features.trends import service as trends_service
+
+    with _inflight_lock:
+        running = _inflight.get(key)
+        if running is not None and not running.done():
+            return running
+        slots = _slots  # release the same semaphore that was acquired
+        if not slots.acquire(blocking=False):
+            raise TrendUnavailable("Trend reads are backed up; please retry in a moment.")
+        kwargs: dict[str, object] = {"snapshot_date": snapshot_date, "scenario": scenario}
+        if key[2]:
+            kwargs["strict"] = True
+        future = _EXECUTOR.submit(trends_service.get_snapshot, **kwargs)
+        _inflight[key] = future
+
+    def finished(done: Future[TrendSnapshotResponse]) -> None:
+        slots.release()
+        with _inflight_lock:
+            if _inflight.get(key) is done:
+                del _inflight[key]
+
+    future.add_done_callback(finished)
+    return future
+
+
 def _call_with_timeout(
     scenario: ScenarioId, snapshot_date: date | None = None
 ) -> TrendSnapshotResponse:
-    """Read M1's snapshot, giving up after SNAPSHOT_TIMEOUT_S."""
-    from app.features.trends import service as trends_service
+    """Read M1's snapshot, giving up after SNAPSHOT_TIMEOUT_S.
 
+    A caller that times out stops sharing that read, so the next caller starts a fresh one; the
+    slow read still holds its slot until it ends (bounded by MAX_OUTSTANDING).
+    """
     strict = get_settings().auth_mode != "demo"
-    kwargs: dict[str, object] = {"snapshot_date": snapshot_date, "scenario": scenario}
-    if strict:
-        kwargs["strict"] = True
-    future = _EXECUTOR.submit(trends_service.get_snapshot, **kwargs)
+    key = (snapshot_date, scenario, strict)
+    future = _start_read(key, scenario, snapshot_date)
     try:
         value = future.result(timeout=SNAPSHOT_TIMEOUT_S)
     except FuturesTimeout as exc:
+        with _inflight_lock:
+            if _inflight.get(key) is future:
+                del _inflight[key]
+        future.cancel()  # only succeeds if it has not started yet
         raise TrendUnavailable(
             f"Trend snapshot for scenario {scenario!r} timed out "
             f"after {SNAPSHOT_TIMEOUT_S:g}s — M1 service may be unavailable."

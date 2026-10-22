@@ -358,16 +358,31 @@ def _truncate_text(text: str) -> tuple[str, bool]:
 
 
 def _clean_text(raw: str) -> str:
-    """Apply NFKC normalisation, strip PII, collapse whitespace.
+    """Apply NFKC normalisation, strip PII, collapse whitespace but keep line breaks.
 
-    All removal patterns are bounded and pre-compiled to prevent ReDoS.
+    Line breaks stay because a CV line is a unit of meaning: "No formal training" on one line
+    must not deny the skill on the next. All patterns are bounded to prevent ReDoS.
     """
     text = unicodedata.normalize("NFKC", raw)
     text = _URL_RE.sub(" ", text)
     text = _EMAIL_RE.sub(" ", text)
     text = _PHONE_RE.sub(" ", text)
     text = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]", " ", text)
-    return re.sub(r"\s+", " ", text).strip()
+    text = re.sub(r"[^\S\n]+", " ", text)  # spaces and tabs, not line breaks
+    return re.sub(r" ?\n\s*", "\n", text).strip()
+
+
+#: Where one statement about a skill ends: line breaks, bullets and list separators.
+_CLAUSE_BREAK = re.compile(r"[\n;,|•·●]")
+
+
+def _clause(text: str, start: int, end: int) -> str:
+    """The phrase a mention belongs to, so "SQL; 8 years of Python" credits only Python."""
+    left = max(0, start - _CONTEXT_CHARS)
+    right = min(len(text), end + _CONTEXT_CHARS)
+    before = [m.end() for m in _CLAUSE_BREAK.finditer(text, left, start)]
+    after = _CLAUSE_BREAK.search(text, end, right)
+    return text[(before[-1] if before else left) : (after.start() if after else right)]
 
 
 clean_text = _clean_text
@@ -418,7 +433,7 @@ _YEARS_RE = re.compile(r"(\d{1,2})(?:\.\d)?\s*\+?\s*(?:years?|yrs?|tahun|年)", 
 #: A skill named just after one of these is one the person says they do not have.
 _NEGATION_RE = re.compile(
     r"(?:\bno\b|\bwithout\b|\bnot familiar with\b|\black(?:ing)? of\b|"
-    r"\btiada pengalaman\b|\btidak mahir\b|没有|不熟悉)[^.;,\n]{0,25}$",
+    r"\btiada pengalaman\b|\btidak mahir\b|没有|不熟悉)[^.;,\n]{0,25}\Z",
     re.IGNORECASE,
 )
 
@@ -512,10 +527,7 @@ def extract_skills(text: str) -> list[ParsedSkill]:
         confidence = min(count * CONFIDENCE_PER_HIT, 1.0)
         # Level from context around the first hit (using original-case text)
         first_s, first_e = hit_spans[0]
-        ctx_start = max(0, first_s - _CONTEXT_CHARS)
-        ctx_end = min(len(text), first_e + _CONTEXT_CHARS)
-        context = text[ctx_start:ctx_end]
-        level = _estimate_level(context)
+        level = _estimate_level(_clause(text, first_s, first_e))
 
         results.append(
             ParsedSkill(

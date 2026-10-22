@@ -29,6 +29,7 @@ STATEMENT_TIMEOUT_MS = 10_000
 DOWN_RETRY_S = 5.0
 _down_until: dict[str, float] = {}
 
+
 def _reset(conn: psycopg.Connection[dict[str, object]]) -> None:
     """Undo per-request client settings before a connection is reused by another request."""
     conn.row_factory = dict_row  # type: ignore[assignment]

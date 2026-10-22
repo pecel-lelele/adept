@@ -234,3 +234,25 @@ def test_login_does_the_same_work_for_unknown_emails(monkeypatch: pytest.MonkeyP
     with pytest.raises(UnauthorizedError):
         service.login(service.LoginIn(email="nobody@example.test", password="whatever-1"))
     assert calls and calls[0] and calls[0].startswith("scrypt$")
+
+
+def test_export_includes_learning_records(client: TestClient) -> None:
+    """The download holds plans, course progress and badges, not just the account."""
+    headers = {"X-Demo-User": "aisyah"}
+    plan = client.post(
+        "/api/v1/pathway/plans",
+        json={"role_id": "data-analyst", "scenario": "moderate"},
+        headers=headers,
+    )
+    assert plan.status_code == 200, plan.text
+    course_id = plan.json()["pathway"]["steps"][0]["courses"][0]["id"]
+    done = client.post(
+        "/api/v1/pathway/progress",
+        json={"role_id": "data-analyst", "course_id": course_id, "status": "completed"},
+        headers=headers,
+    )
+    assert done.status_code == 200, done.text
+    body = client.get("/api/v1/auth/me/export", headers=headers).json()
+    assert body["saved_plan"]["role_id"] == "data-analyst"
+    assert any(r["course_id"] == course_id and r["status"] == "completed" for r in body["learning"])
+    assert body["badges"], "the first completed course earns a badge"
