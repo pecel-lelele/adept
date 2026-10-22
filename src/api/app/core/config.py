@@ -29,6 +29,11 @@ class Settings(BaseSettings):
     llm_provider: str = "none"
     llm_model: str = ""
     llm_api_key: str = ""
+    # OpenAI-compatible endpoint (Replit AI Integrations sets its own; see core/llm/provider.py).
+    llm_base_url: str = ""
+    llm_timeout_s: float = 20.0
+    # Comma-separated models tried when LLM_MODEL is rate-limited or failing (same provider).
+    llm_fallback_model: str = ""
     # Largest accepted upload (CV) in bytes; bigger files are rejected with 413.
     max_upload_bytes: int = 5 * 1024 * 1024
     # Largest accepted non-upload request body (JSON) in bytes.

@@ -134,7 +134,7 @@ flowchart TB
 
   subgraph API["FastAPI services"]
     feat["Feature services<br/>profile · trends · scenarios · matching<br/>pathway · sdg · org · guardrails"]
-    guard["Guardrails<br/>catalogue-ID validator · PII redaction<br/>rate limits · LLM gateway (provider: none)"]
+    guard["Guardrails<br/>catalogue-ID validator · PII redaction<br/>rate limits · LLM gateway (Adi: Gemini)"]
   end
 
   db[("PostgreSQL 16 + pgvector")]
@@ -157,7 +157,7 @@ flowchart TB
 
 **How the workshop elements connect:**
 
-- **AI component:** an offline sentence-embedding model (not a generative model) (`all-MiniLM-L6-v2`) turns research abstracts into skill signals inside the trend pipeline. A provider interface and validation gateway are built in; only the null provider is implemented (`LLM_PROVIDER=none`). If it is enabled, the model may only select catalogue IDs, which are validated before use.
+- **AI components:** (1) an offline sentence-embedding model (`all-MiniLM-L6-v2`) turns research abstracts into skill signals inside the trend pipeline; (2) **Adi**, the in-app guide, uses Google **Gemini 3.5 Flash Lite** (fallbacks Gemini 3.6 Flash, Gemini 3.1 Flash Lite) through Google AI Studio to select validated answer blocks built from the person's own Adept data. Model-written prose is never displayed; without a model Adi answers with a built-in guide.
 - **Database architecture:** one PostgreSQL schema with versioned migrations. `pgvector` stores skill embeddings, and typed contracts are generated from Pydantic to TypeScript.
 - **Cloud deployment:** containers for web and API, with managed PostgreSQL and scheduled jobs in GitHub Actions (see [§9](#9-design-thinking-and-deployment-strategy)).
 
@@ -183,7 +183,7 @@ flowchart TB
 | Quality and CI | pytest, ruff, ESLint, `tsc --noEmit`, translation-key parity, contract drift; GitHub Actions | One `make check` gate before every PR |
 | Scheduled jobs | GitHub Actions: weekly trend refresh and weekly data-source check | Keeps signals fresh; failed runs publish nothing |
 
-**Sponsor resources:** none are evidenced by the current local configuration. The prototype runs no generative model at request time. Replit and Runpod are hosting candidates in the project plan; the team must confirm actual use and any sponsor entitlement before declaration. See the Phase 2 plan in section 9.
+**Sponsor resources:** Adi's language model runs on Google AI Studio (Gemini). The provider layer also supports Replit AI Integrations (billed to Replit credits when the API runs on Replit) and a Runpod Serverless vLLM endpoint; the team must confirm which sponsor resource is used in the deployed demo before declaring it. See the Phase 2 plan in section 9.
 
 ## 5. How it works: flows and sequences
 
@@ -561,15 +561,15 @@ Migrations are in [`src/db/migrations`](src/db/migrations). New changes always g
 
 **AI disclosure:**
 
-- **No generative model runs in the app** (`LLM_PROVIDER=none`). Scores, plans and SDG links come from deterministic, explainable rules over the catalogue.
-- **The only model is offline:** `sentence-transformers/all-MiniLM-L6-v2` is used inside the trend pipeline to relate research text to skill labels.
-- **If an LLM is ever enabled**, it goes through the F8 gateway (`src/api/app/core/llm/`). The gateway:
-  - lets the model only select IDs we supply, and rejects any unknown ID;
-  - redacts personal data and filters prompt-injection text;
-  - falls back to the rules when the model is unavailable;
-  - logs every call.
-
-  `/about` shows the provider and model live.
+- **Language model:** Adi, the assistant available in signed-in workspaces, uses **Google Gemini 3.5 Flash Lite** (`gemini-3.5-flash-lite`, Google AI Studio), with `gemini-3.6-flash` and `gemini-3.1-flash-lite` as fallbacks when the first is rate-limited. `/about` shows the provider and model that are actually configured.
+- **What the model does and does not do:** it selects one or two server-authored answer-block IDs through the F8 gateway and `validate_ids`. Those blocks use the person's own profile, matches, saved-plan progress, team gaps and dated trends; model prose and rationale are never displayed. Scores, plans, trends and SDG links are still computed by deterministic, tested rules; the model never computes them.
+- **Guardrails on every answer** (`src/api/app/features/assistant/`, `src/api/app/core/llm/`):
+  - the question is injection-filtered and personal data (email, MyKad NRIC, passport, phone) is redacted before it is sent;
+  - answer-block IDs are validated and their role, skill, course, SDG and page references resolve to official catalogue labels; unknown selections fall back to the guide;
+  - names, numbers and explanations are rendered from application facts rather than model-generated claims;
+  - if no model is configured or it fails, a deterministic guide answers in EN/BM/中文;
+  - every call is logged (provider, model, outcome, rejected IDs).
+- **Offline model:** `sentence-transformers/all-MiniLM-L6-v2` relates research text to skill labels inside the trend pipeline.
 
 **Guardrails:**
 
@@ -710,7 +710,8 @@ All variables are documented in [`.env.example`](.env.example). These matter mos
 | `DATABASE_URL` | local Docker database | PostgreSQL with pgvector |
 | `AUTH_MODE` | `demo` | Local accounts; `supabase` verifies Supabase JWTs |
 | `SESSION_SECRET` | empty | Set in production; locally a random key is kept in `.session-secret` (gitignored) |
-| `LLM_PROVIDER` | `none` | No generative model is called |
+| `LLM_PROVIDER` | `none` | `gemini` (Google AI Studio key), `replit` (Replit AI Integrations), `runpod`, `openai`, `openrouter`; `none` = Adi's built-in guide |
+| `LLM_MODEL` / `LLM_FALLBACK_MODEL` | empty | e.g. `gemini-3.5-flash-lite` / `gemini-3.6-flash,gemini-3.1-flash-lite` |
 | `API_URL` | `http://localhost:8000` | Where the web server calls the API |
 
 ## 13. Development, testing and CI

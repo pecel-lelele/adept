@@ -90,7 +90,7 @@ def _record(provider: LLMProvider, task: str, n: int, outcome: Outcome, **ids: l
     rec = LlmCallRecord(
         at=datetime.now(UTC),
         provider=provider.name,
-        model=provider.model,
+        model=getattr(provider, "last_model", provider.model),
         task=task[:120],
         n_candidates=n,
         selected=tuple(ids.get("selected", [])),

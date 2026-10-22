@@ -979,6 +979,17 @@
 - **Replaces**: none
 - **PR / branch**: fix/core-backend-perf-security
 
+### M4-028: Adi, the Adept assistant (3D mascot, grounded LLM answers, Gemini)
+- **Date**: 2026-10-23
+- **Feature**: Core, F8 (guardrails), touches F2/F4/F5/F6/F7 read-only
+- **Type**: model | contract | dependency | UI
+- **Change**: Adi, a mascot (Malay *adi-* = excellent) with a radar-dish antenna and an SDG leaf, docked bottom-right on the landing page and every learner/team page (not on sign-in, intake or admin). Real 3D with three.js 0.180 (lazy-loaded; follows the pointer, blinks, waves, thinks, talks, hops; spins on click; pauses off-screen), flat SVG fallback for reduced motion or no WebGL. `POST /assistant/chat` (signed-in or visitor) builds a context from the person's own data (profile, matches with score parts and gaps, saved plan, progress, team gaps and plan, dated trend snapshot) and asks the configured model; roles, skills, courses, SDG targets and pages may only appear as `[[kind:id]]` tags resolved against the catalogue (unknown IDs dropped and logged), figures not in the context are flagged, questions are injection-filtered and PII-redacted. Without a model, a deterministic EN/BM/ZH guide answers from the same facts. New OpenAI-compatible provider (`gemini`, `replit`, `runpod`, `openai`, `openrouter`, `openai_compatible`) with `LLM_FALLBACK_MODEL`; chosen model: `gemini-3.5-flash-lite` (Google AI Studio free tier: 15 req/min, ~2 s; fallbacks `gemini-3.6-flash`, `gemini-3.1-flash-lite`). `gemini-3.8-flash` returned 503 on the team's tier; Pro/Argon have no free quota. `httpx` moves to runtime dependencies. Sign-in and Create account share one fixed frame height.
+- **Why**: The brief asks for innovation beyond "a chatbot"; Adi explains the user's own results with sources, keeps the "never invent" rule enforceable, and still works without credits.
+- **Pipeline**: source = Adept DB/services + dated trend snapshot → preprocessing = PII redaction, injection filter → features = per-audience CONTEXT block, catalogue tag list → model = Gemini 3.5 Flash Lite (temperature-free OpenAI-compatible chat, `reasoning_effort=low`) or the deterministic guide → evaluation = `tests/api/assistant` (16 tests: invented IDs dropped, labels from catalogue, figures flagged, PII never sent, fallback on failure, three languages, provider protocol) + live check on the AI Studio key (grounded answer, 0 rejected IDs, 0 unchecked figures) → serving = `POST /api/v1/assistant/chat`, web dock.
+- **Affects**: everyone (shell, landing, new dependency `three`, env vars `LLM_BASE_URL`, `LLM_FALLBACK_MODEL`, `LLM_TIMEOUT_S`, rate limit bucket), M3 (F8 disclosure text, gateway log reused).
+- **Replaces**: none
+- **PR / branch**: feat/core-adi-assistant
+
 ### M4-029: Team (HR) data is manager-only in the API, not only in the web
 - **Date**: 2026-10-23
 - **Feature**: F7, F6 (security)
@@ -988,3 +999,34 @@
 - **Affects**: M3 (SDG contribution endpoints), M4 (F7). Learner pages never used these endpoints.
 - **Replaces**: none
 - **PR / branch**: fix/core-backend-perf-security
+
+### M4-030: Review fixes on PR #8 and PR #9 (pooling, export, trend queue, CV clauses, Adi guardrails)
+- **Date**: 2026-10-23
+- **Feature**: Core, F1, F4, F8
+- **Type**: fix
+- **Change**: PR #8: pooled connections reset row format and autocommit when returned (a sync job's tuple rows leaked to later requests); account export adds plan history, every tracked course with evidence, and badges; trend reads are capped at 16 outstanding, identical reads are shared, and new callers fail fast instead of queueing; CV cleaning keeps line breaks and level cues and years count only within the skill's own clause. PR #9: every chat turn (not only the user's), the page path and the context are redacted before the model; an answer that names a course, role or programme outside the catalogue is replaced by the guide; SDG references resolve against the official target list; figures are compared with their units; fallback models share one deadline; the web route caps the body while reading; saved chats are kept per account and other accounts' chats are removed; Adi's links keep the current AI pace; team answers are for managers only.
+- **Why**: Greptile reviews on PR #8 and PR #9.
+- **Affects**: M2 (CV parser), M3 (F8 gateway use), M4.
+- **Replaces**: none
+- **PR / branch**: feat/core-adi-assistant (PR #8 parts also on fix/core-backend-perf-security)
+
+### M4-031: Adi uses validated answer blocks in signed-in workspaces
+- **Date**: 2026-10-23
+- **Feature**: Core, F8 (Adi); read-only F5 progress integration
+- **Type**: method | UI
+- **Change**: Removed Adi from the landing page and require an authenticated API session. Conversations remount on account changes and abort old browser requests. The model selects server-authored answer-block IDs through the F8 gateway and `validate_ids`; generated prose, rationale and figures cannot reach the UI. Context uses the saved plan's scenario and effective completion statuses, guide intents use complete words and narrower privacy phrases, and SDG answers use the matched role's links. Provider retries use cancellable async I/O with one wall-clock deadline; at most four complete answers run concurrently under a 24-second route deadline, and expired context cannot start paid work. Attribution uses request-local model identity.
+- **Why**: Remaining PR #9 review findings exposed private visitor-key chats, regex grounding bypasses, misleading numeric reuse, deadline overruns, incorrect progress, intent collisions and fallback attribution races. The user chose to keep Adi only inside signed-in workspaces.
+- **Pipeline**: source = own profile, matching, saved-plan progress, catalogue and trends → preprocessing = effective evidence statuses, sanitisation and PII redaction → features = server-authored answer blocks → method = model selects validated block IDs or deterministic intent guide → evaluation = assistant/gateway regressions for unstructured/unknown outputs, redaction, scenario, rejected learning, deadline cancellation and actual fallback attribution → serving = authenticated assistant API and account-scoped workspace chat.
+- **Affects**: M3 F8 provider/gateway/disclosure; M4 assistant/web; no new dependencies or database schema changes.
+- **Replaces**: M4-030 free-text answer checks and phase-only provider timeout; M4-028 landing-page assistant placement.
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/9 / feat/core-adi-assistant
+
+### M4-039: Restore grounded personal-plan answers and plural intent coverage
+- **Date**: 2026-10-23
+- **Feature**: Core, F8 (Adi), read-only F5 plan/progress integration
+- **Type**: method
+- **Change**: Add server-authored progress, duration and cost blocks in EN/MS/ZH using numeric facts from the saved plan and its effective progress. Personal-plan answers carry saved-plan attribution, including its scenario; missing data is explicit. Model selection cannot omit a specifically requested plan block and substitute generic advice. Add explicit plural/inflected intent keywords while preserving complete-word checks, and clarify that HRD eligibility does not guarantee RM0 funding.
+- **Why**: Greptile PR #9 findings 4352515679 and 4352515689: the answer-block redesign lost personal totals, and ending boundaries stopped ordinary plural role/course/skill questions matching.
+- **Affects**: M3 F5 read-only data; M4 assistant. No dependencies, schema or public contract changes. Decision IDs 032–038 are already used by the catalogue branch in PR #10.
+- **Replaces**: none (extends M4-031)
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/9 / feat/core-adi-assistant

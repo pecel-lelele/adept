@@ -7,6 +7,7 @@ import "./globals.css";
 import "./workspace.css";
 import "./insight.css";
 import "./adept.css";
+import "./adi.css";
 
 export const metadata: Metadata = {
   title: "Adept · Aiversecity Future-Ready Workforce",

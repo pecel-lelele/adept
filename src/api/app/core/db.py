@@ -11,18 +11,23 @@ a server-side statement timeout so one slow query cannot hold a worker forever.
 from __future__ import annotations
 
 import threading
+import time
 from collections.abc import Iterator
 from contextlib import contextmanager
 
 import psycopg
 from psycopg.rows import dict_row
-from psycopg_pool import ConnectionPool
+from psycopg_pool import ConnectionPool, PoolTimeout
 
 from app.core.config import get_settings
 
 # Seconds a request waits for a free pooled connection before failing with a database error.
 POOL_WAIT_S = 3.0
 STATEMENT_TIMEOUT_MS = 10_000
+# After a request could not get a connection, others fail fast for this long instead of each
+# waiting POOL_WAIT_S, so callers with a fallback (seed files, cached data) answer at once.
+DOWN_RETRY_S = 5.0
+_down_until: dict[str, float] = {}
 
 
 def _reset(conn: psycopg.Connection[dict[str, object]]) -> None:
@@ -66,9 +71,31 @@ def _pool(url: str) -> ConnectionPool:
 
 @contextmanager
 def connection() -> Iterator[psycopg.Connection[dict[str, object]]]:
-    """A pooled connection; the transaction commits when the block exits without an error."""
-    with _pool(get_settings().database_url).connection() as conn:
+    """A pooled connection; the transaction commits when the block exits without an error.
+
+    Raises psycopg.OperationalError at once while the database was unreachable moments ago.
+    """
+    url = get_settings().database_url
+    if time.monotonic() < _down_until.get(url, 0.0):
+        raise psycopg.OperationalError("database unavailable (retrying shortly)")
+    pool = _pool(url)
+    try:
+        cm = pool.connection()
+        conn = cm.__enter__()
+    except PoolTimeout:
+        # Every slot in use means busy, not down; with free slots the pool could not connect.
+        stats = pool.get_stats()
+        if stats.get("pool_size", 0) < stats.get("pool_max", 1):
+            _down_until[url] = time.monotonic() + DOWN_RETRY_S
+        raise
+    _down_until.pop(url, None)
+    try:
         yield conn  # type: ignore[misc]
+    except BaseException as exc:
+        if not cm.__exit__(type(exc), exc, exc.__traceback__):
+            raise
+    else:
+        cm.__exit__(None, None, None)
 
 
 def close_pools() -> None:
@@ -76,6 +103,7 @@ def close_pools() -> None:
     with _pools_lock:
         pools = list(_pools.values())
         _pools.clear()
+        _down_until.clear()
     for pool in pools:
         pool.close()
 

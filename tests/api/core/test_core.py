@@ -5,6 +5,7 @@ from app.main import discover_feature_routers
 
 FEATURES = {
     "accounts",
+    "assistant",
     "guardrails",
     "matching",
     "org",

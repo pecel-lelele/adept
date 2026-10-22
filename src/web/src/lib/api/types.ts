@@ -155,6 +155,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/assistant/chat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Chat
+         * @description Ask Adi about your own workspace using checked application facts.
+         */
+        post: operations["assistant_chat"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/guardrails/disclosure": {
         parameters: {
             query?: never;
@@ -1106,6 +1126,89 @@ export interface components {
              * @default This file holds your Adept account, profile, plans, course progress, completion evidence and badges. CV files are never stored: they are read in memory and discarded.
              */
             notice: string;
+        };
+        /**
+         * AnswerPart
+         * @description One piece of the answer: plain text, or a checked reference rendered as a link.
+         */
+        AnswerPart: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "text" | "role" | "skill" | "course" | "sdg" | "page";
+            /** Text */
+            text: string;
+            /** Ref Id */
+            ref_id?: string | null;
+            /** Href */
+            href?: string | null;
+        };
+        /** AssistantIn */
+        AssistantIn: {
+            /**
+             * Messages
+             * @description Recent turns, oldest first; the last is the question.
+             */
+            messages: components["schemas"]["AssistantMessage"][];
+            /**
+             * Page
+             * @description Route the person is on.
+             * @default /
+             */
+            page: string;
+            /**
+             * Scenario
+             * @default moderate
+             * @enum {string}
+             */
+            scenario: "moderate" | "fast";
+            /**
+             * Locale
+             * @default en
+             * @enum {string}
+             */
+            locale: "en" | "ms" | "zh";
+        };
+        /** AssistantMessage */
+        AssistantMessage: {
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "user" | "assistant";
+            /** Content */
+            content: string;
+        };
+        /** AssistantReply */
+        AssistantReply: {
+            /** Parts */
+            parts: components["schemas"]["AnswerPart"][];
+            /**
+             * Suggestions
+             * @description Follow-up questions.
+             */
+            suggestions?: string[];
+            /**
+             * Used Llm
+             * @description False when the deterministic guide answered.
+             */
+            used_llm: boolean;
+            /** Provider */
+            provider: string;
+            /** Model */
+            model: string;
+            /**
+             * Grounded On
+             * @description Which of your data the answer could use.
+             */
+            grounded_on?: string[];
+            /**
+             * Unchecked Figures
+             * @description Numbers in the answer that do not appear in your data (shown as a caution).
+             */
+            unchecked_figures?: string[];
+            meta?: components["schemas"]["RecommendationMeta"] | null;
         };
         /** Badge */
         Badge: {
@@ -3210,6 +3313,42 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    assistant_chat: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssistantIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssistantReply"];
+                };
             };
             /** @description Validation Error */
             422: {

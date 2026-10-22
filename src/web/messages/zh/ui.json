@@ -66,7 +66,16 @@
     "signInArtTitle": "欢迎回来，看看有哪些变化。",
     "signInArtBody": "你的技能雷达会随每次新的趋势快照更新。从上次停下的地方继续你的计划。",
     "signInTeamArtTitle": "你的团队，一切如你离开时。",
-    "signInTeamArtBody": "查看谁已加入、谁完成了资料，以及团队计划的进展。"
+    "signInTeamArtBody": "查看谁已加入、谁完成了资料，以及团队计划的进展。",
+    "signInSub": "从上次离开的地方继续查看雷达、职位与计划。",
+    "signInTeamSub": "团队的差距、计划与审核都在这里。",
+    "createSub": "免费。两分钟即可看到首批匹配职位。",
+    "createTeamSub": "邀请成员，查看差距，一起规划培训。",
+    "trustCv": "简历只读取，不保存",
+    "trustSources": "每个估计都注明来源",
+    "trustYou": "由你做决定",
+    "eyebrowMe": "为你",
+    "eyebrowTeam": "为你的团队"
   },
   "landing": {
     "eyebrow": "面向未来的职业",
@@ -600,5 +609,29 @@
     "confirm": "我了解此操作无法撤销",
     "deleting": "正在删除…",
     "deleteForever": "删除我的账户"
+  },
+  "adi": {
+    "title": "Adi",
+    "subtitle": "你的 Adept 向导",
+    "ask": "有问题尽管问 👋",
+    "askVisitor": "你好！问问我 Adept 如何运作",
+    "open": "询问你的 Adept 向导 Adi",
+    "close": "关闭对话",
+    "dismiss": "隐藏",
+    "greet": "你好，我是 Adi！可以问我你的匹配职位、下一步学什么、上升的技能、课程费用，或你的路径如何关联联合国 SDG。",
+    "placeholder": "问问 Adi…",
+    "send": "发送",
+    "thinking": "Adi 正在思考…",
+    "error": "Adi 暂时无法回答，请稍后再试。",
+    "slowDown": "问题有点多，请稍等片刻再试。",
+    "disclaimer": "Adi 根据你的 Adept 数据回答，可能出错。决定由你做出。",
+    "byModel": "AI 回答（{model}）",
+    "byGuide": "Adept 向导",
+    "basedOn": "依据：{what}",
+    "snapshot": "数据截至 {date}",
+    "unchecked": "以下数字无法与你的数据核对：{figures}",
+    "s1": "我下一步该做什么？",
+    "s2": "哪些技能在上升？",
+    "s3": "Adept 如何运作？"
   }
 }
