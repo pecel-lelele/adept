@@ -29,13 +29,13 @@ export function ActionForm({ action, fields = {}, label, variant, className, chi
       <Button size="sm" variant={variant} disabled={pending} aria-busy={pending}>
         {pending ? t("saving") : label}
       </Button>
-      <span aria-live="polite" className="basis-full text-xs">
+      <span aria-live="polite" className="a-form-msg">
         {state.error ? (
-          <span role="alert" className="text-red-700">
+          <span role="alert" className="a-error">
             {t("actionFailed", { message: state.error })}
           </span>
         ) : state.done && !pending ? (
-          <span className="text-emerald-700">{t("saved")}</span>
+          <span className="a-ok">{t("saved")}</span>
         ) : null}
       </span>
     </form>

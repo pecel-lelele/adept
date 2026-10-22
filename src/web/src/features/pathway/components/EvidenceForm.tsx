@@ -17,7 +17,7 @@ export function EvidenceForm({ action, fields }: Props) {
   const t = useTranslations("pathway");
   const [state, formAction, pending] = useActionState(action, {});
   return (
-    <form action={formAction} className="flex flex-wrap items-center gap-2">
+    <form action={formAction} className="a-inline-form">
       {Object.entries(fields).map(([name, value]) => (
         <input key={name} type="hidden" name={name} value={value} />
       ))}
@@ -28,18 +28,18 @@ export function EvidenceForm({ action, fields }: Props) {
         pattern="https://.*"
         placeholder={t("evidence.urlPlaceholder")}
         aria-label={t("evidence.addProof")}
-        className="w-full min-w-0 rounded-md border bg-background px-2 py-1 text-xs sm:w-auto sm:flex-1"
+        className="a-input is-small"
       />
       <Button size="sm" variant="outline" disabled={pending}>
         {pending ? t("saving") : t("evidence.addProof")}
       </Button>
-      <span aria-live="polite" className="basis-full text-xs">
+      <span aria-live="polite" className="a-form-msg">
         {state.error ? (
-          <span role="alert" className="text-red-700">
+          <span role="alert" className="a-error">
             {t("actionFailed", { message: state.error })}
           </span>
         ) : state.done && !pending ? (
-          <span className="text-emerald-700">{t("evidence.sent")}</span>
+          <span className="a-ok">{t("evidence.sent")}</span>
         ) : null}
       </span>
     </form>

@@ -17,7 +17,7 @@ export function ReviewForm({ action, fields }: Props) {
   const t = useTranslations("pathway");
   const [state, formAction, pending] = useActionState(action, {});
   return (
-    <form action={formAction} className="flex flex-wrap items-center gap-2">
+    <form action={formAction} className="a-inline-form">
       {Object.entries(fields).map(([name, value]) => (
         <input key={name} type="hidden" name={name} value={value} />
       ))}
@@ -27,7 +27,7 @@ export function ReviewForm({ action, fields }: Props) {
         maxLength={300}
         placeholder={t("verify.notePlaceholder")}
         aria-label={t("verify.note")}
-        className="w-full min-w-0 rounded-md border bg-background px-2 py-1 text-xs sm:w-auto sm:flex-1"
+        className="a-input is-small"
       />
       <Button size="sm" name="decision" value="confirm" disabled={pending}>
         {t("verify.confirm")}
@@ -35,9 +35,9 @@ export function ReviewForm({ action, fields }: Props) {
       <Button size="sm" variant="outline" name="decision" value="reject" disabled={pending}>
         {t("verify.reject")}
       </Button>
-      <span aria-live="polite" className="basis-full text-xs">
+      <span aria-live="polite" className="a-form-msg">
         {state.error ? (
-          <span role="alert" className="text-red-700">
+          <span role="alert" className="a-error">
             {t("actionFailed", { message: state.error })}
           </span>
         ) : null}
