@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { ArrowUpRight, BookOpen, SlidersHorizontal } from "lucide-react";
+import { ArrowUpRight, BadgeCheck, BookOpen, Clock3, Gift, SlidersHorizontal } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
-import { ApiError, MetaBar, PageHeader } from "@/components";
+import { ApiError, Kpis, MetaBar, PageHeader } from "@/components";
 import { call, getApi, type Schemas } from "@/lib/api";
 import { journeyHref } from "@/lib/navigation";
 
@@ -44,15 +44,15 @@ async function CourseCard({ course }: { course: Course }) {
         <span className="a-course-icon" aria-hidden>
           <BookOpen size={18} strokeWidth={1.6} />
         </span>
-        <span className="a-eyebrow">
-          {course.provider} · {t(`catalogue.format.${course.format ?? "self_paced"}`)}
+        <span className="a-coursecard-provider">
+          <strong>{course.provider}</strong>
+          <small>{t(`catalogue.format.${course.format ?? "self_paced"}`)}</small>
         </span>
       </div>
       <h2>{course.title}</h2>
       <div className="a-chips">
-        <span className="a-chip">{t("hours", { hours: course.hours })}</span>
-        <span className="a-chip" data-tone={free ? "up" : undefined}>
-          {free ? t("free") : t(`catalogue.price.${basis}`, { amount: course.cost_myr.toLocaleString("en-MY") })}
+        <span className="a-chip">
+          <Clock3 size={12} aria-hidden /> {t("hours", { hours: course.hours })}
         </span>
         {course.hrd_claimable ? (
           <span className="a-chip" data-tone="dark">
@@ -84,9 +84,14 @@ async function CourseCard({ course }: { course: Course }) {
           </p>
         </div>
       </details>
-      <a href={course.url} target="_blank" rel="noreferrer" className="a-link" style={{ marginTop: "auto" }}>
-        {d("visit")} <ArrowUpRight size={15} aria-hidden />
-      </a>
+      <footer className="a-coursecard-foot">
+        <strong data-free={free || undefined}>
+          {free ? t("free") : t(`catalogue.price.${basis}`, { amount: course.cost_myr.toLocaleString("en-MY") })}
+        </strong>
+        <a href={course.url} target="_blank" rel="noreferrer" className="a-link">
+          {d("visit")} <ArrowUpRight size={15} aria-hidden />
+        </a>
+      </footer>
     </article>
   );
 }
@@ -103,24 +108,35 @@ export async function CatalogueView({
 }) {
   const t = await getTranslations("pathway");
   const d = await getTranslations("common.design");
+  const tp = await getTranslations("ui.page");
   const api = await getApi();
   const [result, all] = await Promise.all([
     call(api.GET("/api/v1/pathway/catalogue", { params: { query } })),
     call(api.GET("/api/v1/pathway/catalogue")),
   ]);
   const skills = all.ok ? [...new Set(all.data.courses.flatMap((c) => c.skill_ids ?? []))].sort() : [];
-  const filtered = Object.values(query).some((v) => v !== undefined && v !== "");
+  const every = all.ok ? all.data.courses : [];
+  const shown = result.ok ? result.data.courses.length : 0;
 
   return (
-    <div className="a-stack" style={{ gap: 24 }}>
-      <PageHeader eyebrow={t("catalogue.title")} title={d("libraryBody")}>
+    <div className="a-view">
+      <PageHeader eyebrow={d("options")} title={t("catalogue.title")} description={t("catalogue.description")}>
         {result.ok ? <MetaBar meta={result.data.meta} /> : null}
       </PageHeader>
-      <details className="a-card a-filters" open={filtered || undefined}>
-        <summary>
-          <SlidersHorizontal size={16} aria-hidden /> {d("filters")}
-          {result.ok ? <span className="a-chip">{t("catalogue.count", { count: result.data.courses.length })}</span> : null}
-        </summary>
+      <Kpis
+        items={[
+          { label: tp("kCourses"), value: every.length, icon: <BookOpen size={15} />, note: tp("kProviders", { count: new Set(every.map((c) => c.provider)).size }) },
+          { label: tp("kFree"), value: every.filter((c) => c.cost_myr === 0).length, icon: <Gift size={15} />, tone: "up", note: tp("kFreeNote") },
+          { label: tp("kHrd"), value: every.filter((c) => c.hrd_claimable).length, icon: <BadgeCheck size={15} />, note: tp("kHrdNote") },
+          { label: tp("kSelfPaced"), value: every.filter((c) => c.format === "self_paced").length, icon: <Clock3 size={15} />, note: tp("kSelfPacedNote") },
+        ]}
+      />
+      <section className="a-card a-filters" aria-labelledby="h-filters">
+        <div className="a-card-head">
+          <h2 id="h-filters">
+            <SlidersHorizontal size={16} aria-hidden /> {d("filters")}
+          </h2>
+        </div>
         <form method="get" action={basePath} className="a-filter-grid">
           {Object.entries(context).map(([key, value]) => (
             <input key={key} type="hidden" name={key} value={value} />
@@ -174,7 +190,7 @@ export async function CatalogueView({
             <input type="checkbox" name="hrd_claimable" value="true" defaultChecked={!!query.hrd_claimable} />
             {t("hrdClaimable")}
           </label>
-          <div className="a-hero-actions" style={{ gridColumn: "1 / -1" }}>
+          <div className="a-filter-actions">
             <button type="submit" className="a-btn is-small">
               {t("catalogue.apply")}
             </button>
@@ -183,15 +199,18 @@ export async function CatalogueView({
             </Link>
           </div>
         </form>
-      </details>
+      </section>
       {!result.ok ? (
         <ApiError message={result.message} />
       ) : (
-        <div className="a-coursegrid">
-          {result.data.courses.map((c) => (
-            <CourseCard key={c.id} course={c} />
-          ))}
-        </div>
+        <>
+          <p className="a-results-count">{t("catalogue.count", { count: shown })}</p>
+          <div className="a-coursegrid">
+            {result.data.courses.map((c) => (
+              <CourseCard key={c.id} course={c} />
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
