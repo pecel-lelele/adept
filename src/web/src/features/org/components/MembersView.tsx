@@ -1,5 +1,7 @@
+import { Clock3, MailPlus, UserCheck, Users } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
+import { Kpis, PageHeader } from "@/components";
 import { ErrorState } from "@/components/ErrorState";
 import { StackBar } from "@/components/viz";
 
@@ -9,10 +11,11 @@ import { RemoveMemberButton } from "./RemoveMemberButton";
 
 const TONE = { complete: "up", in_progress: "warn", invited: undefined } as const;
 
-/** Step 1 for organisations: who joined, how far their intake is, and the code to invite more. */
+/** Step 1 for organisations: who joined, how far their profile is, and the code to invite more. */
 export async function MembersView() {
   const t = await getTranslations("ui.org");
   const tn = await getTranslations("ui.nav");
+  const tp = await getTranslations("ui.page");
   const [org, members] = await Promise.all([fetchMyOrg(), fetchMembers()]);
   if (!members.ok) return <ErrorState failure={members} />;
   const list = members.data.members;
@@ -20,49 +23,81 @@ export async function MembersView() {
   const statusLabel = { complete: t("complete"), in_progress: t("inProgress"), invited: t("invited") };
 
   return (
-    <div className="a-stack">
-      <div className="a-pagehead">
-        <h1 className="a-h1">{tn("team")}</h1>
-      </div>
-      <div className="a-grid">
-        <section className="a-card a-span-5 a-stack">
-          {org.ok && org.data.join_code ? <JoinCodeCard code={org.data.join_code} /> : null}
-          <p className="a-small a-muted" style={{ margin: 0 }}>
-            {t("inviteBody")}
-          </p>
-          <StackBar
-            parts={[
-              { key: "c", label: t("complete"), value: count("complete"), colour: "#2f8f5b" },
-              { key: "p", label: t("inProgress"), value: count("in_progress"), colour: "#d48a26" },
-              { key: "i", label: t("invited"), value: count("invited"), colour: "#c9cdc4" },
-            ]}
-          />
-        </section>
-        <section className="a-card a-span-7">
-          <div className="a-card-head">
-            <h2>
-              {t("members")} · {list.length}
-            </h2>
+    <div className="a-view">
+      <PageHeader eyebrow={tp("stepOf", { step: 1 })} title={tn("team")} description={tp("membersDesc")} />
+      <Kpis
+        items={[
+          { label: t("members"), value: list.length, icon: <Users size={15} /> },
+          { label: t("complete"), value: count("complete"), icon: <UserCheck size={15} />, tone: count("complete") ? "up" : undefined },
+          { label: t("inProgress"), value: count("in_progress"), icon: <Clock3 size={15} />, tone: count("in_progress") ? "warn" : undefined },
+          { label: t("invited"), value: count("invited"), icon: <MailPlus size={15} /> },
+        ]}
+      />
+      <div className="a-split">
+        <section className="a-card a-flush" aria-labelledby="h-members">
+          <div className="a-card-head a-pad">
+            <h2 id="h-members">{t("members")}</h2>
           </div>
           {list.length ? (
-            <ul className="a-stack" style={{ gap: 8, listStyle: "none", padding: 0, margin: 0 }}>
-              {list.map((m) => (
-                <li key={m.id} className="a-skillrow" style={{ gridTemplateColumns: "auto minmax(0,1fr) auto auto" }}>
-                  <span className="a-avatar" aria-hidden>
-                    {m.display_name.slice(0, 1).toUpperCase()}
-                  </span>
-                  <strong>{m.display_name}</strong>
-                  <span className="a-chip" data-tone={TONE[m.intake_status]}>
-                    {statusLabel[m.intake_status]}
-                  </span>
-                  <RemoveMemberButton id={m.id} name={m.display_name} />
-                </li>
-              ))}
-            </ul>
+            <table className="a-table">
+              <thead>
+                <tr>
+                  <th scope="col">{tp("colName")}</th>
+                  <th scope="col">{tp("colProfile")}</th>
+                  <th scope="col">
+                    <span className="a-sr">{t("remove")}</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {list.map((m) => (
+                  <tr key={m.id}>
+                    <th scope="row">
+                      <span className="a-inline">
+                        <span className="a-avatar" aria-hidden>
+                          {m.display_name.slice(0, 1).toUpperCase()}
+                        </span>
+                        {m.display_name}
+                      </span>
+                    </th>
+                    <td>
+                      <span className="a-chip" data-tone={TONE[m.intake_status]}>
+                        {statusLabel[m.intake_status]}
+                      </span>
+                    </td>
+                    <td>
+                      <RemoveMemberButton id={m.id} name={m.display_name} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           ) : (
-            <p className="a-muted">{t("noMembers")}</p>
+            <p className="a-muted a-pad" style={{ paddingBottom: 24 }}>
+              {t("noMembers")}
+            </p>
           )}
         </section>
+        <aside className="a-aside">
+          <section className="a-card is-sage">
+            {org.ok && org.data.join_code ? <JoinCodeCard code={org.data.join_code} /> : null}
+            <p className="a-small a-muted" style={{ margin: "14px 0 0" }}>
+              {t("inviteBody")}
+            </p>
+          </section>
+          <section className="a-card" aria-labelledby="h-status">
+            <div className="a-card-head">
+              <h2 id="h-status">{t("intake")}</h2>
+            </div>
+            <StackBar
+              parts={[
+                { key: "c", label: t("complete"), value: count("complete"), colour: "var(--a-up)" },
+                { key: "p", label: t("inProgress"), value: count("in_progress"), colour: "var(--a-warn)" },
+                { key: "i", label: t("invited"), value: count("invited"), colour: "#c9cdc4" },
+              ]}
+            />
+          </section>
+        </aside>
       </div>
     </div>
   );

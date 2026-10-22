@@ -1,8 +1,8 @@
-import { ArrowUpRight, ClipboardCheck } from "lucide-react";
+import { ArrowUpRight, CircleCheck, ClipboardCheck, Inbox } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
-import { ApiError, Badge, EmptyState, PageHeader } from "@/components";
+import { ApiError, Badge, EmptyState, Kpis, PageHeader } from "@/components";
 import { call, getApi } from "@/lib/api";
 
 import { reviewCompletionAction } from "../actions";
@@ -12,10 +12,11 @@ import { ReviewForm } from "./ReviewForm";
 /** HR (company) or career advisor (institution): review members' course completions. */
 export async function VerificationQueueView() {
   const t = await getTranslations("pathway");
+  const tp = await getTranslations("ui.page");
   const api = await getApi();
   const result = await call(api.GET("/api/v1/pathway/verifications"));
   return (
-    <div className="a-stack" style={{ gap: 24 }}>
+    <div className="a-view">
       <PageHeader
         title={t("verify.title")}
         description={t("verify.description")}
@@ -34,11 +35,18 @@ export async function VerificationQueueView() {
         <EmptyState title={t("verify.empty")} />
       ) : (
         <>
-          <div className="a-card-top">
-            <span className="a-chip" data-tone={result.data.pending ? "warn" : "up"}>
-              <ClipboardCheck size={13} aria-hidden /> {t("verify.pending", { count: result.data.pending })}
-            </span>
-          </div>
+          <Kpis
+            items={[
+              {
+                label: tp("kPending"),
+                value: result.data.pending,
+                icon: <ClipboardCheck size={15} />,
+                tone: result.data.pending ? "warn" : "up",
+              },
+              { label: tp("kReviewedDone"), value: result.data.items.length - result.data.pending, icon: <CircleCheck size={15} /> },
+              { label: tp("kSubmitted"), value: result.data.items.length, icon: <Inbox size={15} /> },
+            ]}
+          />
           <ul className="a-reviews">
             {result.data.items.map((item) => {
               const ev = item.evidence;
