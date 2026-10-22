@@ -22,7 +22,20 @@ from app.features.assistant import guide
 
 log = get_logger("app.assistant")
 _TAG = re.compile(r"\[\[(role|skill|course|sdg|page):([^\]\s]{1,100})\]\]")
-_INTENTS = ("privacy", "how", "trend", "cost", "sdg", "learn", "roles", "next", "team")
+_INTENTS = (
+    "privacy",
+    "how",
+    "trend",
+    "cost",
+    "sdg",
+    "learn",
+    "roles",
+    "next",
+    "team",
+    "plan_progress",
+    "plan_duration",
+    "plan_cost",
+)
 
 
 def _clean_question(text: str) -> str:
@@ -88,6 +101,8 @@ def to_parts(text: str, ctx: ctx_mod.Context) -> tuple[list[AnswerPart], list[st
 def _candidates(ctx: ctx_mod.Context, body: AssistantIn) -> dict[str, str]:
     candidates: dict[str, str] = {}
     for kind in _INTENTS:
+        if kind in guide.PERSONAL_PLAN_INTENTS and ctx.audience != "learner":
+            continue
         if kind == "team" and ctx.audience != "manager":
             continue
         text = guide.reply_for_intent(kind, ctx, body.locale)
@@ -102,7 +117,9 @@ def answer(
 ) -> AssistantReply:
     ctx = ctx_mod.build(user, body.scenario)
     question = _clean_question(body.messages[-1].content)
+    answer_kind = guide.intent(question, ctx.audience)
     text = guide.reply(question, ctx, body.locale)
+    meta = ctx.plan_meta if answer_kind in guide.PERSONAL_PLAN_INTENTS else ctx.meta
     used_llm = False
     model, name = "", "none"
     # Context can exhaust the request budget. Never start paid work for an expired request.
@@ -129,7 +146,13 @@ def answer(
                     selected = select_ids(task, candidates, provider).ids
                 if not 1 <= len(selected) <= 2:
                     raise LLMUnavailableError("Select one or two answer blocks")
+                if answer_kind in guide.PERSONAL_PLAN_INTENTS:
+                    if answer_kind not in selected:
+                        raise LLMUnavailableError("Selection omitted the requested plan facts")
+                    selected = [answer_kind]
                 text = "\n\n".join(candidates[key] for key in selected)
+                if any(key in guide.PERSONAL_PLAN_INTENTS for key in selected):
+                    meta = ctx.plan_meta
                 used_llm = True
                 name = provider.name
                 model = getattr(provider, "last_model", provider.model)
@@ -147,7 +170,7 @@ def answer(
         model=model,
         grounded_on=ctx.grounded_on,
         unchecked_figures=[],
-        meta=ctx.meta,
+        meta=meta or ctx.meta,
     )
 
 

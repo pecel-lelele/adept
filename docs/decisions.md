@@ -1020,3 +1020,13 @@
 - **Affects**: M3 F8 provider/gateway/disclosure; M4 assistant/web; no new dependencies or database schema changes.
 - **Replaces**: M4-030 free-text answer checks and phase-only provider timeout; M4-028 landing-page assistant placement.
 - **PR / branch**: https://github.com/pecel-lelele/adept/pull/9 / feat/core-adi-assistant
+
+### M4-039: Restore grounded personal-plan answers and plural intent coverage
+- **Date**: 2026-10-23
+- **Feature**: Core, F8 (Adi), read-only F5 plan/progress integration
+- **Type**: method
+- **Change**: Add server-authored progress, duration and cost blocks in EN/MS/ZH using numeric facts from the saved plan and its effective progress. Personal-plan answers carry saved-plan attribution, including its scenario; missing data is explicit. Model selection cannot omit a specifically requested plan block and substitute generic advice. Add explicit plural/inflected intent keywords while preserving complete-word checks, and clarify that HRD eligibility does not guarantee RM0 funding.
+- **Why**: Greptile PR #9 findings 4352515679 and 4352515689: the answer-block redesign lost personal totals, and ending boundaries stopped ordinary plural role/course/skill questions matching.
+- **Affects**: M3 F5 read-only data; M4 assistant. No dependencies, schema or public contract changes. Decision IDs 032–038 are already used by the catalogue branch in PR #10.
+- **Replaces**: none (extends M4-031)
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/9 / feat/core-adi-assistant

@@ -30,12 +30,49 @@ INTENTS: dict[str, tuple[str, ...]] = {
         "删除",
         "个人数据",
     ),
+    "plan_progress": (
+        "progress",
+        "finished",
+        "completed",
+        "completion status",
+        "kemajuan",
+        "selesai",
+        "进度",
+        "已完成",
+        "完成了",
+    ),
+    "plan_duration": (
+        "how long",
+        "duration",
+        "weeks",
+        "hours",
+        "tempoh",
+        "berapa lama",
+        "minggu",
+        "多久",
+        "时长",
+        "几周",
+        "多少小时",
+    ),
+    "plan_cost": (
+        "cost",
+        "costs",
+        "price",
+        "prices",
+        "how much",
+        "kos",
+        "harga",
+        "费用",
+        "价格",
+        "多少钱",
+    ),
     "how": (
         "how does",
         "how do",
         "what is adept",
         "how it works",
         "method",
+        "methods",
         "bagaimana",
         "apa itu",
         "如何",
@@ -58,9 +95,13 @@ INTENTS: dict[str, tuple[str, ...]] = {
         "cost",
         "free",
         "price",
+        "prices",
+        "costs",
         "hrd",
         "claim",
+        "claims",
         "budget",
+        "budgets",
         "kos",
         "percuma",
         "harga",
@@ -72,6 +113,7 @@ INTENTS: dict[str, tuple[str, ...]] = {
     ),
     "trend": (
         "trend",
+        "trends",
         "rising",
         "declining",
         "radar",
@@ -89,7 +131,9 @@ INTENTS: dict[str, tuple[str, ...]] = {
     "team": (
         "team",
         "member",
+        "members",
         "gap",
+        "gaps",
         "heatmap",
         "pasukan",
         "ahli",
@@ -100,9 +144,13 @@ INTENTS: dict[str, tuple[str, ...]] = {
     ),
     "learn": (
         "learn",
+        "learning",
         "course",
+        "courses",
         "skill",
+        "skills",
         "plan",
+        "plans",
         "study",
         "gap",
         "belajar",
@@ -116,11 +164,18 @@ INTENTS: dict[str, tuple[str, ...]] = {
     ),
     "roles": (
         "role",
+        "roles",
         "job",
+        "jobs",
         "match",
+        "matches",
+        "matched",
+        "matching",
         "career",
+        "careers",
         "fit",
         "score",
+        "scores",
         "why",
         "peranan",
         "kerja",
@@ -136,6 +191,9 @@ INTENTS: dict[str, tuple[str, ...]] = {
     ),
     "next": ("next", "start", "what should", "begin", "seterusnya", "mula", "下一步", "开始"),
 }
+
+PERSONAL_PLAN_INTENTS = frozenset({"plan_progress", "plan_duration", "plan_cost"})
+PLAN_WORDS = ("plan", "plans", "pelan", "rancangan", "计划")
 
 T: dict[str, dict[str, str]] = {
     "en": {
@@ -158,9 +216,14 @@ T: dict[str, dict[str, str]] = {
         "trend": "In the latest snapshot these skills are rising: {skills}. Trends are estimates "
         "from research attention and labour projections; see [[page:/app/radar]].",
         "my_trend": "Your own skills: {skills}.",
-        "cost": "Every course shows hours, list price and whether HRD Corp may cover it; with HRD "
-        "Corp eligibility a claimable course costs you RM 0, subject to your employer's claim. "
-        "Browse [[page:/app/courses]].",
+        "cost": "Every course shows hours, its dated list price and HRD Corp claimability. "
+        "Eligibility does not guarantee funding: confirm certificate fees, taxes and employer "
+        "approval before buying. Browse [[page:/app/courses]].",
+        "plan_progress": "For your saved plan toward [[role:{role}]], {share} of tracked learning hours are recorded complete; {courses} courses are recorded complete and {closed} of {total} skill gaps are closed. Course completion does not guarantee all role skills are met. See [[page:/app/progress]].",
+        "plan_duration": "Your saved plan toward [[role:{role}]] estimates {weeks} weeks at {weekly} hours per week, with {hours} study hours in total. These are learning estimates, not a completion guarantee. See [[page:/app/pathway]].",
+        "plan_cost": "Your saved plan toward [[role:{role}]] records an estimated list price of RM {listed} and learner cost of RM {learner} under its saved funding assumptions. Confirm certificate fees, taxes, current prices and employer approval before purchase. See [[page:/app/pathway]].",
+        "progress_unavailable": "I could not load your saved plan's progress. Please retry or check [[page:/app/progress]]; I cannot assume zero completion.",
+        "totals_unavailable": "I could not load the totals for your saved plan. Please retry or check [[page:/app/pathway]]; I cannot estimate missing figures.",
         "sdg": "Each role and skill links to UN SDG targets with a cited reason.{badges} See "
         "[[page:/app/sdg]].",
         "privacy": "Your CV is read in memory and never stored. You can download or delete all "
@@ -195,9 +258,14 @@ T: dict[str, dict[str, str]] = {
         "trend": "Dalam petikan terkini, kemahiran ini meningkat: {skills}. Tren ialah anggaran; "
         "lihat [[page:/app/radar]].",
         "my_trend": "Kemahiran anda: {skills}.",
-        "cost": "Setiap kursus menunjukkan jam, harga dan sama ada HRD Corp boleh menanggungnya; "
-        "jika layak, kursus boleh tuntut tidak dikenakan kos kepada anda, tertakluk kepada "
-        "tuntutan majikan. Lihat [[page:/app/courses]].",
+        "cost": "Setiap kursus menunjukkan jam, harga bertarikh dan kelayakan tuntutan HRD Corp. "
+        "Kelayakan tidak menjamin pembiayaan: sahkan yuran sijil, cukai dan kelulusan majikan "
+        "sebelum membeli. Lihat [[page:/app/courses]].",
+        "plan_progress": "Untuk pelan tersimpan bagi [[role:{role}]], {share} jam pembelajaran direkodkan selesai; {courses} kursus direkodkan selesai dan {closed} daripada {total} jurang kemahiran ditutup. Tamat kursus tidak menjamin semua kemahiran peranan dipenuhi. Lihat [[page:/app/progress]].",
+        "plan_duration": "Pelan tersimpan bagi [[role:{role}]] menganggarkan {weeks} minggu pada {weekly} jam seminggu, dengan jumlah {hours} jam belajar. Ini anggaran pembelajaran, bukan jaminan tarikh tamat. Lihat [[page:/app/pathway]].",
+        "plan_cost": "Pelan tersimpan bagi [[role:{role}]] merekodkan anggaran harga senarai RM {listed} dan kos pelajar RM {learner} berdasarkan andaian pembiayaan tersimpan. Sahkan yuran sijil, cukai, harga semasa dan kelulusan majikan sebelum membeli. Lihat [[page:/app/pathway]].",
+        "progress_unavailable": "Saya tidak dapat memuatkan kemajuan pelan tersimpan. Cuba lagi atau lihat [[page:/app/progress]]; saya tidak boleh menganggap kemajuan sifar.",
+        "totals_unavailable": "Saya tidak dapat memuatkan jumlah pelan tersimpan. Cuba lagi atau lihat [[page:/app/pathway]]; saya tidak boleh menganggar angka yang tiada.",
         "sdg": "Setiap peranan dan kemahiran dikaitkan dengan sasaran SDG PBB beserta "
         "sebabnya.{badges} Lihat [[page:/app/sdg]].",
         "privacy": "CV anda dibaca dalam memori dan tidak disimpan. Anda boleh muat turun atau "
@@ -225,7 +293,12 @@ T: dict[str, dict[str, str]] = {
         "no_plan": "在 [[page:/app/pathway]] 选择职位并保存计划，我会一步步带你完成。",
         "trend": "在最新快照中，这些技能正在上升：{skills}。趋势是估计值；详见 [[page:/app/radar]]。",
         "my_trend": "你的技能：{skills}。",
-        "cost": "每门课程都显示学时、价格以及 HRD Corp 是否可报销；若符合资格，可报销课程对你免费（以雇主申请为准）。浏览 [[page:/app/courses]]。",
+        "cost": "每门课程均标明学时、带日期的价格及 HRD Corp 申报资格。符合资格不代表已获资助：购买前请确认凭证费用、税费及雇主批准。浏览 [[page:/app/courses]]。",
+        "plan_progress": "你为 [[role:{role}]] 保存的计划中，已记录完成 {share} 的学习时数、{courses} 门课程，以及 {total} 项技能差距中的 {closed} 项。完成课程不代表已满足全部职位技能。详见 [[page:/app/progress]]。",
+        "plan_duration": "你为 [[role:{role}]] 保存的计划预计需要 {weeks} 周，每周 {weekly} 小时，总计 {hours} 学习小时。这是学习时间估计，不是完成日期保证。详见 [[page:/app/pathway]]。",
+        "plan_cost": "你为 [[role:{role}]] 保存的计划记录的预计标价为 RM {listed}，依照保存的资助假设，学员费用为 RM {learner}。购买前请确认凭证费用、税费、最新价格及雇主批准。详见 [[page:/app/pathway]]。",
+        "progress_unavailable": "暂时无法加载已保存计划的进度，请重试或查看 [[page:/app/progress]]；我不会假设进度为零。",
+        "totals_unavailable": "暂时无法加载已保存计划的总额，请重试或查看 [[page:/app/pathway]]；我不会估计缺失的数据。",
         "sdg": "每个职位和技能都关联联合国 SDG 具体目标并附理由。{badges} 详见 [[page:/app/sdg]]。",
         "privacy": "你的简历只在内存中读取，不会保存。你可以在“我的技能”下载或删除全部数据。详见 [[page:/about]]。",
         "how": "Adept 带你从今天的技能走向未来职位：技能档案 → 未来技能雷达 → 匹配职位与差距 → 关联联合国 SDG 的学习计划。每个估计都注明来源和日期。[[page:/about]]",
@@ -278,14 +351,25 @@ SUGGESTIONS: dict[str, dict[str, list[str]]] = {
 def intent(question: str, audience: str = "learner") -> str:
     q = question.lower()
     for name, words in INTENTS.items():
+        if name in PERSONAL_PLAN_INTENTS and audience != "learner":
+            continue
+        if name == "plan_cost" and not any(_contains(q, word) for word in PLAN_WORDS):
+            continue
+        if name == "plan_duration" and not any(
+            _contains(q, word) for word in (*PLAN_WORDS, "i", "my", "saya", "我")
+        ):
+            continue
         if name == "team" and audience != "manager":
             continue
-        if any(
-            (w in q) if re.search(r"[一-鿿]", w) else re.search(rf"\b{re.escape(w)}\b", q)
-            for w in words
-        ):
+        if any(_contains(q, word) for word in words):
             return name
     return "next"
+
+
+def _contains(question: str, word: str) -> bool:
+    if re.search(r"[一-鿿]", word):
+        return word in question
+    return re.search(rf"\b{re.escape(word)}\b", question) is not None
 
 
 def _pct(v: float) -> str:
@@ -318,6 +402,35 @@ def reply_for_intent(kind: str, ctx: Context, locale: Locale) -> str:
         return out
     if kind == "cost":
         return t["cost"]
+    if kind in PERSONAL_PLAN_INTENTS and ctx.audience == "learner":
+        if not f.get("plan_role"):
+            return t["no_plan"]
+        if kind == "plan_progress":
+            progress = f.get("plan_progress")
+            if progress is None:
+                return t["progress_unavailable"]
+            return t[kind].format(
+                role=f["plan_role"],
+                share=_pct(progress["share"]),
+                courses=progress["courses"],
+                closed=progress["gap_closed"],
+                total=progress["gap_total"],
+            )
+        totals = f.get("plan_totals")
+        if totals is None:
+            return t["totals_unavailable"]
+        if kind == "plan_duration":
+            return t[kind].format(
+                role=f["plan_role"],
+                weeks=totals["weeks"],
+                weekly=f"{totals['hours_per_week']:g}",
+                hours=f"{totals['hours']:g}",
+            )
+        return t[kind].format(
+            role=f["plan_role"],
+            listed=f"{totals['list_price_myr']:,.2f}",
+            learner=f"{totals['out_of_pocket_myr']:,.2f}",
+        )
     if ctx.audience == "manager" or kind == "team":
         if "members" not in f:
             return t["team_none"]
