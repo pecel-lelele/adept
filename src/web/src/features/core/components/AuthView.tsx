@@ -7,8 +7,8 @@ import { useTranslations } from "next-intl";
 import { useActionState, useState } from "react";
 
 import { BrandLogo } from "@/components/shell/Brand";
-import { RiseArt } from "@/components/viz/RiseArt";
-import { Scene3D } from "@/components/viz/Scene3D";
+import { OrgScene } from "@/components/viz/OrgScene";
+import { PathScene } from "@/components/viz/PathScene";
 
 import { loginAction, signupAction, type AuthState } from "../auth-actions";
 
@@ -49,8 +49,9 @@ export function AuthView({ page }: { page: Page }) {
               {t("signUp")}
             </Link>
           </div>
+          <div className="a-auth-body">
           <h1 id="auth-title">{page === "signup" ? t("createTitle") : t("welcomeBack")}</h1>
-          <form action={action} className="a-stack" style={{ gap: 14 }}>
+          <form action={action} className="a-auth-form">
             <input type="hidden" name="next" value={next} />
             {page === "signup" ? (
               <>
@@ -87,16 +88,23 @@ export function AuthView({ page }: { page: Page }) {
                     </label>
                   </div>
                 </fieldset>
+                <div className="a-auth-pair">
                 <label className="a-field">
                   {t("name")}
                   <input className="a-input" name="display_name" required minLength={2} maxLength={80} autoComplete="name" defaultValue={values.display_name} />
                 </label>
+                <label className="a-field">
+                  {t("email")}
+                  <input className="a-input" type="email" name="email" required autoComplete="email" defaultValue={values.email} />
+                </label>
+                </div>
               </>
-            ) : null}
-            <label className="a-field">
-              {t("email")}
-              <input className="a-input" type="email" name="email" required autoComplete="email" defaultValue={values.email} />
-            </label>
+            ) : (
+              <label className="a-field">
+                {t("email")}
+                <input className="a-input" type="email" name="email" required autoComplete="email" defaultValue={values.email} />
+              </label>
+            )}
             <label className="a-field">
               {t("password")}
               <input
@@ -111,23 +119,25 @@ export function AuthView({ page }: { page: Page }) {
             </label>
             {page === "signup" && team ? (
               <>
-                <label className="a-field">
-                  {t("orgName")}
-                  <input className="a-input" name="org_name" required minLength={2} maxLength={120} defaultValue={values.org_name} />
-                </label>
-                <div className="a-grid" style={{ gap: 12 }}>
-                  <label className="a-field a-span-4">
+                <div className="a-auth-pair">
+                  <label className="a-field">
+                    {t("orgName")}
+                    <input className="a-input" name="org_name" required minLength={2} maxLength={120} defaultValue={values.org_name} />
+                  </label>
+                  <label className="a-field">
                     {t("orgType")}
                     <select className="a-select" name="org_type" defaultValue={values.org_type ?? "company"}>
                       <option value="company">{t("company")}</option>
                       <option value="institution">{t("institution")}</option>
                     </select>
                   </label>
-                  <label className="a-field a-span-5">
+                </div>
+                <div className="a-auth-pair is-wide-first">
+                  <label className="a-field">
                     {t("industry")}
                     <input className="a-input" name="industry" maxLength={120} defaultValue={values.industry} />
                   </label>
-                  <label className="a-field a-span-3">
+                  <label className="a-field">
                     {t("size")}
                     <input className="a-input" type="number" min={0} name="size" defaultValue={values.size ?? "10"} />
                   </label>
@@ -162,11 +172,15 @@ export function AuthView({ page }: { page: Page }) {
               {page === "signup" ? t("signIn") : t("signUp")}
             </Link>
           </p>
+          </div>
         </section>
+        {/* The landing page's drawings: a career path for individuals, an office for teams. */}
         <section className="a-auth-art" aria-hidden="true">
-          {team ? <Scene3D variant="grid" /> : <RiseArt />}
-          <h2>{team ? t("artTeamTitle") : t("artTitle")}</h2>
-          <p>{team ? t("artTeamBody") : t("artBody")}</p>
+          <div className="a-auth-art-copy">
+            <h2>{team ? t("artTeamTitle") : t("artTitle")}</h2>
+            <p>{team ? t("artTeamBody") : t("artBody")}</p>
+          </div>
+          <div className="a-auth-art-fig">{team ? <OrgScene /> : <PathScene />}</div>
         </section>
       </div>
     </main>

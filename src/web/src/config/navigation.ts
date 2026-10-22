@@ -28,7 +28,7 @@ export type Workspace = {
 
 const learnerItems = {
   home: { key: "home", href: "/app", icon: "home" },
-  skills: { key: "skills", href: "/app/profile", icon: "skills", step: 1 },
+  skills: { key: "skills", href: "/app/profile", icon: "skills", step: 1, scenario: true },
   radar: { key: "radar", href: "/app/radar", icon: "radar", step: 2, scenario: true },
   roles: { key: "roles", href: "/app/matches", icon: "roles", step: 3, scenario: true },
   plan: { key: "plan", href: "/app/pathway", icon: "plan", step: 4, scenario: true },

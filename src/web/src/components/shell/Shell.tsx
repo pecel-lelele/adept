@@ -1,4 +1,4 @@
-import { BookOpen, LogOut } from "lucide-react";
+import { BookOpen, Building2, LogOut } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { Suspense, type ReactNode } from "react";
@@ -43,6 +43,8 @@ export async function Shell({
 }) {
   const t = await getTranslations("ui");
   const name = account?.display_name ?? "Adept";
+  // Learners not in an organisation always see how to join one (sidebar and mobile menu).
+  const joinable = ws.mode === "individual" && !!account && !account.org_id;
   const space = ws.mode === "organisation" ? "nav.organisation" : ws.mode === "admin" ? "nav.admin" : "nav.learner";
   return (
     <div className="a-shell" data-mode={ws.mode}>
@@ -56,6 +58,15 @@ export async function Shell({
           <SideNav ws={ws} doneSteps={doneSteps} />
         </Suspense>
         <div className="a-side-foot">
+          {joinable ? (
+            <Link href="/app/join" className="a-side-join">
+              <Building2 size={16} strokeWidth={1.8} aria-hidden />
+              <span>
+                <strong>{t("page.joinTeam")}</strong>
+                <small>{t("page.joinTeamHint")}</small>
+              </span>
+            </Link>
+          ) : null}
           <Link href="/about" className="a-side-about">
             <BookOpen size={16} strokeWidth={1.7} aria-hidden /> {t("nav.about")}
           </Link>
@@ -89,7 +100,19 @@ export async function Shell({
         <footer className="a-foot">{t("shell.disclaimer")}</footer>
       </div>
       <Suspense>
-        <TabBar ws={ws} tools={<LocaleSwitcher />} />
+        <TabBar
+          ws={ws}
+          tools={
+            <>
+              <LocaleSwitcher />
+              {joinable ? (
+                <Link href="/app/join" className="a-link">
+                  <Building2 size={16} aria-hidden /> {t("page.joinTeam")}
+                </Link>
+              ) : null}
+            </>
+          }
+        />
       </Suspense>
     </div>
   );

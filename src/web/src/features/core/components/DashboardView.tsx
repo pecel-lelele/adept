@@ -1,4 +1,4 @@
-import { ArrowRight, ArrowUpRight, BookOpen, Check, Compass, Leaf, Route, Target, TrendingUp } from "lucide-react";
+import { ArrowRight, ArrowUpRight, BookOpen, Building2, Check, Compass, Leaf, Route, Target, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
@@ -125,6 +125,11 @@ export async function DashboardView({ scenario, query }: { scenario: ScenarioId;
             <Link className="a-btn" href={hero.to}>
               {hero.cta} <ArrowRight size={16} aria-hidden />
             </Link>
+            {account && !account.org_id ? (
+              <Link className="a-link" href="/app/join">
+                <Building2 size={15} aria-hidden /> {tp("joinTeam")}
+              </Link>
+            ) : null}
             {status.ok && status.data.needs_replan ? (
               <Link className="a-chip" data-tone="warn" href={`/app/pathway${planQuery}`}>
                 {t("replan")} {t("review")}

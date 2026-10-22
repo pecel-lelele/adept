@@ -93,6 +93,11 @@ async function PlanAside({ plan, query }: { plan: Schemas["Pathway"]; query: str
 async function ReplanBanner({ status }: { status: Schemas["ReplanStatus"] }) {
   const t = await getTranslations("pathway");
   if (!status.needs_replan) return null;
+  // Show skill names, not ids: they appear in the saved plan or the proposed one.
+  const names = new Map(
+    [...(status.saved?.pathway.steps ?? []), ...(status.proposed?.steps ?? [])].map((s) => [s.skill_id, s.skill_label]),
+  );
+  const skillName = (id: string) => names.get(id) || id;
   return (
     <section className="a-notice a-replan" role="status">
       <div style={{ display: "grid", gap: 8, minWidth: 0 }}>
@@ -101,7 +106,7 @@ async function ReplanBanner({ status }: { status: Schemas["ReplanStatus"] }) {
         <ul>
           {status.changes.map((c) => (
             <li key={`${c.kind}-${c.skill_id}`}>
-              {t(`replan.change.${c.kind}`)}: {c.skill_id}. {c.detail}
+              {t(`replan.change.${c.kind}`)}: {skillName(c.skill_id)}. {c.detail}
             </li>
           ))}
         </ul>

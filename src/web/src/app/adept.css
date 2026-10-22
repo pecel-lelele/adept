@@ -1523,3 +1523,195 @@ html[data-locale-switching] .a-page, html[data-locale-switching] .a-shell { opac
 :is(:lang(ms), :lang(zh)) .a-audience :is(.a-hero2, .a-teamhero) .a-display > span { display: inline; }
 :is(:lang(ms), :lang(zh)) .a-audience :is(.a-hero2, .a-teamhero) .a-display > span:not(:last-child)::after { content: " "; }
 :lang(ms) .a-audience :is(.a-hero2, .a-teamhero) .a-display { font-size: clamp(2.3rem, 1rem + 3.6vw, 4.4rem); }
+/* side-by-side cards share one height so a row never ends in a ragged empty gap */
+.a-shell .a-split:not(.is-wide) { align-items: stretch; }
+.a-shell .a-split:not(.is-wide) > .a-aside > .a-card:last-child { flex: 1; }
+.a-shell .a-split:not(.is-wide) > .a-aside { display: flex; flex-direction: column; }
+
+/* ---------- sign in / create account: one framed panel, top-aligned so switching never jumps ---------- */
+.a-page .a-auth { max-width: 1120px; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 0; align-items: stretch; padding: 8px clamp(16px, 4vw, 48px) 48px; }
+.a-page .a-auth > .a-auth-card { align-self: stretch; align-content: start; min-height: min(680px, calc(100dvh - 140px)); border-radius: 24px 0 0 24px; border-right: 0; box-shadow: 0 18px 40px #1e352514; padding: clamp(24px, 3vw, 40px); }
+.a-page .a-auth-art { display: grid; grid-template-rows: auto 1fr; gap: 24px; justify-items: stretch; text-align: left; padding: clamp(28px, 3vw, 44px); border-radius: 0 24px 24px 0; background: #eff5e9; border: 1px solid #e2eadb; box-shadow: 0 18px 40px #1e352514; overflow: hidden; min-width: 0; }
+.a-page .a-auth-art-copy { display: grid; gap: 10px; max-width: 420px; }
+.a-page .a-auth-art h2 { margin: 0; max-width: none; font-size: clamp(22px, 1.2rem + 0.8vw, 30px); letter-spacing: -0.03em; line-height: 1.2; }
+.a-page .a-auth-art p { margin: 0; max-width: none; font-size: 14.5px; line-height: 1.7; color: var(--a-muted); }
+.a-page .a-auth-art-fig { display: grid; place-items: center; min-height: 0; }
+.a-page .a-auth-art-fig svg { width: 100%; max-width: 480px; height: auto; }
+.a-page[data-mode="organisation"] .a-auth-art { background: radial-gradient(90% 70% at 50% 0%, #2f5a40 0%, #234430 62%); border-color: #234430; color: #f1f7f2; }
+.a-page[data-mode="organisation"] .a-auth-art p { color: #cfe1d4; }
+@media (max-width: 860px) {
+  .a-page .a-auth { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .a-page .a-auth > .a-auth-card { border-radius: 20px; border-right: 1px solid var(--a-line); min-height: 0; }
+  .a-page .a-auth-art { border-radius: 20px; }
+  .a-page .a-auth-art-fig svg { max-width: 320px; }
+}
+
+/* ---------- join a team: sidebar entry and page ---------- */
+.a-side-join { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: center; padding: 11px 12px; border-radius: 12px; border: 1px dashed #b9d8c1; background: #f3faf0; color: #1b3022; transition: background var(--a-fast), border-color var(--a-fast); }
+.a-side-join:hover { background: #e9f6ec; border-color: #84c88d; }
+.a-side-join svg { color: var(--a-up); }
+.a-side-join strong { display: block; font-size: 12.5px; font-weight: 600; }
+.a-side-join small { display: block; font-size: 11px; color: var(--a-muted); }
+.a-shell .a-join-form, .a-shell .a-join-done { display: grid; gap: 16px; justify-items: start; }
+.a-shell .a-join-form .a-field, .a-shell .a-join-form .a-btn { width: 100%; }
+.a-shell .a-join-done h2 { margin: 0; font-size: 20px; }
+.a-shell .a-join-done p { margin: 0; }
+.a-shell .a-join-icon { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; background: #f2f6f0; color: #6d8a70; }
+.a-shell .a-join-icon.is-done { background: var(--a-accent-soft); color: var(--a-up); }
+.a-shell .a-code-input { font-family: var(--a-mono); font-size: 20px; letter-spacing: 4px; text-transform: uppercase; font-weight: 600; }
+.a-shell .a-joinfacts { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; font-size: 13.5px; line-height: 1.6; color: var(--a-ink-2); }
+.a-shell .a-joinfacts li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; }
+.a-shell .a-joinfacts svg { color: var(--a-up); margin-top: 3px; }
+
+/* team plan role picker in the page header */
+.a-shell .a-rolepick { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+/* reserve the scrollbar so pages of different height never shift sideways */
+html { scrollbar-gutter: stable; }
+.a-page .a-auth-art-fig { align-items: start; place-items: start center; }
+
+/* ---------- every dropdown: a styled closed box everywhere; a styled option list where the
+   browser supports customisable selects (appearance: base-select). Still a native <select>,
+   so keyboard and screen-reader behaviour is unchanged. ---------- */
+:is(.a-shell, .a-page) select {
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  padding-right: 40px;
+  background-color: var(--a-surface);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236d7a70' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  transition: border-color var(--a-fast), box-shadow var(--a-fast), background-color var(--a-fast);
+}
+:is(.a-shell, .a-page) select:hover:not(:disabled) { border-color: #c4d3c6; background-color: #fbfdfb; }
+:is(.a-shell, .a-page) select:disabled { cursor: progress; opacity: .6; }
+:is(.a-shell, .a-page) .a-select.is-small { padding-right: 34px; background-position: right 9px center; }
+
+@supports (appearance: base-select) {
+  :is(.a-shell, .a-page) select,
+  :is(.a-shell, .a-page) select::picker(select) { appearance: base-select; }
+  :is(.a-shell, .a-page) select { display: inline-flex; align-items: center; background-image: none; padding-right: 12px; gap: 8px; }
+  :is(.a-shell, .a-page) .a-select:not(.is-small) { display: flex; }
+  :is(.a-shell, .a-page) select::picker-icon {
+    content: "";
+    width: 16px;
+    height: 16px;
+    margin-left: auto;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236d7a70' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") center / 16px no-repeat;
+    transition: transform var(--a-med) var(--a-ease);
+  }
+  :is(.a-shell, .a-page) select:open::picker-icon { transform: rotate(180deg); }
+  :is(.a-shell, .a-page) select:open { border-color: #84c88d; box-shadow: 0 0 0 3px #22c55e26; }
+  :is(.a-shell, .a-page) select::picker(select) {
+    margin-top: 6px;
+    padding: 6px;
+    min-width: anchor-size(width);
+    max-height: min(360px, 60dvh);
+    overflow-y: auto;
+    border: 1px solid var(--a-line);
+    border-radius: 12px;
+    background: var(--a-surface);
+    box-shadow: 0 18px 40px #1e35251f, 0 2px 6px #1e352512;
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: opacity var(--a-fast), transform var(--a-fast) var(--a-ease), display var(--a-fast) allow-discrete, overlay var(--a-fast) allow-discrete;
+  }
+  :is(.a-shell, .a-page) select:open::picker(select) { opacity: 1; transform: none; }
+  @starting-style { :is(.a-shell, .a-page) select:open::picker(select) { opacity: 0; transform: translateY(-4px); } }
+  :is(.a-shell, .a-page) select option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    font-size: 13.5px;
+    color: var(--a-ink-2);
+    cursor: pointer;
+  }
+  :is(.a-shell, .a-page) select option:hover,
+  :is(.a-shell, .a-page) select option:focus-visible { background: #f3faf0; color: var(--a-ink); outline: none; }
+  :is(.a-shell, .a-page) select option:checked { background: var(--a-accent-soft); color: #1b3022; font-weight: 600; }
+  :is(.a-shell, .a-page) select option::checkmark { order: 1; margin-left: auto; color: var(--a-up); }
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(.a-shell, .a-page) select::picker(select), :is(.a-shell, .a-page) select::picker-icon { transition: none; }
+}
+
+/* ---------- auth panel v2: one frame height for sign-in and sign-up, centred on the page;
+   tabs pinned at the top of the card (no jump), the form centred in the space below;
+   paired fields keep the team sign-up within one screen; fluid from phone to wide desktop ---------- */
+.a-page .a-auth {
+  --auth-h: clamp(560px, calc(100dvh - 120px), 780px);
+  max-width: 1160px;
+  min-height: calc(100dvh - 92px);
+  align-content: center;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  padding: 0 clamp(16px, 4vw, 48px) clamp(24px, 4vh, 48px);
+}
+.a-page .a-auth > .a-auth-card {
+  min-height: var(--auth-h);
+  display: grid;
+  grid-template-rows: auto 1fr;
+  align-content: stretch;
+  gap: clamp(18px, 3vh, 28px);
+  padding: clamp(22px, 3vw, 40px) clamp(20px, 3.2vw, 44px);
+}
+.a-page .a-auth-art { min-height: var(--auth-h); }
+.a-page .a-auth-body { display: grid; align-content: center; gap: clamp(14px, 2.2vh, 20px); min-width: 0; }
+.a-page .a-auth-body h1 { font-size: clamp(24px, 1.2rem + 1vw, 32px); letter-spacing: -0.04em; margin: 0; }
+.a-page .a-auth-form { display: grid; gap: clamp(10px, 1.6vh, 14px); }
+.a-page .a-auth-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.a-page .a-auth-pair.is-wide-first { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); }
+.a-page .a-auth-form .a-input, .a-page .a-auth-form .a-select { min-height: 44px; }
+.a-page .a-auth-form .a-field small { margin-top: -2px; }
+
+/* "Who is it for?": compact cards, icon beside the text */
+.a-page .a-auth-form .a-choice-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.a-page .a-auth-form .a-choice { grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 12px; row-gap: 2px; padding: 12px 14px; }
+.a-page .a-auth-form .a-choice-icon { grid-row: span 2; width: 34px; height: 34px; }
+.a-page .a-auth-form .a-choice strong { font-size: 13.5px; }
+.a-page .a-auth-form .a-choice span:not(.a-choice-icon) { font-size: 11.5px; line-height: 1.35; }
+.a-page .a-auth-form legend { font-size: 12.5px; font-weight: 500; color: #4f6354; }
+
+/* art panel scales with the frame */
+.a-page .a-auth-art { grid-template-rows: auto minmax(0, 1fr); }
+.a-page .a-auth-art-fig { place-items: center; }
+.a-page .a-auth-art-fig svg { max-height: calc(var(--auth-h) - 220px); width: auto; max-width: 100%; }
+
+/* short screens: let the page scroll instead of squeezing */
+@media (max-height: 700px) and (min-width: 861px) {
+  .a-page .a-auth { min-height: 0; align-content: start; padding-top: 8px; }
+}
+/* tablets: narrower art column */
+@media (max-width: 1100px) and (min-width: 861px) {
+  .a-page .a-auth { grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr); }
+  .a-page .a-auth-art { padding: 28px; }
+}
+/* phones: one column, form first, a short art strip after it */
+@media (max-width: 860px) {
+  .a-page .a-auth { min-height: 0; align-content: start; grid-template-columns: minmax(0, 1fr); gap: 16px; padding-top: 4px; }
+  .a-page .a-auth > .a-auth-card, .a-page .a-auth-art { min-height: 0; }
+  .a-page .a-auth-art { grid-template-rows: auto; }
+  .a-page .a-auth-art-fig svg { max-height: 220px; }
+}
+@media (max-width: 480px) {
+  .a-page .a-auth-pair, .a-page .a-auth-pair.is-wide-first { grid-template-columns: minmax(0, 1fr); }
+  .a-page .a-auth-form .a-choice-grid { grid-template-columns: minmax(0, 1fr); }
+}
+/* team sign-up fits one screen: password hint on the label line, tighter cards, padding scales with height */
+.a-page .a-auth-form .a-field:has(> input[type="password"]) { position: relative; }
+.a-page .a-auth-form .a-field:has(> input[type="password"]) > small { position: absolute; top: 0; right: 0; margin: 0; line-height: 1.5; }
+.a-page .a-auth-form legend { margin-bottom: 6px !important; }
+.a-page .a-auth-form .a-choice { padding: 10px 12px; }
+.a-page .a-auth > .a-auth-card { padding-block: clamp(18px, 3.2vh, 40px); gap: clamp(14px, 2.6vh, 28px); }
+.a-page .a-auth-body { gap: clamp(12px, 1.8vh, 20px); }
+@media (max-height: 860px) and (min-width: 861px) {
+  .a-page .a-auth-form .a-input, .a-page .a-auth-form .a-select { min-height: 40px; }
+  .a-page .a-auth-form { gap: 10px; }
+  .a-page .a-auth-body h1 { font-size: 24px; }
+  .a-page .a-auth-form .a-choice span:not(.a-choice-icon) { display: none; }
+  .a-page .a-auth-form .a-choice-icon { grid-row: auto; width: 30px; height: 30px; }
+  .a-page .a-auth-form .a-check { font-size: 12px; line-height: 1.45; }
+}
+.a-page .a-auth { padding-bottom: clamp(12px, 3vh, 48px); }

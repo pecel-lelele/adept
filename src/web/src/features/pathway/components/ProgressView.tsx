@@ -61,7 +61,7 @@ export async function ProgressView({ roleId, scenario }: { roleId: string; scena
             value: p.gap_closed,
             unit: `/ ${p.gap_total}`,
             icon: <Layers size={15} />,
-            note: t("progress.gapClosed", { closed: p.gap_closed, total: p.gap_total }),
+            note: tp("gapClosedNote"),
           },
           { label: tp("kBadges"), value: p.badges.length, icon: <Award size={15} />, note: tp("badgeNote") },
         ]}

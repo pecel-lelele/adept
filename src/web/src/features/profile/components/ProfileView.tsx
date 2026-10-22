@@ -7,6 +7,7 @@ import { ErrorState } from "@/components/ErrorState";
 import { LevelPips } from "@/components/viz";
 import { fetchMyOrg } from "@/features/org/api";
 import { fetchRadar } from "@/features/trends/api";
+import type { ScenarioId } from "@/lib/api";
 
 import { fetchMyProfile, fetchSkillCatalogue } from "../api";
 
@@ -14,7 +15,7 @@ import { fetchMyProfile, fetchSkillCatalogue } from "../api";
  * Step 1 result. Hierarchy: the four numbers that shape the plan → every confirmed skill as a
  * row (level and demand trend in words) → who the learner is, and the next step.
  */
-export async function ProfileView() {
+export async function ProfileView({ scenario = "moderate" }: { scenario?: ScenarioId }) {
   const t = await getTranslations("ui.skills");
   const tp = await getTranslations("ui.page");
   const ti = await getTranslations("ui.intake");
@@ -22,13 +23,13 @@ export async function ProfileView() {
   const [profile, catalogue, radar, org] = await Promise.all([
     fetchMyProfile(),
     fetchSkillCatalogue(),
-    fetchRadar("moderate"),
+    fetchRadar(scenario),
     fetchMyOrg(),
   ]);
   if (!profile.ok) return <ErrorState failure={profile} />;
   const p = profile.data;
   const labels = new Map(catalogue.ok ? catalogue.data.skills.map((s) => [s.id, s.label]) : []);
-  const trend = new Map(radar.ok ? radar.data.items.map((i) => [i.skill_id, i.direction_moderate]) : []);
+  const trend = new Map(radar.ok ? radar.data.items.map((i) => [i.skill_id, scenario === "fast" ? i.direction_fast : i.direction_moderate]) : []);
   const skills = [...p.skills].sort((a, b) => b.level - a.level || a.skill_id.localeCompare(b.skill_id));
   const tracked = skills.filter((s) => trend.has(s.skill_id));
   const rising = tracked.filter((s) => trend.get(s.skill_id) === "rising").length;
