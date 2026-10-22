@@ -66,7 +66,7 @@ def get_org_contribution(
 ) -> SdgContribution:
     """The team's contribution towards ``role_id`` (the role chosen on the team plan), or,
     when omitted, the role where the team's average gap is largest."""
-    return service.org_contribution(user.org_id or org_service.DEFAULT_ORG_ID, scenario, role_id)
+    return service.org_contribution(org_service.require_manager(user), scenario, role_id)
 
 
 @router.get("/regions")
@@ -76,6 +76,11 @@ def list_regions() -> RegionListResponse:
 
 @router.get("/contribution/region/{state}")
 def get_region_contribution(
-    state: str, scenario: ScenarioId = "moderate", role_id: str | None = None
+    user: CurrentUserDep,
+    state: str,
+    scenario: ScenarioId = "moderate",
+    role_id: str | None = None,
 ) -> SdgContribution:
+    """Organisations in one state, aggregated: for team managers only."""
+    org_service.require_manager(user)
     return service.region_contribution(state, scenario, role_id)

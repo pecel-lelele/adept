@@ -80,12 +80,19 @@ def _metas(node: Any) -> list[dict[str, Any]]:
     return found
 
 
+# Team data is for managers only; a learner gets 403 there (tests/api/org/test_member_privacy.py).
+MANAGER_ONLY = ("/api/v1/org/", "/api/v1/sdg/contribution/org", "/api/v1/sdg/contribution/region")
+
+
 @pytest.mark.parametrize(("path", "query"), ENDPOINTS, ids=[p for p, _ in ENDPOINTS])
 @pytest.mark.parametrize("persona", ["aisyah", "demo-company"])
 def test_every_recommendation_cites_dated_sources(
     client: TestClient, path: str, query: dict[str, str], persona: str
 ) -> None:
     resp = client.get(path, params=query, headers={"X-Demo-User": persona})
+    if persona == "aisyah" and path.startswith(MANAGER_ONLY):
+        assert resp.status_code == 403, f"{path} leaks team data to a member"
+        return
     assert resp.status_code == 200, f"{path}: {resp.text}"
     metas = _metas(resp.json())
     assert metas, f"{path} has no meta"
