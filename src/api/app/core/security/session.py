@@ -14,6 +14,7 @@ import hmac
 import logging
 import os
 import secrets
+import threading
 import time
 
 from app.core.config import REPO_ROOT, get_settings
@@ -30,30 +31,47 @@ SECRET_FILE = REPO_ROOT / ".session-secret"
 _fallback: bytes | None = None
 
 
+_fallback_lock = threading.Lock()
+
+
+def _read_stored() -> bytes | None:
+    try:
+        stored = SECRET_FILE.read_text(encoding="ascii").strip()
+        return bytes.fromhex(stored) if len(stored) >= 64 else None
+    except (OSError, ValueError):
+        return None
+
+
 def _local_secret() -> bytes:
     """A random key kept in a gitignored file so local restarts keep sessions.
 
-    If the file can't be written (read-only container), the key lives in memory only and
-    sessions end when the process restarts. Deployments set SESSION_SECRET instead.
+    Created once: a lock covers threads in this process, and an exclusive file create covers
+    other processes (whoever loses the race reads the winner's key). If the file can't be
+    written (read-only container), the key lives in memory only and sessions end when the
+    process restarts. Deployments set SESSION_SECRET instead.
     """
     global _fallback
     if _fallback is not None:
         return _fallback
-    try:
-        stored = SECRET_FILE.read_text(encoding="ascii").strip()
-        if len(stored) >= 64:
-            _fallback = bytes.fromhex(stored)
+    with _fallback_lock:
+        if _fallback is not None:
             return _fallback
-    except (OSError, ValueError):
-        pass
-    key = secrets.token_bytes(32)
-    try:
-        SECRET_FILE.write_text(key.hex(), encoding="ascii")
-        os.chmod(SECRET_FILE, 0o600)
-    except OSError:
-        logger.warning("SESSION_SECRET is not set: using an in-memory key for this process")
-    _fallback = key
-    return key
+        key = _read_stored()
+        if key is None:
+            fresh = secrets.token_bytes(32)
+            try:
+                fd = os.open(SECRET_FILE, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+                with os.fdopen(fd, "w", encoding="ascii") as f:
+                    f.write(fresh.hex())
+                key = fresh
+            except FileExistsError:
+                # Another process created it first (or a stale empty file): use theirs if valid.
+                key = _read_stored() or fresh
+            except OSError:
+                logger.warning("SESSION_SECRET is not set: using an in-memory key for this process")
+                key = fresh
+        _fallback = key
+        return key
 
 
 def _secret() -> bytes:

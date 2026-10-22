@@ -43,3 +43,20 @@ def test_stored_key_survives_a_restart(no_secret: Path, monkeypatch: pytest.Monk
 def test_configured_secret_wins(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(get_settings(), "session_secret", "configured")
     assert session._secret() == b"configured"
+
+
+def test_concurrent_first_use_creates_one_key(no_secret: Path) -> None:
+    from concurrent.futures import ThreadPoolExecutor
+
+    with ThreadPoolExecutor(max_workers=16) as pool:
+        keys = list(pool.map(lambda _: session._secret(), range(64)))
+    assert len(set(keys)) == 1
+    assert no_secret.read_text(encoding="ascii") == keys[0].hex()
+
+
+def test_existing_key_file_from_another_process_is_reused(
+    no_secret: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    other = "ab" * 32
+    no_secret.write_text(other, encoding="ascii")
+    assert session._secret() == bytes.fromhex(other)
