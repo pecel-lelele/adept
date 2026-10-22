@@ -14,6 +14,11 @@ os.environ["DATABASE_URL"] = os.environ.get(
 os.environ["AUTH_RAW_USER_IDS"] = "true"
 os.environ["AUTH_DEFAULT_USER"] = "aisyah"
 os.environ["SESSION_SECRET"] = "test-only-session-secret"
+# Never call a real language model (or spend a developer's quota) from the test suite.
+os.environ["LLM_PROVIDER"] = "none"
+os.environ["LLM_MODEL"] = ""
+os.environ["LLM_FALLBACK_MODEL"] = ""
+os.environ["APP_ENV"] = "development"
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # tests/harness
 
 import pytest  # noqa: E402

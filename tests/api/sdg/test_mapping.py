@@ -95,9 +95,10 @@ def test_org_contribution_counts_contributors(client: TestClient) -> None:
 def test_region_contribution(client: TestClient) -> None:
     regions = RegionListResponse.model_validate(client.get("/api/v1/sdg/regions").json())
     assert "Kuala Lumpur" in regions.regions
-    body = client.get("/api/v1/sdg/contribution/region/Kuala Lumpur").json()
+    hr = {"X-Demo-User": "demo-company"}
+    body = client.get("/api/v1/sdg/contribution/region/Kuala Lumpur", headers=hr).json()
     assert SdgContribution.model_validate(body).scope == "region"
-    assert client.get("/api/v1/sdg/contribution/region/Atlantis").status_code == 404
+    assert client.get("/api/v1/sdg/contribution/region/Atlantis", headers=hr).status_code == 404
 
 
 def test_alignment_ranks_roles_by_chosen_goals(client: TestClient) -> None:
@@ -126,7 +127,7 @@ def test_org_and_region_contribution_follow_the_selected_role(client: TestClient
     assert chosen["role_ids"] == [other]
     assert chosen["role_ids"] != default["role_ids"]
     region = client.get(
-        "/api/v1/sdg/contribution/region/Kuala Lumpur", params={"role_id": other}
+        "/api/v1/sdg/contribution/region/Kuala Lumpur", params={"role_id": other}, headers=company
     ).json()
     assert region["role_ids"] == [other]
     unknown = client.get(

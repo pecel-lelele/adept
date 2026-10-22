@@ -978,3 +978,13 @@
 - **Affects**: M1 (trend cache, repository seam), M2 (matching repository and trend port, CV parser, legacy routes), M3 (rate limits), all (new env vars `APP_ENV`, `DB_POOL_MAX`, `ADMIN_EMAILS`; contract additions `DeleteAccountIn`, `AccountExport`).
 - **Replaces**: none
 - **PR / branch**: fix/core-backend-perf-security
+
+### M4-029: Team (HR) data is manager-only in the API, not only in the web
+- **Date**: 2026-10-23
+- **Feature**: F7, F6 (security)
+- **Type**: contract | other
+- **Change**: `GET /org/members`, `/org/gaps`, `/org/plan`, `/sdg/contribution/org` and `/sdg/contribution/region/{state}` now require an organisation manager or advisor (403 `forbidden` for members, 401 without sign-in). Before, any member of a team could read colleagues' names, intake status, the gap heatmap, the group plan and team impact through the API (the `/org` pages already redirected them), the region view needed no sign-in, and a user without a team asking for the organisation view hit a removed `DEFAULT_ORG_ID` (500). `org.service.require_manager` is the shared guard. Members keep `GET /org/me` without the join code.
+- **Why**: User question on 2026-10-23: members must not see any HR interface or data.
+- **Affects**: M3 (SDG contribution endpoints), M4 (F7). Learner pages never used these endpoints.
+- **Replaces**: none
+- **PR / branch**: fix/core-backend-perf-security
