@@ -1,21 +1,11 @@
-import { ArrowRight, ArrowUpRight, Compass, Leaf, Route } from "lucide-react";
+import { ArrowRight, ArrowUpRight, BookOpen, Check, Compass, Leaf, Route, Target, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
-import { MetaBar } from "@/components";
+import { Kpis, MetaBar } from "@/components";
 import { ErrorState } from "@/components/ErrorState";
-import {
-  Ring,
-  RiseArt,
-  Scene3D,
-  scoreColour,
-  SdgTiles,
-  StepTrack,
-  TrendBars,
-  type TrackStep,
-  type TrendBar,
-} from "@/components/viz";
+import { ScoreBar, SdgTiles, StepTrack, TrendBars, type TrackStep, type TrendBar } from "@/components/viz";
 import { fetchMatches } from "@/features/matching/api";
 import { fetchPlanStatus, fetchProgress } from "@/features/pathway/api";
 import { fetchMyProfile } from "@/features/profile/api";
@@ -26,14 +16,15 @@ import { getAccount } from "@/lib/auth/account";
 import { journeyHref } from "@/lib/navigation";
 
 /**
- * Learner home. Hierarchy: one "next step" hero → three role rings → how the learner's own
- * skills are trending → their path as a track → the goals it supports. Numbers become
- * visuals; detail lives one tap away.
+ * Learner home. Hierarchy: one next action beside the four-step journey → four headline
+ * numbers → top roles and the learner's skill trends → the plan and the goals it supports.
+ * Charts and lists only; illustrations stay on the public pages.
  */
 export async function DashboardView({ scenario, query }: { scenario: ScenarioId; query: URLSearchParams }) {
   const account = await getAccount();
   if (account && !account.has_profile) redirect("/app/onboarding");
   const t = await getTranslations("ui.home");
+  const tp = await getTranslations("ui.page");
   const [profile, matches, status, radar] = await Promise.all([
     fetchMyProfile(),
     fetchMatches(scenario),
@@ -49,7 +40,7 @@ export async function DashboardView({ scenario, query }: { scenario: ScenarioId;
     : [null, null];
   const href = (path: string) => journeyHref(path, query);
 
-  const top = matches.ok ? matches.data.matches.slice(0, 3) : [];
+  const top = matches.ok ? matches.data.matches.slice(0, 4) : [];
   const best = top[0];
   const p = progress?.ok ? progress.data : null;
   const courses = p
@@ -59,63 +50,62 @@ export async function DashboardView({ scenario, query }: { scenario: ScenarioId;
   const next = p ? courses.find((c) => p.course_status[c.id] !== "completed") : undefined;
   const planQuery = saved ? `?role=${encodeURIComponent(saved.role_id)}&scenario=${saved.scenario}` : "";
 
-  // Hero: exactly one next action.
-  let hero: { title: string; body: string; cta: string; to: string; scene: "rise" | "cards" };
+  // One next action.
+  let hero: { title: string; body: string; cta: string; to: string };
   if (saved && next) {
     hero = {
       title: t("continueTitle", { course: next.title }),
       body: t("continueBody", { done, total: courses.length, role: saved.pathway.role_label }),
       cta: t("continueCta"),
       to: `/app/progress${planQuery}`,
-      scene: "rise",
     };
   } else if (saved && !p) {
-    // Progress could not be read: never claim the path is complete. The progress page
-    // shows the error with a retry.
-    hero = {
-      title: t("progressErrorTitle"),
-      body: t("progressErrorBody"),
-      cta: t("progressErrorCta"),
-      to: `/app/progress${planQuery}`,
-      scene: "rise",
-    };
+    // Progress could not be read: never claim the path is complete.
+    hero = { title: t("progressErrorTitle"), body: t("progressErrorBody"), cta: t("progressErrorCta"), to: `/app/progress${planQuery}` };
   } else if (saved) {
-    hero = {
-      title: t("doneTitle", { role: saved.pathway.role_label }),
-      body: t("doneBody"),
-      cta: t("doneCta"),
-      to: `/app/progress${planQuery}`,
-      scene: "rise",
-    };
+    hero = { title: t("doneTitle", { role: saved.pathway.role_label }), body: t("doneBody"), cta: t("doneCta"), to: `/app/progress${planQuery}` };
   } else {
     hero = {
       title: best ? t("chooseTitle", { role: best.label }) : t("startTitle"),
       body: best ? t("chooseBody") : t("startBody"),
       cta: best ? t("chooseCta") : t("startCta"),
       to: best ? href("/app/matches") : "/app/onboarding",
-      scene: "cards",
     };
   }
+
+  // The four journey steps, done in order.
+  const complete = p ? p.percent_complete >= 1 : false;
+  const journeyDone = [Boolean(profile.ok && profile.data.skills.length), Boolean(saved), Boolean(saved), complete];
+  const firstOpen = journeyDone.findIndex((d) => !d);
+  const journey = [
+    { key: "jSkills", to: "/app/profile" },
+    { key: "jRadar", to: href("/app/radar") },
+    { key: "jRoles", to: href("/app/matches") },
+    { key: "jPlan", to: saved ? `/app/pathway${planQuery}` : href("/app/matches") },
+  ] as const;
 
   // The learner's own skills on the radar: rising right, declining left.
   const velocity = scenario === "fast" ? "velocity_fast" : "velocity_moderate";
   const direction = scenario === "fast" ? "direction_fast" : "direction_moderate";
   const tracked = new Map(radar.ok ? radar.data.items.map((i) => [i.skill_id, i]) : []);
   const mine = profile.ok ? profile.data.skills : [];
-  const bars: TrendBar[] = mine
-    .map((s) => tracked.get(s.skill_id))
-    .filter((i): i is NonNullable<typeof i> => Boolean(i))
+  const mineTracked = mine.map((s) => tracked.get(s.skill_id)).filter((i): i is NonNullable<typeof i> => Boolean(i));
+  const risingMine = mineTracked.filter((i) => i[direction] === "rising").length;
+  const bars: TrendBar[] = mineTracked
     .map((i) => ({ id: i.skill_id, label: i.skill_label, value: i[velocity], direction: i[direction] }))
     .sort((a, b) => b.value - a.value)
-    .slice(0, 8);
+    .slice(0, 7);
 
+  const isDone = (s: { courses: { id: string }[] }) =>
+    Boolean(p && s.courses.length > 0 && s.courses.every((c) => p.course_status[c.id] === "completed"));
   const steps: TrackStep[] = saved
-    ? saved.pathway.steps.slice(0, 6).map((s, i, all) => {
-        const complete = p ? s.courses.length > 0 && s.courses.every((c) => p.course_status[c.id] === "completed") : false;
-        const firstOpen = all.findIndex((x) => !(p && x.courses.length > 0 && x.courses.every((c) => p.course_status[c.id] === "completed")));
-        return { id: s.skill_id, label: s.skill_label || s.skill_id, state: complete ? "done" : i === firstOpen ? "current" : "todo" };
-      })
+    ? saved.pathway.steps.slice(0, 6).map((s, i, all) => ({
+        id: s.skill_id,
+        label: s.skill_label || s.skill_id,
+        state: isDone(s) ? "done" : i === all.findIndex((x) => !isDone(x)) ? "current" : "todo",
+      }))
     : [];
+  const linkedGoals = impact?.ok ? impact.data.goals_summary.filter((g) => g.link_count > 0).length : null;
   const goals = impact?.ok
     ? impact.data.goals_summary
         .filter((g) => g.link_count > 0)
@@ -125,9 +115,9 @@ export async function DashboardView({ scenario, query }: { scenario: ScenarioId;
     : [];
 
   return (
-    <div className="a-stack">
-      <section className="a-hero">
-        <div>
+    <div className="a-view">
+      <section className="a-welcome">
+        <div className="a-welcome-main">
           <span className="a-eyebrow">{t("hello", { name: account?.display_name ?? "" })}</span>
           <h1>{hero.title}</h1>
           <p>{hero.body}</p>
@@ -142,27 +132,63 @@ export async function DashboardView({ scenario, query }: { scenario: ScenarioId;
             ) : null}
           </div>
         </div>
-        {p ? (
-          <div style={{ display: "grid", placeItems: "center", gap: 12 }}>
-            <Ring value={p.percent_complete} size={150} stroke={13} caption={t("progress")} colour="var(--a-up)" />
-            <div className="a-chips" style={{ justifyContent: "center" }}>
-              <span className="a-chip">{t("badges")} · {p.badges.length}</span>
-              <span className="a-chip">{t("gap")} · {p.gap_closed}/{p.gap_total}</span>
-            </div>
-          </div>
-        ) : hero.scene === "rise" ? (
-          <RiseArt />
-        ) : (
-          <Scene3D variant="cards" />
-        )}
+        <nav className="a-journey" aria-label={tp("journey")}>
+          <span className="a-eyebrow">{tp("journey")}</span>
+          <ol>
+            {journey.map((j, i) => {
+              const state = journeyDone[i] ? "done" : i === firstOpen ? "current" : "todo";
+              return (
+                <li key={j.key} data-state={state}>
+                  <Link href={j.to}>
+                    <span className="a-journey-dot" aria-hidden>
+                      {state === "done" ? <Check size={13} strokeWidth={3} /> : i + 1}
+                    </span>
+                    <span>{tp(j.key)}</span>
+                    <span className="a-sr">{tp(`state.${state}`)}</span>
+                    <ArrowUpRight size={14} className="a-journey-go" aria-hidden />
+                  </Link>
+                </li>
+              );
+            })}
+          </ol>
+        </nav>
       </section>
 
-      <div className="a-grid">
-        <section className="a-card a-span-7" aria-labelledby="h-roles">
+      <Kpis
+        items={[
+          {
+            label: tp("kBestFit"),
+            value: best ? `${Math.round(best.score * 100)}%` : "—",
+            icon: <Compass size={15} />,
+            note: best ? best.label : tp("kNone"),
+          },
+          {
+            label: tp("kSkillsRising"),
+            value: risingMine,
+            icon: <TrendingUp size={15} />,
+            tone: risingMine ? "up" : undefined,
+            note: tp("kRisingNote", { count: mineTracked.length }),
+          },
+          {
+            label: tp("kPlan"),
+            value: p ? `${Math.round(p.percent_complete * 100)}%` : "—",
+            icon: <Target size={15} />,
+            note: p ? tp("kCoursesDone", { done, total: courses.length }) : tp("kPlanNone"),
+          },
+          {
+            label: tp("kGoals"),
+            value: linkedGoals ?? "—",
+            icon: <Leaf size={15} />,
+            note: linkedGoals === null ? tp("kPlanNone") : tp("kOf17"),
+          },
+        ]}
+      />
+
+      <div className="a-split">
+        <section className="a-card" aria-labelledby="h-roles">
           <div className="a-card-head">
             <h2 id="h-roles">
-              <Compass size={16} aria-hidden style={{ verticalAlign: -3, marginRight: 6 }} />
-              {t("topRoles")}
+              <Compass size={16} aria-hidden /> {t("topRoles")}
             </h2>
             <Link href={href("/app/matches")}>
               {t("seeAll")} <ArrowUpRight size={13} aria-hidden />
@@ -171,49 +197,76 @@ export async function DashboardView({ scenario, query }: { scenario: ScenarioId;
           {!matches.ok ? (
             <ErrorState failure={matches} compact />
           ) : (
-            <div className="a-roles">
-              {top.map((m) => (
-                <Link key={m.role_id} className="a-role" href={href(`/app/matches/${m.role_id}`)}>
-                  <Ring value={m.score} size={84} stroke={8} caption={t("fit")} colour={scoreColour(m.score)} />
-                  <h3>{m.label}</h3>
-                  <span className="a-chip" data-tone={m.missing_skills.length ? "warn" : "up"}>
-                    {t("gaps", { count: m.missing_skills.length + m.partial_skills.length })}
-                  </span>
-                </Link>
+            <ol className="a-rank">
+              {top.map((m, i) => (
+                <li key={m.role_id}>
+                  <Link href={href(`/app/matches/${m.role_id}`)}>
+                    <span className="a-rank-num">{i + 1}</span>
+                    <span className="a-rank-main">
+                      <strong>{m.label}</strong>
+                      <small>{t("gaps", { count: m.missing_skills.length + m.partial_skills.length })}</small>
+                    </span>
+                    <ScoreBar value={m.score} label={t("fit")} />
+                  </Link>
+                </li>
               ))}
-            </div>
+            </ol>
           )}
         </section>
 
-        <section className="a-card a-span-5" aria-labelledby="h-skills">
+        <section className="a-card a-skill-trends" aria-labelledby="h-skills">
           <div className="a-card-head">
-            <h2 id="h-skills">{t("yourSkills")}</h2>
+            <h2 id="h-skills">
+              <TrendingUp size={16} aria-hidden /> {t("yourSkills")}
+            </h2>
             <Link href={href("/app/radar")}>
               {t("seeAll")} <ArrowUpRight size={13} aria-hidden />
             </Link>
           </div>
           {bars.length ? <TrendBars items={bars} /> : <p className="a-muted a-small">{t("yourSkillsEmpty")}</p>}
         </section>
+      </div>
 
-        <section className="a-card a-span-7" aria-labelledby="h-path">
+      <div className="a-split">
+        <section className="a-card" aria-labelledby="h-path">
           <div className="a-card-head">
             <h2 id="h-path">
-              <Route size={16} aria-hidden style={{ verticalAlign: -3, marginRight: 6 }} />
-              {t("path")}
-              {saved ? <span className="a-chip" style={{ marginLeft: 10 }}>{saved.pathway.role_label} · {t("weeks", { weeks: saved.pathway.total_weeks })}</span> : null}
+              <Route size={16} aria-hidden /> {t("path")}
             </h2>
             <Link href={saved ? `/app/pathway${planQuery}` : href("/app/matches")}>
               {t("seeAll")} <ArrowUpRight size={13} aria-hidden />
             </Link>
           </div>
-          {steps.length ? <StepTrack steps={steps} /> : <p className="a-muted a-small">{t("noPath")}</p>}
+          {saved ? (
+            <div className="a-stack" style={{ gap: 18 }}>
+              <p className="a-path-role">
+                <strong>{saved.pathway.role_label}</strong>
+                <span>{t("weeks", { weeks: saved.pathway.total_weeks })}</span>
+              </p>
+              <StepTrack steps={steps} />
+              {next ? (
+                <a className="a-course-row" href={next.url} target="_blank" rel="noreferrer">
+                  <span className="a-course-icon" aria-hidden>
+                    <BookOpen size={18} strokeWidth={1.6} />
+                  </span>
+                  <span className="a-course-main">
+                    <small>{tp("upNext")}</small>
+                    <strong>
+                      {next.title} <ArrowUpRight size={13} aria-hidden />
+                    </strong>
+                  </span>
+                </a>
+              ) : null}
+            </div>
+          ) : (
+            <p className="a-muted a-small">{t("noPath")}</p>
+          )}
         </section>
 
-        <section className="a-card a-span-5" aria-labelledby="h-impact">
+        <section className="a-card" aria-labelledby="h-impact">
           <div className="a-card-head">
             <h2 id="h-impact">
-              <Leaf size={16} aria-hidden style={{ verticalAlign: -3, marginRight: 6 }} />
-              {t("impact")}
+              <Leaf size={16} aria-hidden /> {t("impact")}
             </h2>
             <Link href={`/app/sdg${planQuery}`}>
               {t("seeAll")} <ArrowUpRight size={13} aria-hidden />
