@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-import csv
-from pathlib import Path
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Form, UploadFile
@@ -14,10 +12,10 @@ from app.contracts.common import RecommendationMeta, ScenarioId
 from app.contracts.profile import ExtractedSkill
 from app.core.config import get_settings
 from app.core.errors import AppError
-from app.features.matching.repository import load_roles
+from app.features.matching.repository import load_roles, role_label
 from app.features.matching.scoring import MatchProfile, rank_roles
 from app.features.matching.trend_port import fetch_snapshot
-from app.features.profile.router import read_capped
+from app.features.profile.router import check_cv_type, read_capped
 from app.features.profile.service import extract_cv
 
 router = APIRouter(prefix="/preview", tags=["preview"])
@@ -73,9 +71,6 @@ def build_preview(
         load_roles(),
         snap.velocities,
     )
-    path = Path(__file__).resolve().parents[4] / "data/seed/taxonomy/roles.csv"
-    with path.open(encoding="utf-8") as handle:
-        labels = {row["id"]: row["label"] for row in csv.DictReader(handle)}
     top = ranked[0] if ranked else None
     trends = [
         SkillTrend(
@@ -89,7 +84,7 @@ def build_preview(
         skill_trends=trends,
         top_role=TopRole(
             role_id=top.role_id,
-            label=labels[top.role_id],
+            label=role_label(top.role_id),
             score=top.score,
             trend_coverage=top.trend_coverage,
         )
@@ -114,13 +109,11 @@ async def preview_cv(
 ) -> GuestPreview:
     if not synthetic_consent:
         raise AppError(
-            "Please agree that we may read your CV (it is not stored).",
+            "Please agree that we may read your CV. It is read in memory and never stored.",
             status_code=422,
             code="consent_required",
         )
-    content_type = (file.content_type or "").split(";")[0].lower().strip()
-    if content_type not in {"application/pdf", "text/plain"}:
-        raise AppError("Use PDF or plain text.", status_code=415, code="unsupported_media_type")
+    content_type = check_cv_type(file.content_type, file.filename)
     content = await read_capped(file, get_settings().max_upload_bytes)
     return await asyncio.to_thread(
         build_preview,

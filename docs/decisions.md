@@ -967,3 +967,24 @@
 - **Affects**: M3 F5 progress calculation; progress page KPI. No API or schema changes.
 - **Replaces**: M4-025 inclusion of rejected historical hours in progress totals.
 - **PR / branch**: https://github.com/pecel-lelele/adept/pull/7 / feat/core-insight-design
+
+### M4-027: Backend speed, security and CV edge cases (audit fixes)
+- **Date**: 2026-10-23
+- **Feature**: Core; F1, F2, F4, F7 (cross-feature, approved by the user)
+- **Type**: method | contract | other
+- **Change**: (1) `core/db.py` uses one `psycopg_pool` pool per process (`DB_POOL_MAX`, 10 s statement timeout) instead of a new connection per query. (2) `trends.service.get_snapshot` caches published snapshots (latest 60 s, dated 10 min, fixture fallback 5 s); matching's trend port drops the single global worker lock (every request queued behind it) for a shared 8-thread pool with the same 2 s timeout. (3) Matching and the guest preview read the role catalogue through the cached `seed.rows` instead of re-opening three CSV files several times per request. (4) `trends.repository` no longer imports `unittest.mock` in production. (5) Security: login runs a dummy scrypt check for unknown emails (no timing enumeration); `POST /auth/me/delete` (password re-check, cascades every user table, removes an organisation whose last manager leaves) and `GET /auth/me/export` (PDPA access) with a "Your data" card on My skills and team Settings; tighter limits on `/org/join` and account deletion; `/admin` pages need `ADMIN_EMAILS` (nobody in production when unset); `APP_ENV=production` refuses to start without a 32+ char `SESSION_SECRET`, exact CORS origins and no test auth switches, warns when `PROXY_SHARED_SECRET` is empty, and hides `/docs`; the landing preview proxy forwards the client IP. (6) The legacy `PUT /profile/skills` now rejects skill IDs outside the taxonomy (it stored anything); legacy profile routes are marked deprecated. (7) CV parsing: Word `.docx` (standard library, zip-bomb guarded), PDF magic-byte check, 30-page cap, password-protected PDFs get their own message, binary files sent as text are refused, file type inferred from the extension when the browser sends none; level cues match whole words (no more "leadership" → expert, "machine learning" → beginner), years of experience set the level, negated mentions ("no experience with Python") are skipped, CJK aliases match without word boundaries.
+- **Why**: Audit on 2026-10-23. Connection-per-query and the global trend lock were fine locally but cost 100–300 ms per connection and serialised all users on a hosted database; the rest were security, PDPA and CV-intake gaps.
+- **Pipeline** (CV intake): upload (PDF / DOCX / text, type checked by bytes) → text (≤ 30 pages / ≤ 8 MB XML) → NFKC + PII strip → taxonomy alias scan (whole words; CJK substrings; negation skipped) → level from cue words, else years, else 2 → evaluation: `tests/api/profile/test_cv_edge_cases.py` (13 cases) → serving: `POST /profile/cv`, `POST /preview/cv`.
+- **Affects**: M1 (trend cache, repository seam), M2 (matching repository and trend port, CV parser, legacy routes), M3 (rate limits), all (new env vars `APP_ENV`, `DB_POOL_MAX`, `ADMIN_EMAILS`; contract additions `DeleteAccountIn`, `AccountExport`).
+- **Replaces**: none
+- **PR / branch**: fix/core-backend-perf-security
+
+### M4-029: Team (HR) data is manager-only in the API, not only in the web
+- **Date**: 2026-10-23
+- **Feature**: F7, F6 (security)
+- **Type**: contract | other
+- **Change**: `GET /org/members`, `/org/gaps`, `/org/plan`, `/sdg/contribution/org` and `/sdg/contribution/region/{state}` now require an organisation manager or advisor (403 `forbidden` for members, 401 without sign-in). Before, any member of a team could read colleagues' names, intake status, the gap heatmap, the group plan and team impact through the API (the `/org` pages already redirected them), the region view needed no sign-in, and a user without a team asking for the organisation view hit a removed `DEFAULT_ORG_ID` (500). `org.service.require_manager` is the shared guard. Members keep `GET /org/me` without the join code.
+- **Why**: User question on 2026-10-23: members must not see any HR interface or data.
+- **Affects**: M3 (SDG contribution endpoints), M4 (F7). Learner pages never used these endpoints.
+- **Replaces**: none
+- **PR / branch**: fix/core-backend-perf-security

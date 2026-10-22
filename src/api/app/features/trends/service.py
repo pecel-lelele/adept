@@ -7,6 +7,8 @@ existing tests and the frontend's legacy endpoints continue to work unchanged.
 
 from __future__ import annotations
 
+import threading
+import time
 from datetime import date
 
 from app.contracts.common import RecommendationMeta, ScenarioId, Source
@@ -37,12 +39,44 @@ def get_snapshot(
     strict=True requires database data and raises repository.TrendsUnavailableError
     on database failure or an empty database. An unknown requested date remains
     NotFoundError. HTTP callers retain the default demo fallback behavior.
+
+    Published snapshots never change, so results are cached in process: a dated snapshot for
+    DATED_TTL_S, "latest" for LATEST_TTL_S (a new weekly snapshot shows up within a minute),
+    and anything served from the frozen fixture (database down) for FALLBACK_TTL_S so recovery
+    is quick. Without this every radar, matches, plan and outlook view re-read ~110 rows.
     """
+    key = (snapshot_date, scenario, strict)
+    now = time.monotonic()
+    with _cache_lock:
+        hit = _cache.get(key)
+    if hit is not None and now < hit[0]:
+        return hit[1]
     ctx = repository.resolve_context(strict=strict)
     try:
-        return repository.get_snapshot(ctx, snapshot_date, scenario, strict=strict)
+        snap = repository.get_snapshot(ctx, snapshot_date, scenario, strict=strict)
+        from_db = ctx.source == "db"
     finally:
         ctx.close()
+    ttl = FALLBACK_TTL_S if not from_db else LATEST_TTL_S if snapshot_date is None else DATED_TTL_S
+    with _cache_lock:
+        if len(_cache) >= _CACHE_MAX:
+            _cache.clear()
+        _cache[key] = (now + ttl, snap)
+    return snap
+
+
+LATEST_TTL_S = 60.0
+DATED_TTL_S = 600.0
+FALLBACK_TTL_S = 5.0
+_CACHE_MAX = 64
+_cache_lock = threading.Lock()
+_cache: dict[tuple[date | None, str, bool], tuple[float, TrendSnapshotResponse]] = {}
+
+
+def clear_cache() -> None:
+    """Forget cached snapshots (after a pipeline publish, and between tests)."""
+    with _cache_lock:
+        _cache.clear()
 
 
 # ---------------------------------------------------------------------------

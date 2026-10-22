@@ -15,11 +15,15 @@ class Settings(BaseSettings):
         env_file=REPO_ROOT / ".env", env_file_encoding="utf-8", extra="ignore"
     )
 
-    app_name: str = "Aiversecity Future-Ready Workforce API"
+    app_name: str = "Adept API"
+    # production: refuse to start without the secrets a shared deployment needs.
+    app_env: Literal["development", "production"] = "development"
     version: str = "0.1.0"
     api_prefix: str = "/api/v1"
     auth_mode: Literal["demo", "supabase"] = "demo"
     database_url: str = "postgresql://adept:adept@127.0.0.1:5433/adept"
+    # Largest number of pooled database connections per API process (app.core.db).
+    db_pool_max: int = 10
     cors_origins: str = Field(default="http://localhost:3000")
     log_level: str = "INFO"
     llm_provider: str = "none"
@@ -61,6 +65,24 @@ class Settings(BaseSettings):
         ::1 first, so every connection waited out the full connect timeout (2 s) before
         falling back, which timed out trend reads and made matching return 503."""
         return value.replace("@localhost:", "@127.0.0.1:").replace("@localhost/", "@127.0.0.1/")
+
+    def deployment_problems(self) -> tuple[list[str], list[str]]:
+        """(errors, warnings) for this configuration. Errors stop a production start."""
+        errors: list[str] = []
+        warnings: list[str] = []
+        if self.app_env == "production":
+            if len(self.session_secret) < 32:
+                errors.append("SESSION_SECRET must be set to a random value of 32+ characters.")
+            if "*" in self.cors_origin_list:
+                errors.append("CORS_ORIGINS must list exact origins, not '*'.")
+            if self.auth_raw_user_ids or self.auth_default_user:
+                errors.append("AUTH_RAW_USER_IDS / AUTH_DEFAULT_USER are test-only settings.")
+            if not self.proxy_shared_secret:
+                warnings.append(
+                    "PROXY_SHARED_SECRET is empty: every visitor shares the web server's "
+                    "rate-limit bucket. Set it on both the web and API services."
+                )
+        return errors, warnings
 
     @property
     def cors_origin_list(self) -> list[str]:

@@ -2,8 +2,9 @@
 
 Pipeline stages:
   raw bytes  (content_type validated by router)
-  → extract_text()             PDF via PyMuPDF only; text via UTF-8. PDF bytes are
-                               never decoded as text — unreadable PDFs raise.
+  → extract_text()             PDF via PyMuPDF only (page cap, encrypted files refused);
+                               DOCX via the standard library (zip-bomb guarded); text as
+                               UTF-8. Binary bytes are never decoded as text.
   → _truncate_text()           cap at MAX_TEXT_CHARS, set truncated flag
   → _clean_text()              NFKC, ReDoS-safe PII removal, whitespace collapse
   → extract_skills()           taxonomy-only, longest-alias-first, non-overlapping spans
@@ -26,13 +27,17 @@ Announce to team (package dependency):
 from __future__ import annotations
 
 import csv
+import io
 import math
 import re
 import unicodedata
+import zipfile
 from dataclasses import dataclass
 from functools import lru_cache
+from itertools import islice
 from pathlib import Path
 from typing import Any
+from xml.etree import ElementTree
 
 from app.core.errors import AppError, PdfNoText, PdfSupportUnavailable
 
@@ -49,7 +54,20 @@ MAX_TEXT_CHARS = 200_000
 CONFIDENCE_PER_HIT = 0.30
 MAX_CONFIDENCE_HITS = math.ceil(1.0 / CONFIDENCE_PER_HIT)
 
+#: Pages read from a PDF. A CV is rarely longer than a few pages; the cap bounds the work a
+#: hostile or accidental 500-page upload can cause.
+MAX_PDF_PAGES = 30
+
+#: DOCX limits: a .docx is a zip, so its XML size is checked before it is decompressed.
+MAX_DOCX_XML_BYTES = 8 * 1024 * 1024
+MAX_DOCX_ENTRIES = 2_000
+
+DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+
 _SEED = Path(__file__).resolve().parents[5] / "src" / "data" / "seed"
+
+#: Chinese, Japanese and Korean characters (written without spaces between words).
+_CJK_RE = re.compile(r"[぀-ヿ㐀-䶿一-鿿가-힯]")
 
 # ---------------------------------------------------------------------------
 # Optional PyMuPDF import — must NOT fall back silently to decoding PDF bytes
@@ -159,16 +177,22 @@ def _build_alias_index() -> list[_AliasEntry]:
 
     return [
         _AliasEntry(
-            pattern=re.compile(
-                r"(?<!\w)" + re.escape(phrase) + r"(?!\w)",
-                re.IGNORECASE,
-            ),
+            pattern=_phrase_pattern(phrase),
             skill_id=sid,
             phrase_len=len(phrase),
             phrase=phrase.lower(),
         )
         for phrase, sid in entries
     ]
+
+
+def _phrase_pattern(phrase: str) -> re.Pattern[str]:
+    """Whole-word match for Latin-script phrases. Chinese and Japanese are written without
+    spaces, so a word boundary would never match inside a sentence; CJK phrases match as
+    plain substrings instead."""
+    if _CJK_RE.search(phrase):
+        return re.compile(re.escape(phrase))
+    return re.compile(r"(?<!\w)" + re.escape(phrase) + r"(?!\w)", re.IGNORECASE)
 
 
 # ---------------------------------------------------------------------------
@@ -199,6 +223,16 @@ def extract_text(data: bytes | str, content_type: str = "text/plain") -> str:
     mime = content_type.lower().split(";")[0].strip()
     if "pdf" in mime:
         return _extract_pdf(raw_bytes)
+    if mime == DOCX_MIME:
+        return _extract_docx(raw_bytes)
+    if raw_bytes[:4] in (b"%PDF", b"PK\x03\x04"):
+        # A PDF or Word file sent as text/plain (wrong extension): never scan bytes as text.
+        raise AppError(
+            "This file looks like a PDF or Word document saved with the wrong type. "
+            "Upload it as .pdf or .docx.",
+            status_code=422,
+            code="wrong_file_type",
+        )
     return raw_bytes.decode("utf-8", errors="replace")
 
 
@@ -221,21 +255,93 @@ def _extract_pdf(data: bytes) -> str:
             code="pdf_unreadable",
         )
 
+    unreadable = AppError(
+        "Could not read the uploaded PDF. It may be corrupted or not a PDF at all.",
+        status_code=422,
+        code="pdf_unreadable",
+    )
+    if not data.lstrip()[:5].startswith(b"%PDF"):
+        raise unreadable
     try:
         doc = fitz.open(stream=data, filetype="pdf")
-        pages = [str(page.get_text()) for page in doc]
-        doc.close()
     except Exception as exc:
-        raise AppError(
-            "Could not read the uploaded PDF. It may be corrupted or not a PDF at all.",
-            status_code=422,
-            code="pdf_unreadable",
-        ) from exc
+        raise unreadable from exc
+    try:
+        if doc.needs_pass:
+            raise AppError(
+                "This PDF is password-protected. Save a copy without a password and try again.",
+                status_code=422,
+                code="pdf_encrypted",
+            )
+        pages = [str(page.get_text()) for page in islice(doc, MAX_PDF_PAGES)]
+    except AppError:
+        raise
+    except Exception as exc:
+        raise unreadable from exc
+    finally:
+        doc.close()
 
     text = "\n".join(pages)
     if not text.strip():
         raise PdfNoText()
 
+    return text
+
+
+_W_NS = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
+_DOCX_PART = re.compile(r"word/(document|header\d*|footer\d*)\.xml")
+
+
+def _extract_docx(data: bytes) -> str:
+    """Text of a Word (.docx) CV: paragraphs and table cells, then headers and footers.
+
+    Standard library only. The archive is checked before anything is decompressed: too many
+    entries, or XML parts that would inflate past MAX_DOCX_XML_BYTES, are refused, so a zip bomb
+    cannot exhaust memory. OOXML parts carry no DTD, and ElementTree does not fetch entities.
+    """
+    unreadable = AppError(
+        "Could not read the Word document. Save it again as .docx or upload a PDF.",
+        status_code=422,
+        code="docx_unreadable",
+    )
+    try:
+        archive = zipfile.ZipFile(io.BytesIO(data))
+    except (zipfile.BadZipFile, ValueError) as exc:
+        raise unreadable from exc
+    with archive:
+        infos = archive.infolist()
+        if len(infos) > MAX_DOCX_ENTRIES:
+            raise unreadable
+        parts = sorted(
+            (i for i in infos if _DOCX_PART.fullmatch(i.filename)),
+            key=lambda i: i.filename != "word/document.xml",
+        )
+        if not parts or parts[0].filename != "word/document.xml":
+            raise unreadable
+        if sum(i.file_size for i in parts) > MAX_DOCX_XML_BYTES:
+            raise AppError(
+                "This Word document is too large to read as a CV.",
+                status_code=413,
+                code="payload_too_large",
+            )
+        chunks: list[str] = []
+        for info in parts:
+            try:
+                with archive.open(info) as fh:
+                    root = ElementTree.fromstring(fh.read(MAX_DOCX_XML_BYTES + 1))  # noqa: S314
+            except (zipfile.BadZipFile, ElementTree.ParseError, RuntimeError, OSError) as exc:
+                raise unreadable from exc
+            for para in root.iter(f"{_W_NS}p"):
+                line = "".join(t.text or "" for t in para.iter(f"{_W_NS}t"))
+                if line.strip():
+                    chunks.append(line)
+    text = "\n".join(chunks)
+    if not text.strip():
+        raise AppError(
+            "We found no text in this Word document. You can pick your skills on the next step.",
+            status_code=422,
+            code="docx_no_text",
+        )
     return text
 
 
@@ -252,16 +358,31 @@ def _truncate_text(text: str) -> tuple[str, bool]:
 
 
 def _clean_text(raw: str) -> str:
-    """Apply NFKC normalisation, strip PII, collapse whitespace.
+    """Apply NFKC normalisation, strip PII, collapse whitespace but keep line breaks.
 
-    All removal patterns are bounded and pre-compiled to prevent ReDoS.
+    Line breaks stay because a CV line is a unit of meaning: "No formal training" on one line
+    must not deny the skill on the next. All patterns are bounded to prevent ReDoS.
     """
     text = unicodedata.normalize("NFKC", raw)
     text = _URL_RE.sub(" ", text)
     text = _EMAIL_RE.sub(" ", text)
     text = _PHONE_RE.sub(" ", text)
     text = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]", " ", text)
-    return re.sub(r"\s+", " ", text).strip()
+    text = re.sub(r"[^\S\n]+", " ", text)  # spaces and tabs, not line breaks
+    return re.sub(r" ?\n\s*", "\n", text).strip()
+
+
+#: Where one statement about a skill ends: line breaks, bullets and list separators.
+_CLAUSE_BREAK = re.compile(r"[\n;,|•·●]")
+
+
+def _clause(text: str, start: int, end: int) -> str:
+    """The phrase a mention belongs to, so "SQL; 8 years of Python" credits only Python."""
+    left = max(0, start - _CONTEXT_CHARS)
+    right = min(len(text), end + _CONTEXT_CHARS)
+    before = [m.end() for m in _CLAUSE_BREAK.finditer(text, left, start)]
+    after = _CLAUSE_BREAK.search(text, end, right)
+    return text[(before[-1] if before else left) : (after.start() if after else right)]
 
 
 clean_text = _clean_text
@@ -285,25 +406,66 @@ class ParsedSkill:
 # ---------------------------------------------------------------------------
 
 _LEVEL_SIGNALS: dict[int, tuple[str, ...]] = {
-    5: ("expert", "lead", "principal", "architect", "senior", "advanced", "mastery"),
-    4: ("proficient", "experienced", "strong", "solid", "extensive"),
-    3: ("intermediate", "working knowledge", "familiar", "confident"),
-    2: ("basic", "beginner", "learning", "exposure", "some experience"),
-    1: ("awareness", "interested", "studied"),
+    5: ("expert", "principal", "architect", "mastery", "pakar", "专家", "精通"),
+    4: ("advanced", "proficient", "experienced", "extensive", "strong", "mahir", "熟练"),
+    3: ("intermediate", "working knowledge", "familiar", "confident", "sederhana", "熟悉"),
+    2: ("basic", "beginner", "some experience", "exposure to", "asas", "了解"),
+    1: ("awareness", "interested in", "currently learning", "berminat", "学习中"),
 }
 
+
+def _signal_pattern(words: tuple[str, ...]) -> re.Pattern[str]:
+    return re.compile(
+        "|".join(_phrase_pattern(w).pattern for w in words),
+        re.IGNORECASE,
+    )
+
+
+# Whole words only: "lead" no longer fires inside "leadership", nor "learning" inside
+# "machine learning"; job-title words ("senior", "lead") are not skill-level cues.
 _LEVEL_PATTERNS: dict[int, re.Pattern[str]] = {
-    lvl: re.compile("|".join(re.escape(kw) for kw in kws), re.IGNORECASE)
-    for lvl, kws in _LEVEL_SIGNALS.items()
+    lvl: _signal_pattern(kws) for lvl, kws in _LEVEL_SIGNALS.items()
 }
+
+#: "5 years", "3+ yrs", "2 tahun" (Malay) or "3年" (Chinese) next to a skill.
+_YEARS_RE = re.compile(r"(\d{1,2})(?:\.\d)?\s*\+?\s*(?:years?|yrs?|tahun|年)", re.IGNORECASE)
+
+#: A skill named just after one of these is one the person says they do not have.
+_NEGATION_RE = re.compile(
+    r"(?:\bno\b|\bwithout\b|\bnot familiar with\b|\black(?:ing)? of\b|"
+    r"\btiada pengalaman\b|\btidak mahir\b|没有|不熟悉)[^.;,\n]{0,25}\Z",
+    re.IGNORECASE,
+)
+
+#: Characters either side of a mention read for level cues. Narrow on purpose: a wider window
+#: picked up "Senior Manager" from a nearby job title.
+_CONTEXT_CHARS = 45
+
+
+def _level_from_years(years: int) -> int:
+    if years >= 8:
+        return 5
+    if years >= 5:
+        return 4
+    if years >= 3:
+        return 3
+    return 2
 
 
 def _estimate_level(context: str) -> int:
-    """Return highest-priority level found in the surrounding context text."""
+    """Highest level cue in the context, else years of experience, else 2 (beginner)."""
     for lvl in (5, 4, 3, 2, 1):
         if _LEVEL_PATTERNS[lvl].search(context):
             return lvl
-    return 2  # default: beginner
+    years = _YEARS_RE.search(context)
+    if years:
+        return _level_from_years(int(years.group(1)))
+    return 2
+
+
+def _is_negated(text: str, start: int) -> bool:
+    """True when the words just before a mention deny it ("no experience in SQL")."""
+    return bool(_NEGATION_RE.search(text[max(0, start - 40) : start]))
 
 
 # ---------------------------------------------------------------------------
@@ -350,6 +512,8 @@ def extract_skills(text: str) -> list[ParsedSkill]:
             # Skip if this match overlaps any already-recorded span for this skill
             if any(s < ex_e and e > ex_s for ex_s, ex_e in existing):
                 continue
+            if _is_negated(normed, s):
+                continue
             if sid not in spans:
                 spans[sid] = existing
             existing.append((s, e))
@@ -363,10 +527,7 @@ def extract_skills(text: str) -> list[ParsedSkill]:
         confidence = min(count * CONFIDENCE_PER_HIT, 1.0)
         # Level from context around the first hit (using original-case text)
         first_s, first_e = hit_spans[0]
-        ctx_start = max(0, first_s - 60)
-        ctx_end = min(len(text), first_e + 60)
-        context = text[ctx_start:ctx_end]
-        level = _estimate_level(context)
+        level = _estimate_level(_clause(text, first_s, first_e))
 
         results.append(
             ParsedSkill(

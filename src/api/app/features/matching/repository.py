@@ -8,12 +8,12 @@ Missing profiles or skills raise ProfileRequiredError; production never loads pe
 
 from __future__ import annotations
 
-import csv
-from pathlib import Path
+from dataclasses import replace
 
 from app.contracts.common import RecommendationMeta, ScenarioId
 from app.contracts.matching import RoleMatch, ScoreComponent
 from app.contracts.profile import Skill
+from app.core import seed
 from app.core.errors import ProfileRequiredError
 from app.features.matching.gap_port import fetch_skills_gap
 from app.features.matching.scoring import (
@@ -27,8 +27,6 @@ from app.features.matching.scoring import (
 )
 from app.features.matching.sdg_port import fetch_role_badges
 from app.features.profile import service as profile_service
-
-_SEED = Path(__file__).resolve().parents[4] / "data" / "seed"
 
 # Default weights — the canonical values live in scoring.Weights (M2-001, retuned in M2-011)
 _W = Weights()
@@ -52,45 +50,55 @@ _SKILL_LABELS: dict[str, str] = {}
 
 
 def _load_roles() -> list[Role]:
-    """Build Role objects from current taxonomy seed CSV files without a cache."""
-    global _ROLE_LABELS, _SKILL_LABELS  # noqa: PLW0603
+    """Build Role objects from the taxonomy seed files.
 
-    # Role labels and interest tags from the canonical role catalogue.
-    roles_path = _SEED / "taxonomy" / "roles.csv"
-    with open(roles_path, encoding="utf-8") as f:
-        for row in csv.DictReader(f):
-            _ROLE_LABELS[row["id"]] = row["label"]
-            _ROLE_INTEREST_TAGS[row["id"]] = frozenset(
-                tag.strip() for tag in row.get("interest_tags", "").split("|") if tag.strip()
-            )
+    `seed.rows` caches each file by (path, mtime, size), so this costs nothing per request and
+    still picks up an edited catalogue without a restart.
+    """
+    roles_rows = seed.rows("taxonomy", "roles")
+    skill_rows = seed.rows("taxonomy", "skills")
+    link_rows = seed.rows("taxonomy", "role_skills")
+    global _roles_cache  # noqa: PLW0603
+    # seed.rows returns the same tuple objects until a file changes, so their ids are the key.
+    key = (id(roles_rows), id(skill_rows), id(link_rows))
+    if _roles_cache is None or _roles_cache[0] != key:
+        _roles_cache = (key, _build_roles(roles_rows, skill_rows, link_rows))
+    # Tags are read through the public getter each time so the benchmark sees patched tags.
+    return [replace(r, interest_tags=role_interest_tags(r.role_id)) for r in _roles_cache[1]]
 
-    # Skill labels
-    skills_path = _SEED / "taxonomy" / "skills.csv"
-    with open(skills_path, encoding="utf-8") as f:
-        for row in csv.DictReader(f):
-            _SKILL_LABELS[row["id"]] = row["label"]
 
-    # role_skills → Role objects
+_roles_cache: tuple[tuple[int, int, int], tuple[Role, ...]] | None = None
+
+
+def _build_roles(
+    roles_rows: tuple[dict[str, str], ...],
+    skill_rows: tuple[dict[str, str], ...],
+    link_rows: tuple[dict[str, str], ...],
+) -> tuple[Role, ...]:
+    for row in roles_rows:
+        _ROLE_LABELS[row["id"]] = row["label"]
+        _ROLE_INTEREST_TAGS[row["id"]] = frozenset(
+            tag.strip() for tag in (row.get("interest_tags") or "").split("|") if tag.strip()
+        )
+    for row in skill_rows:
+        _SKILL_LABELS[row["id"]] = row["label"]
     skills_by_role: dict[str, list[RoleSkill]] = {}
-    rs_path = _SEED / "taxonomy" / "role_skills.csv"
-    with open(rs_path, encoding="utf-8") as f:
-        for row in csv.DictReader(f):
-            skills_by_role.setdefault(row["role_id"], []).append(
-                RoleSkill(
-                    skill_id=row["skill_id"],
-                    importance=float(row["importance"]),
-                    required_level=int(row["required_level"]) if "required_level" in row else 1,
-                )
+    for row in link_rows:
+        skills_by_role.setdefault(row["role_id"], []).append(
+            RoleSkill(
+                skill_id=row["skill_id"],
+                importance=float(row["importance"]),
+                required_level=int(row.get("required_level") or 1),
             )
-
-    return [
+        )
+    return tuple(
         Role(
             role_id=role_id,
             skills=tuple(skill_list),
             interest_tags=role_interest_tags(role_id),
         )
         for role_id, skill_list in skills_by_role.items()
-    ]
+    )
 
 
 def load_profile(user_id: str) -> MatchProfile:

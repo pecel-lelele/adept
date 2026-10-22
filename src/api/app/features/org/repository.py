@@ -190,6 +190,12 @@ def remove_member(org_id: str, member_id: str) -> bool:
     return len(_members[org_id]) < before
 
 
+def forget_user(user_id: str) -> None:
+    """Memory backend: drop a deleted account from every organisation (PostgreSQL cascades)."""
+    for org_id in list(_members):
+        _members[org_id] = [m for m in _members[org_id] if m.id != user_id]
+
+
 def set_intake_status(user_id: str, status: str) -> None:
     """Move a learner's memberships forward (invited → in_progress → complete), never back.
 

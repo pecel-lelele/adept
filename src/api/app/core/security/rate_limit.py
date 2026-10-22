@@ -53,6 +53,8 @@ ROUTE_LIMITS: dict[str, Limit] = {
     "/api/v1/preview/cv": (10, 60),  # anonymous parsing and ranking
     "/api/v1/auth/login": (20, 60),  # slows password guessing
     "/api/v1/auth/signup": (20, 60),
+    "/api/v1/auth/me/delete": (5, 60),  # re-checks a password
+    "/api/v1/org/join": (10, 60),  # slows join-code guessing
     "/api/v1/pathway/catalogue/sync": (5, 3600),  # calls external APIs
     "/api/v1/sdg/sync": (5, 3600),
     "/api/v1/profile/cv": (10, 60),  # upload + parsing

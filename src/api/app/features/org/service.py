@@ -47,7 +47,11 @@ def _org_id(user: CurrentUser) -> str:
 
 
 def _require_manager(user: CurrentUser) -> str:
-    """Only an organisation's managers / advisors may change its setup or membership."""
+    """Only an organisation's managers / advisors may see team data or change the setup.
+
+    Members of a team never see colleagues' names, intake status, gaps or the group plan
+    through the API, not only through the hidden /org pages.
+    """
     if user.kind != "org_admin":
         raise AppError(
             "Only organisation managers can change this.", status_code=403, code="forbidden"
@@ -140,8 +144,13 @@ def join_org(user: CurrentUser, body: JoinOrgIn) -> Organization:
     return _visible(org, user)
 
 
+def require_manager(user: CurrentUser) -> str:
+    """Public guard for other features' team endpoints (e.g. SDG contribution)."""
+    return _require_manager(user)
+
+
 def list_members(user: CurrentUser) -> MemberListResponse:
-    return MemberListResponse(members=repository.list_members(_org_id(user)))
+    return MemberListResponse(members=repository.list_members(_require_manager(user)))
 
 
 def remove_member(user: CurrentUser, member_id: str) -> None:
@@ -211,7 +220,7 @@ def member_plans(
 
 
 def get_gaps(user: CurrentUser, scenario: ScenarioId) -> GapHeatmapResponse:
-    members = member_learners(_org_id(user))
+    members = member_learners(_require_manager(user))
     labels = pathway_data.skill_labels()
     roles = pathway_data.target_role_ids()
     computed = pathway_service.team_gaps(members, roles)
@@ -244,7 +253,7 @@ def get_gaps(user: CurrentUser, scenario: ScenarioId) -> GapHeatmapResponse:
 
 
 def get_plan(user: CurrentUser, scenario: ScenarioId, role_id: str | None = None) -> GroupPlan:
-    org_id = _org_id(user)
+    org_id = _require_manager(user)
     org = repository.get_org(org_id)
     members = member_learners(org_id)
     pathway = pathway_service.group_pathway(

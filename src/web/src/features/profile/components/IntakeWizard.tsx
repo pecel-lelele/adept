@@ -231,7 +231,7 @@ export function IntakeWizard({
             <input
               ref={fileRef}
               type="file"
-              accept="application/pdf,text/plain"
+              accept=".pdf,.docx,.txt,application/pdf,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
               hidden
               onChange={(e) => onFile(e.target.files?.[0])}
             />

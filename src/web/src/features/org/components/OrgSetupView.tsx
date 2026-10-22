@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 
 import { PageHeader } from "@/components";
 import { ErrorState } from "@/components/ErrorState";
+import { AccountDataCard } from "@/features/core/components/AccountDataCard";
 
 import { fetchMyOrg } from "../api";
 import { JoinCodeCard } from "./JoinCodeCard";
@@ -27,6 +28,7 @@ export async function OrgSetupView() {
           </aside>
         ) : null}
       </div>
+      <AccountDataCard />
     </div>
   );
 }

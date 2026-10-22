@@ -242,7 +242,17 @@ def upsert_questionnaire(user: CurrentUser, data: QuestionnaireIn) -> Questionna
 
 
 def replace_skills(user: CurrentUser, skills: list[UserSkill]) -> Profile:
-    """Replace the user's skill list (used by the legacy PUT /profile/skills)."""
+    """Replace the user's skill list (used by the legacy PUT /profile/skills).
+
+    Same rule as the confirmation screen: only skills that exist in the taxonomy are stored.
+    """
+    unknown = sorted({s.skill_id for s in skills} - _valid_skill_ids())
+    if unknown:
+        raise AppError(
+            f"Unknown skill IDs: {', '.join(unknown[:10])}",
+            status_code=422,
+            code="unknown_skill",
+        )
     current = get_my_profile(user)
     saved = repository.save_profile(current.model_copy(update={"skills": skills}))
     org_repository.set_intake_status(user.id, "complete" if skills else "in_progress")

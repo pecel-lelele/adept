@@ -115,6 +115,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/me/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Export Me
+         * @description Download everything stored about you (PDPA access request).
+         */
+        get: operations["accounts_export_me"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/me/delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Delete Me
+         * @description Permanently delete your account and everything linked to it (asks for your password).
+         */
+        post: operations["accounts_delete_me"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/guardrails/disclosure": {
         parameters: {
             query?: never;
@@ -614,7 +654,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Upsert core profile fields */
+        /**
+         * Upsert core profile fields (legacy)
+         * @deprecated
+         */
         post: operations["profile_upsert_profile"];
         delete?: never;
         options?: never;
@@ -667,7 +710,7 @@ export interface paths {
         put?: never;
         /**
          * Upload CV for skill extraction (M2-01)
-         * @description Accept a PDF or plain-text CV, extract skills against the taxonomy.
+         * @description Accept a PDF, Word (.docx) or plain-text CV, extract skills against the taxonomy.
          *
          *     Safety rules:
          *       - Content type must be application/pdf or text/plain (4xx otherwise).
@@ -718,6 +761,7 @@ export interface paths {
         get?: never;
         /**
          * Replace skill list (legacy)
+         * @deprecated
          * @description Legacy endpoint. Prefer PUT /profile/skills/confirm for new integrations.
          */
         put: operations["profile_replace_skills"];
@@ -924,7 +968,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Region Contribution */
+        /**
+         * Get Region Contribution
+         * @description Organisations in one state, aggregated: for team managers only.
+         */
         get: operations["sdg_get_region_contribution"];
         put?: never;
         post?: never;
@@ -1016,6 +1063,49 @@ export interface components {
              * @description False until the intake questionnaire is saved.
              */
             has_profile: boolean;
+        };
+        /**
+         * AccountExport
+         * @description Everything Adept stores about the signed-in person (PDPA access request).
+         */
+        AccountExport: {
+            /** Exported At */
+            exported_at: string;
+            account: components["schemas"]["Account"];
+            /** Profile */
+            profile?: {
+                [key: string]: unknown;
+            } | null;
+            /** Saved Plan */
+            saved_plan?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Plan History
+             * @description Earlier saved plans, oldest first.
+             */
+            plan_history?: {
+                [key: string]: unknown;
+            }[];
+            /**
+             * Learning
+             * @description Every course you tracked, across all target roles, with its evidence.
+             */
+            learning?: {
+                [key: string]: unknown;
+            }[];
+            /**
+             * Badges
+             * @description Badge id -> date earned.
+             */
+            badges?: {
+                [key: string]: string;
+            };
+            /**
+             * Notice
+             * @default This file holds your Adept account, profile, plans, course progress, completion evidence and badges. CV files are never stored: they are read in memory and discarded.
+             */
+            notice: string;
         };
         /** Badge */
         Badge: {
@@ -1266,6 +1356,14 @@ export interface components {
              * @description Last successful live sync (M3_BACKEND=postgres only).
              */
             last_synced_at?: string | null;
+        };
+        /**
+         * DeleteAccountIn
+         * @description Deleting an account is permanent, so the current password is asked again.
+         */
+        DeleteAccountIn: {
+            /** Password */
+            password: string;
         };
         /** Disclosure */
         Disclosure: {
@@ -3058,6 +3156,72 @@ export interface operations {
             };
         };
     };
+    accounts_export_me: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountExport"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    accounts_delete_me: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeleteAccountIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     guardrails_get_disclosure: {
         parameters: {
             query?: never;
@@ -4486,7 +4650,10 @@ export interface operations {
                 scenario?: "moderate" | "fast";
                 role_id?: string | null;
             };
-            header?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+            };
             path: {
                 state: string;
             };

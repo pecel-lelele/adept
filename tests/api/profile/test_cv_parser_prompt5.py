@@ -167,13 +167,14 @@ class TestExtractTextErrors:
         mock_page.get_text.return_value = "   "  # blank page
         mock_doc = MagicMock()
         mock_doc.__iter__ = MagicMock(return_value=iter([mock_page]))
+        mock_doc.needs_pass = False
         mock_fitz = MagicMock()
         mock_fitz.open.return_value = mock_doc
 
         with patch.object(cv_mod, "_HAS_FITZ", True):
             with patch.object(cv_mod, "fitz", mock_fitz, create=True):
                 with pytest.raises(PdfNoText) as exc_info:
-                    extract_text(b"fake pdf bytes", "application/pdf")
+                    extract_text(b"%PDF-1.4 fake pdf bytes", "application/pdf")
                 assert exc_info.value.status_code == 422
                 assert exc_info.value.code == "pdf_no_text"
 
@@ -298,6 +299,7 @@ class TestCvUploadRoute:
         mock_page.get_text.return_value = ""
         mock_doc = MagicMock()
         mock_doc.__iter__ = MagicMock(return_value=iter([mock_page]))
+        mock_doc.needs_pass = False
         mock_fitz = MagicMock()
         mock_fitz.open.return_value = mock_doc
 

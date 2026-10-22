@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Aiversecity Future-Ready Workforce API",
+    "title": "Adept API",
     "version": "0.1.0"
   },
   "paths": {
@@ -204,6 +204,141 @@
                 }
               }
             }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/me/export": {
+      "get": {
+        "tags": [
+          "accounts"
+        ],
+        "summary": "Export Me",
+        "description": "Download everything stored about you (PDPA access request).",
+        "operationId": "accounts_export_me",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountExport"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/me/delete": {
+      "post": {
+        "tags": [
+          "accounts"
+        ],
+        "summary": "Delete Me",
+        "description": "Permanently delete your account and everything linked to it (asks for your password).",
+        "operationId": "accounts_delete_me",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteAccountIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
           },
           "422": {
             "description": "Validation Error",
@@ -2423,8 +2558,9 @@
         "tags": [
           "profile"
         ],
-        "summary": "Upsert core profile fields",
+        "summary": "Upsert core profile fields (legacy)",
         "operationId": "profile_upsert_profile",
+        "deprecated": true,
         "parameters": [
           {
             "name": "x-demo-user",
@@ -2585,7 +2721,7 @@
           "profile"
         ],
         "summary": "Upload CV for skill extraction (M2-01)",
-        "description": "Accept a PDF or plain-text CV, extract skills against the taxonomy.\n\nSafety rules:\n  - Content type must be application/pdf or text/plain (4xx otherwise).\n  - File must be under MAX_UPLOAD_BYTES (413 if exceeded).\n  - Extracted text is capped at 200,000 characters (truncated=True in response).\n  - The file is processed in memory and never stored (AGENTS.md §3).\n  - CPU-bound parsing runs in a thread via asyncio.to_thread to avoid\n    blocking the event loop.",
+        "description": "Accept a PDF, Word (.docx) or plain-text CV, extract skills against the taxonomy.\n\nSafety rules:\n  - Content type must be application/pdf or text/plain (4xx otherwise).\n  - File must be under MAX_UPLOAD_BYTES (413 if exceeded).\n  - Extracted text is capped at 200,000 characters (truncated=True in response).\n  - The file is processed in memory and never stored (AGENTS.md §3).\n  - CPU-bound parsing runs in a thread via asyncio.to_thread to avoid\n    blocking the event loop.",
         "operationId": "profile_upload_cv",
         "parameters": [
           {
@@ -2739,6 +2875,7 @@
         "summary": "Replace skill list (legacy)",
         "description": "Legacy endpoint. Prefer PUT /profile/skills/confirm for new integrations.",
         "operationId": "profile_replace_skills",
+        "deprecated": true,
         "parameters": [
           {
             "name": "x-demo-user",
@@ -3334,6 +3471,7 @@
           "sdg"
         ],
         "summary": "Get Region Contribution",
+        "description": "Organisations in one state, aggregated: for team managers only.",
         "operationId": "sdg_get_region_contribution",
         "parameters": [
           {
@@ -3373,6 +3511,38 @@
                 }
               ],
               "title": "Role Id"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
             }
           }
         ],
@@ -3630,6 +3800,79 @@
           "has_profile"
         ],
         "title": "Account"
+      },
+      "AccountExport": {
+        "properties": {
+          "exported_at": {
+            "type": "string",
+            "title": "Exported At"
+          },
+          "account": {
+            "$ref": "#/components/schemas/Account"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile"
+          },
+          "saved_plan": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Saved Plan"
+          },
+          "plan_history": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Plan History",
+            "description": "Earlier saved plans, oldest first."
+          },
+          "learning": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Learning",
+            "description": "Every course you tracked, across all target roles, with its evidence."
+          },
+          "badges": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Badges",
+            "description": "Badge id -> date earned."
+          },
+          "notice": {
+            "type": "string",
+            "title": "Notice",
+            "default": "This file holds your Adept account, profile, plans, course progress, completion evidence and badges. CV files are never stored: they are read in memory and discarded."
+          }
+        },
+        "type": "object",
+        "required": [
+          "exported_at",
+          "account"
+        ],
+        "title": "AccountExport",
+        "description": "Everything Adept stores about the signed-in person (PDPA access request)."
       },
       "Badge": {
         "properties": {
@@ -4181,6 +4424,22 @@
           "records"
         ],
         "title": "DataSourceInfo"
+      },
+      "DeleteAccountIn": {
+        "properties": {
+          "password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "password"
+        ],
+        "title": "DeleteAccountIn",
+        "description": "Deleting an account is permanent, so the current password is asked again."
       },
       "Disclosure": {
         "properties": {
