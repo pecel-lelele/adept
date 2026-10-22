@@ -104,7 +104,7 @@ export function SignalExplorer({
                   <b>{`${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toFixed(2)}`}</b>
                 </span>
                 <span role="cell" className="a-row-num">
-                  {Math.round(i.automation_exposure * 100)}%
+                  {i.automation_exposure.toFixed(2)}
                 </span>
               </summary>
               <p>{i.labor_decay_source_note}</p>

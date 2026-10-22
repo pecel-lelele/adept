@@ -120,7 +120,7 @@ export async function RadarView({
               {exposed.map((i) => (
                 <li key={i.skill_id}>
                   <span>{i.skill_label}</span>
-                  <b>{Math.round(i.automation_exposure * 100)}%</b>
+                  <b title={tp("exposureScoreHint")}>{i.automation_exposure.toFixed(2)}</b>
                 </li>
               ))}
             </ul>

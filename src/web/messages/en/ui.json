@@ -446,7 +446,7 @@
     "colLevel": "Your level",
     "colTrend": "Demand",
     "colSignal": "Signal",
-    "colExposure": "AI exposure",
+    "colExposure": "Exposure score",
     "level1": "Beginner",
     "level2": "Basic",
     "level3": "Proficient",
@@ -493,8 +493,8 @@
     "moversHint": "Change in each skill's demand signal in this snapshot (an estimate). Right is rising, left is declining.",
     "yourSkills": "Your skills",
     "yourSkillsNone": "Add skills to your profile to see where you stand.",
-    "exposed": "Most exposed to AI automation",
-    "exposedHint": "Share of each skill's tasks that AI can already automate or assist (an estimate).",
+    "exposed": "Highest automation exposure score",
+    "exposedHint": "A relative score from 0 to 1 that reviewers assigned using published research (Frey & Osborne, ILO, McKinsey, O*NET task types). It ranks skills against each other; it is not a measured share of tasks.",
     "allSkills": "All tracked skills",
     "noMatch": "No skills match these filters.",
     "rankingOptions": "Ranking options",
@@ -583,6 +583,7 @@
     "settingsDesc": "Your organisation's details and the code people use to join.",
     "kPending": "Waiting for review",
     "kReviewedDone": "Reviewed",
-    "kSubmitted": "Submitted"
+    "kSubmitted": "Submitted",
+    "exposureScoreHint": "Relative score 0–1 assigned by reviewers, not a share of tasks"
   }
 }

@@ -446,7 +446,7 @@
     "colLevel": "Tahap anda",
     "colTrend": "Permintaan",
     "colSignal": "Isyarat",
-    "colExposure": "Pendedahan AI",
+    "colExposure": "Skor pendedahan",
     "level1": "Permulaan",
     "level2": "Asas",
     "level3": "Mahir",
@@ -493,8 +493,8 @@
     "moversHint": "Perubahan isyarat permintaan setiap kemahiran dalam snapshot ini (anggaran). Kanan meningkat, kiri menurun.",
     "yourSkills": "Kemahiran anda",
     "yourSkillsNone": "Tambah kemahiran pada profil untuk melihat kedudukan anda.",
-    "exposed": "Paling terdedah kepada automasi AI",
-    "exposedHint": "Bahagian tugas setiap kemahiran yang AI sudah boleh automasi atau bantu (anggaran).",
+    "exposed": "Skor pendedahan automasi tertinggi",
+    "exposedHint": "Skor relatif 0 hingga 1 yang diberikan oleh penyemak berdasarkan kajian terbitan (Frey & Osborne, ILO, McKinsey, jenis tugas O*NET). Ia menyusun kemahiran berbanding satu sama lain; ia bukan bahagian tugas yang diukur.",
     "allSkills": "Semua kemahiran dijejak",
     "noMatch": "Tiada kemahiran sepadan dengan penapis ini.",
     "rankingOptions": "Pilihan susunan",
@@ -583,6 +583,7 @@
     "settingsDesc": "Butiran organisasi anda dan kod yang digunakan untuk menyertai.",
     "kPending": "Menunggu semakan",
     "kReviewedDone": "Disemak",
-    "kSubmitted": "Dihantar"
+    "kSubmitted": "Dihantar",
+    "exposureScoreHint": "Skor relatif 0–1 oleh penyemak, bukan bahagian tugas"
   }
 }

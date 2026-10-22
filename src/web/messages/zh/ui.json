@@ -446,7 +446,7 @@
     "colLevel": "你的水平",
     "colTrend": "需求",
     "colSignal": "信号",
-    "colExposure": "AI 影响度",
+    "colExposure": "影响评分",
     "level1": "入门",
     "level2": "基础",
     "level3": "熟练",
@@ -493,8 +493,8 @@
     "moversHint": "此快照中各技能需求信号的变化（估计值）。右侧为上升，左侧为下降。",
     "yourSkills": "你的技能",
     "yourSkillsNone": "在个人资料中添加技能，查看你的位置。",
-    "exposed": "最易受 AI 自动化影响",
-    "exposedHint": "各技能中 AI 已能自动化或辅助的任务比例（估计值）。",
+    "exposed": "自动化影响评分最高",
+    "exposedHint": "由审核人员依据已发表的研究（Frey & Osborne、ILO、McKinsey、O*NET 任务类型）给出的 0 到 1 相对评分。用于技能之间的比较，并非实测的任务比例。",
     "allSkills": "所有追踪的技能",
     "noMatch": "没有符合筛选条件的技能。",
     "rankingOptions": "排序选项",
@@ -583,6 +583,7 @@
     "settingsDesc": "你的组织信息以及成员加入所用的代码。",
     "kPending": "待审核",
     "kReviewedDone": "已审核",
-    "kSubmitted": "已提交"
+    "kSubmitted": "已提交",
+    "exposureScoreHint": "审核人员给出的 0–1 相对评分，并非任务比例"
   }
 }
