@@ -4,7 +4,7 @@ Payment is an off-platform finance action, recorded explicitly by HR. Provider U
 reachability never authorizes payment. Receipt/quote links are never fetched by the API.
 """
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta, timezone
 from decimal import Decimal
 from uuid import uuid4
 
@@ -23,13 +23,20 @@ from app.contracts.funding import (
 from app.contracts.pathway import CompletionEvidence, EvidenceSubmit
 from app.core import accounts
 from app.core.auth import CurrentUser
+from app.core.db import connection
 from app.core.errors import AppError, NotFoundError
+from app.core.refdata import use_postgres
 from app.features.org import funding_store, repository, service
 from app.features.pathway import data
 from app.features.pathway import repository as pathway_repository
 from app.features.pathway import service as pathway_service
 
 RESERVED = {"approved", "submitted", "payable"}
+
+
+def current_year() -> int:
+    """Employer budget years follow Malaysia's calendar, including the January boundary."""
+    return datetime.now(timezone(timedelta(hours=8))).year
 
 
 def _deny(message: str) -> None:
@@ -79,7 +86,8 @@ def ledger(user: CurrentUser, year: int) -> FundingLedger:
 
     def read(state: FundingState) -> FundingLedger:
         ids = sorted(
-            {k.split(":", 1)[1] for k in state.budgets if k.startswith(f"{year}:")}
+            {k.split(":", 1)[1] for k in state.budgets}
+            | {c.user_id for c in state.claims}
             | {m.id for m in repository.list_members(org_id)}
         )
         if user.kind != "org_admin":
@@ -92,9 +100,19 @@ def ledger(user: CurrentUser, year: int) -> FundingLedger:
             claims=[
                 c.model_copy(deep=True) for c in state.claims if c.user_id in ids and c.year == year
             ],
+            available_years=sorted(
+                {current_year(), year}
+                | {
+                    int(key.split(":", 1)[0])
+                    for key in state.budgets
+                    if key.split(":", 1)[-1] in ids
+                }
+                | {claim.year for claim in state.claims if claim.user_id in ids},
+                reverse=True,
+            ),
         )
 
-    return funding_store.transact(org_id, year, read)
+    return read(funding_store.snapshot(org_id))
 
 
 def budget(user: CurrentUser, year: int, body: MemberBudgetIn) -> FundingLedger:
@@ -124,7 +142,7 @@ def request(user: CurrentUser, year: int, body: FundingRequest) -> FundingLedger
     org_id = _scope(user)
     if user.kind != "learner":
         raise AppError("Only members request reimbursement.", status_code=403)
-    if year != datetime.now(UTC).year:
+    if year != current_year():
         _deny("New requests use the current budget year.")
     course = data.course_index().get(body.course_id)
     if not course or body.role_id not in data.target_role_ids():
@@ -191,7 +209,7 @@ def complete(
     """Explicit member action tracks even an approved course absent from the algorithmic plan."""
     org_id = _scope(user)
 
-    def change(state: FundingState) -> None:
+    def checked(state: FundingState) -> FundingClaim:
         claim = _claim(state, claim_id, body.revision)
         if claim.year != year:
             raise NotFoundError("Request not found in this budget year.")
@@ -199,38 +217,63 @@ def complete(
             raise AppError("Only the member can submit their certificate.", status_code=403)
         if claim.status != "approved":
             _deny("Certificate submissions require an approved purchase request.")
-        # Pin the HR-quoted price for this tracked learning record. No funding or skill
-        # credit is granted here; evidence goes into the existing HR verification queue.
-        course = claim.course.model_copy(
-            update={
-                "cost_myr": float(claim.approved_myr),
-                "price_status": "listed",
-                "price_note": "Member quote approved by HR; verify against the receipt.",
-            }
-        )
-        pathway_repository.set_course_status(
-            user.id, claim.role_id, course.id, "in_progress", course
-        )
-        pathway_service.submit_evidence(
-            user,
-            EvidenceSubmit(
-                role_id=claim.role_id,
-                course_id=course.id,
-                url=body.url,
-            ),
-            "moderate",
-        )
+        return claim
+
+    snapshot = checked(funding_store.snapshot(org_id))
+    # Certificate probing and pathway/trend work happen with no ledger lock or borrowed
+    # connection. The final revision check refuses concurrent approval/cancellation changes.
+    course = snapshot.course.model_copy(
+        update={
+            "cost_myr": float(snapshot.approved_myr),
+            "price_status": "listed",
+            "price_note": "Member quote approved by HR; verify against the receipt.",
+        }
+    )
+    pathway_repository.set_course_status(
+        user.id, snapshot.role_id, course.id, "in_progress", course
+    )
+    pathway_service.submit_evidence(
+        user,
+        EvidenceSubmit(
+            role_id=snapshot.role_id,
+            course_id=course.id,
+            url=body.url,
+        ),
+        "moderate",
+    )
+    _scope(user)
+
+    def record(state: FundingState) -> None:
+        claim = checked(state)
         claim.certificate_url = body.url
         claim.revision += 1
         claim.events.append(
-            FundingEvent(at=datetime.now(UTC), actor_id=user.id, action="certificate_submitted")
+            FundingEvent(
+                at=datetime.now(UTC),
+                actor_id=user.id,
+                action="certificate_submitted",
+            )
         )
 
-    funding_store.transact(org_id, year, change)
+    funding_store.transact(org_id, year, record)
     return ledger(user, year)
 
 
 def _completion(claim: FundingClaim, org_id: str) -> CompletionEvidence:
+    if use_postgres():
+        # Borrow the ledger transaction and keep evidence/progress stable until its commit.
+        with connection() as conn:
+            params = (claim.user_id, claim.role_id, claim.course.id)
+            conn.execute(
+                "SELECT 1 FROM course_progress WHERE user_id=%s AND role_id=%s "
+                "AND course_id=%s FOR SHARE",
+                params,
+            )
+            conn.execute(
+                "SELECT 1 FROM course_evidence WHERE user_id=%s AND role_id=%s "
+                "AND course_id=%s FOR SHARE",
+                params,
+            )
     rows = pathway_repository.store().learning_records([claim.user_id])
     row = next(
         (r for r in rows if r.role_id == claim.role_id and r.course_id == claim.course.id), None

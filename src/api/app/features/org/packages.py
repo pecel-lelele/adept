@@ -31,7 +31,7 @@ def options(
         raise AppError("Select 1–50 current members with completed skill profiles.")
     team = {uid: team[uid] for uid in ids}
     role = service.target_role(org_id, role_id, members=team)
-    year = datetime.now(UTC).year
+    year = funding.current_year()
     budgets = {b.user_id: float(b.available_myr) for b in funding.ledger(user, year).budgets}
     catalogue = [
         c
@@ -103,7 +103,7 @@ def select(user: CurrentUser, body: PackageChoice) -> TeamPackage:
     def save(state: FundingState) -> None:
         state.packages.append(offer)
 
-    funding_store.transact(org_id, datetime.now(UTC).year, save)
+    funding_store.transact(org_id, funding.current_year(), save)
     return offer
 
 
@@ -122,7 +122,7 @@ def assigned(user: CurrentUser) -> AssignedPackage | None:
                     )
         return None
 
-    return funding_store.transact(org_id, datetime.now(UTC).year, read)
+    return read(funding_store.snapshot(org_id))
 
 
 def accept(user: CurrentUser, token: str) -> SavedPlan:

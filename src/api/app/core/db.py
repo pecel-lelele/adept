@@ -14,6 +14,7 @@ import threading
 import time
 from collections.abc import Iterator
 from contextlib import contextmanager
+from contextvars import ContextVar
 
 import psycopg
 from psycopg.rows import dict_row
@@ -39,6 +40,23 @@ def _reset(conn: psycopg.Connection[dict[str, object]]) -> None:
 
 _pools: dict[str, ConnectionPool] = {}
 _pools_lock = threading.Lock()
+_transaction_connection: ContextVar[tuple[int, psycopg.Connection[dict[str, object]]] | None] = (
+    ContextVar("adept_transaction_connection", default=None)
+)
+
+
+@contextmanager
+def reuse_connection(conn: psycopg.Connection[dict[str, object]]) -> Iterator[None]:
+    """Repository calls in this synchronous transaction reuse its existing connection.
+
+    Nested borrowers never commit or return it to the pool. Thread identity prevents a
+    copied async context from lending one transaction to work on another thread.
+    """
+    token = _transaction_connection.set((threading.get_ident(), conn))
+    try:
+        yield
+    finally:
+        _transaction_connection.reset(token)
 
 
 def _pool(url: str) -> ConnectionPool:
@@ -75,6 +93,10 @@ def connection() -> Iterator[psycopg.Connection[dict[str, object]]]:
 
     Raises psycopg.OperationalError at once while the database was unreachable moments ago.
     """
+    active = _transaction_connection.get()
+    if active is not None and active[0] == threading.get_ident():
+        yield active[1]
+        return
     url = get_settings().database_url
     if time.monotonic() < _down_until.get(url, 0.0):
         raise psycopg.OperationalError("database unavailable (retrying shortly)")

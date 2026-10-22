@@ -8,12 +8,28 @@ import psycopg
 from psycopg.types.json import Jsonb
 
 from app.contracts.funding import FundingState
-from app.core.db import connection
+from app.core.db import connection, reuse_connection
 from app.core.refdata import StorageUnavailableError, use_postgres
 
 T = TypeVar("T")
 _memory: dict[str, FundingState] = {}
 _lock = RLock()
+
+
+def snapshot(org_id: str) -> FundingState:
+    """Read without a ledger write lock, and release the connection before callers do I/O."""
+    if not use_postgres():
+        with _lock:
+            return _memory.get(org_id, FundingState()).model_copy(deep=True)
+    try:
+        with connection() as conn:
+            row = conn.execute(
+                "SELECT state FROM learning_funding WHERE org_id = %s",
+                (org_id,),
+            ).fetchone()
+        return FundingState.model_validate(row["state"]) if row else FundingState()
+    except psycopg.Error as exc:
+        raise StorageUnavailableError("could not read the funding ledger") from exc
 
 
 def transact(org_id: str, year: int, change: Callable[[FundingState], T]) -> T:
@@ -24,7 +40,7 @@ def transact(org_id: str, year: int, change: Callable[[FundingState], T]) -> T:
             _memory[org_id] = state
             return result
     try:
-        with connection() as conn, conn.transaction():
+        with connection() as conn, conn.transaction(), reuse_connection(conn):
             conn.execute(
                 "INSERT INTO learning_funding (org_id) VALUES (%s) ON CONFLICT DO NOTHING",
                 (org_id,),

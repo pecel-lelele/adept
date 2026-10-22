@@ -1101,3 +1101,13 @@
 - **Affects**: M3 F5 read-only data; M4 assistant. No dependencies, schema or public contract changes. Decision IDs 032–038 are already used by the catalogue branch in PR #10.
 - **Replaces**: none (extends M4-031)
 - **PR / branch**: https://github.com/pecel-lelele/adept/pull/9 / feat/core-adi-assistant
+
+### M4-040: fix(org): bound funding transactions and preserve budget history
+- **Date**: 2026-10-23
+- **Feature**: F5, F6, F7 / Core integration
+- **Type**: method | contract
+- **Change**: Read ledgers and assignments through snapshots without write locks. Bind nested synchronous repository calls to the existing transaction connection, with thread isolation and exception-safe reset; lock completion/evidence rows during claim/payment decisions. Move certificate/pathway work outside the funding lock and recheck revisions before recording it. Return accessible budget years, use Malaysia calendar years, and retain historical member records for managers. Add real PostgreSQL regression coverage for ten concurrent approvals plus claim/payment with a one-connection pool, and tests for slow certificate checks, cancellation and rollover.
+- **Why**: Greptile 4352984351 identified pool starvation when lock holders borrowed another connection. Calendar rollover must not change a previously approved purchase year. Real connection contention and failure paths were missing from the original validation.
+- **Affects**: M3 pathways/SDG, M4 organisation and shared database access.
+- **Replaces**: none
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses

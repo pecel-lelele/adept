@@ -72,3 +72,25 @@ only. Writes fail closed, current membership is checked for money operations, an
 participate in account export and deletion. No receipts, certificate pages or real personal
 records were ingested in development. Only synthetic test evidence is permitted by the
 current repository policy.
+
+## Funding contention and year rollover (PR #10 review)
+
+Read-only ledger and assignment requests use a snapshot without a write lock and release the
+database connection before other repository work. Mutations bind their existing connection to
+nested synchronous repository calls; nested borrowers cannot commit or return it to the pool.
+The binding is reset on exit and cannot be reused by a different thread. Receipt approval and
+payment checks hold shared locks on the completion/evidence rows until the ledger commits.
+Certificate probing and pathway calculations run outside the funding transaction; a final
+revision check prevents a concurrent cancellation being overwritten.
+
+Budgets follow Malaysia's calendar (UTC+08). Both funding pages expose accessible prior budget
+years, and action forms retain each claim's original year. A December approval can complete,
+submit evidence and receipts, and record external payment in January against its original
+budget; funds are not silently moved to the new year. Historical views do not depend on live
+course/matching reads. Only current-year requests can be newly created.
+
+Regression coverage includes slow certificate/cancellation races, year rollover and local
+midnight, plus ten concurrent approvals and a full receipt/payment flow with a one-connection
+PostgreSQL pool. Run the optional real-database check with `ADEPT_TEST_PG_ADMIN_URL` pointing
+to a local PostgreSQL admin database, then `python -m pytest tests/integration/test_funding_postgres.py`.
+It creates and removes a separate synthetic database; it never migrates the application DB.

@@ -1,10 +1,8 @@
-from datetime import UTC, datetime
-
 import pytest
 from fastapi.testclient import TestClient
 from harness import fixtures
 
-from app.features.org import funding_store
+from app.features.org import funding, funding_store
 from app.features.pathway import repository
 
 HR = {"X-Demo-User": "demo-company"}
@@ -64,7 +62,7 @@ def test_cohort_scope_and_stale_budget_reject_changed_offer(client: TestClient):
         params={"role_id": "data-analyst", "member_ids": ["aisyah"]},
     ).json()["packages"][1]
     client.put(
-        f"/api/v1/org/funding/{datetime.now(UTC).year}/budget",
+        f"/api/v1/org/funding/{funding.current_year()}/budget",
         headers=HR,
         json={"user_id": "aisyah", "amount_myr": "5000.00"},
     )

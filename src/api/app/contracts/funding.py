@@ -91,6 +91,7 @@ class FundingLedger(BaseModel):
     manager: bool
     budgets: list[FundingBudget]
     claims: list[FundingClaim]
+    available_years: list[int] = Field(default_factory=list)
 
 
 class FundingState(BaseModel):

@@ -3,12 +3,13 @@
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
+from threading import Event
 
 import pytest
 from fastapi.testclient import TestClient
 from harness import fixtures
 
-from app.contracts.funding import FundingDecision, MemberBudgetIn
+from app.contracts.funding import FundingCompletion, FundingDecision, MemberBudgetIn
 from app.contracts.pathway import CompletionEvidence
 from app.core.auth import CurrentUser
 from app.core.errors import AppError
@@ -19,7 +20,7 @@ HR = {"X-Demo-User": "demo-company"}
 MEMBER = {"X-Demo-User": "aisyah"}
 OTHER = {"X-Demo-User": "weijie"}
 MANAGER = CurrentUser("demo-company", "Synthetic HR", "org_admin", "org-demo-bank")
-YEAR = datetime.now(UTC).year
+YEAR = funding.current_year()
 ROOT = f"/api/v1/org/funding/{YEAR}"
 
 
@@ -218,6 +219,123 @@ def test_export_and_deletion_include_embedded_funding_records(client: TestClient
     assert "emp-002" not in str(exported["learning_funding"])
     funding_store.forget_user("aisyah")
     assert funding_store.export_user("aisyah") == []
+
+
+def test_slow_certificate_submission_does_not_hold_funding_lock(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    claim = _approved(client)
+    started, release = Event(), Event()
+
+    def slow_certificate(*_args):
+        started.set()
+        assert release.wait(2)
+
+    monkeypatch.setattr(funding.pathway_service, "submit_evidence", slow_certificate)
+    member = CurrentUser("aisyah", "Synthetic member", "learner", "org-demo-bank")
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        pending = pool.submit(
+            funding.complete,
+            member,
+            YEAR,
+            claim["id"],
+            FundingCompletion(
+                revision=claim["revision"],
+                url="https://example.com/synthetic-certificate",
+            ),
+        )
+        try:
+            assert started.wait(1)
+            update = pool.submit(
+                funding.budget,
+                MANAGER,
+                YEAR,
+                MemberBudgetIn(user_id="aisyah", amount_myr=Decimal(900)),
+            )
+            assert update.result(timeout=0.5).budgets[0].amount_myr == 900
+        finally:
+            release.set()
+        assert pending.result(timeout=2).claims[0].certificate_url
+
+
+def test_prior_year_approved_claim_can_complete_and_settle_after_rollover(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    claim = _approved(client)
+    monkeypatch.setattr(funding, "current_year", lambda: YEAR + 1)
+    current = client.get(f"/api/v1/org/funding/{YEAR + 1}", headers=MEMBER).json()
+    assert current["claims"] == [] and YEAR in current["available_years"]
+    old = client.get(ROOT, headers=MEMBER).json()
+    assert old["claims"][0]["year"] == YEAR
+    response = client.post(
+        ROOT + f"/requests/{claim['id']}/completion",
+        headers=MEMBER,
+        json={"revision": claim["revision"], "url": "https://example.com/synthetic-certificate"},
+    )
+    assert response.status_code == 200, response.text
+    claim = response.json()["claims"][0]
+    _proof(claim)
+    submitted = _submit(client, claim).json()["claims"][0]
+    accepted = _decision(client, submitted, "accept_claim").json()["claims"][0]
+    paid = _decision(client, accepted, "mark_paid", payment_reference="SYNTHETIC-PRIOR-YEAR")
+    assert paid.status_code == 200, paid.text
+    assert paid.json()["claims"][0]["year"] == YEAR
+    assert Decimal(paid.json()["budgets"][0]["paid_myr"]) == 450
+
+
+def test_cancellation_during_certificate_check_is_not_overwritten(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    claim = _approved(client)
+    started, release = Event(), Event()
+
+    def slow_certificate(*_args):
+        started.set()
+        assert release.wait(2)
+
+    monkeypatch.setattr(funding.pathway_service, "submit_evidence", slow_certificate)
+    member = CurrentUser("aisyah", "Synthetic member", "learner", "org-demo-bank")
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        pending = pool.submit(
+            funding.complete,
+            member,
+            YEAR,
+            claim["id"],
+            FundingCompletion(
+                revision=claim["revision"],
+                url="https://example.com/synthetic-certificate",
+            ),
+        )
+        try:
+            assert started.wait(1)
+            funding.decide(
+                member,
+                YEAR,
+                claim["id"],
+                FundingDecision(
+                    revision=claim["revision"],
+                    action="cancel",
+                ),
+            )
+        finally:
+            release.set()
+        with pytest.raises(AppError, match="changed"):
+            pending.result(timeout=2)
+    result = funding.ledger(member, YEAR)
+    assert result.claims[0].status == "cancelled" and result.budgets[0].reserved_myr == 0
+
+
+def test_budget_year_switches_at_malaysia_midnight(monkeypatch: pytest.MonkeyPatch):
+    class Boundary(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return datetime(2026, 12, 31, 16, tzinfo=UTC).astimezone(tz)
+
+    monkeypatch.setattr(funding, "datetime", Boundary)
+    assert funding.current_year() == 2027
 
 
 @pytest.mark.parametrize("amount", ["-1", "NaN", "Infinity", "0.001"])
