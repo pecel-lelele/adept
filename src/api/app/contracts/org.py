@@ -60,6 +60,14 @@ class GapHeatmapResponse(BaseModel):
     role_labels: dict[str, str] = Field(default_factory=dict, description="role_id -> label")
     skills: list[Skill]
     cells: list[GapHeatmapCell]
+    role_gaps: dict[str, float] = Field(
+        default_factory=dict,
+        description=(
+            "role_id -> average gap over that role's required skills only (the figure that "
+            "picks the default team target). Cells for skills a role does not require are 0 "
+            "and must not be averaged."
+        ),
+    )
     meta: RecommendationMeta
 
 

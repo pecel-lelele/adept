@@ -65,3 +65,16 @@ def test_group_plan_assigns_steps_to_members_who_need_them(client: TestClient) -
 def test_group_plan_target_role_can_be_chosen(client: TestClient) -> None:
     resp = client.get("/api/v1/org/plan", params={"role_id": "data-analyst"}, headers=COMPANY)
     assert GroupPlan.model_validate(resp.json()).target_role_id == "data-analyst"
+
+
+def test_role_gaps_average_required_skills_and_pick_the_default_target(client: TestClient) -> None:
+    """Zero cells for skills a role does not require must not dilute its average."""
+    body = GapHeatmapResponse.model_validate(client.get("/api/v1/org/gaps", headers=COMPANY).json())
+    assert set(body.role_gaps) == set(body.role_ids)
+    for role in body.role_ids:
+        all_cells = [c.gap for c in body.cells if c.role_id == role]
+        naive = sum(all_cells) / len(all_cells)
+        assert body.role_gaps[role] >= naive - 1e-6
+    plan = GroupPlan.model_validate(client.get("/api/v1/org/plan", headers=COMPANY).json())
+    top = max(body.role_ids, key=lambda r: (body.role_gaps[r], r))
+    assert plan.target_role_id == top

@@ -4382,6 +4382,14 @@
             "type": "array",
             "title": "Cells"
           },
+          "role_gaps": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Role Gaps",
+            "description": "role_id -> average gap over that role's required skills only (the figure that picks the default team target). Cells for skills a role does not require are 0 and must not be averaged."
+          },
           "meta": {
             "$ref": "#/components/schemas/RecommendationMeta"
           }

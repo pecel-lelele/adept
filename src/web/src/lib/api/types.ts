@@ -1344,6 +1344,13 @@ export interface components {
             skills: components["schemas"]["Skill"][];
             /** Cells */
             cells: components["schemas"]["GapHeatmapCell"][];
+            /**
+             * Role Gaps
+             * @description role_id -> average gap over that role's required skills only (the figure that picks the default team target). Cells for skills a role does not require are 0 and must not be averaged.
+             */
+            role_gaps?: {
+                [key: string]: number;
+            };
             meta: components["schemas"]["RecommendationMeta"];
         };
         /** GoalSummary */

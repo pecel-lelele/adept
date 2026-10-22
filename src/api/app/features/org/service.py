@@ -209,6 +209,9 @@ def get_gaps(user: CurrentUser, scenario: ScenarioId) -> GapHeatmapResponse:
     computed = pathway_service.team_gaps(members, roles)
     skill_ids = list(dict.fromkeys(skill for _, skill, _ in computed))
     by_cell = {(role, skill): gap for role, skill, gap in computed}
+    required: dict[str, list[float]] = {r: [] for r in roles}
+    for role, _skill, gap in computed:
+        required[role].append(gap)
     cells = [
         {"role_id": role, "skill_id": skill, "gap": by_cell.get((role, skill), 0.0)}
         for role in roles
@@ -220,6 +223,8 @@ def get_gaps(user: CurrentUser, scenario: ScenarioId) -> GapHeatmapResponse:
             "role_labels": {r: pathway_data.role_labels().get(r, r) for r in roles},
             "skills": [Skill(id=s, label=labels.get(s, s)) for s in skill_ids],
             "cells": cells,
+            # Same average as _team_gap_by_role, so the page ranks roles like the backend.
+            "role_gaps": {r: round(sum(v) / len(v), 4) if v else 0.0 for r, v in required.items()},
             "meta": RecommendationMeta(
                 sources=[TEAM_DATA_SOURCE],
                 snapshot_date=TEAM_DATA_SOURCE.retrieved_at,

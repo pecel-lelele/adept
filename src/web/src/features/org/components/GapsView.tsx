@@ -22,13 +22,11 @@ export async function GapsView({ scenario }: { scenario: ScenarioId }) {
   if (!result.ok) return <ErrorState failure={result} />;
   const data = result.data;
   const skills = topGapSkills(data, 14);
+  // Average over each role's required skills only (from the API, the same figure that picks
+  // the default team target); zero cells for skills a role does not need are not averaged.
   const byRole = data.role_ids
-    .map((r) => {
-      const cells = data.cells.filter((c) => c.role_id === r);
-      const avg = cells.length ? cells.reduce((s, c) => s + c.gap, 0) / cells.length : 0;
-      return { id: r, label: data.role_labels?.[r] ?? r, avg };
-    })
-    .sort((a, b) => b.avg - a.avg);
+    .map((r) => ({ id: r, label: data.role_labels?.[r] ?? r, avg: data.role_gaps?.[r] ?? 0 }))
+    .sort((a, b) => b.avg - a.avg || b.id.localeCompare(a.id)); // same tie-break as the backend
   const biggest = byRole[0];
 
   return (

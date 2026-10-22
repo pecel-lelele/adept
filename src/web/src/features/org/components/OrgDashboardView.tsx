@@ -54,8 +54,8 @@ export async function OrgDashboardView({ scenario }: { scenario: ScenarioId }) {
     complete,
   };
   const skills = gaps.ok ? topGapSkills(gaps.data, 8) : [];
-  const targetGaps = gaps.ok && target ? gaps.data.cells.filter((c) => c.role_id === target) : [];
-  const avgGap = targetGaps.length ? targetGaps.reduce((sum, c) => sum + c.gap, 0) / targetGaps.length : null;
+  // Required skills only (from the API), so this matches how the backend picked the target.
+  const avgGap = gaps.ok && target ? (gaps.data.role_gaps?.[target] ?? null) : null;
   const linkedGoals = impact?.ok ? impact.data.goals_summary.filter((g) => g.link_count > 0) : [];
   const goals = [...linkedGoals]
     .sort((a, b) => b.link_count - a.link_count)
