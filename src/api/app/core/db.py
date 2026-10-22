@@ -24,6 +24,13 @@ from app.core.config import get_settings
 POOL_WAIT_S = 3.0
 STATEMENT_TIMEOUT_MS = 10_000
 
+def _reset(conn: psycopg.Connection[dict[str, object]]) -> None:
+    """Undo per-request client settings before a connection is reused by another request."""
+    conn.row_factory = dict_row  # type: ignore[assignment]
+    if conn.autocommit:
+        conn.autocommit = False
+
+
 _pools: dict[str, ConnectionPool] = {}
 _pools_lock = threading.Lock()
 
@@ -48,6 +55,7 @@ def _pool(url: str) -> ConnectionPool:
                     "options": f"-c statement_timeout={STATEMENT_TIMEOUT_MS}",
                 },
                 open=False,
+                reset=_reset,
                 name="adept",
             )
             pool.open(wait=False)

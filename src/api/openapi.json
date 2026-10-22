@@ -3471,6 +3471,7 @@
           "sdg"
         ],
         "summary": "Get Region Contribution",
+        "description": "Organisations in one state, aggregated: for team managers only.",
         "operationId": "sdg_get_region_contribution",
         "parameters": [
           {
@@ -3510,6 +3511,38 @@
                 }
               ],
               "title": "Role Id"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
             }
           }
         ],
