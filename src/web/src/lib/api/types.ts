@@ -988,7 +988,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Region Contribution */
+        /**
+         * Get Region Contribution
+         * @description Organisations in one state, aggregated: for team managers only.
+         */
         get: operations["sdg_get_region_contribution"];
         put?: never;
         post?: never;
@@ -4765,7 +4768,10 @@ export interface operations {
                 scenario?: "moderate" | "fast";
                 role_id?: string | null;
             };
-            header?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+            };
             path: {
                 state: string;
             };

@@ -15,7 +15,7 @@ from typing import Annotated
 
 import psycopg
 from fastapi import Header
-from psycopg.rows import tuple_row
+from psycopg.rows import dict_row, tuple_row
 
 from app.contracts.guardrails import SyncReport
 from app.core.config import get_settings
@@ -54,9 +54,13 @@ def run_logged(
     started = datetime.now(UTC)
     try:
         with connection() as conn:
+            # Sync jobs read plain tuples; restore dicts before the pooled connection goes back.
             conn.row_factory = tuple_row  # type: ignore[assignment]
-            with conn.transaction():
-                records, retired, detail = job(conn)  # type: ignore[arg-type]
+            try:
+                with conn.transaction():
+                    records, retired, detail = job(conn)  # type: ignore[arg-type]
+            finally:
+                conn.row_factory = dict_row  # type: ignore[assignment]
             status = "ok"
     except psycopg.OperationalError as exc:
         raise StorageUnavailableError(type(exc).__name__) from exc
