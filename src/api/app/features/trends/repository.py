@@ -27,6 +27,7 @@ from app.contracts.trends import TrendSnapshotResponse
 from app.core.config import get_settings
 from app.core.errors import NotFoundError
 from app.features.trends import mocks
+from app.features.trends.provenance import observation_window
 
 
 def _skill_labels() -> dict[str, str]:
@@ -367,9 +368,12 @@ def _load_snapshot_db(
             ]
             note = "Scored by the Adept trend pipeline from arXiv cs.AI papers and BLS projections."
 
+        observed_from, observed_to = observation_window(stored_meta, note)
         meta = TrendSnapshotMeta(
             sources=sources,
             snapshot_date=snapshot_date,
+            observed_from=observed_from,
+            observed_to=observed_to,
             scenario=scenario,  # type: ignore[arg-type]
             is_estimate=True,
             weights={"research_velocity": 0.6, "labor_decay": 0.4},

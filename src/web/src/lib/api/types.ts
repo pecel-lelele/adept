@@ -886,7 +886,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Org Contribution */
+        /**
+         * Get Org Contribution
+         * @description The team's contribution towards ``role_id`` (the role chosen on the team plan), or,
+         *     when omitted, the role where the team's average gap is largest.
+         */
         get: operations["sdg_get_org_contribution"];
         put?: never;
         post?: never;
@@ -1973,6 +1977,16 @@ export interface components {
              * @default true
              */
             is_estimate: boolean;
+            /**
+             * Observed From
+             * @description Start of the period the source data measures; may predate snapshot_date.
+             */
+            observed_from?: string | null;
+            /**
+             * Observed To
+             * @description End of the period the source data measures.
+             */
+            observed_to?: string | null;
         };
         /** RegionListResponse */
         RegionListResponse: {
@@ -2758,6 +2772,16 @@ export interface components {
              * @description Optional explanation of data provenance, e.g. for historical arXiv date-window pulls or demo calibration.
              */
             data_provenance_note?: string | null;
+            /**
+             * Observed From
+             * @description Start of the period the source data measures; may predate snapshot_date.
+             */
+            observed_from?: string | null;
+            /**
+             * Observed To
+             * @description End of the period the source data measures.
+             */
+            observed_to?: string | null;
         };
         /** TrendSnapshotResponse */
         TrendSnapshotResponse: {
@@ -4374,6 +4398,7 @@ export interface operations {
         parameters: {
             query?: {
                 scenario?: "moderate" | "fast";
+                role_id?: string | null;
             };
             header?: {
                 "x-demo-user"?: string | null;
@@ -4428,6 +4453,7 @@ export interface operations {
         parameters: {
             query?: {
                 scenario?: "moderate" | "fast";
+                role_id?: string | null;
             };
             header?: never;
             path: {

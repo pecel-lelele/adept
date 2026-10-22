@@ -48,6 +48,8 @@ def _meta(snap: TrendSnapshotResponse, scenario: ScenarioId) -> RecommendationMe
         snapshot_date=snap.meta.snapshot_date,
         scenario=scenario,
         is_estimate=True,
+        observed_from=snap.meta.observed_from,
+        observed_to=snap.meta.observed_to,
     )
 
 

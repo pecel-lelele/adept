@@ -22,6 +22,7 @@ from app.contracts.trends import (
     TrendSnapshotMeta,
     TrendSnapshotResponse,
 )
+from app.features.trends.provenance import observation_window
 
 AVAILABLE_MOCK_DATES: list[date] = [date(2026, 10, 13), date(2026, 10, 20)]
 
@@ -43,6 +44,7 @@ def _load_raw(snapshot_date: date | None = None) -> dict:
 def _parse_meta(raw_meta: dict, scenario: str) -> TrendSnapshotMeta:
     from app.contracts.trends import SourceRef
 
+    window = observation_window(raw_meta, raw_meta.get("data_provenance_note"))
     return TrendSnapshotMeta(
         sources=[
             SourceRef(
@@ -61,6 +63,8 @@ def _parse_meta(raw_meta: dict, scenario: str) -> TrendSnapshotMeta:
             date.fromisoformat(d) for d in raw_meta.get("available_snapshots", [])
         ],
         data_provenance_note=raw_meta.get("data_provenance_note"),
+        observed_from=window[0],
+        observed_to=window[1],
     )
 
 

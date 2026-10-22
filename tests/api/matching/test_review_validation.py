@@ -115,6 +115,9 @@ def test_snapshot_meta_with_frozen_today(
         "scenario": "fast",
         "is_estimate": False,
         "sources": [source.model_dump(mode="json") for source in snap.sources],
+        # H09: observation window (none recorded on this stub snapshot).
+        "observed_from": None,
+        "observed_to": None,
     }
     assert response.json()["meta"] == expected
     assert all(match["meta"] == expected for match in response.json()["matches"])

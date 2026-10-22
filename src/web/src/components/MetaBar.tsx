@@ -9,7 +9,13 @@ export function MetaBar({ meta }: { meta: RecommendationMeta }) {
   const t = useTranslations("common.design");
   return (
     <details className="a-metabar">
-      <summary><EstimateLabel scenario={meta.scenario} isEstimate={meta.is_estimate} /> · {meta.snapshot_date} · {t("evidence")}</summary>
+      <summary>
+        <EstimateLabel scenario={meta.scenario} isEstimate={meta.is_estimate} /> · {meta.snapshot_date}
+        {meta.observed_from && meta.observed_to ? (
+          <> · {t("observed", { from: meta.observed_from, to: meta.observed_to })}</>
+        ) : null}{" "}
+        · {t("evidence")}
+      </summary>
       <div className="a-metabar-body">
       <EstimateLabel scenario={meta.scenario} isEstimate={meta.is_estimate} />
       <SourceBadge sources={meta.sources} snapshotDate={meta.snapshot_date} />

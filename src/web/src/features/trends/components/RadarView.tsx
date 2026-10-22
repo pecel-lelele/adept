@@ -58,6 +58,12 @@ export async function RadarView({
         <MetaBar meta={meta} />
       </PageHeader>
 
+      {meta.observed_to && Date.parse(meta.snapshot_date) - Date.parse(meta.observed_to) > 60 * 864e5 ? (
+        <p className="a-notice" role="note">
+          {tp("historical", { from: meta.observed_from ?? meta.observed_to, to: meta.observed_to, date: meta.snapshot_date })}
+        </p>
+      ) : null}
+
       <Kpis
         items={[
           { label: d("rising"), value: count("rising"), icon: <TrendingUp size={15} />, tone: "up", note: tp("risingNote") },
@@ -67,7 +73,10 @@ export async function RadarView({
             label: tp("kTracked"),
             value: items.length,
             icon: <Radar size={15} />,
-            note: tp("asOf", { date: meta.snapshot_date }),
+            note:
+              meta.observed_from && meta.observed_to
+                ? d("observed", { from: meta.observed_from, to: meta.observed_to })
+                : tp("asOf", { date: meta.snapshot_date }),
           },
         ]}
       />

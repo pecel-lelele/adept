@@ -21,6 +21,13 @@ class RecommendationMeta(BaseModel):
     snapshot_date: date
     scenario: ScenarioId
     is_estimate: bool = True
+    observed_from: date | None = Field(
+        default=None,
+        description="Start of the period the source data measures; may predate snapshot_date.",
+    )
+    observed_to: date | None = Field(
+        default=None, description="End of the period the source data measures."
+    )
 
 
 class HealthResponse(BaseModel):

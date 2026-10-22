@@ -3217,6 +3217,7 @@
           "sdg"
         ],
         "summary": "Get Org Contribution",
+        "description": "The team's contribution towards ``role_id`` (the role chosen on the team plan), or,\nwhen omitted, the role where the team's average gap is largest.",
         "operationId": "sdg_get_org_contribution",
         "parameters": [
           {
@@ -3231,6 +3232,22 @@
               "type": "string",
               "default": "moderate",
               "title": "Scenario"
+            }
+          },
+          {
+            "name": "role_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Role Id"
             }
           },
           {
@@ -3340,6 +3357,22 @@
               "type": "string",
               "default": "moderate",
               "title": "Scenario"
+            }
+          },
+          {
+            "name": "role_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Role Id"
             }
           }
         ],
@@ -5690,6 +5723,32 @@
             "type": "boolean",
             "title": "Is Estimate",
             "default": true
+          },
+          "observed_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed From",
+            "description": "Start of the period the source data measures; may predate snapshot_date."
+          },
+          "observed_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed To",
+            "description": "End of the period the source data measures."
           }
         },
         "type": "object",
@@ -7399,6 +7458,32 @@
             ],
             "title": "Data Provenance Note",
             "description": "Optional explanation of data provenance, e.g. for historical arXiv date-window pulls or demo calibration."
+          },
+          "observed_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed From",
+            "description": "Start of the period the source data measures; may predate snapshot_date."
+          },
+          "observed_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed To",
+            "description": "End of the period the source data measures."
           }
         },
         "type": "object",

@@ -34,6 +34,8 @@ def _build_meta(snap, scenario: ScenarioId) -> RecommendationMeta:
         snapshot_date=snap.snapshot_date,  # date from snapshot meta
         scenario=scenario,
         is_estimate=snap.is_estimate,  # bool from snapshot meta
+        observed_from=snap.observed_from,
+        observed_to=snap.observed_to,
     )
 
 
