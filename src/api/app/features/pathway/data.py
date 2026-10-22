@@ -63,6 +63,21 @@ def catalogue() -> list[Course]:
                 provider_type=r.get("provider_type") or "private_provider",  # type: ignore[arg-type]
                 location=r.get("location", ""),
                 price_note=r.get("price_note", ""),
+                price_status=(
+                    "certificate_price_unknown"
+                    if r["provider"].startswith("Coursera") and float(r["cost_myr"]) == 0
+                    else "listed"
+                ),
+                certificate_note=(
+                    "Free enrolment is not a free certificate. Confirm the paid certificate "
+                    "price at checkout and request HR approval before purchase."
+                    if r["provider"].startswith("Coursera") and float(r["cost_myr"]) == 0
+                    else "Microsoft Learn modules award learning achievements, not professional "
+                    "certification. Certification exams may have separate fees."
+                    if r["provider"] == "Microsoft Learn"
+                    else "Confirm certificate, taxes, eligibility and current price "
+                    "with the provider."
+                ),
                 source=Source(
                     name=source_name, url=r.get("source_url") or r["url"], retrieved_at=verified
                 ),
@@ -75,18 +90,27 @@ def course_index() -> dict[str, Course]:
     return {c.id: c for c in catalogue()}
 
 
+def taxonomy_source() -> Source:
+    return Source(
+        name="O*NET 31.0 crosswalk + Adept curated role requirements (estimates)",
+        url="https://github.com/pecel-lelele/adept/blob/main/"
+        "src/data/seed/taxonomy/provenance.json",
+        retrieved_at=date(2026, 10, 23),
+    )
+
+
 def skill_labels() -> dict[str, str]:
-    return {r["id"]: r["label"] for r in seed.rows("taxonomy", "skills")}
+    return {r["id"]: r["label"] for r in refdata.rows("taxonomy", "skills")}
 
 
 def role_labels() -> dict[str, str]:
-    return {r["id"]: r["label"] for r in seed.rows("taxonomy", "roles")}
+    return {r["id"]: r["label"] for r in refdata.rows("taxonomy", "roles")}
 
 
 def requirements(role_id: str) -> list[Requirement]:
     return [
         Requirement(r["skill_id"], int(r["required_level"]), float(r["importance"]))
-        for r in seed.rows("taxonomy", "role_skills")
+        for r in refdata.rows("taxonomy", "role_skills")
         if r["role_id"] == role_id
     ]
 
@@ -94,14 +118,19 @@ def requirements(role_id: str) -> list[Requirement]:
 def target_role_ids() -> list[str]:
     """Roles a pathway can be built for (they have requirements), ordered by label."""
     labels = role_labels()
-    ids = {r["role_id"] for r in seed.rows("taxonomy", "role_skills")}
+    candidates = {
+        r["id"]
+        for r in refdata.rows("taxonomy", "roles")
+        if seed.as_bool(r.get("is_target", "true"))
+    }
+    ids = {r["role_id"] for r in refdata.rows("taxonomy", "role_skills")} & candidates
     return sorted((r for r in ids if r in labels), key=lambda r: labels[r])
 
 
 def prerequisites() -> dict[str, dict[str, str]]:
     """skill_id -> {prerequisite_id: reason}."""
     out: dict[str, dict[str, str]] = {}
-    for r in seed.rows("pathway", "skill_prerequisites"):
+    for r in refdata.rows("pathway", "skill_prerequisites"):
         out.setdefault(r["skill_id"], {})[r["prerequisite_id"]] = r["reason"]
     return out
 

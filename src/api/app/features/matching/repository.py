@@ -1,6 +1,6 @@
 """Data access for matching (F4).
 
-Reads taxonomy seed files and the saved profile, runs the real scoring engine, and
+Reads shared taxonomy reference data and the saved profile, runs the real scoring engine, and
 maps internal `_RoleScore` objects to the API contract type `RoleMatch`.
 
 Missing profiles or skills raise ProfileRequiredError; production never loads personas.
@@ -13,7 +13,7 @@ from dataclasses import replace
 from app.contracts.common import RecommendationMeta, ScenarioId
 from app.contracts.matching import RoleMatch, ScoreComponent
 from app.contracts.profile import Skill
-from app.core import seed
+from app.core import refdata, seed
 from app.core.errors import ProfileRequiredError
 from app.features.matching.gap_port import fetch_skills_gap
 from app.features.matching.scoring import (
@@ -26,6 +26,7 @@ from app.features.matching.scoring import (
     rank_roles,
 )
 from app.features.matching.sdg_port import fetch_role_badges
+from app.features.pathway import data as pathway_data
 from app.features.profile import service as profile_service
 
 # Default weights — the canonical values live in scoring.Weights (M2-001, retuned in M2-011)
@@ -52,12 +53,12 @@ _SKILL_LABELS: dict[str, str] = {}
 def _load_roles() -> list[Role]:
     """Build Role objects from the taxonomy seed files.
 
-    `seed.rows` caches each file by (path, mtime, size), so this costs nothing per request and
-    still picks up an edited catalogue without a restart.
+    `refdata.rows` shares DB-first reference data with profile and pathways; file-backed
+    development picks up edited CSVs without a restart.
     """
-    roles_rows = seed.rows("taxonomy", "roles")
-    skill_rows = seed.rows("taxonomy", "skills")
-    link_rows = seed.rows("taxonomy", "role_skills")
+    roles_rows = refdata.rows("taxonomy", "roles")
+    skill_rows = refdata.rows("taxonomy", "skills")
+    link_rows = refdata.rows("taxonomy", "role_skills")
     global _roles_cache  # noqa: PLW0603
     # seed.rows returns the same tuple objects until a file changes, so their ids are the key.
     key = (id(roles_rows), id(skill_rows), id(link_rows))
@@ -75,6 +76,9 @@ def _build_roles(
     skill_rows: tuple[dict[str, str], ...],
     link_rows: tuple[dict[str, str], ...],
 ) -> tuple[Role, ...]:
+    _ROLE_LABELS.clear()
+    _ROLE_INTEREST_TAGS.clear()
+    _SKILL_LABELS.clear()
     for row in roles_rows:
         _ROLE_LABELS[row["id"]] = row["label"]
         _ROLE_INTEREST_TAGS[row["id"]] = frozenset(
@@ -83,6 +87,7 @@ def _build_roles(
     for row in skill_rows:
         _SKILL_LABELS[row["id"]] = row["label"]
     skills_by_role: dict[str, list[RoleSkill]] = {}
+    targets = {r["id"] for r in roles_rows if seed.as_bool(r.get("is_target", "true"))}
     for row in link_rows:
         skills_by_role.setdefault(row["role_id"], []).append(
             RoleSkill(
@@ -98,6 +103,7 @@ def _build_roles(
             interest_tags=role_interest_tags(role_id),
         )
         for role_id, skill_list in skills_by_role.items()
+        if role_id in targets
     )
 
 
@@ -167,6 +173,8 @@ def _score_to_contract(
     _load_roles()
 
     role_id = role_score.role_id
+    source = pathway_data.taxonomy_source()
+    meta = meta.model_copy(update={"sources": [*meta.sources, source]})
     bd = role_score.breakdown
     skill_value = bd["skill"]
     trend_value = bd["trend"]

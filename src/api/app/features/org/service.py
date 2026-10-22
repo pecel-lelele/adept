@@ -3,7 +3,7 @@
 Only members whose intake is complete are counted; invited / in-progress members are listed
 but excluded from the heatmap and plan until their skills are confirmed. Nothing here is
 hard-coded: heatmap rows are every target role in the taxonomy, and when a manager has not
-picked a target role the plan uses the role where the team's average gap is largest.
+picked a target role the plan uses the role with the strongest existing team skill fit.
 """
 
 from __future__ import annotations
@@ -195,7 +195,7 @@ def target_role(
     *,
     members: dict[str, engine.Learner] | None = None,
 ) -> str:
-    """The manager's chosen role, else the role where the team's average gap is largest."""
+    """The manager's chosen role, else the role with the strongest existing team skill fit."""
     roles = pathway_data.target_role_ids()
     if role_id:
         if role_id not in roles:
@@ -203,8 +203,19 @@ def target_role(
         return role_id
     if not roles:
         raise NotFoundError("No target roles in the taxonomy")
-    gaps = _team_gap_by_role(member_learners(org_id) if members is None else members)
-    return max(roles, key=lambda r: (gaps.get(r, 0.0), r))
+    team = member_learners(org_id) if members is None else members
+
+    def fit(role: str) -> tuple[float, str]:
+        reqs = pathway_data.requirements(role)
+        total = sum(r.importance for r in reqs) * len(team)
+        covered = sum(
+            r.importance * min(1.0, learner.skill_levels.get(r.skill_id, 0) / r.required_level)
+            for learner in team.values()
+            for r in reqs
+        )
+        return (covered / total if total else 0.0, role)
+
+    return max(roles, key=fit)
 
 
 def member_plans(

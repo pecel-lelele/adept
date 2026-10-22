@@ -38,6 +38,7 @@ def test_links_point_at_official_targets_with_meaningful_reasons() -> None:
 
 
 AUTHORITATIVE = (
+    "https://sdgs.un.org/goals/",  # official UN target definitions
     "https://unstats.un.org/sdgs/metadata/",
     "https://www.ilo.org/",
     "https://www.unesco.org/",

@@ -26,7 +26,6 @@ Announce to team (package dependency):
 
 from __future__ import annotations
 
-import csv
 import io
 import math
 import re
@@ -35,10 +34,11 @@ import zipfile
 from dataclasses import dataclass
 from functools import lru_cache
 from itertools import islice
-from pathlib import Path
 from typing import Any
 from xml.etree import ElementTree
 
+from app.core import refdata
+from app.core import taxonomy as skill_taxonomy
 from app.core.errors import AppError, PdfNoText, PdfSupportUnavailable
 
 # ---------------------------------------------------------------------------
@@ -64,7 +64,6 @@ MAX_DOCX_ENTRIES = 2_000
 
 DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
-_SEED = Path(__file__).resolve().parents[5] / "src" / "data" / "seed"
 
 #: Chinese, Japanese and Korean characters (written without spaces between words).
 _CJK_RE = re.compile(r"[぀-ヿ㐀-䶿一-鿿가-힯]")
@@ -114,29 +113,34 @@ class TaxonomySkill:
     aliases: tuple[str, ...] = ()
 
 
-@lru_cache(maxsize=1)
+_taxonomy_rows: tuple[dict[str, str], ...] | None = None
+_taxonomy_cache: dict[str, TaxonomySkill] = {}
+
+
 def _load_taxonomy() -> dict[str, TaxonomySkill]:
-    """Load skills.csv and build a {skill_id: TaxonomySkill} dict."""
-    path = _SEED / "taxonomy" / "skills.csv"
-    taxonomy: dict[str, TaxonomySkill] = {}
-    with open(path, encoding="utf-8") as f:
-        for row in csv.DictReader(f):
-            sid = row["id"]
-            label = row["label"]
-            norm = unicodedata.normalize("NFKC", label).lower()
-            raw_aliases = row.get("aliases") or ""
+    """Use the same versioned reference catalogue as matching and pathways."""
+    global _taxonomy_rows, _taxonomy_cache  # noqa: PLW0603
+    rows = refdata.rows("taxonomy", "skills")
+    if rows is not _taxonomy_rows:
+        result: dict[str, TaxonomySkill] = {}
+        for row in rows:
+            sid = skill_taxonomy.canonical(row["id"])
+            label = next((r["label"] for r in rows if r["id"] == sid), row["label"])
             aliases = tuple(
                 unicodedata.normalize("NFKC", a.strip()).lower()
-                for a in raw_aliases.split("|")
+                for a in (row.get("aliases") or "").split("|")
                 if a.strip()
             )
-            taxonomy[sid] = TaxonomySkill(
-                skill_id=sid,
-                label=label,
-                normalised_label=norm,
-                aliases=aliases,
+            if sid in result:
+                old = result[sid]
+                aliases = old.aliases + aliases + (old.normalised_label,)
+            result[sid] = TaxonomySkill(
+                sid, label, unicodedata.normalize("NFKC", label).lower(), aliases
             )
-    return taxonomy
+        _taxonomy_cache = result
+        _taxonomy_rows = rows
+        _build_alias_index.cache_clear()
+    return _taxonomy_cache
 
 
 # ---------------------------------------------------------------------------

@@ -1031,3 +1031,13 @@
 - **Affects**: M1 trends coverage; M2 taxonomy/profile/matching; M3 courses and SDG mappings.
 - **Replaces**: none
 - **PR / branch**: feat/catalogue-roles-skills-courses
+
+### M4-033: fix(pathway): unify catalogue credit prerequisites and price estimates
+- **Date**: 2026-10-23
+- **Feature**: F1, F4, F5, F6, F7 / Core integration
+- **Type**: method | schema | contract
+- **Change**: Use shared DB-first taxonomy reads in matching, profile, CV and pathways; upsert reference seeds without overwriting user state or dated trend snapshots. Preserve duplicate legacy IDs but merge credit once at the highest canonical level. Add current-role baselines with an explicit target flag. Include external prerequisites, block unavailable foundations, show honest unmet levels and exclude unknown certificate prices from costed plans. HRD eligibility no longer zeroes list prices. Default HR target uses existing team skill fit.
+- **Why**: Expanded data exposed disconnected skill IDs, stale deployments, impossible prerequisite ordering, misleading free certificates and unrelated default team targets.
+- **Affects**: M2 profile/matching; M3 pathway and contracts; M4 organisation defaults. Append-only migration required before seeding.
+- **Replaces**: none
+- **PR / branch**: feat/catalogue-roles-skills-courses

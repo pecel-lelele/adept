@@ -97,9 +97,12 @@ def test_unmet_skill_is_reported_not_invented(client: TestClient) -> None:
     assert unmet["risk-compliance"].reason == "catalogue_tops_out"
 
 
-def test_prompt_engineering_gap_is_now_closed_by_the_catalogue(client: TestClient) -> None:
+def test_unknown_paid_certificate_price_does_not_promise_full_skill_coverage(
+    client: TestClient,
+) -> None:
     body = _pathway(client, "ai-operations-specialist", headers=WEIJIE)
-    assert "prompt-engineering" not in {u.skill_id for u in body.unmet}
+    assert "prompt-engineering" in {u.skill_id for u in body.unmet}
+    assert all(c.price_status == "listed" for s in body.steps for c in s.courses)
 
 
 def test_subscriptions_are_never_booked_as_steps(client: TestClient) -> None:

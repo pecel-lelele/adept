@@ -71,9 +71,39 @@ profile, `skills_gap` and `sdg.service.role_badges`.
 
 | Stage | Choice | Notes |
 |---|---|---|
-| Source | Microsoft Learn Catalog API (20 items), Coursera (5 free-to-enrol courses, checked live via its catalog API), 8 HRD Corp-claimable provider courses quoted from their pages (incl. UKM and FMM paid courses), 1 subscription bundle (Coursera Plus; USD converted at Bank Negara Malaysia's live rate) | `catalogue_sources.py`; seeds via `src/pipelines/pathway`, DB via live sync |
+| Source | Microsoft Learn Catalog API (57 items), Coursera (5 free-to-enrol courses, checked live via its catalog API), 8 HRD Corp-claimable provider courses quoted from their pages (incl. UKM and FMM paid courses), 1 subscription bundle (Coursera Plus; USD converted at Bank Negara Malaysia's live rate) | `catalogue_sources.py`; seeds via `src/pipelines/pathway`, DB via live sync |
 | Preprocessing / cleaning | strip tracking params, minutes → hours, validate skill IDs, https URLs, levels | pipeline fails if a curated UID is retired |
 | Features | gap = required − current level; priority = importance × gap share × (1 + growth × w), w = 1 moderate / 2 fast | growth from the latest trend snapshot |
-| Model / method | topological sort over `skill_prerequisites` (prerequisites inherit the urgency of what they unlock); ascending-level course selection, cheapest out-of-pocket (HRD Corp-claimable = RM 0 if eligible) then shortest, within budget; multi-skill course booked once; weeks = ⌈hours ÷ hours/week⌉ | never invents a course: uncovered skills are reported as unmet |
+| Model / method | topological sort over `skill_prerequisites` (prerequisites inherit the urgency of what they unlock); ascending-level course selection, cheapest verified upfront price (HRD eligibility alone does not establish funding) then shortest, within budget; multi-skill course booked once; weeks = ⌈hours ÷ hours/week⌉ | never invents a course: uncovered skills are reported as unmet |
 | Evaluation | 38 tests: catalogue-only, every match has a pathway, budget, HRD, prerequisites, re-plan diff, badges, counterfactual fairness | `tests/api/pathway` |
 | Serving | endpoints above; web `/app/pathway`, `/app/progress`, `/org/plan` | |
+
+## Catalogue enrichment (2026-10-23)
+
+All 34 existing courses are retained; 37 Microsoft Learn entries were verified against the
+public catalogue. Coverage includes RAG, agents, evaluation, MLOps, security, digital twins,
+emissions reporting and health-information systems. Learning achievements are not professional
+certifications; exams can have separate fees. Free-to-enrol Coursera records remain browsable
+with `certificate_price_unknown`, but are excluded from automatically priced plans until a
+real certificate quote is approved. Original list prices retain their verification dates;
+confirm taxes, availability and the checkout price before buying.
+
+Matching, profile/CV, role requirements and pathways share the DB-first reference reader.
+Legacy `excel-basic`/`excel` and `robotic-process-automation`/`rpa` records remain, with effective
+credit merged at the highest level per canonical skill. Prerequisites outside role requirements
+are scheduled too; an unavailable foundation blocks dependent courses. Completing available
+courses does not imply every role requirement is met. Uncovered levels remain explicit gaps,
+including regulated clinical and engineering work.
+
+The taxonomy has 140 skills, 31 roles and 160 role-skill links: 28 target roles plus 3 current
+roles with baseline requirements excluded from future-role ranking. All have SDG links;
+new role mappings are draft enabling hypotheses, not measured impact. Public occupation
+crosswalks are in `taxonomy/provenance.json`; role labels and requirements are Adept curated
+specialisations, not official O*NET titles or new job-growth forecasts. Missing trend coverage
+remains visible rather than being invented for expanded roles.
+
+Six stages: Microsoft Learn public API + O*NET 31.0 + official UN targets → validate IDs,
+URLs, durations and crosswalks while preserving existing records → estimated role/skill edges
+and prerequisites → F4 scoring and F5 budgeted topological plans → graph, coverage,
+prerequisite and finance concurrency regressions → shared reference loader, append-only
+role-scope migration, reference-only seed upserts and API/UI.

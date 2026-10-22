@@ -35,6 +35,7 @@ from app.contracts.pathway import (
 )
 from app.contracts.profile import Profile
 from app.contracts.sdg import SdgTarget
+from app.core import taxonomy
 from app.core.auth import CurrentUser
 from app.core.errors import AppError, NotFoundError, ProfileRequiredError
 from app.features.org import repository as org_repository
@@ -97,6 +98,8 @@ def _meta(
     steps: Sequence[PathwayStep], snapshot: data.Snapshot | None, scenario: ScenarioId
 ) -> RecommendationMeta:
     sources: dict[str, Source] = {}
+    taxonomy_source = data.taxonomy_source()
+    sources[taxonomy_source.name] = taxonomy_source
     for step in steps:
         for course in step.courses:
             src = course.source or Source(
@@ -155,7 +158,12 @@ def build_pathway(
         data.prerequisites(),
         growth,
         data.skill_labels(),
-        _sdg_by_skill([r.skill_id for r in reqs]),
+        _sdg_by_skill(
+            list(
+                {r.skill_id for r in reqs}
+                | {p for edges in data.prerequisites().values() for p in edges}
+            )
+        ),
         scenario_weighted=trend.scenario_weighted if trend else False,
     )
     return Pathway(
@@ -304,7 +312,9 @@ class CatalogueFilter:
 def filter_courses(courses: Sequence[Course], f: CatalogueFilter) -> list[Course]:
     out = []
     for c in courses:
-        if f.skill and f.skill not in c.skill_ids:
+        if f.skill and taxonomy.canonical(f.skill) not in {
+            taxonomy.canonical(s) for s in c.skill_ids
+        }:
             continue
         if f.format and c.format != f.format:
             continue
@@ -314,7 +324,9 @@ def filter_courses(courses: Sequence[Course], f: CatalogueFilter) -> list[Course
             continue
         if f.hrd_claimable is not None and c.hrd_claimable != f.hrd_claimable:
             continue
-        if f.max_cost_myr is not None and c.cost_myr > f.max_cost_myr:
+        if f.max_cost_myr is not None and (
+            c.price_status != "listed" or c.cost_myr > f.max_cost_myr
+        ):
             continue
         out.append(c)
     # Cheapest first, then shortest: the same preference the pathway engine uses.
@@ -480,7 +492,7 @@ def combined_levels(
     out = dict(intake)
     for sid, level in (evidenced_levels(user_id) if earned is None else earned).items():
         out[sid] = max(out.get(sid, 0), level)
-    return out
+    return taxonomy.levels(out)
 
 
 def _plan_courses(plan: Pathway) -> dict[str, Course]:
@@ -768,7 +780,7 @@ def group_pathway(
                 "member_ids": sorted(
                     mid
                     for mid, m in members.items()
-                    if m.skill_levels.get(s.skill_id, 0) < need[s.skill_id]
+                    if m.skill_levels.get(s.skill_id, 0) < need.get(s.skill_id, 1)
                 )
             }
         )

@@ -10,7 +10,9 @@ from app.contracts.profile import Segment
 from app.contracts.sdg import SdgTarget
 
 GapStatus = Literal["have", "partial", "missing"]
-UnmetReason = Literal["no_catalogue_course", "over_budget", "catalogue_tops_out"]
+UnmetReason = Literal[
+    "no_catalogue_course", "over_budget", "catalogue_tops_out", "blocked_prerequisite"
+]
 CourseStatus = Literal["not_started", "in_progress", "completed"]
 CourseFormat = Literal["self_paced", "live_online", "in_person", "hybrid", "subscription"]
 CourseAudience = Literal["individual", "corporate", "both"]
@@ -44,6 +46,8 @@ class Course(BaseModel):
     provider_type: ProviderType = "private_provider"
     location: str = ""
     price_note: str = Field(default="", description="How cost_myr was derived (e.g. FX rate).")
+    price_status: Literal["listed", "certificate_price_unknown"] = "listed"
+    certificate_note: str = ""
 
 
 class SkillGap(BaseModel):
@@ -96,7 +100,10 @@ class Pathway(BaseModel):
     total_hours: float = Field(default=0, ge=0)
     total_cost_myr: float = Field(default=0, ge=0, description="List price of all courses.")
     out_of_pocket_myr: float = Field(
-        default=0, ge=0, description="What the learner pays after HRD Corp claims."
+        default=0,
+        ge=0,
+        description="Estimated list price before unquoted taxes/extras; "
+        "HRD eligibility does not guarantee funding.",
     )
     budget_myr: float = Field(default=0, ge=0)
     within_budget: bool = True

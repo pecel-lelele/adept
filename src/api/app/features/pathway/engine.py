@@ -21,6 +21,7 @@ from dataclasses import dataclass, field
 from app.contracts.common import ScenarioId
 from app.contracts.pathway import Course, PathwayStep, SkillGap, UnmetReason, UnmetSkill
 from app.contracts.sdg import SdgTarget
+from app.core import taxonomy
 from app.features.pathway.data import Requirement
 
 # How strongly a skill's demand growth raises its priority, per scenario.
@@ -57,6 +58,7 @@ class Plan:
 def compute_gaps(
     reqs: Sequence[Requirement], levels: Mapping[str, int], labels: Mapping[str, str]
 ) -> list[SkillGap]:
+    levels = taxonomy.levels(levels)
     gaps: list[SkillGap] = []
     for r in reqs:
         current = max(0, min(5, levels.get(r.skill_id, 0)))
@@ -136,8 +138,8 @@ def order_skills(
 
 
 def out_of_pocket(course: Course, hrd_eligible: bool) -> float:
-    """What the learner pays: HRD Corp-claimable courses are employer-funded via the levy."""
-    return 0.0 if course.hrd_claimable and hrd_eligible else course.cost_myr
+    """Estimated list price. Eligibility is not approved funding; confirm taxes and extras."""
+    return course.cost_myr
 
 
 @dataclass
@@ -162,7 +164,10 @@ def select_courses(
     candidates = [
         c
         for c in catalogue
-        if skill_id in c.skill_ids and c.level > current and c.format != "subscription"
+        if skill_id in c.skill_ids
+        and c.level > current
+        and c.format != "subscription"
+        and c.price_status == "listed"
     ]
     by_cost = sorted(
         candidates, key=lambda c: (c.level, out_of_pocket(c, hrd_eligible), c.hours, c.id)
@@ -237,7 +242,16 @@ def build(
             f"No weekly study hours in your profile; the schedule assumes {hpw:g} h/week."
         )
 
-    gaps = compute_gaps(reqs, learner.skill_levels, labels)
+    levels = taxonomy.levels(learner.skill_levels)
+    expanded = {r.skill_id: r for r in reqs}
+    pending = list(expanded)
+    while pending:
+        skill = pending.pop()
+        for pre in prereqs.get(skill, {}):
+            if pre not in expanded and levels.get(pre, 0) < 1:
+                expanded[pre] = Requirement(pre, 1, expanded[skill].importance)
+                pending.append(pre)
+    gaps = compute_gaps(list(expanded.values()), levels, labels)
     open_gaps = {g.skill_id: g for g in gaps if g.status != "have"}
     prio = {
         s: priority(g, growth.get(s, 0.0), scenario, scenario_weighted)
@@ -254,6 +268,20 @@ def build(
     paid = 0.0
     for skill in order:
         gap = open_gaps[skill]
+        blocked = [p for p in prereqs.get(skill, {}) if levels.get(p, 0) < 1]
+        if blocked:
+            unmet.append(
+                UnmetSkill(
+                    skill_id=skill,
+                    label=gap.label,
+                    current_level=gap.current_level,
+                    required_level=gap.required_level,
+                    reason="blocked_prerequisite",
+                    detail="First establish these prerequisites: "
+                    + ", ".join(labels.get(p, p) for p in blocked),
+                )
+            )
+            continue
         sel = select_courses(
             skill,
             gap.current_level,
@@ -263,6 +291,10 @@ def build(
             learner.hrd_eligible,
             set(booked),
         )
+        levels[skill] = max(levels.get(skill, 0), sel.reaches_level)
+        for course in sel.courses + sel.covered_by_earlier:
+            for taught in course.skill_ids:
+                levels[taught] = max(levels.get(taught, 0), course.level)
         if sel.unmet:
             reason = sel.unmet
             unmet.append(

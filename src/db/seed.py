@@ -4,7 +4,8 @@ Usage (from the repo root): .venv/bin/python src/db/seed.py
 
 The CSV file name is the table name and the header row holds column names, so
 features add seed data without touching this script. Empty cells become NULL.
-Rows that already exist are skipped (ON CONFLICT DO NOTHING), so it is safe to rerun.
+Reference records are upserted by key so enrichment reaches existing deployments.
+Accounts, profiles and immutable dated trend exports are never overwritten.
 """
 
 from __future__ import annotations
@@ -43,6 +44,18 @@ TABLE_ORDER = [
     "skill_sdg_map",
     "org_regions",
 ]
+REFERENCE_KEYS = {
+    "skills": ("id",),
+    "roles": ("id",),
+    "role_skills": ("role_id", "skill_id"),
+    "courses": ("id",),
+    "skill_prerequisites": ("skill_id", "prerequisite_id"),
+    "sdg_goals": ("id",),
+    "sdg_targets": ("id",),
+    "role_sdg_map": ("role_id", "sdg_target_id"),
+    "skill_sdg_map": ("skill_id", "sdg_target_id"),
+}
+
 SERIAL_TABLES = {"snapshots", "trend_signals"}
 # CSVs in src/data/seed/ that are evaluation benchmarks or ground truth, not database tables.
 NON_TABLE_CSVS = {"expected_roles"}
@@ -119,6 +132,21 @@ def main() -> int:
                     sql.SQL(", ").join(map(sql.Identifier, header)),
                     sql.SQL(", ").join(sql.Placeholder() * len(header)),
                 )
+                if table in REFERENCE_KEYS:
+                    keys = REFERENCE_KEYS[table]
+                    updates = [c for c in header if c not in keys]
+                    query = sql.SQL(
+                        "INSERT INTO {} ({}) VALUES ({}) ON CONFLICT ({}) DO UPDATE SET {}"
+                    ).format(
+                        sql.Identifier(table),
+                        sql.SQL(", ").join(map(sql.Identifier, header)),
+                        sql.SQL(", ").join(sql.Placeholder() * len(header)),
+                        sql.SQL(", ").join(map(sql.Identifier, keys)),
+                        sql.SQL(", ").join(
+                            sql.SQL("{} = EXCLUDED.{}").format(sql.Identifier(c), sql.Identifier(c))
+                            for c in updates
+                        ),
+                    )
                 with conn.cursor() as cur:
                     cur.executemany(query, rows)
                 print(f"{path.relative_to(SEED).as_posix()}: {len(rows)} row(s)")

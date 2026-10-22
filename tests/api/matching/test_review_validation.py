@@ -120,7 +120,13 @@ def test_snapshot_meta_with_frozen_today(
         "observed_to": None,
     }
     assert response.json()["meta"] == expected
-    assert all(match["meta"] == expected for match in response.json()["matches"])
+    from app.features.pathway import data
+
+    card_meta = {
+        **expected,
+        "sources": [*expected["sources"], data.taxonomy_source().model_dump(mode="json")],
+    }
+    assert all(match["meta"] == card_meta for match in response.json()["matches"])
 
 
 @pytest.mark.parametrize("user_id", ["aisyah", "weijie", "ravi"])

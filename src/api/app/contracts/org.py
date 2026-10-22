@@ -63,8 +63,8 @@ class GapHeatmapResponse(BaseModel):
     role_gaps: dict[str, float] = Field(
         default_factory=dict,
         description=(
-            "role_id -> average gap over that role's required skills only (the figure that "
-            "picks the default team target). Cells for skills a role does not require are 0 "
+            "role_id -> average gap over that role's required skills only. "
+            "Cells for skills a role does not require are 0 "
             "and must not be averaged."
         ),
     )
