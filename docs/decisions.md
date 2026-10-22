@@ -863,3 +863,13 @@
 - **Replaces**: none
 - **PR / branch**: feat/core-insight-design
 - **Pipeline**: source = trend snapshots + SDG links → features = percentile positions (`trend_scores`), SDG impact → method = linear blend (1 − λ)·score + λ·impact on both dates; driver effect = Δposition × importance share × w_trend → evaluation = regression tests (percentile vs raw velocity, weighted replay order = weighted list order, detail score = list score, outlook date) → serving = `/matches`, `/matches/{id}`, `/matches/replay`, `/scenarios/outlook`
+
+### M4-017: Handoff fixes H05, H06, H07, H09, H10 and landing headline sizing
+- **Date**: 2026-10-22
+- **Feature**: Core; F2, F5, F6, F7 integration
+- **Type**: fix
+- **Change**: H05: `GET /sdg/contribution/org` and `/contribution/region/{state}` take `role_id`; the organisation Impact page passes the role chosen on the team plan and keeps it on the scope tabs (unknown roles 404). H06: translated every BM/Chinese string still in English that the app uses; removed about 100 unused keys (`common.workspace`, `common.journey`, unused `common.design`); progress badges are named from their stable id via `pathway.badge.*` instead of the API's English label. H07: the Next.js dev indicator is off, since it intercepted clicks on the sidebar language switch and on the mobile "More" tab. H09: snapshot and recommendation metadata gain optional `observed_from` / `observed_to` (from stored metadata, else parsed from the provenance note; `trends/provenance.py`); the sources line shows "data measured … to …" and the Radar warns when the evidence is a historical replay. H10: evidence wording says a certificate link only shows the page opens on the provider's site; a reviewer confirms ownership; landing "Verified completions" became "Reviewed completions". Landing: both hero headlines share one rule (same size, line height and spacing, larger), and BM/Chinese headlines flow as one balanced paragraph.
+- **Why**: Handoff `docs/FEATURE_STATUS_AND_FIX_HANDOFF.md` items H05–H10 and user feedback on the landing headlines.
+- **Affects**: M3 (SDG contribution endpoints, evidence wording, badge names), M1 (snapshot metadata fields), shared `RecommendationMeta` (two optional fields), all locales.
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design

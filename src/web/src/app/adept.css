@@ -1507,3 +1507,19 @@ html[data-locale-switching] .a-page, html[data-locale-switching] .a-shell { opac
   .a-shell .a-outlook-row { grid-template-columns: minmax(0, 1fr) auto; }
   .a-shell .a-outlook-track { grid-column: 1 / -1; grid-row: 2; }
 }
+
+/* landing heroes: one headline style for both audiences (same size, line spacing and rhythm),
+   set larger so the copy column fills its space instead of leaving empty room */
+.a-audience .a-hero2, .a-audience .a-teamhero-in { grid-template-columns: minmax(0, 1.22fr) minmax(0, 1fr); gap: clamp(24px, 3.5vw, 48px); }
+.a-audience .a-hero2 { min-height: 0; padding: clamp(28px, 4vw, 56px) 0 clamp(40px, 4.5vw, 72px); }
+.a-audience .a-teamhero { padding: clamp(36px, 5vw, 72px) 0 clamp(40px, 5vw, 72px); }
+.a-audience :is(.a-hero2, .a-teamhero) .a-display { display: grid; font-size: clamp(2.5rem, 1rem + 4.3vw, 5.1rem); line-height: 1.03; margin: 22px 0; }
+.a-audience :is(.a-hero2, .a-teamhero) .a-hero2-lead { margin: 0; font-size: clamp(15px, 0.85rem + 0.4vw, 18px) !important; max-width: 33em !important; }
+.a-audience :is(.a-hero2, .a-teamhero) .a-hero2-ctas { margin-top: 30px; }
+@media (max-width: 1100px) { .a-audience .a-hero2, .a-audience .a-teamhero-in { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 900px) { .a-audience :is(.a-hero2, .a-teamhero) .a-display { display: block; } }
+/* longer BM / Chinese headlines: flow as one balanced paragraph instead of forced lines */
+:is(:lang(ms), :lang(zh)) .a-audience :is(.a-hero2, .a-teamhero) .a-display { display: block; text-wrap: balance; }
+:is(:lang(ms), :lang(zh)) .a-audience :is(.a-hero2, .a-teamhero) .a-display > span { display: inline; }
+:is(:lang(ms), :lang(zh)) .a-audience :is(.a-hero2, .a-teamhero) .a-display > span:not(:last-child)::after { content: " "; }
+:lang(ms) .a-audience :is(.a-hero2, .a-teamhero) .a-display { font-size: clamp(2.3rem, 1rem + 3.6vw, 4.4rem); }
