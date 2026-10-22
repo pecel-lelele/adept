@@ -842,3 +842,13 @@
 - **Affects**: none
 - **Replaces**: none
 - **PR / branch**: feat/core-insight-design
+
+### M4-015: Consistent dashboard layouts and restored workspace CSS
+- **Date**: 2026-10-22
+- **Feature**: Core; F1, F2, F4, F5 and F6 presentation
+- **Type**: UI
+- **Change**: Added shared KPI strips, level pips, score bars and trend labels, grouped desktop navigation, and consistent layouts for Home, My skills, Radar, Roles, Plan, Progress, Courses and Impact. Restored the missing dashboard styles from the design handoff, scoped them to `.a-shell`, and adjusted compact charts and responsive KPI layouts. Dashboard labels have matching English, Bahasa Melayu and Chinese keys.
+- **Why**: Revised page components referenced CSS that had not been saved, leaving the dashboard layout broken. A shared visual rhythm makes metrics, skills gaps, learning steps and evidence easier to compare across screens. The landing page and backend were excluded from this work.
+- **Affects**: All workspace UI; feature owners should review their screens. API contracts, dependencies and backend behavior are unchanged.
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design
