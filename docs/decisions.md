@@ -1081,3 +1081,13 @@
 - **Affects**: M4 navigation and organisation UI; M3 pathway/catalogue screens. Uses existing design primitives and typed API client.
 - **Replaces**: none
 - **PR / branch**: feat/catalogue-roles-skills-courses
+
+### M4-038: chore(api): regenerate catalogue and organisation contract bindings
+- **Date**: 2026-10-23
+- **Feature**: F1, F4, F5, F6, F7 / Core integration
+- **Type**: contract
+- **Change**: Regenerate OpenAPI and TypeScript from the final typed catalogue, funding, package and account-export contracts.
+- **Why**: Keep generated client bindings in sync with the server contract; separate generated output from handwritten changes for review.
+- **Affects**: All typed API consumers; no handwritten changes to generated files.
+- **Replaces**: none
+- **PR / branch**: feat/catalogue-roles-skills-courses

@@ -289,6 +289,176 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/org/packages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Packages */
+        get: operations["org_get_packages"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/org/packages/select": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Select Package */
+        post: operations["org_select_package"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/org/packages/assigned": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Assigned Package */
+        get: operations["org_get_assigned_package"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/org/packages/assigned/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Accept Assigned Package */
+        post: operations["org_accept_assigned_package"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/org/funding/{year}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Funding */
+        get: operations["org_get_funding"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/org/funding/{year}/budget": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set Member Budget */
+        put: operations["org_set_member_budget"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/org/funding/{year}/requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Request Funding */
+        post: operations["org_request_funding"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/org/funding/{year}/requests/{claim_id}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit Funding Claim */
+        post: operations["org_submit_funding_claim"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/org/funding/{year}/requests/{claim_id}/completion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Complete Funded Course */
+        post: operations["org_complete_funded_course"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/org/funding/{year}/requests/{claim_id}/decision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Decide Funding */
+        post: operations["org_decide_funding"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/org/me": {
         parameters: {
             query?: never;
@@ -1063,6 +1233,11 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AcceptPackage */
+        AcceptPackage: {
+            /** Token */
+            token: string;
+        };
         /** Account */
         Account: {
             /** Id */
@@ -1121,6 +1296,10 @@ export interface components {
             badges?: {
                 [key: string]: string;
             };
+            /** Learning Funding */
+            learning_funding?: {
+                [key: string]: unknown;
+            }[];
             /**
              * Notice
              * @default This file holds your Adept account, profile, plans, course progress, completion evidence and badges. CV files are never stored: they are read in memory and discarded.
@@ -1143,6 +1322,22 @@ export interface components {
             ref_id?: string | null;
             /** Href */
             href?: string | null;
+        };
+        /** AssignedPackage */
+        AssignedPackage: {
+            /** Token */
+            token: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "free_first" | "budget_capped" | "broader";
+            /**
+             * Selected At
+             * Format: date-time
+             */
+            selected_at: string;
+            pathway: components["schemas"]["Pathway"];
         };
         /** AssistantIn */
         AssistantIn: {
@@ -1396,6 +1591,17 @@ export interface components {
              * @default
              */
             price_note: string;
+            /**
+             * Price Status
+             * @default listed
+             * @enum {string}
+             */
+            price_status: "listed" | "certificate_price_unknown";
+            /**
+             * Certificate Note
+             * @default
+             */
+            certificate_note: string;
         };
         /** CourseHistoryItem */
         CourseHistoryItem: {
@@ -1537,6 +1743,179 @@ export interface components {
             /** Passed */
             passed: boolean;
         };
+        /** FundingBudget */
+        FundingBudget: {
+            /** User Id */
+            user_id: string;
+            /** Amount Myr */
+            amount_myr: number | string;
+            /** Reserved Myr */
+            reserved_myr: number | string;
+            /** Paid Myr */
+            paid_myr: number | string;
+            /** Available Myr */
+            available_myr: number | string;
+        };
+        /** FundingClaim */
+        FundingClaim: {
+            /** Year */
+            year: number;
+            /** Id */
+            id: string;
+            /** User Id */
+            user_id: string;
+            /** Role Id */
+            role_id: string;
+            course: components["schemas"]["Course"];
+            /** Requested Myr */
+            requested_myr: number | string;
+            /**
+             * Approved Myr
+             * @default 0
+             */
+            approved_myr: number | string;
+            /**
+             * Claimed Myr
+             * @default 0
+             */
+            claimed_myr: number | string;
+            /** Quote Url */
+            quote_url: string;
+            /**
+             * Status
+             * @default requested
+             * @enum {string}
+             */
+            status: "requested" | "approved" | "submitted" | "payable" | "paid" | "rejected" | "cancelled";
+            /**
+             * Revision
+             * @default 1
+             */
+            revision: number;
+            /**
+             * Requested At
+             * Format: date-time
+             */
+            requested_at: string;
+            /** Approved At */
+            approved_at?: string | null;
+            /** Purchased At */
+            purchased_at?: string | null;
+            /**
+             * Receipt Url
+             * @default
+             */
+            receipt_url: string;
+            /**
+             * Receipt Reference
+             * @default
+             */
+            receipt_reference: string;
+            /** Evidence Submitted At */
+            evidence_submitted_at?: string | null;
+            /**
+             * Certificate Url
+             * @default
+             */
+            certificate_url: string;
+            /**
+             * Payment Reference
+             * @default
+             */
+            payment_reference: string;
+            /** Events */
+            events?: components["schemas"]["FundingEvent"][];
+        };
+        /** FundingCompletion */
+        FundingCompletion: {
+            /** Revision */
+            revision: number;
+            /** Url */
+            url: string;
+        };
+        /** FundingDecision */
+        FundingDecision: {
+            /** Revision */
+            revision: number;
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "approve" | "reject" | "cancel" | "accept_claim" | "mark_paid";
+            /**
+             * Note
+             * @default
+             */
+            note: string;
+            /**
+             * Payment Reference
+             * @default
+             */
+            payment_reference: string;
+        };
+        /** FundingEvent */
+        FundingEvent: {
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /** Actor Id */
+            actor_id: string;
+            /** Action */
+            action: string;
+            /**
+             * Note
+             * @default
+             */
+            note: string;
+        };
+        /** FundingLedger */
+        FundingLedger: {
+            /** Org Id */
+            org_id: string;
+            /** Year */
+            year: number;
+            /** Manager */
+            manager: boolean;
+            /** Budgets */
+            budgets: components["schemas"]["FundingBudget"][];
+            /** Claims */
+            claims: components["schemas"]["FundingClaim"][];
+        };
+        /** FundingRequest */
+        FundingRequest: {
+            /** Course Id */
+            course_id: string;
+            /** Role Id */
+            role_id: string;
+            /** Amount Myr */
+            amount_myr: number | string;
+            /**
+             * Quote Url
+             * Format: uri
+             */
+            quote_url: string;
+        };
+        /** FundingSubmission */
+        FundingSubmission: {
+            /** Revision */
+            revision: number;
+            /** Amount Myr */
+            amount_myr: number | string;
+            /**
+             * Receipt Url
+             * Format: uri
+             */
+            receipt_url: string;
+            /** Receipt Reference */
+            receipt_reference: string;
+            /**
+             * Purchased At
+             * Format: date-time
+             */
+            purchased_at: string;
+        };
         /** GapHeatmapCell */
         GapHeatmapCell: {
             /** Role Id */
@@ -1566,7 +1945,7 @@ export interface components {
             cells: components["schemas"]["GapHeatmapCell"][];
             /**
              * Role Gaps
-             * @description role_id -> average gap over that role's required skills only (the figure that picks the default team target). Cells for skills a role does not require are 0 and must not be averaged.
+             * @description role_id -> average gap over that role's required skills only. Cells for skills a role does not require are 0 and must not be averaged.
              */
             role_gaps?: {
                 [key: string]: number;
@@ -1707,6 +2086,13 @@ export interface components {
              */
             intake_status: "invited" | "in_progress" | "complete";
         };
+        /** MemberBudgetIn */
+        MemberBudgetIn: {
+            /** User Id */
+            user_id: string;
+            /** Amount Myr */
+            amount_myr: number | string;
+        };
         /** MemberListResponse */
         MemberListResponse: {
             /** Members */
@@ -1811,6 +2197,39 @@ export interface components {
              */
             direction: "rising" | "declining" | "stable";
         };
+        /** PackageChoice */
+        PackageChoice: {
+            /** Role Id */
+            role_id: string;
+            /** Member Ids */
+            member_ids: string[];
+            /**
+             * Scenario
+             * @default moderate
+             * @enum {string}
+             */
+            scenario: "moderate" | "fast";
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "free_first" | "budget_capped" | "broader";
+            /** Token */
+            token: string;
+        };
+        /** PackageMember */
+        PackageMember: {
+            /** User Id */
+            user_id: string;
+            pathway: components["schemas"]["Pathway"];
+            /** Available Budget Myr */
+            available_budget_myr: number;
+        };
+        /** PackageOptions */
+        PackageOptions: {
+            /** Packages */
+            packages: components["schemas"]["TeamPackage"][];
+        };
         /** Pathway */
         Pathway: {
             /** Role Id */
@@ -1843,7 +2262,7 @@ export interface components {
             total_cost_myr: number;
             /**
              * Out Of Pocket Myr
-             * @description What the learner pays after HRD Corp claims.
+             * @description Estimated list price before unquoted taxes/extras; HRD eligibility does not guarantee funding.
              * @default 0
              */
             out_of_pocket_myr: number;
@@ -2929,6 +3348,35 @@ export interface components {
              */
             detail: string;
         };
+        /** TeamPackage */
+        TeamPackage: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "free_first" | "budget_capped" | "broader";
+            /** Token */
+            token: string;
+            /** Role Id */
+            role_id: string;
+            /** Role Label */
+            role_label: string;
+            /** Members */
+            members: components["schemas"]["PackageMember"][];
+            /** Total Cost Myr */
+            total_cost_myr: number;
+            /** Max Weeks */
+            max_weeks: number;
+            /** Unmet Skills */
+            unmet_skills: number;
+            /** Within Member Budgets */
+            within_member_budgets: boolean;
+            meta: components["schemas"]["RecommendationMeta"];
+            /** Selected At */
+            selected_at?: string | null;
+            /** Selected By */
+            selected_by?: string | null;
+        };
         /** TopRole */
         TopRole: {
             /** Role Id */
@@ -3035,7 +3483,7 @@ export interface components {
              * Reason
              * @enum {string}
              */
-            reason: "no_catalogue_course" | "over_budget" | "catalogue_tops_out";
+            reason: "no_catalogue_course" | "over_budget" | "catalogue_tops_out" | "blocked_prerequisite";
             /** Detail */
             detail: string;
         };
@@ -3526,6 +3974,373 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RoleMatch"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_get_packages: {
+        parameters: {
+            query?: {
+                role_id?: string | null;
+                member_ids?: string[] | null;
+                scenario?: "moderate" | "fast";
+            };
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PackageOptions"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_select_package: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PackageChoice"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeamPackage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_get_assigned_package: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssignedPackage"] | null;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_accept_assigned_package: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AcceptPackage"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedPlan"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_get_funding: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+            };
+            path: {
+                year: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FundingLedger"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_set_member_budget: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+            };
+            path: {
+                year: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MemberBudgetIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FundingLedger"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_request_funding: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+            };
+            path: {
+                year: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FundingRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FundingLedger"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_submit_funding_claim: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+            };
+            path: {
+                year: number;
+                claim_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FundingSubmission"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FundingLedger"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_complete_funded_course: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+            };
+            path: {
+                year: number;
+                claim_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FundingCompletion"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FundingLedger"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_decide_funding: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+            };
+            path: {
+                year: number;
+                claim_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FundingDecision"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FundingLedger"];
                 };
             };
             /** @description Validation Error */

@@ -853,6 +853,877 @@
         }
       }
     },
+    "/api/v1/org/packages": {
+      "get": {
+        "tags": [
+          "org"
+        ],
+        "summary": "Get Packages",
+        "operationId": "org_get_packages",
+        "parameters": [
+          {
+            "name": "role_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Role Id"
+            }
+          },
+          {
+            "name": "member_ids",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "maxItems": 50
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Member Ids"
+            }
+          },
+          {
+            "name": "scenario",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "moderate",
+                "fast"
+              ],
+              "type": "string",
+              "default": "moderate",
+              "title": "Scenario"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PackageOptions"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/org/packages/select": {
+      "post": {
+        "tags": [
+          "org"
+        ],
+        "summary": "Select Package",
+        "operationId": "org_select_package",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PackageChoice"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamPackage"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/org/packages/assigned": {
+      "get": {
+        "tags": [
+          "org"
+        ],
+        "summary": "Get Assigned Package",
+        "operationId": "org_get_assigned_package",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/AssignedPackage"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Response Org Get Assigned Package"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/org/packages/assigned/accept": {
+      "post": {
+        "tags": [
+          "org"
+        ],
+        "summary": "Accept Assigned Package",
+        "operationId": "org_accept_assigned_package",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AcceptPackage"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedPlan"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/org/funding/{year}": {
+      "get": {
+        "tags": [
+          "org"
+        ],
+        "summary": "Get Funding",
+        "operationId": "org_get_funding",
+        "parameters": [
+          {
+            "name": "year",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "maximum": 2200,
+              "minimum": 2020,
+              "title": "Year"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FundingLedger"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/org/funding/{year}/budget": {
+      "put": {
+        "tags": [
+          "org"
+        ],
+        "summary": "Set Member Budget",
+        "operationId": "org_set_member_budget",
+        "parameters": [
+          {
+            "name": "year",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "maximum": 2200,
+              "minimum": 2020,
+              "title": "Year"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MemberBudgetIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FundingLedger"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/org/funding/{year}/requests": {
+      "post": {
+        "tags": [
+          "org"
+        ],
+        "summary": "Request Funding",
+        "operationId": "org_request_funding",
+        "parameters": [
+          {
+            "name": "year",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "maximum": 2200,
+              "minimum": 2020,
+              "title": "Year"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FundingRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FundingLedger"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/org/funding/{year}/requests/{claim_id}/submit": {
+      "post": {
+        "tags": [
+          "org"
+        ],
+        "summary": "Submit Funding Claim",
+        "operationId": "org_submit_funding_claim",
+        "parameters": [
+          {
+            "name": "year",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "maximum": 2200,
+              "minimum": 2020,
+              "title": "Year"
+            }
+          },
+          {
+            "name": "claim_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Claim Id"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FundingSubmission"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FundingLedger"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/org/funding/{year}/requests/{claim_id}/completion": {
+      "post": {
+        "tags": [
+          "org"
+        ],
+        "summary": "Complete Funded Course",
+        "operationId": "org_complete_funded_course",
+        "parameters": [
+          {
+            "name": "year",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "maximum": 2200,
+              "minimum": 2020,
+              "title": "Year"
+            }
+          },
+          {
+            "name": "claim_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Claim Id"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FundingCompletion"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FundingLedger"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/org/funding/{year}/requests/{claim_id}/decision": {
+      "post": {
+        "tags": [
+          "org"
+        ],
+        "summary": "Decide Funding",
+        "operationId": "org_decide_funding",
+        "parameters": [
+          {
+            "name": "year",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "maximum": 2200,
+              "minimum": 2020,
+              "title": "Year"
+            }
+          },
+          {
+            "name": "claim_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Claim Id"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FundingDecision"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FundingLedger"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/org/me": {
       "get": {
         "tags": [
@@ -3821,6 +4692,21 @@
   },
   "components": {
     "schemas": {
+      "AcceptPackage": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 64,
+            "title": "Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token"
+        ],
+        "title": "AcceptPackage"
+      },
       "Account": {
         "properties": {
           "id": {
@@ -3936,6 +4822,14 @@
             "title": "Badges",
             "description": "Badge id -> date earned."
           },
+          "learning_funding": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Learning Funding"
+          },
           "notice": {
             "type": "string",
             "title": "Notice",
@@ -3998,6 +4892,39 @@
         ],
         "title": "AnswerPart",
         "description": "One piece of the answer: plain text, or a checked reference rendered as a link."
+      },
+      "AssignedPackage": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "title": "Token"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "free_first",
+              "budget_capped",
+              "broader"
+            ],
+            "title": "Kind"
+          },
+          "selected_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Selected At"
+          },
+          "pathway": {
+            "$ref": "#/components/schemas/Pathway"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token",
+          "kind",
+          "selected_at",
+          "pathway"
+        ],
+        "title": "AssignedPackage"
       },
       "AssistantIn": {
         "properties": {
@@ -4516,6 +5443,20 @@
             "title": "Price Note",
             "description": "How cost_myr was derived (e.g. FX rate).",
             "default": ""
+          },
+          "price_status": {
+            "type": "string",
+            "enum": [
+              "listed",
+              "certificate_price_unknown"
+            ],
+            "title": "Price Status",
+            "default": "listed"
+          },
+          "certificate_note": {
+            "type": "string",
+            "title": "Certificate Note",
+            "default": ""
           }
         },
         "type": "object",
@@ -4891,6 +5832,463 @@
         ],
         "title": "FairnessReport"
       },
+      "FundingBudget": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "amount_myr": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Amount Myr"
+          },
+          "reserved_myr": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Reserved Myr"
+          },
+          "paid_myr": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Paid Myr"
+          },
+          "available_myr": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Available Myr"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "amount_myr",
+          "reserved_myr",
+          "paid_myr",
+          "available_myr"
+        ],
+        "title": "FundingBudget"
+      },
+      "FundingClaim": {
+        "properties": {
+          "year": {
+            "type": "integer",
+            "title": "Year"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "role_id": {
+            "type": "string",
+            "title": "Role Id"
+          },
+          "course": {
+            "$ref": "#/components/schemas/Course"
+          },
+          "requested_myr": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Requested Myr"
+          },
+          "approved_myr": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Approved Myr",
+            "default": "0"
+          },
+          "claimed_myr": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Claimed Myr",
+            "default": "0"
+          },
+          "quote_url": {
+            "type": "string",
+            "title": "Quote Url"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "requested",
+              "approved",
+              "submitted",
+              "payable",
+              "paid",
+              "rejected",
+              "cancelled"
+            ],
+            "title": "Status",
+            "default": "requested"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision",
+            "default": 1
+          },
+          "requested_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Requested At"
+          },
+          "approved_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved At"
+          },
+          "purchased_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Purchased At"
+          },
+          "receipt_url": {
+            "type": "string",
+            "title": "Receipt Url",
+            "default": ""
+          },
+          "receipt_reference": {
+            "type": "string",
+            "title": "Receipt Reference",
+            "default": ""
+          },
+          "evidence_submitted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Submitted At"
+          },
+          "certificate_url": {
+            "type": "string",
+            "title": "Certificate Url",
+            "default": ""
+          },
+          "payment_reference": {
+            "type": "string",
+            "title": "Payment Reference",
+            "default": ""
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/FundingEvent"
+            },
+            "type": "array",
+            "title": "Events"
+          }
+        },
+        "type": "object",
+        "required": [
+          "year",
+          "id",
+          "user_id",
+          "role_id",
+          "course",
+          "requested_myr",
+          "quote_url",
+          "requested_at"
+        ],
+        "title": "FundingClaim"
+      },
+      "FundingCompletion": {
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Revision"
+          },
+          "url": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 12,
+            "pattern": "^https://",
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "revision",
+          "url"
+        ],
+        "title": "FundingCompletion"
+      },
+      "FundingDecision": {
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Revision"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "approve",
+              "reject",
+              "cancel",
+              "accept_claim",
+              "mark_paid"
+            ],
+            "title": "Action"
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 300,
+            "title": "Note",
+            "default": ""
+          },
+          "payment_reference": {
+            "type": "string",
+            "maxLength": 120,
+            "title": "Payment Reference",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "revision",
+          "action"
+        ],
+        "title": "FundingDecision"
+      },
+      "FundingEvent": {
+        "properties": {
+          "at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "At"
+          },
+          "actor_id": {
+            "type": "string",
+            "title": "Actor Id"
+          },
+          "action": {
+            "type": "string",
+            "title": "Action"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "at",
+          "actor_id",
+          "action"
+        ],
+        "title": "FundingEvent"
+      },
+      "FundingLedger": {
+        "properties": {
+          "org_id": {
+            "type": "string",
+            "title": "Org Id"
+          },
+          "year": {
+            "type": "integer",
+            "title": "Year"
+          },
+          "manager": {
+            "type": "boolean",
+            "title": "Manager"
+          },
+          "budgets": {
+            "items": {
+              "$ref": "#/components/schemas/FundingBudget"
+            },
+            "type": "array",
+            "title": "Budgets"
+          },
+          "claims": {
+            "items": {
+              "$ref": "#/components/schemas/FundingClaim"
+            },
+            "type": "array",
+            "title": "Claims"
+          }
+        },
+        "type": "object",
+        "required": [
+          "org_id",
+          "year",
+          "manager",
+          "budgets",
+          "claims"
+        ],
+        "title": "FundingLedger"
+      },
+      "FundingRequest": {
+        "properties": {
+          "course_id": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Course Id"
+          },
+          "role_id": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Role Id"
+          },
+          "amount_myr": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Amount Myr"
+          },
+          "quote_url": {
+            "type": "string",
+            "maxLength": 2083,
+            "minLength": 1,
+            "format": "uri",
+            "title": "Quote Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "course_id",
+          "role_id",
+          "amount_myr",
+          "quote_url"
+        ],
+        "title": "FundingRequest"
+      },
+      "FundingSubmission": {
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Revision"
+          },
+          "amount_myr": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Amount Myr"
+          },
+          "receipt_url": {
+            "type": "string",
+            "maxLength": 2083,
+            "minLength": 1,
+            "format": "uri",
+            "title": "Receipt Url"
+          },
+          "receipt_reference": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 3,
+            "title": "Receipt Reference"
+          },
+          "purchased_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Purchased At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "revision",
+          "amount_myr",
+          "receipt_url",
+          "receipt_reference",
+          "purchased_at"
+        ],
+        "title": "FundingSubmission"
+      },
       "GapHeatmapCell": {
         "properties": {
           "role_id": {
@@ -4954,7 +6352,7 @@
             },
             "type": "object",
             "title": "Role Gaps",
-            "description": "role_id -> average gap over that role's required skills only (the figure that picks the default team target). Cells for skills a role does not require are 0 and must not be averaged."
+            "description": "role_id -> average gap over that role's required skills only. Cells for skills a role does not require are 0 and must not be averaged."
           },
           "meta": {
             "$ref": "#/components/schemas/RecommendationMeta"
@@ -5276,6 +6674,35 @@
         ],
         "title": "Member"
       },
+      "MemberBudgetIn": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "User Id"
+          },
+          "amount_myr": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Amount Myr"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "amount_myr"
+        ],
+        "title": "MemberBudgetIn"
+      },
       "MemberListResponse": {
         "properties": {
           "members": {
@@ -5498,6 +6925,95 @@
         ],
         "title": "OverviewSkill"
       },
+      "PackageChoice": {
+        "properties": {
+          "role_id": {
+            "type": "string",
+            "maxLength": 80,
+            "title": "Role Id"
+          },
+          "member_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "minItems": 1,
+            "title": "Member Ids"
+          },
+          "scenario": {
+            "type": "string",
+            "enum": [
+              "moderate",
+              "fast"
+            ],
+            "title": "Scenario",
+            "default": "moderate"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "free_first",
+              "budget_capped",
+              "broader"
+            ],
+            "title": "Kind"
+          },
+          "token": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 64,
+            "title": "Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role_id",
+          "member_ids",
+          "kind",
+          "token"
+        ],
+        "title": "PackageChoice"
+      },
+      "PackageMember": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "pathway": {
+            "$ref": "#/components/schemas/Pathway"
+          },
+          "available_budget_myr": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Available Budget Myr"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "pathway",
+          "available_budget_myr"
+        ],
+        "title": "PackageMember"
+      },
+      "PackageOptions": {
+        "properties": {
+          "packages": {
+            "items": {
+              "$ref": "#/components/schemas/TeamPackage"
+            },
+            "type": "array",
+            "title": "Packages"
+          }
+        },
+        "type": "object",
+        "required": [
+          "packages"
+        ],
+        "title": "PackageOptions"
+      },
       "Pathway": {
         "properties": {
           "role_id": {
@@ -5547,7 +7063,7 @@
             "type": "number",
             "minimum": 0.0,
             "title": "Out Of Pocket Myr",
-            "description": "What the learner pays after HRD Corp claims.",
+            "description": "Estimated list price before unquoted taxes/extras; HRD eligibility does not guarantee funding.",
             "default": 0
           },
           "budget_myr": {
@@ -7889,6 +9405,97 @@
         "title": "SyncReport",
         "description": "Result of refreshing reference data from its live source."
       },
+      "TeamPackage": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "free_first",
+              "budget_capped",
+              "broader"
+            ],
+            "title": "Kind"
+          },
+          "token": {
+            "type": "string",
+            "title": "Token"
+          },
+          "role_id": {
+            "type": "string",
+            "title": "Role Id"
+          },
+          "role_label": {
+            "type": "string",
+            "title": "Role Label"
+          },
+          "members": {
+            "items": {
+              "$ref": "#/components/schemas/PackageMember"
+            },
+            "type": "array",
+            "title": "Members"
+          },
+          "total_cost_myr": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Total Cost Myr"
+          },
+          "max_weeks": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Max Weeks"
+          },
+          "unmet_skills": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Unmet Skills"
+          },
+          "within_member_budgets": {
+            "type": "boolean",
+            "title": "Within Member Budgets"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RecommendationMeta"
+          },
+          "selected_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Selected At"
+          },
+          "selected_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Selected By"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "token",
+          "role_id",
+          "role_label",
+          "members",
+          "total_cost_myr",
+          "max_weeks",
+          "unmet_skills",
+          "within_member_budgets",
+          "meta"
+        ],
+        "title": "TeamPackage"
+      },
       "TopRole": {
         "properties": {
           "role_id": {
@@ -8121,7 +9728,8 @@
             "enum": [
               "no_catalogue_course",
               "over_budget",
-              "catalogue_tops_out"
+              "catalogue_tops_out",
+              "blocked_prerequisite"
             ],
             "title": "Reason"
           },
