@@ -1835,3 +1835,12 @@ html[data-busy] .a-main::after { content: ""; }
 .a-page .a-variant-in { display: grid; gap: inherit; gap: clamp(10px, 1.6vh, 14px); }
 .a-page .a-variant-pane[data-open="false"] { opacity: 0; transform: translateY(6px); visibility: hidden; pointer-events: none; transition: opacity 200ms ease, transform 200ms ease, visibility 0s linear 200ms; }
 @media (prefers-reduced-motion: reduce) { .a-page .a-variant-pane { transition: none; } }
+
+/* art tone follows the panel, not the page mode: sign-in stays light even for teams */
+.a-page .a-auth-art::before { opacity: 0; }
+.a-page .a-auth-art[data-tone="forest"]::before { opacity: 1; }
+.a-page .a-auth-art[data-tone="sage"] { color: var(--a-ink); border-color: #e2eadb; }
+.a-page .a-auth-art[data-tone="sage"] p { color: var(--a-muted); }
+.a-page .a-auth-art[data-tone="forest"] { color: #f1f7f2; border-color: #234430; }
+.a-page .a-auth-art[data-tone="forest"] p { color: #cfe1d4; }
+.a-page .a-auth-art-fig .a-iso.is-auth { width: 100%; max-width: 440px; height: auto; }

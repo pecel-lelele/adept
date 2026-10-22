@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { useActionState, useState } from "react";
 
 import { BrandLogo } from "@/components/shell/Brand";
+import { FeatureArt } from "@/components/viz/FeatureArt";
 import { OrgScene } from "@/components/viz/OrgScene";
 import { PathScene } from "@/components/viz/PathScene";
 
@@ -202,13 +203,29 @@ export function AuthView() {
           </div>
         </section>
         {/* The landing page's drawings: a career path for individuals, an office for teams. */}
-        <section className="a-auth-art" aria-hidden="true">
-          <div className="a-auth-art-copy" key={`copy-${workspace}`}>
-            <h2>{team ? t("artTeamTitle") : t("artTitle")}</h2>
-            <p>{team ? t("artTeamBody") : t("artBody")}</p>
+        {/* Sign in: what is waiting for you (skills radar, or the team roster). Create account:
+            where you are going (career path, or the office on the forest background). */}
+        <section className="a-auth-art" aria-hidden="true" data-tone={page === "signup" && team ? "forest" : "sage"}>
+          <div className="a-auth-art-copy" key={`copy-${page}-${workspace}`}>
+            <h2>
+              {page === "login"
+                ? t(team ? "signInTeamArtTitle" : "signInArtTitle")
+                : t(team ? "artTeamTitle" : "artTitle")}
+            </h2>
+            <p>
+              {page === "login"
+                ? t(team ? "signInTeamArtBody" : "signInArtBody")
+                : t(team ? "artTeamBody" : "artBody")}
+            </p>
           </div>
-          <div className="a-auth-art-fig" key={`fig-${workspace}`}>
-            {team ? <OrgScene /> : <PathScene />}
+          <div className="a-auth-art-fig" key={`fig-${page}-${workspace}`}>
+            {page === "login" ? (
+              <FeatureArt variant={team ? "roster" : "radar"} className="is-auth" />
+            ) : team ? (
+              <OrgScene />
+            ) : (
+              <PathScene />
+            )}
           </div>
         </section>
       </div>

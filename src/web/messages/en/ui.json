@@ -62,7 +62,11 @@
     "artTitle": "From who you are today to where you can be.",
     "artBody": "Tell us your skills, see which are rising, pick a future role and follow a plan.",
     "artTeamTitle": "Grow your team for the AI era.",
-    "artTeamBody": "See where your people stand, plan training together and track progress."
+    "artTeamBody": "See where your people stand, plan training together and track progress.",
+    "signInArtTitle": "Welcome back. Here's what moved.",
+    "signInArtBody": "Your skills radar updates with each new trend snapshot. Pick up your plan where you left it.",
+    "signInTeamArtTitle": "Your team, where you left it.",
+    "signInTeamArtBody": "See who joined, who finished their profile and how the team plan is going."
   },
   "landing": {
     "eyebrow": "Future-ready careers",

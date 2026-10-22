@@ -62,7 +62,11 @@
     "artTitle": "从今天的你，到你能成为的样子。",
     "artBody": "告诉我们你的技能，看看哪些在上升，选择未来职位并跟随计划。",
     "artTeamTitle": "让团队为 AI 时代成长。",
-    "artTeamBody": "了解成员现况，一起规划培训并追踪进度。"
+    "artTeamBody": "了解成员现况，一起规划培训并追踪进度。",
+    "signInArtTitle": "欢迎回来，看看有哪些变化。",
+    "signInArtBody": "你的技能雷达会随每次新的趋势快照更新。从上次停下的地方继续你的计划。",
+    "signInTeamArtTitle": "你的团队，一切如你离开时。",
+    "signInTeamArtBody": "查看谁已加入、谁完成了资料，以及团队计划的进展。"
   },
   "landing": {
     "eyebrow": "面向未来的职业",

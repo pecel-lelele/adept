@@ -62,7 +62,11 @@
     "artTitle": "Dari diri anda hari ini ke tempat yang anda boleh capai.",
     "artBody": "Beritahu kemahiran anda, lihat yang sedang meningkat, pilih peranan masa depan dan ikuti pelan.",
     "artTeamTitle": "Kembangkan pasukan anda untuk era AI.",
-    "artTeamBody": "Lihat kedudukan pasukan, rancang latihan bersama dan jejak kemajuan."
+    "artTeamBody": "Lihat kedudukan pasukan, rancang latihan bersama dan jejak kemajuan.",
+    "signInArtTitle": "Selamat kembali. Inilah yang berubah.",
+    "signInArtBody": "Radar kemahiran anda dikemas kini dengan setiap snapshot trend baharu. Sambung pelan anda dari tempat terakhir.",
+    "signInTeamArtTitle": "Pasukan anda, seperti yang anda tinggalkan.",
+    "signInTeamArtBody": "Lihat siapa yang menyertai, siapa yang melengkapkan profil dan kemajuan pelan pasukan."
   },
   "landing": {
     "eyebrow": "Kerjaya bersedia masa depan",
