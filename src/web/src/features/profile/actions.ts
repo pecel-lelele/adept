@@ -61,7 +61,7 @@ export async function saveIntakeAction(input: IntakeInput): Promise<IntakeResult
 /** Forward a CV to the parser. The file is processed in memory by the API and never stored. */
 export async function uploadCvAction(form: FormData): Promise<CvResult> {
   const file = form.get("file");
-  if (!(file instanceof File) || file.size === 0) return { error: "Choose a PDF or text file." };
+  if (!(file instanceof File) || file.size === 0) return { error: "Choose a PDF, Word (.docx) or text file." };
   if (file.size > 5 * 1024 * 1024) return { error: "Use a file under 5 MB." };
   const token = await getSessionToken();
   const body = new FormData();

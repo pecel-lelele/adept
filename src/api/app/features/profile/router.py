@@ -13,6 +13,7 @@ or a Bearer token (Supabase mode). See app/core/auth.py.
 """
 
 import asyncio
+from pathlib import Path
 
 from fastapi import APIRouter, UploadFile
 
@@ -27,6 +28,7 @@ from app.core.auth import CurrentUserDep
 from app.core.config import get_settings
 from app.core.errors import AppError
 from app.features.profile import service
+from app.features.profile.cv_parser import DOCX_MIME
 from app.features.profile.schemas import (
     QuestionnaireIn,
     QuestionnaireResponse,
@@ -77,7 +79,7 @@ def submit_questionnaire(data: QuestionnaireIn, user: CurrentUserDep) -> Questio
 # ---------------------------------------------------------------------------
 
 
-@router.post("", summary="Upsert core profile fields")
+@router.post("", summary="Upsert core profile fields (legacy)", deprecated=True)
 def upsert_profile(data: ProfileIn, user: CurrentUserDep) -> Profile:
     return service.upsert_profile(user, data)
 
@@ -96,12 +98,34 @@ def get_my_profile(user: CurrentUserDep) -> Profile:
 # M2-01: CV upload and parsing
 # ---------------------------------------------------------------------------
 
-_ALLOWED_CONTENT_TYPES = {"application/pdf", "text/plain"}
+ALLOWED_CV_TYPES = {"application/pdf", "text/plain", DOCX_MIME}
+
+
+_BY_EXTENSION = {".pdf": "application/pdf", ".docx": DOCX_MIME, ".txt": "text/plain"}
+
+
+def check_cv_type(content_type: str | None, filename: str | None = None) -> str:
+    """The upload's media type, or a 415 that says which formats work.
+
+    Some browsers send .docx files with no type (or a generic one); the extension decides then.
+    The parser still checks the bytes, so a renamed file cannot pass as another format.
+    """
+    ct = (content_type or "").lower().split(";")[0].strip()
+    if ct in ("", "application/octet-stream") and filename:
+        ct = _BY_EXTENSION.get(Path(filename).suffix.lower(), ct)
+    if ct not in ALLOWED_CV_TYPES:
+        hint = " Save it as .docx or PDF." if ct == "application/msword" else ""
+        raise AppError(
+            f"This file type is not supported. Upload a PDF, Word (.docx) or text CV.{hint}",
+            status_code=415,
+            code="unsupported_media_type",
+        )
+    return ct
 
 
 @router.post("/cv", summary="Upload CV for skill extraction (M2-01)")
 async def upload_cv(file: UploadFile, user: CurrentUserDep) -> CvExtractionResult:
-    """Accept a PDF or plain-text CV, extract skills against the taxonomy.
+    """Accept a PDF, Word (.docx) or plain-text CV, extract skills against the taxonomy.
 
     Safety rules:
       - Content type must be application/pdf or text/plain (4xx otherwise).
@@ -111,13 +135,7 @@ async def upload_cv(file: UploadFile, user: CurrentUserDep) -> CvExtractionResul
       - CPU-bound parsing runs in a thread via asyncio.to_thread to avoid
         blocking the event loop.
     """
-    ct = (file.content_type or "").lower().split(";")[0].strip()
-    if ct not in _ALLOWED_CONTENT_TYPES:
-        raise AppError(
-            f"Unsupported file type '{ct}'. Only application/pdf and text/plain are accepted.",
-            status_code=415,
-            code="unsupported_media_type",
-        )
+    ct = check_cv_type(file.content_type, file.filename)
     content = await read_capped(file, get_settings().max_upload_bytes)
     return await asyncio.to_thread(service.extract_cv, file.filename or "cv", content, ct)
 
@@ -138,7 +156,7 @@ def confirm_skills(data: SkillConfirmationIn, user: CurrentUserDep) -> SkillConf
     return service.confirm_skills(user, data)
 
 
-@router.put("/skills", summary="Replace skill list (legacy)")
+@router.put("/skills", summary="Replace skill list (legacy)", deprecated=True)
 def replace_skills(data: SkillsUpdate, user: CurrentUserDep) -> Profile:
     """Legacy endpoint. Prefer PUT /profile/skills/confirm for new integrations."""
     return service.replace_skills(user, data.skills)

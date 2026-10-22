@@ -2,6 +2,7 @@
 
 import uuid
 
+import pytest
 from fastapi.testclient import TestClient
 
 from app.core.security import session
@@ -179,3 +180,57 @@ def test_failed_organisation_setup_undoes_the_signup(client: TestClient, monkeyp
     monkeypatch.undo()
     # The email is free again, so the same person can simply retry.
     assert client.post("/api/v1/auth/signup", json=body).status_code == 201
+
+
+def test_export_and_delete_my_account(client: TestClient) -> None:
+    """PDPA: a person can download their data and delete their account with their password."""
+    signup = client.post(
+        "/api/v1/auth/signup",
+        json={
+            "display_name": "Delete Me",
+            "email": "delete.me@example.test",
+            "password": "correct-horse-1",
+            "consent": True,
+        },
+    )
+    assert signup.status_code == 201, signup.text
+    token = signup.json()["token"]
+    headers = {"X-Demo-User": token}
+
+    exported = client.get("/api/v1/auth/me/export", headers=headers)
+    assert exported.status_code == 200
+    assert exported.json()["account"]["email"] == "delete.me@example.test"
+    assert "attachment" in exported.headers["content-disposition"]
+
+    wrong = client.post("/api/v1/auth/me/delete", json={"password": "nope"}, headers=headers)
+    assert wrong.status_code == 401
+
+    gone = client.post(
+        "/api/v1/auth/me/delete", json={"password": "correct-horse-1"}, headers=headers
+    )
+    assert gone.status_code == 204
+    again = client.post(
+        "/api/v1/auth/login",
+        json={"email": "delete.me@example.test", "password": "correct-horse-1"},
+    )
+    assert again.status_code == 401
+
+
+def test_login_does_the_same_work_for_unknown_emails(monkeypatch: pytest.MonkeyPatch) -> None:
+    """An unknown email still runs a password check, so timing does not reveal accounts."""
+    from app.core.security import session
+    from app.features.accounts import service
+
+    calls: list[str | None] = []
+    real = session.check_password
+
+    def spy(password: str, stored: str | None) -> bool:
+        calls.append(stored)
+        return real(password, stored)
+
+    monkeypatch.setattr(session, "check_password", spy)
+    from app.core.errors import UnauthorizedError
+
+    with pytest.raises(UnauthorizedError):
+        service.login(service.LoginIn(email="nobody@example.test", password="whatever-1"))
+    assert calls and calls[0] and calls[0].startswith("scrypt$")

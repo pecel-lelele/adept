@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 
 import { Kpis, PageHeader, TrendPill } from "@/components";
 import { ErrorState } from "@/components/ErrorState";
+import { AccountDataCard } from "@/features/core/components/AccountDataCard";
 import { LevelPips } from "@/components/viz";
 import { fetchMyOrg } from "@/features/org/api";
 import { fetchRadar } from "@/features/trends/api";
@@ -146,6 +147,8 @@ export async function ProfileView({ scenario = "moderate" }: { scenario?: Scenar
               </div>
             </dl>
           </section>
+
+          <AccountDataCard />
 
           <Link className="a-card a-next" href="/app/radar">
             <span className="a-eyebrow">{tp("nextStep")}</span>

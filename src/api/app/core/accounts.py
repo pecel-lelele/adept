@@ -131,13 +131,33 @@ def create(account: Account, password_hash: str) -> Account:
     return account
 
 
-def delete(user_id: str) -> None:
-    """Remove an account (used to undo a sign-up whose second step failed)."""
+def delete(user_id: str, *, strict: bool = False) -> None:
+    """Remove an account and, through ON DELETE CASCADE, its profile, skills, plans, progress,
+    badges, evidence and memberships. An organisation whose last manager leaves is removed too
+    (its members keep their own accounts).
+
+    strict=False (undoing a failed sign-up) only logs a database error; strict=True (the person
+    asked to delete their account) raises it so they are never told it worked when it did not.
+    """
     if use_postgres():
         try:
-            with connection() as conn:
+            with connection() as conn, conn.transaction():
+                orphaned = conn.execute(
+                    """
+                    SELECT m.org_id FROM memberships m
+                    WHERE m.user_id = %s AND m.role <> 'member'
+                      AND NOT EXISTS (
+                        SELECT 1 FROM memberships o
+                        WHERE o.org_id = m.org_id AND o.role <> 'member' AND o.user_id <> %s)
+                    """,
+                    (user_id, user_id),
+                ).fetchall()
                 conn.execute("DELETE FROM users WHERE id = %s", (user_id,))
+                for row in orphaned:
+                    conn.execute("DELETE FROM organizations WHERE id = %s", (row["org_id"],))
         except psycopg.Error as exc:
+            if strict:
+                raise StorageUnavailableError("could not delete the account") from exc
             log.error("could not undo sign-up for %s: %s", user_id, exc)
     with _lock:
         _memory.pop(user_id, None)

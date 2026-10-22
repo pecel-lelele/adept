@@ -10,7 +10,7 @@ Tests for:
 from __future__ import annotations
 
 from datetime import date
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from fastapi.testclient import TestClient
 
@@ -64,6 +64,7 @@ def test_reachable_but_empty_database_resolves_to_fixture(client: TestClient) ->
 
     with (
         patch.object(repository, "_db_available", return_value=True),
+        patch.object(repository, "_get_connection", return_value=MagicMock()),
         patch.object(repository, "_list_snapshot_dates_db", return_value=[]),
     ):
         # 1. Authoritative source must be "fixture", NOT "db"
@@ -96,6 +97,7 @@ def test_populated_database_resolves_to_db_and_reflects_db_dates(client: TestCli
 
     with (
         patch.object(repository, "_db_available", return_value=True),
+        patch.object(repository, "_get_connection", return_value=MagicMock()),
         patch.object(repository, "_list_snapshot_dates_db", return_value=db_dates),
     ):
         assert repository.resolve_source() == "db"

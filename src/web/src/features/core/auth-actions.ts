@@ -89,3 +89,14 @@ export async function signOutAction(): Promise<void> {
   await clearSession();
   redirect("/");
 }
+
+/** Permanently delete the signed-in account after the API re-checks the password. */
+export async function deleteAccountAction(_: AuthState, form: FormData): Promise<AuthState> {
+  const password = typeof form.get("password") === "string" ? String(form.get("password")).slice(0, 128) : "";
+  if (form.get("confirm") !== "on") return { error: "Tick the box to confirm." };
+  const api = await getApi();
+  const result = await call(api.POST("/api/v1/auth/me/delete", { body: { password } }));
+  if (!result.ok) return { error: result.message };
+  await clearSession();
+  redirect("/?deleted=1");
+}

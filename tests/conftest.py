@@ -28,3 +28,11 @@ fixtures.install()
 @pytest.fixture
 def client() -> TestClient:
     return TestClient(app)
+
+
+@pytest.fixture(autouse=True)
+def _fresh_trend_cache() -> None:
+    """Each test sees the trend source it sets up, not a snapshot cached by an earlier test."""
+    from app.features.trends import service as trends_service
+
+    trends_service.clear_cache()

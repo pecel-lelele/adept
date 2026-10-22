@@ -18,7 +18,6 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.contracts.common import Source
-from app.contracts.trends import TrendSnapshotResponse
 from app.features.matching.trend_port import TrendSnapshot
 from app.features.trends import mocks as trends_mocks
 
@@ -101,11 +100,6 @@ def test_slow_snapshot_returns_503_quickly(client: TestClient, strict_matching: 
 
     _SLOW_RELEASE.set()
     assert _SLOW_FINISHED.wait(timeout=1)
-    from app.features.matching import trend_port
-
-    assert trend_port._WORKER_SLOT.acquire(timeout=1)
-    trend_port._WORKER_SLOT.release()
-
     assert resp.status_code == 503, f"Expected 503 on timeout, got {resp.status_code}: {resp.text}"
     assert elapsed < _FAST_DEADLINE, (
         f"Request took {elapsed:.2f}s — should have timed out in ~{_TIMEOUT_S}s"
@@ -146,241 +140,52 @@ def test_concurrent_match_requests_complete(client: TestClient) -> None:
     assert not non_200, f"Some requests failed: {non_200}"
 
 
-@pytest.mark.parametrize(
-    ("next_scenario", "next_date"),
-    [
-        ("fast", trends_mocks.AVAILABLE_MOCK_DATES[0]),
-        ("moderate", trends_mocks.AVAILABLE_MOCK_DATES[-1]),
-    ],
-)
-def test_different_snapshot_waits_for_running_read(next_scenario: str, next_date: date) -> None:
-    """Distinct requests queue behind the sole worker instead of failing fast."""
+def test_different_snapshots_are_read_in_parallel() -> None:
+    """Two users asking for different scenarios must not queue behind one another."""
     from app.features.matching import trend_port
 
-    first_date = trends_mocks.AVAILABLE_MOCK_DATES[0]
-    started = threading.Event()
-    release = threading.Event()
-    second_started = threading.Event()
-    active = 0
-    max_active = 0
-    active_lock = threading.Lock()
+    both_started = threading.Barrier(2, timeout=1)
 
-    def controlled_getter(snapshot_date: date | None, scenario: str) -> TrendSnapshotResponse:
-        nonlocal active, max_active
-        with active_lock:
-            active += 1
-            max_active = max(max_active, active)
-        try:
-            if scenario == "moderate" and snapshot_date == first_date:
-                started.set()
-                assert release.wait(timeout=2)
-            return trends_mocks.snapshot(scenario, snapshot_date)
-        finally:
-            with active_lock:
-                active -= 1
+    def getter(snapshot_date, scenario, strict=False):  # noqa: ANN001,ARG001
+        both_started.wait()  # only passes if the two reads run at the same time
+        return trends_mocks.snapshot(scenario, trends_mocks.AVAILABLE_MOCK_DATES[-1])
 
-    def second_read() -> TrendSnapshotResponse:
-        second_started.set()
-        return trend_port._call_with_timeout(next_scenario, next_date)
-
-    with patch("app.features.trends.service.get_snapshot", side_effect=controlled_getter):
+    with patch("app.features.trends.service.get_snapshot", side_effect=getter):
         with ThreadPoolExecutor(max_workers=2) as pool:
-            first = pool.submit(trend_port._call_with_timeout, "moderate", first_date)
-            try:
-                assert started.wait(timeout=1)
-                second = pool.submit(second_read)
-                assert second_started.wait(timeout=1)
-                time.sleep(0.05)
-                assert not second.done(), (
-                    "distinct snapshot was rejected before the worker finished"
-                )
-            finally:
-                release.set()
-
-            assert first.result(timeout=2).meta.snapshot_date == first_date
-            next_snapshot = second.result(timeout=2)
-
-    assert next_snapshot.meta.snapshot_date == next_date
-    assert next_snapshot.meta.scenario == next_scenario
-    assert max_active == 1
+            fast = pool.submit(trend_port._call_with_timeout, "fast")
+            moderate = pool.submit(trend_port._call_with_timeout, "moderate")
+            assert fast.result(timeout=3).meta.scenario == "fast"
+            assert moderate.result(timeout=3).meta.scenario == "moderate"
 
 
-def test_identical_requests_share_one_running_read() -> None:
+def test_timed_out_read_does_not_block_other_requests(strict_matching: None) -> None:
+    """A stuck read times out for its caller; the next caller is served normally."""
     from app.features.matching import trend_port
 
-    started = threading.Event()
     release = threading.Event()
-    second_started = threading.Event()
+    good = trends_mocks.snapshot("moderate", trends_mocks.AVAILABLE_MOCK_DATES[-1])
     calls = 0
 
-    def controlled_getter(snapshot_date: date | None, scenario: str) -> TrendSnapshotResponse:
-        nonlocal calls
-        calls += 1
-        started.set()
-        assert release.wait(timeout=2)
-        return trends_mocks.snapshot(scenario, snapshot_date)
-
-    def second_read() -> TrendSnapshotResponse:
-        second_started.set()
-        return trend_port._call_with_timeout("moderate")
-
-    with patch("app.features.trends.service.get_snapshot", side_effect=controlled_getter):
-        with ThreadPoolExecutor(max_workers=2) as pool:
-            first = pool.submit(trend_port._call_with_timeout, "moderate")
-            try:
-                assert started.wait(timeout=1)
-                second = pool.submit(second_read)
-                assert second_started.wait(timeout=1)
-                time.sleep(0.05)
-                assert not second.done()
-            finally:
-                release.set()
-
-            first_snapshot = first.result(timeout=2)
-            second_snapshot = second.result(timeout=2)
-
-    assert first_snapshot is second_snapshot
-    assert calls == 1
-
-
-def test_waiters_for_same_next_snapshot_share_one_read() -> None:
-    from app.features.matching import trend_port
-
-    first_started = threading.Event()
-    release_first = threading.Event()
-    next_started = threading.Event()
-    release_next = threading.Event()
-    waiters_started = threading.Event()
-    waiter_count = 0
-    next_calls = 0
-    count_lock = threading.Lock()
-
-    def controlled_getter(snapshot_date: date | None, scenario: str) -> TrendSnapshotResponse:
-        nonlocal next_calls
-        if scenario == "moderate":
-            first_started.set()
-            assert release_first.wait(timeout=2)
-        else:
-            with count_lock:
-                next_calls += 1
-            next_started.set()
-            assert release_next.wait(timeout=2)
-        return trends_mocks.snapshot(scenario, snapshot_date)
-
-    def queued_read() -> TrendSnapshotResponse:
-        nonlocal waiter_count
-        with count_lock:
-            waiter_count += 1
-            if waiter_count == 20:
-                waiters_started.set()
-        return trend_port._call_with_timeout("fast")
-
-    with patch("app.features.trends.service.get_snapshot", side_effect=controlled_getter):
-        with ThreadPoolExecutor(max_workers=21) as pool:
-            first = pool.submit(trend_port._call_with_timeout, "moderate")
-            try:
-                assert first_started.wait(timeout=1)
-                waiters = [pool.submit(queued_read) for _ in range(20)]
-                assert waiters_started.wait(timeout=1)
-                time.sleep(0.05)
-                release_first.set()
-                assert next_started.wait(timeout=1)
-                time.sleep(0.05)
-            finally:
-                release_first.set()
-                release_next.set()
-
-            first.result(timeout=2)
-            results = [future.result(timeout=2) for future in waiters]
-
-    assert next_calls == 1
-    assert all(result is results[0] for result in results)
-
-
-def test_different_snapshot_wait_is_bounded() -> None:
-    from app.features.matching import trend_port
-
-    started = threading.Event()
-    release = threading.Event()
-    calls = 0
-
-    def blocked_getter(snapshot_date: date | None, scenario: str) -> TrendSnapshotResponse:
-        nonlocal calls
-        calls += 1
-        started.set()
-        assert release.wait(timeout=2)
-        return trends_mocks.snapshot(scenario, snapshot_date)
-
-    with (
-        patch("app.features.trends.service.get_snapshot", side_effect=blocked_getter),
-        patch.object(trend_port, "WORKER_WAIT_S", 0.1),
-    ):
-        with ThreadPoolExecutor(max_workers=2) as pool:
-            first = pool.submit(trend_port._call_with_timeout, "moderate")
-            try:
-                assert started.wait(timeout=1)
-                began = time.monotonic()
-                with pytest.raises(trend_port.TrendUnavailable, match="still running"):
-                    trend_port._call_with_timeout("fast")
-                elapsed = time.monotonic() - began
-                assert elapsed >= 0.08
-                assert elapsed < 0.5
-                assert calls == 1
-            finally:
-                release.set()
-            first.result(timeout=2)
-
-
-def test_timed_out_getter_does_not_spawn_more_workers(strict_matching: None) -> None:
-    """A stuck getter occupies the sole slot until it really finishes."""
-    from app.features.matching import trend_port
-
-    started = threading.Event()
-    release = threading.Event()
-    finished = threading.Event()
-    calls = 0
-
-    def blocked_getter(snapshot_date, scenario, strict=False):  # noqa: ANN001,ARG001
+    def getter(snapshot_date, scenario, strict=False):  # noqa: ANN001,ARG001
         nonlocal calls
         assert strict is True
         calls += 1
-        started.set()
-        release.wait(timeout=2)
-        finished.set()
-        return None
+        if calls == 1:
+            release.wait(timeout=2)
+        return good
 
     with (
-        patch("app.features.trends.service.get_snapshot", side_effect=blocked_getter),
+        patch("app.features.trends.service.get_snapshot", side_effect=getter),
         patch.object(trend_port, "SNAPSHOT_TIMEOUT_S", 0.05),
-        patch.object(trend_port, "WORKER_WAIT_S", 0.1),
     ):
         try:
             with pytest.raises(trend_port.TrendUnavailable, match="timed out"):
                 trend_port._call_with_timeout("moderate")
-            assert started.wait(timeout=1)
-
-            started_followups = time.monotonic()
-            with ThreadPoolExecutor(max_workers=30) as pool:
-                followups = [
-                    pool.submit(trend_port._call_with_timeout, "moderate") for _ in range(30)
-                ]
-                errors = [future.exception(timeout=1) for future in followups]
-            followup_elapsed = time.monotonic() - started_followups
-
-            assert all(isinstance(error, trend_port.TrendUnavailable) for error in errors)
-            assert all("still running" in str(error) for error in errors)
-            assert followup_elapsed < 0.5, f"Follow-up calls took {followup_elapsed:.3f}s"
-            assert calls == 1
-            active_workers = [
-                thread for thread in threading.enumerate() if thread.name == "matching-m1-trends"
-            ]
-            assert len(active_workers) <= 1
+            started = time.monotonic()
+            assert trend_port._call_with_timeout("moderate") is good
+            assert time.monotonic() - started < 0.5
         finally:
             release.set()
-
-        assert finished.wait(timeout=1)
-        assert trend_port._WORKER_SLOT.acquire(timeout=1)
-        trend_port._WORKER_SLOT.release()
 
 
 def test_m1_strict_timeout_maps_to_matching_503(client: TestClient, strict_matching: None) -> None:

@@ -67,3 +67,14 @@ def test_upload_cv_accepts_file_at_the_limit(
     monkeypatch.setattr(get_settings(), "max_upload_bytes", 1024)
     files = {"file": ("ok.txt", b"x" * 1024, "text/plain")}
     assert client.post("/api/v1/profile/cv", files=files).status_code == 200
+
+
+def test_legacy_skill_replace_rejects_invented_skills(client: TestClient) -> None:
+    """Never invent: the legacy endpoint applies the same taxonomy check as confirmation."""
+    resp = client.put(
+        "/api/v1/profile/skills",
+        json={"skills": [{"skill_id": "telepathy", "level": 5, "source": "form"}]},
+        headers=WEIJIE,
+    )
+    assert resp.status_code == 422
+    assert resp.json()["error"]["code"] == "unknown_skill"

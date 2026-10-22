@@ -39,3 +39,22 @@ class SessionResponse(BaseModel):
     token: str = Field(description="Signed session token; keep it in an httpOnly cookie.")
     account: Account
     next_path: str = Field(description="Where the web app should send the user next.")
+
+
+class DeleteAccountIn(BaseModel):
+    """Deleting an account is permanent, so the current password is asked again."""
+
+    password: str = Field(min_length=1, max_length=128)
+
+
+class AccountExport(BaseModel):
+    """Everything Adept stores about the signed-in person (PDPA access request)."""
+
+    exported_at: str
+    account: Account
+    profile: dict[str, object] | None = None
+    saved_plan: dict[str, object] | None = None
+    notice: str = (
+        "This file holds your Adept account, profile and saved plan. CV files are never "
+        "stored: they are read in memory and discarded."
+    )

@@ -6,6 +6,8 @@ exposes `router` is mounted under /api/v1. Nobody edits this file to add routes.
 
 import importlib
 import pkgutil
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,6 +15,7 @@ from fastapi.routing import APIRoute
 
 from app import features
 from app.core.config import get_settings
+from app.core.db import close_pools
 from app.core.errors import register_error_handlers
 from app.core.logging import configure_logging, get_logger
 from app.core.routes import router as core_router
@@ -44,14 +47,29 @@ def _operation_id(route: APIRoute) -> str:
     return f"{tag}_{route.name}"
 
 
+@asynccontextmanager
+async def _lifespan(_: FastAPI) -> AsyncIterator[None]:
+    yield
+    close_pools()
+
+
 def create_app() -> FastAPI:
     settings = get_settings()
     configure_logging(settings.log_level)
+    errors, warnings = settings.deployment_problems()
+    for warning in warnings:
+        log.warning("config: %s", warning)
+    if errors:
+        raise RuntimeError("Refusing to start in production: " + " ".join(errors))
     app = FastAPI(
         title=settings.app_name,
         version=settings.version,
         separate_input_output_schemas=False,
         generate_unique_id_function=_operation_id,
+        lifespan=_lifespan,
+        # Interactive API docs are for development; production serves only the API.
+        docs_url=None if settings.app_env == "production" else "/docs",
+        redoc_url=None if settings.app_env == "production" else "/redoc",
     )
     install_security(app, settings)
     app.add_middleware(

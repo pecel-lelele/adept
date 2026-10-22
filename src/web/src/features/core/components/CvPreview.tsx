@@ -13,7 +13,10 @@ type Preview = Schemas["GuestPreview"];
 /** Skills found on the landing page, picked up by the intake after sign-up. */
 export const CV_SKILLS_KEY = "adept.cv-skills";
 const MAX_BYTES = 5 * 1024 * 1024;
-const TYPES = ["application/pdf", "text/plain"];
+const DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+const TYPES = ["application/pdf", "text/plain", DOCX];
+/** Some browsers leave `type` empty for .docx files; fall back to the extension. */
+const EXTENSIONS = /\.(pdf|docx|txt)$/i;
 
 /**
  * Landing CV preview: anyone can upload a CV and see part of the result straight away (skills
@@ -34,7 +37,7 @@ export function CvPreview() {
     setError("");
     setResult(null);
     if (!next) return;
-    if (next.size > MAX_BYTES || !TYPES.includes(next.type)) {
+    if (next.size > MAX_BYTES || !(TYPES.includes(next.type) || EXTENSIONS.test(next.name))) {
       setFile(null);
       setError(t("errorType"));
       return;
@@ -117,7 +120,7 @@ export function CvPreview() {
           </span>
           <h2>{file ? file.name : t("dropTitle")}</h2>
           <p className="a-muted a-small">{t("dropBody")}</p>
-          <input ref={input} type="file" accept=".pdf,.txt,application/pdf,text/plain" hidden onChange={(e) => pick(e.target.files?.[0])} />
+          <input ref={input} type="file" accept=".pdf,.docx,.txt,application/pdf,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden onChange={(e) => pick(e.target.files?.[0])} />
           <label className="a-check" style={{ maxWidth: 440, textAlign: "left" }}>
             <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
             {t("consentCv")}

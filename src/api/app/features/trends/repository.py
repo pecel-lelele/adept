@@ -187,17 +187,11 @@ def resolve_context(strict: bool = False) -> ResolvedContext:
                 source="fixture", available_dates=list(mocks.AVAILABLE_MOCK_DATES)
             )
 
-    # Preserve the legacy date-loader test seam without opening a connection.
-    from unittest.mock import Mock
-
     conn = None
     dates: list[date] = []
     try:
-        if isinstance(_list_snapshot_dates_db, Mock):
-            dates = _list_snapshot_dates_db()
-        else:
-            conn = _get_connection()
-            dates = _list_snapshot_dates_db(conn=conn, strict=strict)
+        conn = _get_connection()
+        dates = _list_snapshot_dates_db(conn=conn, strict=strict)
         _db_status_cache = (True, now)
         if dates:
             return ResolvedContext(source="db", available_dates=dates, conn=conn)
