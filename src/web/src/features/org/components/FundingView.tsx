@@ -1,27 +1,36 @@
 import Link from "next/link";
+import Form from "next/form";
 import { getTranslations } from "next-intl/server";
 import { ApiError, PageHeader } from "@/components";
 import { ActionForm } from "@/features/pathway/components/ActionForm";
 import { call, getApi } from "@/lib/api";
 import { AssignedPackageView } from "./AssignedPackageView";
 import { fundingAction } from "../funding-actions";
+import { currentBudgetYear } from "../funding-year";
 
-export async function FundingView() {
+export async function FundingView({ year = currentBudgetYear() }: { year?: number }) {
   const t = await getTranslations("org.funding");
   const api = await getApi();
-  const year = new Date().getFullYear();
   const result = await call(api.GET("/api/v1/org/funding/{year}", { params: { path: { year } } }));
   if (!result.ok) return <ApiError message={result.message} />;
   const ledger = result.data;
-  const catalogue = !ledger.manager ? await call(api.GET("/api/v1/pathway/catalogue")) : null;
-  const matches = !ledger.manager ? await call(api.GET("/api/v1/matches")) : null;
+  const requesting = !ledger.manager && year === currentBudgetYear();
+  const catalogue = requesting ? await call(api.GET("/api/v1/pathway/catalogue")) : null;
+  const matches = requesting ? await call(api.GET("/api/v1/matches")) : null;
   const names = ledger.manager ? await call(api.GET("/api/v1/org/members")) : null;
   const name = (id: string) => names?.ok ? names.data.members.find(m => m.id === id)?.display_name ?? id : id;
   const amount = (value: string | number) => Number(value).toLocaleString("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   return <div className="a-view">
     <PageHeader title={t("title")} description={t("description", { year })} />
     <p className="a-notice">{t("policy")}</p>
-    {!ledger.manager ? <AssignedPackageView /> : null}
+    <Form action={ledger.manager ? "/org/funding" : "/app/funding"} className="a-rolepick">
+      <label className="a-field">{t("budgetYear")}<select name="year" defaultValue={year} className="a-select">
+        {(ledger.available_years ?? [year]).map(y => <option key={y} value={y}>{y}</option>)}
+      </select></label>
+      <button className="a-btn is-small" type="submit">{t("openYear")}</button>
+    </Form>
+    {year !== currentBudgetYear() ? <p className="a-notice">{t("historicalYear")}</p> : null}
+    {requesting ? <AssignedPackageView /> : null}
     <p><Link className="a-link" href={ledger.manager ? "/org/plan" : "/app/progress"}>{t("back")}</Link></p>
     {ledger.budgets.map(b => <section className="a-card" key={b.user_id}>
       <h2>{name(b.user_id)}</h2>
@@ -30,7 +39,7 @@ export async function FundingView() {
         <label className="a-field">{t("annualBudget")}<input className="a-input" name="amount_myr" type="number" min="0" max="1000000" step="0.01" required defaultValue={Number(b.amount_myr)} /></label>
       </ActionForm> : null}
     </section>)}
-    {!ledger.manager && catalogue?.ok && matches?.ok ? <section className="a-card">
+    {requesting && catalogue?.ok && matches?.ok ? <section className="a-card">
       <h2>{t("request")}</h2>
       <ActionForm action={fundingAction} fields={{ op: "request", year: String(year) }} label={t("request")}>
         <label className="a-field">{t("role")}<select className="a-select" name="role_id" required>{matches.data.matches.map(r => <option key={r.role_id} value={r.role_id}>{r.label}</option>)}</select></label>
@@ -42,7 +51,7 @@ export async function FundingView() {
     <h2>{t("requests")}</h2>
     {ledger.claims.length === 0 ? <p>{t("empty")}</p> : null}
     {ledger.claims.map(c => {
-      const fields = { year: String(year), claim_id: c.id, revision: String(c.revision) };
+      const fields = { year: String(c.year), claim_id: c.id, revision: String(c.revision) };
       return <section className="a-card" key={c.id}>
         <h3>{c.course.title} · {name(c.user_id)}</h3>
         <p>{t(`status.${c.status}`)} · {t("amount")}: RM {amount(c.requested_myr)} · {t("claimed")}: RM {amount(c.claimed_myr)}</p>

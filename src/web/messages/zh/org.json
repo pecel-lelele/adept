@@ -58,7 +58,10 @@
       "rejected": "已拒绝",
       "cancelled": "已取消"
     },
-    "sendCertificate": "提交证书供 HR 审核"
+    "sendCertificate": "提交证书供 HR 审核",
+    "budgetYear": "预算年度",
+    "openYear": "查看年度",
+    "historicalYear": "历史预算年度：已获批准的购买仍可提交证书、收据报销及付款记录，并归入原年度。新申请使用当前年度。"
   },
   "packages": {
     "title": "比较团队学习方案",

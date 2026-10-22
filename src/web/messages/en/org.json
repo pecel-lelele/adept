@@ -58,7 +58,10 @@
       "rejected": "Rejected",
       "cancelled": "Cancelled"
     },
-    "sendCertificate": "Submit certificate for HR review"
+    "sendCertificate": "Submit certificate for HR review",
+    "budgetYear": "Budget year",
+    "openYear": "Open year",
+    "historicalYear": "Historical budget year: approved purchases can still submit certificates, claim receipts and record payment against their original year. New requests use the current year."
   },
   "packages": {
     "title": "Compare team learning packages",

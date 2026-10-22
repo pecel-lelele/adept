@@ -1111,3 +1111,13 @@
 - **Affects**: M3 pathways/SDG, M4 organisation and shared database access.
 - **Replaces**: none
 - **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses
+
+### M4-041: fix(web): keep prior-year learning claims accessible
+- **Date**: 2026-10-23
+- **Feature**: F5, F6, F7 / Core integration
+- **Type**: UI
+- **Change**: Add a budget-year selector on both funding pages using the API-provided accessible years. Preserve each claim year in every action, keep historic certificate/receipt/payment forms usable, and limit new purchase requests to the current Malaysia budget year. Historical views avoid unnecessary live catalogue, matching and proposal reads.
+- **Why**: Greptile 4352984368: a December approval disappeared from the UI in January even though the backend retained the original record.
+- **Affects**: M3 pathways/SDG, M4 organisation and shared database access.
+- **Replaces**: none
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses

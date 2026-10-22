@@ -58,7 +58,10 @@
       "rejected": "Ditolak",
       "cancelled": "Dibatalkan"
     },
-    "sendCertificate": "Hantar sijil untuk semakan HR"
+    "sendCertificate": "Hantar sijil untuk semakan HR",
+    "budgetYear": "Tahun bajet",
+    "openYear": "Buka tahun",
+    "historicalYear": "Tahun bajet terdahulu: pembelian diluluskan masih boleh menghantar sijil, menuntut resit dan merekod bayaran mengikut tahun asal. Permohonan baharu menggunakan tahun semasa."
   },
   "packages": {
     "title": "Banding pakej pembelajaran pasukan",
