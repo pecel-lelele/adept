@@ -9,13 +9,13 @@ Fixes since the audited revision `968182b`. Each line says what changed and how 
 | ID | Status | What changed | Verified by |
 |---|---|---|---|
 | H01 | Fixed in code; deployment unverified | `pipelines/trends/run.py` chains ingest → score → validate → publish. Validation refuses one-week, short, unknown-id or non-finite snapshots; nothing is written on failure. Snapshot rows and provenance go in one transaction. `.github/workflows/trends-refresh.yml` runs weekly when `TREND_DATABASE_URL` is set. | `tests/pipelines/trends/test_run.py`. Controlled local run with synthetic signals published snapshot 2026-10-22; the API served it as latest with `observed_from/to` 2026-10-12..18; test rows were then removed. Not run against a deployed database or a fresh arXiv pull (needs `sentence-transformers` and network). |
-| H02 | Open: needs a team decision | Not changed. | — |
+| H02 | Closed by design (user decision, 22 Oct 2026) | The app behaves as a real product: sign-up and CV upload accept real input. The hackathon demo is run by the team with synthetic accounts and synthetic CVs only; no in-app restriction or warning is added. | — |
 | H03 | Wording fixed; human review still open | The UN Goals score part no longer says "reviewed links"; it states how many of the role's links a person reviewed. No mapping was marked reviewed. | `test_ranking_explanation_says_how_many_links_are_drafts`. |
 | H04 | Fixed | Weight (`sdg`) and snapshot carried from the matches list to role detail and replay (`/matches/replay?sdg_weight=`); outlook takes `snapshot_date`; replay reasons use the scorer's percentile positions. | `tests/api/matching/test_sdg_weight_and_replay.py` (detail score = list score; weighted replay order = weighted list order; percentile driver; outlook date). |
 | H05 | Fixed | `/sdg/contribution/org` and `/region/{state}` take `role_id`; the Impact page passes the team plan's role. | `test_org_and_region_contribution_follow_the_selected_role`. |
 | H06 | Fixed for interface strings | Every BM/Chinese string the app uses is translated; ~100 unused keys removed; badges named from their id. API-generated sentences (plan warnings, replan messages, SDG reasons) remain English. | `i18n-check`; TypeScript (removed keys are type-checked). |
 | H07 | Fixed | Next.js dev indicator off. | Mobile "More" and the sidebar language switch receive clicks. Production build not separately rechecked. |
-| H08 | Open: needs an M2/M3 policy decision | Not changed. | — |
+| H08 | Fixed (policy decided 22 Oct 2026) | Completed courses raise a skill's level for matching only with accepted evidence: confirmed by the organisation's reviewer, or a certificate link that opens on the provider's own verification page. Self-ticked, unreachable-link and rejected completions show progress but do not change matches. Matching uses the higher of the intake level and the evidenced level (`pathway.service.evidenced_levels`). | `tests/api/pathway/test_earned_levels.py` (policy and matching profile). |
 | H09 | Fixed | `observed_from` / `observed_to` on snapshot and recommendation metadata; the sources line shows the measured period; the Radar warns when 2024 observations are replayed as a 2026 snapshot. | `tests/api/trends/test_provenance.py`; API returns 2024-10-13..19 for the 2026-10-20 demo snapshot. |
 | H10 | Fixed | Evidence text says a certificate link only shows the page opens on the provider's site; a reviewer confirms it. Landing "Verified completions" → "Reviewed completions". | Existing `test_reviewers_only_see_their_own_members` / `test_learners_cannot_review` still pass. |
 
@@ -257,7 +257,7 @@ Suggested evaluation target: at least **20% lower median time to produce a valid
 ## Demonstration guidance
 
 - Use Ravi to demonstrate a real rank-order change across 2026-10-13 and 2026-10-20; Aisyah/Wei Jie demonstrate score changes without rank movement.
-- Keep the demo's synthetic account/file restriction explicit until enforcement exists.
+- Run the demo with synthetic accounts and the synthetic sample CVs only (H02 decision: no in-app restriction).
 - Do not describe seeded SDG mappings as human-reviewed.
 - Do not describe frozen fixtures as continuously refreshed live data.
 - Keep PostgreSQL persistence and fresh-source validation marked unverified until tested against the intended deployment.

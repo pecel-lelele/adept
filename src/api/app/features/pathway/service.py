@@ -425,6 +425,46 @@ def _badge_label(
     return "milestone", None, names.get(key, key)
 
 
+# Evidence that lets completed learning raise a skill level for matching (H08, decided
+# 2026-10-22): a reviewer's confirmation, or a certificate link that opens on the provider's
+# own verification page. Self-ticked courses show progress but do not change matches.
+EARNED_EVIDENCE = frozenset({"org_confirmed", "certificate_link"})
+
+
+def earned_levels(
+    courses: Mapping[str, Course],
+    statuses: Mapping[str, str],
+    evidence: Mapping[str, CompletionEvidence],
+) -> dict[str, int]:
+    """Skill -> highest level reached by completed, evidenced courses (pure)."""
+    out: dict[str, int] = {}
+    for cid, status in statuses.items():
+        course = courses.get(cid)
+        if status != "completed" or course is None:
+            continue
+        if verification.evidence_strength(evidence.get(cid)) not in EARNED_EVIDENCE:
+            continue
+        for sid in course.skill_ids:
+            out[sid] = max(out.get(sid, 0), course.level)
+    return out
+
+
+def evidenced_levels(user_id: str) -> dict[str, int]:
+    """Levels the learner has shown on their saved plan, under the evidence policy above.
+
+    Matching takes the higher of these and the intake level, so accepted evidence updates the
+    skills gap and the score; rejected or unverified completions change nothing.
+    """
+    saved = repository.get_plan(user_id)
+    if saved is None:
+        return {}
+    evidence = repository.evidence(user_id, saved.role_id)
+    statuses = verification.effective_statuses(
+        repository.course_status(user_id, saved.role_id), evidence
+    )
+    return earned_levels(_plan_courses(saved.pathway), statuses, evidence)
+
+
 def _plan_courses(plan: Pathway) -> dict[str, Course]:
     """Course facts as saved in the plan. Progress uses these, never the live catalogue, so a
     course retired later keeps the credit a learner already earned with it."""

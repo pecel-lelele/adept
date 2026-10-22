@@ -904,3 +904,13 @@
 - **Affects**: M1 (pipeline), M4 F7 contract addition (`role_gaps`).
 - **Replaces**: none
 - **PR / branch**: feat/core-insight-design
+
+### M4-021: H08 evidence policy for matching; H02 closed by design
+- **Date**: 2026-10-22
+- **Feature**: F4, F5 (Core integration)
+- **Type**: feature / decision
+- **Change**: Completed learning now feeds role matching under the policy the user chose: a course's skill level counts when the completion is confirmed by the organisation's reviewer (`org_confirmed`) or has a certificate link that opens on the provider's own verification page (`certificate_link` with `provider_verified`). Self-reported, unreachable or rejected completions do not change matches. `pathway.service.earned_levels` (pure) and `evidenced_levels(user_id)` compute the levels from the saved plan; `matching.repository._load_profile` takes the higher of the intake and evidenced level per skill, so the skills gap, score and pathway update together. H02 (synthetic-only enforcement) is closed by design: the app behaves as a real product and the team runs the demo with synthetic data only.
+- **Why**: Handoff H08 and H02, decided by the user.
+- **Affects**: M2 (matching profile input), M3 (evidence semantics now affect matching).
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design
