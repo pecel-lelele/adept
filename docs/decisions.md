@@ -1131,3 +1131,13 @@
 - **Affects**: M3 pathways/SDG, M4 organisation and shared database access.
 - **Replaces**: none
 - **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses
+
+### M4-043: fix(sdg): include official target text in alignment evidence
+- **Date**: 2026-10-23
+- **Feature**: F5, F6, F7 / Core integration
+- **Type**: data source
+- **Change**: Populate all 48 new role alignment evidence notes from the official target label column. Preserve draft enabling status and the explicit distinction between curated alignment and measured impact. Add a regression requiring the actual target definition in every new evidence note.
+- **Why**: Greptile 4352984399: the generator looked for absent title/description fields instead of label, leaving blank target quotations.
+- **Affects**: M3 pathways/SDG, M4 organisation and shared database access.
+- **Replaces**: none
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses
