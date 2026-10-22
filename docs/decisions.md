@@ -1061,3 +1061,13 @@
 - **Affects**: M3 completion verification; M4 finance workflow and security. Tests cover synthetic claim lifecycle, reservation races, scope, stale/revoked proof, export/deletion and blocked redirects.
 - **Replaces**: none
 - **PR / branch**: feat/catalogue-roles-skills-courses
+
+### M4-036: feat(org): compare and assign member-specific learning packages
+- **Date**: 2026-10-23
+- **Feature**: F1, F4, F5, F6, F7 / Core integration
+- **Type**: method | contract
+- **Change**: Offer free-first, per-member-budget-capped and broader-catalogue proposals for an HR-selected role and cohort of 1–50 completed profiles. Reuse F5 for each member, expose costs/time/unmet skills and combined provenance, reject stale offer hashes, persist the selected proposal and require explicit member adoption. Selection does not purchase, reserve funds or overwrite personal plans.
+- **Why**: HR needs comparable, concrete choices rather than one automatically chosen team curriculum. Identical free coverage can legitimately yield coinciding options.
+- **Affects**: M3 pathway engine; M4 organisation APIs and member adoption. Synthetic tests verify cohort isolation, stale budget offers and consent.
+- **Replaces**: none
+- **PR / branch**: feat/catalogue-roles-skills-courses
