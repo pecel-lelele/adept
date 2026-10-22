@@ -48,6 +48,28 @@
         }
       }
     },
+    "/api/v1/meta/overview": {
+      "get": {
+        "tags": [
+          "core"
+        ],
+        "summary": "Platform Overview",
+        "description": "Live figures for the home page: trends, roles, courses and SDG coverage (no sign-in).",
+        "operationId": "core_platform_overview",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformOverview"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/auth/signup": {
       "post": {
         "tags": [
@@ -304,6 +326,20 @@
             "description": "Replay an older trend snapshot (YYYY-MM-DD). Omit for the latest."
           },
           {
+            "name": "sdg_weight",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "maximum": 1,
+              "minimum": 0,
+              "description": "How much the UN Goals count in the ranking, 0..1. 0 (default) keeps the standard score; above 0 adds an 'sdg_impact' part and scales the others down.",
+              "default": 0.0,
+              "title": "Sdg Weight"
+            },
+            "description": "How much the UN Goals count in the ranking, 0..1. 0 (default) keeps the standard score; above 0 adds an 'sdg_impact' part and scales the others down."
+          },
+          {
             "name": "x-demo-user",
             "in": "header",
             "required": false,
@@ -343,6 +379,117 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/MatchResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/matches/replay": {
+      "get": {
+        "tags": [
+          "matching"
+        ],
+        "summary": "Replay",
+        "description": "What changed in the learner's role ranking between two snapshots, and why.",
+        "operationId": "matching_replay",
+        "parameters": [
+          {
+            "name": "from_date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "description": "The earlier snapshot (YYYY-MM-DD).",
+              "title": "From Date"
+            },
+            "description": "The earlier snapshot (YYYY-MM-DD)."
+          },
+          {
+            "name": "scenario",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "moderate",
+                "fast"
+              ],
+              "type": "string",
+              "default": "moderate",
+              "title": "Scenario"
+            }
+          },
+          {
+            "name": "to_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The later snapshot; latest if omitted.",
+              "title": "To Date"
+            },
+            "description": "The later snapshot; latest if omitted."
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReplayResponse"
                 }
               }
             }
@@ -409,6 +556,20 @@
               "title": "Snapshot Date"
             },
             "description": "Replay an older trend snapshot (YYYY-MM-DD). Omit for the latest."
+          },
+          {
+            "name": "sdg_weight",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "maximum": 1,
+              "minimum": 0,
+              "description": "How much the UN Goals count in the ranking, 0..1. 0 (default) keeps the standard score; above 0 adds an 'sdg_impact' part and scales the others down.",
+              "default": 0.0,
+              "title": "Sdg Weight"
+            },
+            "description": "How much the UN Goals count in the ranking, 0..1. 0 (default) keeps the standard score; above 0 adds an 'sdg_impact' part and scales the others down."
           },
           {
             "name": "x-demo-user",
@@ -4630,6 +4791,74 @@
         ],
         "title": "OutlookResponse"
       },
+      "OverviewRole": {
+        "properties": {
+          "role_id": {
+            "type": "string",
+            "title": "Role Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "outlook": {
+            "type": "number",
+            "title": "Outlook",
+            "description": "Demand index under the moderate scenario (1 = today)."
+          },
+          "low": {
+            "type": "number",
+            "title": "Low"
+          },
+          "high": {
+            "type": "number",
+            "title": "High"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role_id",
+          "label",
+          "outlook",
+          "low",
+          "high"
+        ],
+        "title": "OverviewRole"
+      },
+      "OverviewSkill": {
+        "properties": {
+          "skill_id": {
+            "type": "string",
+            "title": "Skill Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "velocity": {
+            "type": "number",
+            "title": "Velocity",
+            "description": "Moderate-scenario velocity from the latest snapshot."
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "rising",
+              "declining",
+              "stable"
+            ],
+            "title": "Direction"
+          }
+        },
+        "type": "object",
+        "required": [
+          "skill_id",
+          "label",
+          "velocity",
+          "direction"
+        ],
+        "title": "OverviewSkill"
+      },
       "Pathway": {
         "properties": {
           "role_id": {
@@ -4897,6 +5126,102 @@
         ],
         "title": "PlanChange"
       },
+      "PlatformOverview": {
+        "properties": {
+          "skills_in_bank": {
+            "type": "integer",
+            "title": "Skills In Bank",
+            "description": "Skills a learner can pick (taxonomy)."
+          },
+          "skills_tracked": {
+            "type": "integer",
+            "title": "Skills Tracked",
+            "description": "Skills with a trend in the latest snapshot."
+          },
+          "rising": {
+            "type": "integer",
+            "title": "Rising"
+          },
+          "stable": {
+            "type": "integer",
+            "title": "Stable"
+          },
+          "declining": {
+            "type": "integer",
+            "title": "Declining"
+          },
+          "top_rising": {
+            "items": {
+              "$ref": "#/components/schemas/OverviewSkill"
+            },
+            "type": "array",
+            "title": "Top Rising"
+          },
+          "top_declining": {
+            "items": {
+              "$ref": "#/components/schemas/OverviewSkill"
+            },
+            "type": "array",
+            "title": "Top Declining"
+          },
+          "roles": {
+            "type": "integer",
+            "title": "Roles",
+            "description": "Future roles the matcher ranks."
+          },
+          "top_roles": {
+            "items": {
+              "$ref": "#/components/schemas/OverviewRole"
+            },
+            "type": "array",
+            "title": "Top Roles"
+          },
+          "courses": {
+            "type": "integer",
+            "title": "Courses"
+          },
+          "free_courses": {
+            "type": "integer",
+            "title": "Free Courses"
+          },
+          "hrd_claimable_courses": {
+            "type": "integer",
+            "title": "Hrd Claimable Courses"
+          },
+          "providers": {
+            "type": "integer",
+            "title": "Providers"
+          },
+          "sdg_goals_linked": {
+            "type": "integer",
+            "title": "Sdg Goals Linked",
+            "description": "Distinct SDGs linked to at least one role."
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RecommendationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "skills_in_bank",
+          "skills_tracked",
+          "rising",
+          "stable",
+          "declining",
+          "top_rising",
+          "top_declining",
+          "roles",
+          "top_roles",
+          "courses",
+          "free_courses",
+          "hrd_claimable_courses",
+          "providers",
+          "sdg_goals_linked",
+          "meta"
+        ],
+        "title": "PlatformOverview",
+        "description": "Live figures for the public home page, computed from the same data the app uses."
+      },
       "Profile": {
         "properties": {
           "segment": {
@@ -4929,6 +5254,19 @@
           "hrd_eligible": {
             "type": "boolean",
             "title": "Hrd Eligible"
+          },
+          "learning_style": {
+            "type": "string",
+            "enum": [
+              "video",
+              "reading",
+              "hands-on",
+              "classroom",
+              "mixed"
+            ],
+            "title": "Learning Style",
+            "description": "Preferred way to learn.",
+            "default": "mixed"
           },
           "user_id": {
             "type": "string",
@@ -5001,6 +5339,19 @@
           "hrd_eligible": {
             "type": "boolean",
             "title": "Hrd Eligible"
+          },
+          "learning_style": {
+            "type": "string",
+            "enum": [
+              "video",
+              "reading",
+              "hands-on",
+              "classroom",
+              "mixed"
+            ],
+            "title": "Learning Style",
+            "description": "Preferred way to learn.",
+            "default": "mixed"
           }
         },
         "type": "object",
@@ -5391,6 +5742,76 @@
         ],
         "title": "ReplanStatus"
       },
+      "ReplayDriver": {
+        "properties": {
+          "skill_id": {
+            "type": "string",
+            "title": "Skill Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "velocity_before": {
+            "type": "number",
+            "title": "Velocity Before"
+          },
+          "velocity_after": {
+            "type": "number",
+            "title": "Velocity After"
+          },
+          "effect": {
+            "type": "number",
+            "title": "Effect",
+            "description": "Change in velocity times the skill importance for the role; > 0 pushed up."
+          }
+        },
+        "type": "object",
+        "required": [
+          "skill_id",
+          "label",
+          "velocity_before",
+          "velocity_after",
+          "effect"
+        ],
+        "title": "ReplayDriver"
+      },
+      "ReplayResponse": {
+        "properties": {
+          "scenario": {
+            "type": "string",
+            "title": "Scenario"
+          },
+          "from_date": {
+            "type": "string",
+            "title": "From Date"
+          },
+          "to_date": {
+            "type": "string",
+            "title": "To Date"
+          },
+          "movements": {
+            "items": {
+              "$ref": "#/components/schemas/RoleMovement"
+            },
+            "type": "array",
+            "title": "Movements"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RecommendationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "scenario",
+          "from_date",
+          "to_date",
+          "movements",
+          "meta"
+        ],
+        "title": "ReplayResponse",
+        "description": "What changed between two trend snapshots for this learner, and why."
+      },
       "ReviewDecision": {
         "properties": {
           "user_id": {
@@ -5577,6 +5998,55 @@
           "meta"
         ],
         "title": "RoleMatch"
+      },
+      "RoleMovement": {
+        "properties": {
+          "role_id": {
+            "type": "string",
+            "title": "Role Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "rank_before": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Rank Before"
+          },
+          "rank_after": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Rank After"
+          },
+          "score_before": {
+            "type": "number",
+            "title": "Score Before"
+          },
+          "score_after": {
+            "type": "number",
+            "title": "Score After"
+          },
+          "drivers": {
+            "items": {
+              "$ref": "#/components/schemas/ReplayDriver"
+            },
+            "type": "array",
+            "title": "Drivers",
+            "description": "The required skills whose trend moved this role most between the dates."
+          }
+        },
+        "type": "object",
+        "required": [
+          "role_id",
+          "label",
+          "rank_before",
+          "rank_after",
+          "score_before",
+          "score_after",
+          "drivers"
+        ],
+        "title": "RoleMovement"
       },
       "RoleOption": {
         "properties": {

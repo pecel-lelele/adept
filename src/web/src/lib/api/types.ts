@@ -41,6 +41,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/meta/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Platform Overview
+         * @description Live figures for the home page: trends, roles, courses and SDG coverage (no sign-in).
+         */
+        get: operations["core_platform_overview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/signup": {
         parameters: {
             query?: never;
@@ -164,6 +184,26 @@ export interface paths {
         };
         /** List Matches */
         get: operations["matching_list_matches"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/matches/replay": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Replay
+         * @description What changed in the learner's role ranking between two snapshots, and why.
+         */
+        get: operations["matching_replay"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1504,6 +1544,39 @@ export interface components {
             outlooks: components["schemas"]["RoleOutlook"][];
             meta: components["schemas"]["RecommendationMeta"];
         };
+        /** OverviewRole */
+        OverviewRole: {
+            /** Role Id */
+            role_id: string;
+            /** Label */
+            label: string;
+            /**
+             * Outlook
+             * @description Demand index under the moderate scenario (1 = today).
+             */
+            outlook: number;
+            /** Low */
+            low: number;
+            /** High */
+            high: number;
+        };
+        /** OverviewSkill */
+        OverviewSkill: {
+            /** Skill Id */
+            skill_id: string;
+            /** Label */
+            label: string;
+            /**
+             * Velocity
+             * @description Moderate-scenario velocity from the latest snapshot.
+             */
+            velocity: number;
+            /**
+             * Direction
+             * @enum {string}
+             */
+            direction: "rising" | "declining" | "stable";
+        };
         /** Pathway */
         Pathway: {
             /** Role Id */
@@ -1642,6 +1715,53 @@ export interface components {
             /** Detail */
             detail: string;
         };
+        /**
+         * PlatformOverview
+         * @description Live figures for the public home page, computed from the same data the app uses.
+         */
+        PlatformOverview: {
+            /**
+             * Skills In Bank
+             * @description Skills a learner can pick (taxonomy).
+             */
+            skills_in_bank: number;
+            /**
+             * Skills Tracked
+             * @description Skills with a trend in the latest snapshot.
+             */
+            skills_tracked: number;
+            /** Rising */
+            rising: number;
+            /** Stable */
+            stable: number;
+            /** Declining */
+            declining: number;
+            /** Top Rising */
+            top_rising: components["schemas"]["OverviewSkill"][];
+            /** Top Declining */
+            top_declining: components["schemas"]["OverviewSkill"][];
+            /**
+             * Roles
+             * @description Future roles the matcher ranks.
+             */
+            roles: number;
+            /** Top Roles */
+            top_roles: components["schemas"]["OverviewRole"][];
+            /** Courses */
+            courses: number;
+            /** Free Courses */
+            free_courses: number;
+            /** Hrd Claimable Courses */
+            hrd_claimable_courses: number;
+            /** Providers */
+            providers: number;
+            /**
+             * Sdg Goals Linked
+             * @description Distinct SDGs linked to at least one role.
+             */
+            sdg_goals_linked: number;
+            meta: components["schemas"]["RecommendationMeta"];
+        };
         /** Profile */
         Profile: {
             /**
@@ -1657,6 +1777,13 @@ export interface components {
             budget_myr: number;
             /** Hrd Eligible */
             hrd_eligible: boolean;
+            /**
+             * Learning Style
+             * @description Preferred way to learn.
+             * @default mixed
+             * @enum {string}
+             */
+            learning_style: "video" | "reading" | "hands-on" | "classroom" | "mixed";
             /** User Id */
             user_id: string;
             /** Display Name */
@@ -1681,6 +1808,13 @@ export interface components {
             budget_myr: number;
             /** Hrd Eligible */
             hrd_eligible: boolean;
+            /**
+             * Learning Style
+             * @description Preferred way to learn.
+             * @default mixed
+             * @enum {string}
+             */
+            learning_style: "video" | "reading" | "hands-on" | "classroom" | "mixed";
         };
         /** Progress */
         Progress: {
@@ -1856,6 +1990,37 @@ export interface components {
             message: string;
             meta: components["schemas"]["RecommendationMeta"];
         };
+        /** ReplayDriver */
+        ReplayDriver: {
+            /** Skill Id */
+            skill_id: string;
+            /** Label */
+            label: string;
+            /** Velocity Before */
+            velocity_before: number;
+            /** Velocity After */
+            velocity_after: number;
+            /**
+             * Effect
+             * @description Change in velocity times the skill importance for the role; > 0 pushed up.
+             */
+            effect: number;
+        };
+        /**
+         * ReplayResponse
+         * @description What changed between two trend snapshots for this learner, and why.
+         */
+        ReplayResponse: {
+            /** Scenario */
+            scenario: string;
+            /** From Date */
+            from_date: string;
+            /** To Date */
+            to_date: string;
+            /** Movements */
+            movements: components["schemas"]["RoleMovement"][];
+            meta: components["schemas"]["RecommendationMeta"];
+        };
         /** ReviewDecision */
         ReviewDecision: {
             /** User Id */
@@ -1925,6 +2090,26 @@ export interface components {
              */
             data_provenance_note?: string | null;
             meta: components["schemas"]["RecommendationMeta"];
+        };
+        /** RoleMovement */
+        RoleMovement: {
+            /** Role Id */
+            role_id: string;
+            /** Label */
+            label: string;
+            /** Rank Before */
+            rank_before: number;
+            /** Rank After */
+            rank_after: number;
+            /** Score Before */
+            score_before: number;
+            /** Score After */
+            score_after: number;
+            /**
+             * Drivers
+             * @description The required skills whose trend moved this role most between the dates.
+             */
+            drivers: components["schemas"]["ReplayDriver"][];
         };
         /**
          * RoleOption
@@ -2685,6 +2870,26 @@ export interface operations {
             };
         };
     };
+    core_platform_overview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatformOverview"];
+                };
+            };
+        };
+    };
     accounts_signup: {
         parameters: {
             query?: never;
@@ -2849,6 +3054,8 @@ export interface operations {
                 scenario?: "moderate" | "fast";
                 /** @description Replay an older trend snapshot (YYYY-MM-DD). Omit for the latest. */
                 snapshot_date?: string | null;
+                /** @description How much the UN Goals count in the ranking, 0..1. 0 (default) keeps the standard score; above 0 adds an 'sdg_impact' part and scales the others down. */
+                sdg_weight?: number;
             };
             header?: {
                 "x-demo-user"?: string | null;
@@ -2879,12 +3086,52 @@ export interface operations {
             };
         };
     };
+    matching_replay: {
+        parameters: {
+            query: {
+                /** @description The earlier snapshot (YYYY-MM-DD). */
+                from_date: string;
+                scenario?: "moderate" | "fast";
+                /** @description The later snapshot; latest if omitted. */
+                to_date?: string | null;
+            };
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReplayResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     matching_get_match: {
         parameters: {
             query?: {
                 scenario?: "moderate" | "fast";
                 /** @description Replay an older trend snapshot (YYYY-MM-DD). Omit for the latest. */
                 snapshot_date?: string | null;
+                /** @description How much the UN Goals count in the ranking, 0..1. 0 (default) keeps the standard score; above 0 adds an 'sdg_impact' part and scales the others down. */
+                sdg_weight?: number;
             };
             header?: {
                 "x-demo-user"?: string | null;
