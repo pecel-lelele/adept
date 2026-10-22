@@ -1882,6 +1882,8 @@ export interface components {
             budgets: components["schemas"]["FundingBudget"][];
             /** Claims */
             claims: components["schemas"]["FundingClaim"][];
+            /** Available Years */
+            available_years?: number[];
         };
         /** FundingRequest */
         FundingRequest: {

@@ -1141,3 +1141,13 @@
 - **Affects**: M3 pathways/SDG, M4 organisation and shared database access.
 - **Replaces**: none
 - **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses
+
+### M4-044: chore(api): regenerate accessible funding year bindings
+- **Date**: 2026-10-23
+- **Feature**: F5, F6, F7 / Core integration
+- **Type**: contract
+- **Change**: Regenerate OpenAPI and TypeScript for the accessible budget-year field.
+- **Why**: Keep the funding history UI and API contract in sync.
+- **Affects**: M3 pathways/SDG, M4 organisation and shared database access.
+- **Replaces**: none
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses
