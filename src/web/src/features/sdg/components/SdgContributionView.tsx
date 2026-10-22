@@ -1,7 +1,8 @@
+import { Globe2, Link2, ShieldCheck, Target } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
-import { ApiError, Badge, MetaBar, PageHeader, SdgBadge } from "@/components";
+import { ApiError, Badge, Kpis, MetaBar, PageHeader, SdgBadge } from "@/components";
 import type { ApiResult, ScenarioId, Schemas } from "@/lib/api";
 import { SDG_COLOURS } from "@/components/viz";
 
@@ -81,11 +82,14 @@ async function LinkList({ links }: { links: Schemas["SdgLink"][] }) {
 
 async function ContributionBody({ title, result }: { title: string; result: ApiResult<Contribution> }) {
   const t = await getTranslations("sdg");
+  const tp = await getTranslations("ui.page");
   if (!result.ok) return <ApiError message={result.message} />;
   const data = result.data;
   const linked = data.goals_summary.filter((g) => g.link_count > 0).length;
+  const direct = data.links.filter((l) => l.strength === "direct").length;
+  const reviewed = data.links.filter((l) => l.reviewed).length;
   return (
-    <div className="a-stack" style={{ gap: 24 }}>
+    <div className="a-view">
       <PageHeader eyebrow={t("goals")} title={title} description={t("description")}>
         <MetaBar meta={data.meta} />
       </PageHeader>
@@ -101,22 +105,26 @@ async function ContributionBody({ title, result }: { title: string; result: ApiR
           </Link>
         </p>
       ) : null}
-      <section className="a-card">
+      <Kpis
+        items={[
+          { label: tp("kGoalsLinked"), value: linked, unit: "/ 17", icon: <Globe2 size={15} />, tone: linked ? "up" : undefined, note: tp("kGoalsLinkedNote") },
+          { label: tp("kDirect"), value: direct, icon: <Target size={15} />, note: tp("kDirectNote") },
+          { label: tp("kEnabling"), value: data.links.length - direct, icon: <Link2 size={15} />, note: tp("kEnablingNote") },
+          { label: tp("kReviewed"), value: reviewed, unit: `/ ${data.links.length}`, icon: <ShieldCheck size={15} />, note: tp("kReviewedNote") },
+        ]}
+      />
+      <section className="a-card" aria-labelledby="h-goals">
         <div className="a-card-head">
-          <h2>{t("goals")}</h2>
-          <span className="a-chip" data-tone="up">
-            {linked} / 17
-          </span>
+          <h2 id="h-goals">{t("goals")}</h2>
+          <span className="a-muted a-small">{tp("goalsHint")}</span>
         </div>
         <GoalGrid data={data} />
       </section>
-      <section className="a-card">
+      <section className="a-card" aria-labelledby="h-links">
         <div className="a-card-head">
-          <h2>{t("links")}</h2>
+          <h2 id="h-links">{t("links")}</h2>
         </div>
-        <p className="a-small a-muted" style={{ marginTop: -8 }}>
-          {t("strengthHint")}
-        </p>
+        <p className="a-card-sub">{t("strengthHint")}</p>
         <LinkList links={data.links} />
       </section>
     </div>
@@ -147,7 +155,7 @@ export async function OrgSdgView({ region, scenario }: { region?: string; scenar
     ? await fetchRegionContribution(region, scenario)
     : await fetchOrgContribution(scenario);
   return (
-    <section className="a-stack" style={{ gap: 18 }}>
+    <section className="a-stack">
       <nav className="a-scopes" aria-label={t("scope.organisation")}>
         <Link href={`/org/sdg?scenario=${scenario}`} aria-current={!region ? "page" : undefined}>
           {t("scope.organisation")}
