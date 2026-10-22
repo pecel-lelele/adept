@@ -562,7 +562,7 @@ def get_progress(user: CurrentUser, role_id: str, scenario: ScenarioId) -> Progr
     completed_hours = {
         row.course_id: row.course.hours
         for row in rows
-        if row.status == "completed" and row.course is not None
+        if statuses.get(row.course_id) == "completed" and row.course is not None
     }
     return Progress(
         role_id=role_id,

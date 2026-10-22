@@ -30,8 +30,9 @@ export async function ProgressView({ roleId, scenario }: { roleId: string; scena
     if (key === "first" || key === "halfway" || key === "complete") return t(`badge.${key}`);
     return b.label;
   };
-  const done = new Set(history.filter((item) => item.role_id === roleId && item.evidence?.kind !== "org_rejected").map((item) => item.course.id)).size;
-  const tracked = new Set([...unique.map((c) => c.id), ...history.filter((item) => item.role_id === roleId).map((item) => item.course.id)]).size;
+  const completedHistory = history.filter((item) => item.role_id === roleId && item.evidence?.kind !== "org_rejected");
+  const done = new Set(completedHistory.map((item) => item.course.id)).size;
+  const tracked = new Set([...unique.map((c) => c.id), ...completedHistory.map((item) => item.course.id)]).size;
 
   return (
     <div className="a-view">

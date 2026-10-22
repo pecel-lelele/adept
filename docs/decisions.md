@@ -957,3 +957,13 @@
 - **Affects**: M3 F5 additive history/badge fields and one append-only migration; M4 progress presentation.
 - **Replaces**: none
 - **PR / branch**: https://github.com/pecel-lelele/adept/pull/7 / feat/core-insight-design
+
+### M4-026: Exclude rejected past courses from progress totals
+- **Date**: 2026-10-22
+- **Feature**: F5 (Core integration)
+- **Type**: formula | UI
+- **Change**: Historical hours join the progress denominator only when their effective status is completed. Rejected courses remain visible and editable in history; a rejected course still present in the current plan remains unfinished required work. The course-count KPI applies the same rule to historical entries.
+- **Why**: Greptile PR #7 finding “Finished plans still look incomplete”. Raw completed records with rejected evidence added historical hours to the denominator without adding completed hours, leaving a finished replacement plan below 100%.
+- **Affects**: M3 F5 progress calculation; progress page KPI. No API or schema changes.
+- **Replaces**: M4-025 inclusion of rejected historical hours in progress totals.
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/7 / feat/core-insight-design

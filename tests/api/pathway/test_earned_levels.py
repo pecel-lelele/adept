@@ -16,6 +16,7 @@ from app.features.org import service as org_service
 from app.features.pathway import data, repository
 from app.features.pathway import service as pathway_service
 from app.features.pathway.verification import effective_statuses
+from app.features.profile import repository as profile_repository
 from app.main import app
 
 NOW = datetime(2026, 10, 22, tzinfo=UTC)
@@ -349,6 +350,60 @@ def test_rejection_after_replan_removes_badges_but_keeps_reviewable_history(
     body = Progress.model_validate(client.get("/api/v1/pathway/progress").json())
     assert "milestone:first" not in {badge.id for badge in body.badges}
     assert body.history[0].evidence.kind == "org_rejected"
+
+
+@pytest.mark.parametrize("replan", [False, True], ids=["current-rejection", "past-rejection"])
+def test_rejected_course_only_counts_towards_progress_while_in_current_plan(
+    client: TestClient, replan: bool, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(
+        profile_repository,
+        "_store",
+        {uid: profile.model_copy(deep=True) for uid, profile in profile_repository._store.items()},
+    )
+    course, _skill = _complete_and_confirm(client)
+    evidence = repository.evidence("aisyah", ROLE)[course.id]
+    response = client.post(
+        "/api/v1/pathway/verifications",
+        json={
+            "user_id": "aisyah",
+            "role_id": ROLE,
+            "course_id": course.id,
+            "decision": "reject",
+            "submitted_at": evidence.submitted_at.isoformat(),
+        },
+        headers={"X-Demo-User": "demo-company"},
+    )
+    assert response.status_code == 200, response.text
+    if replan:
+        # The learner independently closes those skills through their confirmed profile.
+        profile = client.get("/api/v1/profile/me").json()
+        skills = {skill["skill_id"]: skill for skill in profile["skills"]}
+        skills.update(
+            {sid: {"skill_id": sid, "level": 5, "source": "confirmed"} for sid in course.skill_ids}
+        )
+        response = client.put("/api/v1/profile/skills", json={"skills": list(skills.values())})
+        assert response.status_code == 200, response.text
+        response = client.post("/api/v1/pathway/plans", json={"role_id": ROLE})
+        assert response.status_code == 200, response.text
+    plan = repository.get_plan("aisyah").pathway
+    courses = {c.id for step in plan.steps for c in step.courses}
+    assert (course.id not in courses) == replan
+    assert courses - {course.id}
+    for course_id in courses - {course.id}:
+        response = client.post(
+            "/api/v1/pathway/progress",
+            json={"role_id": ROLE, "course_id": course_id, "status": "completed"},
+        )
+        assert response.status_code == 200, response.text
+    body = Progress.model_validate(client.get("/api/v1/pathway/progress").json())
+    rejected = next(item for item in body.history if item.course.id == course.id)
+    assert rejected.evidence.kind == "org_rejected"
+    assert body.course_status[course.id] == "completed"
+    if replan:
+        assert body.percent_complete == 1.0
+    else:
+        assert 0 < body.percent_complete < 1.0
 
 
 def test_team_earned_learning_is_one_batch_read_and_members_are_loaded_once(
