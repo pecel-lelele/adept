@@ -76,10 +76,16 @@ def signup(body: SignupIn) -> SessionResponse:
         ),
         session.hash_password(body.password),
     )
-    if org_mode and body.organisation is not None:
-        org_service.create_org(account, body.organisation)
-    elif join_org is not None:
-        org_service.join_org(user_from_account(account), JoinOrgIn(code=body.join_code or ""))
+    try:
+        if org_mode and body.organisation is not None:
+            org_service.create_org(account, body.organisation)
+        elif join_org is not None:
+            org_service.join_org(user_from_account(account), JoinOrgIn(code=body.join_code or ""))
+    except Exception:
+        # Sign-up is all or nothing: never leave an account without the organisation it was
+        # created for (its email would be taken and /org/setup has nothing to edit).
+        accounts.delete(account.id)
+        raise
     return _session(accounts.find_by_id(account.id) or account)
 
 

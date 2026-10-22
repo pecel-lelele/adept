@@ -11,23 +11,56 @@ from __future__ import annotations
 import base64
 import hashlib
 import hmac
+import logging
+import os
 import secrets
 import time
 
-from app.core.config import get_settings
+from app.core.config import REPO_ROOT, get_settings
+
+logger = logging.getLogger(__name__)
 
 TOKEN_PREFIX = "v1"
 SESSION_TTL_S = 14 * 24 * 3600
 _SCRYPT = {"n": 2**14, "r": 8, "p": 1, "dklen": 32}
 
 
+# Local fallback key when SESSION_SECRET is unset: random, never derived from public values.
+SECRET_FILE = REPO_ROOT / ".session-secret"
+_fallback: bytes | None = None
+
+
+def _local_secret() -> bytes:
+    """A random key kept in a gitignored file so local restarts keep sessions.
+
+    If the file can't be written (read-only container), the key lives in memory only and
+    sessions end when the process restarts. Deployments set SESSION_SECRET instead.
+    """
+    global _fallback
+    if _fallback is not None:
+        return _fallback
+    try:
+        stored = SECRET_FILE.read_text(encoding="ascii").strip()
+        if len(stored) >= 64:
+            _fallback = bytes.fromhex(stored)
+            return _fallback
+    except (OSError, ValueError):
+        pass
+    key = secrets.token_bytes(32)
+    try:
+        SECRET_FILE.write_text(key.hex(), encoding="ascii")
+        os.chmod(SECRET_FILE, 0o600)
+    except OSError:
+        logger.warning("SESSION_SECRET is not set: using an in-memory key for this process")
+    _fallback = key
+    return key
+
+
 def _secret() -> bytes:
     settings = get_settings()
     if settings.session_secret:
         return settings.session_secret.encode()
-    # Local development without SESSION_SECRET: stable per database, so restarts keep
-    # sessions. Deployments must set SESSION_SECRET (see .env.example).
-    return hashlib.sha256(("adept-dev-session:" + settings.database_url).encode()).digest()
+    return _local_secret()
 
 
 def _b64(data: bytes) -> str:

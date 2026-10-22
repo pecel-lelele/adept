@@ -13,6 +13,7 @@ os.environ["DATABASE_URL"] = os.environ.get(
 # Test-only auth switches: a raw fixture user id in X-Demo-User, and Aisyah when none is sent.
 os.environ["AUTH_RAW_USER_IDS"] = "true"
 os.environ["AUTH_DEFAULT_USER"] = "aisyah"
+os.environ["SESSION_SECRET"] = "test-only-session-secret"
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # tests/harness
 
 import pytest  # noqa: E402

@@ -127,3 +127,55 @@ def test_unknown_join_code_is_rejected(client: TestClient) -> None:
     )
     assert resp.status_code == 422
     assert resp.json()["error"]["code"] == "bad_join_code"
+
+
+def _org(client: TestClient, name: str) -> tuple[dict, str]:
+    manager = _signup(
+        client,
+        workspace="organisation",
+        organisation={"type": "company", "name": name, "industry": "Finance", "size": 5},
+    )
+    headers = {"X-Demo-User": manager["token"]}
+    return headers, client.get("/api/v1/org/me", headers=headers).json()["join_code"]
+
+
+def test_member_cannot_join_a_second_organisation(client: TestClient) -> None:
+    first_h, first_code = _org(client, "First Co")
+    _, second_code = _org(client, "Second Co")
+    learner = _signup(client, join_code=first_code)
+    lh = {"X-Demo-User": learner["token"]}
+    again = client.post("/api/v1/org/join", json={"code": first_code}, headers=lh)
+    assert again.status_code == 200  # rejoining the same organisation is harmless
+    other = client.post("/api/v1/org/join", json={"code": second_code}, headers=lh)
+    assert other.status_code == 409
+    assert other.json()["error"]["code"] == "already_member"
+    assert client.get("/api/v1/org/me", headers=lh).json()["name"] == "First Co"
+
+    # Once removed, the member is free to join another organisation.
+    member_id = learner["account"]["id"]
+    assert client.delete(f"/api/v1/org/members/{member_id}", headers=first_h).status_code == 204
+    moved = client.post("/api/v1/org/join", json={"code": second_code}, headers=lh)
+    assert moved.status_code == 200
+    assert moved.json()["name"] == "Second Co"
+
+
+def test_failed_organisation_setup_undoes_the_signup(client: TestClient, monkeypatch) -> None:
+    from app.core.refdata import StorageUnavailableError
+    from app.features.accounts import service
+
+    def boom(*_: object) -> None:
+        raise StorageUnavailableError("could not create the organisation")
+
+    monkeypatch.setattr(service.org_service, "create_org", boom)
+    body = {
+        "display_name": "Stranded Manager",
+        "email": _email(),
+        "password": "correct horse battery",
+        "consent": True,
+        "workspace": "organisation",
+        "organisation": {"type": "company", "name": "Gone", "industry": "", "size": 3},
+    }
+    assert client.post("/api/v1/auth/signup", json=body).status_code == 503
+    monkeypatch.undo()
+    # The email is free again, so the same person can simply retry.
+    assert client.post("/api/v1/auth/signup", json=body).status_code == 201

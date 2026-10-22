@@ -116,6 +116,14 @@ def join_org(user: CurrentUser, body: JoinOrgIn) -> Organization:
     org = repository.find_org_by_code(body.code)
     if org is None:
         raise NotFoundError("That join code does not match any organisation.")
+    current = accounts.find_by_id(user.id)
+    if current is not None and current.org_id and current.org_id != org.id:
+        # One organisation per member: a second join would be saved but never shown.
+        raise AppError(
+            "You already belong to an organisation. Ask its manager to remove you first.",
+            status_code=409,
+            code="already_member",
+        )
     has_skills = profile_service.has_profile(user.id) and bool(
         profile_service.get_my_profile(user).skills
     )
@@ -140,7 +148,7 @@ def remove_member(user: CurrentUser, member_id: str) -> None:
     org_id = _require_manager(user)
     if not repository.remove_member(org_id, member_id):
         raise NotFoundError(f"No member {member_id} in this organisation")
-    accounts.forget(member_id)
+    accounts.set_org(member_id, None)
 
 
 def member_learners(org_id: str) -> dict[str, engine.Learner]:

@@ -131,7 +131,20 @@ def create(account: Account, password_hash: str) -> Account:
     return account
 
 
-def set_org(user_id: str, org_id: str) -> None:
+def delete(user_id: str) -> None:
+    """Remove an account (used to undo a sign-up whose second step failed)."""
+    if use_postgres():
+        try:
+            with connection() as conn:
+                conn.execute("DELETE FROM users WHERE id = %s", (user_id,))
+        except psycopg.Error as exc:
+            log.error("could not undo sign-up for %s: %s", user_id, exc)
+    with _lock:
+        _memory.pop(user_id, None)
+    forget(user_id)
+
+
+def set_org(user_id: str, org_id: str | None) -> None:
     """Record the user's organisation (memberships are written by the org repository)."""
     with _lock:
         found = _memory.get(user_id)

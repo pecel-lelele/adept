@@ -7,6 +7,9 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-adept}:${POSTGRES_PASSWORD:-adept}@db:5432/${POSTGRES_DB:-adept}
       AUTH_MODE: demo
       M3_BACKEND: postgres
+      # Signs session tokens. Set it in the root .env; empty = a random in-memory key
+      # (sessions end when the container restarts).
+      SESSION_SECRET: ${SESSION_SECRET:-}
       CORS_ORIGINS: http://localhost:3000
     ports:
       - "127.0.0.1:8000:8000"
