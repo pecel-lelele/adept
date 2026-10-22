@@ -29,9 +29,22 @@ export function AuthView() {
     {},
   );
   const values = state.values ?? {};
-  const [workspace, setWorkspace] = useState<"individual" | "organisation">(
-    (values.workspace ?? params.get("mode")) === "organisation" ? "organisation" : "individual",
-  );
+  // The panel stays mounted across tabs, so a "For my team" choice must not leak into Sign in:
+  // each tab starts from the link that opened it (?mode=), exactly like arriving from the
+  // landing page. A choice made on Create account lasts only while that tab is open.
+  type Workspace = "individual" | "organisation";
+  const fromUrl: Workspace = params.get("mode") === "organisation" ? "organisation" : "individual";
+  const [choice, setChoice] = useState<Workspace | null>(null);
+  const [choicePage, setChoicePage] = useState<Page>(page);
+  if (choicePage !== page) {
+    setChoicePage(page);
+    setChoice(null);
+  }
+  const setWorkspace = (w: Workspace) => setChoice(w);
+  const workspace: Workspace =
+    page === "signup"
+      ? (choice ?? (values._page === "signup" && values.workspace === "organisation" ? "organisation" : fromUrl))
+      : fromUrl;
   const team = workspace === "organisation";
 
   return (

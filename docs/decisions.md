@@ -894,3 +894,13 @@
 - **Affects**: shared shell and UI only; no API or contract change.
 - **Replaces**: none
 - **PR / branch**: feat/core-insight-design
+
+### M4-020: Review fixes on PR #7: exposure score wording, refresh freshness and dates, team gap averages
+- **Date**: 2026-10-22
+- **Feature**: F2, F7, Core
+- **Type**: fix
+- **Change**: (1) `automation_exposure` is shown as a 0–1 score ("Exposure score"), not a percentage, with an explanation that reviewers assigned it from published research (`docs/skill-exposure-methodology.md`); EN/BM/ZH. (2) `pipelines.trends.run` refuses to publish after an ingest that stored no signals today (empty or unreadable feed), so older evidence is never republished as new. (3) The measured period and source retrieval date come from the days signals were actually collected (`collected_dates`), not the calendar ISO week, so a Monday run does not claim future days. (4) `GapHeatmapResponse.role_gaps` returns each role's average gap over its required skills only (the figure that picks the default team target); the Skill gaps page and team dashboard use it instead of averaging zero cells for unrelated skills.
+- **Why**: Greptile review comments on PR #7.
+- **Affects**: M1 (pipeline), M4 F7 contract addition (`role_gaps`).
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design
