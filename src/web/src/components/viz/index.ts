@@ -6,3 +6,4 @@ export { SDG_COLOURS, SdgTiles, type SdgTile } from "./SdgTiles";
 export { StackBar, type StackPart } from "./StackBar";
 export { StepTrack, type TrackStep } from "./StepTrack";
 export { TrendBars, type TrendBar } from "./TrendBars";
+export { LevelPips, ScoreBar } from "./ScoreBar";
