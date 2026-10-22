@@ -28,8 +28,65 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Data Freshness */
+        /**
+         * Data Freshness
+         * @description Date and sources of the latest trend snapshot (database, else the frozen export).
+         */
         get: operations["core_data_freshness"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/signup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Signup
+         * @description Create an account (and, for an organisation workspace, the organisation).
+         */
+        post: operations["accounts_signup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Login */
+        post: operations["accounts_login"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Me */
+        get: operations["accounts_me"];
         put?: never;
         post?: never;
         delete?: never;
@@ -141,8 +198,52 @@ export interface paths {
         };
         /** Get My Org */
         get: operations["org_get_my_org"];
-        put?: never;
+        /**
+         * Update My Org
+         * @description Edit organisation setup (managers and advisors only).
+         */
+        put: operations["org_update_my_org"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/org/me/join-code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Rotate Join Code
+         * @description Issue a new join code; the old one stops working (managers only).
+         */
+        post: operations["org_rotate_join_code"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/org/join": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Join Org
+         * @description A signed-in learner joins with the code their manager or advisor shared.
+         */
+        post: operations["org_join_org"];
         delete?: never;
         options?: never;
         head?: never;
@@ -161,6 +262,23 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/org/members/{member_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove Member */
+        delete: operations["org_remove_member"];
         options?: never;
         head?: never;
         patch?: never;
@@ -210,7 +328,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Pathway */
+        /**
+         * Get Pathway
+         * @description The plan for `role_id`; without it, the learner's saved target role.
+         */
         get: operations["pathway_get_pathway"];
         put?: never;
         post?: never;
@@ -345,7 +466,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Progress */
+        /**
+         * Get Progress
+         * @description Progress on `role_id`; without it, on the learner's saved target role.
+         */
         get: operations["pathway_get_progress"];
         put?: never;
         /** Update Progress */
@@ -452,6 +576,23 @@ export interface paths {
         put?: never;
         /** Upsert core profile fields */
         post: operations["profile_upsert_profile"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/profile/skills/catalogue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Skill bank for the skill picker */
+        get: operations["profile_skill_catalogue"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -808,6 +949,27 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** Account */
+        Account: {
+            /** Id */
+            id: string;
+            /** Display Name */
+            display_name: string;
+            /** Email */
+            email: string | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "learner" | "org_admin";
+            /** Org Id */
+            org_id?: string | null;
+            /**
+             * Has Profile
+             * @description False until the intake questionnaire is saved.
+             */
+            has_profile: boolean;
+        };
         /** Badge */
         Badge: {
             /** Id */
@@ -1124,6 +1286,13 @@ export interface components {
         GapHeatmapResponse: {
             /** Role Ids */
             role_ids: string[];
+            /**
+             * Role Labels
+             * @description role_id -> label
+             */
+            role_labels?: {
+                [key: string]: string;
+            };
             /** Skills */
             skills: components["schemas"]["Skill"][];
             /** Cells */
@@ -1167,6 +1336,11 @@ export interface components {
             org_id: string;
             /** Target Role Id */
             target_role_id: string;
+            /**
+             * Target Role Label
+             * @default
+             */
+            target_role_label: string;
             /** Assigned Member Ids */
             assigned_member_ids: string[];
             /** Steps */
@@ -1179,6 +1353,11 @@ export interface components {
         GuestPreview: {
             /** Skills */
             skills: components["schemas"]["ExtractedSkill"][];
+            /**
+             * Skill Trends
+             * @default []
+             */
+            skill_trends: components["schemas"]["SkillTrend"][];
             top_role: components["schemas"]["TopRole"] | null;
             /** Other Role Count */
             other_role_count: number;
@@ -1213,6 +1392,21 @@ export interface components {
              * @enum {string}
              */
             database: "ok" | "unavailable";
+        };
+        /**
+         * JoinOrgIn
+         * @description A signed-in learner joins an organisation with the code their manager shared.
+         */
+        JoinOrgIn: {
+            /** Code */
+            code: string;
+        };
+        /** LoginIn */
+        LoginIn: {
+            /** Email */
+            email: string;
+            /** Password */
+            password: string;
         };
         /** MatchResponse */
         MatchResponse: {
@@ -1275,6 +1469,31 @@ export interface components {
             /** Name */
             name: string;
             /** Industry */
+            industry: string;
+            /** Size */
+            size: number;
+            /**
+             * Join Code
+             * @description Code members enter to join. Shown to managers only.
+             */
+            join_code?: string | null;
+        };
+        /**
+         * OrganizationIn
+         * @description Editable organisation setup (PUT /org/me).
+         */
+        OrganizationIn: {
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "company" | "institution";
+            /** Name */
+            name: string;
+            /**
+             * Industry
+             * @default
+             */
             industry: string;
             /** Size */
             size: number;
@@ -1825,7 +2044,7 @@ export interface components {
             label: string;
             /**
              * Adoption Rate
-             * @description Share of tasks adopting AI by horizon.
+             * @description Mean automation exposure of the tracked skills under this scenario.
              */
             adoption_rate: number;
             /** Description */
@@ -1970,12 +2189,59 @@ export interface components {
             /** Label */
             label: string;
         };
+        /** SessionResponse */
+        SessionResponse: {
+            /**
+             * Token
+             * @description Signed session token; keep it in an httpOnly cookie.
+             */
+            token: string;
+            account: components["schemas"]["Account"];
+            /**
+             * Next Path
+             * @description Where the web app should send the user next.
+             */
+            next_path: string;
+        };
+        /** SignupIn */
+        SignupIn: {
+            /** Display Name */
+            display_name: string;
+            /** Email */
+            email: string;
+            /** Password */
+            password: string;
+            /**
+             * Workspace
+             * @default individual
+             * @enum {string}
+             */
+            workspace: "individual" | "organisation";
+            organisation?: components["schemas"]["OrganizationIn"] | null;
+            /** Join Code */
+            join_code?: string | null;
+            /**
+             * Consent
+             * @description Accepted the data-use and estimates notice.
+             */
+            consent: boolean;
+        };
         /** Skill */
         Skill: {
             /** Id */
             id: string;
             /** Label */
             label: string;
+        };
+        /** SkillCatalogueResponse */
+        SkillCatalogueResponse: {
+            /** Skills */
+            skills: components["schemas"]["SkillOption"][];
+            /**
+             * Interests
+             * @description Interest tags used by role matching (roles.csv).
+             */
+            interests?: string[];
         };
         /**
          * SkillConfirmationIn
@@ -2051,6 +2317,21 @@ export interface components {
              */
             status: "have" | "partial" | "missing";
         };
+        /**
+         * SkillOption
+         * @description One entry of the skill bank a learner picks from (taxonomy/skills.csv).
+         */
+        SkillOption: {
+            /** Id */
+            id: string;
+            /** Label */
+            label: string;
+            /**
+             * Group
+             * @description e.g. 'Emerging AI-native skill'; empty if ungrouped.
+             */
+            group: string;
+        };
         /** SkillProgress */
         SkillProgress: {
             /** Skill Id */
@@ -2065,6 +2346,21 @@ export interface components {
             target_level: number;
             /** Closed */
             closed: boolean;
+        };
+        /**
+         * SkillTrend
+         * @description How one extracted skill moves in the latest snapshot (free part of the preview).
+         */
+        SkillTrend: {
+            /** Skill Id */
+            skill_id: string;
+            /** Label */
+            label: string;
+            /**
+             * Direction
+             * @enum {string}
+             */
+            direction: "rising" | "stable" | "declining";
         };
         /** SkillVelocity */
         SkillVelocity: {
@@ -2389,6 +2685,104 @@ export interface operations {
             };
         };
     };
+    accounts_signup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SignupIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    accounts_login: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    accounts_me: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Account"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     guardrails_get_disclosure: {
         parameters: {
             query?: never;
@@ -2555,6 +2949,110 @@ export interface operations {
             };
         };
     };
+    org_update_my_org: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrganizationIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Organization"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_rotate_join_code: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Organization"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_join_org: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["JoinOrgIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Organization"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     org_list_members: {
         parameters: {
             query?: never;
@@ -2575,6 +3073,38 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["MemberListResponse"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_remove_member: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+            };
+            path: {
+                member_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -2658,8 +3188,8 @@ export interface operations {
     };
     pathway_get_pathway: {
         parameters: {
-            query: {
-                role_id: string;
+            query?: {
+                role_id?: string | null;
                 scenario?: "moderate" | "fast";
                 /** @description Replay an older M1 trend snapshot (YYYY-MM-DD). Omit for the latest. */
                 snapshot_date?: string | null;
@@ -2899,8 +3429,8 @@ export interface operations {
     };
     pathway_get_progress: {
         parameters: {
-            query: {
-                role_id: string;
+            query?: {
+                role_id?: string | null;
                 scenario?: "moderate" | "fast";
             };
             header?: {
@@ -3179,6 +3709,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    profile_skill_catalogue: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SkillCatalogueResponse"];
                 };
             };
         };
