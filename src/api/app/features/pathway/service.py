@@ -455,25 +455,30 @@ def evidenced_levels(user_id: str) -> dict[str, int]:
     Changing the saved target or retiring a catalogue course must not erase credit. Evidence
     is read afresh so undoing a completion or rejecting its proof still removes that credit.
     """
-    by_role: dict[str, dict[str, str]] = {}
-    for _uid, role_id, course_id, status in repository.progress_of([user_id]):
-        by_role.setdefault(role_id, {})[course_id] = status
-    out: dict[str, int] = {}
-    for role_id, statuses in by_role.items():
-        levels = earned_levels(
-            repository.course_facts(user_id, role_id),
-            statuses,
-            repository.evidence(user_id, role_id),
-        )
-        for sid, level in levels.items():
-            out[sid] = max(out.get(sid, 0), level)
+    return evidenced_levels_many([user_id])[user_id]
+
+
+
+def evidenced_levels_many(user_ids: list[str]) -> dict[str, dict[str, int]]:
+    """All requested learners' accepted levels, with one batch read regardless of history."""
+    out: dict[str, dict[str, int]] = {uid: {} for uid in user_ids}
+    for row in repository.learning_records(user_ids):
+        if row.status != "completed" or row.course is None:
+            continue
+        if verification.evidence_strength(row.evidence) not in EARNED_EVIDENCE:
+            continue
+        levels = out[row.user_id]
+        for sid in row.course.skill_ids:
+            levels[sid] = max(levels.get(sid, 0), row.course.level)
     return out
 
 
-def combined_levels(user_id: str, intake: Mapping[str, int]) -> dict[str, int]:
+def combined_levels(
+    user_id: str, intake: Mapping[str, int], earned: Mapping[str, int] | None = None
+) -> dict[str, int]:
     """One effective skill input for matching, individual pathways and team gaps."""
     out = dict(intake)
-    for sid, level in evidenced_levels(user_id).items():
+    for sid, level in (evidenced_levels(user_id) if earned is None else earned).items():
         out[sid] = max(out.get(sid, 0), level)
     return out
 

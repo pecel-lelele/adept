@@ -7,6 +7,7 @@ from datetime import UTC, date, datetime
 import pytest
 from fastapi.testclient import TestClient
 
+from app.contracts.org import Member
 from app.contracts.pathway import CompletionEvidence, Course, SavedPlan
 from app.core.auth import CurrentUser
 from app.core.db import connection
@@ -281,3 +282,62 @@ def test_migration_backfills_saved_and_replaced_target_progress(client: TestClie
         assert facts[ROLE] == course
         assert facts["old-target"].skill_ids == course.skill_ids
         assert facts["old-target"].level == course.level
+
+
+def test_team_earned_learning_is_one_batch_read_and_members_are_loaded_once(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[list[str]] = []
+    loads: list[str] = []
+    read_learning = repository.learning_records
+    load_members = org_service.repository.list_members
+
+    def learning(user_ids: list[str]) -> list[repository.LearningRecord]:
+        calls.append(user_ids)
+        return read_learning(user_ids)
+
+    def members(org_id: str) -> list[Member]:
+        loads.append(org_id)
+        return load_members(org_id)
+
+    monkeypatch.setattr(repository, "learning_records", learning)
+    monkeypatch.setattr(org_service.repository, "list_members", members)
+    manager = CurrentUser("demo-company", "Demo HR", "org_admin", "org-demo-bank")
+    org_service.get_plan(manager, "moderate")
+    assert loads == ["org-demo-bank"]
+    assert len(calls) == 1 and "aisyah" in calls[0]
+    calls.clear()
+    loads.clear()
+    org_service.member_plans("org-demo-bank", "moderate")
+    assert loads == ["org-demo-bank"]
+    assert len(calls) == 1
+
+
+
+def test_postgres_learning_read_joins_all_targets_in_one_query(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[tuple[str, tuple[object, ...]]] = []
+    store = repository.PostgresStore()
+    course = _course("learned", ["sql"], 3)
+    evidence = _evidence("learned", "org_confirmed")
+    user_ids = [f"synthetic-{i}" for i in range(100)]
+
+    def query(sql: str, params: tuple[object, ...]) -> list[tuple[object, ...]]:
+        calls.append((sql, params))
+        return [
+            (uid, f"target-{target}", course.id, "completed",
+             course.model_dump(mode="json"), evidence.model_dump(mode="json"))
+            for uid in user_ids for target in range(3)
+        ]  # fmt: skip
+
+    monkeypatch.setattr(store, "_run", query)
+    monkeypatch.setattr(repository, "learning_records", store.learning_records)
+    levels = pathway_service.evidenced_levels_many(user_ids)
+    assert levels == {uid: {"sql": 3} for uid in user_ids}
+    assert len(calls) == 1
+    assert calls[0][1] == (user_ids,)
+    assert "LEFT JOIN course_evidence" in calls[0][0]
+    calls.clear()
+    assert store.learning_records([]) == [] and calls == []
+

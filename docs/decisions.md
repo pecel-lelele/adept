@@ -935,3 +935,14 @@
 - **Affects**: M4 submission assembly; all owners review their technical disclosures. No API contract or application dependency changes for documentation.
 - **Replaces**: none
 - **PR / branch**: https://github.com/pecel-lelele/adept/pull/7 / feat/core-insight-design
+
+### M4-024: Batch accepted learning across team members and targets
+- **Date**: 2026-10-22
+- **Feature**: F5, F7 (Core integration)
+- **Type**: method
+- **Change**: One joined learning-record query loads progress, immutable course facts and evidence for all requested members across every target. Team planning reuses its loaded members when choosing the default target; accepted per-skill levels are calculated from the supplied batch.
+- **Why**: Greptile PR #7 finding “Team reads grow with history”. Per-member, per-target connections multiplied with learning history, and default target selection loaded members twice.
+- **Pipeline**: source = persisted progress, course snapshots and evidence → preprocessing = batch by requested user IDs → features = per-skill accepted maximum → method = reuse batch inputs for team gaps and planning → evaluation = one-query regression for 100 members with three targets and single-member-load checks → serving = pathway earned levels and organisation planning.
+- **Affects**: M3 F5 internal repository read; M4 F7 team inputs. No API or schema change.
+- **Replaces**: M4-022 per-target lookup implementation; earned-credit policy remains unchanged.
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/7 / feat/core-insight-design

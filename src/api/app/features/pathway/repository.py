@@ -12,6 +12,7 @@ Reference data (catalogue, taxonomy, trends) lives in `data.py`.
 from __future__ import annotations
 
 import threading
+from dataclasses import dataclass
 from datetime import date, datetime
 from typing import Protocol
 
@@ -22,6 +23,17 @@ from psycopg.types.json import Jsonb
 from app.contracts.pathway import CompletionEvidence, Course, CourseStatus, Pathway, SavedPlan
 from app.core.db import connection
 from app.core.refdata import StorageUnavailableError, use_postgres
+
+
+@dataclass(frozen=True)
+class LearningRecord:
+    user_id: str
+    role_id: str
+    course_id: str
+    status: CourseStatus
+    course: Course | None
+    evidence: CompletionEvidence | None
+
 
 
 class Store(Protocol):
@@ -45,6 +57,7 @@ class Store(Protocol):
         self, user_id: str, ev: CompletionEvidence, seen: datetime | None
     ) -> bool: ...
     def progress_of(self, user_ids: list[str]) -> list[tuple[str, str, str, CourseStatus]]: ...
+    def learning_records(self, user_ids: list[str]) -> list[LearningRecord]: ...
     def reset(self) -> None: ...
 
 
@@ -128,6 +141,17 @@ class MemoryStore:
             if uid in wanted
             for cid, status in statuses.items()
         ]
+
+    def learning_records(self, user_ids: list[str]) -> list[LearningRecord]:
+        return [
+            LearningRecord(
+                uid, rid, cid, status,
+                self._course_facts.get((uid, rid, cid)),
+                self._evidence.get((uid, rid, cid)),
+            )
+            for uid, rid, cid, status in self.progress_of(user_ids)
+        ]  # fmt: skip
+
 
     def reset(self) -> None:
         self._plans.clear()
@@ -333,6 +357,27 @@ class PostgresStore:
         )
         return [(str(u), str(r), str(c), s) for u, r, c, s in rows]  # type: ignore[misc]
 
+    def learning_records(self, user_ids: list[str]) -> list[LearningRecord]:
+        if not user_ids:
+            return []
+        rows = self._run(
+            "SELECT p.user_id, p.role_id, p.course_id, p.status, p.course_snapshot, "
+            "CASE WHEN e.user_id IS NULL THEN NULL ELSE to_jsonb(e) END "
+            "FROM course_progress p LEFT JOIN course_evidence e "
+            "ON (e.user_id, e.role_id, e.course_id) = (p.user_id, p.role_id, p.course_id) "
+            "WHERE p.user_id = ANY(%s) ORDER BY p.user_id, p.role_id, p.course_id",
+            (user_ids,),
+        )
+        return [
+            LearningRecord(
+                str(uid), str(rid), str(cid), status,
+                Course.model_validate(facts) if facts is not None else None,
+                CompletionEvidence.model_validate(evidence) if evidence is not None else None,
+            )
+            for uid, rid, cid, status, facts, evidence in rows
+        ]  # fmt: skip
+
+
     def reset(self) -> None:
         """Test hook: clears pathway state (not users or reference data)."""
         for table in ("course_evidence", "course_progress", "user_badges", "pathway_plans"):
@@ -399,6 +444,12 @@ def review_evidence(user_id: str, ev: CompletionEvidence, seen: datetime | None)
 def progress_of(user_ids: list[str]) -> list[tuple[str, str, str, CourseStatus]]:
     """(user, role, course, status) rows for these users (for HR / advisor review)."""
     return store().progress_of(user_ids)
+
+
+def learning_records(user_ids: list[str]) -> list[LearningRecord]:
+    """Batch progress, immutable course facts and evidence in one store read."""
+    return store().learning_records(user_ids)
+
 
 
 def reset() -> None:

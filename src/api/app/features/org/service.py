@@ -156,13 +156,13 @@ def member_learners(org_id: str) -> dict[str, engine.Learner]:
     org = repository.get_org(org_id)
     company = org is not None and org.type == "company"
     out: dict[str, engine.Learner] = {}
-    for m in repository.list_members(org_id):
-        if m.intake_status != "complete":
-            continue
+    members = [m for m in repository.list_members(org_id) if m.intake_status == "complete"]
+    earned = pathway_service.evidenced_levels_many([m.id for m in members])
+    for m in members:
         profile = profile_service.get_my_profile(m.id)
         out[m.id] = engine.Learner(
             skill_levels=pathway_service.combined_levels(
-                m.id, {s.skill_id: s.level for s in profile.skills}
+                m.id, {s.skill_id: s.level for s in profile.skills}, earned[m.id]
             ),
             hours_per_week=float(profile.hours_per_week),
             budget_myr=float(profile.budget_myr),
@@ -180,7 +180,12 @@ def _team_gap_by_role(members: dict[str, engine.Learner]) -> dict[str, float]:
     return {r: (sum(v) / len(v) if v else 0.0) for r, v in totals.items()}
 
 
-def target_role(org_id: str, role_id: str | None = None) -> str:
+def target_role(
+    org_id: str,
+    role_id: str | None = None,
+    *,
+    members: dict[str, engine.Learner] | None = None,
+) -> str:
     """The manager's chosen role, else the role where the team's average gap is largest."""
     roles = pathway_data.target_role_ids()
     if role_id:
@@ -189,7 +194,7 @@ def target_role(org_id: str, role_id: str | None = None) -> str:
         return role_id
     if not roles:
         raise NotFoundError("No target roles in the taxonomy")
-    gaps = _team_gap_by_role(member_learners(org_id))
+    gaps = _team_gap_by_role(member_learners(org_id) if members is None else members)
     return max(roles, key=lambda r: (gaps.get(r, 0.0), r))
 
 
@@ -197,10 +202,11 @@ def member_plans(
     org_id: str, scenario: ScenarioId, role_id: str | None = None
 ) -> dict[str, Pathway]:
     """Each counted member's own pathway towards the organisation's target role (F6 uses it)."""
-    role = target_role(org_id, role_id)
+    members = member_learners(org_id)
+    role = target_role(org_id, role_id, members=members)
     return {
         mid: pathway_service.build_pathway(learner, role, scenario)
-        for mid, learner in member_learners(org_id).items()
+        for mid, learner in members.items()
     }
 
 
@@ -243,7 +249,7 @@ def get_plan(user: CurrentUser, scenario: ScenarioId, role_id: str | None = None
     members = member_learners(org_id)
     pathway = pathway_service.group_pathway(
         members,
-        target_role(org_id, role_id),
+        target_role(org_id, role_id, members=members),
         scenario,
         hrd_eligible=org is not None and org.type == "company",
     )
