@@ -60,7 +60,7 @@ export function AuthView() {
         <BrandLogo href="/" />
       </header>
       <div className="a-auth">
-        <section className="a-auth-card" aria-labelledby="auth-title">
+        <section className="a-auth-card" aria-labelledby="auth-title" data-page={page}>
           <div className="a-tabswitch" role="tablist" data-active={page}>
             {(["login", "signup"] as const).map((p) => (
               <Link key={p} href={tabHref(p)} replace scroll={false} role="tab" aria-selected={page === p}>

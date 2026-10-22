@@ -1888,3 +1888,9 @@ html[data-busy] .a-main::after { content: ""; }
 @media (prefers-reduced-motion: reduce) {
   .a-auth-blob, .a-auth-art-glow, .a-auth-glass { animation: none; }
 }
+/* Create account is the long form: it keeps the compact layout that fits one frame, so the
+   subtitle, extra top space and trust row only appear on Sign in (where there is room). */
+.a-authpage .a-auth-card[data-page="signup"] { grid-template-rows: auto minmax(0, 1fr); }
+.a-authpage .a-auth-card[data-page="signup"] .a-auth-body { align-content: center; padding-top: 0; }
+.a-authpage .a-auth-card[data-page="signup"] .a-auth-head p,
+.a-authpage .a-auth-card[data-page="signup"] .a-auth-trust { display: none; }
