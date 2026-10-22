@@ -1,77 +1,106 @@
+import { LogOut } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { Suspense, type ReactNode } from "react";
-import type { NavItem } from "@/config/navigation";
-import {
-  WorkspaceNavigation,
-  JourneyControls,
-} from "@/features/core/components/WorkspaceNavigation";
+
+import type { Workspace } from "@/config/navigation";
+import type { Account } from "@/lib/auth/account";
+
 import { LocaleSwitcher } from "../LocaleSwitcher";
 import { ScenarioToggle } from "../ScenarioToggle";
+import { BrandMark } from "./Brand";
+import { ScenarioSlot, SideNav, TabBar, TopTitle } from "./Nav";
+
+function initials(name: string): string {
+  return (
+    name
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase())
+      .join("") || "A"
+  );
+}
+
+/**
+ * One shell for every workspace. Desktop: sidebar (grouped, journey steps numbered) and a
+ * top bar with the page title and, where it matters, the AI-scenario switch. Mobile: compact
+ * top bar and a fixed bottom tab bar whose "More" sheet holds the rest.
+ */
 export async function Shell({
-  nav,
-  modeLabel,
-  showScenario = true,
+  ws,
+  account,
+  orgName,
+  doneSteps = [],
   children,
 }: {
-  nav: readonly NavItem[];
-  modeLabel: string;
-  showScenario?: boolean;
+  ws: Workspace;
+  account: Account | null;
+  orgName?: string;
+  doneSteps?: number[];
   children: ReactNode;
 }) {
-  const t = await getTranslations("common");
-  const org = nav.some((item) => item.href === "/org");
+  const t = await getTranslations("ui");
+  const name = account?.display_name ?? "Adept";
   return (
-    <div className={`workspace ${org ? "workspace-org" : "workspace-learner"}`}>
-      <a className="skip-link" href="#workspace-main">
-        {t("workspace.skip")}
+    <div className="a-shell" data-mode={ws.mode}>
+      <a className="a-skip" href="#a-main">
+        {t("nav.skip")}
       </a>
-      <aside className="workspace-sidebar">
-        <Link href="/" className="workspace-brand">
-          <span aria-hidden>ɑ</span> adept<span className="brand-dot">.</span>
+      <aside className="a-side">
+        <Link href={ws.home} className="a-brand">
+          <BrandMark />
+          adept
         </Link>
-        <p className="workspace-eyebrow">
-          {modeLabel} / {t("workspace.workspace")}
-        </p>
         <Suspense>
-          <WorkspaceNavigation nav={nav} />
+          <SideNav ws={ws} doneSteps={doneSteps} />
         </Suspense>
-        <div className="workspace-help">
-          <span className="workspace-eyebrow">{t("workspace.human")}</span>
-          <p>{t("humanInCharge")}</p>
-          <Link href="/about">{t("nav.about")} ↗</Link>
-        </div>
-        <Link href="/journey" className="workspace-map">
-          {t("workspace.map")} ↗
-        </Link>
-      </aside>
-      <div className="workspace-body">
-        <header className="workspace-topbar">
-          <span className="workspace-status">
-            <span /> {t("workspace.demo")}
-          </span>
-          <div className="workspace-tools">
-            {showScenario ? (
-              <Suspense>
-                <ScenarioToggle />
-              </Suspense>
-            ) : null}
-            <LocaleSwitcher />
+        <div className="a-side-foot">
+          <div className="a-account">
+            <span className="a-avatar" aria-hidden>
+              {initials(name)}
+            </span>
+            <span style={{ minWidth: 0 }}>
+              <strong>{name}</strong>
+              <small>{orgName ?? t(ws.mode === "organisation" ? "nav.organisation" : "nav.learner")}</small>
+            </span>
           </div>
-          <a href="/auth/logout" className="workspace-exit">
-            {t("workspace.exit")}
-          </a>
-        </header>
-        <main id="workspace-main" className="workspace-main">
+          <div className="a-side-actions">
+            <LocaleSwitcher />
+            <a href="/auth/logout">
+              <LogOut size={14} aria-hidden /> {t("nav.signOut")}
+            </a>
+          </div>
+        </div>
+      </aside>
+      <div className="a-col">
+        <header className="a-top">
+          <Link href={ws.home} className="a-top-brand">
+            <BrandMark />
+            adept
+          </Link>
           <Suspense>
-            <JourneyControls />
+            <TopTitle ws={ws} />
           </Suspense>
+          <div className="a-top-tools">
+            <Suspense>
+              <ScenarioSlot ws={ws}>
+                <ScenarioToggle />
+              </ScenarioSlot>
+            </Suspense>
+            <Link href="/about" className="a-link a-small a-hide-mobile">
+              {t("nav.about")}
+            </Link>
+          </div>
+        </header>
+        <main id="a-main" className="a-main">
           {children}
         </main>
-        <footer className="workspace-footer">
-          {t("workspace.disclaimer")}
-        </footer>
+        <footer className="a-foot">{t("shell.disclaimer")}</footer>
       </div>
+      <Suspense>
+        <TabBar ws={ws} tools={<LocaleSwitcher />} />
+      </Suspense>
     </div>
   );
 }

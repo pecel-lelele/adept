@@ -14,5 +14,5 @@
   "budget": "Budget RM {amount}",
   "hrdEligible": "HRD Corp eligible",
   "interests": "Interests",
-  "cvNote": "CV upload (POST /profile/cv) returns mock extraction. Use synthetic CVs only."
+  "cvNote": "Use a sample CV to explore your skills. Please don’t upload real personal information."
 }

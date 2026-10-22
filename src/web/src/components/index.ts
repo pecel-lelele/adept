@@ -3,7 +3,6 @@ export { ApiError } from "./ApiError";
 export { DataFreshnessBadge } from "./DataFreshnessBadge";
 export { EmptyState } from "./EmptyState";
 export { EstimateLabel } from "./EstimateLabel";
-export { JourneyStepper } from "./JourneyStepper";
 export { LocaleSwitcher } from "./LocaleSwitcher";
 export { MetaBar } from "./MetaBar";
 export { PageHeader } from "./PageHeader";

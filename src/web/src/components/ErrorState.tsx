@@ -1,0 +1,36 @@
+import { CircleAlert, UserRoundPen, WifiOff } from "lucide-react";
+import Link from "next/link";
+import { getTranslations } from "next-intl/server";
+
+import type { ApiFailure } from "@/lib/api/client";
+
+import { RetryButton } from "./RetryButton";
+
+/** A failed API call with the one action that fixes it: sign in, finish the profile, retry. */
+export async function ErrorState({ failure, compact = false }: { failure: ApiFailure; compact?: boolean }) {
+  const t = await getTranslations("ui.error");
+  const needsProfile = failure.code === "profile_required";
+  const needsLogin = failure.status === 401;
+  const Icon = needsProfile ? UserRoundPen : failure.code === "network" ? WifiOff : CircleAlert;
+  const body = (
+    <div className="a-empty">
+      <span className="a-empty-icon">
+        <Icon size={24} aria-hidden />
+      </span>
+      <strong style={{ color: "var(--a-ink)" }}>{needsProfile ? t("profile") : t("title")}</strong>
+      <span>{failure.code === "network" ? t("network") : failure.message}</span>
+      {needsProfile ? (
+        <Link className="a-btn is-small" href="/app/onboarding">
+          {t("profile")}
+        </Link>
+      ) : needsLogin ? (
+        <a className="a-btn is-small" href="/auth/logout">
+          {t("signIn")}
+        </a>
+      ) : (
+        <RetryButton label={t("retry")} />
+      )}
+    </div>
+  );
+  return compact ? body : <section className="a-card">{body}</section>;
+}

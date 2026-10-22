@@ -2,9 +2,9 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { useTransition } from "react";
 
 import { parseScenario, SCENARIO_PARAM, SCENARIOS } from "@/lib/scenario";
-import { cn } from "@/lib/utils";
 
 /** Global scenario switch; the value lives in the URL (?scenario=moderate|fast). */
 export function ScenarioToggle() {
@@ -12,27 +12,25 @@ export function ScenarioToggle() {
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
+  const [pending, startTransition] = useTransition();
   const current = parseScenario(params.get(SCENARIO_PARAM) ?? undefined);
 
   function select(scenario: string) {
     const next = new URLSearchParams(params.toString());
     next.set(SCENARIO_PARAM, scenario);
-    router.replace(`${pathname}?${next.toString()}`, { scroll: false });
+    startTransition(() => router.push(`${pathname}?${next.toString()}`, { scroll: false }));
   }
 
   return (
-    <div role="radiogroup" aria-label={t("label")} className="inline-flex rounded-md border p-0.5 text-xs">
+    <div role="radiogroup" aria-label={t("label")} className="a-seg" aria-busy={pending}>
       {SCENARIOS.map((s) => (
         <button
           key={s}
           type="button"
           role="radio"
           aria-checked={current === s}
+          disabled={pending}
           onClick={() => select(s)}
-          className={cn(
-            "rounded px-2 py-1 transition-colors",
-            current === s ? "bg-primary text-primary-foreground" : "hover:bg-accent",
-          )}
         >
           {t(s)}
         </button>

@@ -8,6 +8,7 @@ import type profile from "../../../messages/en/profile.json";
 import type scenarios from "../../../messages/en/scenarios.json";
 import type sdg from "../../../messages/en/sdg.json";
 import type trends from "../../../messages/en/trends.json";
+import type ui from "../../../messages/en/ui.json";
 
 import type { Locale } from "./config";
 
@@ -24,6 +25,7 @@ declare module "next-intl" {
       sdg: typeof sdg;
       org: typeof org;
       guardrails: typeof guardrails;
+      ui: typeof ui;
     };
   }
 }
