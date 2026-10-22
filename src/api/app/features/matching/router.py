@@ -47,9 +47,10 @@ def replay(
     from_date: FromDate,
     scenario: ScenarioId = "moderate",
     to_date: ToDate = None,
+    sdg_weight: SdgWeight = 0.0,
 ) -> ReplayResponse:
     """What changed in the learner's role ranking between two snapshots, and why."""
-    return service.replay(user, scenario, from_date, to_date)
+    return service.replay(user, scenario, from_date, to_date, sdg_weight)
 
 
 @router.get("/{role_id}")

@@ -752,7 +752,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Outlook */
+        /**
+         * Get Outlook
+         * @description Role outlooks; ``snapshot_date`` limits the history to that snapshot and earlier.
+         */
         get: operations["scenarios_get_outlook"];
         put?: never;
         post?: never;
@@ -2001,8 +2004,20 @@ export interface components {
             /** Velocity After */
             velocity_after: number;
             /**
+             * Position Before
+             * @description Percentile of the skill's velocity among all skills, earlier snapshot.
+             * @default 0
+             */
+            position_before: number;
+            /**
+             * Position After
+             * @description Percentile of the skill's velocity among all skills, later snapshot.
+             * @default 0
+             */
+            position_after: number;
+            /**
              * Effect
-             * @description Change in velocity times the skill importance for the role; > 0 pushed up.
+             * @description Score points this skill moved the role: change in its percentile position times its share of the role's importance times the trend weight; > 0 pushed up.
              */
             effect: number;
         };
@@ -3094,6 +3109,8 @@ export interface operations {
                 scenario?: "moderate" | "fast";
                 /** @description The later snapshot; latest if omitted. */
                 to_date?: string | null;
+                /** @description How much the UN Goals count in the ranking, 0..1. 0 (default) keeps the standard score; above 0 adds an 'sdg_impact' part and scales the others down. */
+                sdg_weight?: number;
             };
             header?: {
                 "x-demo-user"?: string | null;
@@ -4144,6 +4161,7 @@ export interface operations {
         parameters: {
             query?: {
                 role_id?: string | null;
+                snapshot_date?: string | null;
             };
             header?: never;
             path?: never;

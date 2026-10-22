@@ -16,6 +16,8 @@ Nothing is hard-coded. Method (documented in docs/decisions.md):
 
 from __future__ import annotations
 
+from datetime import date
+
 from app.contracts.common import RecommendationMeta, ScenarioId, Source
 from app.contracts.scenarios import OutlookResponse, RoleOutlook, Scenario, ScenarioListResponse
 from app.contracts.trends import TrendSnapshotResponse
@@ -97,13 +99,22 @@ def list_scenarios() -> ScenarioListResponse:
     return ScenarioListResponse(scenarios=scenarios, meta=_meta(latest, "moderate"))
 
 
-def get_outlook(role_id: str | None) -> OutlookResponse:
+def get_outlook(role_id: str | None, snapshot_date: date | None = None) -> OutlookResponse:
+    """Outlook per role and scenario as of the latest snapshot, or as of ``snapshot_date``.
+
+    With a date, only snapshots up to and including it are used, so a historical match page
+    shows the outlook that was knowable then and cites that snapshot.
+    """
     roles = repository.target_role_ids()
     if role_id is not None:
         if role_id not in roles:
             raise NotFoundError(f"No outlook for role {role_id}")
         roles = [role_id]
     snaps = repository.history()  # oldest first; the last one is the latest
+    if snapshot_date is not None:
+        snaps = [s for s in snaps if s.meta.snapshot_date <= snapshot_date]
+        if not snaps or snaps[-1].meta.snapshot_date != snapshot_date:
+            raise NotFoundError(f"No trend snapshot for {snapshot_date.isoformat()}")
     latest = snaps[-1]
     history: dict[ScenarioId, list[dict[str, float]]] = {
         sid: [{i.skill_id: float(getattr(i, f"velocity_{sid}")) for i in s.items} for s in snaps]

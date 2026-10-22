@@ -40,8 +40,10 @@ def _build_meta(snap, scenario: ScenarioId) -> RecommendationMeta:
 def _weighted(matches: list[RoleMatch], weight: float) -> list[RoleMatch]:
     if weight <= 0:
         return matches
-    impact = sdg_weight.sdg_impact([m.role_id for m in matches], sdg_weight.default_links)
-    return sdg_weight.apply(matches, impact, weight)
+    links = {m.role_id: sdg_weight.default_links(m.role_id) for m in matches}
+    impact = sdg_weight.sdg_impact(links, lambda rid: links[rid])
+    notes = {rid: sdg_weight.review_note(found) for rid, found in links.items()}
+    return sdg_weight.apply(matches, impact, weight, notes)
 
 
 def list_matches(
@@ -85,9 +87,16 @@ def get_match(
 
 
 def replay(
-    user: CurrentUser, scenario: ScenarioId, from_date: date, to_date: date | None = None
+    user: CurrentUser,
+    scenario: ScenarioId,
+    from_date: date,
+    to_date: date | None = None,
+    sdg_weight_value: float = 0.0,
 ) -> ReplayResponse:
-    """Rank the learner on two snapshot dates and explain each role's movement."""
+    """Rank the learner on two snapshot dates and explain each role's movement.
+
+    With a UN Goals weight the same SDG blend as the matches list applies to both dates.
+    """
     before = fetch_snapshot(scenario, from_date)
     after = fetch_snapshot(scenario, to_date) if to_date else fetch_snapshot(scenario)
     if before.snapshot_date == after.snapshot_date:
@@ -95,8 +104,20 @@ def replay(
             "Pick an earlier snapshot to compare with.", status_code=422, code="same_snapshot"
         )
     profile = repository.load_profile(user.id)
+    roles = repository.load_roles()
+    impact = (
+        sdg_weight.sdg_impact([r.role_id for r in roles], sdg_weight.default_links)
+        if sdg_weight_value > 0
+        else None
+    )
     rows = replay_diff.compare(
-        profile, repository.load_roles(), before.velocities, after.velocities, Weights()
+        profile,
+        roles,
+        before.velocities,
+        after.velocities,
+        Weights(),
+        impact=impact,
+        sdg_weight=sdg_weight_value,
     )
     movements = [
         RoleMovement(
@@ -112,6 +133,8 @@ def replay(
                     label=repository.skill_label(d.skill_id),
                     velocity_before=d.velocity_before,
                     velocity_after=d.velocity_after,
+                    position_before=d.position_before,
+                    position_after=d.position_after,
                     effect=d.effect,
                 )
                 for d in found

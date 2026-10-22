@@ -240,7 +240,6 @@
     "tFeatTitleA": "团队有目标地再培训",
     "tFeatTitleB": "所需的一切。",
     "tFeatBody": "从一个加入码到一份培训计划，附带审核和可汇报的影响。",
-    "featLabel": "功能",
     "f1": "从简历到技能",
     "f1Body": "上传简历，我们会在 110 多项技能中找出你的技能。每一项都由你确认。",
     "f2": "未来技能雷达",
@@ -540,6 +539,9 @@
     "kEnablingNote": "该技能帮助他人实现目标",
     "kReviewed": "经人工审核",
     "kReviewedNote": "经过核查，而非仅由系统生成",
-    "goalsHint": "彩色目标由你的路径支持"
+    "goalsHint": "彩色目标由你的路径支持",
+    "backToRoles": "所有职位",
+    "sdgWeighted": "联合国目标权重 {weight}%",
+    "outlookHint": "每种 AI 发展速度下该职位的预计需求：1.00 表示不变。条形显示估计范围。"
   }
 }

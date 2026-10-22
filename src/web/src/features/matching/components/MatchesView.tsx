@@ -50,10 +50,13 @@ export async function MatchesView({
   const [result, radar, changes] = await Promise.all([
     fetchMatches(scenario, snapshotDate, sdgWeight),
     fetchRadar(scenario),
-    snapshotDate ? fetchReplay(scenario, snapshotDate) : Promise.resolve(null),
+    snapshotDate ? fetchReplay(scenario, snapshotDate, sdgWeight) : Promise.resolve(null),
   ]);
   const labels = await componentLabels();
-  const replay = snapshotDate ? `&snapshot_date=${encodeURIComponent(snapshotDate)}` : "";
+  // The detail page must explain the same ranking: carry the snapshot and the UN Goals weight.
+  const replay =
+    (snapshotDate ? `&snapshot_date=${encodeURIComponent(snapshotDate)}` : "") +
+    (sdgWeight > 0 ? `&sdg=${sdgWeight.toFixed(2)}` : "");
 
   return (
     <div className="a-view">

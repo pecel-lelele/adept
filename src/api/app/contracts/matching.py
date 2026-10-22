@@ -66,8 +66,17 @@ class ReplayDriver(BaseModel):
     label: str
     velocity_before: float
     velocity_after: float
+    position_before: float = Field(
+        0.0, description="Percentile of the skill's velocity among all skills, earlier snapshot."
+    )
+    position_after: float = Field(
+        0.0, description="Percentile of the skill's velocity among all skills, later snapshot."
+    )
     effect: float = Field(
-        description="Change in velocity times the skill importance for the role; > 0 pushed up."
+        description=(
+            "Score points this skill moved the role: change in its percentile position times "
+            "its share of the role's importance times the trend weight; > 0 pushed up."
+        )
     )
 
 

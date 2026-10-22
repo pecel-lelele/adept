@@ -104,3 +104,76 @@ def test_api_replay_explains_movements(client: TestClient) -> None:
     assert body["meta"]["sources"]
     same = client.get("/api/v1/matches/replay", params={"from_date": dates[-1]}, headers=AISYAH)
     assert same.status_code == 422
+
+
+def test_replay_driver_follows_percentile_not_raw_velocity() -> None:
+    """A skill whose velocity rises while others rise faster loses position: a fall."""
+    role = Role(role_id="r", skills=(RoleSkill("mine", 1.0),))
+    before = {"mine": 0.5, "a": 0.1, "b": 0.2}
+    after = {"mine": 0.6, "a": 0.9, "b": 0.8}  # mine went up, but is now the lowest
+    (found,) = replay_diff.drivers(role, before, after)
+    assert found.velocity_after > found.velocity_before
+    assert found.position_after < found.position_before
+    assert found.effect < 0
+    rows = replay_diff.compare(MatchProfile(skills={}), [role], before, after, Weights())
+    movement, drivers = rows[0]
+    # The effect is exactly the change in score the skill caused.
+    assert abs(drivers[0].effect - (movement.score_after - movement.score_before)) < 1e-3
+
+
+def test_replay_applies_the_sdg_weight_to_both_snapshots() -> None:
+    fit = Role(role_id="fit", skills=(RoleSkill("s", 1.0),))
+    green = Role(role_id="green", skills=(RoleSkill("t", 1.0),))
+    profile = MatchProfile(skills={"s": 3.0})
+    v = {"s": 0.5, "t": 0.4}
+    plain = replay_diff.compare(profile, [fit, green], v, v, Weights())
+    assert plain[0][0].role_id == "fit"
+    weighted = replay_diff.compare(
+        profile, [fit, green], v, v, Weights(), impact={"fit": 0.0, "green": 1.0}, sdg_weight=0.9
+    )
+    top = weighted[0][0]
+    assert top.role_id == "green" and top.rank_before == top.rank_after == 1
+
+
+def test_api_detail_and_replay_keep_the_sdg_weight(client: TestClient) -> None:
+    weighted = client.get("/api/v1/matches", params={"sdg_weight": 0.6}, headers=AISYAH).json()
+    first = weighted["matches"][0]
+    detail = client.get(
+        f"/api/v1/matches/{first['role_id']}", params={"sdg_weight": 0.6}, headers=AISYAH
+    ).json()
+    assert abs(detail["score"] - first["score"]) < 1e-6
+    dates = client.get("/api/v1/trends/snapshot").json()["meta"]["available_snapshots"]
+    replay = client.get(
+        "/api/v1/matches/replay",
+        params={"from_date": dates[0], "sdg_weight": 0.6},
+        headers=AISYAH,
+    ).json()
+    assert [m["role_id"] for m in replay["movements"]] == [
+        m["role_id"] for m in weighted["matches"]
+    ]
+
+
+def test_api_outlook_for_an_older_snapshot_cites_that_snapshot(client: TestClient) -> None:
+    dates = client.get("/api/v1/trends/snapshot").json()["meta"]["available_snapshots"]
+    roles = client.get("/api/v1/matches", headers=AISYAH).json()["matches"]
+    resp = client.get(
+        "/api/v1/scenarios/outlook",
+        params={"role_id": roles[0]["role_id"], "snapshot_date": dates[0]},
+    )
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["meta"]["snapshot_date"] == dates[0]
+    missing = client.get(
+        "/api/v1/scenarios/outlook",
+        params={"role_id": roles[0]["role_id"], "snapshot_date": "1999-01-01"},
+    )
+    assert missing.status_code == 404
+
+
+def test_ranking_explanation_says_how_many_links_are_drafts() -> None:
+    draft = _link(4, "direct")
+    reviewed = _link(8, "direct").model_copy(update={"reviewed": True})
+    assert sdg_weight.review_note([draft, reviewed]).startswith("1 of 2 links were reviewed")
+    assert sdg_weight.review_note([reviewed]) == "All 1 links were reviewed by a person."
+    (m,) = sdg_weight.apply([_match("a", 0.5)], {"a": 1.0}, 0.5, {"a": "1 of 2 reviewed."})
+    assert m.components[-1].explanation.endswith("1 of 2 reviewed.")
+    assert "reviewed links" not in m.components[-1].explanation

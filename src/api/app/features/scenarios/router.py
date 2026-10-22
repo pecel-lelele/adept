@@ -1,3 +1,5 @@
+from datetime import date
+
 from fastapi import APIRouter
 
 from app.contracts.scenarios import OutlookResponse, ScenarioListResponse
@@ -12,5 +14,6 @@ def list_scenarios() -> ScenarioListResponse:
 
 
 @router.get("/outlook")
-def get_outlook(role_id: str | None = None) -> OutlookResponse:
-    return service.get_outlook(role_id)
+def get_outlook(role_id: str | None = None, snapshot_date: date | None = None) -> OutlookResponse:
+    """Role outlooks; ``snapshot_date`` limits the history to that snapshot and earlier."""
+    return service.get_outlook(role_id, snapshot_date)

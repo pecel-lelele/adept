@@ -240,7 +240,6 @@
     "tFeatTitleA": "Semua yang pasukan perlukan",
     "tFeatTitleB": "untuk melatih semula dengan tujuan.",
     "tFeatBody": "Daripada satu kod sertai kepada satu pelan latihan, dengan semakan dan impak yang boleh dilaporkan.",
-    "featLabel": "Ciri",
     "f1": "CV kepada kemahiran",
     "f1Body": "Muat naik CV dan kami cari kemahiran anda daripada 110+ kemahiran. Anda sahkan setiap satu.",
     "f2": "Radar Kemahiran Masa Depan",
@@ -540,6 +539,9 @@
     "kEnablingNote": "Kemahiran membantu orang lain",
     "kReviewed": "Disemak oleh manusia",
     "kReviewedNote": "Disemak, bukan sekadar dijana",
-    "goalsHint": "Matlamat berwarna disokong oleh laluan anda"
+    "goalsHint": "Matlamat berwarna disokong oleh laluan anda",
+    "backToRoles": "Semua peranan",
+    "sdgWeighted": "Matlamat PBB dikira {weight}%",
+    "outlookHint": "Unjuran permintaan peranan ini bagi setiap kadar AI: 1.00 bermaksud tiada perubahan. Bar menunjukkan julat anggaran."
   }
 }

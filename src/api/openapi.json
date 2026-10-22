@@ -451,6 +451,20 @@
             "description": "The later snapshot; latest if omitted."
           },
           {
+            "name": "sdg_weight",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "maximum": 1,
+              "minimum": 0,
+              "description": "How much the UN Goals count in the ranking, 0..1. 0 (default) keeps the standard score; above 0 adds an 'sdg_impact' part and scales the others down.",
+              "default": 0.0,
+              "title": "Sdg Weight"
+            },
+            "description": "How much the UN Goals count in the ranking, 0..1. 0 (default) keeps the standard score; above 0 adds an 'sdg_impact' part and scales the others down."
+          },
+          {
             "name": "x-demo-user",
             "in": "header",
             "required": false,
@@ -2820,6 +2834,7 @@
           "scenarios"
         ],
         "summary": "Get Outlook",
+        "description": "Role outlooks; ``snapshot_date`` limits the history to that snapshot and earlier.",
         "operationId": "scenarios_get_outlook",
         "parameters": [
           {
@@ -2836,6 +2851,23 @@
                 }
               ],
               "title": "Role Id"
+            }
+          },
+          {
+            "name": "snapshot_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Snapshot Date"
             }
           }
         ],
@@ -5760,10 +5792,22 @@
             "type": "number",
             "title": "Velocity After"
           },
+          "position_before": {
+            "type": "number",
+            "title": "Position Before",
+            "description": "Percentile of the skill's velocity among all skills, earlier snapshot.",
+            "default": 0.0
+          },
+          "position_after": {
+            "type": "number",
+            "title": "Position After",
+            "description": "Percentile of the skill's velocity among all skills, later snapshot.",
+            "default": 0.0
+          },
           "effect": {
             "type": "number",
             "title": "Effect",
-            "description": "Change in velocity times the skill importance for the role; > 0 pushed up."
+            "description": "Score points this skill moved the role: change in its percentile position times its share of the role's importance times the trend weight; > 0 pushed up."
           }
         },
         "type": "object",

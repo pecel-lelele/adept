@@ -1,7 +1,11 @@
 import type { Schemas } from "@/lib/api";
-import { percent } from "@/lib/utils";
 
-/** Explainable score: each component's weight x value, with its explanation. */
+const pct = (v: number) => `${Math.round(v * 100)}%`;
+
+/**
+ * Explainable score: every part as weight × value = points, with its explanation. The points
+ * add up to the score shown above them, so the arithmetic is visible.
+ */
 export function ScoreBreakdown({
   score,
   components,
@@ -12,24 +16,27 @@ export function ScoreBreakdown({
   labels?: Record<string, string>;
 }) {
   return (
-    <div className="space-y-2">
-      <div className="text-2xl font-semibold">{percent(score)}</div>
-      <ul className="space-y-2">
+    <div className="a-breakdown">
+      <ul>
         {components.map((c) => (
-          <li key={c.name} className="text-sm">
-            <div className="flex justify-between">
-              <span>{labels?.[c.name] ?? c.name}</span>
-              <span className="tabular-nums text-muted-foreground">
-                {percent(c.weight)} × {percent(c.value)} = {percent(c.weight * c.value)}
+          <li key={c.name}>
+            <div className="a-breakdown-row">
+              <strong>{labels?.[c.name] ?? c.name.replaceAll("_", " ")}</strong>
+              <span>
+                {pct(c.weight)} × {pct(c.value)} = <b>{(c.weight * c.value * 100).toFixed(1)}</b>
               </span>
             </div>
-            <div className="mt-1 h-1.5 rounded bg-muted">
-              <div className="h-1.5 rounded bg-primary" style={{ width: percent(c.value) }} />
-            </div>
-            <p className="mt-0.5 text-xs text-muted-foreground">{c.explanation}</p>
+            <span className="a-scorebar-track" aria-hidden>
+              <span style={{ width: pct(c.value), background: "var(--a-deep)", opacity: c.provided === false ? 0.35 : 1 }} />
+            </span>
+            <p>{c.explanation}</p>
           </li>
         ))}
       </ul>
+      <div className="a-breakdown-total">
+        <span>=</span>
+        <strong>{(score * 100).toFixed(1)}</strong>
+      </div>
     </div>
   );
 }

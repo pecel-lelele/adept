@@ -852,3 +852,14 @@
 - **Affects**: All workspace UI; feature owners should review their screens. API contracts, dependencies and backend behavior are unchanged.
 - **Replaces**: none
 - **PR / branch**: feat/core-insight-design
+
+### M4-016: Same ranking context across matches, role detail, replay and outlook (H04, H03 wording)
+- **Date**: 2026-10-22
+- **Feature**: F4, F3 (Core integration)
+- **Type**: fix
+- **Change**: (1) The UN Goals weight now travels from the matches list to the role detail (`?sdg=`) and to `GET /matches/replay?sdg_weight=`, which blends SDG impact into both snapshots' scores the same way as the list. (2) Replay reasons now use the scorer's own input: each skill's percentile position among all skills in the snapshot. Effect = change in position × the skill's share of the role's importance × trend weight, i.e. the score points it moved. `ReplayDriver` gains `position_before` / `position_after`. (3) `GET /scenarios/outlook?snapshot_date=` uses only snapshots up to that date, so a historical match page cites its own period. (4) The SDG part of the score no longer calls its links "reviewed"; its explanation says how many of the role's links a person has reviewed. Role detail restyled to the shared layout (score arithmetic, gap list, outlook range bars).
+- **Why**: Greptile review on PR #7 and handoff H04/H03: the same choice showed different scores and ranks between views, replay could explain a fall as a rise, and draft mappings were described as reviewed.
+- **Affects**: M2 (matching contracts/service), M1 (outlook endpoint); contract additions only.
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design
+- **Pipeline**: source = trend snapshots + SDG links → features = percentile positions (`trend_scores`), SDG impact → method = linear blend (1 − λ)·score + λ·impact on both dates; driver effect = Δposition × importance share × w_trend → evaluation = regression tests (percentile vs raw velocity, weighted replay order = weighted list order, detail score = list score, outlook date) → serving = `/matches`, `/matches/{id}`, `/matches/replay`, `/scenarios/outlook`

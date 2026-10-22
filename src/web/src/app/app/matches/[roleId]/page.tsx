@@ -11,5 +11,6 @@ export default async function Page({
   const [{ roleId }, query] = await Promise.all([params, searchParams]);
   const scenario = parseScenario(query.scenario);
   const snapshotDate = firstParam(query.snapshot_date) || undefined;
-  return <MatchDetailView roleId={roleId} scenario={scenario} snapshotDate={snapshotDate} />;
+  const sdgWeight = Math.min(1, Math.max(0, Number(firstParam(query.sdg)) || 0));
+  return <MatchDetailView roleId={roleId} scenario={scenario} snapshotDate={snapshotDate} sdgWeight={sdgWeight} />;
 }

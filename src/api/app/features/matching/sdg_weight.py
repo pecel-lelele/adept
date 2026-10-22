@@ -1,7 +1,8 @@
 """SDG-weighted ranking (F4, good-to-have "SDG slider").
 
 The learner chooses how much the UN Goals should count, lambda in [0, 1]. Each role gets an SDG
-impact value from its reviewed SDG links: a direct link counts 1, an enabling link 0.5, summed
+impact value from its SDG links (draft and reviewed alike, and the explanation says how many
+are reviewed): a direct link counts 1, an enabling link 0.5, summed
 and divided by the strongest role's total so the value is 0..1. The existing score parts keep
 their relative weights scaled by (1 - lambda) and SDG impact is added with weight lambda, so the
 score stays a weighted sum shown part by part. lambda = 0 leaves the ranking unchanged.
@@ -33,8 +34,30 @@ def sdg_impact(role_ids: Iterable[str], links_for: LinkFn) -> dict[str, float]:
     return {rid: round(value / top, 4) for rid, value in raw.items()}
 
 
-def apply(matches: list[RoleMatch], impact: dict[str, float], weight: float) -> list[RoleMatch]:
-    """Blend SDG impact into each score and re-rank (stable tie-break on role_id)."""
+def review_note(links: Iterable[SdgLink]) -> str:
+    """How many of the links behind the impact value a person has reviewed."""
+    items = list(links)
+    reviewed = sum(1 for link in items if link.reviewed)
+    if not items:
+        return "This role has no SDG links yet."
+    if reviewed == len(items):
+        return f"All {len(items)} links were reviewed by a person."
+    return (
+        f"{reviewed} of {len(items)} links were reviewed by a person; the rest are draft "
+        "mappings, marked as drafts on the Impact page."
+    )
+
+
+def apply(
+    matches: list[RoleMatch],
+    impact: dict[str, float],
+    weight: float,
+    notes: dict[str, str] | None = None,
+) -> list[RoleMatch]:
+    """Blend SDG impact into each score and re-rank (stable tie-break on role_id).
+
+    ``notes`` (role -> text) is appended to the explanation, e.g. how many links are drafts.
+    """
     if weight <= 0:
         return matches
     weight = min(1.0, weight)
@@ -49,10 +72,10 @@ def apply(matches: list[RoleMatch], impact: dict[str, float], weight: float) -> 
                 weight=round(weight, 4),
                 value=impact.get(m.role_id, 0.0),
                 explanation=(
-                    "Strength of this role's reviewed links to the UN Sustainable Development "
-                    "Goals (direct links count fully, enabling links half), relative to the "
-                    "strongest role."
-                ),
+                    "Strength of this role's links to the UN Sustainable Development Goals "
+                    "(direct links count fully, enabling links half), relative to the strongest "
+                    "role. " + (notes or {}).get(m.role_id, "")
+                ).strip(),
             )
         )
         score = min(1.0, sum(c.weight * c.value for c in parts))
