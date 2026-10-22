@@ -16,9 +16,13 @@ small free-tier quota stretches further before Adi falls back to its built-in gu
 
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 import time
+from collections.abc import Iterator
+from contextlib import contextmanager
+from contextvars import ContextVar
 from typing import Any, Protocol, TypeVar
 
 import httpx
@@ -27,6 +31,18 @@ from pydantic import BaseModel, ValidationError
 from app.core.config import Settings, get_settings
 
 T = TypeVar("T", bound=BaseModel)
+_DEADLINE: ContextVar[float | None] = ContextVar("llm_deadline", default=None)
+
+
+@contextmanager
+def request_deadline(deadline: float | None) -> Iterator[None]:
+    """Limit all provider attempts to the enclosing request's remaining time."""
+    token = _DEADLINE.set(deadline)
+    try:
+        yield
+    finally:
+        _DEADLINE.reset(token)
+
 
 ChatMessage = dict[str, str]  # {"role": "system" | "user" | "assistant", "content": "..."}
 
@@ -84,7 +100,7 @@ class OpenAICompatibleProvider:
         base_url: str,
         api_key: str,
         timeout_s: float = 20.0,
-        transport: httpx.BaseTransport | None = None,
+        transport: httpx.AsyncBaseTransport | None = None,
         fallback_models: tuple[str, ...] = (),
     ) -> None:
         if not model:
@@ -100,7 +116,12 @@ class OpenAICompatibleProvider:
         self._timeout = timeout_s
         self._transport = transport
         self._fallbacks = tuple(m for m in fallback_models if m and m != model)
-        self.last_model = model
+        self._last_model: ContextVar[str] = ContextVar("llm_used_model", default=model)
+
+    @property
+    def last_model(self) -> str:
+        """Model used in this caller's context, never another concurrent request's model."""
+        return self._last_model.get()
 
     def _body(self, messages: list[ChatMessage], max_tokens: int, model: str) -> dict[str, Any]:
         body: dict[str, Any] = {"model": model, "messages": messages}
@@ -115,30 +136,48 @@ class OpenAICompatibleProvider:
         return body
 
     def _post(self, messages: list[ChatMessage], max_tokens: int) -> str:
-        """Try the main model, then each fallback, all within one LLM_TIMEOUT_S budget.
-
-        The web route waits 30 s for the whole answer, so fallbacks share the budget instead of
-        each getting a fresh timeout; once too little time is left the guide answers instead.
-        """
+        """Use cancellable async I/O under a single wall-clock deadline, including retries."""
+        self._last_model.set(self.model)
         deadline = time.monotonic() + self._timeout
+        outer = _DEADLINE.get()
+        if outer is not None:
+            deadline = min(deadline, outer)
+        try:
+            text, model = asyncio.run(self._post_until(messages, max_tokens, deadline))
+        except TimeoutError as exc:
+            raise LLMUnavailableError(f"{self.name}: model deadline exceeded") from exc
+        self._last_model.set(model)
+        return text
+
+    async def _post_until(
+        self, messages: list[ChatMessage], max_tokens: int, deadline: float
+    ) -> tuple[str, str]:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise LLMUnavailableError(f"{self.name}: request deadline exceeded")
+        async with asyncio.timeout(remaining):
+            return await self._attempts(messages, max_tokens, deadline)
+
+    async def _attempts(
+        self, messages: list[ChatMessage], max_tokens: int, deadline: float
+    ) -> tuple[str, str]:
         last: LLMUnavailableError | None = None
-        for model in (self.model, *self._fallbacks):
+        for index, model in enumerate((self.model, *self._fallbacks)):
             remaining = deadline - time.monotonic()
-            if remaining < MIN_ATTEMPT_S:
+            if remaining <= 0 or (index > 0 and remaining < MIN_ATTEMPT_S):
                 break
             try:
-                text = self._post_once(self._body(messages, max_tokens, model), remaining)
+                text = await self._post_once(self._body(messages, max_tokens, model), remaining)
             except LLMUnavailableError as exc:
                 last = exc
                 continue
-            self.last_model = model
-            return text
+            return text, model
         raise last or LLMUnavailableError(f"{self.name}: no time left for another model")
 
-    def _post_once(self, body: dict[str, Any], timeout_s: float) -> str:
+    async def _post_once(self, body: dict[str, Any], timeout_s: float) -> str:
         try:
-            with httpx.Client(timeout=timeout_s, transport=self._transport) as client:
-                response = client.post(self._url, headers=self._headers, json=body)
+            async with httpx.AsyncClient(timeout=timeout_s, transport=self._transport) as client:
+                response = await client.post(self._url, headers=self._headers, json=body)
         except httpx.HTTPError as exc:
             raise LLMUnavailableError(f"{self.name} request failed: {type(exc).__name__}") from exc
         if response.status_code >= 400:

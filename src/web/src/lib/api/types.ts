@@ -166,7 +166,7 @@ export interface paths {
         put?: never;
         /**
          * Chat
-         * @description Ask Adi. Answers come from your Adept data (or public figures) and are checked first.
+         * @description Ask Adi about your own workspace using checked application facts.
          */
         post: operations["assistant_chat"];
         delete?: never;

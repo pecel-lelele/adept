@@ -157,7 +157,7 @@ flowchart TB
 
 **How the workshop elements connect:**
 
-- **AI components:** (1) an offline sentence-embedding model (`all-MiniLM-L6-v2`) turns research abstracts into skill signals inside the trend pipeline; (2) **Adi**, the in-app guide, uses Google **Gemini 3.5 Flash Lite** (fallbacks Gemini 3.6 Flash, Gemini 3.1 Flash Lite) through Google AI Studio to phrase answers from the person's own Adept data. It may only name catalogue roles, skills, courses, SDG targets and pages, which are validated before display; without a model Adi answers with a built-in guide.
+- **AI components:** (1) an offline sentence-embedding model (`all-MiniLM-L6-v2`) turns research abstracts into skill signals inside the trend pipeline; (2) **Adi**, the in-app guide, uses Google **Gemini 3.5 Flash Lite** (fallbacks Gemini 3.6 Flash, Gemini 3.1 Flash Lite) through Google AI Studio to select validated answer blocks built from the person's own Adept data. Model-written prose is never displayed; without a model Adi answers with a built-in guide.
 - **Database architecture:** one PostgreSQL schema with versioned migrations. `pgvector` stores skill embeddings, and typed contracts are generated from Pydantic to TypeScript.
 - **Cloud deployment:** containers for web and API, with managed PostgreSQL and scheduled jobs in GitHub Actions (see [§9](#9-design-thinking-and-deployment-strategy)).
 
@@ -561,12 +561,12 @@ Migrations are in [`src/db/migrations`](src/db/migrations). New changes always g
 
 **AI disclosure:**
 
-- **Language model:** Adi, the assistant docked on the landing page and in every workspace, uses **Google Gemini 3.5 Flash Lite** (`gemini-3.5-flash-lite`, Google AI Studio), with `gemini-3.6-flash` and `gemini-3.1-flash-lite` as fallbacks when the first is rate-limited. `/about` shows the provider and model that are actually configured.
-- **What the model does and does not do:** it phrases answers from a context block built from the person's own Adept data (profile, matches, plan, progress, team gaps, the dated trend snapshot) or public figures for visitors. Scores, plans, trends and SDG links are still computed by deterministic, tested rules; the model never computes them.
+- **Language model:** Adi, the assistant available in signed-in workspaces, uses **Google Gemini 3.5 Flash Lite** (`gemini-3.5-flash-lite`, Google AI Studio), with `gemini-3.6-flash` and `gemini-3.1-flash-lite` as fallbacks when the first is rate-limited. `/about` shows the provider and model that are actually configured.
+- **What the model does and does not do:** it selects one or two server-authored answer-block IDs through the F8 gateway and `validate_ids`. Those blocks use the person's own profile, matches, saved-plan progress, team gaps and dated trends; model prose and rationale are never displayed. Scores, plans, trends and SDG links are still computed by deterministic, tested rules; the model never computes them.
 - **Guardrails on every answer** (`src/api/app/features/assistant/`, `src/api/app/core/llm/`):
   - the question is injection-filtered and personal data (email, MyKad NRIC, passport, phone) is redacted before it is sent;
-  - roles, skills, courses, SDG targets and pages may only appear as catalogue tags, which are resolved to official labels; unknown IDs are dropped and counted on `/about`;
-  - figures in the answer that are not in the person's data are shown as "unchecked";
+  - answer-block IDs are validated and their role, skill, course, SDG and page references resolve to official catalogue labels; unknown selections fall back to the guide;
+  - names, numbers and explanations are rendered from application facts rather than model-generated claims;
   - if no model is configured or it fails, a deterministic guide answers in EN/BM/中文;
   - every call is logged (provider, model, outcome, rejected IDs).
 - **Offline model:** `sentence-transformers/all-MiniLM-L6-v2` relates research text to skill labels inside the trend pipeline.

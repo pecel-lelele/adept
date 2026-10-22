@@ -193,6 +193,7 @@ def _learner(ctx: Context, user: CurrentUser, scenario: ScenarioId) -> None:
                     f"below required level: {partial}"
                 )
             badges = _try("sdg", lambda: sdg_service.role_badges(top[0].role_id)) or []
+            ctx.facts["sdg_targets"] = [b.target for b in badges]
             if badges:
                 ctx.lines.append(
                     f"SDG targets of [[role:{top[0].role_id}]]: "
@@ -223,10 +224,13 @@ def _learner(ctx: Context, user: CurrentUser, scenario: ScenarioId) -> None:
             {"skill": s.skill_id, "courses": [c.id for c in s.courses]} for s in p.steps
         ]
         progress = _try(
-            "progress", lambda: pathway_service.get_progress(user, plan.role_id, scenario)
+            "progress", lambda: pathway_service.get_progress(user, plan.role_id, plan.scenario)
         )
         if progress is not None:
-            done = [cid for cid, st in progress.course_status.items() if st == "completed"]
+            from app.features.pathway.verification import effective_statuses
+
+            statuses = effective_statuses(progress.course_status, progress.evidence)
+            done = [cid for cid, st in statuses.items() if st == "completed"]
             ctx.facts["done"] = done
             badges = ", ".join(b.id for b in progress.badges) or "none"
             ctx.lines.append(

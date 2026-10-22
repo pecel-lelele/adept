@@ -18,7 +18,8 @@ INTENTS: dict[str, tuple[str, ...]] = {
         "privacy",
         "stored",
         "store my",
-        "data",
+        "my data",
+        "personal data",
         "pdpa",
         "delete",
         "privasi",
@@ -27,7 +28,7 @@ INTENTS: dict[str, tuple[str, ...]] = {
         "隐私",
         "保存",
         "删除",
-        "数据",
+        "个人数据",
     ),
     "how": (
         "how does",
@@ -41,7 +42,18 @@ INTENTS: dict[str, tuple[str, ...]] = {
         "怎么",
         "是什么",
     ),
-    "sdg": ("sdg", "goal", "impact", "sustainab", "matlamat", "kelestarian", "可持续", "目标"),
+    "sdg": (
+        "sdg",
+        "goal",
+        "goals",
+        "impact",
+        "sustainable",
+        "sustainability",
+        "matlamat",
+        "kelestarian",
+        "可持续",
+        "目标",
+    ),
     "cost": (
         "cost",
         "free",
@@ -269,7 +281,7 @@ def intent(question: str, audience: str = "learner") -> str:
         if name == "team" and audience != "manager":
             continue
         if any(
-            (w in q) if re.search(r"[一-鿿]", w) else re.search(rf"\b{re.escape(w)}", q)
+            (w in q) if re.search(r"[一-鿿]", w) else re.search(rf"\b{re.escape(w)}\b", q)
             for w in words
         ):
             return name
@@ -285,9 +297,13 @@ def _tags(kind: str, ids: list[str]) -> str:
 
 
 def reply(question: str, ctx: Context, locale: Locale) -> str:
+    return reply_for_intent(intent(question, ctx.audience), ctx, locale)
+
+
+def reply_for_intent(kind: str, ctx: Context, locale: Locale) -> str:
+    """Render one server-authored answer from checked application facts."""
     t = T[locale]
     f = ctx.facts
-    kind = intent(question, ctx.audience)
     if kind == "privacy":
         return t["privacy"]
     if kind == "how":
@@ -323,7 +339,8 @@ def reply(question: str, ctx: Context, locale: Locale) -> str:
         return t["no_profile"]
     matches = f.get("matches") or []
     if kind == "sdg":
-        badges = " " + _tags("sdg", list(ctx.refs.sdg)[:4]) if ctx.refs.sdg else ""
+        targets = f.get("sdg_targets") or []
+        badges = " " + _tags("sdg", targets[:4]) if targets else ""
         return t["sdg"].format(badges=badges)
     if kind == "learn" or kind == "next":
         steps = f.get("plan_steps") or []

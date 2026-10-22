@@ -1009,3 +1009,14 @@
 - **Affects**: M2 (CV parser), M3 (F8 gateway use), M4.
 - **Replaces**: none
 - **PR / branch**: feat/core-adi-assistant (PR #8 parts also on fix/core-backend-perf-security)
+
+### M4-031: Adi uses validated answer blocks in signed-in workspaces
+- **Date**: 2026-10-23
+- **Feature**: Core, F8 (Adi); read-only F5 progress integration
+- **Type**: method | UI
+- **Change**: Removed Adi from the landing page and require an authenticated API session. Conversations remount on account changes and abort old browser requests. The model selects server-authored answer-block IDs through the F8 gateway and `validate_ids`; generated prose, rationale and figures cannot reach the UI. Context uses the saved plan's scenario and effective completion statuses, guide intents use complete words and narrower privacy phrases, and SDG answers use the matched role's links. Provider retries use cancellable async I/O with one wall-clock deadline; at most four complete answers run concurrently under a 24-second route deadline, and expired context cannot start paid work. Attribution uses request-local model identity.
+- **Why**: Remaining PR #9 review findings exposed private visitor-key chats, regex grounding bypasses, misleading numeric reuse, deadline overruns, incorrect progress, intent collisions and fallback attribution races. The user chose to keep Adi only inside signed-in workspaces.
+- **Pipeline**: source = own profile, matching, saved-plan progress, catalogue and trends → preprocessing = effective evidence statuses, sanitisation and PII redaction → features = server-authored answer blocks → method = model selects validated block IDs or deterministic intent guide → evaluation = assistant/gateway regressions for unstructured/unknown outputs, redaction, scenario, rejected learning, deadline cancellation and actual fallback attribution → serving = authenticated assistant API and account-scoped workspace chat.
+- **Affects**: M3 F8 provider/gateway/disclosure; M4 assistant/web; no new dependencies or database schema changes.
+- **Replaces**: M4-030 free-text answer checks and phase-only provider timeout; M4-028 landing-page assistant placement.
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/9 / feat/core-adi-assistant

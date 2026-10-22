@@ -47,15 +47,22 @@ function asText(reply: Reply): string {
  * Answers come from the person's own Adept data (or public figures for visitors) and are
  * checked by the API: every role, skill, course and page Adi names is a real catalogue entry.
  */
-export function AdiAssistant({
+type AdiProps = {
+  placement?: "workspace" | "landing";
+  /** Signed-in account id on every surface, including the landing page. */
+  who: string;
+};
+
+export function AdiAssistant(props: AdiProps) {
+  // Identity changes discard rendered history and cancel the previous conversation.
+  return <AdiConversation key={props.who} {...props} />;
+}
+
+function AdiConversation({
   placement = "workspace",
   who,
-}: {
-  placement?: "workspace" | "landing";
-  /** Signed-in account id; omitted for visitors. */
-  who?: string;
-}) {
-  const store = STORE_PREFIX + (who ?? "visitor");
+}: AdiProps) {
+  const store = STORE_PREFIX + who;
   const t = useTranslations("ui.adi");
   const locale = useLocale();
   const path = usePathname();
@@ -69,6 +76,9 @@ export function AdiAssistant({
   const [mood, setMood] = useState<AdiMood>("wave");
   const list = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLTextAreaElement>(null);
+  const activeRequest = useRef<AbortController | null>(null);
+
+  useEffect(() => () => activeRequest.current?.abort(), []);
 
   useEffect(() => {
     // Drop chats saved for anyone else in this tab (after sign-out or an account switch).
@@ -123,6 +133,8 @@ export function AdiAssistant({
     setDraft("");
     setBusy(true);
     setMood("think");
+    const controller = new AbortController();
+    activeRequest.current = controller;
     const messages = history
       .filter((turn): turn is Exclude<Turn, { role: "error" }> => turn.role !== "error")
       .slice(-8)
@@ -134,8 +146,10 @@ export function AdiAssistant({
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ messages, page: path, scenario, locale }),
+        signal: controller.signal,
       });
       const json: unknown = await response.json().catch(() => null);
+      if (controller.signal.aborted) return;
       if (!response.ok) {
         const message = (json as { error?: { message?: string } } | null)?.error?.message ?? t("error");
         setTurns((prev) => [...prev, { role: "error", text: response.status === 429 ? t("slowDown") : message }]);
@@ -146,10 +160,11 @@ export function AdiAssistant({
         window.setTimeout(() => setMood("idle"), 1800);
       }
     } catch {
+      if (controller.signal.aborted) return;
       setTurns((prev) => [...prev, { role: "error", text: t("error") }]);
       setMood("idle");
     } finally {
-      setBusy(false);
+      if (!controller.signal.aborted) setBusy(false);
     }
   }
 

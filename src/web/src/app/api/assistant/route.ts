@@ -41,11 +41,12 @@ export async function POST(request: Request) {
   const publicOrigin = process.env.WEB_ORIGIN ?? "http://localhost:3000";
   const origin = request.headers.get("origin");
   if (origin && origin !== publicOrigin) return new Response(null, { status: 403 });
+  const token = await getSessionToken();
+  if (!token) return Response.json({ error: { code: "unauthorized", message: "Please sign in." } }, { status: 401 });
   const text = await readCapped(request);
   if (text === null) return tooLarge();
   const headers: Record<string, string> = { "content-type": "application/json" };
-  const token = await getSessionToken();
-  if (token) headers["X-Demo-User"] = token;
+  headers["X-Demo-User"] = token;
   const ip = trustedClientIp(request.headers.get("x-forwarded-for"), TRUSTED_PROXY_HOPS);
   if (PROXY_SECRET && ip) {
     headers["X-Real-IP"] = ip;

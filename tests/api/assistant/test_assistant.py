@@ -2,13 +2,22 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
+import threading
+import time
+from datetime import UTC, datetime
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import httpx
 import pytest
 from fastapi.testclient import TestClient
+from pydantic import ValidationError
 
+from app.contracts.pathway import CompletionEvidence
+from app.core.auth import CurrentUser
+from app.core.llm.gateway import BREAKER, CALL_LOG
 from app.core.llm.provider import (
     LLMUnavailableError,
     NullProvider,
@@ -19,6 +28,14 @@ from app.features.assistant import context as ctx_mod
 from app.features.assistant import guide, service
 
 ASK = "/api/v1/assistant/chat"
+
+
+@pytest.fixture(autouse=True)
+def fresh_breaker():  # noqa: ANN201
+    previous = BREAKER.failures, BREAKER.open_until
+    BREAKER.failures, BREAKER.open_until = 0, 0
+    yield
+    BREAKER.failures, BREAKER.open_until = previous
 
 
 class FakeProvider:
@@ -34,7 +51,11 @@ class FakeProvider:
         return self.reply
 
     def complete_structured(self, system, prompt, schema):  # noqa: ANN001, ANN201
-        raise LLMUnavailableError("not used")
+        self.seen = [{"role": "system", "content": system}, {"role": "user", "content": prompt}]
+        try:
+            return schema.model_validate_json(self.reply)
+        except ValidationError as exc:
+            raise LLMUnavailableError("invalid structured output") from exc
 
 
 def _ask(client: TestClient, text: str, **extra: object) -> dict:
@@ -51,43 +72,61 @@ def test_guide_answers_without_a_model(client: TestClient) -> None:
     assert body["suggestions"]
 
 
-def test_visitor_gets_public_answers_without_signing_in(client: TestClient) -> None:
+def test_invalid_session_cannot_use_assistant(client: TestClient) -> None:
     resp = client.post(
         ASK,
         json={"messages": [{"role": "user", "content": "How does Adept work?"}]},
-        headers={"X-Demo-User": ""},
+        headers={"X-Demo-User": "invalid-session"},
     )
-    assert resp.status_code == 200
+    assert resp.status_code == 401
 
 
 def test_model_references_are_checked_and_unknown_ids_dropped(client: TestClient) -> None:
-    fake = FakeProvider(
-        "Try [[role:data-analyst]] and learn [[skill:sql]]. Also [[role:astronaut-ceo]]. "
-        "See [[page:/app/pathway]]."
+    fake = FakeProvider('{"ids":["roles"]}')
+    ctx = ctx_mod.Context(
+        audience="learner",
+        facts={
+            "has_profile": True,
+            "matches": [
+                {
+                    "role_id": "data-analyst",
+                    "score": 0.72,
+                    "missing": ["sql"],
+                    "partial": [],
+                    "parts": {"skill_overlap": 0.5, "trend_outlook": 0.8, "interest_fit": 0.9},
+                }
+            ],
+        },
     )
-    with patch.object(service, "_provider", return_value=fake):
+    ctx.refs.roles["data-analyst"] = "Data Analyst"
+    ctx.refs.skills["sql"] = "SQL"
+    with (
+        patch.object(service, "get_provider", return_value=fake),
+        patch.object(ctx_mod, "build", return_value=ctx),
+    ):
         body = _ask(client, "Which role suits me?")
     assert body["used_llm"] is True
     refs = [(p["kind"], p["ref_id"]) for p in body["parts"] if p["kind"] != "text"]
     assert ("role", "data-analyst") in refs
     assert ("skill", "sql") in refs
-    assert ("page", "/app/pathway") in refs
     assert all(r[1] != "astronaut-ceo" for r in refs), "invented role must never be shown"
     assert all("[[" not in p["text"] for p in body["parts"])
     role = next(p for p in body["parts"] if p["ref_id"] == "data-analyst")
     assert role["text"] == "Data Analyst", "label comes from the catalogue, not the model"
 
 
-def test_figures_missing_from_the_data_are_flagged(client: TestClient) -> None:
+def test_unstructured_figures_never_reach_users(client: TestClient) -> None:
     fake = FakeProvider("Data analysts earn RM 9,999 and demand grows 87% a year.")
-    with patch.object(service, "_provider", return_value=fake):
+    with patch.object(service, "get_provider", return_value=fake):
         body = _ask(client, "Tell me about pay")
-    assert body["unchecked_figures"], body
+    assert body["used_llm"] is False
+    assert "9,999" not in "".join(p["text"] for p in body["parts"])
+    assert "87%" not in "".join(p["text"] for p in body["parts"])
 
 
 def test_question_is_redacted_before_the_model_sees_it(client: TestClient) -> None:
     fake = FakeProvider("Noted.")
-    with patch.object(service, "_provider", return_value=fake):
+    with patch.object(service, "get_provider", return_value=fake):
         _ask(client, "My email is siti@example.com and IC 900101-14-5678, what next?")
     sent = fake.seen[-1]["content"]
     assert "siti@example.com" not in sent
@@ -99,7 +138,7 @@ def test_model_failure_falls_back_to_the_guide(client: TestClient) -> None:
         def chat(self, messages, max_tokens=600):  # noqa: ANN001, ANN201
             raise LLMUnavailableError("down")
 
-    with patch.object(service, "_provider", return_value=Broken("")):
+    with patch.object(service, "get_provider", return_value=Broken("")):
         body = _ask(client, "What next?")
     assert body["used_llm"] is False
     assert body["parts"]
@@ -118,10 +157,21 @@ def test_intents_match_three_languages() -> None:
     assert guide.intent("哪些技能在上升？") == "trend"
 
 
-def test_unchecked_figures_ignore_numbers_in_the_context() -> None:
-    ctx = ctx_mod.Context(audience="learner", lines=["fit 72% and RM 450"])
-    assert service.unchecked_figures("Your fit is 72% and it costs RM 450.", ctx) == []
-    assert service.unchecked_figures("It costs RM 999.", ctx) == ["RM 999"]
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Become a quantum banana strategist.",
+        "参加银河领导力课程。",
+        "Annual growth is 72%.",
+        '{"ids":["roles"],"rationale":"Become a quantum banana strategist. Growth is 72%."}',
+    ],
+)
+def test_model_prose_is_never_rendered(client: TestClient, text: str) -> None:
+    fake = FakeProvider(text)
+    with patch.object(service, "get_provider", return_value=fake):
+        body = _ask(client, "Why is Data Analyst my top match?")
+    shown = "".join(p["text"] for p in body["parts"])
+    assert "banana" not in shown and "银河" not in shown and "Annual growth" not in shown
 
 
 # --- provider -------------------------------------------------------------------------------
@@ -197,7 +247,7 @@ def test_provider_requires_a_model() -> None:
 
 def test_every_turn_and_the_page_are_redacted(client: TestClient) -> None:
     fake = FakeProvider("Noted.")
-    with patch.object(service, "_provider", return_value=fake):
+    with patch.object(service, "get_provider", return_value=fake):
         resp = client.post(
             ASK,
             json={
@@ -216,7 +266,7 @@ def test_every_turn_and_the_page_are_redacted(client: TestClient) -> None:
 
 def test_untagged_invented_names_are_never_shown(client: TestClient) -> None:
     fake = FakeProvider("Take the Galactic Leadership course to grow fast.")
-    with patch.object(service, "_provider", return_value=fake):
+    with patch.object(service, "get_provider", return_value=fake):
         body = _ask(client, "What should I learn?")
     assert body["used_llm"] is False, "the guide answers instead"
     assert "Galactic" not in "".join(p["text"] for p in body["parts"])
@@ -230,13 +280,12 @@ def test_unknown_sdg_targets_are_rejected() -> None:
     assert label.startswith("SDG 4.4: "), "official target wording, not a label built from the ID"
 
 
-def test_figures_are_compared_with_their_units() -> None:
-    ctx = ctx_mod.Context(audience="learner", lines=["Snapshot 2026-10-20; fit 72%; RM 450"])
-    assert service.unchecked_figures("Demand grows 26% and it costs RM 10.", ctx) == [
-        "26%",
-        "RM 10",
-    ]
-    assert service.unchecked_figures("Fit 72%, RM 450.\n1. Do step 2 first.", ctx) == []
+def test_unknown_answer_ids_fall_back(client: TestClient) -> None:
+    with patch.object(
+        service, "get_provider", return_value=FakeProvider('{"ids":["invented-answer"]}')
+    ):
+        body = _ask(client, "What next?")
+    assert body["used_llm"] is False
 
 
 def test_learners_asking_about_gaps_get_learning_advice() -> None:
@@ -245,13 +294,11 @@ def test_learners_asking_about_gaps_get_learning_advice() -> None:
 
 
 def test_fallback_models_share_one_deadline() -> None:
-    import time as _time
-
     tried: list[str] = []
 
-    def slow_then_busy(request: httpx.Request) -> httpx.Response:
+    async def slow_then_busy(request: httpx.Request) -> httpx.Response:
         tried.append(json.loads(request.content)["model"])
-        _time.sleep(1.0)
+        await asyncio.sleep(1.0)
         return httpx.Response(503, json={})
 
     provider = OpenAICompatibleProvider(
@@ -266,3 +313,148 @@ def test_fallback_models_share_one_deadline() -> None:
     with pytest.raises(LLMUnavailableError):
         provider.chat([{"role": "user", "content": "hi"}])
     assert tried == ["main"], "too little time was left to start the fallback"
+
+
+@pytest.mark.parametrize(
+    "question,expected",
+    [
+        ("Why is Data Analyst my top match?", "roles"),
+        ("Which database skills should I learn?", "learn"),
+        ("Is my personal data stored?", "privacy"),
+        ("哪些数据库技能值得学习？", "learn"),
+    ],
+)
+def test_role_and_learning_questions_are_not_privacy(question: str, expected: str) -> None:
+    assert guide.intent(question) == expected
+
+
+def test_context_uses_saved_scenario_and_excludes_rejected_completions() -> None:
+    from app.features.pathway import service as pathway_service
+    from app.features.profile import service as profile_service
+
+    plan = SimpleNamespace(
+        role_id="data-analyst",
+        scenario="fast",
+        pathway=SimpleNamespace(
+            steps=[],
+            total_weeks=2,
+            hours_per_week=5,
+            total_hours=10,
+            out_of_pocket_myr=0,
+            total_cost_myr=0,
+        ),
+    )
+    progress = SimpleNamespace(
+        course_status={"rejected-course": "completed"},
+        evidence={
+            "rejected-course": CompletionEvidence(
+                role_id="data-analyst",
+                course_id="rejected-course",
+                kind="org_rejected",
+                submitted_at=datetime.now(UTC),
+            )
+        },
+        badges=[],
+        percent_complete=0,
+        gap_closed=0,
+        gap_total=1,
+    )
+    user = CurrentUser("aisyah", "Aisyah", "learner")
+    ctx = ctx_mod.Context(audience="learner")
+    with (
+        patch.object(profile_service, "has_profile", return_value=False),
+        patch.object(pathway_service, "get_saved_plan", return_value=plan),
+        patch.object(pathway_service, "get_progress", return_value=progress) as load,
+        patch.object(ctx_mod, "_trends"),
+    ):
+        ctx_mod._learner(ctx, user, "moderate")
+    load.assert_called_once_with(user, "data-analyst", "fast")
+    assert ctx.facts["done"] == []
+    assert "0 courses completed" in ctx.text()
+
+
+def test_slow_model_is_cancelled_under_wall_clock_deadline() -> None:
+    cancelled = []
+
+    async def hang(request: httpx.Request) -> httpx.Response:
+        try:
+            await asyncio.sleep(5)
+            return httpx.Response(200, json={})
+        finally:
+            cancelled.append(True)
+
+    provider = OpenAICompatibleProvider(
+        "gemini",
+        "main",
+        "https://example.test/v1",
+        "synthetic",
+        timeout_s=0.05,
+        transport=httpx.MockTransport(hang),
+        fallback_models=("backup",),
+    )
+    started = time.monotonic()
+    with pytest.raises(LLMUnavailableError):
+        provider.chat([{"role": "user", "content": "hi"}])
+    assert time.monotonic() - started < 1
+    assert cancelled == [True]
+
+
+def test_fallback_model_attribution_is_per_request(client: TestClient) -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        model = json.loads(request.content)["model"]
+        if model == "primary":
+            return httpx.Response(503)
+        return httpx.Response(
+            200, json={"choices": [{"message": {"content": '{"ids":["roles"]}'}}]}
+        )
+
+    provider = OpenAICompatibleProvider(
+        "gemini",
+        "primary",
+        "https://example.test/v1",
+        "synthetic",
+        transport=httpx.MockTransport(handler),
+        fallback_models=("backup",),
+    )
+    BREAKER.success()
+    with patch.object(service, "get_provider", return_value=provider):
+        reply = _ask(client, "Why this role?")
+    assert reply["model"] == "backup"
+    assert CALL_LOG[-1].model == "backup"
+
+
+def test_context_timeout_returns_guide_without_waiting_for_worker(client: TestClient) -> None:
+    from app.features.assistant import router
+
+    release = threading.Event()
+
+    def slow(*args: object) -> object:
+        release.wait(2)
+        return service.unavailable(None, args[1])
+
+    try:
+        with (
+            patch.object(router, "ANSWER_TIMEOUT_S", 0.02),
+            patch.object(service, "answer", side_effect=slow),
+        ):
+            started = time.monotonic()
+            reply = _ask(client, "What next?")
+            assert time.monotonic() - started < 1
+            assert reply["used_llm"] is False
+            assert reply["grounded_on"] == []
+    finally:
+        release.set()
+
+
+def test_expired_context_does_not_start_a_model_call() -> None:
+    from app.contracts.assistant import AssistantIn
+
+    with (
+        patch.object(ctx_mod, "build", return_value=ctx_mod.Context(audience="visitor")),
+        patch.object(service, "get_provider") as provider,
+    ):
+        result = service.answer(
+            None, AssistantIn(messages=[{"role": "user", "content": "Hi"}]), deadline=0
+        )
+    provider.assert_not_called()
+    assert result.used_llm is False
