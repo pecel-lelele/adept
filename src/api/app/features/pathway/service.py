@@ -762,9 +762,17 @@ def group_pathway(
     step lists the members who need it (`member_ids`). Hours/week = the team's median."""
     reqs = data.requirements(role_id)
     hours = sorted(m.hours_per_week for m in members.values() if m.hours_per_week > 0)
+    relevant = {r.skill_id for r in reqs}
+    pending = list(relevant)
+    prerequisites = data.prerequisites()
+    while pending:
+        for foundation in prerequisites.get(pending.pop(), {}):
+            if foundation not in relevant:
+                relevant.add(foundation)
+                pending.append(foundation)
     weakest = {
-        r.skill_id: min((m.skill_levels.get(r.skill_id, 0) for m in members.values()), default=0)
-        for r in reqs
+        skill: min((m.skill_levels.get(skill, 0) for m in members.values()), default=0)
+        for skill in relevant
     }
     team = engine.Learner(
         skill_levels=weakest,

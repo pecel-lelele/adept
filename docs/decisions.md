@@ -1121,3 +1121,13 @@
 - **Affects**: M3 pathways/SDG, M4 organisation and shared database access.
 - **Replaces**: none
 - **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses
+
+### M4-042: fix(pathway): retain team prerequisite knowledge
+- **Date**: 2026-10-23
+- **Feature**: F5, F6, F7 / Core integration
+- **Type**: method
+- **Change**: Include the transitive prerequisite closure when deriving the lowest team skill levels. Known foundations are not scheduled again, and newly required foundations are assigned only to members who lack them.
+- **Why**: Greptile 4352984384: aggregating only role-required skills erased known SQL and created foundation steps with no assigned members. Regressions cover both fully-known and mixed-knowledge teams.
+- **Affects**: M3 pathways/SDG, M4 organisation and shared database access.
+- **Replaces**: none
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses

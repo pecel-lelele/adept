@@ -74,3 +74,17 @@ def test_missing_foundation_blocks_advanced_course_even_outside_role_requirement
     assert plan.steps == []
     unmet = {u.skill_id: u.reason for u in plan.unmet}
     assert unmet == {"foundation": "no_catalogue_course", "advanced": "blocked_prerequisite"}
+
+
+def test_team_preserves_known_foundation_and_assigns_only_members_missing_it():
+    members = {
+        "synthetic-one": engine.Learner({"sql": 2}, 5, 0, False),
+        "synthetic-two": engine.Learner({"sql": 2}, 5, 0, False),
+    }
+    plan = service.group_pathway(members, "digital-marketing-specialist", "moderate", False)
+    assert "sql" not in {s.skill_id for s in plan.steps}
+    assert all(s.member_ids for s in plan.steps)
+    members["synthetic-two"] = engine.Learner({}, 5, 0, False)
+    partial = service.group_pathway(members, "digital-marketing-specialist", "moderate", False)
+    foundation = next(s for s in partial.steps if s.skill_id == "sql")
+    assert foundation.member_ids == ["synthetic-two"]
