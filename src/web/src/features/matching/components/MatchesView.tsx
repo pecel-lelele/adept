@@ -1,106 +1,107 @@
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
-import {
-  ApiError,
-  Badge,
-  buttonVariants,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  MetaBar,
-  PageHeader,
-  SdgBadge,
-  StubBanner,
-} from "@/components";
-import type { ScenarioId } from "@/lib/api";
-import { percent } from "@/lib/utils";
+import { MetaBar } from "@/components";
+import { ErrorState } from "@/components/ErrorState";
+import { Ring, Scene3D, scoreColour, SdgTiles } from "@/components/viz";
+import { fetchRadar } from "@/features/trends/api";
+import type { ScenarioId, Schemas } from "@/lib/api";
 
 import { fetchMatches } from "../api";
+import { componentLabels } from "./labels";
+import { SnapshotPicker } from "./SnapshotPicker";
 
-export async function MatchesView({
-  scenario,
-  snapshotDate,
-}: {
-  scenario: ScenarioId;
-  snapshotDate?: string;
-}) {
+/** One horizontal bar per score part: how much each part contributed to the fit. */
+function ScoreParts({ parts, labels }: { parts: Schemas["ScoreComponent"][]; labels: Record<string, string> }) {
+  return (
+    <div className="a-bars">
+      {parts.map((c) => (
+        <div className="a-bar a-bar-plain" key={c.name} title={c.explanation}>
+          <span className="a-bar-label">{labels[c.name] ?? c.name.replaceAll("_", " ")}</span>
+          <span className="a-bar-track">
+            <span className="a-bar-fill" style={{ width: `${Math.round(c.value * 100)}%`, opacity: c.provided ? 1 : 0.35 }} />
+          </span>
+          <span className="a-bar-value">{Math.round(c.value * 100)}%</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Step 3: ranked future roles. Each card: fit ring, what drives it, the gap, the goals. */
+export async function MatchesView({ scenario, snapshotDate }: { scenario: ScenarioId; snapshotDate?: string }) {
   const t = await getTranslations("matching");
-  const result = await fetchMatches(scenario, snapshotDate);
-  const replayQuery = snapshotDate ? `&snapshot_date=${encodeURIComponent(snapshotDate)}` : "";
+  const th = await getTranslations("ui.home");
+  const [result, radar] = await Promise.all([fetchMatches(scenario, snapshotDate), fetchRadar(scenario)]);
+  const labels = await componentLabels();
+  const replay = snapshotDate ? `&snapshot_date=${encodeURIComponent(snapshotDate)}` : "";
 
   return (
-    <section>
-      <StubBanner feature="F4 Future-role matching" endpoint="GET /api/v1/matches" />
-      <PageHeader title={t("title")} description={t("description")} />
-      <form action="/app/matches" method="get" className="flex flex-wrap items-end gap-2 pb-4">
-        <input type="hidden" name="scenario" value={scenario} />
-        <label className="flex flex-col gap-1 text-sm">
-          <span>{t("snapshotDate")}</span>
-          <input
-            type="date"
-            name="snapshot_date"
-            defaultValue={snapshotDate ?? ""}
-            className="rounded-md border px-3 py-2"
-          />
-        </label>
-        <button type="submit" className={buttonVariants({ variant: "outline", size: "sm" })}>
-          {t("replay")}
-        </button>
-        <span className="text-xs text-muted-foreground">{t("latestHint")}</span>
-      </form>
+    <div className="a-stack">
+      <section className="a-hero" style={{ minHeight: 0 }}>
+        <div>
+          <h1>{t("title")}</h1>
+          <p>{t("description")}</p>
+          {radar.ok ? (
+            <SnapshotPicker
+              dates={radar.data.meta.available_snapshots}
+              value={snapshotDate ?? ""}
+              latestLabel={th("latest")}
+              label={t("snapshotDate")}
+            />
+          ) : null}
+        </div>
+        <Scene3D variant="cards" />
+      </section>
       {!result.ok ? (
-        <ApiError message={result.message} />
+        <ErrorState failure={result} />
       ) : (
-        <div className="space-y-3">
+        <>
+          <div className="a-stack">
+            {result.data.matches.map((m, i) => {
+              const goals = [...new Map(m.sdg_targets.map((s) => [s.goal, { goal: s.goal, title: s.label }])).values()];
+              const gaps = m.missing_skills.length + m.partial_skills.length;
+              return (
+                <article className="a-card" key={m.role_id}>
+                  <div className="a-grid" style={{ alignItems: "center" }}>
+                    <div className="a-span-4" style={{ display: "flex", gap: 16, alignItems: "center" }}>
+                      <Ring value={m.score} size={92} stroke={9} caption={th("fit")} colour={scoreColour(m.score)} />
+                      <div>
+                        <span className="a-eyebrow">#{i + 1}</span>
+                        <h2 style={{ margin: "2px 0 8px", fontSize: 19, letterSpacing: -0.4 }}>{m.label}</h2>
+                        <span className="a-chip" data-tone={gaps ? "warn" : "up"}>
+                          {th("gaps", { count: gaps })}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="a-span-5">
+                      <ScoreParts parts={m.components} labels={labels} />
+                    </div>
+                    <div className="a-span-3 a-stack" style={{ gap: 10, justifyItems: "start" }}>
+                      {goals.length ? <SdgTiles goals={goals.slice(0, 4)} /> : null}
+                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                        <Link className="a-btn is-ghost is-small" href={`/app/matches/${encodeURIComponent(m.role_id)}?scenario=${scenario}${replay}`}>
+                          {t("viewDetail")}
+                        </Link>
+                        <Link className="a-btn is-small" href={`/app/pathway?role=${encodeURIComponent(m.role_id)}&scenario=${scenario}`}>
+                          {t(snapshotDate ? "viewLatestPathway" : "viewPathway")} <ArrowRight size={14} aria-hidden />
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
           <MetaBar meta={result.data.meta} />
           {result.data.data_provenance_note ? (
-            <p className="text-xs text-muted-foreground">
+            <p className="a-small a-muted">
               {t("provenance")}: {result.data.data_provenance_note}
             </p>
           ) : null}
-          {result.data.matches.map((m, i) => (
-            <Card key={m.role_id}>
-              <CardHeader className="flex-row items-center justify-between">
-                <CardTitle>
-                  {i + 1}. {m.label}
-                </CardTitle>
-                <Badge>{t("score", { score: percent(m.score) })}</Badge>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm">
-                <div className="flex flex-wrap gap-1">
-                  {m.sdg_targets.map((s) => (
-                    <SdgBadge key={s.target} target={s} />
-                  ))}
-                </div>
-                <p>
-                  <span className="text-muted-foreground">{t("missing")}:</span>{" "}
-                  {m.missing_skills.map((s) => s.label).join(", ") || "—"}
-                </p>
-                <p>
-                  <span className="text-muted-foreground">{t("partial")}:</span>{" "}
-                  {m.partial_skills.map((s) => s.label).join(", ") || "—"}
-                </p>
-                <div className="flex gap-2 pt-1">
-                  <Link
-                    href={`/app/matches/${encodeURIComponent(m.role_id)}?scenario=${scenario}${replayQuery}`}
-                    className={buttonVariants({ variant: "outline", size: "sm" })}
-                  >
-                    {t("viewDetail")}
-                  </Link>
-                  <Link
-                    href={`/app/pathway?role=${encodeURIComponent(m.role_id)}&scenario=${scenario}`}
-                    className={buttonVariants({ size: "sm" })}
-                  >
-                    {t(snapshotDate ? "viewLatestPathway" : "viewPathway")}
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        </>
       )}
-    </section>
+    </div>
   );
 }

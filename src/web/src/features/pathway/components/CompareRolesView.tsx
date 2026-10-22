@@ -48,9 +48,6 @@ async function OptionCard({
           ) : null}
           <Badge variant={DIRECTION_VARIANT[direction]}>
             {t(`compare.direction.${direction}`)}
-            {option.trend_signal != null
-              ? ` (${option.trend_signal.toFixed(2)})`
-              : ""}
           </Badge>
         </div>
       </CardHeader>
@@ -130,11 +127,8 @@ export async function CompareRolesView({
       ) : (
         <>
           <p className="text-xs text-muted-foreground">
-            {t("compare.snapshot", {
-              version: result.data.snapshot_version || "-",
-            })}{" "}
             <Link
-              href={`/app/matches?scenario=${scenario}`}
+              href={`/app/matches?scenario=${scenario}${snapshotDate ? "&snapshot_date=" + encodeURIComponent(snapshotDate) : ""}`}
               className="underline"
             >
               {t("compare.seeMatches")}

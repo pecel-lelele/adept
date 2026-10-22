@@ -1,12 +1,10 @@
 import Link from "next/link";
+import { BookOpen, ArrowUpRight } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
 import {
   ApiError,
-  Badge,
   buttonVariants,
-  Card,
-  CardContent,
   MetaBar,
   PageHeader,
 } from "@/components";
@@ -40,72 +38,26 @@ const PROVIDERS = [
   "government",
 ] as const;
 
-async function CourseCard({ course }: { course: Course }) {
-  const t = await getTranslations("pathway");
+async function CourseCard({ course, index }: { course: Course; index: number }) {
+  const t = await getTranslations("pathway"), d = await getTranslations("common.design");
   const basis = course.price_basis ?? "per_course";
-  return (
-    <Card>
-      <CardContent className="space-y-1 pt-4 text-sm">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <a
-            href={course.url}
-            target="_blank"
-            rel="noreferrer"
-            className="font-medium underline"
-          >
-            {course.title}
-          </a>
-          <span className="font-semibold tabular-nums">
-            {course.cost_myr === 0
-              ? t("free")
-              : t(`catalogue.price.${basis}`, {
-                  amount: course.cost_myr.toLocaleString("en-MY"),
-                })}
-          </span>
-        </div>
-        <div className="flex flex-wrap items-center gap-1 text-xs">
-          <span className="text-muted-foreground">{course.provider}</span>
-          <Badge variant="outline">
-            {t(`catalogue.provider.${course.provider_type ?? "mooc"}`)}
-          </Badge>
-          <Badge variant="outline">
-            {t(`catalogue.format.${course.format ?? "self_paced"}`)}
-          </Badge>
-          {course.location ? (
-            <Badge variant="outline">{course.location}</Badge>
-          ) : null}
-          {course.hrd_claimable ? (
-            <Badge variant="success">{t("hrdClaimable")}</Badge>
-          ) : null}
-          {course.audience && course.audience !== "individual" ? (
-            <Badge variant="secondary">
-              {t(`catalogue.audience.${course.audience}`)}
-            </Badge>
-          ) : null}
-        </div>
-        <p className="text-xs text-muted-foreground">
-          {t("hours", { hours: course.hours })} · {t("catalogue.skills")}:{" "}
-          {(course.skill_ids ?? []).join(", ")} ·{" "}
-          {t("catalogue.level", { level: course.level ?? 1 })}
-        </p>
-        {course.hrd_note ? <p className="text-xs">{course.hrd_note}</p> : null}
-        {course.price_note ? (
-          <p className="text-xs text-muted-foreground">{course.price_note}</p>
-        ) : null}
-        {course.duration_note ? (
-          <p className="text-xs text-muted-foreground">
-            {course.duration_note}
-          </p>
-        ) : null}
-        <p className="text-xs text-muted-foreground">
-          {course.source
-            ? `${t("step.source", { name: course.source.name })} · `
-            : null}
-          {t("verified", { date: course.verified_at })}
-        </p>
-      </CardContent>
-    </Card>
-  );
+  return <article className="course-card">
+    <div className="course-cover" data-tone={index % 4} aria-hidden><span className="cover-tile"><BookOpen size={30} strokeWidth={1.2}/></span></div>
+    <div className="course-body">
+      <p className="course-provider">{course.provider} · {t(`catalogue.format.${course.format ?? "self_paced"}`)}</p>
+      <h2>{course.title}</h2>
+      <div className="course-facts"><span>{t("hours",{hours:course.hours})}</span><strong>{course.cost_myr === 0 ? t("free") : t(`catalogue.price.${basis}`,{amount:course.cost_myr.toLocaleString("en-MY")})}</strong></div>
+      <details><summary>{d("courseDetails")}</summary><div className="course-detail-content">
+        <p>{t("catalogue.skills")}: {(course.skill_ids ?? []).map(s => s.replaceAll("-"," ").replaceAll("_"," ")).join(", ")}</p>
+        <p>{t("catalogue.level",{level:course.level ?? 1})}{course.location ? " · "+course.location : ""}</p>
+        {course.hrd_claimable ? <p>{t("hrdClaimable")}. {course.hrd_note}</p> : null}
+        {course.price_note ? <p>{course.price_note}</p> : null}
+        {course.duration_note ? <p>{course.duration_note}</p> : null}
+        <p>{course.source ? course.source.name+" · " : ""}{t("verified",{date:course.verified_at})}</p>
+      </div></details>
+      <a href={course.url} target="_blank" rel="noreferrer" className="course-footer">{d("visit")}<ArrowUpRight size={15} aria-hidden/></a>
+    </div>
+  </article>;
 }
 
 /** Browse every course the pathway may recommend, with filters for learners and HR/L&D. */
@@ -118,7 +70,7 @@ export async function CatalogueView({
   basePath: string;
   context?: Record<string, string>;
 }) {
-  const t = await getTranslations("pathway");
+  const t = await getTranslations("pathway"), d = await getTranslations("common.design");
   const api = await getApi();
   const [result, all] = await Promise.all([
     call(api.GET("/api/v1/pathway/catalogue", { params: { query } })),
@@ -133,8 +85,9 @@ export async function CatalogueView({
     <section className="space-y-4">
       <PageHeader
         title={t("catalogue.title")}
-        description={t("catalogue.description")}
+        description={d("libraryBody")}
       />
+      <details className="filter-panel" open={Object.values(query).some(v => v !== undefined && v !== "") || undefined}><summary>{d("filters")}</summary>
       <form
         method="get"
         action={basePath}
@@ -233,7 +186,7 @@ export async function CatalogueView({
         >
           {t("catalogue.reset")}
         </Link>
-      </form>
+      </form></details>
       {!result.ok ? (
         <ApiError message={result.message} />
       ) : (
@@ -242,9 +195,9 @@ export async function CatalogueView({
           <p className="text-sm text-muted-foreground">
             {t("catalogue.count", { count: result.data.courses.length })}
           </p>
-          <div className="grid gap-3 md:grid-cols-2">
-            {result.data.courses.map((c) => (
-              <CourseCard key={c.id} course={c} />
+          <div className="catalogue-grid">
+            {result.data.courses.map((c, index) => (
+              <CourseCard key={c.id} course={c} index={index} />
             ))}
           </div>
         </>

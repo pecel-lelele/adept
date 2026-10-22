@@ -1,34 +1,22 @@
-import Link from "next/link";
-import { getTranslations } from "next-intl/server";
+import { ErrorState } from "@/components/ErrorState";
+import { getAccount } from "@/lib/auth/account";
 
-import { ApiError, Badge, Card, CardHeader, CardTitle, PageHeader, StubBanner } from "@/components";
+import { fetchMyProfile, fetchSkillCatalogue } from "../api";
+import { IntakeWizard } from "./IntakeWizard";
 
-import { fetchMyProfile } from "../api";
-
-const SEGMENTS = ["working", "graduate", "switcher"] as const;
-
+/** Step 1 of the journey: a four-step intake that saves to the learner's profile. */
 export async function OnboardingView() {
-  const t = await getTranslations("profile");
-  const result = await fetchMyProfile();
+  const [account, catalogue, profile] = await Promise.all([
+    getAccount(),
+    fetchSkillCatalogue(),
+    fetchMyProfile(),
+  ]);
+  if (!catalogue.ok) return <ErrorState failure={catalogue} />;
   return (
-    <section>
-      <StubBanner feature="F1 Skills profile intake" endpoint="GET /api/v1/profile/me" />
-      <PageHeader title={t("onboardingTitle")} description={t("onboardingBody")} />
-      {!result.ok ? <ApiError message={result.message} /> : null}
-      <div className="grid gap-3 md:grid-cols-3">
-        {SEGMENTS.map((segment) => (
-          <Link key={segment} href="/app/profile">
-            <Card className="h-full transition-colors hover:bg-accent">
-              <CardHeader>
-                <CardTitle>{t(`segment.${segment}`)}</CardTitle>
-                {result.ok && result.data.segment === segment ? (
-                  <Badge variant="secondary">{t("current")}</Badge>
-                ) : null}
-              </CardHeader>
-            </Card>
-          </Link>
-        ))}
-      </div>
-    </section>
+    <IntakeWizard
+      catalogue={catalogue.data.skills}
+      interests={catalogue.data.interests ?? []}
+      initial={account?.has_profile && profile.ok ? profile.data : null}
+    />
   );
 }

@@ -1,195 +1,218 @@
+import { ArrowRight, ArrowUpRight, Compass, Leaf, Route } from "lucide-react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { fetchPlanStatus, fetchProgress } from "@/features/pathway/api";
-import { fetchMembers, fetchMyOrg } from "@/features/org/api";
-import { MetaBar } from "@/components";
-import { journeyHref } from "@/lib/navigation";
-import { DepthArt } from "./DepthArt";
 
-export async function DashboardView({
-  mode,
-  query,
-}: {
-  mode: "individual" | "organisation";
-  query: URLSearchParams;
-}) {
-  const t = await getTranslations("common.workspace"),
-    org = mode === "organisation";
-  const status = !org ? await fetchPlanStatus() : null;
-  const saved = status?.ok ? status.data.saved : null;
-  if (saved && !query.has("role")) query.set("role", saved.role_id);
-  const href = (route: string) => journeyHref(route, query);
-  const progress = saved
-    ? await fetchProgress(
-        saved.role_id,
-        query.get("scenario") === "fast" ? "fast" : "moderate",
-      )
-    : null;
-  const p = progress?.ok ? progress.data : null;
-  const [company, members] = org
-    ? await Promise.all([fetchMyOrg(), fetchMembers()])
+import { MetaBar } from "@/components";
+import { ErrorState } from "@/components/ErrorState";
+import {
+  Ring,
+  RiseArt,
+  Scene3D,
+  scoreColour,
+  SdgTiles,
+  StepTrack,
+  TrendBars,
+  type TrackStep,
+  type TrendBar,
+} from "@/components/viz";
+import { fetchMatches } from "@/features/matching/api";
+import { fetchPlanStatus, fetchProgress } from "@/features/pathway/api";
+import { fetchMyProfile } from "@/features/profile/api";
+import { fetchMyContribution } from "@/features/sdg/api";
+import { fetchRadar } from "@/features/trends/api";
+import type { ScenarioId } from "@/lib/api";
+import { getAccount } from "@/lib/auth/account";
+import { journeyHref } from "@/lib/navigation";
+
+/**
+ * Learner home. Hierarchy: one "next step" hero → three role rings → how the learner's own
+ * skills are trending → their path as a track → the goals it supports. Numbers become
+ * visuals; detail lives one tap away.
+ */
+export async function DashboardView({ scenario, query }: { scenario: ScenarioId; query: URLSearchParams }) {
+  const account = await getAccount();
+  if (account && !account.has_profile) redirect("/app/onboarding");
+  const t = await getTranslations("ui.home");
+  const [profile, matches, status, radar] = await Promise.all([
+    fetchMyProfile(),
+    fetchMatches(scenario),
+    fetchPlanStatus(),
+    fetchRadar(scenario),
+  ]);
+  const saved = status.ok ? status.data.saved : null;
+  const [progress, impact] = saved
+    ? await Promise.all([
+        fetchProgress(saved.role_id, saved.scenario as ScenarioId),
+        fetchMyContribution(saved.role_id, saved.scenario as ScenarioId),
+      ])
     : [null, null];
-  const cards = org
-    ? ([
-        ["/org/members", "membersTitle", "membersBody"],
-        ["/org/gaps", "gapsTitle", "gapsBody"],
-        ["/org/plan", "planTitle", "planBody"],
-        ["/org/verify", "verifyTitle", "verifyBody"],
-        ["/org/courses", "coursesTitle", "coursesBody"],
-        ["/org/sdg", "impactTitle", "impactBody"],
-      ] as const)
-    : ([
-        ["/app/profile", "profileTitle", "profileBody"],
-        ["/app/radar", "radarTitle", "radarBody"],
-        ["/app/matches", "matchesTitle", "matchesBody"],
-        ["/app/pathway/compare", "compareTitle", "compareBody"],
-        ["/app/courses", "coursesTitle", "coursesBody"],
-        ["/app/sdg", "impactTitle", "impactBody"],
-      ] as const);
+  const href = (path: string) => journeyHref(path, query);
+
+  const top = matches.ok ? matches.data.matches.slice(0, 3) : [];
+  const best = top[0];
+  const p = progress?.ok ? progress.data : null;
   const courses = p
-    ? p.pathway.steps
-        .flatMap((s) => s.courses)
-        .filter((c, i, all) => all.findIndex((x) => x.id === c.id) === i)
+    ? p.pathway.steps.flatMap((s) => s.courses).filter((c, i, all) => all.findIndex((x) => x.id === c.id) === i)
     : [];
-  const completed = p
-    ? courses.filter((c) => p.course_status[c.id] === "completed").length
-    : 0;
-  const points = completed * 100;
-  const unavailable = org
-    ? company?.ok === false || members?.ok === false
-    : status?.ok === false;
+  const done = p ? courses.filter((c) => p.course_status[c.id] === "completed").length : 0;
+  const next = p ? courses.find((c) => p.course_status[c.id] !== "completed") : undefined;
+  const planQuery = saved ? `?role=${encodeURIComponent(saved.role_id)}&scenario=${saved.scenario}` : "";
+
+  // Hero: exactly one next action.
+  let hero: { title: string; body: string; cta: string; to: string; scene: "rise" | "cards" };
+  if (saved && next) {
+    hero = {
+      title: t("continueTitle", { course: next.title }),
+      body: t("continueBody", { done, total: courses.length, role: saved.pathway.role_label }),
+      cta: t("continueCta"),
+      to: `/app/progress${planQuery}`,
+      scene: "rise",
+    };
+  } else if (saved) {
+    hero = {
+      title: t("doneTitle", { role: saved.pathway.role_label }),
+      body: t("doneBody"),
+      cta: t("doneCta"),
+      to: `/app/progress${planQuery}`,
+      scene: "rise",
+    };
+  } else {
+    hero = {
+      title: best ? t("chooseTitle", { role: best.label }) : t("startTitle"),
+      body: best ? t("chooseBody") : t("startBody"),
+      cta: best ? t("chooseCta") : t("startCta"),
+      to: best ? href("/app/matches") : "/app/onboarding",
+      scene: "cards",
+    };
+  }
+
+  // The learner's own skills on the radar: rising right, declining left.
+  const velocity = scenario === "fast" ? "velocity_fast" : "velocity_moderate";
+  const direction = scenario === "fast" ? "direction_fast" : "direction_moderate";
+  const tracked = new Map(radar.ok ? radar.data.items.map((i) => [i.skill_id, i]) : []);
+  const mine = profile.ok ? profile.data.skills : [];
+  const bars: TrendBar[] = mine
+    .map((s) => tracked.get(s.skill_id))
+    .filter((i): i is NonNullable<typeof i> => Boolean(i))
+    .map((i) => ({ id: i.skill_id, label: i.skill_label, value: i[velocity], direction: i[direction] }))
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 8);
+
+  const steps: TrackStep[] = saved
+    ? saved.pathway.steps.slice(0, 6).map((s, i, all) => {
+        const complete = p ? s.courses.length > 0 && s.courses.every((c) => p.course_status[c.id] === "completed") : false;
+        const firstOpen = all.findIndex((x) => !(p && x.courses.length > 0 && x.courses.every((c) => p.course_status[c.id] === "completed")));
+        return { id: s.skill_id, label: s.skill_label || s.skill_id, state: complete ? "done" : i === firstOpen ? "current" : "todo" };
+      })
+    : [];
+  const goals = impact?.ok
+    ? impact.data.goals_summary
+        .filter((g) => g.link_count > 0)
+        .sort((a, b) => b.link_count - a.link_count)
+        .slice(0, 6)
+        .map((g) => ({ goal: g.goal, title: g.label, count: g.link_count }))
+    : [];
+
   return (
-    <section className="dashboard">
-      <div className="dashboard-heading">
+    <div className="a-stack">
+      <section className="a-hero">
         <div>
-          <p className="workspace-eyebrow">
-            {t(org ? "orgEyebrow" : "learnerEyebrow")}
-          </p>
-          <h1>{t(org ? "orgTitle" : "learnerTitle")}</h1>
-          <p>
-            {company?.ok
-              ? company.data.name
-              : t(org ? "orgBody" : "learnerBody")}
-          </p>
+          <span className="a-eyebrow">{t("hello", { name: account?.display_name ?? "" })}</span>
+          <h1>{hero.title}</h1>
+          <p>{hero.body}</p>
+          <div className="a-hero-actions">
+            <Link className="a-btn" href={hero.to}>
+              {hero.cta} <ArrowRight size={16} aria-hidden />
+            </Link>
+            {status.ok && status.data.needs_replan ? (
+              <Link className="a-chip" data-tone="warn" href={`/app/pathway${planQuery}`}>
+                {t("replan")} {t("review")}
+              </Link>
+            ) : null}
+          </div>
         </div>
-        <Link
-          className="workspace-button subtle"
-          href={href(org ? "/org/setup" : "/app/profile")}
-        >
-          {t(org ? "manage" : "editProfile")} ↗
-        </Link>
-      </div>
-      {unavailable ? (
-        <p role="status" className="workspace-notice">
-          {t("unavailable")}
-        </p>
-      ) : null}
-      <div className="dashboard-bento">
-        <article className="dashboard-hero">
-          <div>
-            <span className="hero-label">
-              {t(org ? "orgHeroLabel" : "heroLabel")}
-            </span>
-            <h2>
-              {t(org ? "orgHeroTitle" : saved ? "continueTitle" : "heroTitle")}
+        {p ? (
+          <div style={{ display: "grid", placeItems: "center", gap: 12 }}>
+            <Ring value={p.percent_complete} size={150} stroke={13} caption={t("progress")} colour="var(--a-up)" />
+            <div className="a-chips" style={{ justifyContent: "center" }}>
+              <span className="a-chip">{t("badges")} · {p.badges.length}</span>
+              <span className="a-chip">{t("gap")} · {p.gap_closed}/{p.gap_total}</span>
+            </div>
+          </div>
+        ) : hero.scene === "rise" ? (
+          <RiseArt />
+        ) : (
+          <Scene3D variant="cards" />
+        )}
+      </section>
+
+      <div className="a-grid">
+        <section className="a-card a-span-7" aria-labelledby="h-roles">
+          <div className="a-card-head">
+            <h2 id="h-roles">
+              <Compass size={16} aria-hidden style={{ verticalAlign: -3, marginRight: 6 }} />
+              {t("topRoles")}
             </h2>
-            <p>{t(org ? "orgHeroBody" : "heroBody")}</p>
-            <Link
-              className="workspace-button"
-              href={href(
-                org
-                  ? "/org/gaps"
-                  : saved
-                    ? "/app/progress"
-                    : "/app/pathway/compare",
-              )}
-            >
-              {t(org ? "reviewGaps" : saved ? "continue" : "chooseRole")} →
+            <Link href={href("/app/matches")}>
+              {t("seeAll")} <ArrowUpRight size={13} aria-hidden />
             </Link>
           </div>
-          <DepthArt variant={org ? "people" : "steps"} />
-        </article>
-        <article className="dashboard-metric">
-          <span className="workspace-eyebrow">
-            {t(org ? "team" : "learningProgress")}
-          </span>
-          <strong>
-            {org
-              ? members?.ok
-                ? members.data.members.length
-                : "—"
-              : p
-                ? Math.round(p.percent_complete * 100) + "%"
-                : "—"}
-          </strong>
-          <p>{t(org ? "membersInDemo" : "savedPlanProgress")}</p>
-          {p ? (
-            <progress
-              max={1}
-              value={p.percent_complete}
-              aria-label={t("learningProgress")}
-            />
-          ) : null}
-          <Link href={href(org ? "/org/members" : "/app/pathway")}>
-            {t(org ? "viewMembers" : "viewPlan")} ↗
-          </Link>
-        </article>
-      </div>
-      {!org ? (
-        <div className="learning-strip">
-          <div>
-            <span className="workspace-eyebrow">{t("points")}</span>
-            <strong>{points}</strong>
-            <small>{t("pointsRule")}</small>
+          {!matches.ok ? (
+            <ErrorState failure={matches} compact />
+          ) : (
+            <div className="a-roles">
+              {top.map((m) => (
+                <Link key={m.role_id} className="a-role" href={href(`/app/matches/${m.role_id}`)}>
+                  <Ring value={m.score} size={84} stroke={8} caption={t("fit")} colour={scoreColour(m.score)} />
+                  <h3>{m.label}</h3>
+                  <span className="a-chip" data-tone={m.missing_skills.length ? "warn" : "up"}>
+                    {t("gaps", { count: m.missing_skills.length + m.partial_skills.length })}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="a-card a-span-5" aria-labelledby="h-skills">
+          <div className="a-card-head">
+            <h2 id="h-skills">{t("yourSkills")}</h2>
+            <Link href={href("/app/radar")}>
+              {t("seeAll")} <ArrowUpRight size={13} aria-hidden />
+            </Link>
           </div>
-          <div>
-            <span className="workspace-eyebrow">{t("level")}</span>
-            <strong>{1 + Math.floor(points / 500)}</strong>
-            <small>{t("levelRule")}</small>
-          </div>
-          <div>
-            <span className="workspace-eyebrow">{t("badges")}</span>
-            <strong>{p?.badges.length ?? 0}</strong>
-            <small>{t("badgesRule")}</small>
-          </div>
-        </div>
-      ) : null}
-      {p && courses.length ? (
-        <article className="dashboard-resume">
-          <div>
-            <span className="workspace-eyebrow">{t("nextLesson")}</span>
-            <h2>
-              {courses.find((c) => p.course_status[c.id] !== "completed")
-                ?.title ?? t("allDone")}
+          {bars.length ? <TrendBars items={bars} /> : <p className="a-muted a-small">{t("yourSkillsEmpty")}</p>}
+        </section>
+
+        <section className="a-card a-span-7" aria-labelledby="h-path">
+          <div className="a-card-head">
+            <h2 id="h-path">
+              <Route size={16} aria-hidden style={{ verticalAlign: -3, marginRight: 6 }} />
+              {t("path")}
+              {saved ? <span className="a-chip" style={{ marginLeft: 10 }}>{saved.pathway.role_label} · {t("weeks", { weeks: saved.pathway.total_weeks })}</span> : null}
             </h2>
+            <Link href={saved ? `/app/pathway${planQuery}` : href("/app/matches")}>
+              {t("seeAll")} <ArrowUpRight size={13} aria-hidden />
+            </Link>
           </div>
-          <Link
-            className="workspace-button subtle"
-            href={href("/app/progress")}
-          >
-            {t("openLearning")} →
-          </Link>
-        </article>
-      ) : null}
-      <div className="dashboard-section-heading">
-        <h2>{t(org ? "teamWorkspace" : "explore")}</h2>
-        <span>{t("connected")}</span>
+          {steps.length ? <StepTrack steps={steps} /> : <p className="a-muted a-small">{t("noPath")}</p>}
+        </section>
+
+        <section className="a-card a-span-5" aria-labelledby="h-impact">
+          <div className="a-card-head">
+            <h2 id="h-impact">
+              <Leaf size={16} aria-hidden style={{ verticalAlign: -3, marginRight: 6 }} />
+              {t("impact")}
+            </h2>
+            <Link href={`/app/sdg${planQuery}`}>
+              {t("seeAll")} <ArrowUpRight size={13} aria-hidden />
+            </Link>
+          </div>
+          {goals.length ? <SdgTiles goals={goals} /> : <p className="a-muted a-small">{t("noImpact")}</p>}
+        </section>
       </div>
-      <div className="dashboard-grid">
-        {cards.map(([route, title, body], i) => (
-          <Link key={route} className="dashboard-feature" href={href(route)}>
-            <span className="feature-index">
-              {String(i + 1).padStart(2, "0")}
-            </span>
-            <h3>{t(title)}</h3>
-            <p>{t(body)}</p>
-            <span className="feature-arrow" aria-hidden>
-              ↗
-            </span>
-          </Link>
-        ))}
-      </div>
-      {p ? <MetaBar meta={p.meta} /> : null}
-    </section>
+      {matches.ok ? <MetaBar meta={matches.data.meta} /> : null}
+    </div>
   );
 }

@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
 
-import { ApiError, Card, CardContent, PageHeader, SourceBadge, StubBanner } from "@/components";
+import { ApiError, Card, CardContent, PageHeader, SourceBadge } from "@/components";
 
 import { fetchDataFreshness } from "../api";
 
@@ -10,7 +10,6 @@ export async function AdminDataView({ view }: { view: "sources" | "snapshots" })
   const result = await fetchDataFreshness();
   return (
     <section>
-      <StubBanner feature="F2 admin data pages" endpoint="GET /api/v1/meta/data-freshness" />
       <PageHeader title={view === "sources" ? t("sourcesTitle") : t("snapshotsTitle")} />
       {!result.ok ? (
         <ApiError message={result.message} />

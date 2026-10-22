@@ -25,10 +25,10 @@ export function ActionForm({ action, fields = {}, label, variant, className, chi
       {Object.entries(fields).map(([name, value]) => (
         <input key={name} type="hidden" name={name} value={value} />
       ))}
+      {children}
       <Button size="sm" variant={variant} disabled={pending} aria-busy={pending}>
         {pending ? t("saving") : label}
       </Button>
-      {children}
       <span aria-live="polite" className="basis-full text-xs">
         {state.error ? (
           <span role="alert" className="text-red-700">

@@ -17,53 +17,22 @@ import { acceptReplanAction, savePlanAction } from "../actions";
 import { fetchPathway, fetchPlanStatus } from "../api";
 import { ActionForm } from "./ActionForm";
 import { PathwaySteps } from "./PathwaySteps";
-import { SegmentGuide } from "./SegmentGuide";
 
-async function Summary({ plan }: { plan: Schemas["Pathway"] }) {
-  const t = await getTranslations("pathway");
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t("summary.title")}</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-1 text-sm">
-        <p>
-          {t("totalWeeks", { weeks: plan.total_weeks })} ·{" "}
-          {t("summary.pace", { hours: plan.hours_per_week ?? 0 })} ·{" "}
-          {t("summary.totalHours", { hours: plan.total_hours ?? 0 })}
-        </p>
-        <p>
-          {t("summary.outOfPocket", {
-            amount: plan.out_of_pocket_myr ?? 0,
-            budget: plan.budget_myr ?? 0,
-          })}
-          {plan.within_budget === false ? (
-            <Badge variant="danger" className="ml-2">
-              {t("summary.overBudget")}
-            </Badge>
-          ) : null}
-        </p>
-        {(plan.total_cost_myr ?? 0) > 0 ? (
-          <p className="text-muted-foreground">
-            {t("summary.listPrice", { amount: plan.total_cost_myr ?? 0 })}
-          </p>
-        ) : null}
-        {plan.hrd_eligible ? (
-          <p className="text-xs text-muted-foreground">
-            {t("summary.hrdNote")}
-          </p>
-        ) : null}
-        {(plan.warnings ?? []).map((w) => (
-          <p key={w} className="text-xs text-amber-800">
-            {w}
-          </p>
-        ))}
-        <p className="text-xs text-muted-foreground">
-          {t("catalogueOnly")} {t("estimateNote")}
-        </p>
-      </CardContent>
-    </Card>
-  );
+
+async function Summary({plan}:{plan:Schemas["Pathway"]}) {
+  const t = await getTranslations("pathway"), d = await getTranslations("common.design");
+  return <><div className="plan-hero">
+    <div><small>{d("duration")}</small><strong>{plan.total_weeks}</strong></div>
+    <div><small>{d("pace")}</small><strong>{plan.hours_per_week ?? 0}<span>h</span></strong></div>
+    <div><small>{d("cost")}</small><strong><span>RM</span> {plan.out_of_pocket_myr ?? 0}</strong></div>
+  </div>
+  {plan.within_budget === false ? <p className="workspace-notice">{t("summary.overBudget")}</p> : null}
+  <details className="meta-disclosure"><summary>{d("planDetails")}</summary><div className="space-y-2">
+    <p>{t("summary.totalHours",{hours:plan.total_hours ?? 0})} · {t("summary.outOfPocket",{amount:plan.out_of_pocket_myr ?? 0,budget:plan.budget_myr ?? 0})}</p>
+    {plan.hrd_eligible ? <p>{t("summary.hrdNote")}</p> : null}
+    {(plan.warnings ?? []).map(w=><p key={w}>{w}</p>)}
+    <p>{t("estimateNote")}</p>
+  </div></details></>;
 }
 
 async function ReplanBanner({ status }: { status: Schemas["ReplanStatus"] }) {
@@ -125,25 +94,21 @@ export async function PathwayView({
   return (
     <section className="space-y-4">
       <PageHeader
-        title={`${t("title")}: ${plan.role_label || plan.role_id}`}
+        title={plan.role_label || plan.role_id}
         description={t("totalWeeks", { weeks: plan.total_weeks })}
       >
         <MetaBar meta={plan.meta} />
       </PageHeader>
       {status.ok && savedHere ? <ReplanBanner status={status.data} /> : null}
       <Summary plan={plan} />
-      <SegmentGuide
-        segment={plan.segment}
-        scenario={scenario}
-        roleId={roleId}
-      />
-      <div className="flex flex-wrap items-center gap-2">
+
+      <div className="plan-toolbar">
         {snapshotDate ? (
           <Link
             href={`/app/pathway${query}`}
             className="workspace-button subtle"
           >
-            Historical preview · open latest plan to save →
+            Open the latest learning plan →
           </Link>
         ) : savedHere ? (
           <Badge variant="success">
@@ -172,7 +137,7 @@ export async function PathwayView({
           {t("compare.link")}
         </Link>
       </div>
-      <p className="text-xs text-muted-foreground">{t("plan.decide")}</p>
+
       <PathwaySteps steps={plan.steps} />
       {(plan.unmet ?? []).length > 0 ? (
         <Card>

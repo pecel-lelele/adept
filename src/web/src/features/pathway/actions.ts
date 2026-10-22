@@ -29,9 +29,10 @@ async function settle(
     if (error !== undefined || !response.ok)
       return { error: actionError(error, response.status) };
   } catch {
-    return { error: "The API could not be reached." };
+    return { error: "Your change couldn’t be saved. Please try again." };
   }
   revalidatePath(path, type);
+  revalidatePath("/app", "layout");
   return { done: Date.now() };
 }
 

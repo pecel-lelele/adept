@@ -8,7 +8,6 @@ import {
   CardTitle,
   EstimateLabel,
   SourceBadge,
-  StubBanner,
 } from "@/components";
 import type { ScenarioId } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -29,7 +28,6 @@ export async function RoleOutlookPanel({
   return (
     <Card>
       <CardHeader>
-        <StubBanner feature="F3 Scenarios" endpoint="GET /api/v1/scenarios/outlook" />
         <CardTitle>{t("outlook")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">

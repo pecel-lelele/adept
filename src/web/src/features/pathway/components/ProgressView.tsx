@@ -20,7 +20,7 @@ import { EvidenceBadge } from "./EvidenceBadge";
 import { EvidenceForm } from "./EvidenceForm";
 
 export async function ProgressView({ roleId, scenario }: { roleId: string; scenario: ScenarioId }) {
-  const t = await getTranslations("pathway");
+  const t = await getTranslations("pathway"), d = await getTranslations("common.design");
   const progress = await fetchProgress(roleId, scenario);
   if (!progress.ok) return <ApiError message={progress.message} />;
   const p = progress.data;
@@ -29,8 +29,8 @@ export async function ProgressView({ roleId, scenario }: { roleId: string; scena
   const unique = courses.filter((c, i) => courses.findIndex((x) => x.id === c.id) === i);
 
   return (
-    <section className="space-y-4">
-      <PageHeader title={t("progressTitle")} description={t("progressBody")}>
+    <section className="space-y-4 progress-page">
+      <PageHeader title={t("progressTitle")} description={d("progressBody")}>
         <MetaBar meta={p.meta} />
       </PageHeader>
       <Card>
@@ -55,7 +55,8 @@ export async function ProgressView({ roleId, scenario }: { roleId: string; scena
               const done = p.course_status[c.id] === "completed";
               const ev = p.evidence?.[c.id];
               return (
-                <div key={c.id} className="space-y-1">
+                <div key={c.id} className="progress-course space-y-1">
+                  <a href={c.url} target="_blank" rel="noreferrer" className="progress-course-link">{c.title} ↗</a>
                   <ActionForm
                     action={updateProgressAction}
                     className="flex flex-wrap items-center gap-x-3 gap-y-1"
@@ -74,11 +75,11 @@ export async function ProgressView({ roleId, scenario }: { roleId: string; scena
                         done ? "text-muted-foreground line-through" : undefined,
                       )}
                     >
-                      {c.step}. {c.title}
+                      {c.provider} · {c.hours} h
                     </span>
                   </ActionForm>
                   {done ? (
-                    <div className="space-y-1 pl-4">
+                    <details className="step-explanation"><summary>{d("details")}</summary><div className="space-y-1">
                       <EvidenceBadge evidence={ev ?? null} />
                       {ev?.review_note ? (
                         <p className="text-xs text-muted-foreground">
@@ -91,7 +92,7 @@ export async function ProgressView({ roleId, scenario }: { roleId: string; scena
                           fields={{ role_id: roleId, scenario, course_id: c.id }}
                         />
                       ) : null}
-                    </div>
+                    </div></details>
                   ) : null}
                 </div>
               );
