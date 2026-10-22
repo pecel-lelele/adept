@@ -263,9 +263,11 @@ SUGGESTIONS: dict[str, dict[str, list[str]]] = {
 }
 
 
-def intent(question: str) -> str:
+def intent(question: str, audience: str = "learner") -> str:
     q = question.lower()
     for name, words in INTENTS.items():
+        if name == "team" and audience != "manager":
+            continue
         if any(
             (w in q) if re.search(r"[一-鿿]", w) else re.search(rf"\b{re.escape(w)}", q)
             for w in words
@@ -285,7 +287,7 @@ def _tags(kind: str, ids: list[str]) -> str:
 def reply(question: str, ctx: Context, locale: Locale) -> str:
     t = T[locale]
     f = ctx.facts
-    kind = intent(question)
+    kind = intent(question, ctx.audience)
     if kind == "privacy":
         return t["privacy"]
     if kind == "how":

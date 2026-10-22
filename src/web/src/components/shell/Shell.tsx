@@ -121,7 +121,7 @@ export async function Shell({
       </Suspense>
       {ws.mode !== "admin" ? (
         <Suspense>
-          <AdiAssistant />
+          <AdiAssistant who={account?.id} />
         </Suspense>
       ) : null}
     </div>

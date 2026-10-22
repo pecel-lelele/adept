@@ -15,7 +15,8 @@ type Reply = components["schemas"]["AssistantReply"];
 type Part = components["schemas"]["AnswerPart"];
 type Turn = { role: "user"; text: string } | { role: "assistant"; reply: Reply } | { role: "error"; text: string };
 
-const STORE = "adept.adi.chat";
+/** Saved chats are kept per account, so a different person in the same tab never sees them. */
+const STORE_PREFIX = "adept.adi.chat.";
 const SEEN = "adept.adi.seen";
 const MAX_CHARS = 600;
 
@@ -46,7 +47,15 @@ function asText(reply: Reply): string {
  * Answers come from the person's own Adept data (or public figures for visitors) and are
  * checked by the API: every role, skill, course and page Adi names is a real catalogue entry.
  */
-export function AdiAssistant({ placement = "workspace" }: { placement?: "workspace" | "landing" }) {
+export function AdiAssistant({
+  placement = "workspace",
+  who,
+}: {
+  placement?: "workspace" | "landing";
+  /** Signed-in account id; omitted for visitors. */
+  who?: string;
+}) {
+  const store = STORE_PREFIX + (who ?? "visitor");
   const t = useTranslations("ui.adi");
   const locale = useLocale();
   const path = usePathname();
@@ -62,6 +71,19 @@ export function AdiAssistant({ placement = "workspace" }: { placement?: "workspa
   const input = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
+    // Drop chats saved for anyone else in this tab (after sign-out or an account switch).
+    try {
+      for (const key of Object.keys(sessionStorage)) {
+        if ((key.startsWith(STORE_PREFIX) || key === "adept.adi.chat") && key !== store) {
+          sessionStorage.removeItem(key);
+        }
+      }
+    } catch {
+      /* storage unavailable: nothing was saved either */
+    }
+  }, [store]);
+
+  useEffect(() => {
     const seen = load<boolean>(SEEN, false);
     const show = window.setTimeout(() => setBubble(!seen), 1400);
     const calm = window.setTimeout(() => setMood("idle"), 3600);
@@ -72,8 +94,8 @@ export function AdiAssistant({ placement = "workspace" }: { placement?: "workspa
   }, []);
 
   useEffect(() => {
-    if (turns.length) save(STORE, turns.slice(-12));
-  }, [turns]);
+    if (turns.length) save(store, turns.slice(-12));
+  }, [turns, store]);
   useEffect(() => {
     list.current?.scrollTo({ top: list.current.scrollHeight, behavior: "smooth" });
   }, [turns, busy]);
@@ -87,7 +109,7 @@ export function AdiAssistant({ placement = "workspace" }: { placement?: "workspa
 
   function openPanel() {
     // Earlier questions from this browser tab come back when the panel opens.
-    if (!turns.length) setTurns(load<Turn[]>(STORE, []));
+    if (!turns.length) setTurns(load<Turn[]>(store, []));
     setOpen(true);
     setBubble(false);
     save(SEEN, true);
@@ -177,7 +199,7 @@ export function AdiAssistant({ placement = "workspace" }: { placement?: "workspa
                   <p>{turn.text}</p>
                 </div>
               ) : (
-                <Answer key={i} reply={turn.reply} />
+                <Answer key={i} reply={turn.reply} scenario={scenario} />
               ),
             )}
             {busy ? (
@@ -242,7 +264,7 @@ export function AdiAssistant({ placement = "workspace" }: { placement?: "workspa
   );
 }
 
-function Answer({ reply }: { reply: Reply }) {
+function Answer({ reply, scenario }: { reply: Reply; scenario: "moderate" | "fast" }) {
   const t = useTranslations("ui.adi");
   const meta = reply.meta;
   const unchecked = reply.unchecked_figures ?? [];
@@ -251,7 +273,7 @@ function Answer({ reply }: { reply: Reply }) {
     <div className="adi-msg is-adi">
       <p>
         {reply.parts.map((part, i) => (
-          <PartView key={i} part={part} />
+          <PartView key={i} part={part} scenario={scenario} />
         ))}
       </p>
       {unchecked.length ? (
@@ -266,7 +288,7 @@ function Answer({ reply }: { reply: Reply }) {
   );
 }
 
-function PartView({ part }: { part: Part }) {
+function PartView({ part, scenario }: { part: Part; scenario: "moderate" | "fast" }) {
   if (part.kind === "text") {
     // Models emphasise with **bold**; render it as <strong> and keep the rest plain text.
     const pieces = part.text.replace(/^[-*] /gm, "• ").split(/\*\*(.+?)\*\*/g);
@@ -275,8 +297,10 @@ function PartView({ part }: { part: Part }) {
   const label = <span className={`adi-ref is-${part.kind}`}>{part.text}</span>;
   if (!part.href) return label;
   if (part.href.startsWith("/")) {
+    // Adi answered with this scenario's data; the link must open the same scenario.
+    const href = scenario === "fast" && /^\/(app|org)(\/|$)/.test(part.href) ? `${part.href}?scenario=fast` : part.href;
     return (
-      <Link href={part.href} className="adi-reflink">
+      <Link href={href} className="adi-reflink">
         {label}
       </Link>
     );

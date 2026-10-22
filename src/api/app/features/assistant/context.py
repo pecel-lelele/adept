@@ -86,6 +86,10 @@ def _catalogue_refs(refs: Refs) -> None:
     refs.skills.update(pathway_data.skill_labels())
     for course in _try("catalogue", pathway_data.catalogue) or []:
         refs.courses[course.id] = (course.title, course.url)
+    from app.features.sdg import repository as sdg_repository
+
+    for target_id, target in (_try("sdg targets", sdg_repository.targets) or {}).items():
+        refs.sdg[target_id] = f"SDG {target_id}: {target.label}"
 
 
 def _trends(ctx: Context, scenario: ScenarioId, own: set[str]) -> None:
@@ -189,8 +193,6 @@ def _learner(ctx: Context, user: CurrentUser, scenario: ScenarioId) -> None:
                     f"below required level: {partial}"
                 )
             badges = _try("sdg", lambda: sdg_service.role_badges(top[0].role_id)) or []
-            for b in badges:
-                ctx.refs.sdg[b.target] = b.label
             if badges:
                 ctx.lines.append(
                     f"SDG targets of [[role:{top[0].role_id}]]: "

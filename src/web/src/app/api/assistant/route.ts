@@ -6,13 +6,43 @@ const PROXY_SECRET = process.env.PROXY_SHARED_SECRET ?? "";
 const TRUSTED_PROXY_HOPS = Number.parseInt(process.env.TRUSTED_PROXY_HOPS ?? "0", 10) || 0;
 const MAX_BYTES = 32 * 1024;
 
+const tooLarge = () =>
+  Response.json({ error: { code: "too_large", message: "Message too long." } }, { status: 413 });
+
+/** Read at most MAX_BYTES of the body, stopping as soon as the limit is passed. */
+async function readCapped(request: Request): Promise<string | null> {
+  const declared = Number(request.headers.get("content-length"));
+  if (Number.isFinite(declared) && declared > MAX_BYTES) return null;
+  if (!request.body) return "";
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.byteLength;
+    if (size > MAX_BYTES) {
+      await reader.cancel();
+      return null;
+    }
+    chunks.push(value);
+  }
+  const all = new Uint8Array(size);
+  let offset = 0;
+  for (const chunk of chunks) {
+    all.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return new TextDecoder().decode(all);
+}
+
 /** Relays a question to Adi with the signed-in session (httpOnly cookie) when there is one. */
 export async function POST(request: Request) {
   const publicOrigin = process.env.WEB_ORIGIN ?? "http://localhost:3000";
   const origin = request.headers.get("origin");
   if (origin && origin !== publicOrigin) return new Response(null, { status: 403 });
-  const text = await request.text();
-  if (text.length > MAX_BYTES) return Response.json({ error: { code: "too_large", message: "Message too long." } }, { status: 413 });
+  const text = await readCapped(request);
+  if (text === null) return tooLarge();
   const headers: Record<string, string> = { "content-type": "application/json" };
   const token = await getSessionToken();
   if (token) headers["X-Demo-User"] = token;

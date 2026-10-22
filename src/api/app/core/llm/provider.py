@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import json
 import os
+import time
 from typing import Any, Protocol, TypeVar
 
 import httpx
@@ -69,6 +70,8 @@ _DEFAULT_BASE = {
 # OpenAI's newer models take `max_completion_tokens` and only the default temperature;
 # vLLM (Runpod) and OpenRouter accept the classic `max_tokens` with a temperature.
 _OPENAI_STYLE = {"openai", "replit"}
+# A model attempt needs at least this long to be worth starting.
+MIN_ATTEMPT_S = 3.0
 
 
 class OpenAICompatibleProvider:
@@ -112,22 +115,29 @@ class OpenAICompatibleProvider:
         return body
 
     def _post(self, messages: list[ChatMessage], max_tokens: int) -> str:
-        """Try the main model, then each fallback when one is rate-limited or failing."""
+        """Try the main model, then each fallback, all within one LLM_TIMEOUT_S budget.
+
+        The web route waits 30 s for the whole answer, so fallbacks share the budget instead of
+        each getting a fresh timeout; once too little time is left the guide answers instead.
+        """
+        deadline = time.monotonic() + self._timeout
         last: LLMUnavailableError | None = None
         for model in (self.model, *self._fallbacks):
+            remaining = deadline - time.monotonic()
+            if remaining < MIN_ATTEMPT_S:
+                break
             try:
-                text = self._post_once(self._body(messages, max_tokens, model))
+                text = self._post_once(self._body(messages, max_tokens, model), remaining)
             except LLMUnavailableError as exc:
                 last = exc
                 continue
             self.last_model = model
             return text
-        assert last is not None
-        raise last
+        raise last or LLMUnavailableError(f"{self.name}: no time left for another model")
 
-    def _post_once(self, body: dict[str, Any]) -> str:
+    def _post_once(self, body: dict[str, Any], timeout_s: float) -> str:
         try:
-            with httpx.Client(timeout=self._timeout, transport=self._transport) as client:
+            with httpx.Client(timeout=timeout_s, transport=self._transport) as client:
                 response = client.post(self._url, headers=self._headers, json=body)
         except httpx.HTTPError as exc:
             raise LLMUnavailableError(f"{self.name} request failed: {type(exc).__name__}") from exc

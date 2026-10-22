@@ -29,7 +29,44 @@ from app.features.assistant import guide
 log = get_logger("app.assistant")
 
 _TAG = re.compile(r"\[\[(role|skill|course|sdg|page):([^\]\s]{1,100})\]\]")
-_FIGURE = re.compile(r"(?:RM\s?)?\d+(?:[.,]\d+)?\s?%?")
+# A figure with its unit: "RM 450", "72%", "6" (a price, a share or a plain count).
+_FIGURE = re.compile(r"(RM\s?)?(\d+(?:[.,]\d+)*)(\s?%)?", re.IGNORECASE)
+# A plain number used as a list or step marker, not a claim: "1.", "2)", "step 3", "week 4".
+_MARKER = re.compile(
+    r"(?:^|\n)\s*\d{1,2}[.)]\s"
+    r"|\b(?:step|langkah|week|weeks|minggu|module|modul|level|tahap)\s+\d{1,2}\b",
+    re.IGNORECASE,
+)
+# Names a model might invent outside tags: a quoted title, or Title Case words next to a word
+# for a course, programme, role or certificate ("the Galactic Leadership course").
+_KIND_WORDS = (
+    r"course|courses|programme|program|programmes|training|certificate|certification|"
+    r"bootcamp|degree|diploma|role|roles|position|job|kursus|latihan|peranan|jawatan|sijil"
+)
+_TITLE = r"(?:[A-Z][\w&'+-]*\s+){1,6}[A-Z][\w&'+-]*"
+_INVENTED = re.compile(
+    '["\u201c]([^"\u201d\n]{3,80})["\u201d]'
+    + rf"|\b({_TITLE})\s+(?:{_KIND_WORDS})\b"
+    + rf"|\b(?:{_KIND_WORDS})\s+(?:called|named|titled|bernama)\s+({_TITLE})"
+)
+# Names Adi may write freely: the product, the scheme and common provider names.
+_ALLOWED_NAMES = {
+    "adept",
+    "adi",
+    "hrd corp",
+    "un",
+    "sdg",
+    "future skills radar",
+    "ai",
+    "coursera",
+    "microsoft learn",
+    "google",
+    "ibm",
+    "malaysia",
+    "malaysian",
+    "bahasa melayu",
+}
+_PAGE_PATH = re.compile(r"/[A-Za-z0-9/_-]{0,100}")
 _LANG = {"en": "English", "ms": "Bahasa Melayu", "zh": "Simplified Chinese"}
 MAX_REPLY_TOKENS = 700
 
@@ -67,6 +104,11 @@ def _clean_question(text: str) -> str:
     return redact_text(clean_extracted_text(text))[:2000]
 
 
+def _safe_page(page: str) -> str:
+    """Only a plain route path reaches the prompt (never free text from the caller)."""
+    return page if _PAGE_PATH.fullmatch(page) else "/"
+
+
 def _href(kind: str, ref_id: str, ctx: ctx_mod.Context) -> str | None:
     if kind == "role":
         return f"/app/matches/{ref_id}" if ctx.audience == "learner" else None
@@ -82,18 +124,40 @@ def _href(kind: str, ref_id: str, ctx: ctx_mod.Context) -> str | None:
 
 
 def _label(kind: str, ref_id: str, ctx: ctx_mod.Context) -> str | None:
+    """The official label of a catalogue entry, or None when the ID does not exist."""
+    if kind == "course":
+        found = ctx.refs.courses.get(ref_id)
+        return found[0] if found else None
     table: dict[str, str] = {
         "role": ctx.refs.roles,
         "skill": ctx.refs.skills,
         "sdg": ctx.refs.sdg,
         "page": ctx.refs.pages,
     }.get(kind, {})  # type: ignore[assignment]
-    if kind == "course":
-        found = ctx.refs.courses.get(ref_id)
-        return found[0] if found else None
-    if kind == "sdg" and ref_id not in table:
-        return f"SDG {ref_id}" if re.fullmatch(r"\d{1,2}\.[0-9a-c]{1,2}", ref_id) else None
     return table.get(ref_id)
+
+
+def invented_names(text: str, ctx: ctx_mod.Context) -> list[str]:
+    """Course-, role- or programme-like names written outside tags that are not in the catalogue.
+
+    The model must tag every catalogue item; anything that looks like a title but is untagged
+    and unknown is treated as invented, and the whole answer is replaced by the guide.
+    """
+    known = {
+        label.lower()
+        for table in (ctx.refs.roles, ctx.refs.skills, ctx.refs.pages, ctx.refs.sdg)
+        for label in table.values()
+    }
+    known |= {title.lower() for title, _ in ctx.refs.courses.values()}
+    known |= _ALLOWED_NAMES
+    found: list[str] = []
+    for m in _INVENTED.finditer(_TAG.sub(" ", text)):
+        name = next(g for g in m.groups() if g).strip()
+        lowered = name.lower()
+        if lowered in known or any(lowered in k for k in known):
+            continue
+        found.append(name)
+    return found[:5]
 
 
 def to_parts(text: str, ctx: ctx_mod.Context) -> tuple[list[AnswerPart], list[str]]:
@@ -130,17 +194,35 @@ def to_parts(text: str, ctx: ctx_mod.Context) -> tuple[list[AnswerPart], list[st
     return [p for p in cleaned if p.text.strip() or p.kind != "text"], rejected
 
 
+def _figure_key(m: re.Match[str]) -> str:
+    number = m.group(2).replace(",", "")
+    if m.group(1):
+        return f"rm{number}"
+    if m.group(3):
+        return f"{number}%"
+    return number
+
+
 def unchecked_figures(text: str, ctx: ctx_mod.Context) -> list[str]:
-    """Numbers in the answer that the context does not contain (step numbers excluded)."""
-    known = ctx.text().replace(",", "")
+    """Figures in the answer that the context does not contain, compared with their units.
+
+    "26%" needs a "26%" in the data (the year 2026 does not count), "RM 10" needs "RM 10".
+    Only list and step markers ("2.", "step 3") are skipped.
+    """
+    context = ctx.text()
+    known = {_figure_key(m) for m in _FIGURE.finditer(context)}
+    known_bare = {m.group(2).replace(",", "") for m in _FIGURE.finditer(context)}
+    body = _TAG.sub(" ", text)
+    markers = [(m.start(), m.end()) for m in _MARKER.finditer(body)]
     out: list[str] = []
-    for m in _FIGURE.finditer(_TAG.sub(" ", text)):
-        figure = m.group(0).strip()
-        bare = figure.replace("RM", "").replace(" ", "").replace(",", "")
-        if not bare or (bare.isdigit() and int(bare) <= 12 and "%" not in figure):
-            continue  # small counts and step numbers ("3 steps", "step 2")
-        if bare.rstrip("%") not in known:
-            out.append(figure)
+    for m in _FIGURE.finditer(body):
+        if any(start <= m.start() < end for start, end in markers):
+            continue
+        key = _figure_key(m)
+        plain = not (m.group(1) or m.group(3))
+        if key in known or (plain and key in known_bare):
+            continue
+        out.append(m.group(0).strip())
     return sorted(set(out))[:5]
 
 
@@ -161,17 +243,13 @@ def _record(provider: LLMProvider, outcome: str, rejected: list[str]) -> None:
 
 def _ask_model(body: AssistantIn, ctx: ctx_mod.Context, provider: LLMProvider) -> str:
     BREAKER.check()
+    # Every caller-supplied turn is untrusted (the client sends the assistant turns back too).
     history = [
-        {
-            "role": m.role,
-            "content": _clean_question(m.content) if m.role == "user" else m.content[:1200],
-        }
-        for m in body.messages[-8:]
+        {"role": m.role, "content": _clean_question(m.content)[:1200]} for m in body.messages[-8:]
     ]
-    messages = [
-        {"role": "system", "content": _system_prompt(ctx, body.locale, body.page)},
-        *history,
-    ]
+    prompt = _system_prompt(ctx, body.locale, _safe_page(body.page))
+    system = redact_text(clean_extracted_text(prompt))
+    messages = [{"role": "system", "content": system}, *history]
     try:
         text = provider.chat(messages, max_tokens=MAX_REPLY_TOKENS)
     except LLMUnavailableError:
@@ -197,9 +275,13 @@ def answer(user: CurrentUser | None, body: AssistantIn) -> AssistantReply:
             _record(provider, "unavailable", [])
     if used_llm:
         parts, rejected = to_parts(text, ctx)
-        _record(provider, "rejected_unknown_ids" if rejected else "ok", rejected)
+        invented = invented_names(text, ctx)
+        outcome = "rejected_unknown_ids" if rejected or invented else "ok"
+        _record(provider, outcome, rejected + invented)
         figures = unchecked_figures(text, ctx)
-        if not any(p.text.strip() for p in parts):
+        if invented or not any(p.text.strip() for p in parts):
+            # A name outside the catalogue is never shown: the guide answers instead.
+            log.warning("assistant answer named items outside the catalogue: %s", invented)
             used_llm, figures = False, []
     if not used_llm:
         parts, _ = to_parts(guide.reply(question, ctx, body.locale), ctx)

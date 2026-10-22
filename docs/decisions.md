@@ -999,3 +999,13 @@
 - **Affects**: M3 (SDG contribution endpoints), M4 (F7). Learner pages never used these endpoints.
 - **Replaces**: none
 - **PR / branch**: fix/core-backend-perf-security
+
+### M4-030: Review fixes on PR #8 and PR #9 (pooling, export, trend queue, CV clauses, Adi guardrails)
+- **Date**: 2026-10-23
+- **Feature**: Core, F1, F4, F8
+- **Type**: fix
+- **Change**: PR #8: pooled connections reset row format and autocommit when returned (a sync job's tuple rows leaked to later requests); account export adds plan history, every tracked course with evidence, and badges; trend reads are capped at 16 outstanding, identical reads are shared, and new callers fail fast instead of queueing; CV cleaning keeps line breaks and level cues and years count only within the skill's own clause. PR #9: every chat turn (not only the user's), the page path and the context are redacted before the model; an answer that names a course, role or programme outside the catalogue is replaced by the guide; SDG references resolve against the official target list; figures are compared with their units; fallback models share one deadline; the web route caps the body while reading; saved chats are kept per account and other accounts' chats are removed; Adi's links keep the current AI pace; team answers are for managers only.
+- **Why**: Greptile reviews on PR #8 and PR #9.
+- **Affects**: M2 (CV parser), M3 (F8 gateway use), M4.
+- **Replaces**: none
+- **PR / branch**: feat/core-adi-assistant (PR #8 parts also on fix/core-backend-perf-security)
