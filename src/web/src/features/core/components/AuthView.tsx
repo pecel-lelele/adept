@@ -18,7 +18,6 @@ type Page = "login" | "signup";
 /** Real sign-up and sign-in. Every account and organisation is stored in PostgreSQL. */
 export function AuthView() {
   const t = useTranslations("ui.auth");
-  const tl = useTranslations("ui.landing");
   const params = useSearchParams();
   const next = params.get("next") ?? "";
   // Rendered by the shared (entry) layout, so it stays mounted between /auth/login and
@@ -52,9 +51,6 @@ export function AuthView() {
     <main className="a-page" data-mode={team ? "organisation" : "individual"}>
       <header className="a-page-top">
         <BrandLogo href="/" />
-        <nav>
-          <Link href="/try">{tl("try")}</Link>
-        </nav>
       </header>
       <div className="a-auth">
         <section className="a-auth-card" aria-labelledby="auth-title">
