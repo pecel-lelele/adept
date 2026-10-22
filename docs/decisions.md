@@ -833,3 +833,12 @@
 - **Replaces**: none
 - **PR / branch**: feat/core-insight-design
 - **Pipeline**: source = trend snapshots + reviewed SDG links → features = SDG link weight, velocity deltas → method = linear blend (λ) / rank diff with importance-weighted drivers → evaluation = unit + API tests → serving = `/api/v1/matches`, `/api/v1/matches/replay`
+
+### M4-014: Partner prototype folder removed; app icon added
+- **Date**: 2026-10-22
+- **Feature**: Core
+- **Type**: chore
+- **Change**: The partner's prototype (`frontend/adept`, never committed) was deleted after checking its colours, type, logo and layout patterns are all in `src/web` (M4-011, M4-012). Its sample CV and team files were fake data and its favicon was a template icon, so neither was kept. Added `src/web/src/app/icon.svg`, the Adept "A" mark, as the browser-tab icon.
+- **Affects**: none
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design
