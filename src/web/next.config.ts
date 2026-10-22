@@ -13,6 +13,8 @@ const nextConfig: NextConfig = {
   // CV uploads go through a Server Action (features/profile/actions.ts) and may be up to
   // 5 MB (the API's MAX_UPLOAD_BYTES); the default 1 MB action body limit would reject them.
   experimental: { serverActions: { bodySizeLimit: "6mb" } },
+  // Keep the dev-only Next.js badge off the sidebar's language switch (bottom left).
+  devIndicators: { position: "bottom-right" },
 };
 
 export default withNextIntl(nextConfig);
