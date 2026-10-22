@@ -27,7 +27,8 @@
     "sources": "Sumber data",
     "snapshots": "Snapshot",
     "admin": "Pentadbir",
-    "menu": "Buka menu"
+    "menu": "Buka menu",
+    "funding": "Dana pembelajaran"
   },
   "shell": {
     "disclaimer": "Unjuran ialah anggaran daripada data awam. Anda yang membuat keputusan: Adept tidak pernah membuat keputusan pengambilan pekerja.",
@@ -270,7 +271,7 @@
     "tf2": "Peta haba jurang kemahiran",
     "tf2Body": "Setiap ahli berbanding kemahiran yang diperlukan setiap peranan yang meningkat, supaya jurang terbesar jelas kelihatan.",
     "tf3": "Peranan sasaran dicadangkan",
-    "tf3Body": "Adept mencadangkan peranan dengan purata jurang pasukan terbesar. Anda mengesahkannya atau memilih yang lain.",
+    "tf3Body": "Adept bermula dengan peranan yang paling hampir dengan kemahiran pasukan. Pilih matlamat, banding pakej dan hantar cadangan.",
     "tf4": "Satu pelan latihan berkumpulan",
     "tf4Body": "Kursus tersusun untuk peranan yang dipilih, menunjukkan ahli yang berkaitan bagi setiap langkah.",
     "tf5": "Kursus HRD Corp ditanda",

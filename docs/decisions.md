@@ -1071,3 +1071,13 @@
 - **Affects**: M3 pathway engine; M4 organisation APIs and member adoption. Synthetic tests verify cohort isolation, stale budget offers and consent.
 - **Replaces**: none
 - **PR / branch**: feat/catalogue-roles-skills-courses
+
+### M4-037: feat(web): expose plan packages member budgets and expense claims
+- **Date**: 2026-10-23
+- **Feature**: F1, F4, F5, F6, F7 / Core integration
+- **Type**: UI
+- **Change**: Replace the organisation plan page with role/cohort package comparison and per-member course previews; add proposal adoption and account-scoped funding pages for HR budgets, purchase requests, certificates, receipts and external payment records. Display unknown certificate prices and provider learning-achievement caveats. Add English, Malay and Chinese labels and revise obsolete largest-gap guidance.
+- **Why**: A coherent plan-to-purchase-to-proof flow must be accessible to HR and learners, with actual remaining gaps and dated price assumptions visible before a choice.
+- **Affects**: M4 navigation and organisation UI; M3 pathway/catalogue screens. Uses existing design primitives and typed API client.
+- **Replaces**: none
+- **PR / branch**: feat/catalogue-roles-skills-courses

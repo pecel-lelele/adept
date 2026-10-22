@@ -32,7 +32,8 @@
     "title": "Jurang yang belum dapat ditutup oleh katalog kami",
     "no_catalogue_course": "Tiada kursus dalam katalog",
     "over_budget": "Melebihi bajet",
-    "catalogue_tops_out": "Perlu latihan di luar kursus"
+    "catalogue_tops_out": "Perlu latihan di luar kursus",
+    "blocked_prerequisite": "Prasyarat belum dipenuhi"
   },
   "plan": {
     "save": "Pilih peranan ini dan simpan pelan",
@@ -188,5 +189,6 @@
   "history": {
     "title": "Sejarah pembelajaran yang selesai",
     "description": "Kursus yang selesai kekal di sini apabila sasaran atau pelan yang masih perlu diselesaikan berubah. Anda boleh menyemak bukti atau membatalkan penyiapan."
-  }
+  },
+  "certificateQuote": "Harga sijil: perlu sebut harga"
 }

@@ -45,7 +45,7 @@ export const learnerWorkspace: Workspace = {
       label: "journey",
       items: [learnerItems.home, learnerItems.skills, learnerItems.radar, learnerItems.roles, learnerItems.plan],
     },
-    { label: "track", items: [learnerItems.progress, learnerItems.courses, learnerItems.impact] },
+    { label: "track", items: [learnerItems.progress, learnerItems.courses, { key: "funding", href: "/app/funding", icon: "courses" }, learnerItems.impact] },
   ],
   tabs: ["home", "radar", "roles", "plan"],
 };
@@ -70,7 +70,7 @@ export const orgWorkspace: Workspace = {
       label: "journey",
       items: [orgItems.home, orgItems.team, orgItems.radar, orgItems.gaps, orgItems.teamPlan],
     },
-    { label: "manage", items: [orgItems.impact, orgItems.courses, orgItems.verify, orgItems.settings] },
+    { label: "manage", items: [orgItems.impact, orgItems.courses, orgItems.verify, { key: "funding", href: "/org/funding", icon: "courses" }, orgItems.settings] },
   ],
   tabs: ["home", "team", "gaps", "teamPlan"],
 };

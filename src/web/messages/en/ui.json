@@ -27,7 +27,8 @@
     "sources": "Data sources",
     "snapshots": "Snapshots",
     "admin": "Admin",
-    "menu": "Open menu"
+    "menu": "Open menu",
+    "funding": "Learning funds"
   },
   "shell": {
     "disclaimer": "Projections are estimates from public data. You stay in charge: Adept never makes hiring decisions.",
@@ -270,7 +271,7 @@
     "tf2": "Skills-gap heatmap",
     "tf2Body": "Every member against the skills each rising role needs, so the biggest gaps stand out at a glance.",
     "tf3": "Target role, suggested",
-    "tf3Body": "Adept suggests the role with the largest average team gap. You confirm it or choose another.",
+    "tf3Body": "Adept starts with the role closest to the team’s existing skills. Choose a learning goal, compare packages and send a proposal.",
     "tf4": "One group training plan",
     "tf4Body": "Ordered courses for the chosen role, showing which members each step applies to.",
     "tf5": "HRD Corp-claimable flagged",

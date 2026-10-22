@@ -1,3 +1,4 @@
+import { AssignedPackageView } from "@/features/org/components/AssignedPackageView";
 import { CompareRolesView, PathwayView, savedRoleId } from "@/features/pathway";
 import { firstParam, parseScenario, type SearchParams } from "@/lib/scenario";
 
@@ -13,12 +14,12 @@ export default async function Page({
   const roleId = firstParam(params.role) ?? (await savedRoleId());
   const snapshotDate = firstParam(params.snapshot_date);
   if (!roleId)
-    return <CompareRolesView scenario={scenario} snapshotDate={snapshotDate} />;
+    return <><AssignedPackageView /><CompareRolesView scenario={scenario} snapshotDate={snapshotDate} /></>;
   return (
-    <PathwayView
+    <><AssignedPackageView /><PathwayView
       roleId={roleId}
       scenario={scenario}
       snapshotDate={snapshotDate}
-    />
+    /></>
   );
 }

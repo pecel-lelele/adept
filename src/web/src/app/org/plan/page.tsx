@@ -11,6 +11,7 @@ export default async function Page({
     <PlanView
       scenario={parseScenario(params.scenario)}
       roleId={firstParam(params.role)}
+      memberIds={params.cohort ? (Array.isArray(params.member) ? params.member : params.member ? [params.member] : []) : undefined}
     />
   );
 }
