@@ -108,25 +108,6 @@ export function SideNav({ ws, doneSteps }: { ws: Workspace; doneSteps: number[] 
   );
 }
 
-/** Title of the current page in the top bar (desktop). */
-export function TopTitle({ ws }: { ws: Workspace }) {
-  const t = useTranslations("ui.nav");
-  const pathname = usePathname();
-  const item = activeItem(ws, pathname);
-  const space = ws.mode === "organisation" ? "organisation" : ws.mode === "admin" ? "admin" : "learner";
-  return (
-    <span className="a-top-title">
-      {t(space)}
-      {item ? (
-        <>
-          <span aria-hidden>/</span>
-          <strong>{t(item.key)}</strong>
-        </>
-      ) : null}
-    </span>
-  );
-}
-
 /** Shows its children (the scenario switch) only on pages where scenarios matter. */
 export function ScenarioSlot({ ws, children }: { ws: Workspace; children: ReactNode }) {
   const pathname = usePathname();

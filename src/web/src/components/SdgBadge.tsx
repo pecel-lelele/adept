@@ -10,7 +10,7 @@ const SDG_COLOURS = [
 export function SdgBadge({ target }: { target: Schemas["SdgTarget"] }) {
   return (
     <span
-      className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-semibold text-white"
+      className="a-sdg-chip"
       style={{ backgroundColor: SDG_COLOURS[target.goal - 1] ?? "#555" }}
       title={target.label}
     >

@@ -1,5 +1,5 @@
 /* Product surfaces: self-hosted Inter, warm neutrals, ink navigation. */
-body,.workspace,.preview-page { font-family:"Inter Variable",Inter,system-ui,sans-serif; }
+body,.workspace,.preview-page { font-family: Arial, Helvetica, "Helvetica Neue", system-ui, sans-serif; }
 .workspace { --workspace-ink:#242a28;--workspace-muted:#727971;--workspace-accent:#d6eb9d;--primary:#32473c;--primary-foreground:#fff;--border:#e4e6df;--muted:#f1f2ec;--muted-foreground:#6c746b;--accent:#eef2e7; background:#f7f8f2;grid-template-columns:226px minmax(0,1fr); }
 .workspace-org { --workspace-accent:#d8d9fa;--primary:#494b75;--accent:#eeeefa; }
 .workspace-sidebar { background:#202c27;color:#edf1e8;border:0;padding:34px 18px 22px;gap:26px; }

@@ -9,7 +9,11 @@
   "scenario": {
     "label": "Scenario",
     "moderate": "Moderate AI disruption",
-    "fast": "Fast AI disruption"
+    "fast": "Fast AI disruption",
+    "pace": "AI pace",
+    "moderateShort": "Moderate",
+    "fastShort": "Fast",
+    "hint": "How fast AI changes work. Rankings and outlooks are estimates under each pace."
   },
   "estimate": {
     "label": "Estimate",

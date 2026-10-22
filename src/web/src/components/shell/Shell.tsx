@@ -1,4 +1,4 @@
-import { LogOut } from "lucide-react";
+import { BookOpen, LogOut } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { Suspense, type ReactNode } from "react";
@@ -8,8 +8,8 @@ import type { Account } from "@/lib/auth/account";
 
 import { LocaleSwitcher } from "../LocaleSwitcher";
 import { ScenarioToggle } from "../ScenarioToggle";
-import { BrandMark } from "./Brand";
-import { ScenarioSlot, SideNav, TabBar, TopTitle } from "./Nav";
+import { BrandLogo } from "./Brand";
+import { ScenarioSlot, SideNav, TabBar } from "./Nav";
 
 function initials(name: string): string {
   return (
@@ -23,9 +23,10 @@ function initials(name: string): string {
 }
 
 /**
- * One shell for every workspace. Desktop: sidebar (grouped, journey steps numbered) and a
- * top bar with the page title and, where it matters, the AI-scenario switch. Mobile: compact
- * top bar and a fixed bottom tab bar whose "More" sheet holds the rest.
+ * One shell for every workspace, styled after the partner design (frontend/adept). Desktop:
+ * a sidebar only (journey steps numbered, the rest in a collapsible "More", then the
+ * account) and no bar above the content. On pages that depend on it, the "AI pace" switch
+ * sits at the top right of the page. Phones: a fixed bottom tab bar replaces the sidebar.
  */
 export async function Shell({
   ws,
@@ -42,57 +43,46 @@ export async function Shell({
 }) {
   const t = await getTranslations("ui");
   const name = account?.display_name ?? "Adept";
+  const space = ws.mode === "organisation" ? "nav.organisation" : ws.mode === "admin" ? "nav.admin" : "nav.learner";
   return (
     <div className="a-shell" data-mode={ws.mode}>
       <a className="a-skip" href="#a-main">
         {t("nav.skip")}
       </a>
       <aside className="a-side">
-        <Link href={ws.home} className="a-brand">
-          <BrandMark />
-          adept
-        </Link>
+        <BrandLogo href={ws.home} />
+        <span className="a-eyebrow a-side-space">{t(space)}</span>
         <Suspense>
           <SideNav ws={ws} doneSteps={doneSteps} />
         </Suspense>
         <div className="a-side-foot">
+          <Link href="/about" className="a-side-about">
+            <BookOpen size={16} strokeWidth={1.7} aria-hidden /> {t("nav.about")}
+          </Link>
           <div className="a-account">
+            <span className="a-status-dot" aria-hidden />
             <span className="a-avatar" aria-hidden>
               {initials(name)}
             </span>
             <span style={{ minWidth: 0 }}>
               <strong>{name}</strong>
-              <small>{orgName ?? t(ws.mode === "organisation" ? "nav.organisation" : "nav.learner")}</small>
+              <small>{orgName ?? t(space)}</small>
             </span>
-          </div>
-          <div className="a-side-actions">
-            <LocaleSwitcher />
-            <a href="/auth/logout">
-              <LogOut size={14} aria-hidden /> {t("nav.signOut")}
+            <a className="a-iconlink" href="/auth/logout" title={t("nav.signOut")} aria-label={t("nav.signOut")}>
+              <LogOut size={15} aria-hidden />
             </a>
           </div>
+          <LocaleSwitcher />
         </div>
       </aside>
       <div className="a-col">
-        <header className="a-top">
-          <Link href={ws.home} className="a-top-brand">
-            <BrandMark />
-            adept
-          </Link>
-          <Suspense>
-            <TopTitle ws={ws} />
-          </Suspense>
-          <div className="a-top-tools">
-            <Suspense>
-              <ScenarioSlot ws={ws}>
-                <ScenarioToggle />
-              </ScenarioSlot>
-            </Suspense>
-            <Link href="/about" className="a-link a-small a-hide-mobile">
-              {t("nav.about")}
-            </Link>
-          </div>
-        </header>
+        <Suspense>
+          <ScenarioSlot ws={ws}>
+            <div className="a-pagebar">
+              <ScenarioToggle />
+            </div>
+          </ScenarioSlot>
+        </Suspense>
         <main id="a-main" className="a-main">
           {children}
         </main>

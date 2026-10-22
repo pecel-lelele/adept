@@ -6,11 +6,11 @@ import type { Source } from "@/lib/api";
 export function SourceBadge({ sources, snapshotDate }: { sources: Source[]; snapshotDate?: string }) {
   const t = useTranslations("common.source");
   return (
-    <span className="inline-flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
-      <span className="font-medium">{t("label")}:</span>
+    <span className="a-source">
+      <b>{t("label")}:</b>
       {sources.map((s) =>
         s.url ? (
-          <a key={s.name} href={s.url} className="underline" target="_blank" rel="noreferrer">
+          <a key={s.name} href={s.url} target="_blank" rel="noreferrer">
             {s.name}
           </a>
         ) : (

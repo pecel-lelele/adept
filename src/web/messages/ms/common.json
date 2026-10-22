@@ -9,7 +9,11 @@
   "scenario": {
     "label": "Senario",
     "moderate": "Gangguan AI sederhana",
-    "fast": "Gangguan AI pantas"
+    "fast": "Gangguan AI pantas",
+    "pace": "Kadar AI",
+    "moderateShort": "Sederhana",
+    "fastShort": "Pantas",
+    "hint": "Seberapa pantas AI mengubah kerja. Kedudukan dan unjuran ialah anggaran bagi setiap kadar."
   },
   "estimate": {
     "label": "Anggaran",

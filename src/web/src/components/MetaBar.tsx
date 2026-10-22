@@ -8,9 +8,9 @@ import { SourceBadge } from "./SourceBadge";
 export function MetaBar({ meta }: { meta: RecommendationMeta }) {
   const t = useTranslations("common.design");
   return (
-    <details className="meta-disclosure">
+    <details className="a-metabar">
       <summary><EstimateLabel scenario={meta.scenario} isEstimate={meta.is_estimate} /> · {meta.snapshot_date} · {t("evidence")}</summary>
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="a-metabar-body">
       <EstimateLabel scenario={meta.scenario} isEstimate={meta.is_estimate} />
       <SourceBadge sources={meta.sources} snapshotDate={meta.snapshot_date} />
       </div>

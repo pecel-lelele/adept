@@ -5,7 +5,6 @@ import type { ReactNode } from "react";
 
 import "./globals.css";
 import "./workspace.css";
-import "@fontsource-variable/inter";
 import "./insight.css";
 import "./adept.css";
 
