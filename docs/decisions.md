@@ -1020,3 +1020,14 @@
 - **Affects**: M3 F8 provider/gateway/disclosure; M4 assistant/web; no new dependencies or database schema changes.
 - **Replaces**: M4-030 free-text answer checks and phase-only provider timeout; M4-028 landing-page assistant placement.
 - **PR / branch**: https://github.com/pecel-lelele/adept/pull/9 / feat/core-adi-assistant
+
+### M4-032: feat(catalogue): enrich future-facing roles skills and public courses
+- **Date**: 2026-10-23
+- **Feature**: F1, F4, F5, F6, F7 / Core integration
+- **Type**: data source | method
+- **Change**: Preserve all existing entities; complete the unfinished expansion to 140 skills, 31 roles, 160 role-skill links and 71 courses. Add 37 provider-verified Microsoft Learn entries, future AI skills in role requirements, BM/CJK aliases and O*NET 31.0 occupation crosswalks. New role SDG links are conservative enabling hypotheses tied to official UN definitions; remove unsupported cloud/mobile-network and cybersecurity/transport arguments.
+- **Why**: The four-role pool could not serve varied career backgrounds. The user requested additive future-facing coverage, never fabricated courses or growth forecasts.
+- **Pipeline**: Microsoft Learn live API, O*NET occupation data and official UN targets → exact-ID/URL/duration validation and retained original rows → curated estimated role/skill edges and draft SDG links → shared F4/F5 catalogues → closed graph with 28 future targets, all roles/skills mapped and provider IDs validated → seed CSVs, provenance JSON and live course sync.
+- **Affects**: M1 trends coverage; M2 taxonomy/profile/matching; M3 courses and SDG mappings.
+- **Replaces**: none
+- **PR / branch**: feat/catalogue-roles-skills-courses

@@ -1,227 +1,405 @@
 {
- "modules": [
-  {
-   "uid": "learn.wwl.work-with-data-python",
-   "type": "module",
-   "title": "Work with data in Python",
-   "duration_in_minutes": 48,
-   "url": "https://learn.microsoft.com/en-us/training/modules/work-with-data-python/?WT.mc_id=api_CatalogApi",
-   "levels": [
-    "beginner"
-   ],
-   "last_modified": "2026-08-07T22:11:00+00:00"
-  },
-  {
-   "uid": "learn.wwl.get-started-data-analytics",
-   "type": "module",
-   "title": "Get started with data analytics",
-   "duration_in_minutes": 36,
-   "url": "https://learn.microsoft.com/en-us/training/modules/get-started-data-analytics/?WT.mc_id=api_CatalogApi",
-   "levels": [
-    "beginner"
-   ],
-   "last_modified": "2026-10-12T22:11:00+00:00"
-  },
-  {
-   "uid": "learn.wwl.explore-relational-data-offerings",
-   "type": "module",
-   "title": "Explore fundamental relational data concepts",
-   "duration_in_minutes": 37,
-   "url": "https://learn.microsoft.com/en-us/training/modules/explore-relational-data-offerings/?WT.mc_id=api_CatalogApi",
-   "levels": [
-    "beginner"
-   ],
-   "last_modified": "2026-10-13T07:29:00+00:00"
-  },
-  {
-   "uid": "learn.wwl.embrace-responsible-ai-principles-practices",
-   "type": "module",
-   "title": "Embrace responsible AI principles and practices",
-   "duration_in_minutes": 58,
-   "url": "https://learn.microsoft.com/en-us/training/modules/embrace-responsible-ai-principles-practices/?WT.mc_id=api_CatalogApi",
-   "levels": [
-    "beginner"
-   ],
-   "last_modified": "2026-07-14T11:19:00+00:00"
-  },
-  {
-   "uid": "learn.wwl.explore-fundamentals-of-data-visualization",
-   "type": "module",
-   "title": "Explore fundamentals of data visualization",
-   "duration_in_minutes": 39,
-   "url": "https://learn.microsoft.com/en-us/training/modules/explore-fundamentals-data-visualization/?WT.mc_id=api_CatalogApi",
-   "levels": [
-    "beginner"
-   ],
-   "last_modified": "2026-10-13T07:29:00+00:00"
-  },
-  {
-   "uid": "learn.philanthropies.explore-responsible-ai",
-   "type": "module",
-   "title": "Explore responsible AI",
-   "duration_in_minutes": 34,
-   "url": "https://learn.microsoft.com/en-us/training/modules/responsible-ai/?WT.mc_id=api_CatalogApi",
-   "levels": [
-    "beginner"
-   ],
-   "last_modified": "2025-08-12T17:17:00+00:00"
-  },
-  {
-   "uid": "learn.philanthropies.create-prompts-for-generative-ai-training-tools",
-   "type": "module",
-   "title": "Create effective prompts for generative AI training tools",
-   "duration_in_minutes": 20,
-   "url": "https://learn.microsoft.com/en-us/training/modules/create-prompts-for-generative-ai-training-tools/?WT.mc_id=api_CatalogApi",
-   "levels": [
-    "beginner"
-   ],
-   "last_modified": "2026-03-16T07:10:00+00:00"
-  },
-  {
-   "uid": "learn-bizapps.pad-excel-automation",
-   "type": "module",
-   "title": "Excel automation in Power Automate desktop app",
-   "duration_in_minutes": 52,
-   "url": "https://learn.microsoft.com/en-us/training/modules/pad-excel-automation/?WT.mc_id=api_CatalogApi",
-   "levels": [
-    "beginner",
-    "intermediate"
-   ],
-   "last_modified": "2026-06-12T17:23:00+00:00"
-  },
-  {
-   "uid": "learn.wwl.write-effective-prompts-do-more-prompting",
-   "type": "module",
-   "title": "Write effective prompts to achieve optimal results",
-   "duration_in_minutes": 29,
-   "url": "https://learn.microsoft.com/en-us/training/modules/write-effective-prompts-do-more-prompting/?WT.mc_id=api_CatalogApi",
-   "levels": [
-    "beginner"
-   ],
-   "last_modified": "2026-10-16T23:12:00+00:00"
-  },
-  {
-   "uid": "learn-m365.what-generative-ai",
-   "type": "module",
-   "title": "Prepare to use generative AI at work",
-   "duration_in_minutes": 31,
-   "url": "https://learn.microsoft.com/en-us/training/modules/what-generative-ai/?WT.mc_id=api_CatalogApi",
-   "levels": [
-    "beginner"
-   ],
-   "last_modified": "2026-09-25T17:08:00+00:00"
-  }
- ],
- "learningPaths": [
-  {
-   "uid": "learn.wwl.describe-concepts-of-security-compliance-identity",
-   "type": "learningPath",
-   "title": "Introduction to security, compliance, and identity concepts",
-   "duration_in_minutes": 97,
-   "url": "https://learn.microsoft.com/en-us/training/paths/describe-concepts-of-security-compliance-identity/?WT.mc_id=api_CatalogApi",
-   "levels": [
-    "beginner"
-   ],
-   "last_modified": "2026-04-27T23:59:00+00:00"
-  },
-  {
-   "uid": "learn.wwl.get-started-querying-with-transact-sql",
-   "type": "learningPath",
-   "title": "Query and modify data with Transact-SQL",
-   "duration_in_minutes": 345,
-   "url": "https://learn.microsoft.com/en-us/training/paths/get-started-querying-with-transact-sql/?WT.mc_id=api_CatalogApi",
-   "levels": [
-    "beginner"
-   ],
-   "last_modified": "2026-08-10T22:17:00+00:00"
-  },
-  {
-   "uid": "learn.wwl.get-started-with-python-programs",
-   "type": "learningPath",
-   "title": "Get started with Python programming: Part 2 - building programs",
-   "duration_in_minutes": 210,
-   "url": "https://learn.microsoft.com/en-us/training/paths/get-started-with-python-programs/?WT.mc_id=api_CatalogApi",
-   "levels": [
-    "beginner"
-   ],
-   "last_modified": "2026-08-21T11:02:00+00:00"
-  },
-  {
-   "uid": "learn.wwl.get-started-with-python-fundamentals",
-   "type": "learningPath",
-   "title": "Get Started with Python Programming: Part 1 - Fundamentals",
-   "duration_in_minutes": 192,
-   "url": "https://learn.microsoft.com/en-us/training/paths/get-started-with-python-fundamentals/?WT.mc_id=api_CatalogApi",
-   "levels": [
-    "beginner"
-   ],
-   "last_modified": "2026-08-07T22:11:00+00:00"
-  },
-  {
-   "uid": "learn-bizapps.pad-work",
-   "type": "learningPath",
-   "title": "Work with Power Automate desktop app",
-   "duration_in_minutes": 220,
-   "url": "https://learn.microsoft.com/en-us/training/paths/pad-work/?WT.mc_id=api_CatalogApi",
-   "levels": [
-    "beginner"
-   ],
-   "last_modified": "2026-04-20T23:14:00+00:00"
-  },
-  {
-   "uid": "learn-bizapps.automate-process-using-flow",
-   "type": "learningPath",
-   "title": "Automate a business process using Power Automate",
-   "duration_in_minutes": 277,
-   "url": "https://learn.microsoft.com/en-us/training/paths/automate-process-power-automate/?WT.mc_id=api_CatalogApi",
-   "levels": [
-    "beginner"
-   ],
-   "last_modified": "2025-03-21T17:04:00+00:00"
-  },
-  {
-   "uid": "learn-bizapps.pad-get-started",
-   "type": "learningPath",
-   "title": "Get started with Power Automate desktop app",
-   "duration_in_minutes": 67,
-   "url": "https://learn.microsoft.com/en-us/training/paths/pad-get-started/?WT.mc_id=api_CatalogApi",
-   "levels": [
-    "beginner"
-   ],
-   "last_modified": "2026-04-20T23:14:00+00:00"
-  },
-  {
-   "uid": "learn.wwl.prepare-visualize-data-power-bi",
-   "type": "learningPath",
-   "title": "Prepare and visualize data with Microsoft Power BI",
-   "duration_in_minutes": 492,
-   "url": "https://learn.microsoft.com/en-us/training/paths/prepare-visualize-data-power-bi/?WT.mc_id=api_CatalogApi",
-   "levels": [
-    "beginner"
-   ],
-   "last_modified": "2025-06-27T17:16:00+00:00"
-  },
-  {
-   "uid": "learn-bizapps.introduction-process-advisor",
-   "type": "learningPath",
-   "title": "Get started with process mining in Power Automate",
-   "duration_in_minutes": 185,
-   "url": "https://learn.microsoft.com/en-us/training/paths/introduction-process-advisor/?WT.mc_id=api_CatalogApi",
-   "levels": [
-    "beginner"
-   ],
-   "last_modified": "2025-03-21T17:04:00+00:00"
-  },
-  {
-   "uid": "learn.mec.introduction-ai-literacy",
-   "type": "learningPath",
-   "title": "Introduction to AI literacy",
-   "duration_in_minutes": 201,
-   "url": "https://learn.microsoft.com/en-us/training/paths/introduction-ai-literacy/?WT.mc_id=api_CatalogApi",
-   "levels": [
-    "beginner"
-   ],
-   "last_modified": "2026-05-14T23:08:00+00:00"
-  }
- ]
+  "modules": [
+    {
+      "uid": "learn.wwl.experiment-azure-machine-learning",
+      "title": "Experiment with Azure Machine Learning",
+      "url": "https://learn.microsoft.com/en-us/training/modules/experiment-azure-machine-learning/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 65,
+      "type": "module"
+    },
+    {
+      "uid": "learn.wwl.introduction-development-operations-principles-for-machine-learn",
+      "title": "Introduction to DevOps principles for machine learning",
+      "url": "https://learn.microsoft.com/en-us/training/modules/introduction-development-operations-principles-for-machine-learn/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 33,
+      "type": "module"
+    },
+    {
+      "uid": "learn.wwl.train-track-model-fabric",
+      "title": "Train and track machine learning models with MLflow in Microsoft Fabric",
+      "url": "https://learn.microsoft.com/en-us/training/modules/train-track-model-fabric/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 54,
+      "type": "module"
+    },
+    {
+      "uid": "learn.startup.ux-design",
+      "title": "Foundations of user experience and design thinking",
+      "url": "https://learn.microsoft.com/en-us/training/modules/ux-design/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 21,
+      "type": "module"
+    },
+    {
+      "uid": "learn.wwl.continuous-deployment-for-machine-learning",
+      "title": "Continuous deployment for machine learning",
+      "url": "https://learn.microsoft.com/en-us/training/modules/continuous-deployment-for-machine-learning/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 22,
+      "type": "module"
+    },
+    {
+      "uid": "learn.github.responsible-ai-with-github-copilot",
+      "title": "Responsible AI with GitHub Copilot",
+      "url": "https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 15,
+      "type": "module"
+    },
+    {
+      "uid": "learn.wwl.work-with-data-python",
+      "title": "Work with data in Python",
+      "url": "https://learn.microsoft.com/en-us/training/modules/work-with-data-python/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 48,
+      "type": "module"
+    },
+    {
+      "uid": "learn.philanthropies.introduction-to-microsofts-responsible-ai-approach",
+      "title": "Introduction to Microsoft's Responsible AI Approach",
+      "url": "https://learn.microsoft.com/en-us/training/modules/introduction-to-microsofts-responsible-ai-approach/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 24,
+      "type": "module"
+    },
+    {
+      "uid": "learn.wwl.privacy-security-responsible-ai-practices",
+      "title": "Privacy, security, and responsible AI practices",
+      "url": "https://learn.microsoft.com/en-us/training/modules/privacy-security-responsible-ai-practices/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 18,
+      "type": "module"
+    },
+    {
+      "uid": "learn.github.foundations-agentic-ai",
+      "title": "Foundations of Agentic AI in GitHub",
+      "url": "https://learn.microsoft.com/en-us/training/modules/foundations-agentic-ai/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 40,
+      "type": "module"
+    },
+    {
+      "uid": "learn.wwl.scale-responsible-ai-governance-multi-agent",
+      "title": "Scale responsible AI governance with Azure AI Content Safety and Microsoft Foundry",
+      "url": "https://learn.microsoft.com/en-us/training/modules/aaai-scale-responsible-ai-governance-multi-agent/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 41,
+      "type": "module"
+    },
+    {
+      "uid": "learn.wwl.design-solutions-security-operations",
+      "title": "Design solutions for security operations",
+      "url": "https://learn.microsoft.com/en-us/training/modules/design-solutions-security-operations/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 87,
+      "type": "module"
+    },
+    {
+      "uid": "learn.wwl.design-implement-data-pipelines",
+      "title": "Design and implement data pipelines with Azure Databricks",
+      "url": "https://learn.microsoft.com/en-us/training/modules/design-implement-data-pipelines/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 96,
+      "type": "module"
+    },
+    {
+      "uid": "learn.oxford.intro-to-iot-hub",
+      "title": "Introduction to Azure IoT Hub",
+      "url": "https://learn.microsoft.com/en-us/training/modules/introduction-to-iot-hub/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 28,
+      "type": "module"
+    },
+    {
+      "uid": "learn.wwl.get-started-data-analytics",
+      "title": "Get started with data analytics",
+      "url": "https://learn.microsoft.com/en-us/training/modules/get-started-data-analytics/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 36,
+      "type": "module"
+    },
+    {
+      "uid": "learn.philanthropies.apply-responsible-ai-principles",
+      "title": "Apply responsible AI principles in learning environments",
+      "url": "https://learn.microsoft.com/en-us/training/modules/apply-responsible-ai-principles/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 39,
+      "type": "module"
+    },
+    {
+      "uid": "learn.wwl.explore-relational-data-offerings",
+      "title": "Explore fundamental relational data concepts",
+      "url": "https://learn.microsoft.com/en-us/training/modules/explore-relational-data-offerings/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 37,
+      "type": "module"
+    },
+    {
+      "uid": "learn.wwl.embrace-responsible-ai-principles-practices",
+      "title": "Embrace responsible AI principles and practices",
+      "url": "https://learn.microsoft.com/en-us/training/modules/embrace-responsible-ai-principles-practices/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 58,
+      "type": "module"
+    },
+    {
+      "uid": "learn.wwl.rag-fundamentals",
+      "title": "Introduction to retrieval-augmented generation concepts",
+      "url": "https://learn.microsoft.com/en-us/training/modules/rag-fundamentals/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 34,
+      "type": "module"
+    },
+    {
+      "uid": "learn.wwl.configure-siem-security-operations-using-microsoft-sentinel-labs",
+      "title": "Configure SIEM security operations using Microsoft Sentinel",
+      "url": "https://learn.microsoft.com/en-us/training/modules/configure-siem-security-operations-using-microsoft-sentinel/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 90,
+      "type": "module"
+    },
+    {
+      "uid": "learn.azure.connect-iot-hololens-azure-digital-twins-unity",
+      "title": "Connect IoT data to mixed reality with Azure Digital Twins and Unity",
+      "url": "https://learn.microsoft.com/en-us/training/modules/connect-iot-hololens-azure-digital-twins-unity/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 112,
+      "type": "module"
+    },
+    {
+      "uid": "learn.wwl.explore-fundamentals-of-data-visualization",
+      "title": "Explore fundamentals of data visualization",
+      "url": "https://learn.microsoft.com/en-us/training/modules/explore-fundamentals-data-visualization/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 39,
+      "type": "module"
+    },
+    {
+      "uid": "learn.wwl.retrieval-augmented-generation-azure-databricks",
+      "title": "Implement Retrieval Augmented Generation (RAG) with Azure Databricks",
+      "url": "https://learn.microsoft.com/en-us/training/modules/retrieval-augmented-generation-azure-databricks/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 62,
+      "type": "module"
+    },
+    {
+      "uid": "learn.philanthropies.explore-responsible-ai",
+      "title": "Explore responsible AI",
+      "url": "https://learn.microsoft.com/en-us/training/modules/responsible-ai/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 34,
+      "type": "module"
+    },
+    {
+      "uid": "learn.wwl.priva-privacy-risk-management",
+      "title": "Implement and manage Microsoft Purview Privacy Risk Management",
+      "url": "https://learn.microsoft.com/en-us/training/modules/priva-privacy-risk-management/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 36,
+      "type": "module"
+    },
+    {
+      "uid": "learn.philanthropies.create-prompts-for-generative-ai-training-tools",
+      "title": "Create effective prompts for generative AI training tools",
+      "url": "https://learn.microsoft.com/en-us/training/modules/create-prompts-for-generative-ai-training-tools/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 20,
+      "type": "module"
+    },
+    {
+      "uid": "learn.philanthropies.describe-sustainability-practices-datacenters",
+      "title": "Describe the sustainability practices in datacenters",
+      "url": "https://learn.microsoft.com/en-us/training/modules/describe-sustainability-practices-datacenters/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 42,
+      "type": "module"
+    },
+    {
+      "uid": "learn-bizapps.work-cloud-sustainability",
+      "title": "Microsoft Sustainability Manager concepts",
+      "url": "https://learn.microsoft.com/en-us/training/modules/work-cloud-sustainability/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 65,
+      "type": "module"
+    },
+    {
+      "uid": "learn-bizapps.pad-excel-automation",
+      "title": "Excel automation in Power Automate desktop app",
+      "url": "https://learn.microsoft.com/en-us/training/modules/pad-excel-automation/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 52,
+      "type": "module"
+    },
+    {
+      "uid": "learn-bizapps.healthcare-integration-interoperability",
+      "title": "Explore integration and interoperability in Microsoft for Healthcare",
+      "url": "https://learn.microsoft.com/en-us/training/modules/healthcare-integration-interoperability/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 26,
+      "type": "module"
+    },
+    {
+      "uid": "learn-bizapps.manufacturing-overview",
+      "title": "Microsoft for Manufacturing overview",
+      "url": "https://learn.microsoft.com/en-us/training/modules/manufacturing-overview/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 36,
+      "type": "module"
+    },
+    {
+      "uid": "learn-bizapps.healthcare-overview",
+      "title": "Microsoft for Healthcare Overview",
+      "url": "https://learn.microsoft.com/en-us/training/modules/healthcare-overview/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 42,
+      "type": "module"
+    },
+    {
+      "uid": "learn-bizapps.sustainability-data-ingestion",
+      "title": "Ingest emissions activity data",
+      "url": "https://learn.microsoft.com/en-us/training/modules/sustainability-data-ingestion/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 45,
+      "type": "module"
+    },
+    {
+      "uid": "learn-bizapps.sustainability-goals-scorecard",
+      "title": "Define carbon reduction goals and scorecards",
+      "url": "https://learn.microsoft.com/en-us/training/modules/sustainability-goals-scorecard/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 45,
+      "type": "module"
+    },
+    {
+      "uid": "learn.wwl.describe-core-capabilities-supply-chain-management",
+      "title": "Describe core capabilities of Dynamics 365 Supply Chain Management",
+      "url": "https://learn.microsoft.com/en-us/training/modules/describe-core-capabilities-supply-chain-management/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 60,
+      "type": "module"
+    },
+    {
+      "uid": "learn.wwl.describe-inventory-management-supply-chain-management",
+      "title": "Describe inventory management in Dynamics 365 Supply Chain Management",
+      "url": "https://learn.microsoft.com/en-us/training/modules/describe-inventory-management-supply-chain-management/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 67,
+      "type": "module"
+    },
+    {
+      "uid": "learn-dynamics.configure-work-with-quality-control-in-dynamics-365-finance-ops",
+      "title": "Set up and work with quality control and quality management in Dynamics 365 Supply Chain Management",
+      "url": "https://learn.microsoft.com/en-us/training/modules/configure-work-quality-control-dyn365-supply-chain-mgmt/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 141,
+      "type": "module"
+    },
+    {
+      "uid": "learn-dynamics.connected-customer-service",
+      "title": "Get started with Connected Customer Service for Dynamics 365 and Azure IoT",
+      "url": "https://learn.microsoft.com/en-us/training/modules/set-up-connected-customer-service/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 42,
+      "type": "module"
+    },
+    {
+      "uid": "learn-bizapps.consuming-knowledge-articles-for-case-resolutions",
+      "title": "Use knowledge articles to resolve Dynamics 365 Customer Service cases",
+      "url": "https://learn.microsoft.com/en-us/training/modules/consuming-knowledge-articles-for-case-resolutions/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 45,
+      "type": "module"
+    },
+    {
+      "uid": "learn-dynamics.configure-copilot",
+      "title": "Configure AI for case management in Dynamics 365 Customer Service",
+      "url": "https://learn.microsoft.com/en-us/training/modules/configure-copilot/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 60,
+      "type": "module"
+    },
+    {
+      "uid": "learn-dynamics.work-with-manufacturing-execution",
+      "title": "Work with manufacturing execution in Dynamics 365 Supply Chain Management",
+      "url": "https://learn.microsoft.com/en-us/training/modules/work-manufacturing-execution-dyn365-supply-chain-mgmt/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 123,
+      "type": "module"
+    },
+    {
+      "uid": "learn-dynamics.forecast-using-demand-planning",
+      "title": "Forecast by using demand planning in Dynamics 365 Supply Chain Management",
+      "url": "https://learn.microsoft.com/en-us/training/modules/forecast-using-demand-planning/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 33,
+      "type": "module"
+    },
+    {
+      "uid": "learn.wwl.write-effective-prompts-do-more-prompting",
+      "title": "Write effective prompts to achieve optimal results",
+      "url": "https://learn.microsoft.com/en-us/training/modules/write-effective-prompts-do-more-prompting/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 29,
+      "type": "module"
+    },
+    {
+      "uid": "learn-m365.what-generative-ai",
+      "title": "Prepare to use generative AI at work",
+      "url": "https://learn.microsoft.com/en-us/training/modules/what-generative-ai/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 31,
+      "type": "module"
+    },
+    {
+      "uid": "learn.mec.create-instructional-materials-teach-microsoft-365-copilot",
+      "title": "Create instructional materials with Teach in Microsoft 365 Copilot",
+      "url": "https://learn.microsoft.com/en-us/training/modules/create-instructional-materials-teach-microsoft-365-copilot/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 43,
+      "type": "module"
+    }
+  ],
+  "learningPaths": [
+    {
+      "uid": "learn.wwl.describe-concepts-of-security-compliance-identity",
+      "title": "Introduction to security, compliance, and identity concepts",
+      "url": "https://learn.microsoft.com/en-us/training/paths/describe-concepts-of-security-compliance-identity/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 97,
+      "type": "learningPath"
+    },
+    {
+      "uid": "learn.wwl.get-started-querying-with-transact-sql",
+      "title": "Query and modify data with Transact-SQL",
+      "url": "https://learn.microsoft.com/en-us/training/paths/get-started-querying-with-transact-sql/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 345,
+      "type": "learningPath"
+    },
+    {
+      "uid": "learn.wwl.get-started-with-python-programs",
+      "title": "Get started with Python programming: Part 2 - building programs",
+      "url": "https://learn.microsoft.com/en-us/training/paths/get-started-with-python-programs/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 210,
+      "type": "learningPath"
+    },
+    {
+      "uid": "learn.azure-evaluate-generative-ai-apps",
+      "title": "Evaluate generative AI applications",
+      "url": "https://learn.microsoft.com/en-us/training/paths/evaluate-generative-ai-apps/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 96,
+      "type": "learningPath"
+    },
+    {
+      "uid": "learn.wwl.get-started-with-python-fundamentals",
+      "title": "Get Started with Python Programming: Part 1 - Fundamentals",
+      "url": "https://learn.microsoft.com/en-us/training/paths/get-started-with-python-fundamentals/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 192,
+      "type": "learningPath"
+    },
+    {
+      "uid": "learn.wwl.microsoft-azure-fundamentals-describe-cloud-concepts",
+      "title": "Introduction to Cloud Infrastructure: Describe cloud concepts",
+      "url": "https://learn.microsoft.com/en-us/training/paths/microsoft-azure-fundamentals-describe-cloud-concepts/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 56,
+      "type": "learningPath"
+    },
+    {
+      "uid": "learn-bizapps.pad-work",
+      "title": "Work with Power Automate desktop app",
+      "url": "https://learn.microsoft.com/en-us/training/paths/pad-work/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 220,
+      "type": "learningPath"
+    },
+    {
+      "uid": "learn-bizapps.automate-process-using-flow",
+      "title": "Automate a business process using Power Automate",
+      "url": "https://learn.microsoft.com/en-us/training/paths/automate-process-power-automate/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 277,
+      "type": "learningPath"
+    },
+    {
+      "uid": "learn-bizapps.pad-get-started",
+      "title": "Get started with Power Automate desktop app",
+      "url": "https://learn.microsoft.com/en-us/training/paths/pad-get-started/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 67,
+      "type": "learningPath"
+    },
+    {
+      "uid": "learn.wwl.prepare-visualize-data-power-bi",
+      "title": "Prepare and visualize data with Microsoft Power BI",
+      "url": "https://learn.microsoft.com/en-us/training/paths/prepare-visualize-data-power-bi/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 492,
+      "type": "learningPath"
+    },
+    {
+      "uid": "learn-bizapps.introduction-process-advisor",
+      "title": "Get started with process mining in Power Automate",
+      "url": "https://learn.microsoft.com/en-us/training/paths/introduction-process-advisor/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 185,
+      "type": "learningPath"
+    },
+    {
+      "uid": "learn.mec.introduction-ai-literacy",
+      "title": "Introduction to AI literacy",
+      "url": "https://learn.microsoft.com/en-us/training/paths/introduction-ai-literacy/?WT.mc_id=api_CatalogApi",
+      "duration_in_minutes": 201,
+      "type": "learningPath"
+    }
+  ]
 }
