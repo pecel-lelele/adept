@@ -109,3 +109,27 @@ def test_alignment_ranks_roles_by_chosen_goals(client: TestClient) -> None:
     assert score("process-automation-analyst", [8]) > score("compliance-analytics-officer", [8])
     assert client.get("/api/v1/sdg/roles/x/alignment").status_code == 404
     assert client.get("/api/v1/sdg/roles/data-analyst/alignment?goals=18").status_code == 422
+
+
+def test_org_and_region_contribution_follow_the_selected_role(client: TestClient) -> None:
+    """H05: the role chosen on the team plan drives the organisation's impact view."""
+    company = {"X-Demo-User": "demo-company"}
+    default = client.get("/api/v1/sdg/contribution/org", headers=company).json()
+    roles = client.get("/api/v1/pathway/targets", headers=company)
+    role_ids = (
+        [r["role_id"] for r in roles.json().get("roles", [])] if roles.status_code == 200 else []
+    )
+    other = next((r for r in role_ids if r not in default["role_ids"]), "data-analyst")
+    chosen = client.get(
+        "/api/v1/sdg/contribution/org", params={"role_id": other}, headers=company
+    ).json()
+    assert chosen["role_ids"] == [other]
+    assert chosen["role_ids"] != default["role_ids"]
+    region = client.get(
+        "/api/v1/sdg/contribution/region/Kuala Lumpur", params={"role_id": other}
+    ).json()
+    assert region["role_ids"] == [other]
+    unknown = client.get(
+        "/api/v1/sdg/contribution/org", params={"role_id": "astronaut"}, headers=company
+    )
+    assert unknown.status_code == 404

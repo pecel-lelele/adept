@@ -148,23 +148,33 @@ export async function SdgContributionView({
 }
 
 /** Organisation view with a region switch (company / cohort → state). */
-export async function OrgSdgView({ region, scenario }: { region?: string; scenario: ScenarioId }) {
+export async function OrgSdgView({
+  region,
+  role,
+  scenario,
+}: {
+  region?: string;
+  /** The target role chosen on the team plan; the default target when absent. */
+  role?: string;
+  scenario: ScenarioId;
+}) {
   const t = await getTranslations("sdg");
   const regions = await fetchRegions();
   const result = region
-    ? await fetchRegionContribution(region, scenario)
-    : await fetchOrgContribution(scenario);
+    ? await fetchRegionContribution(region, scenario, role)
+    : await fetchOrgContribution(scenario, role);
+  const keep = role ? `&role=${encodeURIComponent(role)}` : "";
   return (
     <section className="a-stack">
       <nav className="a-scopes" aria-label={t("scope.organisation")}>
-        <Link href={`/org/sdg?scenario=${scenario}`} aria-current={!region ? "page" : undefined}>
+        <Link href={`/org/sdg?scenario=${scenario}${keep}`} aria-current={!region ? "page" : undefined}>
           {t("scope.organisation")}
         </Link>
         {regions.ok
           ? regions.data.regions.map((r) => (
               <Link
                 key={r}
-                href={`/org/sdg?scenario=${scenario}&region=${encodeURIComponent(r)}`}
+                href={`/org/sdg?scenario=${scenario}${keep}&region=${encodeURIComponent(r)}`}
                 aria-current={region === r ? "page" : undefined}
               >
                 {t("scope.region")}: {r}
