@@ -1,15 +1,18 @@
-import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
-import { getAuthMode, getDemoUser } from "@/lib/auth/session";
+import type { ReactNode } from "react";
 
-import { AppShell } from "@/components/shell/AppShell";
+import { Shell } from "@/components/shell/Shell";
+import { learnerWorkspace } from "@/config/navigation";
+import { getAccount } from "@/lib/auth/account";
 
+/** Individual workspace (/app): signed-in learners only; managers go to /org. */
 export default async function Layout({ children }: { children: ReactNode }) {
-  if (getAuthMode() === "demo") {
-    const user = await getDemoUser();
-    const org = user === "demo-company" || user === "demo-institution";
-    if (!user) redirect("/auth/login?mode=individual&next=/app");
-    if (org) redirect("/org");
-  }
-  return <AppShell>{children}</AppShell>;
+  const account = await getAccount();
+  if (!account) redirect("/auth/login?next=/app");
+  if (account.kind === "org_admin") redirect("/org");
+  return (
+    <Shell ws={learnerWorkspace} account={account} doneSteps={account.has_profile ? [1] : []}>
+      {children}
+    </Shell>
+  );
 }

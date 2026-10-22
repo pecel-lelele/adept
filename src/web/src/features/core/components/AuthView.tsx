@@ -1,96 +1,175 @@
 "use client";
+
+import { Building2, UserRound } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useState } from "react";
-import { safeReturn } from "@/lib/navigation";
-import { DepthArt } from "./DepthArt";
-export function AuthView({
-  page,
-}: {
-  page: "login" | "signup" | "consent" | "join";
-}) {
+import { useTranslations } from "next-intl";
+import { useActionState, useState } from "react";
+
+import { BrandMark } from "@/components/shell/Brand";
+import { RiseArt } from "@/components/viz/RiseArt";
+import { Scene3D } from "@/components/viz/Scene3D";
+
+import { loginAction, signupAction, type AuthState } from "../auth-actions";
+
+type Page = "login" | "signup";
+
+/** Real sign-up and sign-in. Every account and organisation is stored in PostgreSQL. */
+export function AuthView({ page }: { page: Page }) {
+  const t = useTranslations("ui.auth");
+  const tl = useTranslations("ui.landing");
   const params = useSearchParams();
-  const [mode, setMode] = useState<"individual" | "organisation">(
-    params.get("mode") === "organisation" ||
-      params.get("next")?.startsWith("/org")
-      ? "organisation"
-      : "individual",
+  const next = params.get("next") ?? "";
+  const [state, action, pending] = useActionState<AuthState, FormData>(
+    page === "signup" ? signupAction : loginAction,
+    {},
   );
-  const [consent, setConsent] = useState(false);
-  const next = safeReturn(params.get("next"), mode);
+  const values = state.values ?? {};
+  const [workspace, setWorkspace] = useState<"individual" | "organisation">(
+    (values.workspace ?? params.get("mode")) === "organisation" ? "organisation" : "individual",
+  );
+  const team = workspace === "organisation";
+  const query = next ? `?next=${encodeURIComponent(next)}` : "";
+
   return (
-    <main className="preview-page">
-      <header>
-        <Link className="workspace-brand" href="/">
-          adept.
+    <main className="a-page" data-mode={team ? "organisation" : "individual"}>
+      <header className="a-page-top">
+        <Link href="/" className="a-brand" style={{ padding: 0 }}>
+          <BrandMark />
+          adept
         </Link>
-        <Link href="/try">Try a CV preview ↗</Link>
+        <nav>
+          <Link href="/try">{tl("try")}</Link>
+        </nav>
       </header>
-      <span className="workspace-eyebrow">YOUR NEXT CHAPTER STARTS HERE</span>
-      <h1>
-        {page === "consent"
-          ? "You stay in control."
-          : "Find your space to grow."}
-      </h1>
-      <div className="preview-grid">
-        <section className="preview-result">
-          <h2>Choose your demo workspace</h2>
-          <p>
-            Use a synthetic persona to explore Adept. Account creation and
-            organisation invitation codes are not connected yet.
-          </p>
-          <label>
-            Workspace
-            <select
-              className="route-node"
-              value={mode}
-              onChange={(e) =>
-                setMode(
-                  e.target.value === "organisation"
-                    ? "organisation"
-                    : "individual",
-                )
-              }
-            >
-              <option value="individual">Individual · Aisyah</option>
-              <option value="organisation">Organisation · Demo Bank HR</option>
-            </select>
-          </label>
-          <label>
-            <input
-              type="checkbox"
-              checked={consent}
-              onChange={(e) => setConsent(e.target.checked)}
-            />{" "}
-            I understand this is a synthetic demo, projections are estimates,
-            and I make the final decisions.
-          </label>
-          {consent ? (
-            <a
-              className="workspace-button"
-              href={`/demo/${mode === "organisation" ? "org" : "learner"}?next=${encodeURIComponent(next)}`}
-            >
-              Enter demo workspace →
-            </a>
-          ) : (
-            <button className="workspace-button" disabled>
-              Confirm above to continue
+      <div className="a-auth">
+        <section className="a-auth-card" aria-labelledby="auth-title">
+          <div className="a-tabswitch" role="tablist">
+            <Link href={`/auth/login${query}`} aria-current={page === "login" ? "page" : undefined}>
+              {t("signIn")}
+            </Link>
+            <Link href={`/auth/signup${query}`} aria-current={page === "signup" ? "page" : undefined}>
+              {t("signUp")}
+            </Link>
+          </div>
+          <h1 id="auth-title">{page === "signup" ? t("createTitle") : t("welcomeBack")}</h1>
+          <form action={action} className="a-stack" style={{ gap: 14 }}>
+            <input type="hidden" name="next" value={next} />
+            {page === "signup" ? (
+              <>
+                <fieldset className="a-field" style={{ border: 0, padding: 0, margin: 0 }}>
+                  <legend style={{ marginBottom: 8 }}>{t("forWho")}</legend>
+                  <div className="a-choice-grid">
+                    <label className="a-choice">
+                      <input
+                        type="radio"
+                        name="workspace"
+                        value="individual"
+                        checked={!team}
+                        onChange={() => setWorkspace("individual")}
+                      />
+                      <span className="a-choice-icon">
+                        <UserRound size={18} aria-hidden />
+                      </span>
+                      <strong>{t("forMe")}</strong>
+                      <span>{t("forMeBody")}</span>
+                    </label>
+                    <label className="a-choice">
+                      <input
+                        type="radio"
+                        name="workspace"
+                        value="organisation"
+                        checked={team}
+                        onChange={() => setWorkspace("organisation")}
+                      />
+                      <span className="a-choice-icon">
+                        <Building2 size={18} aria-hidden />
+                      </span>
+                      <strong>{t("forTeam")}</strong>
+                      <span>{t("forTeamBody")}</span>
+                    </label>
+                  </div>
+                </fieldset>
+                <label className="a-field">
+                  {t("name")}
+                  <input className="a-input" name="display_name" required minLength={2} maxLength={80} autoComplete="name" defaultValue={values.display_name} />
+                </label>
+              </>
+            ) : null}
+            <label className="a-field">
+              {t("email")}
+              <input className="a-input" type="email" name="email" required autoComplete="email" defaultValue={values.email} />
+            </label>
+            <label className="a-field">
+              {t("password")}
+              <input
+                className="a-input"
+                type="password"
+                name="password"
+                required
+                minLength={page === "signup" ? 8 : 1}
+                autoComplete={page === "signup" ? "new-password" : "current-password"}
+              />
+              {page === "signup" ? <small>{t("passwordHint")}</small> : null}
+            </label>
+            {page === "signup" && team ? (
+              <>
+                <label className="a-field">
+                  {t("orgName")}
+                  <input className="a-input" name="org_name" required minLength={2} maxLength={120} defaultValue={values.org_name} />
+                </label>
+                <div className="a-grid" style={{ gap: 12 }}>
+                  <label className="a-field a-span-4">
+                    {t("orgType")}
+                    <select className="a-select" name="org_type" defaultValue={values.org_type ?? "company"}>
+                      <option value="company">{t("company")}</option>
+                      <option value="institution">{t("institution")}</option>
+                    </select>
+                  </label>
+                  <label className="a-field a-span-5">
+                    {t("industry")}
+                    <input className="a-input" name="industry" maxLength={120} defaultValue={values.industry} />
+                  </label>
+                  <label className="a-field a-span-3">
+                    {t("size")}
+                    <input className="a-input" type="number" min={0} name="size" defaultValue={values.size ?? "10"} />
+                  </label>
+                </div>
+              </>
+            ) : null}
+            {page === "signup" && !team ? (
+              <label className="a-field">
+                {t("joinCode")}
+                <input className="a-input" name="join_code" maxLength={16} autoCapitalize="characters" defaultValue={values.join_code ?? params.get("code") ?? ""} />
+                <small>{t("joinCodeHint")}</small>
+              </label>
+            ) : null}
+            {page === "signup" ? (
+              <label className="a-check">
+                <input type="checkbox" name="consent" required defaultChecked={values.consent === "on"} />
+                {t("consent")}
+              </label>
+            ) : null}
+            {state.error ? (
+              <p className="a-notice" data-tone="error" role="alert">
+                {state.error}
+              </p>
+            ) : null}
+            <button className="a-btn is-block" type="submit" disabled={pending}>
+              {pending ? t("working") : page === "signup" ? t("signUp") : t("signIn")}
             </button>
-          )}
-          <Link href="/about">Read about our sources and AI use ↗</Link>
-        </section>
-        <section className="preview-result">
-          <DepthArt variant={mode === "organisation" ? "people" : "steps"} />
-          <h2>
-            {mode === "organisation"
-              ? "Help your people take the next step."
-              : "Build a learning journey around you."}
-          </h2>
-          <p>
-            {mode === "organisation"
-              ? "Explore team skills, group learning plans, and evidence review."
-              : "Compare roles, build a pathway, and follow your learning progress."}
+          </form>
+          <p className="a-small a-muted" style={{ margin: 0, textAlign: "center" }}>
+            {page === "signup" ? t("haveAccount") : t("noAccount")}{" "}
+            <Link className="a-link" href={`/auth/${page === "signup" ? "login" : "signup"}${query}`}>
+              {page === "signup" ? t("signIn") : t("signUp")}
+            </Link>
           </p>
+        </section>
+        <section className="a-auth-art" aria-hidden="true">
+          {team ? <Scene3D variant="grid" /> : <RiseArt />}
+          <h2>{team ? t("artTeamTitle") : t("artTitle")}</h2>
+          <p>{team ? t("artTeamBody") : t("artBody")}</p>
         </section>
       </div>
     </main>

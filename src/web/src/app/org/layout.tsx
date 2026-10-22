@@ -1,15 +1,20 @@
-import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
-import { getAuthMode, getDemoUser } from "@/lib/auth/session";
+import type { ReactNode } from "react";
 
-import { OrgShell } from "@/components/shell/OrgShell";
+import { Shell } from "@/components/shell/Shell";
+import { orgWorkspace } from "@/config/navigation";
+import { fetchMyOrg } from "@/features/org/api";
+import { getAccount } from "@/lib/auth/account";
 
+/** Organisation workspace (/org): managers and career advisors only. */
 export default async function Layout({ children }: { children: ReactNode }) {
-  if (getAuthMode() === "demo") {
-    const user = await getDemoUser();
-    const org = user === "demo-company" || user === "demo-institution";
-    if (!user) redirect("/auth/login?mode=organisation&next=/org");
-    if (!org) redirect("/app");
-  }
-  return <OrgShell>{children}</OrgShell>;
+  const account = await getAccount();
+  if (!account) redirect("/auth/login?next=/org");
+  if (account.kind !== "org_admin") redirect("/app");
+  const org = await fetchMyOrg();
+  return (
+    <Shell ws={orgWorkspace} account={account} orgName={org.ok ? org.data.name : undefined}>
+      {children}
+    </Shell>
+  );
 }
