@@ -1,4 +1,5 @@
-# CI: the same quality gate as `make check`, plus a real database and a production web build.
+# CI: the `make check` quality gate split into backend and frontend jobs that run in
+# parallel, plus a contract-drift check, a real database and a production web build.
 # Structure adapted from KerjaCerdas .github/workflows/ci.yml (gated jobs, concurrency,
 # pgvector service for migrations).
 name: CI
@@ -23,10 +24,76 @@ env:
   PNPM_VERSION: "10.29.3"
 
 jobs:
-  check:
-    name: make check (lint, i18n, tests, typecheck, contract drift)
+  backend:
+    name: Backend (ruff, pytest)
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: requirements.txt
+
+      - name: Install Python dependencies into .venv
+        run: |
+          uv venv --python "$PYTHON_VERSION" .venv
+          uv pip install --python .venv/bin/python -r requirements.txt
+
+      - name: Ruff lint
+        run: .venv/bin/python -m ruff check .
+
+      - name: Ruff format
+        run: .venv/bin/python -m ruff format --check .
+
+      - name: Pytest
+        run: .venv/bin/python -m pytest
+
+  frontend:
+    name: Frontend (eslint, typecheck, i18n, build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: src/web/pnpm-lock.yaml
+
+      - name: Install web dependencies
+        working-directory: src/web
+        run: pnpm install --frozen-lockfile
+
+      - name: ESLint
+        working-directory: src/web
+        run: pnpm lint
+
+      - name: TypeScript
+        working-directory: src/web
+        run: pnpm typecheck
+
+      # Stdlib-only script: no virtualenv needed.
+      - name: Translation keys match English
+        run: python3 src/scripts/dev.py i18n-check
+
+      - name: Next.js production build
+        working-directory: src/web
+        env:
+          API_URL: http://localhost:8000
+          NEXT_TELEMETRY_DISABLED: "1"
+        run: pnpm build
+
+  contracts:
+    name: API contracts in sync (OpenAPI + TypeScript types)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
@@ -54,40 +121,13 @@ jobs:
         working-directory: src/web
         run: pnpm install --frozen-lockfile
 
-      - name: make check
-        run: python3 src/scripts/dev.py check
-
-  web-build:
-    name: Next.js production build
-    runs-on: ubuntu-latest
-    needs: check
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-
-      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
-          cache-dependency-path: src/web/pnpm-lock.yaml
-
-      - name: Build
-        working-directory: src/web
-        env:
-          API_URL: http://localhost:8000
-          NEXT_TELEMETRY_DISABLED: "1"
-        run: |
-          pnpm install --frozen-lockfile
-          pnpm build
+      - name: Regenerate contracts and fail on drift
+        run: python3 src/scripts/dev.py contracts-check
 
   database:
     name: Migrations and seeds on PostgreSQL 16 + pgvector
     runs-on: ubuntu-latest
-    needs: check
+    needs: backend
     timeout-minutes: 10
     services:
       postgres:

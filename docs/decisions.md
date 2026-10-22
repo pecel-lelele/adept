@@ -787,3 +787,12 @@
 - **Affects**: everyone (shared AI context, edited at the user's request)
 - **Replaces**: none
 - **PR / branch**: feat/core-insight-design
+
+### M4-009: CI split into backend and frontend jobs
+- **Date**: 2026-10-22
+- **Feature**: Core
+- **Type**: other
+- **Change**: `.github/workflows/ci.yml` now runs Backend (ruff lint + format, pytest), Frontend (eslint, tsc, translation keys, Next.js build) and Contracts (OpenAPI + TS types drift) as parallel jobs instead of one `make check` job; the database job waits on Backend only. A failure now shows which side broke. `make check` locally is unchanged.
+- **Affects**: everyone (root config); required status checks in branch protection, if any, must be renamed to the new job names
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design
