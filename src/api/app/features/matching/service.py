@@ -13,10 +13,17 @@ from __future__ import annotations
 from datetime import date
 
 from app.contracts.common import RecommendationMeta, ScenarioId
-from app.contracts.matching import MatchResponse, RoleMatch
+from app.contracts.matching import (
+    MatchResponse,
+    ReplayDriver,
+    ReplayResponse,
+    RoleMatch,
+    RoleMovement,
+)
 from app.core.auth import CurrentUser
-from app.core.errors import NotFoundError
-from app.features.matching import repository
+from app.core.errors import AppError, NotFoundError
+from app.features.matching import replay_diff, repository, sdg_weight
+from app.features.matching.scoring import Weights
 from app.features.matching.trend_port import fetch_snapshot
 
 
@@ -30,8 +37,18 @@ def _build_meta(snap, scenario: ScenarioId) -> RecommendationMeta:
     )
 
 
+def _weighted(matches: list[RoleMatch], weight: float) -> list[RoleMatch]:
+    if weight <= 0:
+        return matches
+    impact = sdg_weight.sdg_impact([m.role_id for m in matches], sdg_weight.default_links)
+    return sdg_weight.apply(matches, impact, weight)
+
+
 def list_matches(
-    user: CurrentUser, scenario: ScenarioId, snapshot_date: date | None = None
+    user: CurrentUser,
+    scenario: ScenarioId,
+    snapshot_date: date | None = None,
+    sdg_weight_value: float = 0.0,
 ) -> MatchResponse:
     snap = fetch_snapshot(scenario, snapshot_date) if snapshot_date else fetch_snapshot(scenario)
     meta = _build_meta(snap, scenario)
@@ -41,15 +58,71 @@ def list_matches(
             match.model_copy(update={"data_provenance_note": snap.data_provenance_note})
             for match in matches
         ]
+    matches = _weighted(matches, sdg_weight_value)
     return MatchResponse(matches=matches, meta=meta, data_provenance_note=snap.data_provenance_note)
 
 
 def get_match(
-    user: CurrentUser, role_id: str, scenario: ScenarioId, snapshot_date: date | None = None
+    user: CurrentUser,
+    role_id: str,
+    scenario: ScenarioId,
+    snapshot_date: date | None = None,
+    sdg_weight_value: float = 0.0,
 ) -> RoleMatch:
     snap = fetch_snapshot(scenario, snapshot_date) if snapshot_date else fetch_snapshot(scenario)
     meta = _build_meta(snap, scenario)
-    match = repository.get_match(user.id, role_id, scenario, snap.velocities, meta)
+    if sdg_weight_value > 0:
+        # Impact is relative to the strongest role, so score the full list and pick one.
+        everyone = repository.list_matches(user.id, scenario, snap.velocities, meta)
+        match = next(
+            (m for m in _weighted(everyone, sdg_weight_value) if m.role_id == role_id), None
+        )
+    else:
+        match = repository.get_match(user.id, role_id, scenario, snap.velocities, meta)
     if match is None:
         raise NotFoundError(f"No match for role {role_id}")
     return match.model_copy(update={"data_provenance_note": snap.data_provenance_note})
+
+
+def replay(
+    user: CurrentUser, scenario: ScenarioId, from_date: date, to_date: date | None = None
+) -> ReplayResponse:
+    """Rank the learner on two snapshot dates and explain each role's movement."""
+    before = fetch_snapshot(scenario, from_date)
+    after = fetch_snapshot(scenario, to_date) if to_date else fetch_snapshot(scenario)
+    if before.snapshot_date == after.snapshot_date:
+        raise AppError(
+            "Pick an earlier snapshot to compare with.", status_code=422, code="same_snapshot"
+        )
+    profile = repository.load_profile(user.id)
+    rows = replay_diff.compare(
+        profile, repository.load_roles(), before.velocities, after.velocities, Weights()
+    )
+    movements = [
+        RoleMovement(
+            role_id=m.role_id,
+            label=repository.role_label(m.role_id),
+            rank_before=m.rank_before,
+            rank_after=m.rank_after,
+            score_before=m.score_before,
+            score_after=m.score_after,
+            drivers=[
+                ReplayDriver(
+                    skill_id=d.skill_id,
+                    label=repository.skill_label(d.skill_id),
+                    velocity_before=d.velocity_before,
+                    velocity_after=d.velocity_after,
+                    effect=d.effect,
+                )
+                for d in found
+            ],
+        )
+        for m, found in rows
+    ]
+    return ReplayResponse(
+        scenario=scenario,
+        from_date=before.snapshot_date.isoformat(),
+        to_date=after.snapshot_date.isoformat(),
+        movements=movements,
+        meta=_build_meta(after, scenario),
+    )
