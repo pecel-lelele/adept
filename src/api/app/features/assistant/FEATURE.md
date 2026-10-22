@@ -20,3 +20,16 @@
    paid work. Attribution records the model that actually answered in that request.
 5. Adi appears only in signed-in workspaces. Account changes remount the conversation, abort
    in-flight browser requests and remove other accounts' stored chats.
+
+## Saved-plan answers and intent coverage
+
+Progress, study duration and cost have separate server-authored blocks. Their numeric fields
+come from the saved plan and its scenario's effective progress, and personal-plan replies
+carry that saved plan's metadata. Model-enabled and offline answers use the same templates.
+An explicit personal-plan question cannot be replaced by a generic model-selected block;
+missing plan/progress data is stated, never filled with zero or a guessed figure. Funding and
+prices remain estimates requiring current provider and employer confirmation.
+
+English keywords explicitly include ordinary plurals and supported match/learn inflections,
+with complete-word boundaries preserved. Chinese remains substring-matched; Malay and Chinese
+personal-plan cues are covered by regressions alongside the existing privacy-word exclusions.

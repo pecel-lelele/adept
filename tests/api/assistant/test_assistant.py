@@ -15,6 +15,7 @@ import pytest
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
+from app.contracts.common import RecommendationMeta
 from app.contracts.pathway import CompletionEvidence
 from app.core.auth import CurrentUser
 from app.core.llm.gateway import BREAKER, CALL_LOG
@@ -28,6 +29,14 @@ from app.features.assistant import context as ctx_mod
 from app.features.assistant import guide, service
 
 ASK = "/api/v1/assistant/chat"
+
+
+@pytest.fixture
+def client(request: pytest.FixtureRequest) -> TestClient:
+    from app.main import app
+
+    # Independent cases must not consume one shared 20/minute production allowance.
+    return TestClient(app, client=(request.node.nodeid, 50000))
 
 
 @pytest.fixture(autouse=True)
@@ -370,7 +379,139 @@ def test_context_uses_saved_scenario_and_excludes_rejected_completions() -> None
         ctx_mod._learner(ctx, user, "moderate")
     load.assert_called_once_with(user, "data-analyst", "fast")
     assert ctx.facts["done"] == []
+    assert ctx.facts["plan_totals"]["hours"] == 10
+    assert ctx.facts["plan_progress"] == {
+        "share": 0,
+        "courses": 0,
+        "gap_closed": 0,
+        "gap_total": 1,
+    }
     assert "0 courses completed" in ctx.text()
+
+
+def _personal_plan_context() -> ctx_mod.Context:
+    ctx = ctx_mod.Context(
+        audience="learner",
+        facts={
+            "has_profile": True,
+            "plan_role": "data-analyst",
+            "plan_totals": {
+                "weeks": 7,
+                "hours_per_week": 6,
+                "hours": 42,
+                "out_of_pocket_myr": 234.56,
+                "list_price_myr": 1234.56,
+            },
+            "plan_progress": {"share": 0.375, "courses": 2, "gap_closed": 1, "gap_total": 4},
+        },
+    )
+    ctx.refs.roles["data-analyst"] = "Data Analyst"
+    ctx.plan_meta = RecommendationMeta(
+        sources=[
+            {
+                "name": "Synthetic saved-plan source",
+                "url": "https://example.com/synthetic",
+                "retrieved_at": "2026-10-20",
+            }
+        ],
+        snapshot_date="2026-10-20",
+        scenario="fast",
+        is_estimate=True,
+    )
+    return ctx
+
+
+@pytest.mark.parametrize("provider_on", [False, True])
+@pytest.mark.parametrize(
+    "question,kind,expected",
+    [
+        ("How much of my plan have I finished?", "plan_progress", ["38%", "2 courses", "1 of 4"]),
+        ("What will my saved plan cost?", "plan_cost", ["RM 1,234.56", "RM 234.56"]),
+        (
+            "How long will my plan take?",
+            "plan_duration",
+            ["7 weeks", "6 hours per week", "42 study"],
+        ),
+    ],
+)
+def test_personal_plan_blocks_answer_with_and_without_model(
+    client: TestClient,
+    question: str,
+    kind: str,
+    expected: list[str],
+    provider_on: bool,
+) -> None:
+    ctx = _personal_plan_context()
+    provider = FakeProvider(json.dumps({"ids": [kind]})) if provider_on else NullProvider()
+    with (
+        patch.object(ctx_mod, "build", return_value=ctx),
+        patch.object(service, "get_provider", return_value=provider),
+    ):
+        body = _ask(client, question, scenario="moderate")
+    shown = "".join(p["text"] for p in body["parts"])
+    assert all(value in shown for value in expected), shown
+    assert body["used_llm"] is provider_on
+    assert body["meta"]["scenario"] == "fast", "Saved-plan facts carry saved-plan attribution"
+    if provider_on:
+        prompt = provider.seen[-1]["content"]
+        assert kind in prompt and all(value in prompt for value in expected)
+
+
+@pytest.mark.parametrize("locale", ["en", "ms", "zh"])
+def test_each_locale_has_grounded_personal_plan_blocks(locale: str) -> None:
+    ctx = _personal_plan_context()
+    for kind, values in [
+        ("plan_progress", ["38%", "2", "1", "4"]),
+        ("plan_cost", ["1,234.56", "234.56"]),
+        ("plan_duration", ["7", "6", "42"]),
+    ]:
+        shown = guide.reply_for_intent(kind, ctx, locale)
+        assert all(value in shown for value in values)
+
+
+def test_model_cannot_replace_explicit_plan_question_with_generic_advice(client: TestClient):
+    with (
+        patch.object(ctx_mod, "build", return_value=_personal_plan_context()),
+        patch.object(service, "get_provider", return_value=FakeProvider('{"ids":["next"]}')),
+    ):
+        body = _ask(client, "How much of my plan have I finished?")
+    assert body["used_llm"] is False
+    assert "38%" in "".join(p["text"] for p in body["parts"])
+
+
+def test_missing_plan_or_unavailable_progress_never_invents_zero_totals():
+    ctx = ctx_mod.Context(audience="learner", facts={"has_profile": True})
+    assert "save a plan" in guide.reply("What will my saved plan cost?", ctx, "en")
+    ctx.facts["plan_role"] = "data-analyst"
+    assert "could not load" in guide.reply("What is my progress?", ctx, "en")
+    assert "could not load" in guide.reply("How long will my plan take?", ctx, "en")
+
+
+@pytest.mark.parametrize(
+    "question,expected",
+    [
+        ("Show my matched roles", "roles"),
+        ("Which jobs fit me?", "roles"),
+        ("Explain my matches and scores", "roles"),
+        ("Show available courses", "learn"),
+        ("Which skills are rising?", "trend"),
+        ("Which courses have prices?", "cost"),
+        ("Which courses take fewer than two hours?", "learn"),
+        ("Show job trends for the coming weeks", "trend"),
+        ("What are my budgets?", "cost"),
+        ("Show database skills", "learn"),
+        ("Microcourses and roleplaying", "next"),
+        ("我的计划需要多久？", "plan_duration"),
+        ("Berapa lama pelan saya?", "plan_duration"),
+        ("我的计划费用是多少？", "plan_cost"),
+        ("Apakah kemajuan pelan saya?", "plan_progress"),
+    ],
+)
+def test_complete_word_intents_support_plurals_and_personal_plan_questions(
+    question: str,
+    expected: str,
+) -> None:
+    assert guide.intent(question) == expected
 
 
 def test_slow_model_is_cancelled_under_wall_clock_deadline() -> None:

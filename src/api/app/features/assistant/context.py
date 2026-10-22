@@ -62,6 +62,7 @@ class Context:
     grounded_on: list[str] = field(default_factory=list)
     facts: dict[str, Any] = field(default_factory=dict)
     meta: RecommendationMeta | None = None
+    plan_meta: RecommendationMeta | None = None
 
     def text(self) -> str:
         return "\n".join(self.lines)
@@ -204,7 +205,15 @@ def _learner(ctx: Context, user: CurrentUser, scenario: ScenarioId) -> None:
     plan = _try("plan", lambda: pathway_service.get_saved_plan(user))
     if plan is not None:
         p = plan.pathway
+        ctx.plan_meta = getattr(p, "meta", None)
         ctx.facts["plan_role"] = plan.role_id
+        ctx.facts["plan_totals"] = {
+            "weeks": p.total_weeks,
+            "hours_per_week": p.hours_per_week,
+            "hours": p.total_hours,
+            "out_of_pocket_myr": p.out_of_pocket_myr,
+            "list_price_myr": p.total_cost_myr,
+        }
         ctx.lines.append(
             f"SAVED PLAN for [[role:{plan.role_id}]]: {len(p.steps)} steps, about {p.total_weeks} "
             f"weeks at {p.hours_per_week:g} h/week, {p.total_hours:g} h total, out of pocket "
@@ -232,6 +241,12 @@ def _learner(ctx: Context, user: CurrentUser, scenario: ScenarioId) -> None:
             statuses = effective_statuses(progress.course_status, progress.evidence)
             done = [cid for cid, st in statuses.items() if st == "completed"]
             ctx.facts["done"] = done
+            ctx.facts["plan_progress"] = {
+                "share": progress.percent_complete,
+                "courses": len(done),
+                "gap_closed": progress.gap_closed,
+                "gap_total": progress.gap_total,
+            }
             badges = ", ".join(b.id for b in progress.badges) or "none"
             ctx.lines.append(
                 f"PROGRESS: {_pct(progress.percent_complete)} of planned hours done; "
