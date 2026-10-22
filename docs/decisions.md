@@ -884,3 +884,13 @@
 - **Replaces**: none
 - **PR / branch**: feat/core-insight-design
 - **Pipeline**: source = arXiv cs.AI listing + BLS 2023-2033 → preprocessing = HTML strip, sentence split → features = MiniLM sentence-cosine mention counts per ISO week → method = log-ratio velocity + labour baseline + fast-scenario transform → evaluation = publish-time validation (two weeks, ≥ 50 skills, taxonomy ids, finite values) → serving = `trend_snapshots` / `trend_snapshot_meta` read by `/trends/snapshot`
+
+### M4-019: Smooth page transitions, loading skeletons and steady auth panel
+- **Date**: 2026-10-22
+- **Feature**: Core
+- **Type**: UI
+- **Change**: (1) `components/shell/Motion.tsx`: a top progress bar from any internal link click or GET form submit until the next route renders; a page entrance (fade and rise, sections and rows staggered) keyed by path; key numbers count up. (2) `app/app/loading.tsx` and `app/org/loading.tsx` show `PageSkeleton` (header, number strip, two cards) while the server renders. (3) `useBusy`: the AI pace, snapshot, UN Goals slider and Radar snapshot controls mark the page busy (bar runs, content dims) until new data arrives; course filters and the team-plan role picker use `next/form` (client navigation, no full reload). (4) Buttons lift on hover, arrows nudge, presses sink; pending buttons show a spinner. (5) Auth: `/auth/login` and `/auth/signup` share `app/auth/(entry)/layout.tsx`, which keeps one `AuthView` mounted; tabs are links (`replace`, no scroll), the pill slides, the form cross-fades. On sign-up, team and personal fields share one slot sized to the taller set and cross-fade, so the panel never changes size; the inactive fieldset is disabled (not validated or submitted). The art panel cross-fades between sage and forest. All motion is off under `prefers-reduced-motion`.
+- **Why**: User review: switching pages and auth tabs felt jumpy, waits had no feedback.
+- **Affects**: shared shell and UI only; no API or contract change.
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design

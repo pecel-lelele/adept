@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useTransition } from "react";
 
 import { parseScenario, SCENARIO_PARAM, SCENARIOS } from "@/lib/scenario";
+import { useBusy } from "@/components/useBusy";
 
 const ICON = { moderate: Turtle, fast: Rabbit } as const;
 
@@ -19,6 +20,7 @@ export function ScenarioToggle() {
   const pathname = usePathname();
   const params = useSearchParams();
   const [pending, startTransition] = useTransition();
+  useBusy(pending);
   const current = parseScenario(params.get(SCENARIO_PARAM) ?? undefined);
 
   function select(scenario: string) {

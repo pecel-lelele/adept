@@ -1,3 +1,4 @@
+import Form from "next/form";
 import { ArrowRight, CalendarRange, ListOrdered, Users } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
@@ -20,7 +21,7 @@ export async function PlanView({ scenario, roleId }: { scenario: ScenarioId; rol
   const [result, members, gaps] = await Promise.all([fetchPlan(scenario, roleId), fetchMembers(), fetchGaps(scenario)]);
   const names = Object.fromEntries((members.ok ? members.data.members : []).map((m) => [m.id, m.display_name]));
   const picker = gaps.ok ? (
-    <form action="/org/plan" className="a-rolepick">
+    <Form action="/org/plan" className="a-rolepick">
       <input type="hidden" name="scenario" value={scenario} />
       <label className="a-inline-select">
         {tp("targetRole")}
@@ -35,7 +36,7 @@ export async function PlanView({ scenario, roleId }: { scenario: ScenarioId; rol
       <button className="a-btn is-small">
         {tp("showPlan")} <ArrowRight size={14} aria-hidden />
       </button>
-    </form>
+    </Form>
   ) : null;
 
   return (

@@ -9,6 +9,7 @@ import type { Account } from "@/lib/auth/account";
 import { LocaleSwitcher } from "../LocaleSwitcher";
 import { ScenarioToggle } from "../ScenarioToggle";
 import { BrandLogo } from "./Brand";
+import { NavProgress, PageEnter } from "./Motion";
 import { ScenarioSlot, SideNav, TabBar } from "./Nav";
 
 function initials(name: string): string {
@@ -48,6 +49,9 @@ export async function Shell({
   const space = ws.mode === "organisation" ? "nav.organisation" : ws.mode === "admin" ? "nav.admin" : "nav.learner";
   return (
     <div className="a-shell" data-mode={ws.mode}>
+      <Suspense>
+        <NavProgress />
+      </Suspense>
       <a className="a-skip" href="#a-main">
         {t("nav.skip")}
       </a>
@@ -95,7 +99,7 @@ export async function Shell({
           </ScenarioSlot>
         </Suspense>
         <main id="a-main" className="a-main">
-          {children}
+          <PageEnter>{children}</PageEnter>
         </main>
         <footer className="a-foot">{t("shell.disclaimer")}</footer>
       </div>

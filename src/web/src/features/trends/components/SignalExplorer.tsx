@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 
 import type { ScenarioId, Schemas } from "@/lib/api";
+import { useBusy } from "@/components/useBusy";
 
 const DIRS = ["all", "rising", "stable", "declining"] as const;
 type Dir = (typeof DIRS)[number];
@@ -30,6 +31,7 @@ export function SignalExplorer({
   const [search, setSearch] = useState("");
   const [direction, setDirection] = useState<Dir>("all");
   const [pending, startTransition] = useTransition();
+  useBusy(pending);
   const key = scenario === "fast" ? "direction_fast" : "direction_moderate";
   const velocity = scenario === "fast" ? "velocity_fast" : "velocity_moderate";
   const top = Math.max(0.01, ...items.map((i) => Math.abs(i[velocity])));

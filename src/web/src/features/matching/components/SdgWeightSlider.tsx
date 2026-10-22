@@ -3,6 +3,7 @@
 import { Leaf } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
+import { useBusy } from "@/components/useBusy";
 
 /**
  * SDG-weighted ranking: how much the UN Goals should count, 0-100 %. Releasing the slider
@@ -23,6 +24,7 @@ export function SdgWeightSlider({
   const pathname = usePathname();
   const params = useSearchParams();
   const [pending, start] = useTransition();
+  useBusy(pending);
   const [draft, setDraft] = useState(Math.round(value * 100));
   const commit = (pct: number) => {
     const next = new URLSearchParams(params.toString());

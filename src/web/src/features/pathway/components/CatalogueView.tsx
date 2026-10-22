@@ -1,3 +1,4 @@
+import Form from "next/form";
 import Link from "next/link";
 import { ArrowUpRight, BadgeCheck, BookOpen, Clock3, Gift, SlidersHorizontal } from "lucide-react";
 import { getTranslations } from "next-intl/server";
@@ -137,7 +138,7 @@ export async function CatalogueView({
             <SlidersHorizontal size={16} aria-hidden /> {d("filters")}
           </h2>
         </div>
-        <form method="get" action={basePath} className="a-filter-grid">
+        <Form action={basePath} className="a-filter-grid">
           {Object.entries(context).map(([key, value]) => (
             <input key={key} type="hidden" name={key} value={value} />
           ))}
@@ -198,7 +199,7 @@ export async function CatalogueView({
               {t("catalogue.reset")}
             </Link>
           </div>
-        </form>
+        </Form>
       </section>
       {!result.ok ? (
         <ApiError message={result.message} />

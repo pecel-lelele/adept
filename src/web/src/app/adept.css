@@ -1715,3 +1715,123 @@ html { scrollbar-gutter: stable; }
   .a-page .a-auth-form .a-check { font-size: 12px; line-height: 1.45; }
 }
 .a-page .a-auth { padding-bottom: clamp(12px, 3vh, 48px); }
+
+/* ==========================================================================
+   Motion: route progress bar, page entrance with a short stagger, loading
+   skeleton, hover and press feedback. Everything is off for reduced motion.
+   ========================================================================== */
+
+/* route progress bar (top of the window, from click until the next page renders) */
+.a-navprogress { position: fixed; top: 0; left: 0; z-index: 200; width: 100%; height: 3px; pointer-events: none; transform-origin: left center; transform: scaleX(0); opacity: 0; background: linear-gradient(90deg, var(--a-accent), #86efac); box-shadow: 0 0 10px #22c55e80; }
+.a-navprogress[data-state="loading"] { opacity: 1; animation: a-np-grow 9s cubic-bezier(.08, .7, .2, 1) forwards; }
+.a-navprogress[data-state="done"] { transform: scaleX(1); opacity: 0; transition: transform 180ms ease-out, opacity 260ms ease 160ms; }
+@keyframes a-np-grow { 0% { transform: scaleX(0); } 12% { transform: scaleX(.38); } 100% { transform: scaleX(.92); } }
+
+/* page entrance: the page fades up, then its sections arrive in order */
+.a-main > * > * { animation: none; } /* replaced by the per-section stagger below */
+.a-page-enter { animation: a-page-in 420ms var(--a-ease) both; }
+@keyframes a-page-in { from { opacity: 0; transform: translateY(10px); } }
+.a-shell .a-view > * { animation: a-in 520ms var(--a-ease) both; }
+.a-shell .a-view > *:nth-child(2) { animation-delay: 50ms; }
+.a-shell .a-view > *:nth-child(3) { animation-delay: 100ms; }
+.a-shell .a-view > *:nth-child(4) { animation-delay: 150ms; }
+.a-shell .a-view > *:nth-child(n + 5) { animation-delay: 200ms; }
+/* rows and cells inside a section ripple in */
+.a-shell :is(.a-kpi, .a-rank > li, .a-rolecards > li, .a-table tbody tr, .a-steps > li, .a-mini > li, .a-coursegrid > *, .a-checklist-rows > li, .a-journey li, .a-goalgrid > *, .a-linklist > li) { animation: a-rise-in 460ms var(--a-ease) both; }
+.a-shell :is(.a-kpi, .a-rank > li, .a-rolecards > li, .a-table tbody tr, .a-steps > li, .a-mini > li, .a-coursegrid > *, .a-checklist-rows > li, .a-journey li, .a-goalgrid > *, .a-linklist > li):nth-child(2) { animation-delay: 40ms; }
+.a-shell :is(.a-kpi, .a-rank > li, .a-rolecards > li, .a-table tbody tr, .a-steps > li, .a-mini > li, .a-coursegrid > *, .a-checklist-rows > li, .a-journey li, .a-goalgrid > *, .a-linklist > li):nth-child(3) { animation-delay: 80ms; }
+.a-shell :is(.a-kpi, .a-rank > li, .a-rolecards > li, .a-table tbody tr, .a-steps > li, .a-mini > li, .a-coursegrid > *, .a-checklist-rows > li, .a-journey li, .a-goalgrid > *, .a-linklist > li):nth-child(4) { animation-delay: 120ms; }
+.a-shell :is(.a-kpi, .a-rank > li, .a-rolecards > li, .a-table tbody tr, .a-steps > li, .a-mini > li, .a-coursegrid > *, .a-checklist-rows > li, .a-journey li, .a-goalgrid > *, .a-linklist > li):nth-child(n + 5) { animation-delay: 160ms; }
+@keyframes a-rise-in { from { opacity: 0; transform: translateY(6px); } }
+
+/* loading skeleton: same rhythm as the real page, gentle shimmer */
+.a-skeleton i { display: block; border-radius: 6px; background: linear-gradient(90deg, #edf1ec 25%, #f6f8f5 50%, #edf1ec 75%); background-size: 200% 100%; animation: a-shimmer 1.4s ease-in-out infinite; }
+.a-skel-head { display: grid; gap: 12px; }
+.a-skel-kpis .a-kpi { gap: 12px; }
+.a-skel-card { display: grid; gap: 16px; min-height: 220px; align-content: start; }
+.a-skeleton { animation: a-fade 300ms ease 120ms both; } /* appears only if loading takes a moment */
+@keyframes a-shimmer { to { background-position: -200% 0; } }
+
+/* buttons: lift on hover, arrow nudges forward, press sinks */
+.a-btn { transition: background var(--a-fast), box-shadow var(--a-fast), transform var(--a-fast) var(--a-ease), border-color var(--a-fast), color var(--a-fast); }
+.a-btn:hover:not([disabled]) { transform: translateY(-1px); }
+.a-btn:active:not([disabled]) { transform: translateY(2px); transition-duration: 60ms; }
+.a-btn svg { transition: transform var(--a-med) var(--a-ease); }
+.a-btn:hover:not([disabled]) svg:last-child:not(:first-child) { transform: translateX(3px); }
+.a-btn.is-ghost:hover:not([disabled]) { border-color: #c4d3c6; box-shadow: 0 6px 16px #1e352512; }
+.a-btn[disabled] { cursor: progress; }
+.a-link svg, .a-card-head a svg { transition: transform var(--a-fast) var(--a-ease); }
+.a-link:hover svg, .a-card-head a:hover svg { transform: translate(2px, -1px); }
+
+/* sidebar: icon slides on hover, active marker grows in */
+.a-navlink svg { transition: color var(--a-fast), transform var(--a-med) var(--a-ease); }
+.a-navlink:hover svg { transform: translateX(2px); }
+.a-navlink[aria-current="page"] { animation: a-nav-on 320ms var(--a-ease); }
+@keyframes a-nav-on { from { box-shadow: inset 0 0 0 var(--a-accent); } }
+.a-tab:active .a-tab-icon { transform: scale(.92); }
+.a-tab-icon { transition: background .15s, transform .12s; }
+
+/* cards and rows that are links respond to hover */
+.a-shell a.a-card, .a-shell .a-rolecard { transition: transform var(--a-med) var(--a-ease), box-shadow var(--a-med) var(--a-ease), border-color var(--a-med); }
+.a-shell a.a-card:hover, .a-shell .a-rolecard:hover { transform: translateY(-2px); box-shadow: var(--a-shadow-hover); }
+.a-shell .a-rank a { transition: background var(--a-fast), transform var(--a-fast) var(--a-ease); }
+.a-shell .a-rank a:hover { transform: translateX(3px); }
+.a-shell .a-kpi { transition: background var(--a-fast); }
+.a-shell .a-kpi:hover { background: #fbfdfa; }
+.a-shell .a-kpi-icon { transition: transform var(--a-med) var(--a-ease); }
+.a-shell .a-kpi:hover .a-kpi-icon { transform: scale(1.08) rotate(-4deg); }
+.a-shell .a-choice:active, .a-page .a-choice:active { transform: scale(.98); }
+
+@media (prefers-reduced-motion: reduce) {
+  .a-navprogress, .a-page-enter, .a-skeleton, .a-skeleton i,
+  .a-shell .a-view > *,
+  .a-shell :is(.a-kpi, .a-rank > li, .a-rolecards > li, .a-table tbody tr, .a-steps > li, .a-mini > li, .a-coursegrid > *, .a-checklist-rows > li, .a-journey li, .a-goalgrid > *, .a-linklist > li),
+  .a-navlink[aria-current="page"] { animation: none !important; }
+  .a-btn:hover, .a-btn:active, .a-shell a.a-card:hover, .a-shell .a-rolecard:hover, .a-shell .a-rank a:hover { transform: none !important; }
+  .a-btn svg, .a-navlink svg, .a-link svg { transition: none; transform: none !important; }
+}
+
+/* ---------- smooth auth switching ---------- */
+/* tab pill slides between Sign in and Create account */
+.a-tabswitch { position: relative; isolation: isolate; }
+.a-tabswitch::before { content: ""; position: absolute; z-index: -1; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 4px); border-radius: 11px; background: var(--a-surface); box-shadow: 0 1px 4px #0000001a; transition: transform 360ms var(--a-ease); }
+.a-tabswitch[data-active="signup"]::before { transform: translateX(100%); }
+.a-tabswitch button { border: 0; background: transparent; font: inherit; text-align: center; padding: 10px; border-radius: 11px; font-size: 13px; font-weight: 600; color: var(--a-muted); cursor: pointer; transition: color 240ms; }
+.a-tabswitch button[aria-selected="true"] { color: var(--a-ink); }
+.a-tabswitch button:hover { color: var(--a-ink); }
+.a-linkbtn { border: 0; background: none; padding: 0; font: inherit; font-size: 13px; cursor: pointer; color: inherit; }
+/* the form cross-fades when the tab changes */
+.a-page .a-auth-body { animation: a-swap-in 320ms var(--a-ease) both; }
+@keyframes a-swap-in { from { opacity: 0; transform: translateY(8px); } }
+/* art panel: background and drawing cross-fade between "for my career" and "for my team" */
+.a-page .a-auth-art, .a-page[data-mode="organisation"] .a-auth-art { position: relative; isolation: isolate; background: #eff5e9; transition: color 400ms ease, border-color 400ms ease; }
+.a-page .a-auth-art::before { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: radial-gradient(90% 70% at 50% 0%, #2f5a40 0%, #234430 62%); opacity: 0; transition: opacity 480ms ease; }
+.a-page[data-mode="organisation"] .a-auth-art::before { opacity: 1; }
+.a-page .a-auth-art p { transition: color 400ms ease; }
+.a-page .a-auth-art-copy, .a-page .a-auth-art-fig { animation: a-swap-in 480ms var(--a-ease) both; }
+.a-page .a-auth-art-fig { animation-delay: 80ms; }
+
+/* ---------- busy: a control is re-fetching the current page ---------- */
+html[data-busy] .a-navprogress { opacity: 1; animation: a-np-grow 9s cubic-bezier(.08, .7, .2, 1) forwards; }
+.a-main { transition: opacity 220ms ease; }
+html[data-busy] .a-main { opacity: .55; pointer-events: none; }
+html[data-busy] .a-main::after { content: ""; }
+
+/* ---------- buttons waiting on the server show a spinner ---------- */
+.a-btn[aria-busy="true"]::before { content: ""; width: 14px; height: 14px; flex: none; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: a-spin-s 700ms linear infinite; }
+@keyframes a-spin-s { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .a-tabswitch::before, .a-page .a-auth-art::before { transition: none; }
+  .a-page .a-auth-body, .a-page .a-auth-art-copy, .a-page .a-auth-art-fig { animation: none; }
+  html[data-busy] .a-navprogress { animation: none; transform: scaleX(.6); }
+  .a-btn[aria-busy="true"]::before { animation-duration: 2s; }
+}
+
+/* sign-up: team and personal fields share one slot sized to the taller set, so the panel never
+   changes size; switching cross-fades the fields in place */
+.a-page .a-variant { display: grid; }
+.a-page .a-variant-pane { grid-area: 1 / 1; min-width: 0; margin: 0; padding: 0; border: 0; transition: opacity 280ms var(--a-ease), transform 280ms var(--a-ease), visibility 0s linear 0s; }
+.a-page .a-variant-in { display: grid; gap: inherit; gap: clamp(10px, 1.6vh, 14px); }
+.a-page .a-variant-pane[data-open="false"] { opacity: 0; transform: translateY(6px); visibility: hidden; pointer-events: none; transition: opacity 200ms ease, transform 200ms ease, visibility 0s linear 200ms; }
+@media (prefers-reduced-motion: reduce) { .a-page .a-variant-pane { transition: none; } }

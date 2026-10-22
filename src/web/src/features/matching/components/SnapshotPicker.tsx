@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTransition } from "react";
+import { useBusy } from "@/components/useBusy";
 
 /** Trend replay: pick a stored snapshot date; rankings re-compute on that date's data. */
 export function SnapshotPicker({
@@ -19,6 +20,7 @@ export function SnapshotPicker({
   const pathname = usePathname();
   const params = useSearchParams();
   const [pending, start] = useTransition();
+  useBusy(pending);
   return (
     <label className="a-field" style={{ maxWidth: 280 }}>
       {label}
