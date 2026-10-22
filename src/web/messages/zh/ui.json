@@ -66,7 +66,16 @@
     "signInArtTitle": "欢迎回来，看看有哪些变化。",
     "signInArtBody": "你的技能雷达会随每次新的趋势快照更新。从上次停下的地方继续你的计划。",
     "signInTeamArtTitle": "你的团队，一切如你离开时。",
-    "signInTeamArtBody": "查看谁已加入、谁完成了资料，以及团队计划的进展。"
+    "signInTeamArtBody": "查看谁已加入、谁完成了资料，以及团队计划的进展。",
+    "signInSub": "从上次离开的地方继续查看雷达、职位与计划。",
+    "signInTeamSub": "团队的差距、计划与审核都在这里。",
+    "createSub": "免费。两分钟即可看到首批匹配职位。",
+    "createTeamSub": "邀请成员，查看差距，一起规划培训。",
+    "trustCv": "简历只读取，不保存",
+    "trustSources": "每个估计都注明来源",
+    "trustYou": "由你做决定",
+    "eyebrowMe": "为你",
+    "eyebrowTeam": "为你的团队"
   },
   "landing": {
     "eyebrow": "面向未来的职业",

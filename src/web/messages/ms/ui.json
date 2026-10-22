@@ -66,7 +66,16 @@
     "signInArtTitle": "Selamat kembali. Inilah yang berubah.",
     "signInArtBody": "Radar kemahiran anda dikemas kini dengan setiap snapshot trend baharu. Sambung pelan anda dari tempat terakhir.",
     "signInTeamArtTitle": "Pasukan anda, seperti yang anda tinggalkan.",
-    "signInTeamArtBody": "Lihat siapa yang menyertai, siapa yang melengkapkan profil dan kemajuan pelan pasukan."
+    "signInTeamArtBody": "Lihat siapa yang menyertai, siapa yang melengkapkan profil dan kemajuan pelan pasukan.",
+    "signInSub": "Sambung radar, peranan dan pelan anda di tempat anda berhenti.",
+    "signInTeamSub": "Jurang, pelan dan semakan pasukan anda sedang menunggu.",
+    "createSub": "Percuma. Dua minit untuk peranan padanan pertama anda.",
+    "createTeamSub": "Jemput pasukan anda, lihat jurang, rancang latihan bersama.",
+    "trustCv": "CV dibaca, tidak disimpan",
+    "trustSources": "Setiap anggaran menunjukkan sumbernya",
+    "trustYou": "Anda yang membuat keputusan",
+    "eyebrowMe": "Untuk anda",
+    "eyebrowTeam": "Untuk pasukan anda"
   },
   "landing": {
     "eyebrow": "Kerjaya bersedia masa depan",

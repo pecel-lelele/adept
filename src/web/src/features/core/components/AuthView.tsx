@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, UserRound } from "lucide-react";
+import { Building2, LineChart, Lock, ShieldCheck, UserRound, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -48,7 +48,14 @@ export function AuthView() {
   const team = workspace === "organisation";
 
   return (
-    <main className="a-page" data-mode={team ? "organisation" : "individual"}>
+    <main className="a-page a-authpage" data-mode={team ? "organisation" : "individual"}>
+      {/* Soft moving colour behind the panel, so the page never reads as empty white. */}
+      <div className="a-auth-bg" aria-hidden="true">
+        <span className="a-auth-blob is-1" />
+        <span className="a-auth-blob is-2" />
+        <span className="a-auth-blob is-3" />
+        <span className="a-auth-grid" />
+      </div>
       <header className="a-page-top">
         <BrandLogo href="/" />
       </header>
@@ -62,7 +69,10 @@ export function AuthView() {
             ))}
           </div>
           <div className="a-auth-body" key={page}>
-          <h1 id="auth-title">{page === "signup" ? t("createTitle") : t("welcomeBack")}</h1>
+          <div className="a-auth-head">
+            <h1 id="auth-title">{page === "signup" ? t("createTitle") : t("welcomeBack")}</h1>
+            <p>{page === "signup" ? t(team ? "createTeamSub" : "createSub") : t(team ? "signInTeamSub" : "signInSub")}</p>
+          </div>
           <form action={action} className="a-auth-form">
             <input type="hidden" name="next" value={next} />
             <input type="hidden" name="_page" value={page} />
@@ -197,12 +207,28 @@ export function AuthView() {
             </Link>
           </p>
           </div>
+          <ul className="a-auth-trust">
+            <li>
+              <Lock size={15} aria-hidden /> {t("trustCv")}
+            </li>
+            <li>
+              <ShieldCheck size={15} aria-hidden /> {t("trustSources")}
+            </li>
+            <li>
+              <UserRound size={15} aria-hidden /> {t("trustYou")}
+            </li>
+          </ul>
         </section>
         {/* The landing page's drawings: a career path for individuals, an office for teams. */}
         {/* Sign in: what is waiting for you (skills radar, or the team roster). Create account:
             where you are going (career path, or the office on the forest background). */}
-        <section className="a-auth-art" aria-hidden="true" data-tone={page === "signup" && team ? "forest" : "sage"}>
+        <section className="a-auth-art" aria-hidden="true" data-tone={team ? "forest" : "emerald"}>
+          <span className="a-auth-art-glow" />
           <div className="a-auth-art-copy" key={`copy-${page}-${workspace}`}>
+            <span className="a-auth-art-eyebrow">
+              {team ? <Users size={14} aria-hidden /> : <LineChart size={14} aria-hidden />}
+              {t(team ? "eyebrowTeam" : "eyebrowMe")}
+            </span>
             <h2>
               {page === "login"
                 ? t(team ? "signInTeamArtTitle" : "signInArtTitle")
@@ -215,13 +241,15 @@ export function AuthView() {
             </p>
           </div>
           <div className="a-auth-art-fig" key={`fig-${page}-${workspace}`}>
-            {page === "login" ? (
-              <FeatureArt variant={team ? "roster" : "radar"} className="is-auth" />
-            ) : team ? (
-              <OrgScene />
-            ) : (
-              <PathScene />
-            )}
+            <div className="a-auth-glass">
+              {page === "login" ? (
+                <FeatureArt variant={team ? "roster" : "radar"} className="is-auth" />
+              ) : team ? (
+                <OrgScene />
+              ) : (
+                <PathScene />
+              )}
+            </div>
           </div>
         </section>
       </div>

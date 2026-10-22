@@ -66,7 +66,16 @@
     "signInArtTitle": "Welcome back. Here's what moved.",
     "signInArtBody": "Your skills radar updates with each new trend snapshot. Pick up your plan where you left it.",
     "signInTeamArtTitle": "Your team, where you left it.",
-    "signInTeamArtBody": "See who joined, who finished their profile and how the team plan is going."
+    "signInTeamArtBody": "See who joined, who finished their profile and how the team plan is going.",
+    "signInSub": "Pick up your radar, roles and plan where you left them.",
+    "signInTeamSub": "Your team's gaps, plan and reviews are waiting.",
+    "createSub": "Free. Two minutes to your first matched roles.",
+    "createTeamSub": "Invite your people, see the gaps, plan training together.",
+    "trustCv": "CVs are read, never stored",
+    "trustSources": "Every estimate shows its source",
+    "trustYou": "You make the decisions",
+    "eyebrowMe": "For you",
+    "eyebrowTeam": "For your team"
   },
   "landing": {
     "eyebrow": "Future-ready careers",
