@@ -55,15 +55,12 @@ function FeatureGrid({
   items,
 }: {
   className: string;
-  items: { art: FeatureArtVariant; title: string; body: string; label: string }[];
+  items: { art: FeatureArtVariant; title: string; body: string }[];
 }) {
   return (
     <div className={`a-features ${className}`}>
       {items.map((f, i) => (
         <article className="a-feature" key={f.title} data-reveal style={{ "--i": i % 3 } as CSSProperties}>
-          <span className="a-num">
-            0{i + 1} / {f.label.toUpperCase()}
-          </span>
           <FeatureArt variant={f.art} />
           <h3>{f.title}</h3>
           <p>{f.body}</p>
@@ -356,8 +353,8 @@ export async function LandingView({ audience }: { audience: Audience }) {
             <span className="a-for-team">{t("tFeatBody")}</span>
           </p>
         </div>
-        <FeatureGrid className="a-for-me" items={ME_FEATURES.map(([art, key]) => ({ art, title: t(key), body: t(`${key}Body`), label: t("featLabel") }))} />
-        <FeatureGrid className="a-for-team is-bento" items={TEAM_FEATURES.map(([art, key]) => ({ art, title: t(key), body: t(`${key}Body`), label: t("featLabel") }))} />
+        <FeatureGrid className="a-for-me" items={ME_FEATURES.map(([art, key]) => ({ art, title: t(key), body: t(`${key}Body`) }))} />
+        <FeatureGrid className="a-for-team is-bento" items={TEAM_FEATURES.map(([art, key]) => ({ art, title: t(key), body: t(`${key}Body`) }))} />
       </section>
 
       <section id="how" className="a-section a-band" aria-labelledby="how-heading">
