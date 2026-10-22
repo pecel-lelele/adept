@@ -1051,3 +1051,13 @@
 - **Affects**: M4 accounts/org; M3 course snapshots. Append-only learning_funding migration, no dependencies.
 - **Replaces**: none
 - **PR / branch**: feat/catalogue-roles-skills-courses
+
+### M4-035: feat(org): gate reimbursements on purchase approval and course proof
+- **Date**: 2026-10-23
+- **Feature**: F1, F4, F5, F6, F7 / Core integration
+- **Type**: method | other
+- **Change**: Require HR purchase approval before buying, reserve the approved cap, and accept receipt claims only after current-org HR confirms the certificate. Block over-cap amounts, duplicate course/receipt claims, stale revisions and revoked evidence; distinguish payable from an externally recorded finance payment. Let members submit certificates for approved courses absent from generated plans. Validate current manager membership and stop certificate probes from following redirects.
+- **Why**: Completion-based reimbursement is useful with pre-approval, receipt review and a non-upfront employer procurement option. Certificate URL reachability alone cannot authorize a payment. Subscription/group purchases require separate employer procurement; no bank transfer is performed by Adept.
+- **Affects**: M3 completion verification; M4 finance workflow and security. Tests cover synthetic claim lifecycle, reservation races, scope, stale/revoked proof, export/deletion and blocked redirects.
+- **Replaces**: none
+- **PR / branch**: feat/catalogue-roles-skills-courses

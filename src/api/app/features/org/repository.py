@@ -127,6 +127,25 @@ def list_members(org_id: str) -> list[Member]:
     return [Member.model_validate(r) for r in rows]
 
 
+def is_current_manager(org_id: str, user_id: str) -> bool:
+    """Money operations check current membership, even when a JWT or account cache is stale."""
+    if not use_postgres():
+        from app.core import accounts
+
+        account = accounts.find_by_id(user_id)
+        return bool(account and account.kind == "org_admin" and account.org_id == org_id)
+    return bool(
+        _db(
+            "check the current manager membership",
+            lambda c: c.execute(
+                "SELECT 1 FROM memberships WHERE org_id = %s AND user_id = %s "
+                "AND role IN ('manager', 'advisor')",
+                (org_id, user_id),
+            ).fetchone(),
+        )
+    )
+
+
 def update_org(org: Organization) -> Organization:
     if use_postgres():
         _db(

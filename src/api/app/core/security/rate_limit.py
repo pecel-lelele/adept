@@ -55,6 +55,8 @@ ROUTE_LIMITS: dict[str, Limit] = {
     "/api/v1/auth/signup": (20, 60),
     "/api/v1/auth/me/delete": (5, 60),  # re-checks a password
     "/api/v1/org/join": (10, 60),  # slows join-code guessing
+    "/api/v1/org/funding": (60, 60),
+    "/api/v1/org/packages": (30, 60),  # may build up to 50 member plans
     "/api/v1/pathway/catalogue/sync": (5, 3600),  # calls external APIs
     "/api/v1/sdg/sync": (5, 3600),
     "/api/v1/profile/cv": (10, 60),  # upload + parsing

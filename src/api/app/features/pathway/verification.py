@@ -19,6 +19,8 @@ import ssl
 import urllib.error
 import urllib.request
 from collections.abc import Callable, Iterable, Mapping
+from email.message import Message
+from http.client import HTTPResponse
 from urllib.parse import urlsplit
 
 from app.contracts.pathway import CompletionEvidence, Course, CourseStatus, LinkStatus
@@ -40,6 +42,20 @@ VERIFY_PAGES: dict[str, tuple[str, ...]] = {
 RANK: dict[str, int] = {"self_reported": 0, "certificate_link": 1, "org_confirmed": 2}
 
 Probe = Callable[[str], int | None]
+
+
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(
+        self,
+        req: urllib.request.Request,
+        fp: HTTPResponse,
+        code: int,
+        msg: str,
+        headers: Message,
+        newurl: str,
+    ) -> None:
+        # An official verification URL must never redirect the API into a private network.
+        return None
 
 
 def provider_key(course: Course) -> str | None:
@@ -67,10 +83,11 @@ def is_provider_page(url: str, course: Course) -> bool:
 def probe(url: str) -> int | None:
     """HTTP status of `url` (HEAD, then GET if HEAD is refused), None if unreachable."""
     ctx = ssl.create_default_context()
+    opener = urllib.request.build_opener(_NoRedirect(), urllib.request.HTTPSHandler(context=ctx))
     for method in ("HEAD", "GET"):
         req = urllib.request.Request(url, method=method, headers={"User-Agent": "adept/1.0"})
         try:
-            with urllib.request.urlopen(req, timeout=5, context=ctx) as r:
+            with opener.open(req, timeout=5) as r:
                 return int(r.status)
         except urllib.error.HTTPError as exc:
             if method == "HEAD" and exc.code in (403, 405):
@@ -85,7 +102,7 @@ def check_link(url: str, course: Course, check: Probe = probe) -> LinkStatus:
     if not is_provider_page(url, course):
         return "not_provider_page"
     code = check(url)
-    return "provider_verified" if code is not None and code < 400 else "unreachable"
+    return "provider_verified" if code is not None and 200 <= code < 300 else "unreachable"
 
 
 def effective_statuses(
