@@ -21,12 +21,16 @@ class UserSkill(BaseModel):
     source: SkillSource
 
 
+LearningStyle = Literal["video", "reading", "hands-on", "classroom", "mixed"]
+
+
 class ProfileIn(BaseModel):
     segment: Segment
     interests: list[str] = Field(default_factory=list)
     hours_per_week: int = Field(ge=0, le=80)
     budget_myr: float = Field(ge=0)
     hrd_eligible: bool
+    learning_style: LearningStyle = Field(default="mixed", description="Preferred way to learn.")
 
 
 class Profile(ProfileIn):

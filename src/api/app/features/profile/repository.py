@@ -28,7 +28,7 @@ _store: dict[str, Profile] = {}
 
 _SELECT_PROFILE = """
     SELECT u.id, u.display_name, p.segment, p.interests, p.hours_per_week, p.budget_myr,
-           p.hrd_eligible, p.current_role_id
+           p.hrd_eligible, p.current_role_id, p.learning_style
     FROM profiles p JOIN users u ON u.id = p.user_id
     WHERE p.user_id = %s
 """
@@ -46,6 +46,7 @@ def _row_to_profile(row: dict[str, Any], skills: list[dict[str, Any]]) -> Profil
         hours_per_week=int(row["hours_per_week"]),
         budget_myr=float(row["budget_myr"]),
         hrd_eligible=bool(row["hrd_eligible"]),
+        learning_style=row.get("learning_style") or "mixed",
         current_role_id=row["current_role_id"],
         skills=[
             UserSkill(skill_id=str(s["skill_id"]), level=int(s["level"]), source=s["source"])
@@ -77,8 +78,8 @@ def _db_save(profile: Profile) -> None:
         conn.execute(
             """
             INSERT INTO profiles (user_id, segment, interests, hours_per_week, budget_myr,
-                                  hrd_eligible, current_role_id, updated_at)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, now())
+                                  hrd_eligible, current_role_id, learning_style, updated_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, now())
             ON CONFLICT (user_id) DO UPDATE SET
                 segment = EXCLUDED.segment,
                 interests = EXCLUDED.interests,
@@ -86,6 +87,7 @@ def _db_save(profile: Profile) -> None:
                 budget_myr = EXCLUDED.budget_myr,
                 hrd_eligible = EXCLUDED.hrd_eligible,
                 current_role_id = EXCLUDED.current_role_id,
+                learning_style = EXCLUDED.learning_style,
                 updated_at = now()
             """,
             (
@@ -96,6 +98,7 @@ def _db_save(profile: Profile) -> None:
                 profile.budget_myr,
                 profile.hrd_eligible,
                 profile.current_role_id,
+                profile.learning_style,
             ),
         )
         # The submitted list replaces the previous one (confirmation screen semantics).

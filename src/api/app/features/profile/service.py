@@ -201,6 +201,8 @@ def upsert_profile(user: CurrentUser, data: ProfileIn) -> Profile:
     # Sanitise interests for the fairness whitelist
     clean_data = data.model_dump()
     clean_data["interests"] = _sanitise_interests(clean_data.get("interests", []))
+    if "learning_style" not in data.model_fields_set:
+        clean_data.pop("learning_style")  # keep the saved choice when a form omits it
     return repository.save_profile(current.model_copy(update=clean_data))
 
 
@@ -217,6 +219,7 @@ def upsert_questionnaire(user: CurrentUser, data: QuestionnaireIn) -> Questionna
         hours_per_week=data.hours_per_week,
         budget_myr=data.budget_myr,
         hrd_eligible=data.hrd_eligible,
+        learning_style=data.learning_style,
     )
     saved = upsert_profile(user, profile_data)
     org_repository.set_intake_status(user.id, "complete" if saved.skills else "in_progress")
@@ -227,7 +230,7 @@ def upsert_questionnaire(user: CurrentUser, data: QuestionnaireIn) -> Questionna
         segment=saved.segment,
         interests=saved.interests,
         hours_per_week=saved.hours_per_week,
-        learning_style=data.learning_style,
+        learning_style=saved.learning_style,
         budget_myr=saved.budget_myr,
         hrd_eligible=saved.hrd_eligible,
     )
