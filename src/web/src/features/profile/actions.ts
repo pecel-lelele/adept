@@ -41,7 +41,9 @@ export async function saveIntakeAction(input: IntakeInput): Promise<IntakeResult
   const skills = await call(
     api.PUT("/api/v1/profile/skills/confirm", {
       body: {
-        skills: input.skills.slice(0, 60).map((s) => ({
+        // Every selected skill is saved (the picker offers the whole catalogue); only
+        // duplicates are dropped.
+        skills: [...new Map(input.skills.map((s) => [s.skill_id, s])).values()].map((s) => ({
           skill_id: s.skill_id,
           level: clamp(s.level, 1, 5),
           source: "confirmed" as const,

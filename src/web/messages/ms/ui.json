@@ -198,7 +198,10 @@
     "review": "Semak",
     "gaps": "{count, plural, =0 {Tiada jurang} other {# jurang}}",
     "compare": "Bandingkan",
-    "latest": "Snapshot terkini"
+    "latest": "Snapshot terkini",
+    "progressErrorTitle": "Kami tidak dapat memuatkan kemajuan anda",
+    "progressErrorBody": "Pelan anda telah disimpan. Bukanya untuk cuba lagi.",
+    "progressErrorCta": "Buka kemajuan saya"
   },
   "org": {
     "hello": "{org}",

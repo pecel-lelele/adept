@@ -123,7 +123,8 @@
 .a-grid { display: grid; gap: 20px; grid-template-columns: repeat(12, minmax(0, 1fr)); }
 .a-span-12 { grid-column: span 12; } .a-span-8 { grid-column: span 8; } .a-span-7 { grid-column: span 7; }
 .a-span-6 { grid-column: span 6; } .a-span-5 { grid-column: span 5; } .a-span-4 { grid-column: span 4; }
-@media (max-width: 1100px) { .a-span-8, .a-span-7, .a-span-6, .a-span-5, .a-span-4 { grid-column: span 12; } }
+.a-span-3 { grid-column: span 3; }
+@media (max-width: 1100px) { .a-span-8, .a-span-7, .a-span-6, .a-span-5, .a-span-4, .a-span-3 { grid-column: span 12; } }
 .a-card { background: var(--a-surface); border: 1px solid var(--a-line); border-radius: var(--a-radius); box-shadow: var(--a-shadow); padding: var(--a-s6); min-width: 0; transition: box-shadow var(--a-med) var(--a-ease), transform var(--a-med) var(--a-ease), border-color var(--a-med); }
 .a-card:hover { box-shadow: var(--a-shadow-hover); border-color: #dde2d6; }
 .a-card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 16px; }

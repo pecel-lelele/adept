@@ -37,7 +37,7 @@ export async function MatchDetailView({
             <Link className="a-btn" href={`/app/pathway?role=${encodeURIComponent(m.role_id)}&scenario=${scenario}`}>
               {t(snapshotDate ? "viewLatestPathway" : "viewPathway")} <ArrowRight size={16} aria-hidden />
             </Link>
-            <Link className="a-btn is-ghost" href={`/app/pathway/compare?scenario=${scenario}&role_ids=${encodeURIComponent(m.role_id)}`}>
+            <Link className="a-btn is-ghost" href={`/app/pathway/compare?scenario=${scenario}&roles=${encodeURIComponent(m.role_id)}`}>
               {th("compare")}
             </Link>
           </div>

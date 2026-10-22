@@ -796,3 +796,12 @@
 - **Affects**: everyone (root config); required status checks in branch protection, if any, must be renamed to the new job names
 - **Replaces**: none
 - **PR / branch**: feat/core-insight-design
+
+### M4-010: Review fixes on PR #7 (sessions, sign-up, membership, outlooks, web)
+- **Date**: 2026-10-22
+- **Feature**: Core, F7 (also touches F3 scenarios)
+- **Type**: other
+- **Change**: Session fallback key is now random (`.session-secret`, gitignored, or in memory) instead of derived from the public default `DATABASE_URL`; compose passes `SESSION_SECRET` to the API. A team sign-up whose organisation can't be created is undone, so the email is free to retry. A member joining a second organisation gets 409 `already_member` (one organisation per member; removal clears it). Role outlooks load each snapshot date once over one connection instead of twice per date with a new connection each. Web: every selected skill is saved (no 60 cap), Server Action body limit raised to 6 MB for 5 MB CVs, the home page no longer claims "path complete" when progress fails to load, `a-span-3` added, Compare link uses `roles`, the mobile More sheet traps and restores focus.
+- **Affects**: everyone running compose (set `SESSION_SECRET` in `.env` to keep sessions across restarts); F3 owner (outlook loading)
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design

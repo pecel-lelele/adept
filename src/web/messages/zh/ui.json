@@ -198,7 +198,10 @@
     "review": "查看",
     "gaps": "{count, plural, =0 {无差距} other {# 个差距}}",
     "compare": "比较",
-    "latest": "最新快照"
+    "latest": "最新快照",
+    "progressErrorTitle": "暂时无法加载你的进度",
+    "progressErrorBody": "你的计划已保存。打开它再试一次。",
+    "progressErrorCta": "打开我的进度"
   },
   "org": {
     "hello": "{org}",

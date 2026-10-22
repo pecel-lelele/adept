@@ -69,6 +69,16 @@ export async function DashboardView({ scenario, query }: { scenario: ScenarioId;
       to: `/app/progress${planQuery}`,
       scene: "rise",
     };
+  } else if (saved && !p) {
+    // Progress could not be read: never claim the path is complete. The progress page
+    // shows the error with a retry.
+    hero = {
+      title: t("progressErrorTitle"),
+      body: t("progressErrorBody"),
+      cta: t("progressErrorCta"),
+      to: `/app/progress${planQuery}`,
+      scene: "rise",
+    };
   } else if (saved) {
     hero = {
       title: t("doneTitle", { role: saved.pathway.role_label }),

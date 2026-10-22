@@ -24,7 +24,7 @@ import {
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
 import {
   activeItem,
@@ -144,11 +144,39 @@ export function TabBar({ ws, tools }: { ws: Workspace; tools: ReactNode }) {
   const [openedAt, setOpenedAt] = useState<string | null>(null);
   // The sheet belongs to the page it was opened on; navigating closes it.
   const open = openedAt === pathname;
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const moreRef = useRef<HTMLButtonElement>(null);
+  // Dismissing the sheet (Escape, backdrop, Close) hands focus back to "More".
+  const dismiss = useCallback(() => {
+    setOpenedAt(null);
+    moreRef.current?.focus();
+  }, []);
 
   useEffect(() => {
     if (!open) return;
+    const sheet = sheetRef.current;
+    const focusables = () =>
+      Array.from(sheet?.querySelectorAll<HTMLElement>("a[href], button:not([disabled]), select, input") ?? []);
+    focusables()[0]?.focus();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpenedAt(null);
+      if (e.key === "Escape") {
+        dismiss();
+        return;
+      }
+      if (e.key !== "Tab") return;
+      // Keep keyboard focus inside the modal sheet.
+      const list = focusables();
+      const first = list[0];
+      const last = list[list.length - 1];
+      if (!first || !last) return;
+      const active = document.activeElement;
+      if (e.shiftKey && (active === first || !sheet?.contains(active))) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && (active === last || !sheet?.contains(active))) {
+        e.preventDefault();
+        first.focus();
+      }
     };
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
@@ -156,7 +184,7 @@ export function TabBar({ ws, tools }: { ws: Workspace; tools: ReactNode }) {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
     };
-  }, [open]);
+  }, [open, dismiss]);
 
   const items = allItems(ws);
   const tabs = ws.tabs
@@ -185,6 +213,7 @@ export function TabBar({ ws, tools }: { ws: Workspace; tools: ReactNode }) {
           );
         })}
         <button
+          ref={moreRef}
           type="button"
           className="a-tab"
           aria-expanded={open}
@@ -200,8 +229,8 @@ export function TabBar({ ws, tools }: { ws: Workspace; tools: ReactNode }) {
       </nav>
       {open ? (
         <>
-          <div className="a-sheet-backdrop" onClick={() => setOpenedAt(null)} />
-          <div className="a-sheet" role="dialog" aria-modal="true" aria-label={t("more")}>
+          <div className="a-sheet-backdrop" onClick={dismiss} />
+          <div ref={sheetRef} className="a-sheet" role="dialog" aria-modal="true" aria-label={t("more")}>
             <div className="a-sheet-grip" />
             <div className="a-sheet-grid">
               {rest.map((item) => {
@@ -233,7 +262,7 @@ export function TabBar({ ws, tools }: { ws: Workspace; tools: ReactNode }) {
               type="button"
               className="a-btn is-ghost is-block"
               style={{ marginTop: 14 }}
-              onClick={() => setOpenedAt(null)}
+              onClick={dismiss}
             >
               {t("close")}
             </button>
