@@ -19,6 +19,7 @@ fake without touching the real trends module.
 from __future__ import annotations
 
 import threading
+import time
 from dataclasses import dataclass
 from datetime import date
 
@@ -34,8 +35,11 @@ TrendUnavailable = TrendUnavailableError
 # Mirrors M1_TIMEOUT_S in pathway/trend_port.py (both guard the same psycopg call).
 # A timed-out DB call holds the sole worker slot until it actually returns.
 SNAPSHOT_TIMEOUT_S: float = 2.0
+# A different snapshot can queue briefly behind the sole M1 worker.
+WORKER_WAIT_S: float = 5.0
 _WORKER_SLOT = threading.BoundedSemaphore(value=1)
 _IN_FLIGHT_LOCK = threading.Lock()
+_IN_FLIGHT_CHANGED = threading.Condition(_IN_FLIGHT_LOCK)
 
 
 @dataclass
@@ -115,31 +119,42 @@ def _call_with_timeout(
 ) -> TrendSnapshotResponse:
     """Share one bounded getter across concurrent requests.
 
-    Concurrent requests wait on the same snapshot. A timed-out thread holds the
-    worker slot until it exits; later requests fail fast while it remains stuck.
+    Concurrent requests for the same snapshot share its result. Other requests
+    wait at most WORKER_WAIT_S for the sole worker slot. A timed-out worker keeps
+    that slot until it actually exits.
     """
     from app.features.trends import service as trends_service
 
     global _IN_FLIGHT
     strict = get_settings().auth_mode != "demo"
-    with _IN_FLIGHT_LOCK:
-        call = _IN_FLIGHT
-        if call is not None and call.timed_out:
-            raise TrendUnavailable(
-                "Trend snapshot unavailable because the previous database read is still running."
-            )
-        if call is not None and (
-            call.scenario != scenario
-            or call.snapshot_date != snapshot_date
-            or call.strict != strict
-        ):
-            raise TrendUnavailable("A different trend snapshot read is still running.")
-        if call is None:
-            if not _WORKER_SLOT.acquire(blocking=False):
-                raise TrendUnavailable(
-                    "Trend snapshot unavailable because the previous database read "
-                    "is still running."
-                )
+    deadline = time.monotonic() + WORKER_WAIT_S
+
+    def busy_error() -> TrendUnavailable:
+        return TrendUnavailable(
+            f"Trend snapshot worker still running after waiting {WORKER_WAIT_S:g}s."
+        )
+
+    while True:
+        with _IN_FLIGHT_CHANGED:
+            call = _IN_FLIGHT
+            if call is not None:
+                if (
+                    not call.timed_out
+                    and call.scenario == scenario
+                    and call.snapshot_date == snapshot_date
+                    and call.strict == strict
+                ):
+                    break
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise busy_error()
+                _IN_FLIGHT_CHANGED.wait(timeout=remaining)
+                continue
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise busy_error()
+            # Reserve this request before releasing the lock. Other callers for
+            # the same key can now join it rather than queueing a duplicate.
             call = _SnapshotCall(
                 done=threading.Event(),
                 scenario=scenario,
@@ -148,40 +163,58 @@ def _call_with_timeout(
             )
             _IN_FLIGHT = call
 
-            def _run() -> None:
-                global _IN_FLIGHT
-                try:
-                    from app.features.trends.repository import TrendsUnavailableError
-                except ImportError as exc:
-                    call.error = exc
-                else:
-                    try:
-                        if strict:
-                            call.value = trends_service.get_snapshot(
-                                snapshot_date=snapshot_date, scenario=scenario, strict=True
-                            )
-                        else:
-                            call.value = trends_service.get_snapshot(
-                                snapshot_date=snapshot_date, scenario=scenario
-                            )
-                    except TrendsUnavailableError as exc:
-                        call.error = exc
-                    except BaseException as exc:  # noqa: BLE001 - re-raised in caller thread
-                        call.error = exc
-                finally:
-                    with _IN_FLIGHT_LOCK:
-                        _WORKER_SLOT.release()
-                        if _IN_FLIGHT is call:
-                            _IN_FLIGHT = None
-                    call.done.set()
+        # Acquiring outside the condition avoids blocking worker cleanup. The
+        # reservation above prevents another waiter from starting a duplicate.
+        if not _WORKER_SLOT.acquire(timeout=remaining):
+            with _IN_FLIGHT_CHANGED:
+                call.error = busy_error()
+                call.done.set()
+                if _IN_FLIGHT is call:
+                    _IN_FLIGHT = None
+                _IN_FLIGHT_CHANGED.notify_all()
+            raise call.error
 
-            worker = threading.Thread(target=_run, name="matching-m1-trends", daemon=True)
+        def _run(active_call: _SnapshotCall) -> None:
+            global _IN_FLIGHT
             try:
-                worker.start()
-            except RuntimeError:
+                from app.features.trends.repository import TrendsUnavailableError
+            except ImportError as exc:
+                active_call.error = exc
+            else:
+                try:
+                    if strict:
+                        active_call.value = trends_service.get_snapshot(
+                            snapshot_date=snapshot_date, scenario=scenario, strict=True
+                        )
+                    else:
+                        active_call.value = trends_service.get_snapshot(
+                            snapshot_date=snapshot_date, scenario=scenario
+                        )
+                except TrendsUnavailableError as exc:
+                    active_call.error = exc
+                except BaseException as exc:  # noqa: BLE001 - re-raised in caller thread
+                    active_call.error = exc
+            finally:
+                with _IN_FLIGHT_CHANGED:
+                    active_call.done.set()
+                    _WORKER_SLOT.release()
+                    if _IN_FLIGHT is active_call:
+                        _IN_FLIGHT = None
+                    _IN_FLIGHT_CHANGED.notify_all()
+
+        worker = threading.Thread(target=_run, args=(call,), name="matching-m1-trends", daemon=True)
+        try:
+            worker.start()
+        except RuntimeError as exc:
+            with _IN_FLIGHT_CHANGED:
+                call.error = TrendUnavailable("Trend snapshot worker could not start.")
+                call.done.set()
                 _WORKER_SLOT.release()
-                _IN_FLIGHT = None
-                raise
+                if _IN_FLIGHT is call:
+                    _IN_FLIGHT = None
+                _IN_FLIGHT_CHANGED.notify_all()
+            raise call.error from exc
+        break
 
     if not call.done.wait(SNAPSHOT_TIMEOUT_S):
         with _IN_FLIGHT_LOCK:
