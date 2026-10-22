@@ -1,9 +1,20 @@
-import { ArrowUpRight, BookOpen, Check, GitCompareArrows, Leaf, Target } from "lucide-react";
+import {
+  ArrowRight,
+  ArrowUpRight,
+  BookOpen,
+  CalendarRange,
+  Check,
+  Clock3,
+  GitCompareArrows,
+  Hourglass,
+  Leaf,
+  Target,
+  Wallet,
+} from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
-import { ApiError, MetaBar, PageHeader } from "@/components";
-import { StepTrack } from "@/components/viz";
+import { ApiError, Kpis, MetaBar, PageHeader } from "@/components";
 import type { ScenarioId, Schemas } from "@/lib/api";
 
 import { acceptReplanAction, savePlanAction } from "../actions";
@@ -11,57 +22,71 @@ import { fetchPathway, fetchPlanStatus } from "../api";
 import { ActionForm } from "./ActionForm";
 import { PathwaySteps } from "./PathwaySteps";
 
-/** Three headline numbers and the step track, then the plan's fine print on request. */
+/** The plan's four numbers: how long, how many hours a week, hours in total, what it costs. */
 async function Summary({ plan }: { plan: Schemas["Pathway"] }) {
+  const tp = await getTranslations("ui.page");
   const t = await getTranslations("pathway");
-  const d = await getTranslations("common.design");
-  const metrics = [
-    { label: d("duration"), value: plan.total_weeks, unit: "" },
-    { label: d("pace"), value: plan.hours_per_week ?? 0, unit: "h" },
-    { label: d("cost"), value: plan.out_of_pocket_myr ?? 0, unit: "RM" },
+  const over = plan.within_budget === false;
+  return (
+    <Kpis
+      items={[
+        { label: tp("kDuration"), value: plan.total_weeks, unit: tp("weeksUnit"), icon: <CalendarRange size={15} />, note: tp("estimate") },
+        { label: tp("kTime"), value: plan.hours_per_week ?? 0, unit: tp("hPerWeek"), icon: <Clock3 size={15} />, note: tp("fromProfile") },
+        { label: tp("kTotalHours"), value: plan.total_hours ?? 0, unit: "h", icon: <Hourglass size={15} />, note: tp("kSteps", { count: plan.steps.length }) },
+        {
+          label: tp("kCost"),
+          value: `RM ${(plan.out_of_pocket_myr ?? 0).toLocaleString("en-MY")}`,
+          icon: <Wallet size={15} />,
+          tone: over ? "warn" : undefined,
+          note: over ? t("summary.overBudget") : tp("withinBudget", { budget: plan.budget_myr ?? 0 }),
+        },
+      ]}
+    />
+  );
+}
+
+/** Side column: where to go from the plan, then the plan's notes in full. */
+async function PlanAside({ plan, query }: { plan: Schemas["Pathway"]; query: string }) {
+  const t = await getTranslations("pathway");
+  const tp = await getTranslations("ui.page");
+  const links = [
+    { to: `/app/progress${query}`, icon: <Target size={16} aria-hidden />, label: t("plan.progressLink") },
+    { to: `/app/sdg${query}`, icon: <Leaf size={16} aria-hidden />, label: t("plan.sdgLink") },
+    { to: `/app/courses${query}`, icon: <BookOpen size={16} aria-hidden />, label: t("catalogue.browse") },
+    { to: `/app/pathway/compare${query}`, icon: <GitCompareArrows size={16} aria-hidden />, label: t("compare.link") },
   ];
   return (
-    <section className="a-metrics">
-      {metrics.map((m) => (
-        <div key={m.label} className="a-card a-metric">
-          <span className="a-eyebrow">{m.label}</span>
-          <strong>
-            {m.unit === "RM" ? <small>RM</small> : null}
-            {m.value}
-            {m.unit === "h" ? <small>h</small> : null}
-          </strong>
+    <aside className="a-aside is-sticky">
+      <nav className="a-card a-flush" aria-label={tp("usePlan")}>
+        <div className="a-card-head a-pad">
+          <h2>{tp("usePlan")}</h2>
         </div>
-      ))}
-      <div className="a-card a-metric is-track">
-        <span className="a-eyebrow">{t("summary.title")}</span>
-        <StepTrack
-          steps={plan.steps.slice(0, 6).map((s, i) => ({
-            id: s.skill_id,
-            label: s.skill_label || s.skill_id,
-            state: i === 0 ? "current" : "todo",
-          }))}
-        />
-      </div>
-      {plan.within_budget === false ? (
-        <p className="a-notice is-full" role="status">
-          {t("summary.overBudget")}
-        </p>
-      ) : null}
-      <details className="a-disclosure is-full">
-        <summary>{d("planDetails")}</summary>
-        <div>
-          <p>
-            {t("summary.totalHours", { hours: plan.total_hours ?? 0 })} ·{" "}
-            {t("summary.outOfPocket", { amount: plan.out_of_pocket_myr ?? 0, budget: plan.budget_myr ?? 0 })}
-          </p>
-          {plan.hrd_eligible ? <p>{t("summary.hrdNote")}</p> : null}
-          {(plan.warnings ?? []).map((w) => (
-            <p key={w}>{w}</p>
+        <ul className="a-linklist">
+          {links.map((l) => (
+            <li key={l.to}>
+              <Link href={l.to}>
+                {l.icon}
+                <span>{l.label}</span>
+                <ArrowRight size={14} aria-hidden />
+              </Link>
+            </li>
           ))}
-          <p className="a-muted">{t("estimateNote")}</p>
+        </ul>
+      </nav>
+      <section className="a-card is-sage" aria-labelledby="h-notes">
+        <div className="a-card-head">
+          <h2 id="h-notes">{tp("planNotes")}</h2>
         </div>
-      </details>
-    </section>
+        <ul className="a-notes">
+          <li>{t("summary.outOfPocket", { amount: plan.out_of_pocket_myr ?? 0, budget: plan.budget_myr ?? 0 })}</li>
+          {plan.hrd_eligible ? <li>{t("summary.hrdNote")}</li> : null}
+          {(plan.warnings ?? []).map((w) => (
+            <li key={w}>{w}</li>
+          ))}
+          <li>{t("estimateNote")}</li>
+        </ul>
+      </section>
+    </aside>
   );
 }
 
@@ -100,6 +125,7 @@ export async function PathwayView({
 }) {
   const t = await getTranslations("pathway");
   const d = await getTranslations("common.design");
+  const tp = await getTranslations("ui.page");
   const [result, status] = await Promise.all([fetchPathway(roleId, scenario, snapshotDate), fetchPlanStatus()]);
   if (!result.ok) return <ApiError message={result.message} />;
   const saved = status.ok ? status.data.saved : null;
@@ -123,50 +149,40 @@ export async function PathwayView({
   );
 
   return (
-    <div className="a-stack" style={{ gap: 24 }}>
+    <div className="a-view">
       <PageHeader
-        eyebrow={d("curriculum")}
+        eyebrow={tp("stepOf", { step: 4 })}
         title={plan.role_label || plan.role_id}
         description={`${t("totalWeeks", { weeks: plan.total_weeks })} · ${d("pathBody")}`}
         actions={action}
       >
         <MetaBar meta={plan.meta} />
       </PageHeader>
-      {!savedHere && !snapshotDate ? <p className="a-small a-muted" style={{ margin: "-12px 0 0" }}>{t("plan.decide")}</p> : null}
+      {!savedHere && !snapshotDate ? <p className="a-notice" data-tone="info">{t("plan.decide")}</p> : null}
       {status.ok && savedHere ? <ReplanBanner status={status.data} /> : null}
       <Summary plan={plan} />
 
-      <nav className="a-toolbar" aria-label={d("options")}>
-        <Link href={`/app/progress${query}`} className="a-tool">
-          <Target size={16} aria-hidden /> {t("plan.progressLink")}
-        </Link>
-        <Link href={`/app/sdg${query}`} className="a-tool">
-          <Leaf size={16} aria-hidden /> {t("plan.sdgLink")}
-        </Link>
-        <Link href={`/app/courses${query}`} className="a-tool">
-          <BookOpen size={16} aria-hidden /> {t("catalogue.browse")}
-        </Link>
-        <Link href={`/app/pathway/compare${query}`} className="a-tool">
-          <GitCompareArrows size={16} aria-hidden /> {t("compare.link")}
-        </Link>
-      </nav>
-
-      <PathwaySteps steps={plan.steps} />
-      {(plan.unmet ?? []).length > 0 ? (
-        <section className="a-card">
-          <div className="a-card-head">
-            <h2>{t("unmet.title")}</h2>
-          </div>
-          <div className="a-card-body">
-            {(plan.unmet ?? []).map((u) => (
-              <div key={u.skill_id} className="a-unmet">
-                <strong>{u.label}</strong> <span className="a-chip" data-tone="warn">{t(`unmet.${u.reason}`)}</span>
-                <p className="a-small a-muted">{u.detail}</p>
+      <div className="a-split is-wide">
+        <div className="a-stack">
+          <PathwaySteps steps={plan.steps} />
+          {(plan.unmet ?? []).length > 0 ? (
+            <section className="a-card">
+              <div className="a-card-head">
+                <h2>{t("unmet.title")}</h2>
               </div>
-            ))}
-          </div>
-        </section>
-      ) : null}
+              <div className="a-card-body">
+                {(plan.unmet ?? []).map((u) => (
+                  <div key={u.skill_id} className="a-unmet">
+                    <strong>{u.label}</strong> <span className="a-chip" data-tone="warn">{t(`unmet.${u.reason}`)}</span>
+                    <p className="a-small a-muted">{u.detail}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          ) : null}
+        </div>
+        <PlanAside plan={plan} query={query} />
+      </div>
     </div>
   );
 }
