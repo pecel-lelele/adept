@@ -35,7 +35,7 @@ from app.contracts.pathway import (
 from app.contracts.profile import Profile
 from app.contracts.sdg import SdgTarget
 from app.core.auth import CurrentUser
-from app.core.errors import AppError, NotFoundError
+from app.core.errors import AppError, NotFoundError, ProfileRequiredError
 from app.features.org import repository as org_repository
 from app.features.pathway import (
     data,
@@ -56,8 +56,27 @@ CATALOGUE_SOURCE_FALLBACK = "Adept course catalogue"
 
 
 def learner_for(user: CurrentUser) -> engine.Learner:
-    """Only skills, time, budget and HRD Corp eligibility; never identity (fairness)."""
+    """Only skills, time, budget and HRD Corp eligibility; never identity (fairness).
+
+    A plan needs a saved profile (same rule as matching): planning for an empty profile would
+    show weeks and costs for skills the learner was never asked about."""
+    if not profile_service.has_profile(user.id):
+        raise ProfileRequiredError()
     return _learner(profile_service.get_my_profile(user))
+
+
+def resolve_role(user: CurrentUser, role_id: str | None) -> str:
+    """The requested role, else the learner's saved target role; the learner always chooses."""
+    if role_id:
+        return role_id
+    saved = repository.get_plan(user.id)
+    if saved is None:
+        raise AppError(
+            "Choose a target role first: compare your matches and save a plan.",
+            status_code=409,
+            code="role_required",
+        )
+    return saved.role_id
 
 
 def _learner(profile: Profile) -> engine.Learner:

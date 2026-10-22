@@ -39,7 +39,9 @@ def _recommendation_gets() -> list[tuple[str, dict[str, str]]]:
         query = {
             p["name"]: QUERY_VALUES[p["name"]]
             for p in op.get("parameters", [])
-            if p["in"] == "query" and p.get("required")
+            # Required parameters, plus a role for endpoints that otherwise fall back to the
+            # learner's saved plan (the fixtures have none).
+            if p["in"] == "query" and (p.get("required") or p["name"] in QUERY_VALUES)
         }
         out.append((url, query))
     return out
