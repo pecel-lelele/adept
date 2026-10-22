@@ -1,16 +1,19 @@
+import { Bot, Minus, Radar, TrendingDown, TrendingUp } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
-import { MetaBar } from "@/components";
+import { Kpis, MetaBar, PageHeader, TrendPill } from "@/components";
 import { ErrorState } from "@/components/ErrorState";
-import { Scene3D, TrendBars } from "@/components/viz";
+import { TrendBars } from "@/components/viz";
+import { fetchMyProfile } from "@/features/profile/api";
 import type { ScenarioId } from "@/lib/api";
 
 import { fetchRadar } from "../api";
 import { SignalExplorer } from "./SignalExplorer";
 
 /**
- * Step 2, the Future Skills Radar. Hierarchy: how many skills rise / hold / decline →
- * the strongest movers as a diverging chart → the full searchable list, collapsed.
+ * Step 2, the Future Skills Radar. Hierarchy: how many skills rise / hold / decline → the
+ * strongest movers as a labelled diverging chart, beside the learner's own skills (or, for
+ * an organisation, the skills most exposed to automation) → every tracked skill, searchable.
  */
 export async function RadarView({
   scenario,
@@ -23,60 +26,105 @@ export async function RadarView({
 }) {
   const t = await getTranslations("trends");
   const d = await getTranslations("common.design");
-  const result = await fetchRadar(scenario, snapshotDate);
+  const tp = await getTranslations("ui.page");
+  const [result, profile] = await Promise.all([
+    fetchRadar(scenario, snapshotDate),
+    context === "individual" ? fetchMyProfile() : Promise.resolve(null),
+  ]);
   if (!result.ok) return <ErrorState failure={result} />;
   const { items, meta } = result.data;
   const v = scenario === "fast" ? "velocity_fast" : "velocity_moderate";
   const dir = scenario === "fast" ? "direction_fast" : "direction_moderate";
   const count = (x: string) => items.filter((i) => i[dir] === x).length;
   const sorted = [...items].sort((a, b) => b[v] - a[v]);
-  const movers = [...sorted.slice(0, 7), ...sorted.slice(-7).filter((i) => i[v] < 0)]
+  const movers = [...sorted.slice(0, 6), ...sorted.slice(-6).filter((i) => i[v] < 0)]
     .filter((i, n, all) => all.findIndex((x) => x.skill_id === i.skill_id) === n)
     .map((i) => ({ id: i.skill_id, label: i.skill_label, value: i[v], direction: i[dir] }));
+  const byId = new Map(items.map((i) => [i.skill_id, i]));
+  const mine = profile?.ok
+    ? profile.data.skills
+        .map((s) => ({ id: s.skill_id, item: byId.get(s.skill_id) }))
+        .sort((a, b) => (b.item?.[v] ?? -99) - (a.item?.[v] ?? -99))
+    : [];
+  const exposed = [...items].sort((a, b) => b.automation_exposure - a.automation_exposure).slice(0, 8);
 
   return (
-    <div className="a-stack">
-      <section className="a-hero" style={{ minHeight: 0 }}>
-        <div>
-          <span className="a-eyebrow">
-            {meta.snapshot_date} · {meta.sources.map((s) => s.name).join(" + ")}
-          </span>
-          <h1>{context === "organisation" ? t("orgTitle") : t("title")}</h1>
-          <div className="a-stats" style={{ maxWidth: 460 }}>
-            <div className="a-stat" style={{ background: "#e3f3e9" }}>
-              <strong style={{ color: "var(--a-up)" }}>▲ {count("rising")}</strong>
-              <span>{d("rising")}</span>
-            </div>
-            <div className="a-stat">
-              <strong>• {count("stable")}</strong>
-              <span>{d("stable")}</span>
-            </div>
-            <div className="a-stat" style={{ background: "#f9e6e1" }}>
-              <strong style={{ color: "var(--a-down)" }}>▼ {count("declining")}</strong>
-              <span>{d("declining")}</span>
-            </div>
+    <div className="a-view">
+      <PageHeader
+        eyebrow={context === "organisation" ? tp("radarEyebrowOrg") : tp("stepOf", { step: 2 })}
+        title={context === "organisation" ? t("orgTitle") : t("title")}
+        description={tp("radarDesc")}
+      >
+        <MetaBar meta={meta} />
+      </PageHeader>
+
+      <Kpis
+        items={[
+          { label: d("rising"), value: count("rising"), icon: <TrendingUp size={15} />, tone: "up", note: tp("risingNote") },
+          { label: d("stable"), value: count("stable"), icon: <Minus size={15} />, note: tp("stableNote") },
+          { label: d("declining"), value: count("declining"), icon: <TrendingDown size={15} />, tone: "down", note: tp("decliningNote") },
+          {
+            label: tp("kTracked"),
+            value: items.length,
+            icon: <Radar size={15} />,
+            note: tp("asOf", { date: meta.snapshot_date }),
+          },
+        ]}
+      />
+
+      <div className="a-split">
+        <section className="a-card" aria-labelledby="h-movers">
+          <div className="a-card-head">
+            <h2 id="h-movers">{tp("movers")}</h2>
           </div>
-        </div>
-        <Scene3D variant="orbit" />
-      </section>
+          <p className="a-card-sub">{tp("moversHint")}</p>
+          <TrendBars items={movers} axis={{ down: d("declining"), up: d("rising") }} />
+        </section>
 
-      <section className="a-card">
+        {context === "individual" ? (
+          <section className="a-card" aria-labelledby="h-mine">
+            <div className="a-card-head">
+              <h2 id="h-mine">{tp("yourSkills")}</h2>
+            </div>
+            {mine.length ? (
+              <ul className="a-mini">
+                {mine.map(({ id, item }) => (
+                  <li key={id}>
+                    <span>{item?.skill_label ?? id}</span>
+                    <TrendPill direction={item?.[dir]} />
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="a-muted a-small">{tp("yourSkillsNone")}</p>
+            )}
+          </section>
+        ) : (
+          <section className="a-card" aria-labelledby="h-exposed">
+            <div className="a-card-head">
+              <h2 id="h-exposed">
+                <Bot size={16} aria-hidden /> {tp("exposed")}
+              </h2>
+            </div>
+            <p className="a-card-sub">{tp("exposedHint")}</p>
+            <ul className="a-mini">
+              {exposed.map((i) => (
+                <li key={i.skill_id}>
+                  <span>{i.skill_label}</span>
+                  <b>{Math.round(i.automation_exposure * 100)}%</b>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+      </div>
+
+      <section className="a-card" aria-labelledby="h-all">
         <div className="a-card-head">
-          <h2>{d("skills")}</h2>
-          <span className="a-chip">{d("rising")} / {d("declining")}</span>
+          <h2 id="h-all">{tp("allSkills")}</h2>
         </div>
-        <TrendBars items={movers} />
+        <SignalExplorer items={items} scenario={scenario} dates={meta.available_snapshots} date={meta.snapshot_date} />
       </section>
-
-      <details className="a-card">
-        <summary style={{ cursor: "pointer", fontWeight: 600 }}>
-          {d("explore")} · {items.length}
-        </summary>
-        <div style={{ marginTop: 16 }}>
-          <SignalExplorer items={items} scenario={scenario} dates={meta.available_snapshots} date={meta.snapshot_date} />
-        </div>
-      </details>
-      <MetaBar meta={meta} />
       {meta.data_provenance_note ? <p className="a-small a-muted">{meta.data_provenance_note}</p> : null}
     </div>
   );
