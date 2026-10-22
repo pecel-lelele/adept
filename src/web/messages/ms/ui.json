@@ -262,7 +262,7 @@
     "tf4Body": "Kursus tersusun untuk peranan yang dipilih, menunjukkan ahli yang berkaitan bagi setiap langkah.",
     "tf5": "Kursus HRD Corp ditanda",
     "tf5Body": "Kursus yang boleh dituntut di bawah levi latihan organisasi anda ditanda, dengan sumber dan tarikh.",
-    "tf6": "Penyelesaian disahkan",
+    "tf6": "Penyelesaian yang disemak",
     "tf6Body": "Ahli menambah bukti penyelesaian. Anda mengesahkannya sebelum dikira, dengan nota balas jika perlu.",
     "forTeamEyebrow": "Untuk HR, L&D dan pusat kerjaya",
     "navFeatures": "Ciri",
@@ -542,6 +542,7 @@
     "goalsHint": "Matlamat berwarna disokong oleh laluan anda",
     "backToRoles": "Semua peranan",
     "sdgWeighted": "Matlamat PBB dikira {weight}%",
-    "outlookHint": "Unjuran permintaan peranan ini bagi setiap kadar AI: 1.00 bermaksud tiada perubahan. Bar menunjukkan julat anggaran."
+    "outlookHint": "Unjuran permintaan peranan ini bagi setiap kadar AI: 1.00 bermaksud tiada perubahan. Bar menunjukkan julat anggaran.",
+    "historical": "Data sejarah: isyarat ini mengukur {from} hingga {to} dan dimainkan semula di sini sebagai snapshot {date}. Ia bukan pemerhatian yang lebih baharu."
   }
 }

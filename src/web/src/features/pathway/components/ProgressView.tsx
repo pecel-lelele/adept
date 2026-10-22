@@ -20,6 +20,14 @@ export async function ProgressView({ roleId, scenario }: { roleId: string; scena
   // Courses come from the plan the API tracks progress against, so every button is valid.
   const courses = p.pathway.steps.flatMap((s) => s.courses.map((c) => ({ ...c, step: s.order })));
   const unique = courses.filter((c, i) => courses.findIndex((x) => x.id === c.id) === i);
+  // Badge names come from translations keyed by the stable badge id, not the API's English text.
+  const skillLabel = new Map(p.skills.map((s) => [s.skill_id, s.label]));
+  const badgeLabel = (b: (typeof p.badges)[number]) => {
+    const [kind, key] = b.id.split(":");
+    if (kind === "skill" && b.skill_id) return t("badge.skill", { skill: skillLabel.get(b.skill_id) ?? b.skill_id });
+    if (key === "first" || key === "halfway" || key === "complete") return t(`badge.${key}`);
+    return b.label;
+  };
   const done = unique.filter((c) => p.course_status[c.id] === "completed").length;
 
   return (
@@ -140,7 +148,7 @@ export async function ProgressView({ roleId, scenario }: { roleId: string; scena
                 {p.badges.map((b) => (
                   <span key={b.id} className="a-badge" data-kind={b.kind}>
                     <Award size={18} aria-hidden />
-                    <strong>{b.label}</strong>
+                    <strong>{badgeLabel(b)}</strong>
                     <small>
                       {t(`evidence.kind.${b.evidence ?? "self_reported"}`)} · {b.earned_at}
                     </small>

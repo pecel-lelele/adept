@@ -108,10 +108,10 @@
     }
   },
   "evidence": {
-    "hint": "Menanda kursus ialah laporan sendiri. Tambah pautan sijil penyedia untuk mengukuhkannya; HR atau penasihat kerjaya anda boleh mengesahkannya.",
+    "hint": "Menanda kursus adalah laporan kendiri. Pautan sijil menunjukkan halaman kursus wujud, bukan bahawa anda memiliki kemahiran itu; HR atau penasihat kerjaya anda boleh mengesahkannya.",
     "addProof": "Tambah pautan sijil",
     "urlPlaceholder": "https://www.coursera.org/account/accomplishments/verify/…",
-    "sent": "Pautan disimpan dan disemak.",
+    "sent": "Pautan disimpan. Kami hanya menyemak bahawa ia dibuka di laman penyedia; penyemak mengesahkan sama ada ia milik anda.",
     "reviewNote": "Nota penyemak: {note}",
     "kind": {
       "self_reported": "Dilaporkan sendiri",
@@ -121,7 +121,7 @@
     },
     "link": {
       "not_submitted": "belum ada pautan",
-      "provider_verified": "halaman rasmi penyedia, disemak",
+      "provider_verified": "pautan dibuka di laman penyedia (pemilikan dan kandungan tidak disemak)",
       "unreachable": "pautan tidak dapat dibuka",
       "not_provider_page": "bukan halaman pengesahan rasmi: perlu disemak secara manual"
     }
@@ -178,5 +178,11 @@
     "snapshot": "Petikan trend {version}.",
     "seeMatches": "Lihat padanan anda mengikut kedudukan",
     "humanInCharge": "Perbandingan ini menyokong keputusan anda; ia tidak menyusun atau memilih peranan untuk anda."
+  },
+  "badge": {
+    "first": "Kursus pertama selesai",
+    "halfway": "Separuh jalan",
+    "complete": "Pelan selesai",
+    "skill": "{skill} pada tahap sasaran"
   }
 }

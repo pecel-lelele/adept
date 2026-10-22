@@ -262,7 +262,7 @@
     "tf4Body": "Ordered courses for the chosen role, showing which members each step applies to.",
     "tf5": "HRD Corp-claimable flagged",
     "tf5Body": "Courses your organisation can claim under its training levy are marked, with the source and date.",
-    "tf6": "Verified completions",
+    "tf6": "Reviewed completions",
     "tf6Body": "Members add proof of completion. You confirm it before it counts, with a note back if needed.",
     "forTeamEyebrow": "For HR, L&D and career centres",
     "navFeatures": "Features",
@@ -542,6 +542,7 @@
     "goalsHint": "Coloured goals are supported by your path",
     "backToRoles": "All roles",
     "sdgWeighted": "UN Goals count {weight}%",
-    "outlookHint": "Projected demand for this role under each AI pace: 1.00 means no change. The bar shows the estimated range."
+    "outlookHint": "Projected demand for this role under each AI pace: 1.00 means no change. The bar shows the estimated range.",
+    "historical": "Historical data: these signals measure {from} to {to} and are replayed here as the {date} snapshot. They are not newer observations."
   }
 }

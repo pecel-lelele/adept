@@ -108,10 +108,10 @@
     }
   },
   "evidence": {
-    "hint": "勾选课程属于自行报告。添加提供方的证书链接可增强可信度；您的 HR 或职业顾问可以确认。",
+    "hint": "勾选课程属于自我报告。证书链接只说明课程页面存在，并不证明你已掌握该技能；你的 HR 或职业顾问可以确认。",
     "addProof": "添加证书链接",
     "urlPlaceholder": "https://www.coursera.org/account/accomplishments/verify/…",
-    "sent": "链接已保存并检查。",
+    "sent": "链接已保存。我们只检查了它能在提供方网站打开；是否属于你由审核人确认。",
     "reviewNote": "审核备注：{note}",
     "kind": {
       "self_reported": "自行报告",
@@ -121,7 +121,7 @@
     },
     "link": {
       "not_submitted": "尚无链接",
-      "provider_verified": "官方提供方页面，已检查",
+      "provider_verified": "链接可在提供方网站打开（未核验归属和内容）",
       "unreachable": "无法打开链接",
       "not_provider_page": "非官方验证页面：需要人工核对"
     }
@@ -178,5 +178,11 @@
     "snapshot": "趋势快照 {version}。",
     "seeMatches": "查看你的匹配排名",
     "humanInCharge": "此比较仅辅助你的决定，不会替你排序或选择职位。"
+  },
+  "badge": {
+    "first": "完成第一门课程",
+    "halfway": "已完成一半",
+    "complete": "计划已完成",
+    "skill": "{skill} 已达到目标水平"
   }
 }
