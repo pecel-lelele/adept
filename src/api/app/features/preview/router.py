@@ -30,13 +30,29 @@ class TopRole(BaseModel):
     trend_coverage: float
 
 
+class SkillTrend(BaseModel):
+    """How one extracted skill moves in the latest snapshot (free part of the preview)."""
+
+    skill_id: str
+    label: str
+    direction: Literal["rising", "stable", "declining"]
+
+
 class GuestPreview(BaseModel):
     skills: list[ExtractedSkill]
+    skill_trends: list[SkillTrend] = []
     top_role: TopRole | None
     other_role_count: int
     meta: RecommendationMeta
     truncated: bool
     requires_skill_confirmation: Literal[True] = True
+
+
+DIRECTION_BAND = 0.05  # same band as the trend pipeline
+
+
+def _direction(v: float) -> Literal["rising", "stable", "declining"]:
+    return "rising" if v > DIRECTION_BAND else "declining" if v < -DIRECTION_BAND else "stable"
 
 
 def build_preview(
@@ -61,8 +77,16 @@ def build_preview(
     with path.open(encoding="utf-8") as handle:
         labels = {row["id"]: row["label"] for row in csv.DictReader(handle)}
     top = ranked[0] if ranked else None
+    trends = [
+        SkillTrend(
+            skill_id=s.skill_id, label=s.label, direction=_direction(snap.velocities[s.skill_id])
+        )
+        for s in extraction.skills
+        if s.skill_id in snap.velocities
+    ]
     return GuestPreview(
         skills=extraction.skills,
+        skill_trends=trends,
         top_role=TopRole(
             role_id=top.role_id,
             label=labels[top.role_id],
@@ -89,7 +113,11 @@ async def preview_cv(
     scenario: ScenarioId = "moderate",
 ) -> GuestPreview:
     if not synthetic_consent:
-        raise AppError("Confirm this is a synthetic CV.", status_code=422, code="consent_required")
+        raise AppError(
+            "Please agree that we may read your CV (it is not stored).",
+            status_code=422,
+            code="consent_required",
+        )
     content_type = (file.content_type or "").split(";")[0].lower().strip()
     if content_type not in {"application/pdf", "text/plain"}:
         raise AppError("Use PDF or plain text.", status_code=415, code="unsupported_media_type")

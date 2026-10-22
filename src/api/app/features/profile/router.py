@@ -16,7 +16,13 @@ import asyncio
 
 from fastapi import APIRouter, UploadFile
 
-from app.contracts.profile import CvExtractionResult, Profile, ProfileIn, SkillsUpdate
+from app.contracts.profile import (
+    CvExtractionResult,
+    Profile,
+    ProfileIn,
+    SkillCatalogueResponse,
+    SkillsUpdate,
+)
 from app.core.auth import CurrentUserDep
 from app.core.config import get_settings
 from app.core.errors import AppError
@@ -74,6 +80,11 @@ def submit_questionnaire(data: QuestionnaireIn, user: CurrentUserDep) -> Questio
 @router.post("", summary="Upsert core profile fields")
 def upsert_profile(data: ProfileIn, user: CurrentUserDep) -> Profile:
     return service.upsert_profile(user, data)
+
+
+@router.get("/skills/catalogue", summary="Skill bank for the skill picker")
+def skill_catalogue() -> SkillCatalogueResponse:
+    return service.skill_catalogue()
 
 
 @router.get("/me", summary="Get current user profile")

@@ -51,3 +51,18 @@ class CvExtractionResult(BaseModel):
     skills: list[ExtractedSkill]
     truncated: bool = False
     meta: RecommendationMeta
+
+
+class SkillOption(BaseModel):
+    """One entry of the skill bank a learner picks from (taxonomy/skills.csv)."""
+
+    id: str
+    label: str
+    group: str = Field(description="e.g. 'Emerging AI-native skill'; empty if ungrouped.")
+
+
+class SkillCatalogueResponse(BaseModel):
+    skills: list[SkillOption]
+    interests: list[str] = Field(
+        default_factory=list, description="Interest tags used by role matching (roles.csv)."
+    )
