@@ -1,0 +1,115 @@
+"""Atomic annual budgets; database failures never switch to volatile storage."""
+
+from collections.abc import Callable
+from threading import RLock
+from typing import Any, TypeVar
+
+import psycopg
+from psycopg.types.json import Jsonb
+
+from app.contracts.funding import FundingState
+from app.core.db import connection
+from app.core.refdata import StorageUnavailableError, use_postgres
+
+T = TypeVar("T")
+_memory: dict[str, FundingState] = {}
+_lock = RLock()
+
+
+def transact(org_id: str, year: int, change: Callable[[FundingState], T]) -> T:
+    if not use_postgres():
+        with _lock:
+            state = _memory.get(org_id, FundingState()).model_copy(deep=True)
+            result = change(state)
+            _memory[org_id] = state
+            return result
+    try:
+        with connection() as conn, conn.transaction():
+            conn.execute(
+                "INSERT INTO learning_funding (org_id) VALUES (%s) ON CONFLICT DO NOTHING",
+                (org_id,),
+            )
+            row = conn.execute(
+                "SELECT state FROM learning_funding WHERE org_id = %s FOR UPDATE",
+                (org_id,),
+            ).fetchone()
+            if row is None:
+                raise StorageUnavailableError("funding ledger is missing")
+            state = FundingState.model_validate(row["state"])
+            result = change(state)
+            conn.execute(
+                "UPDATE learning_funding SET state = %s WHERE org_id = %s",
+                (Jsonb(state.model_dump(mode="json")), org_id),
+            )
+            return result
+    except psycopg.Error as exc:
+        raise StorageUnavailableError("could not save the funding ledger") from exc
+
+
+def _purge(state: FundingState, user_id: str) -> None:
+    state.budgets = {k: v for k, v in state.budgets.items() if k.split(":", 1)[-1] != user_id}
+    state.claims = [c for c in state.claims if c.user_id != user_id]
+    state.budget_events = [
+        e
+        for e in state.budget_events
+        if e.actor_id != user_id and not e.note.startswith(user_id + ":")
+    ]
+    for package in state.packages:
+        package.members = [m for m in package.members if m.user_id != user_id]
+        if package.selected_by == user_id:
+            package.selected_by = None
+    for claim in state.claims:
+        for event in claim.events:
+            if event.actor_id == user_id:
+                event.actor_id = "deleted-account"
+                event.note = ""
+
+
+def forget_user(user_id: str, conn: psycopg.Connection[Any] | None = None) -> None:
+    """Purge embedded learning/receipt records in the account deletion transaction."""
+    if conn is not None:
+        rows = conn.execute("SELECT org_id, state FROM learning_funding FOR UPDATE").fetchall()
+        for row in rows:
+            state = FundingState.model_validate(row["state"])
+            _purge(state, user_id)
+            conn.execute(
+                "UPDATE learning_funding SET state = %s WHERE org_id = %s",
+                (Jsonb(state.model_dump(mode="json")), row["org_id"]),
+            )
+    else:
+        with _lock:
+            for state in _memory.values():
+                _purge(state, user_id)
+
+
+def export_user(user_id: str) -> list[dict[str, object]]:
+    if use_postgres():
+        try:
+            with connection() as conn:
+                rows = conn.execute("SELECT org_id, state FROM learning_funding").fetchall()
+        except psycopg.Error as exc:
+            raise StorageUnavailableError("could not export learning funding") from exc
+        states = [(r["org_id"], FundingState.model_validate(r["state"])) for r in rows]
+    else:
+        with _lock:
+            states = [(org, state.model_copy(deep=True)) for org, state in _memory.items()]
+    result: list[dict[str, object]] = []
+    for org_id, state in states:
+        budgets = {k: str(v) for k, v in state.budgets.items() if k.split(":", 1)[-1] == user_id}
+        claims = [c.model_dump(mode="json") for c in state.claims if c.user_id == user_id]
+        assignments = [
+            dict(
+                token=p.token,
+                kind=p.kind,
+                selected_at=str(p.selected_at),
+                pathway=m.pathway.model_dump(mode="json"),
+            )
+            for p in state.packages
+            for m in p.members
+            if m.user_id == user_id
+        ]
+        if budgets or claims or assignments:
+            result.append(
+                dict(org_id=org_id, budgets=budgets, claims=claims, assignments=assignments)
+            )
+    return result

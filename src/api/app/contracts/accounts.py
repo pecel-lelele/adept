@@ -62,6 +62,7 @@ class AccountExport(BaseModel):
         description="Every course you tracked, across all target roles, with its evidence.",
     )
     badges: dict[str, str] = Field(default_factory=dict, description="Badge id -> date earned.")
+    learning_funding: list[dict[str, object]] = Field(default_factory=list)
     notice: str = (
         "This file holds your Adept account, profile, plans, course progress, completion "
         "evidence and badges. CV files are never stored: they are read in memory and discarded."

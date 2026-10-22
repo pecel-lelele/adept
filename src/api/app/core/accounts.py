@@ -139,6 +139,8 @@ def delete(user_id: str, *, strict: bool = False) -> None:
     strict=False (undoing a failed sign-up) only logs a database error; strict=True (the person
     asked to delete their account) raises it so they are never told it worked when it did not.
     """
+    from app.features.org import funding_store
+
     if use_postgres():
         try:
             with connection() as conn, conn.transaction():
@@ -152,6 +154,7 @@ def delete(user_id: str, *, strict: bool = False) -> None:
                     """,
                     (user_id, user_id),
                 ).fetchall()
+                funding_store.forget_user(user_id, conn)
                 conn.execute("DELETE FROM users WHERE id = %s", (user_id,))
                 for row in orphaned:
                     conn.execute("DELETE FROM organizations WHERE id = %s", (row["org_id"],))
@@ -159,6 +162,8 @@ def delete(user_id: str, *, strict: bool = False) -> None:
             if strict:
                 raise StorageUnavailableError("could not delete the account") from exc
             log.error("could not undo sign-up for %s: %s", user_id, exc)
+    else:
+        funding_store.forget_user(user_id)
     with _lock:
         _memory.pop(user_id, None)
     forget(user_id)

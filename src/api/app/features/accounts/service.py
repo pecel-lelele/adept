@@ -114,6 +114,7 @@ def login(body: LoginIn) -> SessionResponse:
 
 def export(user: CurrentUser) -> AccountExport:
     """Everything stored about the signed-in person, as one JSON document (PDPA access)."""
+    from app.features.org import funding_store
     from app.features.pathway import repository as pathway_repository
     from app.features.pathway import service as pathway_service
 
@@ -147,6 +148,7 @@ def export(user: CurrentUser) -> AccountExport:
         plan_history=[p.model_dump(mode="json") for p in store.plan_history(user.id)],
         learning=learning,
         badges={badge: day.isoformat() for badge, day in badges.items()},
+        learning_funding=funding_store.export_user(user.id),
     )
 
 

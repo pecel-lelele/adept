@@ -1041,3 +1041,13 @@
 - **Affects**: M2 profile/matching; M3 pathway and contracts; M4 organisation defaults. Append-only migration required before seeding.
 - **Replaces**: none
 - **PR / branch**: feat/catalogue-roles-skills-courses
+
+### M4-034: feat(org): persist private member budgets and funding ledgers
+- **Date**: 2026-10-23
+- **Feature**: F1, F4, F5, F6, F7 / Core integration
+- **Type**: schema | contract
+- **Change**: Add typed decimal MYR budgets, immutable course snapshots, request revisions and audit events. Store all budget years in one locked ledger per organisation, with RLS and no public policy; the memory store is synthetic-test-only. Embedded funding and assignment data participate in account export and transactional deletion.
+- **Why**: Per-member caps must remain correct across concurrent API workers, restarts and repeated requests; new private data must not outlive the account deletion flow.
+- **Affects**: M4 accounts/org; M3 course snapshots. Append-only learning_funding migration, no dependencies.
+- **Replaces**: none
+- **PR / branch**: feat/catalogue-roles-skills-courses
