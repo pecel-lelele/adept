@@ -36,7 +36,26 @@ def test_broken_runs_are_refused() -> None:
     assert any("non-finite" in e for e in run.validate(rows, set(ids), "2026-W41", "2026-W42"))
 
 
-def test_provenance_note_names_the_measured_week() -> None:
-    sources, note = run.provenance("2026-W41", "2026-W42", date(2026, 10, 19))
-    assert window_from_note(note) == (date(2026, 10, 12), date(2026, 10, 18))
-    assert {s["retrieved_at"] for s in sources} == {"2026-10-19"}
+def test_provenance_names_only_the_days_actually_collected() -> None:
+    """A Monday run collects one day: the note must not claim the rest of the week."""
+    sources, note = run.provenance(
+        "2026-W41",
+        "2026-W42",
+        (date(2026, 10, 5), date(2026, 10, 5)),
+        (date(2026, 10, 12), date(2026, 10, 12)),
+    )
+    assert window_from_note(note) == (date(2026, 10, 12), date(2026, 10, 12))
+    assert {s["retrieved_at"] for s in sources} == {"2026-10-12"}
+
+
+def test_refresh_refuses_when_the_ingest_stored_nothing_new(monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    """An empty feed returns normally; older signals must not be republished as new."""
+    from pipelines.trends import arxiv_ingest
+
+    monkeypatch.setattr(arxiv_ingest, "main", lambda: None)
+    stale = (date(2026, 10, 5), date(2026, 10, 12))
+    monkeypatch.setattr(run, "collected_dates", lambda db_url, period=None: stale)
+    published: list[object] = []
+    monkeypatch.setattr(run, "publish", lambda *a, **k: published.append(a))
+    assert run.main([]) == 1
+    assert published == []

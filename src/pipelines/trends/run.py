@@ -68,17 +68,24 @@ def validate(rows: list[dict], known_ids: set[str], t0: str, t1: str) -> list[st
     return errors
 
 
-def provenance(t0: str, t1: str, snapshot_date: date) -> tuple[list[dict], str]:
-    """Sources and a note naming the measured week first (read back as observed_from/to)."""
-    start, end = week_bounds(t1)
-    base_start, base_end = week_bounds(t0)
+DateRange = tuple[date, date]
+
+
+def provenance(
+    t0: str, t1: str, t0_dates: DateRange, t1_dates: DateRange
+) -> tuple[list[dict], str]:
+    """Sources and a note naming the days actually collected first (read back as
+    observed_from/to). Dates come from the stored signals, never the calendar week, so a run
+    early in a week does not claim days that have not happened yet."""
+    start, end = t1_dates
+    base_start, base_end = t0_dates
     note = (
-        f"Scored by pipelines.trends.run from arXiv cs.AI listing mentions in "
+        f"Scored by pipelines.trends.run from arXiv cs.AI listing mentions collected "
         f"{start.isoformat()}..{end.isoformat()} ({t1}) against "
         f"{base_start.isoformat()}..{base_end.isoformat()} ({t0}), blended with the BLS "
         "2023-2033 projections as the labour baseline."
     )
-    retrieved = snapshot_date.isoformat()
+    retrieved = end.isoformat()
     sources = [
         {"name": "arXiv cs.AI listing", "url": ARXIV_RSS_URL, "retrieved_at": retrieved},
         {
@@ -88,6 +95,20 @@ def provenance(t0: str, t1: str, snapshot_date: date) -> tuple[list[dict], str]:
         },
     ]
     return sources, note
+
+
+def collected_dates(db_url: str, period: str | None = None) -> DateRange | None:
+    """First and last day arXiv signals were collected (for one ISO week, or overall)."""
+    import psycopg  # type: ignore[import]
+
+    where = "source = 'arxiv' AND metric = 'mention_count'" + (" AND period = %s" if period else "")
+    with psycopg.connect(db_url) as conn, conn.cursor() as cur:
+        cur.execute(
+            f"SELECT min(retrieved_at), max(retrieved_at) FROM skill_signal_raw WHERE {where}",
+            (period,) if period else (),
+        )
+        row = cur.fetchone()
+    return (row[0], row[1]) if row and row[0] and row[1] else None
 
 
 def publish(
@@ -156,6 +177,16 @@ def main(argv: list[str] | None = None) -> int:
 
     if not args.skip_ingest:
         arxiv_ingest.main()
+        # An empty or unreadable feed returns normally without storing anything; refuse to
+        # republish older signals as if they were new.
+        latest = collected_dates(db_url)
+        if latest is None or latest[1] != date.today():
+            print(
+                "ERROR: the ingest stored no new arXiv signals today; nothing published. "
+                "The previous snapshot stays live.",
+                file=sys.stderr,
+            )
+            return 1
 
     periods = score.list_available_periods(db_url)
     if not periods:
@@ -177,7 +208,11 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  - {e}", file=sys.stderr)
         return 1
 
-    sources, note = provenance(t0, t1, snapshot_date)
+    t0_dates, t1_dates = collected_dates(db_url, t0), collected_dates(db_url, t1)
+    if t0_dates is None or t1_dates is None:
+        print("ERROR: signal collection dates missing; nothing published.", file=sys.stderr)
+        return 1
+    sources, note = provenance(t0, t1, t0_dates, t1_dates)
     rising = sum(1 for r in rows if r["direction_moderate"] == "rising")
     print(f"Valid snapshot {snapshot_date}: {len(rows)} skills, {rising} rising. {note}")
     if args.dry_run:
