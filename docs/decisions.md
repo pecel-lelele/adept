@@ -914,3 +914,14 @@
 - **Affects**: M2 (matching profile input), M3 (evidence semantics now affect matching).
 - **Replaces**: none
 - **PR / branch**: feat/core-insight-design
+
+### M4-022: Keep evidenced learning across targets and share effective skill levels
+- **Date**: 2026-10-22
+- **Feature**: Core integration; F4, F5, F7
+- **Type**: schema | method
+- **Change**: Progress records retain an immutable `Course` snapshot in `course_progress.course_snapshot` (append-only migration `20261022220000`). Accepted learning is aggregated across every target instead of the current saved plan. Matching, pathway generation/comparison/re-planning and organisation member inputs use `pathway.service.combined_levels`, the per-skill maximum of intake and accepted learning. Review queues use historical course facts; rejection and undo still revoke credit.
+- **Why**: Greptile PR #7 findings “Changing targets loses earned credit” and “Plans ignore earned skills”. Replacing a target previously removed earned levels, and the same learner had inconsistent gaps across matching, pathways and team views. Retaining facts with progress also prevents catalogue edits or retirement from changing past learning. Existing rows are backfilled from their surviving saved plan, otherwise from the current catalogue; facts lost before this migration cannot be reconstructed.
+- **Pipeline**: source = confirmed intake, persisted course facts, completion status and evidence → preprocessing = include only completed courses with accepted evidence → features = highest evidenced course level per skill across targets → method = maximum of intake and earned levels → evaluation = regression tests for target changes, retired/edited courses, consistent individual/team planning, rejection, undo, user isolation, PostgreSQL persistence and migration backfill → serving = matching, pathway and organisation services.
+- **Affects**: M2 (matching input), M3 (progress persistence and planning), M4 (team gaps); one new database column, no API contract change.
+- **Replaces**: M4-021 (current-target-only earned-level lookup; the evidence acceptance policy is unchanged)
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/7 / feat/core-insight-design

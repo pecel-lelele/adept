@@ -161,7 +161,9 @@ def member_learners(org_id: str) -> dict[str, engine.Learner]:
             continue
         profile = profile_service.get_my_profile(m.id)
         out[m.id] = engine.Learner(
-            skill_levels={s.skill_id: s.level for s in profile.skills},
+            skill_levels=pathway_service.combined_levels(
+                m.id, {s.skill_id: s.level for s in profile.skills}
+            ),
             hours_per_week=float(profile.hours_per_week),
             budget_myr=float(profile.budget_myr),
             # Company plans can use the employer's HRD Corp levy; institutions cannot.

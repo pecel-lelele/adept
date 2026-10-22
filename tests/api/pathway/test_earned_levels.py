@@ -5,13 +5,25 @@ from __future__ import annotations
 from datetime import UTC, date, datetime
 
 import pytest
+from fastapi.testclient import TestClient
 
-from app.contracts.pathway import CompletionEvidence, Course
+from app.contracts.pathway import CompletionEvidence, Course, SavedPlan
+from app.core.auth import CurrentUser
+from app.core.db import connection
 from app.features.matching import repository as matching_repository
+from app.features.org import service as org_service
+from app.features.pathway import data, repository
 from app.features.pathway import service as pathway_service
 from app.features.pathway.verification import effective_statuses
+from app.main import app
 
 NOW = datetime(2026, 10, 22, tzinfo=UTC)
+
+
+@pytest.fixture
+def client(request: pytest.FixtureRequest) -> TestClient:
+    # Exercise real HTTP limits without consuming the shared testclient IP's allowance.
+    return TestClient(app, client=(f"earned-{request.node.name}", 50000))
 
 
 def _course(cid: str, skills: list[str], level: int) -> Course:
@@ -81,3 +93,191 @@ def test_matching_uses_the_higher_of_intake_and_evidenced_levels(
     }
     monkeypatch.setattr(pathway_service, "evidenced_levels", lambda user_id: {skill: 1})
     assert matching_repository.load_profile("aisyah").skills[skill] == before[skill]
+
+
+ROLE = "process-automation-analyst"
+LEARNER = CurrentUser(id="aisyah", display_name="Aisyah", kind="learner")
+
+
+@pytest.fixture(params=["memory", "postgres"])
+def learning_backend(request: pytest.FixtureRequest) -> None:
+    if request.param == "postgres":
+        request.getfixturevalue("pg_backend")
+
+
+def _complete_and_confirm(client: TestClient) -> tuple[Course, str]:
+    response = client.post("/api/v1/pathway/plans", json={"role_id": ROLE})
+    assert response.status_code == 200, response.text
+    plan = SavedPlan.model_validate(response.json()).pathway
+    step, course = next(
+        (step, course)
+        for step in plan.steps
+        for course in step.courses
+        if course.level >= step.target_level
+    )
+    response = client.post(
+        "/api/v1/pathway/progress",
+        json={"role_id": ROLE, "course_id": course.id, "status": "completed"},
+    )
+    assert response.status_code == 200, response.text
+    evidence = repository.evidence("aisyah", ROLE)[course.id]
+    response = client.post(
+        "/api/v1/pathway/verifications",
+        json={
+            "user_id": "aisyah",
+            "role_id": ROLE,
+            "course_id": course.id,
+            "decision": "confirm",
+            "submitted_at": evidence.submitted_at.isoformat(),
+        },
+        headers={"X-Demo-User": "demo-company"},
+    )
+    assert response.status_code == 200, response.text
+    return course, step.skill_id
+
+
+def test_target_change_and_retired_course_keep_earned_levels(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch, learning_backend: None
+) -> None:
+    course, skill = _complete_and_confirm(client)
+    before = matching_repository.load_profile("aisyah").skills
+    other_role = next(role for role in data.target_role_ids() if role != ROLE)
+    response = client.post("/api/v1/pathway/plans", json={"role_id": other_role})
+    assert response.status_code == 200, response.text
+    assert repository.get_plan("aisyah").role_id == other_role
+    # The original plan has gone and the live catalogue can no longer supply this course.
+    monkeypatch.setattr(data, "catalogue", lambda: [])
+    assert pathway_service.evidenced_levels("aisyah")[skill] == course.level
+    assert matching_repository.load_profile("aisyah").skills == before
+    assert repository.course_facts("aisyah", ROLE)[course.id] == course
+    assert (
+        pathway_service.verification_queue(
+            CurrentUser("demo-company", "Demo HR", "org_admin", "org-demo-bank")
+        )
+        .items[0]
+        .course
+        == course
+    )
+
+
+def test_plans_comparisons_and_team_gaps_use_the_matching_levels(
+    client: TestClient, learning_backend: None
+) -> None:
+    course, skill = _complete_and_confirm(client)
+    matched = matching_repository.load_profile("aisyah").skills
+    assert matched[skill] == course.level
+    learner = pathway_service.learner_for(LEARNER)
+    assert learner.skill_levels == matched
+    proposed = pathway_service.get_pathway(LEARNER, ROLE, "moderate")
+    assert next(g for g in proposed.gaps if g.skill_id == skill).status == "have"
+    assert skill not in {s.skill_id for s in proposed.steps}
+    compared = pathway_service.compare_roles(LEARNER, [ROLE], "moderate")
+    assert compared.options[0].skills_to_close == sum(g.status != "have" for g in proposed.gaps)
+    response = client.post("/api/v1/pathway/plans", json={"role_id": ROLE})
+    assert response.status_code == 200, response.text
+    saved = SavedPlan.model_validate(response.json()).pathway
+    assert skill not in {s.skill_id for s in saved.steps}
+    members = org_service.member_learners("org-demo-bank")
+    assert members["aisyah"].skill_levels == matched
+    assert pathway_service.team_gaps({"aisyah": members["aisyah"]}, [ROLE])
+    assert (
+        next(
+            gap
+            for role, sid, gap in pathway_service.team_gaps({"aisyah": members["aisyah"]}, [ROLE])
+            if sid == skill
+        )
+        == 0
+    )
+    team = pathway_service.group_pathway({"aisyah": members["aisyah"]}, ROLE, "moderate", True)
+    assert skill not in {s.skill_id for s in team.steps}
+
+
+def test_rejection_after_target_change_removes_previous_credit(client: TestClient) -> None:
+    course, skill = _complete_and_confirm(client)
+    other_role = next(role for role in data.target_role_ids() if role != ROLE)
+    assert client.post("/api/v1/pathway/plans", json={"role_id": other_role}).status_code == 200
+    evidence = repository.evidence("aisyah", ROLE)[course.id]
+    response = client.post(
+        "/api/v1/pathway/verifications",
+        json={
+            "user_id": "aisyah",
+            "role_id": ROLE,
+            "course_id": course.id,
+            "decision": "reject",
+            "submitted_at": evidence.submitted_at.isoformat(),
+        },
+        headers={"X-Demo-User": "demo-company"},
+    )
+    assert response.status_code == 200, response.text
+    assert skill not in pathway_service.evidenced_levels("aisyah")
+
+
+def test_undo_after_target_change_removes_credit(client: TestClient) -> None:
+    course, skill = _complete_and_confirm(client)
+    other_role = next(role for role in data.target_role_ids() if role != ROLE)
+    assert client.post("/api/v1/pathway/plans", json={"role_id": other_role}).status_code == 200
+    response = client.post(
+        "/api/v1/pathway/progress",
+        json={"role_id": ROLE, "course_id": course.id, "status": "not_started"},
+    )
+    assert response.status_code == 200, response.text
+    assert skill not in pathway_service.evidenced_levels("aisyah")
+
+
+def test_multiple_targets_take_highest_level_without_cross_user_leaks() -> None:
+    for role, level in [("r1", 3), ("r2", 4)]:
+        course = _course("same-course", ["sql"], level)
+        repository.set_course_status("aisyah", role, course.id, "completed", course)
+        repository.save_evidence(
+            "aisyah", _evidence(course.id, "org_confirmed").model_copy(update={"role_id": role})
+        )
+    assert pathway_service.evidenced_levels("aisyah") == {"sql": 4}
+    assert pathway_service.evidenced_levels("ravi") == {}
+    repository.set_course_status("aisyah", "r2", "same-course", "not_started")
+    assert pathway_service.evidenced_levels("aisyah") == {"sql": 3}
+
+
+def test_later_course_edits_do_not_rewrite_recorded_learning() -> None:
+    original = _course("c", ["sql"], 3)
+    repository.set_course_status("aisyah", ROLE, "c", "in_progress", original)
+    changed = original.model_copy(update={"level": 5, "skill_ids": ["python"]})
+    repository.set_course_status("aisyah", ROLE, "c", "completed", changed)
+    repository.save_evidence(
+        "aisyah", _evidence("c", "org_confirmed").model_copy(update={"role_id": ROLE})
+    )
+    assert pathway_service.evidenced_levels("aisyah") == {"sql": 3}
+
+
+@pytest.mark.usefixtures("pg_backend")
+def test_course_facts_survive_new_postgres_store_and_catalogue_edits(client: TestClient) -> None:
+    course, skill = _complete_and_confirm(client)
+    fresh = repository.PostgresStore()
+    assert fresh.course_facts("aisyah", ROLE)[course.id] == course
+    # Attempting to upsert later catalogue facts must not rewrite the original snapshot.
+    fresh.set_course_status(
+        "aisyah", ROLE, course.id, "completed", course.model_copy(update={"level": 1})
+    )
+    assert repository.PostgresStore().course_facts("aisyah", ROLE)[course.id] == course
+    assert pathway_service.evidenced_levels("aisyah")[skill] == course.level
+
+
+@pytest.mark.usefixtures("pg_backend")
+def test_migration_backfills_saved_and_replaced_target_progress(client: TestClient) -> None:
+    from db.migrate import MIGRATIONS, up_section
+
+    course, _skill = _complete_and_confirm(client)
+    # An older target with no surviving saved plan must use catalogue facts during upgrade.
+    repository.set_course_status("aisyah", "old-target", course.id, "completed")
+    migration = MIGRATIONS / "20261022220000_core_completion_course_snapshots.sql"
+    with connection() as conn, conn.transaction(force_rollback=True):
+        conn.execute("ALTER TABLE course_progress DROP COLUMN course_snapshot")
+        conn.execute(up_section(migration.read_text(encoding="utf-8")))
+        rows = conn.execute(
+            "SELECT role_id, course_snapshot FROM course_progress "
+            "WHERE user_id = %s AND course_id = %s",
+            ("aisyah", course.id),
+        ).fetchall()
+        facts = {row["role_id"]: Course.model_validate(row["course_snapshot"]) for row in rows}
+        assert facts[ROLE] == course
+        assert facts["old-target"].skill_ids == course.skill_ids
+        assert facts["old-target"].level == course.level

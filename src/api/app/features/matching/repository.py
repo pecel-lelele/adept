@@ -133,13 +133,16 @@ def _load_profile(user_id: str) -> MatchProfile:
         )
 
     # Use user's skill level (1-5 scale) directly for required_level comparison
-    skills = {s.skill_id: float(s.level) for s in profile.skills}
     # Completed learning with accepted evidence (reviewer-confirmed, or a certificate on the
     # provider's verification page) raises a level; self-reported ticks do not (H08).
     from app.features.pathway import service as pathway_service
 
-    for skill_id, level in pathway_service.evidenced_levels(user_id).items():
-        skills[skill_id] = max(skills.get(skill_id, 0.0), float(level))
+    skills = {
+        skill_id: float(level)
+        for skill_id, level in pathway_service.combined_levels(
+            user_id, {s.skill_id: s.level for s in profile.skills}
+        ).items()
+    }
     interests = frozenset(profile.interests)
 
     return MatchProfile(skills=skills, interests=interests)

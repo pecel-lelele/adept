@@ -19,7 +19,7 @@ import psycopg
 from psycopg.rows import tuple_row
 from psycopg.types.json import Jsonb
 
-from app.contracts.pathway import CompletionEvidence, CourseStatus, Pathway, SavedPlan
+from app.contracts.pathway import CompletionEvidence, Course, CourseStatus, Pathway, SavedPlan
 from app.core.db import connection
 from app.core.refdata import StorageUnavailableError, use_postgres
 
@@ -28,8 +28,14 @@ class Store(Protocol):
     def get_plan(self, user_id: str) -> SavedPlan | None: ...
     def save_plan(self, user_id: str, plan: SavedPlan) -> SavedPlan: ...
     def course_status(self, user_id: str, role_id: str) -> dict[str, CourseStatus]: ...
+    def course_facts(self, user_id: str, role_id: str) -> dict[str, Course]: ...
     def set_course_status(
-        self, user_id: str, role_id: str, course_id: str, status: CourseStatus
+        self,
+        user_id: str,
+        role_id: str,
+        course_id: str,
+        status: CourseStatus,
+        course: Course | None = None,
     ) -> None: ...
     def record_badges(self, user_id: str, badge_ids: list[str], today: date) -> dict[str, date]: ...
     def evidence(self, user_id: str, role_id: str) -> dict[str, CompletionEvidence]: ...
@@ -48,6 +54,7 @@ class MemoryStore:
         self._progress: dict[tuple[str, str], dict[str, CourseStatus]] = {}
         self._badges: dict[str, dict[str, date]] = {}
         self._evidence: dict[tuple[str, str, str], CompletionEvidence] = {}
+        self._course_facts: dict[tuple[str, str, str], Course] = {}
         self._lock = threading.Lock()
 
     def get_plan(self, user_id: str) -> SavedPlan | None:
@@ -61,13 +68,29 @@ class MemoryStore:
         return dict(self._progress.get((user_id, role_id), {}))
 
     def set_course_status(
-        self, user_id: str, role_id: str, course_id: str, status: CourseStatus
+        self,
+        user_id: str,
+        role_id: str,
+        course_id: str,
+        status: CourseStatus,
+        course: Course | None = None,
     ) -> None:
         statuses = self._progress.setdefault((user_id, role_id), {})
+        key = (user_id, role_id, course_id)
         if status == "not_started":
             statuses.pop(course_id, None)
+            self._course_facts.pop(key, None)
         else:
             statuses[course_id] = status
+            if course is not None:
+                self._course_facts.setdefault(key, course.model_copy(deep=True))
+
+    def course_facts(self, user_id: str, role_id: str) -> dict[str, Course]:
+        return {
+            cid: course.model_copy(deep=True)
+            for (uid, rid, cid), course in self._course_facts.items()
+            if uid == user_id and rid == role_id
+        }
 
     def record_badges(self, user_id: str, badge_ids: list[str], today: date) -> dict[str, date]:
         earned = self._badges.setdefault(user_id, {})
@@ -111,6 +134,7 @@ class MemoryStore:
         self._progress.clear()
         self._badges.clear()
         self._evidence.clear()
+        self._course_facts.clear()
 
 
 class PostgresStore:
@@ -177,7 +201,12 @@ class PostgresStore:
         return {str(cid): status for cid, status in rows}  # type: ignore[misc]
 
     def set_course_status(
-        self, user_id: str, role_id: str, course_id: str, status: CourseStatus
+        self,
+        user_id: str,
+        role_id: str,
+        course_id: str,
+        status: CourseStatus,
+        course: Course | None = None,
     ) -> None:
         if status == "not_started":
             self._run(
@@ -188,11 +217,26 @@ class PostgresStore:
             return
         self._ensure_user(user_id)
         self._run(
-            "INSERT INTO course_progress (user_id, role_id, course_id, status) "
-            "VALUES (%s, %s, %s, %s) ON CONFLICT (user_id, role_id, course_id) "
-            "DO UPDATE SET status = EXCLUDED.status, updated_at = now()",
-            (user_id, role_id, course_id, status),
+            "INSERT INTO course_progress (user_id, role_id, course_id, status, course_snapshot) "
+            "VALUES (%s, %s, %s, %s, %s) ON CONFLICT (user_id, role_id, course_id) "
+            "DO UPDATE SET status = EXCLUDED.status, updated_at = now(), "
+            "course_snapshot = COALESCE(course_progress.course_snapshot, EXCLUDED.course_snapshot)",
+            (
+                user_id,
+                role_id,
+                course_id,
+                status,
+                Jsonb(course.model_dump(mode="json")) if course is not None else None,
+            ),
         )
+
+    def course_facts(self, user_id: str, role_id: str) -> dict[str, Course]:
+        rows = self._run(
+            "SELECT course_id, course_snapshot FROM course_progress "
+            "WHERE user_id = %s AND role_id = %s AND course_snapshot IS NOT NULL",
+            (user_id, role_id),
+        )
+        return {str(cid): Course.model_validate(facts) for cid, facts in rows}
 
     def record_badges(self, user_id: str, badge_ids: list[str], today: date) -> dict[str, date]:
         if badge_ids:
@@ -315,8 +359,19 @@ def course_status(user_id: str, role_id: str) -> dict[str, CourseStatus]:
     return store().course_status(user_id, role_id)
 
 
-def set_course_status(user_id: str, role_id: str, course_id: str, status: CourseStatus) -> None:
-    store().set_course_status(user_id, role_id, course_id, status)
+def set_course_status(
+    user_id: str,
+    role_id: str,
+    course_id: str,
+    status: CourseStatus,
+    course: Course | None = None,
+) -> None:
+    store().set_course_status(user_id, role_id, course_id, status, course)
+
+
+def course_facts(user_id: str, role_id: str) -> dict[str, Course]:
+    """Immutable course facts captured with progress, independent of the current target."""
+    return store().course_facts(user_id, role_id)
 
 
 def record_badges(user_id: str, badge_ids: list[str], today: date) -> dict[str, date]:
