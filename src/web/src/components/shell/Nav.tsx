@@ -2,7 +2,7 @@
 
 import {
   BookOpen,
-  ChevronDown,
+  Check,
   ChartNoAxesCombined,
   ClipboardCheck,
   Compass,
@@ -13,7 +13,6 @@ import {
   Leaf,
   LogOut,
   Menu,
-  MoreHorizontal,
   Radar,
   Route,
   Settings2,
@@ -61,14 +60,11 @@ function isCurrent(ws: Workspace, item: NavItem, pathname: string): boolean {
   return activeItem(ws, pathname)?.href === item.href;
 }
 
-/** Desktop sidebar: the journey always visible; everything else in one collapsible group. */
+/** Desktop sidebar: every page always visible, in labelled groups (journey first). */
 export function SideNav({ ws, doneSteps }: { ws: Workspace; doneSteps: number[] }) {
   const t = useTranslations("ui.nav");
   const pathname = usePathname();
   const href = useHref();
-  const [primary, ...rest] = ws.groups;
-  const extra = rest.flatMap((g) => g.items);
-  const extraActive = extra.some((i) => isCurrent(ws, i, pathname));
 
   const link = (item: NavItem) => {
     const Icon = ICONS[item.icon];
@@ -81,10 +77,10 @@ export function SideNav({ ws, doneSteps }: { ws: Workspace; doneSteps: number[] 
         aria-current={isCurrent(ws, item, pathname) ? "page" : undefined}
       >
         <Icon size={18} strokeWidth={1.8} aria-hidden />
-        {t(item.key)}
+        <span className="a-navlink-text">{t(item.key)}</span>
         {item.step ? (
-          <span className="a-step" data-done={done}>
-            {done ? "✓" : item.step}
+          <span className="a-step" data-done={done} title={t("journey")}>
+            {done ? <Check size={11} strokeWidth={3} aria-hidden /> : item.step}
           </span>
         ) : null}
       </Link>
@@ -92,18 +88,17 @@ export function SideNav({ ws, doneSteps }: { ws: Workspace; doneSteps: number[] 
   };
 
   return (
-    <nav aria-label={t(ws.mode === "organisation" ? "organisation" : "learner")} className="a-stack" style={{ gap: 6 }}>
-      <div className="a-navgroup">{primary?.items.map(link)}</div>
-      {extra.length ? (
-        <details className="a-navmore" open={extraActive || undefined} key={extraActive ? "open" : "closed"}>
-          <summary>
-            <MoreHorizontal size={18} strokeWidth={1.8} aria-hidden />
-            {t("more")}
-            <ChevronDown size={16} className="a-chev" aria-hidden />
-          </summary>
-          <div className="a-navgroup">{extra.map(link)}</div>
-        </details>
-      ) : null}
+    <nav aria-label={t(ws.mode === "organisation" ? "organisation" : "learner")} className="a-sidenav">
+      {ws.groups.map((group, i) => (
+        <div className="a-navgroup" key={group.label}>
+          {ws.groups.length > 1 ? (
+            <span className="a-navgroup-label" id={`nav-${i}`}>
+              {t(group.label)}
+            </span>
+          ) : null}
+          {group.items.map(link)}
+        </div>
+      ))}
     </nav>
   );
 }
