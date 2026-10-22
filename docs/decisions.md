@@ -873,3 +873,14 @@
 - **Affects**: M3 (SDG contribution endpoints, evidence wording, badge names), M1 (snapshot metadata fields), shared `RecommendationMeta` (two optional fields), all locales.
 - **Replaces**: none
 - **PR / branch**: feat/core-insight-design
+
+### M4-018: Scheduled trend refresh (H01), data audit, team pages, join entry, auth panel, dropdowns
+- **Date**: 2026-10-22
+- **Feature**: F2 (pipeline), Core, F7
+- **Type**: feature / fix
+- **Change**: (1) `pipelines/trends/run.py` replaces the placeholder: ingest → `score.score_rows` (extracted, pure) → `validate` → `publish` (rows + `trend_snapshot_meta` in one transaction; note names the measured ISO week). `.github/workflows/trends-refresh.yml` runs it weekly when `TREND_DATABASE_URL` is set, installing CPU torch 2.5.1 and sentence-transformers 3.3.1 in the job only. (2) Data audit: sidebar ticks follow the same rule as the Home/team journeys (saved plan → steps 1-3; completed member profile → team steps 1-4); My skills follows the AI pace; "110+ skills" copy no longer hard-codes a count; replan banner shows skill names. (3) Team dashboard, Team, Skill gaps, Team plan, Reviews and Settings on the shared layout (no 3D scenes on dashboards). (4) "Join a team" in the sidebar, mobile menu and Home for learners without an organisation; join page explains what is shared. (5) Auth pages: one top-aligned framed panel with the landing drawings (career path; office on the forest background for teams), stable scrollbar gutter, so switching sign-in/sign-up does not jump. (6) All `<select>` elements styled; option lists styled where `appearance: base-select` is supported. (7) `docs/FEATURE_STATUS_AND_FIX_HANDOFF.md` gains a fix-status table.
+- **Why**: Handoff H01 and user review of data consistency, team flow, auth and dropdowns.
+- **Affects**: M1 (pipeline, new workflow, CI secret `TREND_DATABASE_URL`), M2/M3 screens (layout only), root config (`.github/`).
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design
+- **Pipeline**: source = arXiv cs.AI listing + BLS 2023-2033 → preprocessing = HTML strip, sentence split → features = MiniLM sentence-cosine mention counts per ISO week → method = log-ratio velocity + labour baseline + fast-scenario transform → evaluation = publish-time validation (two weeks, ≥ 50 skills, taxonomy ids, finite values) → serving = `trend_snapshots` / `trend_snapshot_meta` read by `/trends/snapshot`

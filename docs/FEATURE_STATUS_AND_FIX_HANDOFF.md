@@ -2,6 +2,40 @@
 
 Most requested features are implemented. The app is not fully ready: scheduled trend refresh, synthetic-only enforcement, review of SDG mappings, consistent ranking context, complete translations, and mobile development navigation need attention.
 
+## Fix status — 22 October 2026 (after `46477ee`, branch `feat/core-insight-design`)
+
+Fixes since the audited revision `968182b`. Each line says what changed and how it was checked. Findings below keep their original text; read this table first.
+
+| ID | Status | What changed | Verified by |
+|---|---|---|---|
+| H01 | Fixed in code; deployment unverified | `pipelines/trends/run.py` chains ingest → score → validate → publish. Validation refuses one-week, short, unknown-id or non-finite snapshots; nothing is written on failure. Snapshot rows and provenance go in one transaction. `.github/workflows/trends-refresh.yml` runs weekly when `TREND_DATABASE_URL` is set. | `tests/pipelines/trends/test_run.py`. Controlled local run with synthetic signals published snapshot 2026-10-22; the API served it as latest with `observed_from/to` 2026-10-12..18; test rows were then removed. Not run against a deployed database or a fresh arXiv pull (needs `sentence-transformers` and network). |
+| H02 | Open: needs a team decision | Not changed. | — |
+| H03 | Wording fixed; human review still open | The UN Goals score part no longer says "reviewed links"; it states how many of the role's links a person reviewed. No mapping was marked reviewed. | `test_ranking_explanation_says_how_many_links_are_drafts`. |
+| H04 | Fixed | Weight (`sdg`) and snapshot carried from the matches list to role detail and replay (`/matches/replay?sdg_weight=`); outlook takes `snapshot_date`; replay reasons use the scorer's percentile positions. | `tests/api/matching/test_sdg_weight_and_replay.py` (detail score = list score; weighted replay order = weighted list order; percentile driver; outlook date). |
+| H05 | Fixed | `/sdg/contribution/org` and `/region/{state}` take `role_id`; the Impact page passes the team plan's role. | `test_org_and_region_contribution_follow_the_selected_role`. |
+| H06 | Fixed for interface strings | Every BM/Chinese string the app uses is translated; ~100 unused keys removed; badges named from their id. API-generated sentences (plan warnings, replan messages, SDG reasons) remain English. | `i18n-check`; TypeScript (removed keys are type-checked). |
+| H07 | Fixed | Next.js dev indicator off. | Mobile "More" and the sidebar language switch receive clicks. Production build not separately rechecked. |
+| H08 | Open: needs an M2/M3 policy decision | Not changed. | — |
+| H09 | Fixed | `observed_from` / `observed_to` on snapshot and recommendation metadata; the sources line shows the measured period; the Radar warns when 2024 observations are replayed as a 2026 snapshot. | `tests/api/trends/test_provenance.py`; API returns 2024-10-13..19 for the 2026-10-20 demo snapshot. |
+| H10 | Fixed | Evidence text says a certificate link only shows the page opens on the provider's site; a reviewer confirms it. Landing "Verified completions" → "Reviewed completions". | Existing `test_reviewers_only_see_their_own_members` / `test_learners_cannot_review` still pass. |
+
+Also done in the same pass:
+
+- **Data audit:** every number on Home, My skills, Radar, Roles, Plan, Progress, Courses, Impact and the team pages comes from the API. Checked in the browser with a synthetic account:
+  - saving a plan updates Home;
+  - marking a course done updates Progress (2%, 1/6 courses, first badge) and Home;
+  - a member joining with a code updates the team dashboard (members, profiles complete, target gap, plan, goals).
+- **Consistency fixes:**
+  - the sidebar ticks the same steps as the Home and team journeys;
+  - My skills follows the selected AI pace;
+  - hand-typed "110+ skills" copy removed;
+  - the replan banner shows skill names.
+- **UI:**
+  - team pages (dashboard, Team, Skill gaps, Team plan, Reviews, Settings) use the shared layout;
+  - "Join a team" is in the sidebar, the mobile menu and on Home for learners without an organisation;
+  - the sign-in and sign-up pages are one top-aligned panel showing the landing drawings, with no jump when switching;
+  - every dropdown is styled.
+
 ## Start here: teammates and future Claude/Codex sessions
 
 - **Audited revision:** `968182b` on `feat/core-insight-design`. This records observations at that revision; recheck the code before fixing an item.
