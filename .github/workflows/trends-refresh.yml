@@ -1,0 +1,48 @@
+# Weekly trend refresh (F2, handoff H01): ingest this week's arXiv cs.AI listing, score it against
+# the previous week, validate, and publish one new snapshot to the deployment database.
+# A failed run publishes nothing, so the last valid snapshot stays live.
+# Needs the repository secret TREND_DATABASE_URL (the deployed PostgreSQL); without it the job
+# only reports that it was skipped.
+name: Trends refresh
+
+on:
+  schedule:
+    - cron: "41 3 * * 1" # Mondays 03:41 UTC, after the data-source check
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: trends-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DATABASE_URL: ${{ secrets.TREND_DATABASE_URL }}
+    steps:
+      - name: Skip when no database is configured
+        if: env.DATABASE_URL == ''
+        run: echo "::notice::TREND_DATABASE_URL is not set; trend refresh skipped."
+
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        if: env.DATABASE_URL != ''
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        if: env.DATABASE_URL != ''
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies (CPU-only embedding model)
+        if: env.DATABASE_URL != ''
+        run: |
+          pip install -r requirements.txt
+          pip install --index-url https://download.pytorch.org/whl/cpu torch==2.5.1
+          pip install sentence-transformers==3.3.1
+
+      - name: Ingest, score, validate and publish
+        if: env.DATABASE_URL != ''
+        run: PYTHONPATH=src/api:src python -m pipelines.trends.run

@@ -197,6 +197,40 @@ def load_signal_raw(db_url: str, period: str) -> tuple[dict[str, float], int]:
     return counts, max(total, 1)
 
 
+def score_rows(
+    counts_t0: dict[str, float],
+    total_t0: int,
+    counts_t1: dict[str, float],
+    total_t1: int,
+    labor_decay_map: dict[str, tuple[float, str]],
+    exposure_map: dict[str, float],
+) -> list[dict]:
+    """One scored row per known skill (pure; used by ``main`` and ``pipelines.trends.run``)."""
+    rows: list[dict] = []
+    for sid in sorted(exposure_map):
+        freq_t0 = counts_t0.get(sid, 0.0) / max(total_t0, 1)
+        freq_t1 = counts_t1.get(sid, 0.0) / max(total_t1, 1)
+        rv = research_velocity(freq_t0, freq_t1)
+        ld, ld_note = labor_decay_map.get(sid, (0.0, "no BLS mapping"))
+        exposure = exposure_map.get(sid, 0.5)
+        v_mod = composite_velocity(rv, ld)
+        v_fast = scenario_fast(v_mod, exposure)
+        rows.append(
+            {
+                "skill_id": sid,
+                "research_velocity": round(rv, 6),
+                "labor_decay": round(ld, 6),
+                "labor_decay_source_note": ld_note,
+                "automation_exposure": round(exposure, 4),
+                "velocity_moderate": round(v_mod, 6),
+                "velocity_fast": round(v_fast, 6),
+                "direction_moderate": direction(v_mod),
+                "direction_fast": direction(v_fast),
+            }
+        )
+    return rows
+
+
 def list_available_periods(db_url: str) -> list[str]:
     """Return sorted list of ISO-week periods in skill_signal_raw."""
     import psycopg  # type: ignore[import]
@@ -290,42 +324,11 @@ def main(
 
     print(f"Scoring: t0={t0_period}, t1={t1_period}, snapshot_date={snapshot_date}")
 
-    labor_decay_map = load_labor_decay()
-    exposure_map = load_automation_exposure()
-
     counts_t0, total_t0 = load_signal_raw(db_url, t0_period)
     counts_t1, total_t1 = load_signal_raw(db_url, t1_period)
-
-    all_skill_ids = set(exposure_map.keys())
-    scored_rows: list[dict] = []
-
-    for sid in sorted(all_skill_ids):
-        ct0 = counts_t0.get(sid, 0.0)
-        ct1 = counts_t1.get(sid, 0.0)
-
-        freq_t0 = ct0 / total_t0
-        freq_t1 = ct1 / total_t1
-
-        rv = research_velocity(freq_t0, freq_t1)
-        ld, ld_note = labor_decay_map.get(sid, (0.0, "no BLS mapping"))
-        exposure = exposure_map.get(sid, 0.5)
-
-        v_mod = composite_velocity(rv, ld)
-        v_fast = scenario_fast(v_mod, exposure)
-
-        scored_rows.append(
-            {
-                "skill_id": sid,
-                "research_velocity": round(rv, 6),
-                "labor_decay": round(ld, 6),
-                "labor_decay_source_note": ld_note,
-                "automation_exposure": round(exposure, 4),
-                "velocity_moderate": round(v_mod, 6),
-                "velocity_fast": round(v_fast, 6),
-                "direction_moderate": direction(v_mod),
-                "direction_fast": direction(v_fast),
-            }
-        )
+    scored_rows = score_rows(
+        counts_t0, total_t0, counts_t1, total_t1, load_labor_decay(), load_automation_exposure()
+    )
 
     write_snapshots(scored_rows, snapshot_date, db_url)
     rising_m = sum(1 for r in scored_rows if r["direction_moderate"] == "rising")
