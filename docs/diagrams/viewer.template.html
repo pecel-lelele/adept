@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Adept · Diagram explorer</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f5f7f2;color:#18231c;font:15px/1.5 Arial,sans-serif}button,select,input{font:inherit}button,a,select{touch-action:manipulation}button{cursor:pointer;background:#fff;color:#18231c;border:1px solid #b8c8ba;border-radius:8px;padding:8px 12px}button:hover{background:#e6efe3}button:focus-visible,select:focus-visible,a:focus-visible,input:focus-visible,#canvas:focus-visible{outline:3px solid #237447;outline-offset:3px}header{padding:24px 32px 18px;max-width:1800px;margin:auto}.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#386348;font-weight:bold}h1{font-size:30px;margin:4px 0}header p{margin:4px 0;color:#48624f}a{color:#20603b}main{max-width:1800px;margin:auto;padding:0 32px 32px}.toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:14px;background:#e7eee2;border:1px solid #c5d1c0;border-radius:12px 12px 0 0}label{font-weight:bold}.toolbar select{max-width:min(440px,100%);min-width:220px;flex:1;padding:8px;border:1px solid #9ab19b;border-radius:8px;background:white}.spacer{flex:1}#zoom{width:145px;accent-color:#237447}#percent{min-width:48px;font-variant-numeric:tabular-nums}.workspace{display:grid;grid-template-columns:235px minmax(0,1fr);border:1px solid #c5d1c0;border-top:0;background:white}nav{padding:16px 12px;border-right:1px solid #c5d1c0;background:#fafbf8}nav button{display:block;text-align:left;width:100%;margin:0 0 6px;border-color:transparent;background:transparent;font-size:13px}nav button[aria-current=true]{background:#dcebd6;border-color:#90ae8c;font-weight:bold}.main-panel{min-width:0}.caption{padding:14px 18px;border-bottom:1px solid #dce4d9}#title{font-size:18px;margin:0}#hint{margin:4px 0 0;font-size:13px;color:#48624f}#canvas{position:relative;height:70vh;min-height:320px;max-height:95vh;min-width:0;overflow:hidden;resize:vertical;touch-action:none;cursor:grab;background-color:#fff;background-image:radial-gradient(#d9e3d6 1px,transparent 1px);background-size:20px 20px}#canvas.dragging{cursor:grabbing}#drawing{position:absolute;top:0;left:0;transform-origin:0 0;will-change:transform}#drawing svg{display:block;max-width:none!important}#canvas:fullscreen{height:100vh!important;max-height:none;resize:none;background-color:#fff}.canvas-tools{position:absolute;bottom:16px;right:16px;display:flex;gap:6px;z-index:2}.canvas-tools button{box-shadow:0 2px 12px #18231c15}.downloads{display:flex;gap:8px;flex-wrap:wrap;padding:14px 18px;border-top:1px solid #dce4d9}details{margin-top:18px;border:1px solid #c5d1c0;border-radius:10px;padding:12px 16px;background:#fff}summary{cursor:pointer;font-weight:bold}pre{overflow:auto;font:13px/1.6 Consolas,monospace;max-height:420px;tab-size:2}footer{font-size:12px;color:#48624f;margin-top:16px}#status{min-height:20px;font-size:12px;color:#48624f} @media(max-width:900px){header{padding:18px}main{padding:0 12px 20px}.workspace{grid-template-columns:1fr}nav{display:none}.spacer{display:none}.toolbar{padding:10px}#canvas{height:65vh}.toolbar select{min-width:160px}#zoom{width:110px}h1{font-size:25px}}@media print{header,nav,.toolbar,.downloads,details,footer,.canvas-tools,#status{display:none}.workspace{display:block;border:0}.caption{border:0}#canvas{height:auto!important;max-height:none;overflow:visible;resize:none;background:none}#drawing{position:static;transform:none!important}#drawing svg{width:100%!important;height:auto!important}}
+</style>
+</head>
+<body>
+<header><div class="eyebrow">Adept / technical documentation</div><h1>Diagram explorer</h1><p>Vector diagrams reconstructed from the repository. Zoom in to read; drag to explore.</p></header>
+<main>
+<div class="toolbar">
+  <label for="diagram">Diagram</label><select id="diagram"></select><span class="spacer"></span>
+  <button id="out" type="button" aria-label="Zoom out">−</button>
+  <label for="zoom">Zoom</label><input id="zoom" type="range" min="5" max="400" value="100" aria-label="Diagram zoom percentage"><output id="percent" for="zoom">100%</output>
+  <button id="in" type="button" aria-label="Zoom in">+</button><button id="fit" type="button">Fit</button><button id="actual" type="button">100%</button>
+</div>
+<div class="workspace">
+  <nav id="list" aria-label="Available diagrams"></nav>
+  <div class="main-panel">
+    <div class="caption"><h2 id="title"></h2><p id="hint">Wheel or pinch to zoom · drag to pan · arrow keys to move · 0 to fit. Resize using the bottom-right corner.</p></div>
+    <div id="canvas" tabindex="0" role="region" aria-label="Interactive diagram canvas" aria-describedby="hint">
+      <div id="drawing"></div>
+      <div class="canvas-tools"><button id="full" type="button">Fullscreen</button><button id="canvas-fit" type="button">Reset view</button></div>
+    </div>
+    <div class="downloads"><button id="svg" type="button">Download SVG</button><button id="mmd" type="button">Download Mermaid</button><a href="../../README.md#interactive-diagrams">README and source references</a></div>
+  </div>
+</div>
+<div id="status" role="status" aria-live="polite"></div>
+<details><summary>Editable Mermaid source</summary><pre><code id="source"></code></pre></details>
+<footer>Generated from README.md with Mermaid 11.12.0 (MIT). No runtime downloads, analytics or external requests. Schema diagrams show selected columns; consult migrations for full DDL.</footer>
+</main>
+<script id="data" type="application/json">@@DIAGRAMS@@</script>
+<script>
+(() => {
+  'use strict';
+  const diagrams=JSON.parse(document.getElementById('data').textContent);
+  const canvas=document.getElementById('canvas'),drawing=document.getElementById('drawing');
+  const select=document.getElementById('diagram'),slider=document.getElementById('zoom'),percent=document.getElementById('percent');
+  const status=document.getElementById('status'),list=document.getElementById('list');
+  let current,scale=1,x=0,y=0,width=1,height=1,fitMode=true;
+  const pointers=new Map();
+  const clamp=n=>Math.max(.05,Math.min(4,n));
+  function paint(){drawing.style.transform=`translate(${x}px,${y}px) scale(${scale})`;const pct=Math.round(scale*100);slider.value=String(pct);percent.value=pct+'%';percent.textContent=pct+'%';}
+  function fit(){fitMode=true;scale=clamp(Math.min((canvas.clientWidth-48)/width,(canvas.clientHeight-48)/height,1));x=(canvas.clientWidth-width*scale)/2;y=(canvas.clientHeight-height*scale)/2;paint();}
+  function zoomAt(next,cx=canvas.clientWidth/2,cy=canvas.clientHeight/2){fitMode=false;next=clamp(next);const ratio=next/scale;x=cx-(cx-x)*ratio;y=cy-(cy-y)*ratio;scale=next;paint();}
+  function show(id){
+    current=diagrams.find(d=>d.id===id)||diagrams[0];select.value=current.id;
+    document.getElementById('title').textContent=current.title;
+    document.getElementById('source').textContent=current.source;
+    drawing.innerHTML=current.svg;
+    const svg=drawing.querySelector('svg'),box=svg.viewBox.baseVal;
+    width=box.width;height=box.height;
+    svg.style.width=width+'px';svg.style.height=height+'px';svg.setAttribute('role','img');svg.setAttribute('aria-label',current.title);
+    for(const b of list.querySelectorAll('button'))b.setAttribute('aria-current',String(b.dataset.id===current.id));
+    try{history.replaceState(null,'','#'+current.id);}catch{location.hash=current.id;}
+    pointers.clear();canvas.classList.remove('dragging');fit();
+    status.textContent=`${diagrams.indexOf(current)+1} of ${diagrams.length} · ${Math.round(width)} × ${Math.round(height)} vector units`;
+  }
+  for(const d of diagrams){const option=document.createElement('option');option.value=d.id;option.textContent=d.title;select.append(option);const button=document.createElement('button');button.type='button';button.dataset.id=d.id;button.textContent=d.title;button.addEventListener('click',()=>show(d.id));list.append(button);}
+  select.addEventListener('change',()=>show(select.value));window.addEventListener('hashchange',()=>show(location.hash.slice(1)));
+  slider.addEventListener('input',()=>zoomAt(Number(slider.value)/100));
+  document.getElementById('in').addEventListener('click',()=>zoomAt(scale*1.25));document.getElementById('out').addEventListener('click',()=>zoomAt(scale/1.25));
+  document.getElementById('fit').addEventListener('click',fit);document.getElementById('canvas-fit').addEventListener('click',fit);
+  document.getElementById('actual').addEventListener('click',()=>{scale=1;fitMode=false;x=(canvas.clientWidth-width)/2;y=(canvas.clientHeight-height)/2;paint();});
+  canvas.addEventListener('wheel',e=>{e.preventDefault();const r=canvas.getBoundingClientRect();zoomAt(scale*Math.exp(-e.deltaY*.002),e.clientX-r.left,e.clientY-r.top);},{passive:false});
+  canvas.addEventListener('dblclick',e=>{if(e.target.closest('button'))return;const r=canvas.getBoundingClientRect();zoomAt(scale*1.5,e.clientX-r.left,e.clientY-r.top);});
+  canvas.addEventListener('pointerdown',e=>{if(e.target.closest('button')||e.button!==0)return;canvas.focus({preventScroll:true});canvas.setPointerCapture(e.pointerId);pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});canvas.classList.add('dragging');});
+  canvas.addEventListener('pointermove',e=>{
+    if(!pointers.has(e.pointerId))return;
+    const before=[...pointers.values()];const old=pointers.get(e.pointerId);
+    pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});const after=[...pointers.values()];fitMode=false;
+    if(before.length===1){x+=e.clientX-old.x;y+=e.clientY-old.y;paint();}
+    else if(before.length===2){const dist=a=>Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);const mid=a=>({x:(a[0].x+a[1].x)/2,y:(a[0].y+a[1].y)/2});const a=mid(before),b=mid(after),r=canvas.getBoundingClientRect();x+=b.x-a.x;y+=b.y-a.y;zoomAt(scale*dist(after)/Math.max(dist(before),1),b.x-r.left,b.y-r.top);}
+  });
+  const release=e=>{pointers.delete(e.pointerId);if(!pointers.size)canvas.classList.remove('dragging');};
+  canvas.addEventListener('pointerup',release);canvas.addEventListener('pointercancel',release);canvas.addEventListener('lostpointercapture',release);
+  canvas.addEventListener('keydown',e=>{if(e.target!==canvas)return;const keys=['+','=','-','0','ArrowLeft','ArrowRight','ArrowUp','ArrowDown'];if(!keys.includes(e.key))return;e.preventDefault();if(e.key==='0')return fit();if(e.key==='+'||e.key==='=')return zoomAt(scale*1.25);if(e.key==='-')return zoomAt(scale/1.25);fitMode=false;const step=e.shiftKey?100:40;if(e.key==='ArrowLeft')x-=step;if(e.key==='ArrowRight')x+=step;if(e.key==='ArrowUp')y-=step;if(e.key==='ArrowDown')y+=step;paint();});
+  document.getElementById('full').addEventListener('click',async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await canvas.requestFullscreen();}catch{status.textContent='Fullscreen unavailable here. Open the downloaded viewer in a browser.';}});
+  document.addEventListener('fullscreenchange',()=>{document.getElementById('full').textContent=document.fullscreenElement?'Exit fullscreen':'Fullscreen';fit();});
+  new ResizeObserver(()=>{if(fitMode)fit();}).observe(canvas);
+  function download(text,type,extension){const url=URL.createObjectURL(new Blob([text],{type}));const a=document.createElement('a');a.href=url;a.download='adept-'+current.id+extension;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+  document.getElementById('svg').addEventListener('click',()=>download(current.svg,'image/svg+xml','.svg'));
+  document.getElementById('mmd').addEventListener('click',()=>download(current.source,'text/plain','.mmd'));
+  show(location.hash.slice(1));
+})();
+</script>
+</body>
+</html>
