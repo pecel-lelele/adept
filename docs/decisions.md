@@ -805,3 +805,31 @@
 - **Affects**: everyone running compose (set `SESSION_SECRET` in `.env` to keep sessions across restarts); F3 owner (outlook loading)
 - **Replaces**: none
 - **PR / branch**: feat/core-insight-design
+
+### M4-011: Partner design applied (frontend/adept): palette, type, sidebar, public header and footer
+- **Date**: 2026-10-22
+- **Feature**: Core (also restyles F5, F6, F8 pages)
+- **Type**: other
+- **Change**: Tokens now follow the partner design: Arial/Helvetica, charcoal-green ink `#18231C`, green actions `#22C55E` with a pressed edge, sage surfaces, `#E4E9E4` dividers, 20px cards, weight-500 editorial headings. The workspace keeps the sidebar (no top bar); the AI-scenario switch is an "AI pace: Moderate | Fast" control at the top right of the pages it changes. New public `SiteHeader` (pinned, hamburger on phones, EN/BM/中文 pill) and `SiteFooter` used by the landing and About pages. Pathway, progress, courses, compare, reviews, SDG and About pages rebuilt on shared `a-` components (metric cards, step rail, course rows, goal tiles, filters). The partner app itself (Vite/Cloudflare, its own database) was not merged: only its design was ported; `frontend/` stays out of the repo.
+- **Affects**: everyone (shared UI); F5/F6/F8 owners (M3) please review the restyled pages, F3 (scenario switch placement)
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design
+
+### M4-012: Landing page: live data, isometric objects, team view
+- **Date**: 2026-10-22
+- **Feature**: Core
+- **Type**: feature
+- **Change**: New public `GET /api/v1/meta/overview` (cached 60 s) computes the landing figures from the app's own data (snapshot rising/stable/declining and top movers, role outlooks, course and HRD Corp counts, SDG goals linked) with sources and date; it feeds the "How it works" stepper (auto-advancing, no layout jumps) and the team numbers band, replacing the partner's illustrative sample profile. Monochrome isometric line-art objects (one projection, one green accent) for every feature, a "where you are → where you could be" career scene for individuals and an office scene for organisations. "For me | For my team" is a segmented control in the header; switching wipes to the other audience's hero (View Transitions). Teams get a sage/forest-green theme, their own features (roster, gap heatmap, target role, group plan, HRD Corp, reviews), steps and FAQ. Scroll reveals, count-ups and hover motion all respect reduced motion.
+- **Affects**: none outside Core
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design
+
+### M4-013: Checklist gaps closed: SDG-weighted ranking, trend replay "what changed and why", learning style
+- **Date**: 2026-10-22
+- **Feature**: F4, F2, F1 (built by M4 at the team's request; M2 please review)
+- **Type**: feature
+- **Change**: (1) `GET /matches?sdg_weight=0..1`: each role gets an SDG impact value from its reviewed SDG links (direct = 1, enabling = 0.5, divided by the strongest role); existing parts keep their relative weights scaled by (1 − λ) and "sdg_impact" is added with weight λ, so the score stays a visible weighted sum; λ = 0 is unchanged. Slider on the matches page. (2) `GET /matches/replay?from_date=&to_date=` ranks the saved profile on two snapshots (`replay.py`) and names, per role, the required skills whose velocity × importance moved most; shown as "What changed from … to …" when an older snapshot is picked. (3) Learning style is now asked in the intake and stored (`profiles.learning_style`, migration `20261022150000`); a profile update without it keeps the saved value. Tests: `tests/api/matching/test_sdg_weight_and_replay.py`, `tests/api/profile/test_learning_style.py`.
+- **Affects**: M2 (F1/F4 code and contracts: `RoleMatch` unchanged, new `ReplayResponse`, `ProfileIn.learning_style`), shared migration
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design
+- **Pipeline**: source = trend snapshots + reviewed SDG links → features = SDG link weight, velocity deltas → method = linear blend (λ) / rank diff with importance-weighted drivers → evaluation = unit + API tests → serving = `/api/v1/matches`, `/api/v1/matches/replay`
