@@ -3834,10 +3834,36 @@
             ],
             "title": "Saved Plan"
           },
+          "plan_history": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Plan History",
+            "description": "Earlier saved plans, oldest first."
+          },
+          "learning": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Learning",
+            "description": "Every course you tracked, across all target roles, with its evidence."
+          },
+          "badges": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Badges",
+            "description": "Badge id -> date earned."
+          },
           "notice": {
             "type": "string",
             "title": "Notice",
-            "default": "This file holds your Adept account, profile and saved plan. CV files are never stored: they are read in memory and discarded."
+            "default": "This file holds your Adept account, profile, plans, course progress, completion evidence and badges. CV files are never stored: they are read in memory and discarded."
           }
         },
         "type": "object",

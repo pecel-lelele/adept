@@ -141,3 +141,16 @@ def test_old_word_format_gets_a_helpful_415(client) -> None:  # noqa: ANN001
     )
     assert resp.status_code == 415
     assert ".docx" in resp.json()["error"]["message"]
+
+
+def test_a_denial_on_one_line_does_not_hide_the_next_line() -> None:
+    assert _levels("No formal training\nSQL - 5 years experience")["sql"] == 4
+
+
+def test_years_and_cue_words_stay_with_their_own_skill() -> None:
+    found = _levels("SQL; 8 years of Python experience")
+    assert found["sql"] == 2
+    assert found["python"] == 5
+    mixed = _levels("Advanced Excel, basic SQL")
+    assert mixed["excel"] == 4
+    assert mixed["sql"] == 2

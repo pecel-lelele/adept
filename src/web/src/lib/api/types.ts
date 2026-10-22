@@ -1081,8 +1081,29 @@ export interface components {
                 [key: string]: unknown;
             } | null;
             /**
+             * Plan History
+             * @description Earlier saved plans, oldest first.
+             */
+            plan_history?: {
+                [key: string]: unknown;
+            }[];
+            /**
+             * Learning
+             * @description Every course you tracked, across all target roles, with its evidence.
+             */
+            learning?: {
+                [key: string]: unknown;
+            }[];
+            /**
+             * Badges
+             * @description Badge id -> date earned.
+             */
+            badges?: {
+                [key: string]: string;
+            };
+            /**
              * Notice
-             * @default This file holds your Adept account, profile and saved plan. CV files are never stored: they are read in memory and discarded.
+             * @default This file holds your Adept account, profile, plans, course progress, completion evidence and badges. CV files are never stored: they are read in memory and discarded.
              */
             notice: string;
         };

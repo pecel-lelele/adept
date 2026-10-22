@@ -46,8 +46,9 @@ class TestCleanText:
         assert "@" not in clean_text(raw)
 
     def test_collapses_whitespace(self) -> None:
+        # Spaces collapse; one line break survives so a CV line stays a unit of meaning.
         raw = "python   \n\n   sql"
-        assert clean_text(raw) == "python sql"
+        assert clean_text(raw) == "python\nsql"
 
     def test_removes_non_printable(self) -> None:
         raw = "python\x00sql"

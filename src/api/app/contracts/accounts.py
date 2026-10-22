@@ -54,7 +54,15 @@ class AccountExport(BaseModel):
     account: Account
     profile: dict[str, object] | None = None
     saved_plan: dict[str, object] | None = None
+    plan_history: list[dict[str, object]] = Field(
+        default_factory=list, description="Earlier saved plans, oldest first."
+    )
+    learning: list[dict[str, object]] = Field(
+        default_factory=list,
+        description="Every course you tracked, across all target roles, with its evidence.",
+    )
+    badges: dict[str, str] = Field(default_factory=dict, description="Badge id -> date earned.")
     notice: str = (
-        "This file holds your Adept account, profile and saved plan. CV files are never "
-        "stored: they are read in memory and discarded."
+        "This file holds your Adept account, profile, plans, course progress, completion "
+        "evidence and badges. CV files are never stored: they are read in memory and discarded."
     )

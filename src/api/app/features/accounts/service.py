@@ -114,6 +114,7 @@ def login(body: LoginIn) -> SessionResponse:
 
 def export(user: CurrentUser) -> AccountExport:
     """Everything stored about the signed-in person, as one JSON document (PDPA access)."""
+    from app.features.pathway import repository as pathway_repository
     from app.features.pathway import service as pathway_service
 
     account = accounts.find_by_id(user.id)
@@ -125,11 +126,27 @@ def export(user: CurrentUser) -> AccountExport:
         else None
     )
     plan = pathway_service.get_saved_plan(user)
+    store = pathway_repository.store()
+    learning = [
+        {
+            "role_id": r.role_id,
+            "course_id": r.course_id,
+            "status": r.status,
+            "course": r.course.model_dump(mode="json") if r.course else None,
+            "evidence": r.evidence.model_dump(mode="json") if r.evidence else None,
+        }
+        for r in store.learning_records([user.id])
+    ]
+    # An empty list records nothing new: it only reads the badges already earned.
+    badges = store.record_badges(user.id, [], datetime.now(UTC).date())
     return AccountExport(
         exported_at=datetime.now(UTC).isoformat(timespec="seconds"),
         account=to_contract(account),
         profile=profile,
         saved_plan=plan.model_dump(mode="json") if plan else None,
+        plan_history=[p.model_dump(mode="json") for p in store.plan_history(user.id)],
+        learning=learning,
+        badges={badge: day.isoformat() for badge, day in badges.items()},
     )
 
 
