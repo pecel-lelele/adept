@@ -353,6 +353,82 @@
         }
       }
     },
+    "/api/v1/assistant/chat": {
+      "post": {
+        "tags": [
+          "assistant"
+        ],
+        "summary": "Chat",
+        "description": "Ask Adi. Answers come from your Adept data (or public figures) and are checked first.",
+        "operationId": "assistant_chat",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssistantIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantReply"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/guardrails/disclosure": {
       "get": {
         "tags": [
@@ -3814,6 +3890,190 @@
         ],
         "title": "AccountExport",
         "description": "Everything Adept stores about the signed-in person (PDPA access request)."
+      },
+      "AnswerPart": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "text",
+              "role",
+              "skill",
+              "course",
+              "sdg",
+              "page"
+            ],
+            "title": "Kind"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "ref_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ref Id"
+          },
+          "href": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Href"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "text"
+        ],
+        "title": "AnswerPart",
+        "description": "One piece of the answer: plain text, or a checked reference rendered as a link."
+      },
+      "AssistantIn": {
+        "properties": {
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/AssistantMessage"
+            },
+            "type": "array",
+            "maxItems": 12,
+            "minItems": 1,
+            "title": "Messages",
+            "description": "Recent turns, oldest first; the last is the question."
+          },
+          "page": {
+            "type": "string",
+            "maxLength": 120,
+            "title": "Page",
+            "description": "Route the person is on.",
+            "default": "/"
+          },
+          "scenario": {
+            "type": "string",
+            "enum": [
+              "moderate",
+              "fast"
+            ],
+            "title": "Scenario",
+            "default": "moderate"
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "ms",
+              "zh"
+            ],
+            "title": "Locale",
+            "default": "en"
+          }
+        },
+        "type": "object",
+        "required": [
+          "messages"
+        ],
+        "title": "AssistantIn"
+      },
+      "AssistantMessage": {
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "user",
+              "assistant"
+            ],
+            "title": "Role"
+          },
+          "content": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Content"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role",
+          "content"
+        ],
+        "title": "AssistantMessage"
+      },
+      "AssistantReply": {
+        "properties": {
+          "parts": {
+            "items": {
+              "$ref": "#/components/schemas/AnswerPart"
+            },
+            "type": "array",
+            "title": "Parts"
+          },
+          "suggestions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Suggestions",
+            "description": "Follow-up questions."
+          },
+          "used_llm": {
+            "type": "boolean",
+            "title": "Used Llm",
+            "description": "False when the deterministic guide answered."
+          },
+          "provider": {
+            "type": "string",
+            "title": "Provider"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "grounded_on": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Grounded On",
+            "description": "Which of your data the answer could use."
+          },
+          "unchecked_figures": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Unchecked Figures",
+            "description": "Numbers in the answer that do not appear in your data (shown as a caution)."
+          },
+          "meta": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RecommendationMeta"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "parts",
+          "used_llm",
+          "provider",
+          "model"
+        ],
+        "title": "AssistantReply"
       },
       "Badge": {
         "properties": {

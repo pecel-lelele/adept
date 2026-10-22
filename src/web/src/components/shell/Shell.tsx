@@ -6,6 +6,7 @@ import { Suspense, type ReactNode } from "react";
 import type { Workspace } from "@/config/navigation";
 import type { Account } from "@/lib/auth/account";
 
+import { AdiAssistant } from "../adi/AdiAssistant";
 import { LocaleSwitcher } from "../LocaleSwitcher";
 import { ScenarioToggle } from "../ScenarioToggle";
 import { BrandLogo } from "./Brand";
@@ -118,6 +119,11 @@ export async function Shell({
           }
         />
       </Suspense>
+      {ws.mode !== "admin" ? (
+        <Suspense>
+          <AdiAssistant />
+        </Suspense>
+      ) : null}
     </div>
   );
 }

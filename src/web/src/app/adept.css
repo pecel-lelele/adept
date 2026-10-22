@@ -1894,3 +1894,11 @@ html[data-busy] .a-main::after { content: ""; }
 .a-authpage .a-auth-card[data-page="signup"] .a-auth-body { align-content: center; padding-top: 0; }
 .a-authpage .a-auth-card[data-page="signup"] .a-auth-head p,
 .a-authpage .a-auth-card[data-page="signup"] .a-auth-trust { display: none; }
+
+/* Sign in and Create account share one fixed frame height, so switching tabs never resizes the
+   panel; on very short screens the form scrolls inside the card instead of growing it. */
+@media (min-width: 861px) {
+  .a-authpage .a-auth { --auth-h: clamp(620px, calc(100dvh - 110px), 800px); }
+  .a-authpage .a-auth > .a-auth-card, .a-authpage .a-auth-art { height: var(--auth-h); min-height: 0; }
+  .a-authpage .a-auth-body { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; padding-right: 2px; }
+}

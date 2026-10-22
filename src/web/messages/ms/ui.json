@@ -609,5 +609,29 @@
     "confirm": "Saya faham tindakan ini tidak boleh dibatalkan",
     "deleting": "Memadam…",
     "deleteForever": "Padam akaun saya"
+  },
+  "adi": {
+    "title": "Adi",
+    "subtitle": "Pemandu Adept anda",
+    "ask": "Tanya apa sahaja 👋",
+    "askVisitor": "Hai! Tanya saya cara Adept berfungsi",
+    "open": "Tanya Adi, pemandu Adept anda",
+    "close": "Tutup sembang",
+    "dismiss": "Sembunyi",
+    "greet": "Hai, saya Adi! Tanya saya tentang peranan padanan anda, apa perlu dipelajari, kemahiran yang meningkat, kos kursus atau kaitan laluan anda dengan SDG PBB.",
+    "placeholder": "Tanya Adi…",
+    "send": "Hantar",
+    "thinking": "Adi sedang berfikir…",
+    "error": "Adi tidak dapat menjawab sekarang. Sila cuba lagi.",
+    "slowDown": "Terlalu banyak soalan sekaligus. Tunggu sebentar dan cuba lagi.",
+    "disclaimer": "Adi menjawab daripada data Adept anda dan mungkin silap. Anda yang memutuskan.",
+    "byModel": "Jawapan AI ({model})",
+    "byGuide": "Pemandu Adept",
+    "basedOn": "berdasarkan {what}",
+    "snapshot": "data setakat {date}",
+    "unchecked": "Angka ini tidak dapat disemak dengan data anda: {figures}",
+    "s1": "Apa langkah seterusnya?",
+    "s2": "Kemahiran apa yang meningkat?",
+    "s3": "Bagaimana Adept berfungsi?"
   }
 }

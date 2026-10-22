@@ -34,6 +34,7 @@ RULES = [
     "Personal data (email, MyKad NRIC, passport, phone) is redacted before any prompt.",
     "Prompt-injection patterns are filtered from text sent to the model.",
     "If no model is configured or it fails, deterministic logic answers instead.",
+    "Numbers in Adi's answers that are not in your data are flagged as unchecked.",
     "Courses come only from the catalogue; a skill with no course is reported, not invented.",
     "Every recommendation carries its source, date, scenario and an estimate label.",
     "Age, gender, ethnicity, religion and similar attributes are never accepted as input.",
@@ -44,9 +45,16 @@ def get_disclosure() -> Disclosure:
     provider, model = disclosure()
     enabled = provider != "none"
     purpose = (
-        ["Optional re-ranking of catalogue IDs (courses, roles, SDG targets)."]
+        [
+            "Adi, the in-app guide, phrases answers from your own Adept data. It can only "
+            "name roles, skills, courses, SDG targets and pages that exist in the catalogue.",
+            "Scores, plans and SDG links are still computed by deterministic, tested rules.",
+        ]
         if enabled
-        else ["No language model is used. All plans, scores and SDG links are deterministic."]
+        else [
+            "No language model is used. Adi answers with a built-in guide, and all plans, "
+            "scores and SDG links are deterministic."
+        ]
     )
     return Disclosure(
         llm_enabled=enabled,

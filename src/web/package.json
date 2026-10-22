@@ -22,13 +22,15 @@
     "openapi-fetch": "0.14.1",
     "react": "19.2.9",
     "react-dom": "19.2.9",
-    "tailwind-merge": "3.3.1"
+    "tailwind-merge": "3.3.1",
+    "three": "0.180.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "4.1.18",
     "@types/node": "22.20.5",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.7",
+    "@types/three": "0.180.0",
     "eslint": "9.39.5",
     "eslint-config-next": "16.2.12",
     "openapi-typescript": "7.9.1",
