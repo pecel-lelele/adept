@@ -8,7 +8,11 @@ from app.contracts.common import RecommendationMeta, ScenarioId
 class Scenario(BaseModel):
     id: ScenarioId
     label: str
-    adoption_rate: float = Field(ge=0, le=1, description="Share of tasks adopting AI by horizon.")
+    adoption_rate: float = Field(
+        ge=0,
+        le=1,
+        description="Mean automation exposure of the tracked skills under this scenario.",
+    )
     description: str
 
 

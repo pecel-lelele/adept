@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter
 
-from app.contracts.common import MOCK_SNAPSHOT_DATE, MOCK_SOURCE, DataFreshness, HealthResponse
+from app.contracts.common import DataFreshness, HealthResponse, Source
 from app.core.config import get_settings
 from app.core.db import database_status
 
@@ -22,5 +22,14 @@ def health() -> HealthResponse:
 
 @router.get("/meta/data-freshness")
 def data_freshness() -> DataFreshness:
-    # TODO(F2): read the latest row from `snapshots` once ingestion exists.
-    return DataFreshness(snapshot_date=MOCK_SNAPSHOT_DATE, sources=[MOCK_SOURCE], is_mock=True)
+    """Date and sources of the latest trend snapshot (database, else the frozen export)."""
+    from app.features.trends import service as trends_service
+
+    snap = trends_service.get_snapshot(None, "moderate")
+    return DataFreshness(
+        snapshot_date=snap.meta.snapshot_date,
+        sources=[
+            Source(name=s.name, url=s.url, retrieved_at=s.retrieved_at) for s in snap.meta.sources
+        ],
+        is_mock=False,
+    )
