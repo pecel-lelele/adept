@@ -9,7 +9,7 @@ linked to the UN Sustainable Development Goals. Two modes share one engine: **In
 
 Every recommendation shows its source and date, its scenario (moderate vs fast AI disruption),
 and is labelled as an estimate. The product supports human decisions; it never makes hiring
-decisions. Demo data is synthetic only.
+decisions. There are no built-in demo users: the demo runs through real sign-up.
 
 > **Status: in progress.** Pathway (F5), SDG mapping (F6), guardrails (F8) and the organisation
 > heatmap / group plan run on real, dated data: a course catalogue from the Microsoft Learn
@@ -38,7 +38,7 @@ this section with the provider, model name and purpose in the same PR that enabl
 
 - Python 3.11 and [uv](https://docs.astral.sh/uv/) (uv can download Python 3.11 for you)
 - Node.js 20+ (pnpm is used via `npx` if not installed)
-- Docker Desktop (for PostgreSQL 16 + pgvector; optional, the API runs on mocks without it)
+- Docker Desktop (for PostgreSQL 16 + pgvector; accounts, profiles and plans are stored there)
 - GNU Make (optional; on Windows without make use `uv run --no-project python src/scripts/dev.py <target>`)
 
 ## Quick start
@@ -49,7 +49,8 @@ make dev      # API http://localhost:8000/docs  ·  web http://localhost:3000
 make check    # run before every PR
 ```
 
-Then open http://localhost:3000 and click **Try the demo as Aisyah** or **Try the demo company**.
+Then open http://localhost:3000: upload a CV on the home page for an instant partial result,
+or create an account (for your career, or for your team) to see everything.
 
 ## Make commands
 
@@ -64,7 +65,7 @@ Then open http://localhost:3000 and click **Try the demo as Aisyah** or **Try th
 | `make contracts` | Regenerate `src/api/openapi.json` and `src/web/src/lib/api/types.ts` from the Pydantic contracts |
 | `make db-up` / `make db-down` | Start / stop PostgreSQL + pgvector (host port 5433) |
 | `make db-migrate` | Apply pending SQL migrations in `src/db/migrations/` |
-| `make seed` | Load synthetic CSVs from `src/data/seed/` |
+| `make seed` | Load reference data (taxonomy, courses, SDGs, trend snapshots) from `src/data/seed/` |
 
 ## Repository layout
 

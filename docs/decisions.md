@@ -709,3 +709,81 @@
 ## M4: Core & Organisation (Core, F7)
 
 <!-- M4 adds entries below this line -->
+
+### M4-001: Real accounts, PostgreSQL-first storage, no built-in personas
+- **Date**: 2026-10-22
+- **Feature**: Core, F1, F7 (cross-feature, requested by the user on `feat/core-insight-design`)
+- **Type**: contract | schema | method | data source
+- **Change**: Sign-up / sign-in replace the persona shortcuts. New `POST /auth/signup`, `POST /auth/login`, `GET /auth/me` (`features/accounts`, `core/accounts.py`): scrypt password hashes in `users.password_hash`, HMAC-signed 14-day session tokens (`core/security/session.py`, `SESSION_SECRET`) kept by Next.js in an httpOnly `adept_session` cookie and forwarded as `X-Demo-User`. Organisation sign-up creates the organisation and a manager/advisor membership with a join code (`organizations.join_code`); learners join with `POST /org/join` or a code at sign-up. Migration `20261022090000_core_local_accounts.sql`. `M3_BACKEND` now defaults to `postgres`; profiles (`profiles`, `user_skills`) and organisations/memberships are read from and written to PostgreSQL, and user-data reads fail with 503 instead of silently falling back to memory. `DEMO_USERS`, `features/profile/mocks.py`, `features/org/mocks.py`, the proxy's persona allow-list and `/demo/*` routes are removed; `src/db/seed.py` no longer loads `seed/personas` and `seed/org` (they stay as test fixtures, installed by `tests/harness/fixtures.py`). Saving a profile moves the member's intake status forward.
+- **Why**: Profiles lived in a Python dict (lost on restart) and only five hard-coded ids could use the app, so a live demo could not use real app logic. Persona data in the database was fake data.
+- **Affects**: everyone (shared contracts, migration, `.env.example`, `tests/conftest.py`); M2 (profile repository); tests use `AUTH_RAW_USER_IDS` / `AUTH_DEFAULT_USER` (test-only settings).
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design
+
+### M4-002: Hard-coded scenario outlooks, radar signals and data-freshness replaced by snapshot-derived values
+- **Date**: 2026-10-22
+- **Feature**: F2, F3, Core (cross-feature)
+- **Type**: formula | data source | contract
+- **Change**: `GET /scenarios` and `/scenarios/outlook`, `GET /trends/radar` and `/trends/roles/{id}`, `GET /meta/data-freshness` and the CV extraction meta no longer return `MOCK DATA`; they are computed from M1's dated snapshot and the taxonomy and cite its sources. `adoption_rate` = mean `automation_exposure` of tracked skills (fast: × (1 + k), k = 1.5 from `pipelines/trends/score.py`, capped at 1).
+- **Pipeline**: M1 snapshot (arXiv cs.AI + BLS, dated) → per-scenario skill velocity → role signal = importance-weighted velocity over covered required skills → outlook = 1 + signal; low/high = min/max over every stored snapshot, widened by (1 − coverage) × |signal| → evaluation: `tests/api/scenarios/test_outlook_method.py` (range contains outlook, fast ≥ moderate adoption, no mock sources) → serving: the endpoints above.
+- **Affects**: M1 (owner of F2/F3: please review the method)
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design
+
+### M4-003: Skill bank enriched to 113 skills with cited SDG links
+- **Date**: 2026-10-22
+- **Feature**: F1, F4, F6
+- **Type**: data source
+- **Change**: `seed/taxonomy/skills.csv` now includes all 110 canonical skills M1's trend pipeline scores (labels, aliases, group in `description`), and `GET /profile/skills/catalogue` serves the bank plus the role interest tags for the intake. Every new skill has ≥ 1 `skill_sdg_map` link with a reason and an authoritative source (ILO WP140, UN indicator metadata, UNESCO), still `pending review`.
+- **Why**: Learners could only pick 12 skills, most of which the trend snapshot did not cover; must-have 5 requires every skill to be SDG-tagged.
+- **Affects**: M2 (taxonomy, CV aliases), M3 (SDG map review)
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design
+
+### M4-004: Rebuilt shell, navigation, dashboards and intake (visual-first)
+- **Date**: 2026-10-22
+- **Feature**: Core, F1, F4, F7 UI
+- **Type**: UI | contract
+- **Change**: New design system `app/adept.css` and `ui` message namespace (EN/BM/ZH). One `Shell` for all workspaces: desktop sidebar grouped by journey with numbered steps (ticked when done), page title and an AI-scenario switch only on pages where it matters; mobile uses a fixed 5-tab bar (4 destinations + "More" bottom sheet), no horizontal scrolling. Learner home shows one next step, top-3 fit rings, the learner's own skills as a diverging trend chart, the plan as a step track and SDG goal tiles; organisation home moves from invite (join code) → waiting → act, with an intake stacked bar, gap heatmap, team-plan track and SDG tiles. New 4-step intake (stage, interests, time/budget, skills from CV or the skill bank) — previously there was no way to enter skills. Org settings edit, join-code rotation and member removal (`PUT /org/me`, `POST /org/me/join-code`, `DELETE /org/members/{id}`); gap heatmap and plan carry role labels. API errors always use `{"error": {code, message}}` (validation, 404/405, database outages → 503) and the web client keeps status and code to show the right fix (sign in, finish profile, retry). Looping CSS-3D scenes (no library): staircase climb (pathway), signal gyroscope (radar), role-card carousel (matches), cube heatmap (team), SDG globe; paused for reduced motion.
+- **Why**: Users asked for a visual hierarchy, a coherent route/navigation model and mobile navigation without sideways scrolling.
+- **Affects**: all features' pages render inside the new shell; feature-owned pages beyond radar/matches/org were not restyled.
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design
+
+### M4-005: Local reliability fixes
+- **Date**: 2026-10-22
+- **Feature**: Core
+- **Type**: other
+- **Change**: `DATABASE_URL` hosts `localhost` are normalised to `127.0.0.1` (Docker binds IPv4 only; on Windows every connection waited the 2 s timeout on `::1`, which made matching return 503). `migrate.py status` reports the duplicate-version alias migration correctly. GET requests from the web retry once on a dropped connection.
+- **Affects**: everyone running locally on Windows
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design
+
+### M4-006: Upload-first home with a For me ⇄ For my team switch; refined visual system
+- **Date**: 2026-10-22
+- **Feature**: Core, F1 (anonymous preview), F7 (team pitch)
+- **Type**: UI | contract
+- **Change**: The home page is upload-first: anyone uploads a CV and immediately sees the skills found, how those skills trend, and their best-fit role (fit ring); more roles, the skills gap, the learning plan and SDG impact are shown blurred behind a free sign-up. Skills found carry into the intake after sign-up (browser storage only, cleared once saved). `POST /preview/cv` adds `skill_trends` (direction per extracted skill from the snapshot, ±0.05 band). A "For me ⇄ For my team" switch re-themes the whole landing (light ⇄ dark, colours animated via registered CSS properties) and swaps to the team pitch; `/?for=teams` links to it. Design tokens: white base, 1.2 type scale, 8-pt spacing, motion tokens, hover lift on cards, entrance stagger, ring labels scale with ring size (no overflow on phones). Sidebar is white; secondary pages sit in one collapsible "More" group. The CSS staircase scene (broken on phones) is replaced by an SVG line-art object (a skill lifting from your stack to a future role); the other 3D scenes are kept. `/try` redirects to `/#start`; the developer route atlas `/journey` is removed; About-page wording is user-facing.
+- **Why**: User feedback: visual-first, minimal white, sign-in from the landing, CV preview without login with the rest locked, and a teams landing that feels like a theme switch.
+- **Affects**: M2/M3 (preview response gains a field; About copy)
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design
+
+### M4-007: Trend snapshots live in PostgreSQL with their provenance; route chain fixes
+- **Date**: 2026-10-22
+- **Feature**: F2, F3, F5 (cross-feature)
+- **Type**: schema | data source | contract | formula
+- **Change**: `make seed` loads the pipeline's exported, dated snapshots (`src/data/seed/mock_trends_<date>.json`) into `trend_snapshots`, and their sources and provenance note into the new `trend_snapshot_meta` table (migration `20261022120000_core_trend_snapshot_meta.sql`); the trends repository now cites the stored sources (it used to hard-code "arXiv cs.AI RSS" even for Query-API runs) and uses taxonomy labels instead of title-cased ids. `GET /pathway` and `GET /pathway/progress` take an optional `role_id` and fall back to the saved plan (`409 role_required` until one exists); planning endpoints require a saved profile (`profile_required`, same rule as matching). Role outlook clips the signal to the engine's growth band so the index stays in [0.5, 2.0]. Tests never touch a developer database (`tests/conftest.py` points `DATABASE_URL` at an unreachable address unless `ADEPT_TEST_DATABASE_URL` is set).
+- **Pipeline**: pipeline export (arXiv cs.AI Query API windows + BLS, dated) → seed loader (no overwrite) → `trend_snapshots` + `trend_snapshot_meta` → repository (DB first, frozen export as fallback) → radar, matching, scenarios, pathway, freshness.
+- **Affects**: M1 (pipeline runs can write `trend_snapshot_meta` too), M3 (pathway defaults)
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design
+
+### M4-008: Docs brought up to date
+- **Date**: 2026-10-22
+- **Feature**: Core
+- **Type**: other
+- **Change**: PROJECT_CONTEXT §11.3 routes and §11.5 personas (now design/test fixtures only), SOLUTION_DESIGN start rows and routing summary with the API chain, README quick start, architecture auth section; WORKSPACE_IMPLEMENTATION marked superseded.
+- **Affects**: everyone (shared AI context, edited at the user's request)
+- **Replaces**: none
+- **PR / branch**: feat/core-insight-design

@@ -124,23 +124,27 @@ Scenario toggle, source labels and "estimate" labels appear in steps 2–4.
 ### 11.3 Routes
 
 ```
-/                   landing (Individual | Organisation switch)
-/demo/learner       enter as demo persona (no signup)
-/demo/org           enter as demo organisation
-/auth/*             login, signup, consent, join-by-code
-/app/onboarding     segment choice
-/app/profile        step 1
+/                   home: Individual | Teams switch; CV upload with an instant partial
+                    result (skills found, their trend, best-fit role); the rest unlocks
+                    with a free account
+/auth/signup        create an account (individual, or organisation + join code)
+/auth/login         sign in
+/auth/join?code=    join an organisation (sign-up with the code, or in-app)
+/app                learner home: next step, top roles, own skills on the radar, plan, SDGs
+/app/onboarding     step 1: four-step intake (stage, interests, time/budget, skills)
+/app/profile        step 1 result: my skills, organisation
 /app/radar          step 2
 /app/matches        step 3 (+ /app/matches/[roleId])
-/app/pathway        step 4 (+ /app/sdg, /app/progress)
-/org/setup          organisation type, industry, size
-/org/members        invites, intake status
+/app/pathway        step 4 (+ /app/pathway/compare, /app/progress, /app/courses, /app/sdg)
+/org                organisation home: invite → waiting → act
+/org/members        join code, intake status, remove members
 /org/radar          step 2 (organisation context)
 /org/gaps           step 3 (heatmap)
-/org/plan           step 4 (group plan, assign)
-/org/sdg            aggregated SDG contribution
+/org/plan           step 4 (group plan for a target role)
+/org/sdg            aggregated SDG contribution (+ /org/courses, /org/verify)
+/org/setup          organisation settings and join code
 /about              LLM disclosure, methodology, data sources, limitations
-/admin/*            data sources, snapshots, diffs, refresh
+/admin/*            data sources, snapshots (internal)
 ```
 
 ### 11.4 Features and owners
@@ -157,7 +161,13 @@ Scenario toggle, source labels and "estimate" labels appear in steps 2–4.
 | F8 | Guardrails and transparency (LLM gateway, ID validation, sources, About page) | M3 |
 | Core | Landing, auth, shells, dashboard, design system, i18n, deploy, proposal | M4 |
 
-### 11.5 Demo personas (synthetic only)
+### 11.5 Personas (design and test fixtures only)
+
+The live app has no built-in personas: the demo runs through real sign-up, intake and
+matching, and everything is stored in PostgreSQL. The personas below guide design and
+are installed only by the automated tests (`tests/harness/fixtures.py`) and the
+matching evaluation benchmark (`src/data/seed/personas/`).
+
 
 - **Aisyah**, 34, bank operations executive in Kuala Lumpur. Employer announced AI automation of back-office work. 6 hours/week to learn, HRD Corp eligible. Primary demo persona.
 - **Wei Jie**, 22, fresh diploma graduate in IT, unsure where to start.

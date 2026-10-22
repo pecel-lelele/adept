@@ -1,3 +1,7 @@
+> **Superseded (2026-10-22, M4-001/M4-004):** persona entry (`/demo/*`), `/try` and `/journey`
+> were removed. Current routes and flows: `docs/PROJECT_CONTEXT.md` §11.3 and
+> `docs/SOLUTION_DESIGN.md` §6. Kept for history.
+
 # M3 / Core workspace handoff
 
 Branch: `feat/core-m3-workspace-navigation`, based on M2 remote commit `1839426`.

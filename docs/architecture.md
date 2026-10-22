@@ -70,8 +70,9 @@ regenerates both files and fails if they differ from what is committed.
 
 ## Auth
 
-`AUTH_MODE=demo`: `/demo/learner` and `/demo/org` set an `adept_demo` cookie (persona `aisyah`
-or `demo-company`); the web forwards it to the API as `X-Demo-User`. `AUTH_MODE=supabase` is
+`AUTH_MODE=demo` (local accounts): `POST /auth/signup` and `/auth/login` return a signed session
+token (scrypt password hashes in `users`); the web keeps it in the httpOnly `adept_session` cookie
+and forwards it to the API as `X-Demo-User`. `AUTH_MODE=supabase` is
 reserved for the deployed environment and not implemented yet.
 
 ## Scenario and locale state
