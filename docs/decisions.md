@@ -925,3 +925,13 @@
 - **Affects**: M2 (matching input), M3 (progress persistence and planning), M4 (team gaps); one new database column, no API contract change.
 - **Replaces**: M4-021 (current-target-only earned-level lookup; the evidence acceptance policy is unchanged)
 - **PR / branch**: https://github.com/pecel-lelele/adept/pull/7 / feat/core-insight-design
+
+### M4-023: Submission drafts and readable, interactive documentation diagrams
+- **Date**: 2026-10-22
+- **Feature**: Core (submission and documentation)
+- **Type**: other
+- **Change**: Added proposal and technical-tools Markdown drafts following the supplied PDF sections and narrative limits. README branding reuses the existing Adept mark with a centered title and technology badges; diagrams are editable Mermaid, checked against routes and migrations, with large schemas split by domain. A standalone offline viewer adds zoom, pan, resize, fullscreen and SVG/Mermaid downloads; documentation-only Mermaid 11.12.0 tooling generates it without changing application dependencies.
+- **Why**: The existing submission links had no target files and screenshot diagrams were unreadable. GitHub Markdown cannot run interactive controls, so a local browser viewer complements the native source blocks. Declarations separate verified local functionality from planned cloud/sponsor use and leave personal, legal and registration attestations for the team. The proposed 20% planning-time reduction is an evaluation target, not a measured outcome; the draft specifies a matched synthetic manual-catalogue comparison before claiming results.
+- **Affects**: M4 submission assembly; all owners review their technical disclosures. No API contract or application dependency changes for documentation.
+- **Replaces**: none
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/7 / feat/core-insight-design
