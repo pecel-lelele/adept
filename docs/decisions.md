@@ -1412,3 +1412,14 @@
 - **Affects**: M1 (trend refresh), M4 (deployment); Adi and CV embedding settings remain separate
 - **Replaces**: local-only trend encoder deployment; scoring formulas are unchanged
 - **PR / branch**: https://github.com/pecel-lelele/adept/pull/13 / feat/jobs-live-openings
+
+### M4-065: Allow partial board reads in the PostgreSQL fetch log
+- **Date**: 2026-10-24
+- **Feature**: Core (jobs)
+- **Type**: schema
+- **Change**: Append migration `20261024010000_jobs_partial_fetch_status.sql` to allow `partial` in the fetch-log status constraint. Downgrading preserves those audit rows as errors with an explanatory detail. PostgreSQL CI now exercises the real pipeline transaction with both partial and complete boards.
+- **Why**: Greptile found that the status introduced in M4-063 was rejected by the original database constraint, rolling back successful boards along with the incomplete one.
+- **Evaluation**: Eight focused regressions passed, including a real PostgreSQL test in an isolated schema: the partial board stays active, a complete board closes missing openings, both audit records commit, and the migration reverses and reapplies successfully. The full quality gate also passed (882 passed, 27 skipped; the PostgreSQL regression was run separately with its database configured).
+- **Affects**: Deployments must apply the new migration before the next jobs refresh
+- **Replaces**: none (completes M4-063)
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/13 / feat/jobs-live-openings
