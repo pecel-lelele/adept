@@ -1113,6 +1113,23 @@
         "operationId": "org_select_package",
         "parameters": [
           {
+            "name": "expected_org",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Expected Org"
+            }
+          },
+          {
             "name": "x-demo-user",
             "in": "header",
             "required": false,
@@ -1295,6 +1312,23 @@
         "description": "Accept HR's team plan as a work programme; the personal plan is left untouched.",
         "operationId": "org_accept_assigned_package",
         "parameters": [
+          {
+            "name": "expected_org",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Expected Org"
+            }
+          },
           {
             "name": "x-demo-user",
             "in": "header",
@@ -1866,6 +1900,23 @@
             }
           },
           {
+            "name": "expected_org",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Expected Org"
+            }
+          },
+          {
             "name": "x-demo-user",
             "in": "header",
             "required": false,
@@ -2059,6 +2110,23 @@
               "maximum": 2200,
               "minimum": 2020,
               "title": "Year"
+            }
+          },
+          {
+            "name": "expected_org",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Expected Org"
             }
           },
           {
@@ -2294,6 +2362,23 @@
             }
           },
           {
+            "name": "expected_org",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Expected Org"
+            }
+          },
+          {
             "name": "x-demo-user",
             "in": "header",
             "required": false,
@@ -2406,6 +2491,23 @@
             }
           },
           {
+            "name": "expected_org",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Expected Org"
+            }
+          },
+          {
             "name": "x-demo-user",
             "in": "header",
             "required": false,
@@ -2515,6 +2617,23 @@
             "schema": {
               "type": "string",
               "title": "Claim Id"
+            }
+          },
+          {
+            "name": "expected_org",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Expected Org"
             }
           },
           {
@@ -2691,6 +2810,23 @@
         "operationId": "org_update_my_org",
         "parameters": [
           {
+            "name": "expected_org",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Expected Org"
+            }
+          },
+          {
             "name": "x-demo-user",
             "in": "header",
             "required": false,
@@ -2783,6 +2919,23 @@
         "description": "Issue a new join code; the old one stops working (managers only).",
         "operationId": "org_rotate_join_code",
         "parameters": [
+          {
+            "name": "expected_org",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Expected Org"
+            }
+          },
           {
             "name": "x-demo-user",
             "in": "header",
@@ -3240,6 +3393,23 @@
             "schema": {
               "type": "string",
               "title": "Member Id"
+            }
+          },
+          {
+            "name": "expected_org",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Expected Org"
             }
           },
           {
@@ -6702,6 +6872,12 @@
             "maxLength": 500,
             "title": "Note",
             "default": ""
+          },
+          "consent": {
+            "type": "boolean",
+            "title": "Consent",
+            "description": "Explicit consent to share current skill levels and pathway gaps for this programme.",
+            "default": false
           }
         },
         "type": "object",
@@ -11499,7 +11675,8 @@
           "share_skills": {
             "type": "boolean",
             "title": "Share Skills",
-            "default": true
+            "description": "Explicit consent to share skill levels with managers on signup.",
+            "default": false
           },
           "consent": {
             "type": "boolean",

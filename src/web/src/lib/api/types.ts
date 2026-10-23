@@ -1571,6 +1571,12 @@ export interface components {
              * @default
              */
             note: string;
+            /**
+             * Consent
+             * @description Explicit consent to share current skill levels and pathway gaps for this programme.
+             * @default false
+             */
+            consent: boolean;
         };
         /** AssistantIn */
         AssistantIn: {
@@ -3683,7 +3689,8 @@ export interface components {
             join_code?: string | null;
             /**
              * Share Skills
-             * @default true
+             * @description Explicit consent to share skill levels with managers on signup.
+             * @default false
              */
             share_skills: boolean;
             /**
@@ -4669,7 +4676,9 @@ export interface operations {
     };
     org_select_package: {
         parameters: {
-            query?: never;
+            query?: {
+                expected_org?: string | null;
+            };
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
@@ -4739,7 +4748,9 @@ export interface operations {
     };
     org_accept_assigned_package: {
         parameters: {
-            query?: never;
+            query?: {
+                expected_org?: string | null;
+            };
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
@@ -4953,7 +4964,9 @@ export interface operations {
     };
     org_decide_programme: {
         parameters: {
-            query?: never;
+            query?: {
+                expected_org?: string | null;
+            };
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
@@ -5027,7 +5040,9 @@ export interface operations {
     };
     org_set_member_budget: {
         parameters: {
-            query?: never;
+            query?: {
+                expected_org?: string | null;
+            };
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
@@ -5107,7 +5122,9 @@ export interface operations {
     };
     org_submit_funding_claim: {
         parameters: {
-            query?: never;
+            query?: {
+                expected_org?: string | null;
+            };
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
@@ -5147,7 +5164,9 @@ export interface operations {
     };
     org_complete_funded_course: {
         parameters: {
-            query?: never;
+            query?: {
+                expected_org?: string | null;
+            };
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
@@ -5187,7 +5206,9 @@ export interface operations {
     };
     org_decide_funding: {
         parameters: {
-            query?: never;
+            query?: {
+                expected_org?: string | null;
+            };
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
@@ -5260,7 +5281,9 @@ export interface operations {
     };
     org_update_my_org: {
         parameters: {
-            query?: never;
+            query?: {
+                expected_org?: string | null;
+            };
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
@@ -5297,7 +5320,9 @@ export interface operations {
     };
     org_rotate_join_code: {
         parameters: {
-            query?: never;
+            query?: {
+                expected_org?: string | null;
+            };
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
@@ -5472,7 +5497,9 @@ export interface operations {
     };
     org_remove_member: {
         parameters: {
-            query?: never;
+            query?: {
+                expected_org?: string | null;
+            };
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;

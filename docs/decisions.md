@@ -1281,3 +1281,18 @@
 - **Replaces**: none
 - **PR / branch**: feat/org-join-consent
 
+
+### M4-056: Privacy hardening across join consent, programme acceptance, and cross-tab workspaces
+- **Date**: 2026-10-23
+- **Feature**: F7 (Organisation Mode & Heatmaps), Core
+- **Type**: contract | UI | method | schema
+- **Change**:
+  1. Signup with an organisation join code requires explicit user consent via a mandatory checkbox to share skill levels and learning progress with managers (`SignupIn.share_skills` defaults to `False` and is enforced by `accounts/service.py`).
+  2. Programme agreement acceptance requires explicit consent when skills sharing is switched off before rebuilding routes with personal profile levels; employer-facing `list_programmes` masks private profile skill levels (`current_level: 0`) for members whose sharing is toggled off.
+  3. Every organisation action, form, and mutation carries the displayed organisation ID (`expected_org`) and passes it into API requests to reject cross-tab workspace cookie drift with 409 `workspace_changed`.
+- **Why**: Resolves Greptile P1 security and privacy findings ("Signup shares skills without notice", "Acceptance reveals private skills", and "Forms change another organisation") while respecting the user choice that membership in an organisation is an affirmative consensual collaboration.
+- **Affects**: `SignupIn`, `AssignmentDecision` contracts, `accounts/service.py`, `programmes.py`, `org/router.py`, `AuthView.tsx`, `auth-actions.ts`, `funding-actions.ts`, `work/actions.ts`, `server.ts`, and i18n locales.
+- **Replaces**: none
+- **PR / branch**: feat/catalogue-roles-skills-courses
+
+
