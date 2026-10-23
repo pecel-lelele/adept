@@ -57,7 +57,7 @@ def test_heatmap_is_computed_from_member_skills(client: TestClient) -> None:
 
 def test_group_plan_assigns_steps_to_members_who_need_them(client: TestClient) -> None:
     body = GroupPlan.model_validate(client.get("/api/v1/org/plan", headers=COMPANY).json())
-    assert body.target_role_id == "process-automation-analyst"
+    assert body.target_role_id == "customer-success-specialist"
     assert all(step.member_ids for step in body.steps)
     assert set(body.assigned_member_ids) <= {"aisyah", "emp-002"}
 
@@ -76,5 +76,6 @@ def test_role_gaps_average_required_skills_and_pick_the_default_target(client: T
         naive = sum(all_cells) / len(all_cells)
         assert body.role_gaps[role] >= naive - 1e-6
     plan = GroupPlan.model_validate(client.get("/api/v1/org/plan", headers=COMPANY).json())
-    top = max(body.role_ids, key=lambda r: (body.role_gaps[r], r))
-    assert plan.target_role_id == top
+    # The bank cohort already has customer-service skills, and no UX skills.
+    assert plan.target_role_id == "customer-success-specialist"
+    assert plan.target_role_id != "ux-designer"

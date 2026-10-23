@@ -26,7 +26,8 @@ flowchart LR
   end
   subgraph Web["src/web (Next.js)"]
     ind[/app: profile → radar → matches → pathway/]
-    orgw[/org: members → radar → gaps → plan/]
+    orgw[/org: members → gaps → programmes → funding/]
+    employee[/work: agreements → learning → progress/]
   end
   T --> snap
   M --> tax
@@ -45,6 +46,19 @@ flowchart LR
 7. **Organisation (F7)**: aggregates of the same engine for a team or cohort.
 8. **Guardrails (F8)**: an LLM, if used, only selects IDs already in the database; `validate_ids`
    rejects anything else before it reaches the user.
+
+## Workspace and assistant boundaries
+
+Every account has a personal workspace. `X-Workspace` selects a membership-checked
+organisation workspace for programme progress, evidence and funding. Employee `/work`
+views and manager `/org` views share services; private personal plans and assistant
+conversations remain separate.
+
+Adi uses Runpod `glm-5.3` as the configured primary and separately authenticated Gemini
+only on primary failure. Catalogue IDs pass through the validation gateway; provider
+failure can fall back to the deterministic guide. Keys stay in server environment variables.
+See [configuration](../README.md#12-getting-started) and the
+[provider guide](../src/api/app/core/llm/FEATURE.md).
 
 ## Output contract
 
@@ -65,15 +79,16 @@ regenerates both files and fails if they differ from what is committed.
   namespace (`messages/<locale>/<feature>.json`), seed folder, pipeline folder, tests folder.
 - Page files under `src/web/src/app` are thin and only render a feature component.
 - Shared UI lives only in `src/web/src/components`; navigation in `src/web/src/config/navigation.ts`.
-- Seed loader is generic (CSV name = table name), so seed data never needs code changes.
+- Seed loading uses explicit reference-table specifications and dependency-ordered upserts;
+  local accounts and test-persona fixtures are not overwritten by reference refreshes.
 - Migrations are new timestamped files only.
 
 ## Auth
 
 `AUTH_MODE=demo` (local accounts): `POST /auth/signup` and `/auth/login` return a signed session
 token (scrypt password hashes in `users`); the web keeps it in the httpOnly `adept_session` cookie
-and forwards it to the API as `X-Demo-User`. `AUTH_MODE=supabase` is
-reserved for the deployed environment and not implemented yet.
+and forwards it to the API as `X-Demo-User`. `AUTH_MODE=supabase` verifies bearer tokens with the configured JWT verifier;
+the local Compose environment uses local accounts.
 
 ## Scenario and locale state
 

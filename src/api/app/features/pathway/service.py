@@ -19,6 +19,7 @@ from app.contracts.pathway import (
     CompletionEvidence,
     Course,
     CourseHistoryItem,
+    CourseStatus,
     EvidenceSubmit,
     Pathway,
     PathwayStep,
@@ -30,11 +31,13 @@ from app.contracts.pathway import (
     RoleOption,
     SavedPlan,
     SavePlanIn,
+    ShareCompletionIn,
     VerificationItem,
     VerificationQueue,
 )
 from app.contracts.profile import Profile
 from app.contracts.sdg import SdgTarget
+from app.core import taxonomy
 from app.core.auth import CurrentUser
 from app.core.errors import AppError, NotFoundError, ProfileRequiredError
 from app.features.org import repository as org_repository
@@ -49,6 +52,8 @@ from app.features.pathway import (
 )
 from app.features.profile import service as profile_service
 from app.features.sdg import repository as sdg_repository
+
+# Which of a learner's plans progress refers to: their own, or an accepted work programme.
 
 CATALOGUE_SOURCE_FALLBACK = "Adept course catalogue"
 
@@ -97,6 +102,8 @@ def _meta(
     steps: Sequence[PathwayStep], snapshot: data.Snapshot | None, scenario: ScenarioId
 ) -> RecommendationMeta:
     sources: dict[str, Source] = {}
+    taxonomy_source = data.taxonomy_source()
+    sources[taxonomy_source.name] = taxonomy_source
     for step in steps:
         for course in step.courses:
             src = course.source or Source(
@@ -155,7 +162,12 @@ def build_pathway(
         data.prerequisites(),
         growth,
         data.skill_labels(),
-        _sdg_by_skill([r.skill_id for r in reqs]),
+        _sdg_by_skill(
+            list(
+                {r.skill_id for r in reqs}
+                | {p for edges in data.prerequisites().values() for p in edges}
+            )
+        ),
         scenario_weighted=trend.scenario_weighted if trend else False,
     )
     return Pathway(
@@ -304,7 +316,9 @@ class CatalogueFilter:
 def filter_courses(courses: Sequence[Course], f: CatalogueFilter) -> list[Course]:
     out = []
     for c in courses:
-        if f.skill and f.skill not in c.skill_ids:
+        if f.skill and taxonomy.canonical(f.skill) not in {
+            taxonomy.canonical(s) for s in c.skill_ids
+        }:
             continue
         if f.format and c.format != f.format:
             continue
@@ -314,7 +328,9 @@ def filter_courses(courses: Sequence[Course], f: CatalogueFilter) -> list[Course
             continue
         if f.hrd_claimable is not None and c.hrd_claimable != f.hrd_claimable:
             continue
-        if f.max_cost_myr is not None and c.cost_myr > f.max_cost_myr:
+        if f.max_cost_myr is not None and (
+            c.price_status != "listed" or c.cost_myr > f.max_cost_myr
+        ):
             continue
         out.append(c)
     # Cheapest first, then shortest: the same preference the pathway engine uses.
@@ -406,10 +422,29 @@ def accept_replan(user: CurrentUser) -> SavedPlan:
 # --- progress and badges --------------------------------------------------------------
 
 
+def _is_work(user: CurrentUser) -> bool:
+    return user.workspace == "org" and user.kind == "learner" and bool(user.org_id)
+
+
 def _plan_for_progress(user: CurrentUser, role_id: str, scenario: ScenarioId) -> Pathway:
-    """The plan progress is tracked against: the saved plan for this role and scenario, else
-    a fresh one. The same rule serves GET and POST, and the response carries the plan, so the
-    page always shows exactly the courses the API accepts."""
+    """The plan progress is tracked against, chosen by the workspace. Organisation workspace:
+    the accepted employer programme route for this role. Personal workspace: the saved plan
+    for this role and scenario, else a fresh one. The same rule serves GET and POST, and the
+    response carries the plan, so the page always shows exactly the courses the API accepts.
+    A work programme never replaces the personal plan."""
+    if user.workspace == "org" and not _is_work(user):
+        raise AppError(
+            "Managers track their own learning in their personal workspace.",
+            status_code=403,
+            code="forbidden",
+        )
+    if _is_work(user):
+        from app.features.org import programmes
+
+        work = programmes.accepted_pathway(user, role_id)
+        if work is None:
+            raise NotFoundError("No accepted work programme for this role.")
+        return work
     saved = repository.get_plan(user.id)
     if saved and saved.role_id == role_id and saved.scenario == scenario:
         return saved.pathway
@@ -480,7 +515,7 @@ def combined_levels(
     out = dict(intake)
     for sid, level in (evidenced_levels(user_id) if earned is None else earned).items():
         out[sid] = max(out.get(sid, 0), level)
-    return out
+    return taxonomy.levels(out)
 
 
 def _plan_courses(plan: Pathway) -> dict[str, Course]:
@@ -536,14 +571,57 @@ def _history_badges(
     return badges
 
 
+def progress_role(user: CurrentUser, role_id: str | None) -> str:
+    """The role progress is read for: the given one, else the workspace's current plan."""
+    if role_id or not _is_work(user):
+        return resolve_role(user, role_id)
+    from app.features.org import programmes
+
+    for assignment in programmes.my_programmes(user).assignments:
+        if assignment.status == "accepted":
+            return assignment.agreement.role_id
+    raise NotFoundError("You have no accepted programme in this organisation yet.")
+
+
+def _workspace_id(scope: str) -> str:
+    return scope.removeprefix("org:")
+
+
+def _accepted(row: repository.LearningRecord) -> bool:
+    """Completed and not rejected by a reviewer."""
+    proof = {row.course_id: row.evidence} if row.evidence else {}
+    statuses = verification.effective_statuses({row.course_id: row.status}, proof)
+    return statuses.get(row.course_id) == "completed"
+
+
 def get_progress(user: CurrentUser, role_id: str, scenario: ScenarioId) -> Progress:
     plan = _plan_for_progress(user, role_id, scenario)
-    records = repository.learning_records([user.id])
-    rows = [row for row in records if row.role_id == role_id]
+    scope = user.scope
+    work = _is_work(user)
+    every = repository.learning_records([user.id])
+    # A work programme reads only its organisation's records; the personal workspace reads all
+    # of the person's own learning (work learning is theirs too).
+    records = [row for row in every if row.scope == scope] if work else every
+    rows = [row for row in records if row.role_id == role_id and row.scope == scope]
     raw = {row.course_id: row.status for row in rows}
     evidence = {row.course_id: row.evidence for row in rows if row.evidence is not None}
-    statuses = verification.effective_statuses(raw, evidence)
     courses = _plan_courses(plan)
+    elsewhere: dict[str, str] = {}
+    for row in every:
+        if row.scope == scope or row.course_id not in courses or row.course_id in raw:
+            continue
+        if not _accepted(row):
+            continue
+        if work and row.scope != repository.PERSONAL:
+            continue  # another organisation's records never reach this one
+        elsewhere.setdefault(row.course_id, _workspace_id(row.scope))
+        if not work and row.evidence is not None:
+            evidence.setdefault(row.course_id, row.evidence)
+    counted: dict[str, CourseStatus] = dict(raw)
+    if not work:
+        for cid in elsewhere:
+            counted.setdefault(cid, "completed")
+    statuses = verification.effective_statuses(counted, evidence)
     levels = {cid: {s: c.level for s in c.skill_ids} for cid, c in courses.items()}
     skills = progress.skill_progress(plan, statuses, levels)
     role_labels = data.role_labels()
@@ -564,6 +642,10 @@ def get_progress(user: CurrentUser, role_id: str, scenario: ScenarioId) -> Progr
         for row in rows
         if statuses.get(row.course_id) == "completed" and row.course is not None
     }
+    if not work:
+        for cid in elsewhere:
+            completed_hours.setdefault(cid, courses[cid].hours)
+    personal_records = [r for r in records if r.scope == repository.PERSONAL]
     return Progress(
         role_id=role_id,
         course_status=raw,
@@ -571,10 +653,13 @@ def get_progress(user: CurrentUser, role_id: str, scenario: ScenarioId) -> Progr
         skills=skills,
         gap_closed=sum(1 for s in skills if s.closed),
         gap_total=len(skills),
-        badges=_history_badges(user, plan, records),
+        # Badges celebrate personal learning; programmes show milestones instead.
+        badges=[] if work else _history_badges(user, plan, personal_records),
         history=history,
-        evidence=evidence,
+        evidence=evidence if not work else {k: v for k, v in evidence.items() if k in raw},
         pathway=plan,
+        workspace=_workspace_id(scope),
+        completed_elsewhere=elsewhere,
         meta=plan.meta,
     )
 
@@ -592,12 +677,13 @@ def _require_planned(plan: Pathway, role_id: str, course_id: str) -> Course:
 
 def update_progress(user: CurrentUser, body: ProgressUpdate, scenario: ScenarioId) -> Progress:
     plan = _plan_for_progress(user, body.role_id, scenario)
-    course = repository.course_facts(user.id, body.role_id).get(body.course_id) or _require_planned(
-        plan, body.role_id, body.course_id
-    )
-    repository.set_course_status(user.id, body.role_id, body.course_id, body.status, course)
+    scope = user.scope
+    course = repository.course_facts(user.id, body.role_id, scope).get(
+        body.course_id
+    ) or _require_planned(plan, body.role_id, body.course_id)
+    repository.set_course_status(user.id, body.role_id, body.course_id, body.status, course, scope)
     if body.status == "completed":
-        if body.course_id not in repository.evidence(user.id, body.role_id):
+        if body.course_id not in repository.evidence(user.id, body.role_id, scope):
             repository.save_evidence(
                 user.id,
                 CompletionEvidence(
@@ -605,10 +691,11 @@ def update_progress(user: CurrentUser, body: ProgressUpdate, scenario: ScenarioI
                     course_id=body.course_id,
                     kind="self_reported",
                     submitted_at=datetime.now(UTC),
+                    scope=scope,
                 ),
             )
     else:
-        repository.delete_evidence(user.id, body.role_id, body.course_id)
+        repository.delete_evidence(user.id, body.role_id, body.course_id, scope)
     return get_progress(user, body.role_id, scenario)
 
 
@@ -621,11 +708,12 @@ def submit_evidence(
     """Attach a certificate link; marks the course done. A new link resets any review."""
     check = check or verification.probe  # looked up per call, not frozen at import
     plan = _plan_for_progress(user, body.role_id, scenario)
-    course = repository.course_facts(user.id, body.role_id).get(body.course_id) or _require_planned(
-        plan, body.role_id, body.course_id
-    )
+    scope = user.scope
+    course = repository.course_facts(user.id, body.role_id, scope).get(
+        body.course_id
+    ) or _require_planned(plan, body.role_id, body.course_id)
     now = datetime.now(UTC)
-    repository.set_course_status(user.id, body.role_id, body.course_id, "completed", course)
+    repository.set_course_status(user.id, body.role_id, body.course_id, "completed", course, scope)
     repository.save_evidence(
         user.id,
         CompletionEvidence(
@@ -636,6 +724,59 @@ def submit_evidence(
             link_status=verification.check_link(body.url, course, check),
             link_checked_at=now,
             submitted_at=now,
+            scope=scope,
+        ),
+    )
+    return get_progress(user, body.role_id, scenario)
+
+
+def share_completion(user: CurrentUser, body: ShareCompletionIn, scenario: ScenarioId) -> Progress:
+    """Copy a course completed in the personal workspace into this work programme.
+
+    Only the member can do this, only for a course in their accepted programme, and the copy
+    records where it came from. HR then reviews it like any other programme completion.
+    """
+    if not _is_work(user):
+        raise AppError(
+            "Share personal learning from the organisation workspace you are sharing it with.",
+            status_code=403,
+            code="forbidden",
+        )
+    plan = _plan_for_progress(user, body.role_id, scenario)
+    course = _require_planned(plan, body.role_id, body.course_id)
+    source = next(
+        (
+            row
+            for row in repository.learning_records([user.id])
+            if row.scope == repository.PERSONAL
+            and row.course_id == body.course_id
+            and _accepted(row)
+        ),
+        None,
+    )
+    if source is None:
+        raise NotFoundError("You have not completed this course in your personal workspace.")
+    scope = user.scope
+    if repository.course_status(user.id, body.role_id, scope).get(body.course_id) == "completed":
+        return get_progress(user, body.role_id, scenario)
+    repository.set_course_status(
+        user.id, body.role_id, body.course_id, "completed", source.course or course, scope
+    )
+    proof = source.evidence
+    certificate = proof is not None and proof.kind == "certificate_link"
+    repository.save_evidence(
+        user.id,
+        CompletionEvidence(
+            role_id=body.role_id,
+            course_id=body.course_id,
+            # A reviewer of another workspace never vouches here: the copy is reviewed afresh.
+            kind="certificate_link" if certificate else "self_reported",
+            url=proof.url if proof else None,
+            link_status=proof.link_status if proof else "not_submitted",
+            link_checked_at=proof.link_checked_at if proof else None,
+            submitted_at=datetime.now(UTC),
+            scope=scope,
+            shared_from="personal",
         ),
     )
     return get_progress(user, body.role_id, scenario)
@@ -654,20 +795,21 @@ def _reviewer_org(user: CurrentUser) -> str:
     return user.org_id
 
 
-def _course_facts(user_id: str, role_id: str) -> dict[str, Course]:
-    saved = repository.get_plan(user_id)
-    facts = _plan_courses(saved.pathway) if saved and saved.role_id == role_id else {}
-    return {**data.course_index(), **facts, **repository.course_facts(user_id, role_id)}
+def _course_facts(user_id: str, role_id: str, scope: str) -> dict[str, Course]:
+    return {**data.course_index(), **repository.course_facts(user_id, role_id, scope)}
 
 
 def verification_queue(user: CurrentUser) -> VerificationQueue:
+    """Completions in this organisation's programmes only. Personal learning stays private
+    unless the member shares it into a programme (then it carries `shared_from`)."""
     org_id = _reviewer_org(user)
+    scope = repository.org_scope(org_id)
     members = {m.id: m.display_name for m in org_repository.list_members(org_id)}
     items: list[VerificationItem] = []
-    for uid, role_id, course_id, status in repository.progress_of(list(members)):
+    for uid, role_id, course_id, status in repository.progress_of(list(members), scope):
         if status != "completed":
             continue
-        course = _course_facts(uid, role_id).get(course_id)
+        course = _course_facts(uid, role_id, scope).get(course_id)
         if course is None:
             continue
         items.append(
@@ -677,7 +819,7 @@ def verification_queue(user: CurrentUser) -> VerificationQueue:
                 role_id=role_id,
                 course=course,
                 status=status,
-                evidence=repository.evidence(uid, role_id).get(course_id),
+                evidence=repository.evidence(uid, role_id, scope).get(course_id),
             )
         )
     reviewed = {"org_confirmed", "org_rejected"}
@@ -698,13 +840,14 @@ def review_completion(user: CurrentUser, body: ReviewDecision) -> VerificationIt
     members = {m.id: m.display_name for m in org_repository.list_members(org_id)}
     if body.user_id not in members:
         raise AppError("Not a member of your organisation", status_code=403, code="forbidden")
-    status = repository.course_status(body.user_id, body.role_id).get(body.course_id)
+    scope = repository.org_scope(org_id)
+    status = repository.course_status(body.user_id, body.role_id, scope).get(body.course_id)
     if status != "completed":
         raise AppError("This course is not marked as completed", status_code=409, code="conflict")
-    course = _course_facts(body.user_id, body.role_id).get(body.course_id)
+    course = _course_facts(body.user_id, body.role_id, scope).get(body.course_id)
     if course is None:
         raise NotFoundError(f"Unknown course {body.course_id}")
-    previous = repository.evidence(body.user_id, body.role_id).get(body.course_id)
+    previous = repository.evidence(body.user_id, body.role_id, scope).get(body.course_id)
     changed = AppError(
         "The learner changed this proof after you opened it. Reload and review it again.",
         status_code=409,
@@ -714,7 +857,8 @@ def review_completion(user: CurrentUser, body: ReviewDecision) -> VerificationIt
         raise changed
     now = datetime.now(UTC)
     ev = (previous or CompletionEvidence(
-        role_id=body.role_id, course_id=body.course_id, kind="self_reported", submitted_at=now
+        role_id=body.role_id, course_id=body.course_id, kind="self_reported", submitted_at=now,
+        scope=scope,
     )).model_copy(
         update={
             "kind": "org_confirmed" if body.decision == "confirm" else "org_rejected",
@@ -750,9 +894,17 @@ def group_pathway(
     step lists the members who need it (`member_ids`). Hours/week = the team's median."""
     reqs = data.requirements(role_id)
     hours = sorted(m.hours_per_week for m in members.values() if m.hours_per_week > 0)
+    relevant = {r.skill_id for r in reqs}
+    pending = list(relevant)
+    prerequisites = data.prerequisites()
+    while pending:
+        for foundation in prerequisites.get(pending.pop(), {}):
+            if foundation not in relevant:
+                relevant.add(foundation)
+                pending.append(foundation)
     weakest = {
-        r.skill_id: min((m.skill_levels.get(r.skill_id, 0) for m in members.values()), default=0)
-        for r in reqs
+        skill: min((m.skill_levels.get(skill, 0) for m in members.values()), default=0)
+        for skill in relevant
     }
     team = engine.Learner(
         skill_levels=weakest,
@@ -768,7 +920,7 @@ def group_pathway(
                 "member_ids": sorted(
                     mid
                     for mid, m in members.items()
-                    if m.skill_levels.get(s.skill_id, 0) < need[s.skill_id]
+                    if m.skill_levels.get(s.skill_id, 0) < need.get(s.skill_id, 1)
                 )
             }
         )

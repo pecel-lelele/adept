@@ -90,6 +90,7 @@ export async function VerificationQueueView() {
                   <ReviewForm
                     action={reviewCompletionAction}
                     fields={{
+                      workspace: result.data.org_id,
                       user_id: item.user_id,
                       role_id: item.role_id,
                       course_id: item.course.id,

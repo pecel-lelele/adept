@@ -5,13 +5,13 @@
   base URL and key into apps that run on Replit; set LLM_BASE_URL / LLM_API_KEY to override.
 - `gemini`: Google AI Studio's OpenAI-compatible endpoint with an AI Studio key (LLM_API_KEY).
 - `openai`, `openrouter`: their public OpenAI-compatible APIs with LLM_API_KEY.
-- `runpod`: a Runpod Serverless vLLM endpoint, LLM_BASE_URL =
-  https://api.runpod.ai/v2/<endpoint-id>/openai/v1 and LLM_API_KEY = a Runpod API key.
+- `runpod`: a Runpod public or Serverless endpoint, LLM_BASE_URL =
+  https://api.runpod.ai/v2/<endpoint-id>/openai/v1 and RUNPOD_API_KEY = a Runpod API key.
 - `openai_compatible`: any other server that speaks the Chat Completions API (LLM_BASE_URL).
 
 All of them speak the same Chat Completions protocol, so one client serves every option.
-LLM_FALLBACK_MODEL (optional) is tried when the main model is rate-limited or failing, so a
-small free-tier quota stretches further before Adi falls back to its built-in guide.
+LLM_FALLBACK_PROVIDER switches to a separately authenticated backup endpoint only after a
+primary failure. Without it, LLM_FALLBACK_MODEL retains same-provider retry behaviour.
 """
 
 from __future__ import annotations
@@ -20,7 +20,7 @@ import asyncio
 import json
 import os
 import time
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from contextvars import ContextVar
 from typing import Any, Protocol, TypeVar
@@ -31,6 +31,7 @@ from pydantic import BaseModel, ValidationError
 from app.core.config import Settings, get_settings
 
 T = TypeVar("T", bound=BaseModel)
+R = TypeVar("R")
 _DEADLINE: ContextVar[float | None] = ContextVar("llm_deadline", default=None)
 
 
@@ -130,13 +131,17 @@ class OpenAICompatibleProvider:
         else:
             body["max_tokens"] = max_tokens
             body["temperature"] = 0.3
-        if self.name == "gemini":
+        if self.name in {"gemini", "runpod"}:
             # Short, grounded answers: light thinking keeps latency and free-tier tokens low.
             body["reasoning_effort"] = "low"
+        if self.name == "runpod":
+            body["max_tokens"] = min(max_tokens, 1024)
         return body
 
     def _post(self, messages: list[ChatMessage], max_tokens: int) -> str:
         """Use cancellable async I/O under a single wall-clock deadline, including retries."""
+        if self.name == "runpod" and not self._headers:
+            raise LLMUnavailableError("Runpod API key is not configured.")
         self._last_model.set(self.model)
         deadline = time.monotonic() + self._timeout
         outer = _DEADLINE.get()
@@ -217,6 +222,59 @@ def _replit_value(setting: str, env_name: str) -> str:
     return setting or os.environ.get(env_name, "")
 
 
+class FailoverProvider:
+    """Primary first; a separately authenticated fallback shares one request deadline.
+
+    Reserve up to 40% of the budget (at most eight seconds) for the backup. Identity is
+    request-local, so logging and the assistant cite the provider that actually answered.
+    """
+
+    def __init__(self, primary: LLMProvider, fallback: LLMProvider, timeout_s: float) -> None:
+        self.primary = primary
+        self.fallback = fallback
+        self.name, self.model = primary.name, primary.model
+        self.timeout_s = timeout_s
+        self._used: ContextVar[tuple[str, str]] = ContextVar(
+            "llm_used_provider", default=(self.name, self.model)
+        )
+
+    @property
+    def last_provider(self) -> str:
+        return self._used.get()[0]
+
+    @property
+    def last_model(self) -> str:
+        return self._used.get()[1]
+
+    def _call(self, call: Callable[[LLMProvider], R]) -> R:
+        now = time.monotonic()
+        deadline = min(now + self.timeout_s, _DEADLINE.get() or float("inf"))
+        reserve = min(8.0, max(0.0, deadline - now) * 0.4)
+        for provider, until in (
+            (self.primary, deadline - reserve),
+            (self.fallback, deadline),
+        ):
+            if until <= time.monotonic():
+                continue
+            self._used.set((provider.name, provider.model))
+            try:
+                with request_deadline(until):
+                    result = call(provider)
+            except LLMUnavailableError:
+                if provider is self.fallback:
+                    raise
+                continue
+            self._used.set((provider.name, getattr(provider, "last_model", provider.model)))
+            return result
+        raise LLMUnavailableError("No time left for an LLM attempt")
+
+    def chat(self, messages: list[ChatMessage], max_tokens: int = 600) -> str:
+        return self._call(lambda provider: provider.chat(messages, max_tokens))
+
+    def complete_structured(self, system: str, prompt: str, schema: type[T]) -> T:
+        return self._call(lambda provider: provider.complete_structured(system, prompt, schema))
+
+
 def build_provider(settings: Settings) -> LLMProvider:
     name = settings.llm_provider.strip().lower()
     if name in ("", "none"):
@@ -226,20 +284,47 @@ def build_provider(settings: Settings) -> LLMProvider:
         key = _replit_value(settings.llm_api_key, "AI_INTEGRATIONS_OPENAI_API_KEY")
     elif name in ("gemini", "openai", "openrouter", "runpod", "openai_compatible"):
         base = settings.llm_base_url or _DEFAULT_BASE.get(name, "")
-        key = settings.llm_api_key
+        key = (
+            settings.runpod_api_key
+            if name == "runpod"
+            else settings.gemini_api_key
+            if name == "gemini"
+            else ""
+        ) or settings.llm_api_key
     else:
         raise LLMUnavailableError(f"Unknown LLM_PROVIDER: {settings.llm_provider}")
-    return OpenAICompatibleProvider(
+    fallback_name = settings.llm_fallback_provider.strip().lower()
+    models = tuple(m.strip() for m in settings.llm_fallback_model.split(",") if m.strip())
+    primary = OpenAICompatibleProvider(
         name=name,
         model=settings.llm_model,
         base_url=base,
         api_key=key,
         timeout_s=settings.llm_timeout_s,
-        fallback_models=tuple(m.strip() for m in settings.llm_fallback_model.split(",")),
+        fallback_models=() if fallback_name else models,
     )
+    if not fallback_name:
+        return primary
+    if fallback_name not in _DEFAULT_BASE or not models:
+        raise LLMUnavailableError("Configure a supported fallback provider and model.")
+    fallback_key = settings.llm_fallback_api_key or (
+        settings.gemini_api_key if fallback_name == "gemini" else ""
+    )
+    if not fallback_key:
+        # Keep the primary usable when an optional backup key has not been supplied.
+        return primary
+    backup = OpenAICompatibleProvider(
+        name=fallback_name,
+        model=models[0],
+        base_url=settings.llm_fallback_base_url or _DEFAULT_BASE[fallback_name],
+        api_key=fallback_key,
+        timeout_s=settings.llm_timeout_s,
+        fallback_models=models[1:],
+    )
+    return FailoverProvider(primary, backup, settings.llm_timeout_s)
 
 
-_cached: tuple[tuple[str, str, str, str], LLMProvider] | None = None
+_cached: tuple[tuple[object, ...], LLMProvider] | None = None
 
 
 def get_provider() -> LLMProvider:
@@ -251,6 +336,12 @@ def get_provider() -> LLMProvider:
         settings.llm_model + "|" + settings.llm_fallback_model,
         settings.llm_base_url,
         settings.llm_api_key,
+        settings.runpod_api_key,
+        settings.gemini_api_key,
+        settings.llm_timeout_s,
+        settings.llm_fallback_provider,
+        settings.llm_fallback_base_url,
+        settings.llm_fallback_api_key,
     )
     if _cached is None or _cached[0] != key:
         _cached = (key, build_provider(settings))
@@ -264,6 +355,9 @@ def disclosure() -> tuple[str, str]:
     """
     settings = get_settings()
     model = settings.llm_model
-    if settings.llm_fallback_model:
-        model += f" (fallback: {settings.llm_fallback_model})"
+    if settings.llm_provider != "none" and settings.llm_fallback_model:
+        backup = settings.llm_fallback_model
+        if settings.llm_fallback_provider:
+            backup = f"{settings.llm_fallback_provider} / {backup}"
+        model += f" (fallback: {backup})"
     return settings.llm_provider, model

@@ -97,9 +97,18 @@ def test_unmet_skill_is_reported_not_invented(client: TestClient) -> None:
     assert unmet["risk-compliance"].reason == "catalogue_tops_out"
 
 
-def test_prompt_engineering_gap_is_now_closed_by_the_catalogue(client: TestClient) -> None:
+def test_free_to_learn_courses_are_planned_with_their_certificate_caveat(
+    client: TestClient,
+) -> None:
+    """Free-to-enrol courses teach at RM 0; their certificate fee stays unknown and labelled."""
     body = _pathway(client, "ai-operations-specialist", headers=WEIJIE)
-    assert "prompt-engineering" not in {u.skill_id for u in body.unmet}
+    free = [
+        c for s in body.steps for c in s.courses if c.price_status == "certificate_price_unknown"
+    ]
+    assert free, "a free-to-learn course closes part of the gap"
+    for course in free:
+        assert course.cost_myr == 0
+        assert "certificate" in course.certificate_note.lower()
 
 
 def test_subscriptions_are_never_booked_as_steps(client: TestClient) -> None:

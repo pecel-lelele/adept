@@ -1,5 +1,8 @@
 """State for pathways: saved plans, course progress, earned badges.
 
+Progress and evidence belong to a workspace scope: `personal`, or `org:<id>` for learning
+done in an organisation's programme. HR reads only its own organisation's scope.
+
 Two stores behind the same functions (chosen by `M3_BACKEND`, see `app.core.refdata`):
 
 - `MemoryStore` (csv, default): per process, for local dev and tests.
@@ -25,6 +28,13 @@ from app.contracts.pathway import CompletionEvidence, Course, CourseStatus, Path
 from app.core.db import connection
 from app.core.refdata import StorageUnavailableError, use_postgres
 
+PERSONAL = "personal"
+
+
+def org_scope(org_id: str) -> str:
+    """The scope of an organisation workspace's learning records."""
+    return f"org:{org_id}"
+
 
 @dataclass(frozen=True)
 class LearningRecord:
@@ -34,6 +44,7 @@ class LearningRecord:
     status: CourseStatus
     course: Course | None
     evidence: CompletionEvidence | None
+    scope: str = PERSONAL
 
 
 def _plan_key(plan: SavedPlan) -> str:
@@ -44,8 +55,12 @@ class Store(Protocol):
     def get_plan(self, user_id: str) -> SavedPlan | None: ...
     def save_plan(self, user_id: str, plan: SavedPlan) -> SavedPlan: ...
     def plan_history(self, user_id: str) -> list[SavedPlan]: ...
-    def course_status(self, user_id: str, role_id: str) -> dict[str, CourseStatus]: ...
-    def course_facts(self, user_id: str, role_id: str) -> dict[str, Course]: ...
+    def course_status(
+        self, user_id: str, role_id: str, scope: str = PERSONAL
+    ) -> dict[str, CourseStatus]: ...
+    def course_facts(
+        self, user_id: str, role_id: str, scope: str = PERSONAL
+    ) -> dict[str, Course]: ...
     def set_course_status(
         self,
         user_id: str,
@@ -53,15 +68,22 @@ class Store(Protocol):
         course_id: str,
         status: CourseStatus,
         course: Course | None = None,
+        scope: str = PERSONAL,
     ) -> None: ...
     def record_badges(self, user_id: str, badge_ids: list[str], today: date) -> dict[str, date]: ...
-    def evidence(self, user_id: str, role_id: str) -> dict[str, CompletionEvidence]: ...
+    def evidence(
+        self, user_id: str, role_id: str, scope: str = PERSONAL
+    ) -> dict[str, CompletionEvidence]: ...
     def save_evidence(self, user_id: str, ev: CompletionEvidence) -> None: ...
-    def delete_evidence(self, user_id: str, role_id: str, course_id: str) -> None: ...
+    def delete_evidence(
+        self, user_id: str, role_id: str, course_id: str, scope: str = PERSONAL
+    ) -> None: ...
     def review_evidence(
         self, user_id: str, ev: CompletionEvidence, seen: datetime | None
     ) -> bool: ...
-    def progress_of(self, user_ids: list[str]) -> list[tuple[str, str, str, CourseStatus]]: ...
+    def progress_of(
+        self, user_ids: list[str], scope: str | None = None
+    ) -> list[tuple[str, str, str, CourseStatus]]: ...
     def learning_records(self, user_ids: list[str]) -> list[LearningRecord]: ...
     def reset(self) -> None: ...
 
@@ -70,10 +92,11 @@ class MemoryStore:
     def __init__(self) -> None:
         self._plans: dict[str, SavedPlan] = {}
         self._plan_history: dict[tuple[str, str], SavedPlan] = {}
-        self._progress: dict[tuple[str, str], dict[str, CourseStatus]] = {}
+        # Keys: (user, scope, role[, course]).
+        self._progress: dict[tuple[str, str, str], dict[str, CourseStatus]] = {}
         self._badges: dict[str, dict[str, date]] = {}
-        self._evidence: dict[tuple[str, str, str], CompletionEvidence] = {}
-        self._course_facts: dict[tuple[str, str, str], Course] = {}
+        self._evidence: dict[tuple[str, str, str, str], CompletionEvidence] = {}
+        self._course_facts: dict[tuple[str, str, str, str], Course] = {}
         self._lock = threading.Lock()
 
     def get_plan(self, user_id: str) -> SavedPlan | None:
@@ -91,8 +114,10 @@ class MemoryStore:
             if uid == user_id
         ]
 
-    def course_status(self, user_id: str, role_id: str) -> dict[str, CourseStatus]:
-        return dict(self._progress.get((user_id, role_id), {}))
+    def course_status(
+        self, user_id: str, role_id: str, scope: str = PERSONAL
+    ) -> dict[str, CourseStatus]:
+        return dict(self._progress.get((user_id, scope, role_id), {}))
 
     def set_course_status(
         self,
@@ -101,9 +126,10 @@ class MemoryStore:
         course_id: str,
         status: CourseStatus,
         course: Course | None = None,
+        scope: str = PERSONAL,
     ) -> None:
-        statuses = self._progress.setdefault((user_id, role_id), {})
-        key = (user_id, role_id, course_id)
+        statuses = self._progress.setdefault((user_id, scope, role_id), {})
+        key = (user_id, scope, role_id, course_id)
         if status == "not_started":
             statuses.pop(course_id, None)
             self._course_facts.pop(key, None)
@@ -112,11 +138,11 @@ class MemoryStore:
             if course is not None:
                 self._course_facts.setdefault(key, course.model_copy(deep=True))
 
-    def course_facts(self, user_id: str, role_id: str) -> dict[str, Course]:
+    def course_facts(self, user_id: str, role_id: str, scope: str = PERSONAL) -> dict[str, Course]:
         return {
             cid: course.model_copy(deep=True)
-            for (uid, rid, cid), course in self._course_facts.items()
-            if uid == user_id and rid == role_id
+            for (uid, sc, rid, cid), course in self._course_facts.items()
+            if uid == user_id and rid == role_id and sc == scope
         }
 
     def record_badges(self, user_id: str, badge_ids: list[str], today: date) -> dict[str, date]:
@@ -125,21 +151,25 @@ class MemoryStore:
             earned.setdefault(badge_id, today)
         return dict(earned)
 
-    def evidence(self, user_id: str, role_id: str) -> dict[str, CompletionEvidence]:
+    def evidence(
+        self, user_id: str, role_id: str, scope: str = PERSONAL
+    ) -> dict[str, CompletionEvidence]:
         return {
             course: ev
-            for (uid, rid, course), ev in self._evidence.items()
-            if uid == user_id and rid == role_id
+            for (uid, sc, rid, course), ev in self._evidence.items()
+            if uid == user_id and rid == role_id and sc == scope
         }
 
     def save_evidence(self, user_id: str, ev: CompletionEvidence) -> None:
-        self._evidence[(user_id, ev.role_id, ev.course_id)] = ev
+        self._evidence[(user_id, ev.scope, ev.role_id, ev.course_id)] = ev
 
-    def delete_evidence(self, user_id: str, role_id: str, course_id: str) -> None:
-        self._evidence.pop((user_id, role_id, course_id), None)
+    def delete_evidence(
+        self, user_id: str, role_id: str, course_id: str, scope: str = PERSONAL
+    ) -> None:
+        self._evidence.pop((user_id, scope, role_id, course_id), None)
 
     def review_evidence(self, user_id: str, ev: CompletionEvidence, seen: datetime | None) -> bool:
-        key = (user_id, ev.role_id, ev.course_id)
+        key = (user_id, ev.scope, ev.role_id, ev.course_id)
         with self._lock:
             current = self._evidence.get(key)
             if (current.submitted_at if current else None) != seen:
@@ -147,23 +177,29 @@ class MemoryStore:
             self._evidence[key] = ev
             return True
 
-    def progress_of(self, user_ids: list[str]) -> list[tuple[str, str, str, CourseStatus]]:
+    def progress_of(
+        self, user_ids: list[str], scope: str | None = None
+    ) -> list[tuple[str, str, str, CourseStatus]]:
         wanted = set(user_ids)
         return [
             (uid, rid, cid, status)
-            for (uid, rid), statuses in self._progress.items()
-            if uid in wanted
+            for (uid, sc, rid), statuses in self._progress.items()
+            if uid in wanted and (scope is None or sc == scope)
             for cid, status in statuses.items()
         ]
 
     def learning_records(self, user_ids: list[str]) -> list[LearningRecord]:
+        wanted = set(user_ids)
         return [
             LearningRecord(
                 uid, rid, cid, status,
-                self._course_facts.get((uid, rid, cid)),
-                self._evidence.get((uid, rid, cid)),
+                self._course_facts.get((uid, sc, rid, cid)),
+                self._evidence.get((uid, sc, rid, cid)),
+                sc,
             )
-            for uid, rid, cid, status in self.progress_of(user_ids)
+            for (uid, sc, rid), statuses in self._progress.items()
+            if uid in wanted
+            for cid, status in statuses.items()
         ]  # fmt: skip
 
     def reset(self) -> None:
@@ -256,10 +292,13 @@ class PostgresStore:
             for role, scenario, version, saved_at, pathway in rows
         ]  # fmt: skip
 
-    def course_status(self, user_id: str, role_id: str) -> dict[str, CourseStatus]:
+    def course_status(
+        self, user_id: str, role_id: str, scope: str = PERSONAL
+    ) -> dict[str, CourseStatus]:
         rows = self._run(
-            "SELECT course_id, status FROM course_progress WHERE user_id = %s AND role_id = %s",
-            (user_id, role_id),
+            "SELECT course_id, status FROM course_progress "
+            "WHERE user_id = %s AND role_id = %s AND scope = %s",
+            (user_id, role_id, scope),
         )
         return {str(cid): status for cid, status in rows}  # type: ignore[misc]
 
@@ -270,22 +309,25 @@ class PostgresStore:
         course_id: str,
         status: CourseStatus,
         course: Course | None = None,
+        scope: str = PERSONAL,
     ) -> None:
         if status == "not_started":
             self._run(
                 "DELETE FROM course_progress WHERE user_id = %s AND role_id = %s "
-                "AND course_id = %s",
-                (user_id, role_id, course_id),
+                "AND course_id = %s AND scope = %s",
+                (user_id, role_id, course_id, scope),
             )
             return
         self._ensure_user(user_id)
         self._run(
-            "INSERT INTO course_progress (user_id, role_id, course_id, status, course_snapshot) "
-            "VALUES (%s, %s, %s, %s, %s) ON CONFLICT (user_id, role_id, course_id) "
+            "INSERT INTO course_progress "
+            "(user_id, scope, role_id, course_id, status, course_snapshot) "
+            "VALUES (%s, %s, %s, %s, %s, %s) ON CONFLICT (user_id, scope, role_id, course_id) "
             "DO UPDATE SET status = EXCLUDED.status, updated_at = now(), "
             "course_snapshot = COALESCE(course_progress.course_snapshot, EXCLUDED.course_snapshot)",
             (
                 user_id,
+                scope,
                 role_id,
                 course_id,
                 status,
@@ -293,11 +335,11 @@ class PostgresStore:
             ),
         )
 
-    def course_facts(self, user_id: str, role_id: str) -> dict[str, Course]:
+    def course_facts(self, user_id: str, role_id: str, scope: str = PERSONAL) -> dict[str, Course]:
         rows = self._run(
             "SELECT course_id, course_snapshot FROM course_progress "
-            "WHERE user_id = %s AND role_id = %s AND course_snapshot IS NOT NULL",
-            (user_id, role_id),
+            "WHERE user_id = %s AND role_id = %s AND scope = %s AND course_snapshot IS NOT NULL",
+            (user_id, role_id, scope),
         )
         return {str(cid): Course.model_validate(facts) for cid, facts in rows}
 
@@ -317,14 +359,16 @@ class PostgresStore:
 
     _EVIDENCE_COLS = (
         "role_id, course_id, kind, url, link_status, link_checked_at, submitted_at, "
-        "reviewed_by, reviewed_at, review_note"
+        "reviewed_by, reviewed_at, review_note, scope, shared_from"
     )
 
-    def evidence(self, user_id: str, role_id: str) -> dict[str, CompletionEvidence]:
+    def evidence(
+        self, user_id: str, role_id: str, scope: str = PERSONAL
+    ) -> dict[str, CompletionEvidence]:
         rows = self._run(
             f"SELECT {self._EVIDENCE_COLS} FROM course_evidence "
-            "WHERE user_id = %s AND role_id = %s",
-            (user_id, role_id),
+            "WHERE user_id = %s AND role_id = %s AND scope = %s",
+            (user_id, role_id, scope),
         )
         names = [c.strip() for c in self._EVIDENCE_COLS.split(",")]
         out: dict[str, CompletionEvidence] = {}
@@ -339,23 +383,26 @@ class PostgresStore:
             self._ensure_user(ev.reviewed_by)
         self._run(
             f"INSERT INTO course_evidence (user_id, {self._EVIDENCE_COLS}) "
-            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) "
-            "ON CONFLICT (user_id, role_id, course_id) DO UPDATE SET kind = EXCLUDED.kind, "
+            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) "
+            "ON CONFLICT (user_id, scope, role_id, course_id) DO UPDATE SET kind = EXCLUDED.kind, "
             "url = EXCLUDED.url, link_status = EXCLUDED.link_status, "
             "link_checked_at = EXCLUDED.link_checked_at, submitted_at = EXCLUDED.submitted_at, "
             "reviewed_by = EXCLUDED.reviewed_by, reviewed_at = EXCLUDED.reviewed_at, "
-            "review_note = EXCLUDED.review_note",
+            "review_note = EXCLUDED.review_note, shared_from = EXCLUDED.shared_from",
             (
                 user_id, ev.role_id, ev.course_id, ev.kind, ev.url, ev.link_status,
                 ev.link_checked_at, ev.submitted_at, ev.reviewed_by, ev.reviewed_at,
-                ev.review_note,
+                ev.review_note, ev.scope, ev.shared_from,
             ),
         )  # fmt: skip
 
-    def delete_evidence(self, user_id: str, role_id: str, course_id: str) -> None:
+    def delete_evidence(
+        self, user_id: str, role_id: str, course_id: str, scope: str = PERSONAL
+    ) -> None:
         self._run(
-            "DELETE FROM course_evidence WHERE user_id = %s AND role_id = %s AND course_id = %s",
-            (user_id, role_id, course_id),
+            "DELETE FROM course_evidence WHERE user_id = %s AND role_id = %s AND course_id = %s "
+            "AND scope = %s",
+            (user_id, role_id, course_id, scope),
         )
 
     def review_evidence(self, user_id: str, ev: CompletionEvidence, seen: datetime | None) -> bool:
@@ -366,33 +413,36 @@ class PostgresStore:
             self._ensure_user(user_id)
             rows = self._run(
                 f"INSERT INTO course_evidence (user_id, {self._EVIDENCE_COLS}) "
-                "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) "
-                "ON CONFLICT (user_id, role_id, course_id) DO NOTHING RETURNING 1",
+                "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) "
+                "ON CONFLICT (user_id, scope, role_id, course_id) DO NOTHING RETURNING 1",
                 (
                     user_id, ev.role_id, ev.course_id, ev.kind, ev.url, ev.link_status,
                     ev.link_checked_at, ev.submitted_at, ev.reviewed_by, ev.reviewed_at,
-                    ev.review_note,
+                    ev.review_note, ev.scope, ev.shared_from,
                 ),
             )  # fmt: skip
             return bool(rows)
         rows = self._run(
             "UPDATE course_evidence SET kind = %s, reviewed_by = %s, reviewed_at = %s, "
             "review_note = %s WHERE user_id = %s AND role_id = %s AND course_id = %s "
-            "AND submitted_at = %s RETURNING 1",
+            "AND scope = %s AND submitted_at = %s RETURNING 1",
             (
                 ev.kind, ev.reviewed_by, ev.reviewed_at, ev.review_note,
-                user_id, ev.role_id, ev.course_id, seen,
+                user_id, ev.role_id, ev.course_id, ev.scope, seen,
             ),
         )  # fmt: skip
         return bool(rows)
 
-    def progress_of(self, user_ids: list[str]) -> list[tuple[str, str, str, CourseStatus]]:
+    def progress_of(
+        self, user_ids: list[str], scope: str | None = None
+    ) -> list[tuple[str, str, str, CourseStatus]]:
         if not user_ids:
             return []
         rows = self._run(
             "SELECT user_id, role_id, course_id, status FROM course_progress "
-            "WHERE user_id = ANY(%s) ORDER BY user_id, role_id, course_id",
-            (user_ids,),
+            "WHERE user_id = ANY(%s) AND (%s::text IS NULL OR scope = %s) "
+            "ORDER BY user_id, role_id, course_id",
+            (user_ids, scope, scope),
         )
         return [(str(u), str(r), str(c), s) for u, r, c, s in rows]  # type: ignore[misc]
 
@@ -401,10 +451,11 @@ class PostgresStore:
             return []
         rows = self._run(
             "SELECT p.user_id, p.role_id, p.course_id, p.status, p.course_snapshot, "
-            "CASE WHEN e.user_id IS NULL THEN NULL ELSE to_jsonb(e) END "
+            "CASE WHEN e.user_id IS NULL THEN NULL ELSE to_jsonb(e) END, p.scope "
             "FROM course_progress p LEFT JOIN course_evidence e "
-            "ON (e.user_id, e.role_id, e.course_id) = (p.user_id, p.role_id, p.course_id) "
-            "WHERE p.user_id = ANY(%s) ORDER BY p.user_id, p.role_id, p.course_id",
+            "ON (e.user_id, e.scope, e.role_id, e.course_id) "
+            "= (p.user_id, p.scope, p.role_id, p.course_id) "
+            "WHERE p.user_id = ANY(%s) ORDER BY p.user_id, p.scope, p.role_id, p.course_id",
             (user_ids,),
         )
         return [
@@ -412,8 +463,9 @@ class PostgresStore:
                 str(uid), str(rid), str(cid), status,
                 Course.model_validate(facts) if facts is not None else None,
                 CompletionEvidence.model_validate(evidence) if evidence is not None else None,
+                str(scope),
             )
-            for uid, rid, cid, status, facts, evidence in rows
+            for uid, rid, cid, status, facts, evidence, scope in rows
         ]  # fmt: skip
 
     def reset(self) -> None:
@@ -449,8 +501,8 @@ def plan_history(user_id: str) -> list[SavedPlan]:
     return store().plan_history(user_id)
 
 
-def course_status(user_id: str, role_id: str) -> dict[str, CourseStatus]:
-    return store().course_status(user_id, role_id)
+def course_status(user_id: str, role_id: str, scope: str = PERSONAL) -> dict[str, CourseStatus]:
+    return store().course_status(user_id, role_id, scope)
 
 
 def set_course_status(
@@ -459,13 +511,14 @@ def set_course_status(
     course_id: str,
     status: CourseStatus,
     course: Course | None = None,
+    scope: str = PERSONAL,
 ) -> None:
-    store().set_course_status(user_id, role_id, course_id, status, course)
+    store().set_course_status(user_id, role_id, course_id, status, course, scope)
 
 
-def course_facts(user_id: str, role_id: str) -> dict[str, Course]:
+def course_facts(user_id: str, role_id: str, scope: str = PERSONAL) -> dict[str, Course]:
     """Immutable course facts captured with progress, independent of the current target."""
-    return store().course_facts(user_id, role_id)
+    return store().course_facts(user_id, role_id, scope)
 
 
 def record_badges(user_id: str, badge_ids: list[str], today: date) -> dict[str, date]:
@@ -473,16 +526,16 @@ def record_badges(user_id: str, badge_ids: list[str], today: date) -> dict[str, 
     return store().record_badges(user_id, badge_ids, today)
 
 
-def evidence(user_id: str, role_id: str) -> dict[str, CompletionEvidence]:
-    return store().evidence(user_id, role_id)
+def evidence(user_id: str, role_id: str, scope: str = PERSONAL) -> dict[str, CompletionEvidence]:
+    return store().evidence(user_id, role_id, scope)
 
 
 def save_evidence(user_id: str, ev: CompletionEvidence) -> None:
     store().save_evidence(user_id, ev)
 
 
-def delete_evidence(user_id: str, role_id: str, course_id: str) -> None:
-    store().delete_evidence(user_id, role_id, course_id)
+def delete_evidence(user_id: str, role_id: str, course_id: str, scope: str = PERSONAL) -> None:
+    store().delete_evidence(user_id, role_id, course_id, scope)
 
 
 def review_evidence(user_id: str, ev: CompletionEvidence, seen: datetime | None) -> bool:
@@ -490,9 +543,12 @@ def review_evidence(user_id: str, ev: CompletionEvidence, seen: datetime | None)
     return store().review_evidence(user_id, ev, seen)
 
 
-def progress_of(user_ids: list[str]) -> list[tuple[str, str, str, CourseStatus]]:
-    """(user, role, course, status) rows for these users (for HR / advisor review)."""
-    return store().progress_of(user_ids)
+def progress_of(
+    user_ids: list[str], scope: str | None = None
+) -> list[tuple[str, str, str, CourseStatus]]:
+    """(user, role, course, status) rows for these users, optionally one workspace scope only.
+    HR / advisor review always passes its organisation's scope."""
+    return store().progress_of(user_ids, scope)
 
 
 def learning_records(user_ids: list[str]) -> list[LearningRecord]:

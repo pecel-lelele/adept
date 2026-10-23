@@ -10,10 +10,12 @@
 
 ## Status
 
-Skeleton: endpoints return mock data from `mocks.py` with `meta.sources = MOCK DATA`.
-Replace `repository.py` reads with real data, keep the contracts stable.
+Implemented: in-memory PDF/DOCX/text parsing, catalogue aliases and user-confirmed skill
+levels, questionnaire intake and PostgreSQL profiles. The web provides a four-step intake.
+Unmatched wording and truncation are reviewable; uploads never mutate saved skills before
+confirmation. See `cv_parser.py`, `service.py` and `tests/api/profile/`.
 
-## Goal and tasks (from docs/TASKS.md)
+## Goal and tasks (from docs/tasks.md)
 
 **Goal:** capture current skills **and potential** via CV upload, form or questionnaire.
 
@@ -29,13 +31,27 @@ Replace `repository.py` reads with real data, keep the contracts stable.
 
 ## Pipeline
 
-Fill this in as the feature takes shape (copy it into the `docs/decisions.md` entry).
+Current deterministic intake pipeline:
 
 | Stage | Choice | Notes |
 |---|---|---|
-| Source | | |
-| Preprocessing / cleaning | | |
-| Features | | |
-| Model / method | | |
-| Evaluation | | metric + result |
-| Serving | | endpoint(s) |
+| Source | In-memory sample CV or confirmed form | No raw upload storage |
+| Preprocessing / cleaning | PDF/DOCX/text extraction, caps, NFKC and contact scrubbing | `cv_parser.py` |
+| Features | Approved labels/aliases; separate unverified list entries | No invented IDs |
+| Model / method | Alias matching, estimated levels, human confirmation | No LLM for parsing |
+| Evaluation | Format, safety, omission and persistence regressions | `tests/api/profile/` |
+| Serving | CV, questionnaire and skill-confirmation endpoints | OpenAPI contracts |
+
+## Catalogue omissions (2026-10-23 integration)
+
+CV responses include `unmatched_terms`: up to 30 short entries from explicit
+EN/MS/ZH skills lists which do not exactly match an approved label or alias.
+These are unverified wording for transient review, not skill IDs. They are never
+saved as profile skills, ranked, sent to an LLM or added to the taxonomy. Users
+may search the existing catalogue and explicitly choose a valid equivalent.
+
+This bounded rule cannot find every unfamiliar skill in prose or every CV layout.
+Both guest preview and intake state that limitation, preserve truncation warnings,
+and distinguish zero recognised catalogue skills from zero actual skills. Unknown
+only previews produce no role or score. Existing exact aliases, level review,
+file limits, scanned/encrypted PDF errors and ID validation remain in force.

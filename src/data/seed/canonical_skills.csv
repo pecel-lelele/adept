@@ -12,7 +12,7 @@ explainable-ai,Explainable AI (XAI) methods,emerging_ai_native,0.18
 ai-ethics,AI ethics & governance,emerging_ai_native,0.10
 llm-evaluation,LLM evaluation & red-teaming,emerging_ai_native,0.22
 data-pipelines,Data pipeline engineering,emerging_ai_native,0.45
-synthetic-data-gen,Synthetic data generation,emerging_ai_native,0.40
+synthetic-data-gen,Artificial data generation,emerging_ai_native,0.40
 feature-engineering,Feature engineering for ML,emerging_ai_native,0.44
 model-monitoring,ML model monitoring & drift detection,emerging_ai_native,0.30
 federated-learning,Federated & privacy-preserving ML,emerging_ai_native,0.28

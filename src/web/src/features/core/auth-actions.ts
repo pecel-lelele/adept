@@ -24,7 +24,7 @@ function keep(form: FormData): Record<string, string> {
 }
 
 function destination(next: string, apiNext: string): string {
-  // A deep link only wins when it belongs to the workspace the account lands in.
+  // Keep valid personal/employee deep links. Workspace layouts check the membership/role.
   if (!next) return apiNext;
   const mode = apiNext.startsWith("/org") ? "organisation" : "individual";
   const safe = safeReturn(next, mode);
@@ -35,6 +35,14 @@ function destination(next: string, apiNext: string): string {
 export async function signupAction(_: AuthState, form: FormData): Promise<AuthState> {
   const workspace = text(form, "workspace") === "organisation" ? "organisation" : "individual";
   const size = Number.parseInt(text(form, "size", 7), 10);
+  const joinCode = workspace === "individual" ? text(form, "join_code", 16) || null : null;
+  const shareSkills = workspace === "individual" && Boolean(joinCode) && form.get("share_skills") === "on";
+  if (joinCode && !shareSkills) {
+    return {
+      error: "Consent to share your skill profile with the organisation is required when signing up with a join code.",
+      values: keep(form),
+    };
+  }
   const api = await getApi();
   const result = await call(
     api.POST("/api/v1/auth/signup", {
@@ -44,7 +52,8 @@ export async function signupAction(_: AuthState, form: FormData): Promise<AuthSt
         password: typeof form.get("password") === "string" ? String(form.get("password")).slice(0, 128) : "",
         workspace,
         consent: form.get("consent") === "on",
-        join_code: workspace === "individual" ? text(form, "join_code", 16) || null : null,
+        join_code: joinCode,
+        share_skills: shareSkills,
         organisation:
           workspace === "organisation"
             ? {
@@ -78,11 +87,19 @@ export async function loginAction(_: AuthState, form: FormData): Promise<AuthSta
 }
 
 export async function joinOrgAction(_: AuthState, form: FormData): Promise<AuthState> {
+  const consent = form.get("consent") === "on";
+  if (!consent) {
+    return { error: "Please consent to join the organisation and share your profile.", values: keep(form) };
+  }
   const api = await getApi();
-  const result = await call(api.POST("/api/v1/org/join", { body: { code: text(form, "code", 16) } }));
+  const result = await call(
+    api.POST("/api/v1/org/join", {
+      body: { code: text(form, "code", 16), share_skills: true, consent: true },
+    }),
+  );
   if (!result.ok) return { error: result.message, values: keep(form) };
   revalidatePath("/app", "layout");
-  return { values: { joined: result.data.name } };
+  return { values: { joined: result.data.name, org_id: result.data.id } };
 }
 
 export async function signOutAction(): Promise<void> {

@@ -3,7 +3,7 @@
 Only members whose intake is complete are counted; invited / in-progress members are listed
 but excluded from the heatmap and plan until their skills are confirmed. Nothing here is
 hard-coded: heatmap rows are every target role in the taxonomy, and when a manager has not
-picked a target role the plan uses the role where the team's average gap is largest.
+picked a target role the plan uses the role with the strongest existing team skill fit.
 """
 
 from __future__ import annotations
@@ -21,6 +21,9 @@ from app.contracts.org import (
     MemberListResponse,
     Organization,
     OrganizationIn,
+    SharingIn,
+    Workspace,
+    WorkspaceList,
 )
 from app.contracts.pathway import Pathway
 from app.contracts.profile import Skill
@@ -113,23 +116,21 @@ def rotate_join_code(user: CurrentUser) -> Organization:
 
 
 def join_org(user: CurrentUser, body: JoinOrgIn) -> Organization:
-    if user.kind == "org_admin":
+    """Join as an employee/student. Management rights are never granted by a join code, and one
+    account may belong to several organisations, each its own workspace."""
+    if not body.consent:
         raise AppError(
-            "Manager accounts already belong to an organisation.", status_code=409, code="conflict"
+            "Consent is required to join an organisation.",
+            status_code=400,
+            code="consent_required",
         )
     org = repository.find_org_by_code(body.code)
     if org is None:
         raise NotFoundError("That join code does not match any organisation.")
-    current = accounts.find_by_id(user.id)
-    if current is not None and current.org_id and current.org_id != org.id:
-        # One organisation per member: a second join would be saved but never shown.
-        raise AppError(
-            "You already belong to an organisation. Ask its manager to remove you first.",
-            status_code=409,
-            code="already_member",
-        )
+    if repository.membership_role(user.id, org.id) is not None:
+        return org.model_copy(update={"join_code": None})  # rejoining is harmless
     has_skills = profile_service.has_profile(user.id) and bool(
-        profile_service.get_my_profile(user).skills
+        profile_service.get_my_profile(user.id).skills
     )
     repository.add_member(
         org.id,
@@ -138,10 +139,44 @@ def join_org(user: CurrentUser, body: JoinOrgIn) -> Organization:
             display_name=user.display_name,
             current_role_id=None,
             intake_status="complete" if has_skills else "in_progress",
+            skills_shared=body.share_skills,
         ),
     )
-    accounts.set_org(user.id, org.id)
-    return _visible(org, user)
+    account = accounts.find_by_id(user.id)
+    if account is not None and not account.org_id:
+        accounts.set_org(user.id, org.id)
+    accounts.forget(user.id)
+    return org.model_copy(update={"join_code": None})
+
+
+def workspaces(user: CurrentUser) -> WorkspaceList:
+    """Personal first, then every organisation the person belongs to."""
+    items = [Workspace(id="personal", kind="personal", name="")]
+    for org, role, shared in repository.memberships_of(user.id):
+        items.append(
+            Workspace(
+                id=org.id,
+                kind="org",
+                name=org.name,
+                org_type=org.type,
+                role=role,
+                skills_shared=shared,
+            )
+        )
+    return WorkspaceList(workspaces=items)
+
+
+def set_sharing(user: CurrentUser, body: SharingIn) -> Workspace:
+    """A member chooses whether this organisation's managers may use their skill levels."""
+    if user.workspace != "org" or not user.org_id or user.kind != "learner":
+        raise AppError(
+            "Open the organisation's workspace as a member to change sharing.",
+            status_code=403,
+            code="forbidden",
+        )
+    if not repository.set_share_skills(user.org_id, user.id, body.share_skills):
+        raise NotFoundError("You are not a member of this organisation.")
+    return next(w for w in workspaces(user).workspaces if w.id == user.org_id)
 
 
 def require_manager(user: CurrentUser) -> str:
@@ -157,15 +192,27 @@ def remove_member(user: CurrentUser, member_id: str) -> None:
     org_id = _require_manager(user)
     if not repository.remove_member(org_id, member_id):
         raise NotFoundError(f"No member {member_id} in this organisation")
-    accounts.set_org(member_id, None)
+    account = accounts.find_by_id(member_id)
+    if account is not None and account.org_id == org_id:
+        remaining = [o.id for o, _role, _shared in repository.memberships_of(member_id)]
+        accounts.set_org(member_id, remaining[0] if remaining else None)
+    accounts.forget(member_id)
 
 
-def member_learners(org_id: str) -> dict[str, engine.Learner]:
-    """Engine inputs for members with a completed intake (skills, time, budget only)."""
+def member_learners(org_id: str, only: str | None = None) -> dict[str, engine.Learner]:
+    """Engine inputs for members with a completed intake (skills, time, budget only).
+
+    Team views count only members who chose to share their skill levels. `only` reads one
+    member for their own assignment, whatever they share with managers.
+    """
     org = repository.get_org(org_id)
     company = org is not None and org.type == "company"
     out: dict[str, engine.Learner] = {}
-    members = [m for m in repository.list_members(org_id) if m.intake_status == "complete"]
+    members = [
+        m
+        for m in repository.list_members(org_id)
+        if m.intake_status == "complete" and (m.id == only if only else m.skills_shared)
+    ]
     earned = pathway_service.evidenced_levels_many([m.id for m in members])
     for m in members:
         profile = profile_service.get_my_profile(m.id)
@@ -195,7 +242,7 @@ def target_role(
     *,
     members: dict[str, engine.Learner] | None = None,
 ) -> str:
-    """The manager's chosen role, else the role where the team's average gap is largest."""
+    """The manager's chosen role, else the role with the strongest existing team skill fit."""
     roles = pathway_data.target_role_ids()
     if role_id:
         if role_id not in roles:
@@ -203,8 +250,19 @@ def target_role(
         return role_id
     if not roles:
         raise NotFoundError("No target roles in the taxonomy")
-    gaps = _team_gap_by_role(member_learners(org_id) if members is None else members)
-    return max(roles, key=lambda r: (gaps.get(r, 0.0), r))
+    team = member_learners(org_id) if members is None else members
+
+    def fit(role: str) -> tuple[float, str]:
+        reqs = pathway_data.requirements(role)
+        total = sum(r.importance for r in reqs) * len(team)
+        covered = sum(
+            r.importance * min(1.0, learner.skill_levels.get(r.skill_id, 0) / r.required_level)
+            for learner in team.values()
+            for r in reqs
+        )
+        return (covered / total if total else 0.0, role)
+
+    return max(roles, key=fit)
 
 
 def member_plans(

@@ -6,7 +6,7 @@ import { useTransition } from "react";
 
 import { removeMemberAction } from "../actions";
 
-export function RemoveMemberButton({ id, name }: { id: string; name: string }) {
+export function RemoveMemberButton({ id, name, orgId }: { id: string; name: string; orgId?: string }) {
   const t = useTranslations("ui.org");
   const [pending, start] = useTransition();
   return (
@@ -19,7 +19,7 @@ export function RemoveMemberButton({ id, name }: { id: string; name: string }) {
       onClick={() => {
         if (!window.confirm(t("removeConfirm", { name }))) return;
         start(async () => {
-          const result = await removeMemberAction(id);
+          const result = await removeMemberAction(id, orgId);
           if (result.error) window.alert(result.error);
         });
       }}

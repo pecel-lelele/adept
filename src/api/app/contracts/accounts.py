@@ -18,6 +18,11 @@ class SignupIn(BaseModel):
     organisation: OrganizationIn | None = None
     # Optional for an individual: join an organisation with the code its manager shared.
     join_code: str | None = Field(default=None, max_length=16)
+    # With a join code: joining shares skill levels with managers by consent.
+    share_skills: bool = Field(
+        default=False,
+        description="Explicit consent to share skill levels with managers on signup.",
+    )
     consent: bool = Field(description="Accepted the data-use and estimates notice.")
 
 
@@ -62,6 +67,7 @@ class AccountExport(BaseModel):
         description="Every course you tracked, across all target roles, with its evidence.",
     )
     badges: dict[str, str] = Field(default_factory=dict, description="Badge id -> date earned.")
+    learning_funding: list[dict[str, object]] = Field(default_factory=list)
     notice: str = (
         "This file holds your Adept account, profile, plans, course progress, completion "
         "evidence and badges. CV files are never stored: they are read in memory and discarded."

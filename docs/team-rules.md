@@ -62,7 +62,7 @@ These affect everyone, so changes need a quick message in the team chat **before
 | Dependencies (`requirements.txt`, `src/web/package.json`, `src/web/pnpm-lock.yaml`) | Lockfile conflicts are painful | Prefer a small separate PR; pull and re-install after it's merged |
 | Root config (`Makefile`, `docker-compose.yml`, env vars, `.github/`) | Everyone's environment | Separate small PR; update `.env.example` if you add a variable |
 | Navigation / app shell / shared UI components | All pages use them | Coordinate with M4 |
-| `docs/PROJECT_CONTEXT.md`, `CLAUDE.md`, `GEMINI.md` | Shared AI context | Team agrees first |
+| `docs/project-context.md`, `CLAUDE.md`, `GEMINI.md` | Shared AI context | Team agrees first |
 
 If two people need the same shared change, one person does it and the other waits for the merge.
 
@@ -79,7 +79,7 @@ If two people need the same shared change, one person does it and the other wait
 
 The skeleton also ships with **starter defaults** (e.g. the web framework for the API, CSS/UI library, migration tool). Use them unless you have a reason not to.
 
-**Everything else is chosen per feature by its owner**: models, libraries, data sources, methods, formulas. See `docs/TASKS.md` for the open choices in each feature. Two conditions:
+**Everything else is chosen per feature by its owner**: models, libraries, data sources, methods, formulas. See `docs/tasks.md` for the open choices in each feature. Two conditions:
 
 1. Record the choice in `docs/decisions.md`.
 2. If it adds a dependency other features will also install, or replaces a starter default, treat it as a shared change (§4).

@@ -2,7 +2,7 @@
 
 Test and demo inputs for `POST /api/v1/profile/cv`, so the endpoint can be exercised
 without the intake UI. **Everything here is invented**: synthetic personas from
-`docs/PROJECT_CONTEXT.md` plus made-up names, and every email is on `example.com`.
+`docs/project-context.md` plus made-up names, and every email is on `example.com`.
 No real resume, no real contact detail. Never add one.
 
 | File | What it proves | Parser result |

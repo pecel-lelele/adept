@@ -32,5 +32,9 @@
     "fell": "menurun",
     "noDrivers": "Tiada kemahiran peranan ini yang berubah antara tarikh ini.",
     "note": "Kemahiran anda kekal sama; hanya data trend yang berubah. Kedudukan adalah relatif, jadi peranan boleh naik apabila yang lain jatuh lebih jauh. Kedudukan ialah anggaran."
-  }
+  },
+  "readyNow": "Sedia sekarang",
+  "readyNowHint": "Anda sudah memiliki sekurang-kurangnya {share}% tahap kemahiran yang diperlukan: pelan yang singkat boleh membawa anda ke sana.",
+  "worthExploring": "Wajar diterokai",
+  "worthExploringHint": "Anda memiliki kurang daripada {share}% tahap kemahiran yang diperlukan hari ini: laluan lebih panjang, berbaloi jika peranan ini menarik minat anda."
 }

@@ -51,18 +51,24 @@ type AdiProps = {
   placement?: "workspace" | "landing";
   /** Signed-in account id on every surface, including the landing page. */
   who: string;
+  /** "personal" or the organisation id: one conversation per workspace. */
+  workspace?: string;
+  /** Organisation name shown in the panel; empty in the personal workspace. */
+  workspaceName?: string;
 };
 
 export function AdiAssistant(props: AdiProps) {
-  // Identity changes discard rendered history and cancel the previous conversation.
-  return <AdiConversation key={props.who} {...props} />;
+  // Identity or workspace changes discard rendered history and cancel the previous request.
+  return <AdiConversation key={`${props.who}:${props.workspace ?? ""}`} {...props} />;
 }
 
 function AdiConversation({
   placement = "workspace",
   who,
+  workspace = "",
+  workspaceName = "",
 }: AdiProps) {
-  const store = STORE_PREFIX + who;
+  const store = STORE_PREFIX + who + (workspace ? `:${workspace}` : "");
   const t = useTranslations("ui.adi");
   const locale = useLocale();
   const path = usePathname();
@@ -194,7 +200,15 @@ function AdiConversation({
             <Adi3D size={58} mood={busy ? "think" : mood === "wave" ? "idle" : mood} follow={false} />
             <div>
               <strong>{t("title")}</strong>
-              <span>{busy ? t("thinking") : t("subtitle")}</span>
+              <span>
+                {busy
+                  ? t("thinking")
+                  : workspace
+                    ? workspaceName
+                      ? t("inOrg", { name: workspaceName })
+                      : t("inPersonal")
+                    : t("subtitle")}
+              </span>
             </div>
             <button type="button" className="adi-icon" onClick={() => setOpen(false)} aria-label={t("close")}>
               <X size={18} aria-hidden />

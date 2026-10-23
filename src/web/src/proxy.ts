@@ -11,7 +11,7 @@ export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   const headers = new Headers(request.headers);
   headers.set("x-adept-path", pathname);
-  const workspace = /^\/(app|org|admin)(\/|$)/.test(pathname);
+  const workspace = /^\/(app|work|org|admin)(\/|$)/.test(pathname);
   const token = request.cookies.get(SESSION_COOKIE)?.value ?? "";
   if (workspace && process.env.AUTH_MODE !== "supabase" && !token.startsWith("v1.")) {
     const query = new URLSearchParams({
@@ -26,4 +26,6 @@ export function proxy(request: NextRequest) {
   return NextResponse.next({ request: { headers } });
 }
 
-export const config = { matcher: ["/app/:path*", "/org/:path*", "/admin/:path*", "/auth/:path*"] };
+export const config = {
+  matcher: ["/app/:path*", "/work/:path*", "/org/:path*", "/admin/:path*", "/auth/:path*"],
+};

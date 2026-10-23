@@ -15,10 +15,10 @@ export default async function Page({
   if (!roleId)
     return <CompareRolesView scenario={scenario} snapshotDate={snapshotDate} />;
   return (
-    <PathwayView
+    <><PathwayView
       roleId={roleId}
       scenario={scenario}
       snapshotDate={snapshotDate}
-    />
+    /></>
   );
 }

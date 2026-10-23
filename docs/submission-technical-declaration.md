@@ -5,6 +5,8 @@ Declaration Template**. Its deadline field is unspecified; confirm it with the o
 This document records repository evidence and explicit unknowns, not a signed compliance claim.
 Personal contact details belong in the private submission PDF, not in this public repository.
 
+Updated 23 October 2026 for current catalogue, workspaces and Runpod/Gemini configuration.
+
 ## 1. Team and project overview
 
 | Template field | Response |
@@ -29,8 +31,9 @@ trend snapshots, plans, progress and organisation membership.
 
 The offline trend pipeline uses a pre-trained MiniLM sentence encoder to map research text to
 skills, combines it with a committed labour baseline and validates a snapshot before publication.
-Matching and pathway generation use deterministic rules. No generative model is called by the
-application; only a null LLM provider is implemented.
+Matching and pathway generation use deterministic rules. Adi uses Runpod GLM-5.3 for
+grounded assistance, with separately authenticated Gemini failover. IDs are validated before
+use, and provider failure can fall back to a deterministic guide.
 
 Docker Compose runs web, API and PostgreSQL with pgvector under the project name adept. The
 database has a persistent volume. GitHub Actions defines quality checks, a weekly source audit
@@ -38,7 +41,7 @@ and a trend-refresh job that requires a configured database secret. Public cloud
 planned, not verified. Every recommendation carries dated sources, scenario and estimate metadata.
 <!-- answer:end technical-2.1 -->
 
-**Diagram appendix:** [current system block diagram](SUBMISSION_PROPOSAL.md#31-conceptual-tech-stack),
+**Diagram appendix:** [current system block diagram](submission-proposal.md#31-conceptual-tech-stack),
 [full Mermaid collection](../README.md#3-system-architecture), and the
 [offline pan-and-zoom viewer](diagrams/index.html). Diagram relationships are traced to routers,
 Compose services and migrations. Schema excerpts distinguish enforced foreign keys from logical joins.
@@ -96,7 +99,7 @@ licence is [Apache-2.0](../LICENSE); that does not replace dependency licences.
 | [Coursera courses API](https://api.coursera.org/api/courses.v1) | Public endpoint used by code; provider terms and availability apply | Curated slug/workload availability checks; no paid subscription or sponsorship inferred. |
 | [Bank Negara Malaysia OpenAPI](https://api.bnm.gov.my/) | Public/free endpoint | Exchange rates for foreign-currency course price estimates. |
 | Cited course and evidence provider HTTPS pages | Public page access; not a single API | Course facts, link audits and provider certificate-page reachability checks. |
-| Generative AI APIs | None in the running application | `LLM_PROVIDER=none`; no non-null provider implementation. |
+| Runpod / Gemini | Server API keys; provider terms and usage charges apply | Runpod `glm-5.3` is the local primary for Adi; Gemini is backup on failure. Keys are environment variables, not committed. |
 
 The BLS baseline is committed data, not an external API called by the running recommendation
 service. Model weights may be downloaded from Hugging Face when preparing the offline encoder;
@@ -110,7 +113,7 @@ that is a model acquisition step, not hosted inference. Do not include API keys 
 | Local Docker Compose | Local Windows Docker Desktop; no cloud region | Current verified prototype: web `:3000`, API `:8000`, PostgreSQL host `:5433`, persistent `adept_pgdata`. |
 | Replit, or Vercel + Render | Planned; plan and region not selected | Candidate web/API hosts in project planning; no public deployment verified. |
 | Supabase PostgreSQL / Auth | Optional/planned; plan and region not configured for this local stack | Managed database candidate. API has a JWT-verification path; Compose runs local account authentication. |
-| Runpod | Optional proposal only; no plan or region verified | Possible future model hosting. No model service is deployed by this repository configuration. |
+| Runpod | Hosted public endpoint; no Pod deployed; region/credit entitlement not verified | Local Adi primary (`glm-5.3`), checked with a small request on 23 October 2026. |
 | Other cloud storage / hosted inference / analytics | None evidenced in the reviewed runtime configuration | Team must add any services used outside this checkout before submission. |
 
 ## 4. AI tools, models and datasets
@@ -120,7 +123,8 @@ that is a model acquisition step, not hosted inference. Do not include API keys 
 | Model and version | Source / provider | Licence / terms | Usage |
 |---|---|---|---|
 | [sentence-transformers/all-MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2) | Sentence Transformers model repository on Hugging Face | Apache-2.0 | Pre-trained sentence encoder; no team fine-tuning. Offline 384-dimensional sentence/skill embeddings and cosine matching, threshold 0.55. Model revision is not pinned by the current code. |
-| Runtime generative model | None | Not applicable | `LLM_PROVIDER=none`; deterministic recommendations. A future provider must be implemented and disclosed before use. |
+| GLM-5.3 | Runpod, model `glm-5.3` | Provider terms; team to review before signing | Grounded Adi assistance through an OpenAI-compatible endpoint; low reasoning and bounded output. Local request verified. |
+| Gemini | Google; configured fallback model list in [README](../README.md) | Provider terms; team to review before signing | Used only after primary failure; separate credentials. Failover covered by tests; this is not a claim of a live Gemini request. |
 
 **Six-stage trend pipeline:** arXiv RSS and committed BLS-derived data → strip HTML and split
 abstracts → MiniLM sentence/skill vectors and per-week mention frequencies → log-ratio research
@@ -136,18 +140,18 @@ and [exposure methodology](skill-exposure-methodology.md).
 
 ### 4.2 Datasets
 
-Counts below describe committed seed files as inspected on 22 October 2026, not the contents
+Counts below describe committed seed files as inspected on 23 October 2026, not the contents
 of every deployed database. No model was fine-tuned on these fixtures.
 
 | Dataset name | Source / URL | Type | Personal data? | Licence / terms and use |
 |---|---|---|---|---|
-| Custom skill and role catalogue: 113 skills, 7 roles | [Taxonomy seed](../src/data/seed/taxonomy/) | Team-curated / synthetic catalogue | No | Team curation; upstream source references retained where supplied. Not a complete official ESCO/O*NET import. Used for extraction and matching. |
+| Custom skill and role catalogue: 140 skills, 31 roles (28 targets) | [Taxonomy seed](../src/data/seed/taxonomy/) | Team-curated / synthetic catalogue | No | Team curation; upstream source references retained where supplied. Not a complete official ESCO/O*NET import. Used for extraction and matching. |
 | arXiv cs.AI research signal | [Ingest](../src/pipelines/trends/arxiv_ingest.py), [arXiv terms](https://info.arxiv.org/help/api/tou.html) | Public | No learner data; raw feed metadata may contain public author names | Provider terms and per-article licences apply; avoid a blanket CC0 claim. Research text is used offline for aggregated skill signals. |
 | BLS 2023–2033-derived labour baseline | [Committed baseline](../src/data/seed/labor_decay.csv), [BLS source](https://www.bls.gov/emp/tables/occupational-projections-and-characteristics.htm) | Public / team-derived | No | US government source with attribution; occupation-to-skill mapping is a team method. The linked live BLS table can advance to newer editions. |
 | Canonical skill exposure and historical snapshots | [Seed data](../src/data/seed/), [methodology](skill-exposure-methodology.md) | Curated / public-derived | No | Reviewer-assigned exposure scores and dated replay fixtures; not measured probabilities. October 2026-labelled demo snapshots replay October 2024 research windows, disclosed in provenance. |
 | 17 SDG goals and 169 targets | [UN API](https://unstats.un.org/SDGAPI/v1/sdg/Goal/List), [seed](../src/data/seed/sdg/) | Public | No | UN data terms and attribution; official target wording retained. |
-| 13 role-target and 127 skill-target links | [Mapping seed](../src/data/seed/sdg/), cited evidence per record | Team-curated | No | Draft team interpretations with reasons and evidence; not official UN endorsements. Human review status is explicit. |
-| 34 course records | [Catalogue sources](../src/api/app/features/pathway/catalogue_sources.py), [seed](../src/data/seed/courses/) | Public facts / curated | No | Microsoft, Coursera, local providers and universities retain their respective terms. Prices and HRD Corp notes are dated estimates, not entitlement guarantees. |
+| 61 role-target and 165 skill-target links | [Mapping seed](../src/data/seed/sdg/), cited evidence per record | Team-curated | No | Draft team interpretations with reasons and evidence; not official UN endorsements. Human review status is explicit. |
+| 98 course records | [Catalogue sources](../src/api/app/features/pathway/catalogue_sources.py), [seed](../src/data/seed/courses/) | Public facts / curated | No | Microsoft, Coursera, local providers and universities retain their respective terms. Prices and HRD Corp notes are dated estimates, not entitlement guarantees. |
 | Exchange rates | [BNM OpenAPI](https://api.bnm.gov.my/) | Public | No | BNM terms and attribution; used for estimated MYR costs. |
 | Synthetic personas, organisation members and CVs | [Fixtures](../tests/api/profile/fixtures/cvs/), [persona seed](../src/data/seed/personas/), [organisation seed](../src/data/seed/org/) | Synthetic | No real identities | Team-created evaluation and test data only. Local sign-up demo must use invented details and synthetic CVs. |
 
@@ -175,22 +179,22 @@ workforce outcomes.
 
 ## 5. Sponsor-provided resources
 
-**Yes / No: team to confirm.** No sponsor API, cloud credit or sponsor-hosted service is
-evidenced by the running local configuration. Workshop attendance, mentoring and credits
-cannot be determined from source files.
+**API usage: yes, Runpod.** Local configuration and a small verified request establish
+hosted inference usage. Sponsor-provided credit entitlement, workshop attendance and
+mentoring remain for the team to confirm.
 
 | Sponsor | Resource | How used |
 |---|---|---|
-| None verified in this checkout | No confirmed sponsor-provided API, credits, platform or dataset | Local Docker and public sources support the current prototype. Team must add any actual sponsorship or mentoring before selecting Yes/No. |
+| Runpod | GLM-5.3 public inference endpoint | Adi primary in the local presentation configuration. Credit entitlement remains unverified. |
 
 **Essential or replaceable (maximum 100 words):**
 
 <!-- answer:start technical-5 limit=100 -->
-No sponsor resource is currently a demonstrated core dependency. The prototype runs locally
-with public sources and an offline encoder. The proposed web/API host can be replaced by a
-service that supports the existing containers, environment configuration and PostgreSQL
-connectivity. Optional future model hosting is unnecessary for current deterministic
-recommendations. Confirm actual sponsor usage with every member before signing.
+Runpod supplies the configured GLM-5.3 inference endpoint for Adi. It is replaceable: Gemini
+is configured as failover, and a deterministic guide remains available on provider failure.
+Matching, pathways and the offline encoder do not require generative inference. Web, API
+and PostgreSQL run locally in containers. Confirm sponsor-provided credits and all team
+usage before signing.
 <!-- answer:end technical-5 -->
 
 ## 6. Security, privacy and responsible use
@@ -226,9 +230,9 @@ intervals. SDG links are interpretations pending review, not verified social out
 PDF skill extraction can miss aliases and scanned documents; users confirm skills. Provider
 page reachability does not prove certificate ownership. Prices, funding eligibility and API
 availability can change. Mitigations include dated sources, validation before snapshot
-publication, catalogue-ID checks, counterfactual tests, manual evidence review and explicit
-estimate labels. The null LLM provider avoids runtime generative hallucination; future providers
-must pass the ID validator. Local deployment success does not establish public hosting,
+publication, catalogue-ID checks, counterfactual tests, manual evidence review and
+estimate labels. Adi validates selected catalogue IDs and uses a deterministic guide when
+provider output fails validation. Generated text may still be wrong and requires human judgment. Local deployment success does not establish public hosting,
 security certification, fairness across all populations or improved employment outcomes.
 <!-- answer:end technical-6.2 -->
 
@@ -259,7 +263,7 @@ accuracy declaration. A repository-generated draft cannot attest on the leader's
 
 [Compose](../docker-compose.yml) · [requirements](../requirements.txt) ·
 [web manifest](../src/web/package.json) · [auth](../src/api/app/core/auth.py) ·
-[null provider](../src/api/app/core/llm/provider.py) ·
+[LLM providers and failover](../src/api/app/core/llm/provider.py) ·
 [trend workflow](../.github/workflows/trends-refresh.yml) ·
 [source audit](../.github/workflows/data-sources.yml) ·
 [catalogue sources](../src/api/app/features/pathway/catalogue_sources.py).

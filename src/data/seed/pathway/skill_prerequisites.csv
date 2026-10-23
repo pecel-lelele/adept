@@ -2,3 +2,12 @@ skill_id,prerequisite_id,reason
 data-visualisation,sql,Dashboards are built on data you can already query.
 rpa,process-mapping,You automate a process after you have mapped it.
 prompt-engineering,ai-literacy,Know what AI can and cannot do before relying on its output.
+sql-advanced,sql,Advanced SQL builds on basic relational queries.
+machine-learning,python,Programming is a foundation for the selected machine learning modules.
+mlops,machine-learning,Model deployment requires understanding machine learning workflows.
+model-monitoring,machine-learning,Monitoring requires an understanding of the model lifecycle.
+rag-systems,ai-literacy,Understand generative AI limitations before using retrieval systems.
+vector-databases,rag-systems,The selected vector database module applies retrieval concepts.
+ai-agents,ai-literacy,Understand AI limitations before designing agent workflows.
+llm-evaluation,ai-literacy,Evaluation requires understanding model limitations.
+digital-twin,iot-systems,The selected digital twin course connects physical sensor data.

@@ -87,13 +87,13 @@ export async function OrgDashboardView({ scenario }: { scenario: ScenarioId }) {
             <>
               <h1>{t("inviteTitle")}</h1>
               <p>{t("inviteBody")}</p>
-              {org.data.join_code ? <JoinCodeCard code={org.data.join_code} /> : null}
+              {org.data.join_code ? <JoinCodeCard code={org.data.join_code} orgId={org.data.id} /> : null}
             </>
           ) : complete === 0 ? (
             <>
               <h1>{t("waitTitle")}</h1>
               <p>{t("waitBody", { count: list.length })}</p>
-              {org.data.join_code ? <JoinCodeCard code={org.data.join_code} /> : null}
+              {org.data.join_code ? <JoinCodeCard code={org.data.join_code} orgId={org.data.id} /> : null}
             </>
           ) : (
             <>

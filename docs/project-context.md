@@ -143,6 +143,13 @@ Scenario toggle, source labels and "estimate" labels appear in steps 2–4.
 /org/plan           step 4 (group plan for a target role)
 /org/sdg            aggregated SDG contribution (+ /org/courses, /org/verify)
 /org/setup          organisation settings and join code
+/org/programmes     manager programme list and creation wizard
+/org/funding        annual budgets, purchase approvals and payment records
+/work               employee workspace: employer programmes and sharing
+/work/plan          review a learning agreement
+/work/skills        control skill and personal-completion sharing
+/work/progress      organisation-scoped progress and evidence
+/work/funding       employee funding requests and claims
 /about              LLM disclosure, methodology, data sources, limitations
 /admin/*            data sources, snapshots (internal)
 ```

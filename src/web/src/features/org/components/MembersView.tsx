@@ -66,7 +66,7 @@ export async function MembersView() {
                       </span>
                     </td>
                     <td>
-                      <RemoveMemberButton id={m.id} name={m.display_name} />
+                      <RemoveMemberButton id={m.id} name={m.display_name} orgId={org.ok ? org.data.id : undefined} />
                     </td>
                   </tr>
                 ))}
@@ -80,7 +80,7 @@ export async function MembersView() {
         </section>
         <aside className="a-aside">
           <section className="a-card is-sage">
-            {org.ok && org.data.join_code ? <JoinCodeCard code={org.data.join_code} /> : null}
+            {org.ok && org.data.join_code ? <JoinCodeCard code={org.data.join_code} orgId={org.data.id} /> : null}
             <p className="a-small a-muted" style={{ margin: "14px 0 0" }}>
               {t("inviteBody")}
             </p>

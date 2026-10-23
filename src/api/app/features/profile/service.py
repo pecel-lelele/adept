@@ -11,11 +11,8 @@ Normalisation formula: (level - 1) / 4.0   (level 1 → 0.0, level 5 → 1.0)
 
 from __future__ import annotations
 
-import csv
 import re
 from datetime import date
-from functools import lru_cache
-from pathlib import Path
 
 from app.contracts.common import RecommendationMeta, Source
 from app.contracts.profile import (
@@ -27,11 +24,12 @@ from app.contracts.profile import (
     SkillOption,
     UserSkill,
 )
+from app.core import refdata
 from app.core.auth import CurrentUser
 from app.core.errors import AppError
 from app.features.org import repository as org_repository
 from app.features.profile import repository
-from app.features.profile.cv_parser import parse_cv
+from app.features.profile.cv_parser import parse_cv_review
 from app.features.profile.schemas import (
     NormalisedSkill,
     QuestionnaireIn,
@@ -54,7 +52,6 @@ TAXONOMY_META = RecommendationMeta(
     is_estimate=True,
 )
 
-_SEED = Path(__file__).resolve().parents[5] / "src" / "data" / "seed"
 
 # ---------------------------------------------------------------------------
 # Taxonomy helpers (shared across the service)
@@ -91,39 +88,29 @@ def _sanitise_interests(raw: list[str]) -> list[str]:
     return cleaned
 
 
-@lru_cache(maxsize=1)
 def _skill_labels() -> dict[str, str]:
     """Map skill_id → human-readable label from taxonomy/skills.csv."""
-    path = _SEED / "taxonomy" / "skills.csv"
-    labels: dict[str, str] = {}
-    with open(path, encoding="utf-8") as f:
-        for row in csv.DictReader(f):
-            labels[row["id"]] = row["label"]
-    return labels
+    return {r["id"]: r["label"] for r in refdata.rows("taxonomy", "skills")}
 
 
 def skill_catalogue() -> SkillCatalogueResponse:
     """Every taxonomy skill, sorted by label, for the skill picker."""
-    path = _SEED / "taxonomy" / "skills.csv"
-    with open(path, encoding="utf-8") as f:
-        rows = list(csv.DictReader(f))
+    rows = refdata.rows("taxonomy", "skills")
     options = [
         SkillOption(id=r["id"], label=r["label"], group=r.get("description") or "") for r in rows
     ]
-    with open(_SEED / "taxonomy" / "roles.csv", encoding="utf-8") as f:
-        tags = {
-            tag.strip()
-            for row in csv.DictReader(f)
-            for tag in (row.get("interest_tags") or "").split("|")
-            if tag.strip()
-        }
+    tags = {
+        tag.strip()
+        for row in refdata.rows("taxonomy", "roles")
+        for tag in (row.get("interest_tags") or "").split("|")
+        if tag.strip()
+    }
     return SkillCatalogueResponse(
         skills=sorted(options, key=lambda o: o.label.lower()),
         interests=sorted(tags, key=str.lower),
     )
 
 
-@lru_cache(maxsize=1)
 def _valid_skill_ids() -> frozenset[str]:
     """Return the set of valid taxonomy skill IDs."""
     return frozenset(_skill_labels().keys())
@@ -150,7 +137,7 @@ def extract_cv(
         PdfSupportUnavailable: fitz absent and a PDF was uploaded.
         PdfNoText:             PDF has no extractable text.
     """
-    parsed, truncated = parse_cv(content, content_type)
+    parsed, truncated, unmatched = parse_cv_review(content, content_type)
     labels = _skill_labels()
 
     skills = [
@@ -163,7 +150,9 @@ def extract_cv(
         for ps in parsed
     ]
 
-    return CvExtractionResult(skills=skills, truncated=truncated, meta=TAXONOMY_META)
+    return CvExtractionResult(
+        skills=skills, unmatched_terms=unmatched, truncated=truncated, meta=TAXONOMY_META
+    )
 
 
 # ---------------------------------------------------------------------------

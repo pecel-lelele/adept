@@ -2,7 +2,7 @@
 
 > **Primary Operating Manual for AI Agents**  
 > This file is the single authoritative entry point and standard operating procedure for all AI agents, autonomous coding assistants, and IDE extensions (e.g., Cursor, Windsurf, Copilot, Qoder, Roo Code, Aider, Devins, Antigravity) working in the **Adept** repository.  
-> *Note for Claude Code and Gemini CLI users:* See [CLAUDE.md](file:///c:/Users/Darren%20Suwandi/Documents/SDC/adept/CLAUDE.md) and [GEMINI.md](file:///c:/Users/Darren%20Suwandi/Documents/SDC/adept/GEMINI.md), which maintain feature parity with this document.
+> *Note for Claude Code and Gemini CLI users:* See [CLAUDE.md](CLAUDE.md) and [GEMINI.md](GEMINI.md), which maintain feature parity with this document.
 
 ---
 
@@ -16,8 +16,8 @@
 - **Product Architecture**: A unified backend engine serving two primary front-end modes:
   1. **Individual Mode (`/app`)**: Tailored for working adults facing displacement, fresh graduates, and career switchers.
   2. **Organisation Mode (`/org`)**: Tailored for corporate HR/L&D managers and TVET / university career advisors.
-  - *Full context & product details:* [docs/PROJECT_CONTEXT.md](file:///c:/Users/Darren%20Suwandi/Documents/SDC/adept/docs/PROJECT_CONTEXT.md)
-  - *Detailed system architecture:* [docs/architecture.md](file:///c:/Users/Darren%20Suwandi/Documents/SDC/adept/docs/architecture.md)
+  - *Full context & product details:* [docs/project-context.md](docs/project-context.md)
+  - *Detailed system architecture:* [docs/architecture.md](docs/architecture.md)
 
 ---
 
@@ -32,10 +32,10 @@ If the user prompt does not explicitly declare their role and feature, ask immed
 
 ### Step 2: Ingest Assigned Feature Context
 Before planning or writing code, read the relevant specification files:
-1. Feature task breakdown in [docs/TASKS.md](file:///c:/Users/Darren%20Suwandi/Documents/SDC/adept/docs/TASKS.md)
-2. Feature-specific documentation in `src/api/app/features/<feature>/FEATURE.md` (e.g., [src/api/app/features/trends/FEATURE.md](file:///c:/Users/Darren%20Suwandi/Documents/SDC/adept/src/api/app/features/trends/FEATURE.md))
-3. Prior decisions and methodology in [docs/decisions.md](file:///c:/Users/Darren%20Suwandi/Documents/SDC/adept/docs/decisions.md) under the member's section (`## M1`, `## M2`, `## M3`, or `## M4`).
-4. Core team rules in [docs/TEAM_RULES.md](file:///c:/Users/Darren%20Suwandi/Documents/SDC/adept/docs/TEAM_RULES.md).
+1. Feature task breakdown in [docs/tasks.md](docs/tasks.md)
+2. Feature-specific documentation in `src/api/app/features/<feature>/FEATURE.md` (e.g., [src/api/app/features/trends/FEATURE.md](src/api/app/features/trends/FEATURE.md))
+3. Prior decisions and methodology in [docs/decisions.md](docs/decisions.md) under the member's section (`## M1`, `## M2`, `## M3`, or `## M4`).
+4. Core team rules in [docs/team-rules.md](docs/team-rules.md).
 
 ### Step 3: Verify Git Branch
 Ensure work is being performed on a designated feature branch (`<type>/<feature>-<short-desc>`), **never directly on `main`**.
@@ -48,12 +48,12 @@ These constraints derive directly from the Hackathon Handbook and competition et
 
 1. **Synthetic & Public Data Only**:
    - Never ingest, parse, store, or display real personal data, private identities, or real resumes.
-   - Only synthetic personas ([Aisyah, Wei Jie, Ravi](file:///c:/Users/Darren%20Suwandi/Documents/SDC/adept/docs/PROJECT_CONTEXT.md#L160-L167)) and synthetic organisation data are permitted.
+   - Only synthetic personas ([Aisyah, Wei Jie, Ravi](docs/project-context.md#L160-L167)) and synthetic organisation data are permitted.
 2. **Zero Hallucination / Zero Invented Entities**:
    - The system **must never invent** jobs, courses, skills, statistics, or SDG target definitions.
    - All recommendations, titles, and IDs must resolve against records in the database or cited official taxonomy datasets.
 3. **F8 Grounding & Validation Gate**:
-   - If an LLM or generative model is invoked, its output must pass through the validation filter (`validate_ids` in [src/api/app/core/llm/](file:///c:/Users/Darren%20Suwandi/Documents/SDC/adept/src/api/app/core/llm/)) to verify that generated entity IDs exist in the catalog before reaching the user.
+   - If an LLM or generative model is invoked, its output must pass through the validation filter (`validate_ids` in [src/api/app/core/llm/](src/api/app/core/llm/)) to verify that generated entity IDs exist in the catalog before reaching the user.
 4. **Mandatory Output Attribution (`RecommendationMeta`)**:
    - Every API endpoint and UI card presenting recommendations, match scores, or trend projections **must** provide full attribution metadata:
      ```json
@@ -68,9 +68,9 @@ These constraints derive directly from the Hackathon Handbook and competition et
 5. **Human-in-the-Loop Decision Support**:
    - The platform provides insights to guide human judgment. It must **never** make autonomous hiring, firing, promotion, or admission decisions.
 6. **Transparent AI Disclosure**:
-   - If any LLM or foundation model is utilized, its provider, model name, and specific purpose must be declared on the `/about` page and in the [README.md](file:///c:/Users/Darren%20Suwandi/Documents/SDC/adept/README.md).
+   - If any LLM or foundation model is utilized, its provider, model name, and specific purpose must be declared on the `/about` page and in the [README.md](README.md).
 7. **Zero Secrets in Repository**:
-   - Never commit API keys, credentials, or `.env` files. Keep [.env.example](file:///c:/Users/Darren%20Suwandi/Documents/SDC/adept/.env.example) updated when introducing environment variables.
+   - Never commit API keys, credentials, or `.env` files. Keep [.env.example](.env.example) updated when introducing environment variables.
 
 ---
 
@@ -133,7 +133,7 @@ To prevent merge conflicts and coordination bottlenecks across multiple engineer
    - Root configuration (`Makefile`, `pyproject.toml`, `docker-compose.yml`, `.env.example`)
    - Dependency files (`requirements.txt`, `src/web/package.json`, `pnpm-lock.yaml`)
    - Navigation and shared shell components (`src/web/src/components/`, `src/web/src/config/navigation.ts`)
-   - AI context documents (`docs/PROJECT_CONTEXT.md`, `CLAUDE.md`, `GEMINI.md`, `AGENTS.md`)
+   - AI context documents (`docs/project-context.md`, `CLAUDE.md`, `GEMINI.md`, `AGENTS.md`)
 3. **Database Changes: Append-Only Migrations**:
    - **Never edit an existing migration file.**
    - Always create a new timestamped migration file in `src/db/migrations/` using format `YYYYMMDDHHMMSS_<description>.sql`.
@@ -162,7 +162,7 @@ To prevent merge conflicts and coordination bottlenecks across multiple engineer
 
 ## 7. Mandatory Decisions Log Protocol (`docs/decisions.md`)
 
-**Every change that introduces or modifies a model, method, formula, dataset, schema, dependency, or architectural decision MUST be recorded in [docs/decisions.md](file:///c:/Users/Darren%20Suwandi/Documents/SDC/adept/docs/decisions.md).**
+**Every change that introduces or modifies a model, method, formula, dataset, schema, dependency, or architectural decision MUST be recorded in [docs/decisions.md](docs/decisions.md).**
 
 ### Rules for Logging Decisions
 1. Write **only** in your assigned member section (`## M1`, `## M2`, `## M3`, or `## M4`).
@@ -215,7 +215,7 @@ To prevent merge conflicts and coordination bottlenecks across multiple engineer
 
 ## 9. Development Commands & Operational Guide
 
-All targets use the cross-platform runner [src/scripts/dev.py](file:///c:/Users/Darren%20Suwandi/Documents/SDC/adept/src/scripts/dev.py). Use standard `make <command>` or `uv run --no-project python src/scripts/dev.py <command>`.
+All targets use the cross-platform runner [src/scripts/dev.py](src/scripts/dev.py). Use standard `make <command>` or `uv run --no-project python src/scripts/dev.py <command>`.
 
 | Command | Action |
 |---|---|
@@ -237,13 +237,13 @@ All targets use the cross-platform runner [src/scripts/dev.py](file:///c:/Users/
 ### Pre-Flight (Before Writing Code)
 - [ ] Confirmed member role (M1–M4) and feature (F1–F8 / Core).
 - [ ] Verified current working branch is `<type>/<feature>-<short-desc>`.
-- [ ] Reviewed `docs/PROJECT_CONTEXT.md` and feature `FEATURE.md`.
+- [ ] Reviewed `docs/project-context.md` and feature `FEATURE.md`.
 - [ ] Confirmed no shared items or foreign feature code will be modified without user permission.
 
 ### Post-Flight (Before Completing Task)
 - [ ] Verified synthetic data only; no real PII or invented entities.
 - [ ] Verified all recommendations include `sources`, `snapshot_date`, `scenario`, and `is_estimate`.
-- [ ] Added required entry to [docs/decisions.md](file:///c:/Users/Darren%20Suwandi/Documents/SDC/adept/docs/decisions.md) in the member's section.
+- [ ] Added required entry to [docs/decisions.md](docs/decisions.md) in the member's section.
 - [ ] If contracts changed, ran `make contracts` and updated client types.
 - [ ] Successfully passed `make check` (or cross-platform python equivalent).
 - [ ] Provided a concise summary of changes and suggested standard commit message.

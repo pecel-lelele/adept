@@ -10,7 +10,7 @@
     "impact": "Impak",
     "team": "Pasukan",
     "gaps": "Jurang kemahiran",
-    "teamPlan": "Pelan pasukan",
+    "teamPlan": "Pelan pasukan pantas",
     "verify": "Semakan",
     "settings": "Tetapan",
     "more": "Lagi",
@@ -27,7 +27,10 @@
     "sources": "Sumber data",
     "snapshots": "Snapshot",
     "admin": "Pentadbir",
-    "menu": "Buka menu"
+    "menu": "Buka menu",
+    "funding": "Dana pembelajaran",
+    "myWork": "Organisasi saya",
+    "programmes": "Program"
   },
   "shell": {
     "disclaimer": "Unjuran ialah anggaran daripada data awam. Anda yang membuat keputusan: Adept tidak pernah membuat keputusan pengambilan pekerja.",
@@ -75,7 +78,9 @@
     "trustSources": "Setiap anggaran menunjukkan sumbernya",
     "trustYou": "Anda yang membuat keputusan",
     "eyebrowMe": "Untuk anda",
-    "eyebrowTeam": "Untuk pasukan anda"
+    "eyebrowTeam": "Untuk pasukan anda",
+    "shareSkills": "Kongsi tahap kemahiran saya dengan organisasi itu",
+    "shareSkillsHint": "Pengurus menggunakan tahap yang dikongsi untuk merancang latihan pasukan. Pelan peribadi dan padanan anda kekal peribadi."
   },
   "landing": {
     "eyebrow": "Kerjaya bersedia masa depan",
@@ -111,7 +116,7 @@
     "errorConsent": "Sila tandakan kotak supaya kami boleh membaca CV anda.",
     "errorGeneric": "Kami tidak dapat membaca fail itu. Sila cuba yang lain.",
     "found": "{count, plural, =0 {Tiada kemahiran ditemui} other {# kemahiran ditemui}}",
-    "noneFound": "Kami tidak menemui kemahiran dalam fail ini. PDF imbasan tiada teks yang boleh dibaca, jadi cuba fail Word atau PDF berasaskan teks, atau daftar dan pilih kemahiran anda.",
+    "noneFound": "Kami tidak dapat memadankan kemahiran dalam fail ini dengan katalog.",
     "bestFit": "Peranan masa depan paling sesuai",
     "fit": "padanan",
     "trendTitle": "Kemahiran anda dalam era AI",
@@ -270,7 +275,7 @@
     "tf2": "Peta haba jurang kemahiran",
     "tf2Body": "Setiap ahli berbanding kemahiran yang diperlukan setiap peranan yang meningkat, supaya jurang terbesar jelas kelihatan.",
     "tf3": "Peranan sasaran dicadangkan",
-    "tf3Body": "Adept mencadangkan peranan dengan purata jurang pasukan terbesar. Anda mengesahkannya atau memilih yang lain.",
+    "tf3Body": "Adept bermula dengan peranan yang paling hampir dengan kemahiran pasukan. Pilih matlamat, banding pakej dan hantar cadangan.",
     "tf4": "Satu pelan latihan berkumpulan",
     "tf4Body": "Kursus tersusun untuk peranan yang dipilih, menunjukkan ahli yang berkaitan bagi setiap langkah.",
     "tf5": "Kursus HRD Corp ditanda",
@@ -304,7 +309,8 @@
     "sRisingLabel": "Kemahiran meningkat",
     "sHrdLabel": "Boleh tuntut HRD Corp",
     "sGoalsLabel": "Matlamat PBB diliputi",
-    "sFoot": "Dikemas kini {date} · Sumber: {sources}"
+    "sFoot": "Dikemas kini {date} · Sumber: {sources}",
+    "manualSkills": "Pilih kemahiran secara manual"
   },
   "intake": {
     "title": "Mari bina profil anda",
@@ -433,7 +439,12 @@
     "title": "Sertai organisasi",
     "body": "Masukkan kod daripada pengurus atau pusat kerjaya anda.",
     "cta": "Sertai",
-    "done": "Anda telah menyertai {org}."
+    "done": "Anda telah menyertai {org}.",
+    "consent": "Saya bersetuju untuk menyertai organisasi ini dan berkongsi profil saya",
+    "consentHint": "Pengurus organisasi akan melihat tahap kemahiran dan kemajuan pembelajaran anda untuk menyelaraskan latihan.",
+    "shareSkills": "Kongsi tahap kemahiran saya dengan organisasi ini",
+    "shareSkillsHint": "Pengurus menggunakan tahap yang dikongsi untuk merancang latihan. Pelan peribadi dan padanan anda kekal peribadi. Boleh diubah kemudian.",
+    "openWorkspace": "Buka {org}"
   },
   "error": {
     "title": "Ada yang tidak dapat dimuatkan",
@@ -632,6 +643,26 @@
     "unchecked": "Angka ini tidak dapat disemak dengan data anda: {figures}",
     "s1": "Apa langkah seterusnya?",
     "s2": "Kemahiran apa yang meningkat?",
-    "s3": "Bagaimana Adept berfungsi?"
+    "s3": "Bagaimana Adept berfungsi?",
+    "inOrg": "Menjawab di {name}",
+    "inPersonal": "Menjawab di ruang kerja peribadi anda"
+  },
+  "workspace": {
+    "personal": "Peribadi",
+    "personalHint": "Peribadi kepada anda",
+    "member": "Pekerja",
+    "manager": "Pengurus",
+    "switch": "Tukar ruang kerja",
+    "join": "Sertai organisasi lain"
+  },
+  "cvReview": {
+    "title": "Istilah untuk disemak",
+    "scope": "Hasil hanya menggunakan padanan katalog. Kemahiran lain, istilah baharu dan variasi ejaan mungkin terlepas.",
+    "none": "Tiada padanan katalog tidak bermakna tiada kemahiran. Cari bank kemahiran dan tambah kemahiran yang boleh anda sahkan.",
+    "truncated": "Fail ini panjang. Hanya bahagian awal dibaca; semak dan tambah kemahiran yang tertinggal secara manual.",
+    "body": "Belum ada padanan yang diluluskan. Semak ejaan atau cari padanan. Pilih hanya jika ia benar-benar menggambarkan kemahiran anda.",
+    "notSaved": "Untuk semakan sahaja: tidak disimpan atau diberi skor. Sehingga 30 entri.",
+    "search": "Cari katalog",
+    "searchFor": "Cari {term} dalam katalog"
   }
 }

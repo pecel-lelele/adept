@@ -7,6 +7,7 @@ import { useRef, useState, type DragEvent, type FormEvent } from "react";
 
 import { Ring, scoreColour } from "@/components/viz/Ring";
 import type { Schemas } from "@/lib/api";
+import { CvReview } from "@/features/profile/components/CvReview";
 
 type Preview = Schemas["GuestPreview"];
 
@@ -184,7 +185,8 @@ export function CvPreview() {
             ) : null}
           </div>
 
-          <div className="a-locked">
+          <CvReview terms={result.unmatched_terms ?? []} truncated={result.truncated} matchedCount={result.skills.length} />
+          {result.top_role ? <div className="a-locked">
             <div className="a-locked-content" aria-hidden="true">
               {[t("lockedRoles"), t("lockedGap"), t("lockedPlan"), t("lockedImpact")].map((label, i) => (
                 <div className="a-ghost" key={label}>
@@ -211,7 +213,9 @@ export function CvPreview() {
                 </Link>
               </div>
             </div>
-          </div>
+          </div> : (
+            <Link className="a-btn" href="/app/onboarding">{t("manualSkills")} <ArrowRight size={16} aria-hidden /></Link>
+          )}
           <button type="button" className="a-link" style={{ border: 0, background: "none", cursor: "pointer", justifySelf: "start" }} onClick={() => { setResult(null); setFile(null); }}>
             {t("tryAgain")}
           </button>

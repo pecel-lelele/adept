@@ -19,7 +19,7 @@ export type NavItem = {
 export type NavGroup = { label: NavKey; items: readonly NavItem[] };
 
 export type Workspace = {
-  mode: "individual" | "organisation" | "admin";
+  mode: "individual" | "employee" | "organisation" | "admin";
   home: string;
   groups: readonly NavGroup[];
   /** Exactly four destinations for the mobile tab bar; the fifth tab opens "More". */
@@ -50,12 +50,35 @@ export const learnerWorkspace: Workspace = {
   tabs: ["home", "radar", "roles", "plan"],
 };
 
+/**
+ * An organisation member's workspace (/work): their own participation only. Same familiar
+ * destinations as the personal workspace, with the employer's programmes, agreements and funds.
+ */
+export const workWorkspace: Workspace = {
+  mode: "employee",
+  home: "/work",
+  groups: [
+    {
+      label: "myWork",
+      items: [
+        { key: "home", href: "/work", icon: "home" },
+        { key: "skills", href: "/work/skills", icon: "skills" },
+        { key: "plan", href: "/work/plan", icon: "plan", scenario: true },
+        { key: "progress", href: "/work/progress", icon: "progress", scenario: true },
+        { key: "funding", href: "/work/funding", icon: "courses" },
+      ],
+    },
+  ],
+  tabs: ["home", "skills", "plan", "progress"],
+};
+
 const orgItems = {
   home: { key: "home", href: "/org", icon: "home" },
   team: { key: "team", href: "/org/members", icon: "team", step: 1 },
   radar: { key: "radar", href: "/org/radar", icon: "radar", step: 2, scenario: true },
   gaps: { key: "gaps", href: "/org/gaps", icon: "gaps", step: 3, scenario: true },
-  teamPlan: { key: "teamPlan", href: "/org/plan", icon: "plan", step: 4, scenario: true },
+  programmes: { key: "programmes", href: "/org/programmes", icon: "plan", step: 4, scenario: true },
+  teamPlan: { key: "teamPlan", href: "/org/plan", icon: "plan", scenario: true },
   impact: { key: "impact", href: "/org/sdg", icon: "impact", scenario: true },
   courses: { key: "courses", href: "/org/courses", icon: "courses" },
   verify: { key: "verify", href: "/org/verify", icon: "verify" },
@@ -68,11 +91,14 @@ export const orgWorkspace: Workspace = {
   groups: [
     {
       label: "journey",
-      items: [orgItems.home, orgItems.team, orgItems.radar, orgItems.gaps, orgItems.teamPlan],
+      items: [orgItems.home, orgItems.team, orgItems.radar, orgItems.gaps, orgItems.programmes],
     },
-    { label: "manage", items: [orgItems.impact, orgItems.courses, orgItems.verify, orgItems.settings] },
+    {
+      label: "manage",
+      items: [orgItems.teamPlan, orgItems.verify, { key: "funding", href: "/org/funding", icon: "courses" }, orgItems.impact, orgItems.courses, orgItems.settings],
+    },
   ],
-  tabs: ["home", "team", "gaps", "teamPlan"],
+  tabs: ["home", "team", "gaps", "programmes"],
 };
 
 export const adminWorkspace: Workspace = {

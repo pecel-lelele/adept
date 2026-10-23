@@ -38,7 +38,7 @@ async function CourseCard({ course }: { course: Course }) {
   const t = await getTranslations("pathway");
   const d = await getTranslations("common.design");
   const basis = course.price_basis ?? "per_course";
-  const free = course.cost_myr === 0;
+  const free = course.cost_myr === 0 && course.price_status !== "certificate_price_unknown";
   return (
     <article className="a-card a-coursecard">
       <div className="a-coursecard-top">
@@ -85,9 +85,10 @@ async function CourseCard({ course }: { course: Course }) {
           </p>
         </div>
       </details>
+      {course.certificate_note ? <p className="a-small a-muted">{course.certificate_note}</p> : null}
       <footer className="a-coursecard-foot">
         <strong data-free={free || undefined}>
-          {free ? t("free") : t(`catalogue.price.${basis}`, { amount: course.cost_myr.toLocaleString("en-MY") })}
+          {course.price_status === "certificate_price_unknown" ? t("certificateQuote") : free ? t("free") : t(`catalogue.price.${basis}`, { amount: course.cost_myr.toLocaleString("en-MY") })}
         </strong>
         <a href={course.url} target="_blank" rel="noreferrer" className="a-link">
           {d("visit")} <ArrowUpRight size={15} aria-hidden />
@@ -127,7 +128,7 @@ export async function CatalogueView({
       <Kpis
         items={[
           { label: tp("kCourses"), value: every.length, icon: <BookOpen size={15} />, note: tp("kProviders", { count: new Set(every.map((c) => c.provider)).size }) },
-          { label: tp("kFree"), value: every.filter((c) => c.cost_myr === 0).length, icon: <Gift size={15} />, tone: "up", note: tp("kFreeNote") },
+          { label: tp("kFree"), value: every.filter((c) => c.cost_myr === 0 && c.price_status === "listed").length, icon: <Gift size={15} />, tone: "up", note: tp("kFreeNote") },
           { label: tp("kHrd"), value: every.filter((c) => c.hrd_claimable).length, icon: <BadgeCheck size={15} />, note: tp("kHrdNote") },
           { label: tp("kSelfPaced"), value: every.filter((c) => c.format === "self_paced").length, icon: <Clock3 size={15} />, note: tp("kSelfPacedNote") },
         ]}

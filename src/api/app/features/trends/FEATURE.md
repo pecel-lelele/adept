@@ -10,10 +10,12 @@
 
 ## Status
 
-Skeleton: endpoints return mock data from `mocks.py` with `meta.sources = MOCK DATA`.
-Replace `repository.py` reads with real data, keep the contracts stable.
+Implemented: dated snapshots from PostgreSQL or the explicitly selected fixture source,
+with source and observation-window metadata. The offline pipeline ingests, scores, validates
+and atomically publishes snapshots; scheduled refresh requires a configured database.
+See `repository.py`, `src/pipelines/trends/` and the feature tests for current behaviour.
 
-## Goal and tasks (from docs/TASKS.md)
+## Goal and tasks (from docs/tasks.md)
 
 **Goal:** at least one updatable AI/job-market source; source and date visible; no hard-coded lists.
 

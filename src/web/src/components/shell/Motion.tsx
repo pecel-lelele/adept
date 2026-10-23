@@ -60,7 +60,7 @@ export function NavProgress() {
 
 /** Counts each key number up from zero when a page opens (skipped for reduced motion). */
 function countUp(root: ParentNode) {
-  if (reduced()) return;
+  if (reduced() || window.matchMedia("(max-width: 900px)").matches) return;
   root.querySelectorAll<HTMLElement>(".a-kpi-value strong, .a-fit strong").forEach((el) => {
     const text = el.textContent ?? "";
     const match = /^([^\d-]*)(-?\d[\d,]*(?:\.\d+)?)(.*)$/.exec(text);

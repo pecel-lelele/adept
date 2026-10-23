@@ -289,6 +289,283 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/org/packages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Packages */
+        get: operations["org_get_packages"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/org/packages/select": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Select Package */
+        post: operations["org_select_package"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/org/packages/assigned": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Assigned Package */
+        get: operations["org_get_assigned_package"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/org/packages/assigned/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Accept Assigned Package
+         * @description Accept HR's team plan as a work programme; the personal plan is left untouched.
+         */
+        post: operations["org_accept_assigned_package"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/org/programmes/options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Programme Options
+         * @description Objectives, roles with team readiness and members, to fill in a programme brief.
+         */
+        get: operations["org_programme_options"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/org/programmes/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Generate Programme
+         * @description Propose a personalised route per person for the brief (nothing is saved or sent).
+         */
+        post: operations["org_generate_programme"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/org/programmes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Programmes
+         * @description Sent programmes with each member's agreement status.
+         */
+        get: operations["org_list_programmes"];
+        put?: never;
+        /**
+         * Send Programme
+         * @description Send the generated plan to its members (refused if it changed since it was shown).
+         */
+        post: operations["org_send_programme"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/org/programmes/mine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * My Programmes
+         * @description The signed-in member's work programme assignments and agreements.
+         */
+        get: operations["org_my_programmes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/org/programmes/{programme_id}/decision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Decide Programme
+         * @description Accept, decline (optional programmes only) or ask HR for a change.
+         */
+        post: operations["org_decide_programme"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/org/funding/{year}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Funding */
+        get: operations["org_get_funding"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/org/funding/{year}/budget": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set Member Budget */
+        put: operations["org_set_member_budget"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/org/funding/{year}/requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Request Funding */
+        post: operations["org_request_funding"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/org/funding/{year}/requests/{claim_id}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit Funding Claim */
+        post: operations["org_submit_funding_claim"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/org/funding/{year}/requests/{claim_id}/completion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Complete Funded Course */
+        post: operations["org_complete_funded_course"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/org/funding/{year}/requests/{claim_id}/decision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Decide Funding */
+        post: operations["org_decide_funding"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/org/me": {
         parameters: {
             query?: never;
@@ -341,9 +618,51 @@ export interface paths {
         put?: never;
         /**
          * Join Org
-         * @description A signed-in learner joins with the code their manager or advisor shared.
+         * @description Join as a member with the code a manager or advisor shared. A join code never grants
+         *     management rights; one account can belong to several organisations.
          */
         post: operations["org_join_org"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/org/workspaces": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Workspaces
+         * @description Workspaces the signed-in person can switch to: personal, then each organisation.
+         */
+        get: operations["org_list_workspaces"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/org/me/sharing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set Sharing
+         * @description Member, in the organisation workspace: share (or stop sharing) your skill levels with
+         *     its managers. Personal plans, matches and Adi conversations are never shared.
+         */
+        put: operations["org_set_sharing"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -568,7 +887,9 @@ export interface paths {
         };
         /**
          * Get Progress
-         * @description Progress on `role_id`; without it, on the learner's saved target role.
+         * @description Progress on `role_id` in the current workspace (X-Workspace). Personal: your own plan
+         *     (default: the saved target role). Organisation: your accepted programme for that role
+         *     (default: the newest accepted programme).
          */
         get: operations["pathway_get_progress"];
         put?: never;
@@ -592,9 +913,30 @@ export interface paths {
         /**
          * Submit Evidence
          * @description Attach a certificate link to a completed course; it is checked against the provider's
-         *     official verification pages and shown to the learner's HR or career advisor.
+         *     official verification pages. In an organisation workspace HR reviews it.
          */
         post: operations["pathway_submit_evidence"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pathway/progress/share": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Share Completion
+         * @description Organisation workspace: share a course you completed in your personal workspace with
+         *     this programme. HR sees only what you share.
+         */
+        post: operations["pathway_share_completion"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1063,6 +1405,11 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AcceptPackage */
+        AcceptPackage: {
+            /** Token */
+            token: string;
+        };
         /** Account */
         Account: {
             /** Id */
@@ -1121,11 +1468,61 @@ export interface components {
             badges?: {
                 [key: string]: string;
             };
+            /** Learning Funding */
+            learning_funding?: {
+                [key: string]: unknown;
+            }[];
             /**
              * Notice
              * @default This file holds your Adept account, profile, plans, course progress, completion evidence and badges. CV files are never stored: they are read in memory and discarded.
              */
             notice: string;
+        };
+        /**
+         * Agreement
+         * @description What a person is shown before accepting a programme.
+         */
+        Agreement: {
+            /** Programme Id */
+            programme_id: string;
+            /** Title */
+            title: string;
+            /** Objectives */
+            objectives: ("ai_adoption" | "process_automation" | "data_driven" | "customer_experience" | "cybersecurity" | "sustainability_esg" | "compliance_risk" | "smart_manufacturing" | "digital_health" | "people_learning" | "digital_marketing" | "redeploy_at_risk")[];
+            /** Role Id */
+            role_id: string;
+            /** Role Label */
+            role_label: string;
+            /**
+             * Route
+             * @enum {string}
+             */
+            route: "foundation" | "applied" | "advanced";
+            /** Readiness */
+            readiness: number;
+            /** Mandatory */
+            mandatory: boolean;
+            /**
+             * Target Date
+             * Format: date
+             */
+            target_date: string;
+            /** Hours Per Week */
+            hours_per_week: number;
+            /**
+             * Budget Myr
+             * @description What the employer has committed for this person.
+             */
+            budget_myr: number;
+            /** Cost Myr */
+            cost_myr: number;
+            /**
+             * Sent At
+             * Format: date-time
+             */
+            sent_at: string;
+            /** Sent By */
+            sent_by: string;
         };
         /**
          * AnswerPart
@@ -1143,6 +1540,43 @@ export interface components {
             ref_id?: string | null;
             /** Href */
             href?: string | null;
+        };
+        /** AssignedPackage */
+        AssignedPackage: {
+            /** Token */
+            token: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "free_first" | "budget_capped" | "broader";
+            /**
+             * Selected At
+             * Format: date-time
+             */
+            selected_at: string;
+            pathway: components["schemas"]["Pathway"];
+        };
+        /** AssignmentDecision */
+        AssignmentDecision: {
+            /**
+             * Decision
+             * @enum {string}
+             */
+            decision: "accept" | "decline" | "request_change";
+            /** Reason */
+            reason?: ("already_have_skill" | "pace" | "language" | "accessibility" | "schedule" | "upfront_cost" | "other") | null;
+            /**
+             * Note
+             * @default
+             */
+            note: string;
+            /**
+             * Consent
+             * @description Explicit consent to share current skill levels and pathway gaps for this programme.
+             * @default false
+             */
+            consent: boolean;
         };
         /** AssistantIn */
         AssistantIn: {
@@ -1209,6 +1643,18 @@ export interface components {
              */
             unchecked_figures?: string[];
             meta?: components["schemas"]["RecommendationMeta"] | null;
+            /**
+             * Workspace
+             * @description Workspace answered in: 'personal' or an organisation id.
+             * @default personal
+             */
+            workspace: string;
+            /**
+             * Workspace Name
+             * @description Organisation name; empty if personal.
+             * @default
+             */
+            workspace_name: string;
         };
         /** Badge */
         Badge: {
@@ -1300,6 +1746,17 @@ export interface components {
              * @default
              */
             review_note: string;
+            /**
+             * Scope
+             * @description Workspace that owns this record: 'personal' or 'org:<organisation id>'.
+             * @default personal
+             */
+            scope: string;
+            /**
+             * Shared From
+             * @description Set when the member copied this from their personal learning.
+             */
+            shared_from?: "personal" | null;
         };
         /** CounterfactualResult */
         CounterfactualResult: {
@@ -1396,6 +1853,17 @@ export interface components {
              * @default
              */
             price_note: string;
+            /**
+             * Price Status
+             * @default listed
+             * @enum {string}
+             */
+            price_status: "listed" | "certificate_price_unknown";
+            /**
+             * Certificate Note
+             * @default
+             */
+            certificate_note: string;
         };
         /** CourseHistoryItem */
         CourseHistoryItem: {
@@ -1415,6 +1883,11 @@ export interface components {
         CvExtractionResult: {
             /** Skills */
             skills: components["schemas"]["ExtractedSkill"][];
+            /**
+             * Unmatched Terms
+             * @description Up to 30 unrecognised entries from explicit skills lists, for transient human review. Not verified skills, not persisted or scored; prose may contain other missed skills.
+             */
+            unmatched_terms?: string[];
             /**
              * Truncated
              * @default false
@@ -1537,6 +2010,181 @@ export interface components {
             /** Passed */
             passed: boolean;
         };
+        /** FundingBudget */
+        FundingBudget: {
+            /** User Id */
+            user_id: string;
+            /** Amount Myr */
+            amount_myr: number | string;
+            /** Reserved Myr */
+            reserved_myr: number | string;
+            /** Paid Myr */
+            paid_myr: number | string;
+            /** Available Myr */
+            available_myr: number | string;
+        };
+        /** FundingClaim */
+        FundingClaim: {
+            /** Year */
+            year: number;
+            /** Id */
+            id: string;
+            /** User Id */
+            user_id: string;
+            /** Role Id */
+            role_id: string;
+            course: components["schemas"]["Course"];
+            /** Requested Myr */
+            requested_myr: number | string;
+            /**
+             * Approved Myr
+             * @default 0
+             */
+            approved_myr: number | string;
+            /**
+             * Claimed Myr
+             * @default 0
+             */
+            claimed_myr: number | string;
+            /** Quote Url */
+            quote_url: string;
+            /**
+             * Status
+             * @default requested
+             * @enum {string}
+             */
+            status: "requested" | "approved" | "submitted" | "payable" | "paid" | "rejected" | "cancelled";
+            /**
+             * Revision
+             * @default 1
+             */
+            revision: number;
+            /**
+             * Requested At
+             * Format: date-time
+             */
+            requested_at: string;
+            /** Approved At */
+            approved_at?: string | null;
+            /** Purchased At */
+            purchased_at?: string | null;
+            /**
+             * Receipt Url
+             * @default
+             */
+            receipt_url: string;
+            /**
+             * Receipt Reference
+             * @default
+             */
+            receipt_reference: string;
+            /** Evidence Submitted At */
+            evidence_submitted_at?: string | null;
+            /**
+             * Certificate Url
+             * @default
+             */
+            certificate_url: string;
+            /**
+             * Payment Reference
+             * @default
+             */
+            payment_reference: string;
+            /** Events */
+            events?: components["schemas"]["FundingEvent"][];
+        };
+        /** FundingCompletion */
+        FundingCompletion: {
+            /** Revision */
+            revision: number;
+            /** Url */
+            url: string;
+        };
+        /** FundingDecision */
+        FundingDecision: {
+            /** Revision */
+            revision: number;
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "approve" | "reject" | "cancel" | "accept_claim" | "mark_paid";
+            /**
+             * Note
+             * @default
+             */
+            note: string;
+            /**
+             * Payment Reference
+             * @default
+             */
+            payment_reference: string;
+        };
+        /** FundingEvent */
+        FundingEvent: {
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /** Actor Id */
+            actor_id: string;
+            /** Action */
+            action: string;
+            /**
+             * Note
+             * @default
+             */
+            note: string;
+        };
+        /** FundingLedger */
+        FundingLedger: {
+            /** Org Id */
+            org_id: string;
+            /** Year */
+            year: number;
+            /** Manager */
+            manager: boolean;
+            /** Budgets */
+            budgets: components["schemas"]["FundingBudget"][];
+            /** Claims */
+            claims: components["schemas"]["FundingClaim"][];
+            /** Available Years */
+            available_years?: number[];
+        };
+        /** FundingRequest */
+        FundingRequest: {
+            /** Course Id */
+            course_id: string;
+            /** Role Id */
+            role_id: string;
+            /** Amount Myr */
+            amount_myr: number | string;
+            /**
+             * Quote Url
+             * Format: uri
+             */
+            quote_url: string;
+        };
+        /** FundingSubmission */
+        FundingSubmission: {
+            /** Revision */
+            revision: number;
+            /** Amount Myr */
+            amount_myr: number | string;
+            /**
+             * Receipt Url
+             * Format: uri
+             */
+            receipt_url: string;
+            /** Receipt Reference */
+            receipt_reference: string;
+            /**
+             * Purchased At
+             * Format: date-time
+             */
+            purchased_at: string;
+        };
         /** GapHeatmapCell */
         GapHeatmapCell: {
             /** Role Id */
@@ -1566,7 +2214,7 @@ export interface components {
             cells: components["schemas"]["GapHeatmapCell"][];
             /**
              * Role Gaps
-             * @description role_id -> average gap over that role's required skills only (the figure that picks the default team target). Cells for skills a role does not require are 0 and must not be averaged.
+             * @description role_id -> average gap over that role's required skills only. Cells for skills a role does not require are 0 and must not be averaged.
              */
             role_gaps?: {
                 [key: string]: number;
@@ -1627,6 +2275,8 @@ export interface components {
         GuestPreview: {
             /** Skills */
             skills: components["schemas"]["ExtractedSkill"][];
+            /** Unmatched Terms */
+            unmatched_terms?: string[];
             /**
              * Skill Trends
              * @default []
@@ -1674,6 +2324,18 @@ export interface components {
         JoinOrgIn: {
             /** Code */
             code: string;
+            /**
+             * Consent
+             * @description Explicit consent to join and share the skills profile with managers. Required: a join without it is refused (M4-055).
+             * @default false
+             */
+            consent: boolean;
+            /**
+             * Share Skills
+             * @description Share skill levels with this organisation's managers.
+             * @default true
+             */
+            share_skills: boolean;
         };
         /** LoginIn */
         LoginIn: {
@@ -1706,11 +2368,74 @@ export interface components {
              * @enum {string}
              */
             intake_status: "invited" | "in_progress" | "complete";
+            /**
+             * Skills Shared
+             * @description The member chose to share their skill levels with this organisation. Only shared members count in team gaps and programme matching.
+             * @default false
+             */
+            skills_shared: boolean;
+        };
+        /** MemberBudgetIn */
+        MemberBudgetIn: {
+            /** User Id */
+            user_id: string;
+            /** Amount Myr */
+            amount_myr: number | string;
         };
         /** MemberListResponse */
         MemberListResponse: {
             /** Members */
             members: components["schemas"]["Member"][];
+        };
+        /** MemberRoute */
+        MemberRoute: {
+            /** User Id */
+            user_id: string;
+            /** Display Name */
+            display_name: string;
+            /** Role Id */
+            role_id: string;
+            /** Role Label */
+            role_label: string;
+            /**
+             * Route
+             * @enum {string}
+             */
+            route: "foundation" | "applied" | "advanced";
+            /**
+             * Readiness
+             * @description Share of required levels already held.
+             */
+            readiness: number;
+            pathway: components["schemas"]["Pathway"];
+            /** Weeks Needed */
+            weeks_needed: number;
+            /** Weeks Available */
+            weeks_available: number;
+            /** On Track */
+            on_track: boolean;
+            /**
+             * Hours Per Week Needed
+             * @description Weekly hours to finish the courses by the target date.
+             */
+            hours_per_week_needed: number;
+            /** Cost Myr */
+            cost_myr: number;
+            /**
+             * Budget Myr
+             * @description What the programme can spend on this person.
+             */
+            budget_myr: number;
+            /**
+             * Open Gaps
+             * @description Required skills courses cannot fully close.
+             */
+            open_gaps: number;
+        };
+        /** MyProgrammes */
+        MyProgrammes: {
+            /** Assignments */
+            assignments: components["schemas"]["ProgrammeAssignment"][];
         };
         /**
          * NormalisedSkill
@@ -1730,6 +2455,19 @@ export interface components {
              * @description Level mapped to 0.0 (novice) – 1.0 (expert), used by the scoring engine.
              */
             normalised_level: number;
+        };
+        /** ObjectiveOption */
+        ObjectiveOption: {
+            /**
+             * Id
+             * @enum {string}
+             */
+            id: "ai_adoption" | "process_automation" | "data_driven" | "customer_experience" | "cybersecurity" | "sustainability_esg" | "compliance_risk" | "smart_manufacturing" | "digital_health" | "people_learning" | "digital_marketing" | "redeploy_at_risk";
+            /**
+             * Role Ids
+             * @description Roles in the catalogue that serve this objective.
+             */
+            role_ids: string[];
         };
         /** Organization */
         Organization: {
@@ -1811,6 +2549,39 @@ export interface components {
              */
             direction: "rising" | "declining" | "stable";
         };
+        /** PackageChoice */
+        PackageChoice: {
+            /** Role Id */
+            role_id: string;
+            /** Member Ids */
+            member_ids: string[];
+            /**
+             * Scenario
+             * @default moderate
+             * @enum {string}
+             */
+            scenario: "moderate" | "fast";
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "free_first" | "budget_capped" | "broader";
+            /** Token */
+            token: string;
+        };
+        /** PackageMember */
+        PackageMember: {
+            /** User Id */
+            user_id: string;
+            pathway: components["schemas"]["Pathway"];
+            /** Available Budget Myr */
+            available_budget_myr: number;
+        };
+        /** PackageOptions */
+        PackageOptions: {
+            /** Packages */
+            packages: components["schemas"]["TeamPackage"][];
+        };
         /** Pathway */
         Pathway: {
             /** Role Id */
@@ -1843,7 +2614,7 @@ export interface components {
             total_cost_myr: number;
             /**
              * Out Of Pocket Myr
-             * @description What the learner pays after HRD Corp claims.
+             * @description Estimated list price before unquoted taxes/extras; HRD eligibility does not guarantee funding.
              * @default 0
              */
             out_of_pocket_myr: number;
@@ -2050,6 +2821,175 @@ export interface components {
              */
             learning_style: "video" | "reading" | "hands-on" | "classroom" | "mixed";
         };
+        /** ProgrammeAssignment */
+        ProgrammeAssignment: {
+            agreement: components["schemas"]["Agreement"];
+            /** User Id */
+            user_id: string;
+            pathway: components["schemas"]["Pathway"];
+            /**
+             * Status
+             * @default assigned
+             * @enum {string}
+             */
+            status: "assigned" | "accepted" | "declined" | "change_requested";
+            /** Decided At */
+            decided_at?: string | null;
+            /** Change Reason */
+            change_reason?: ("already_have_skill" | "pace" | "language" | "accessibility" | "schedule" | "upfront_cost" | "other") | null;
+            /**
+             * Note
+             * @default
+             */
+            note: string;
+        };
+        /** ProgrammeBriefIn */
+        ProgrammeBriefIn: {
+            /** Title */
+            title: string;
+            /** Objectives */
+            objectives: ("ai_adoption" | "process_automation" | "data_driven" | "customer_experience" | "cybersecurity" | "sustainability_esg" | "compliance_risk" | "smart_manufacturing" | "digital_health" | "people_learning" | "digital_marketing" | "redeploy_at_risk")[];
+            /** Roles */
+            roles: components["schemas"]["RoleTarget"][];
+            /** Member Ids */
+            member_ids: string[];
+            /**
+             * Target Date
+             * Format: date
+             */
+            target_date: string;
+            /**
+             * Hours Per Week
+             * @description Paid learning time during work.
+             */
+            hours_per_week: number;
+            /**
+             * Budget Total Myr
+             * @description Programme ceiling.
+             */
+            budget_total_myr: number;
+            /**
+             * Budget Per Member Myr
+             * @description Individual limit.
+             */
+            budget_per_member_myr: number;
+            /**
+             * Mandatory
+             * @default false
+             */
+            mandatory: boolean;
+            /**
+             * Certificate Required
+             * @description Only courses with a completion certificate at a known price.
+             * @default false
+             */
+            certificate_required: boolean;
+            /**
+             * Hrd Claimable Only
+             * @default false
+             */
+            hrd_claimable_only: boolean;
+            /** Formats */
+            formats?: ("self_paced" | "live_online" | "in_person" | "hybrid")[];
+            /**
+             * Scenario
+             * @default moderate
+             * @enum {string}
+             */
+            scenario: "moderate" | "fast";
+        };
+        /** ProgrammeList */
+        ProgrammeList: {
+            /** Programmes */
+            programmes: components["schemas"]["ProgrammeStatus"][];
+        };
+        /** ProgrammeMember */
+        ProgrammeMember: {
+            /** User Id */
+            user_id: string;
+            /** Display Name */
+            display_name: string;
+        };
+        /** ProgrammeOptions */
+        ProgrammeOptions: {
+            /** Objectives */
+            objectives: components["schemas"]["ObjectiveOption"][];
+            /** Roles */
+            roles: components["schemas"]["RoleReadiness"][];
+            /** Members */
+            members: components["schemas"]["ProgrammeMember"][];
+            /**
+             * Default Target Date
+             * Format: date
+             */
+            default_target_date: string;
+            meta: components["schemas"]["RecommendationMeta"];
+        };
+        /** ProgrammePlan */
+        ProgrammePlan: {
+            brief: components["schemas"]["ProgrammeBriefIn"];
+            /**
+             * Token
+             * @description Changes when members, catalogue, prices or budgets change.
+             */
+            token: string;
+            /** Routes */
+            routes: components["schemas"]["MemberRoute"][];
+            /** Allocations */
+            allocations: components["schemas"]["RoleAllocation"][];
+            /** Unassigned Member Ids */
+            unassigned_member_ids?: string[];
+            /** Total Cost Myr */
+            total_cost_myr: number;
+            /** Within Programme Budget */
+            within_programme_budget: boolean;
+            /** Members On Track */
+            members_on_track: number;
+            /**
+             * Notes
+             * @description How the plan was decided.
+             */
+            notes?: string[];
+            meta: components["schemas"]["RecommendationMeta"];
+        };
+        /** ProgrammeRecord */
+        ProgrammeRecord: {
+            /** Id */
+            id: string;
+            brief: components["schemas"]["ProgrammeBriefIn"];
+            /**
+             * Sent At
+             * Format: date-time
+             */
+            sent_at: string;
+            /** Sent By */
+            sent_by: string;
+            /** Total Cost Myr */
+            total_cost_myr: number;
+        };
+        /** ProgrammeSend */
+        ProgrammeSend: {
+            brief: components["schemas"]["ProgrammeBriefIn"];
+            /** Token */
+            token: string;
+        };
+        /**
+         * ProgrammeStatus
+         * @description A sent programme as HR sees it: who accepted, declined or asked for changes.
+         */
+        ProgrammeStatus: {
+            record: components["schemas"]["ProgrammeRecord"];
+            /** Assignments */
+            assignments: components["schemas"]["ProgrammeAssignment"][];
+            /** Accepted */
+            accepted: number;
+            /** Pending */
+            pending: number;
+            /** Declined */
+            declined: number;
+            /** Change Requested */
+            change_requested: number;
+        };
         /** Progress */
         Progress: {
             /** Role Id */
@@ -2085,6 +3025,19 @@ export interface components {
             };
             /** @description The plan this progress is tracked against. */
             pathway: components["schemas"]["Pathway"];
+            /**
+             * Workspace
+             * @description 'personal' or the organisation id this plan belongs to.
+             * @default personal
+             */
+            workspace: string;
+            /**
+             * Completed Elsewhere
+             * @description Course id -> workspace ('personal' or organisation id) where a planned course was already completed. Personal plans count your own work learning; work programmes count personal learning only after you share it.
+             */
+            completed_elsewhere?: {
+                [key: string]: string;
+            };
             meta: components["schemas"]["RecommendationMeta"];
         };
         /** ProgressUpdate */
@@ -2306,6 +3259,22 @@ export interface components {
              */
             submitted_at: string | null;
         };
+        /** RoleAllocation */
+        RoleAllocation: {
+            /** Role Id */
+            role_id: string;
+            /** Role Label */
+            role_label: string;
+            /** Headcount */
+            headcount: number;
+            /** Assigned */
+            assigned: number;
+            /**
+             * Shortfall
+             * @description Places with nobody assigned.
+             */
+            shortfall: number;
+        };
         /** RoleComparison */
         RoleComparison: {
             /** Options */
@@ -2444,6 +3413,40 @@ export interface components {
             low: number;
             /** High */
             high: number;
+        };
+        /** RoleReadiness */
+        RoleReadiness: {
+            /** Role Id */
+            role_id: string;
+            /** Label */
+            label: string;
+            /**
+             * Skills
+             * @description Capabilities (skill ids) the role requires.
+             */
+            skills: string[];
+            /** Skill Labels */
+            skill_labels: string[];
+            /**
+             * Team Readiness
+             * @description Average share of required skill levels members already hold.
+             */
+            team_readiness: number;
+            /**
+             * Ready Members
+             * @description Members holding 70%+ of the requirement.
+             */
+            ready_members: number;
+        };
+        /** RoleTarget */
+        RoleTarget: {
+            /** Role Id */
+            role_id: string;
+            /**
+             * Headcount
+             * @description People the company wants in this role.
+             */
+            headcount: number;
         };
         /** RoleTrendResponse */
         RoleTrendResponse: {
@@ -2649,6 +3652,24 @@ export interface components {
              */
             next_path: string;
         };
+        /**
+         * ShareCompletionIn
+         * @description Share a course already completed in the personal workspace with a work programme.
+         */
+        ShareCompletionIn: {
+            /**
+             * Role Id
+             * @description The work programme's target role.
+             */
+            role_id: string;
+            /** Course Id */
+            course_id: string;
+        };
+        /** SharingIn */
+        SharingIn: {
+            /** Share Skills */
+            share_skills: boolean;
+        };
         /** SignupIn */
         SignupIn: {
             /** Display Name */
@@ -2666,6 +3687,12 @@ export interface components {
             organisation?: components["schemas"]["OrganizationIn"] | null;
             /** Join Code */
             join_code?: string | null;
+            /**
+             * Share Skills
+             * @description Explicit consent to share skill levels with managers on signup.
+             * @default false
+             */
+            share_skills: boolean;
             /**
              * Consent
              * @description Accepted the data-use and estimates notice.
@@ -2929,6 +3956,35 @@ export interface components {
              */
             detail: string;
         };
+        /** TeamPackage */
+        TeamPackage: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "free_first" | "budget_capped" | "broader";
+            /** Token */
+            token: string;
+            /** Role Id */
+            role_id: string;
+            /** Role Label */
+            role_label: string;
+            /** Members */
+            members: components["schemas"]["PackageMember"][];
+            /** Total Cost Myr */
+            total_cost_myr: number;
+            /** Max Weeks */
+            max_weeks: number;
+            /** Unmet Skills */
+            unmet_skills: number;
+            /** Within Member Budgets */
+            within_member_budgets: boolean;
+            meta: components["schemas"]["RecommendationMeta"];
+            /** Selected At */
+            selected_at?: string | null;
+            /** Selected By */
+            selected_by?: string | null;
+        };
         /** TopRole */
         TopRole: {
             /** Role Id */
@@ -3035,7 +4091,7 @@ export interface components {
              * Reason
              * @enum {string}
              */
-            reason: "no_catalogue_course" | "over_budget" | "catalogue_tops_out";
+            reason: "no_catalogue_course" | "over_budget" | "catalogue_tops_out" | "blocked_prerequisite";
             /** Detail */
             detail: string;
         };
@@ -3091,6 +4147,41 @@ export interface components {
             pending: number;
             /** Items */
             items: components["schemas"]["VerificationItem"][];
+        };
+        /**
+         * Workspace
+         * @description A workspace the signed-in person can switch to.
+         */
+        Workspace: {
+            /**
+             * Id
+             * @description 'personal' or an organisation id (sent as X-Workspace).
+             */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "personal" | "org";
+            /**
+             * Name
+             * @description Organisation name; empty for the personal workspace.
+             */
+            name: string;
+            /** Org Type */
+            org_type?: ("company" | "institution") | null;
+            /** Role */
+            role?: ("member" | "manager" | "advisor") | null;
+            /**
+             * Skills Shared
+             * @default false
+             */
+            skills_shared: boolean;
+        };
+        /** WorkspaceList */
+        WorkspaceList: {
+            /** Workspaces */
+            workspaces: components["schemas"]["Workspace"][];
         };
     };
     responses: never;
@@ -3233,6 +4324,7 @@ export interface operations {
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
+                "x-workspace"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -3265,6 +4357,7 @@ export interface operations {
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
+                "x-workspace"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -3297,6 +4390,7 @@ export interface operations {
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
+                "x-workspace"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -3331,6 +4425,7 @@ export interface operations {
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
+                "x-workspace"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -3433,6 +4528,7 @@ export interface operations {
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
+                "x-workspace"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -3473,6 +4569,7 @@ export interface operations {
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
+                "x-workspace"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -3511,6 +4608,7 @@ export interface operations {
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
+                "x-workspace"?: string | null;
             };
             path: {
                 role_id: string;
@@ -3539,12 +4637,622 @@ export interface operations {
             };
         };
     };
+    org_get_packages: {
+        parameters: {
+            query?: {
+                role_id?: string | null;
+                member_ids?: string[] | null;
+                scenario?: "moderate" | "fast";
+            };
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+                "x-workspace"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PackageOptions"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_select_package: {
+        parameters: {
+            query?: {
+                expected_org?: string | null;
+            };
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+                "x-workspace"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PackageChoice"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeamPackage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_get_assigned_package: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+                "x-workspace"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssignedPackage"] | null;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_accept_assigned_package: {
+        parameters: {
+            query?: {
+                expected_org?: string | null;
+            };
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+                "x-workspace"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AcceptPackage"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgrammeAssignment"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_programme_options: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+                "x-workspace"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgrammeOptions"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_generate_programme: {
+        parameters: {
+            query?: {
+                expected_org?: string | null;
+            };
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+                "x-workspace"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProgrammeBriefIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgrammePlan"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_list_programmes: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+                "x-workspace"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgrammeList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_send_programme: {
+        parameters: {
+            query?: {
+                expected_org?: string | null;
+            };
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+                "x-workspace"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProgrammeSend"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgrammeStatus"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_my_programmes: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+                "x-workspace"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyProgrammes"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_decide_programme: {
+        parameters: {
+            query?: {
+                expected_org?: string | null;
+            };
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+                "x-workspace"?: string | null;
+            };
+            path: {
+                programme_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssignmentDecision"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgrammeAssignment"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_get_funding: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+                "x-workspace"?: string | null;
+            };
+            path: {
+                year: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FundingLedger"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_set_member_budget: {
+        parameters: {
+            query?: {
+                expected_org?: string | null;
+            };
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+                "x-workspace"?: string | null;
+            };
+            path: {
+                year: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MemberBudgetIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FundingLedger"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_request_funding: {
+        parameters: {
+            query?: {
+                expected_org?: string | null;
+            };
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+                "x-workspace"?: string | null;
+            };
+            path: {
+                year: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FundingRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FundingLedger"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_submit_funding_claim: {
+        parameters: {
+            query?: {
+                expected_org?: string | null;
+            };
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+                "x-workspace"?: string | null;
+            };
+            path: {
+                year: number;
+                claim_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FundingSubmission"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FundingLedger"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_complete_funded_course: {
+        parameters: {
+            query?: {
+                expected_org?: string | null;
+            };
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+                "x-workspace"?: string | null;
+            };
+            path: {
+                year: number;
+                claim_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FundingCompletion"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FundingLedger"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_decide_funding: {
+        parameters: {
+            query?: {
+                expected_org?: string | null;
+            };
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+                "x-workspace"?: string | null;
+            };
+            path: {
+                year: number;
+                claim_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FundingDecision"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FundingLedger"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     org_get_my_org: {
         parameters: {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
+                "x-workspace"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -3573,10 +5281,13 @@ export interface operations {
     };
     org_update_my_org: {
         parameters: {
-            query?: never;
+            query?: {
+                expected_org?: string | null;
+            };
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
+                "x-workspace"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -3609,10 +5320,13 @@ export interface operations {
     };
     org_rotate_join_code: {
         parameters: {
-            query?: never;
+            query?: {
+                expected_org?: string | null;
+            };
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
+                "x-workspace"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -3645,6 +5359,7 @@ export interface operations {
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
+                "x-workspace"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -3675,12 +5390,85 @@ export interface operations {
             };
         };
     };
+    org_list_workspaces: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+                "x-workspace"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkspaceList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_set_sharing: {
+        parameters: {
+            query?: {
+                expected_org?: string | null;
+            };
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+                "x-workspace"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SharingIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Workspace"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     org_list_members: {
         parameters: {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
+                "x-workspace"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -3709,10 +5497,13 @@ export interface operations {
     };
     org_remove_member: {
         parameters: {
-            query?: never;
+            query?: {
+                expected_org?: string | null;
+            };
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
+                "x-workspace"?: string | null;
             };
             path: {
                 member_id: string;
@@ -3747,6 +5538,7 @@ export interface operations {
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
+                "x-workspace"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -3782,6 +5574,7 @@ export interface operations {
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
+                "x-workspace"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -3819,6 +5612,7 @@ export interface operations {
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
+                "x-workspace"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -3856,6 +5650,7 @@ export interface operations {
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
+                "x-workspace"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -3955,6 +5750,7 @@ export interface operations {
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
+                "x-workspace"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -3991,6 +5787,7 @@ export interface operations {
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
+                "x-workspace"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -4023,6 +5820,7 @@ export interface operations {
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
+                "x-workspace"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -4058,6 +5856,7 @@ export interface operations {
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
+                "x-workspace"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -4092,6 +5891,7 @@ export interface operations {
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
+                "x-workspace"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -4130,6 +5930,7 @@ export interface operations {
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
+                "x-workspace"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -4160,12 +5961,52 @@ export interface operations {
             };
         };
     };
+    pathway_share_completion: {
+        parameters: {
+            query?: {
+                scenario?: "moderate" | "fast";
+            };
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+                "x-workspace"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShareCompletionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Progress"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     pathway_get_verification_queue: {
         parameters: {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
+                "x-workspace"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -4198,6 +6039,7 @@ export interface operations {
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
+                "x-workspace"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -4269,6 +6111,7 @@ export interface operations {
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
+                "x-workspace"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -4305,6 +6148,7 @@ export interface operations {
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
+                "x-workspace"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -4361,6 +6205,7 @@ export interface operations {
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
+                "x-workspace"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -4393,6 +6238,7 @@ export interface operations {
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
+                "x-workspace"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -4429,6 +6275,7 @@ export interface operations {
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
+                "x-workspace"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -4465,6 +6312,7 @@ export interface operations {
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
+                "x-workspace"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -4702,6 +6550,7 @@ export interface operations {
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
+                "x-workspace"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -4737,6 +6586,7 @@ export interface operations {
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
+                "x-workspace"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -4792,6 +6642,7 @@ export interface operations {
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
+                "x-workspace"?: string | null;
             };
             path: {
                 state: string;

@@ -32,7 +32,8 @@
     "title": "Gaps our catalogue cannot close yet",
     "no_catalogue_course": "No catalogue course",
     "over_budget": "Over budget",
-    "catalogue_tops_out": "Needs practice beyond courses"
+    "catalogue_tops_out": "Needs practice beyond courses",
+    "blocked_prerequisite": "Prerequisite not yet covered"
   },
   "plan": {
     "save": "Choose this role and save the plan",
@@ -188,5 +189,6 @@
   "history": {
     "title": "Completed learning history",
     "description": "Completed courses stay here when your target or remaining plan changes. You can review the evidence or undo a completion."
-  }
+  },
+  "certificateQuote": "Certificate price: quote required"
 }

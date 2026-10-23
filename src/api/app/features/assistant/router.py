@@ -20,9 +20,14 @@ _SLOTS = threading.BoundedSemaphore(4)
 
 
 def _answer(
-    body: AssistantIn, x_demo_user: str | None, authorization: str | None, deadline: float
+    body: AssistantIn,
+    x_demo_user: str | None,
+    authorization: str | None,
+    x_workspace: str | None,
+    deadline: float,
 ) -> AssistantReply:
-    return service.answer(get_current_user(x_demo_user, authorization), body, deadline)
+    user = get_current_user(x_demo_user, authorization, x_workspace)
+    return service.answer(user, body, deadline)
 
 
 @router.post("/chat")
@@ -30,6 +35,7 @@ async def chat(
     body: AssistantIn,
     x_demo_user: Annotated[str | None, Header()] = None,
     authorization: Annotated[str | None, Header()] = None,
+    x_workspace: Annotated[str | None, Header(max_length=100)] = None,
 ) -> AssistantReply:
     """Ask Adi about your own workspace using checked application facts."""
     if not _SLOTS.acquire(blocking=False):
@@ -37,7 +43,12 @@ async def chat(
     slots = _SLOTS
     try:
         future: Future[AssistantReply] = _WORKERS.submit(
-            _answer, body, x_demo_user, authorization, time.monotonic() + ANSWER_TIMEOUT_S - 0.5
+            _answer,
+            body,
+            x_demo_user,
+            authorization,
+            x_workspace,
+            time.monotonic() + ANSWER_TIMEOUT_S - 0.5,
         )
     except BaseException:
         slots.release()

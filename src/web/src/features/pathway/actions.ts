@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { getApi } from "@/lib/api";
+import { isOrgId, PERSONAL } from "@/lib/auth/workspace";
 import { parseScenario } from "@/lib/scenario";
 
 import { actionError, type ActionState } from "./action-state";
@@ -16,6 +17,16 @@ type ApiOutcome = { error?: unknown; response: Response };
 function text(form: FormData, key: string): string {
   const value = form.get(key);
   return typeof value === "string" ? value.slice(0, 120) : "";
+}
+
+/**
+ * API client bound to the workspace the form was rendered for, not whatever workspace another
+ * tab selected since. The API re-checks membership of the named organisation.
+ */
+async function apiFor(form: FormData) {
+  const raw = form.get("workspace");
+  const workspace = raw === PERSONAL || (typeof raw === "string" && isOrgId(raw)) ? raw : undefined;
+  return getApi(workspace ? { workspace } : undefined);
 }
 
 /** Only refresh the page when the API accepted the change; otherwise report why not. */
@@ -33,6 +44,7 @@ async function settle(
   }
   revalidatePath(path, type);
   revalidatePath("/app", "layout");
+  revalidatePath("/work", "layout");
   return { done: Date.now() };
 }
 
@@ -73,7 +85,7 @@ export async function updateProgressAction(
   const raw = text(form, "status");
   const status: CourseStatus =
     COURSE_STATUSES.find((s) => s === raw) ?? "not_started";
-  const api = await getApi();
+  const api = await apiFor(form);
   return settle(
     api.POST("/api/v1/pathway/progress", {
       params: { query: { scenario: parseScenario(text(form, "scenario")) } },
@@ -92,7 +104,7 @@ export async function submitEvidenceAction(
   _: ActionState,
   form: FormData,
 ): Promise<ActionState> {
-  const api = await getApi();
+  const api = await apiFor(form);
   return settle(
     api.POST("/api/v1/pathway/progress/evidence", {
       params: { query: { scenario: parseScenario(text(form, "scenario")) } },
@@ -112,7 +124,7 @@ export async function reviewCompletionAction(
   form: FormData,
 ): Promise<ActionState> {
   const decision = text(form, "decision") === "reject" ? "reject" : "confirm";
-  const api = await getApi();
+  const api = await apiFor(form);
   return settle(
     api.POST("/api/v1/pathway/verifications", {
       body: {
@@ -125,5 +137,20 @@ export async function reviewCompletionAction(
       },
     }),
     "/org/verify",
+  );
+}
+
+/** Member, in the organisation workspace: share a personally completed course with the programme. */
+export async function shareCompletionAction(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const api = await apiFor(form);
+  return settle(
+    api.POST("/api/v1/pathway/progress/share", {
+      params: { query: { scenario: parseScenario(text(form, "scenario")) } },
+      body: { role_id: text(form, "role_id"), course_id: text(form, "course_id") },
+    }),
+    "/work/progress",
   );
 }

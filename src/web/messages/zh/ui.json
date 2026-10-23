@@ -10,7 +10,7 @@
     "impact": "影响",
     "team": "团队",
     "gaps": "技能差距",
-    "teamPlan": "团队计划",
+    "teamPlan": "快速团队计划",
     "verify": "审核",
     "settings": "设置",
     "more": "更多",
@@ -27,7 +27,10 @@
     "sources": "数据来源",
     "snapshots": "快照",
     "admin": "管理",
-    "menu": "打开菜单"
+    "menu": "打开菜单",
+    "funding": "学习资金",
+    "myWork": "我的组织",
+    "programmes": "项目"
   },
   "shell": {
     "disclaimer": "预测是基于公开数据的估计。决定权在你：Adept 从不做招聘决定。",
@@ -75,7 +78,9 @@
     "trustSources": "每个估计都注明来源",
     "trustYou": "由你做决定",
     "eyebrowMe": "为你",
-    "eyebrowTeam": "为你的团队"
+    "eyebrowTeam": "为你的团队",
+    "shareSkills": "与该组织分享我的技能水平",
+    "shareSkillsHint": "管理者使用共享的技能水平规划团队培训。您的个人计划和匹配结果保持私密。"
   },
   "landing": {
     "eyebrow": "面向未来的职业",
@@ -111,7 +116,7 @@
     "errorConsent": "请勾选同意，我们才能读取你的简历。",
     "errorGeneric": "无法读取该文件，请换一个试试。",
     "found": "{count, plural, =0 {未找到技能} other {找到 # 项技能}}",
-    "noneFound": "未能在此文件中识别到技能。扫描版 PDF 没有可读文字，请改用 Word 或文本型 PDF，或注册后手动选择技能。",
+    "noneFound": "无法将此文件中的技能与目录匹配。",
     "bestFit": "最适合你的未来职位",
     "fit": "匹配",
     "trendTitle": "你的技能在 AI 时代",
@@ -270,7 +275,7 @@
     "tf2": "技能差距热力图",
     "tf2Body": "每位成员对照每个上升职位所需的技能，最大的差距一目了然。",
     "tf3": "推荐目标职位",
-    "tf3Body": "Adept 推荐团队平均差距最大的职位。由你确认或另选。",
+    "tf3Body": "Adept 从最接近团队现有技能的职位开始。请选择学习目标、比较方案并发送建议。",
     "tf4": "一份团体培训计划",
     "tf4Body": "为所选职位排好顺序的课程，并显示每一步适用于哪些成员。",
     "tf5": "标出可申请 HRD Corp 的课程",
@@ -304,7 +309,8 @@
     "sRisingLabel": "上升的技能",
     "sHrdLabel": "可申请 HRD Corp",
     "sGoalsLabel": "覆盖的联合国目标",
-    "sFoot": "更新于 {date} · 来源：{sources}"
+    "sFoot": "更新于 {date} · 来源：{sources}",
+    "manualSkills": "手动选择技能"
   },
   "intake": {
     "title": "建立你的资料",
@@ -433,7 +439,12 @@
     "title": "加入机构",
     "body": "输入经理或就业中心提供的代码。",
     "cta": "加入",
-    "done": "你已加入 {org}。"
+    "done": "你已加入 {org}。",
+    "consent": "我同意加入该组织并共享我的技能档案",
+    "consentHint": "组织管理员将能查看您的技能等级和学习进度以协调培训。",
+    "shareSkills": "与该组织分享我的技能水平",
+    "shareSkillsHint": "管理者用分享的水平规划团队培训。你的个人计划和匹配结果保持私密。之后可以更改。",
+    "openWorkspace": "打开 {org}"
   },
   "error": {
     "title": "有内容未能载入",
@@ -632,6 +643,26 @@
     "unchecked": "以下数字无法与你的数据核对：{figures}",
     "s1": "我下一步该做什么？",
     "s2": "哪些技能在上升？",
-    "s3": "Adept 如何运作？"
+    "s3": "Adept 如何运作？",
+    "inOrg": "在 {name} 中回答",
+    "inPersonal": "在你的个人工作区中回答"
+  },
+  "workspace": {
+    "personal": "个人",
+    "personalHint": "仅你可见",
+    "member": "员工",
+    "manager": "管理者",
+    "switch": "切换工作区",
+    "join": "加入其他组织"
+  },
+  "cvReview": {
+    "title": "待核对的用词",
+    "scope": "结果仅使用目录中已匹配的技能。其他技能、陌生术语或不同拼写可能未被识别。",
+    "none": "没有目录匹配不代表没有技能。请搜索技能库，添加您能确认的技能。",
+    "truncated": "文件较长，只读取了前面部分。请检查并手动补充遗漏的技能。",
+    "body": "暂无已核实的匹配。请检查拼写或搜索对应技能，仅在确实描述您的技能时选择。",
+    "notSaved": "仅供核对，不会保存或计分。最多显示30条。",
+    "search": "搜索目录",
+    "searchFor": "在目录中搜索{term}"
   }
 }

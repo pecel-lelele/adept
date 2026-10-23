@@ -37,6 +37,11 @@ class Member(BaseModel):
     display_name: str
     current_role_id: str | None
     intake_status: IntakeStatus
+    skills_shared: bool = Field(
+        default=False,
+        description="The member chose to share their skill levels with this organisation. "
+        "Only shared members count in team gaps and programme matching.",
+    )
 
 
 class MemberListResponse(BaseModel):
@@ -47,6 +52,36 @@ class JoinOrgIn(BaseModel):
     """A signed-in learner joins an organisation with the code their manager shared."""
 
     code: str = Field(min_length=4, max_length=16)
+    consent: bool = Field(
+        default=False,
+        description="Explicit consent to join and share the skills profile with managers. "
+        "Required: a join without it is refused (M4-055).",
+    )
+    share_skills: bool = Field(
+        default=True, description="Share skill levels with this organisation's managers."
+    )
+
+
+MembershipRole = Literal["member", "manager", "advisor"]
+
+
+class Workspace(BaseModel):
+    """A workspace the signed-in person can switch to."""
+
+    id: str = Field(description="'personal' or an organisation id (sent as X-Workspace).")
+    kind: Literal["personal", "org"]
+    name: str = Field(description="Organisation name; empty for the personal workspace.")
+    org_type: OrgType | None = None
+    role: MembershipRole | None = None
+    skills_shared: bool = False
+
+
+class WorkspaceList(BaseModel):
+    workspaces: list[Workspace]
+
+
+class SharingIn(BaseModel):
+    share_skills: bool
 
 
 class GapHeatmapCell(BaseModel):
@@ -63,8 +98,8 @@ class GapHeatmapResponse(BaseModel):
     role_gaps: dict[str, float] = Field(
         default_factory=dict,
         description=(
-            "role_id -> average gap over that role's required skills only (the figure that "
-            "picks the default team target). Cells for skills a role does not require are 0 "
+            "role_id -> average gap over that role's required skills only. "
+            "Cells for skills a role does not require are 0 "
             "and must not be averaged."
         ),
     )

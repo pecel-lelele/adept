@@ -1,6 +1,8 @@
 # Tasks by Feature
 
-For the audited implementation status, known defects, reproduction steps and suggested fixes, read [Feature status and fix handoff](FEATURE_STATUS_AND_FIX_HANDOFF.md) (22 October 2026, revision `968182b`). It distinguishes completed work, partial integrations, unverified behaviour and proposed enhancements; keep all six must-have features when addressing the backlog.
+This document defines feature scope and ownership. For current behaviour, use the
+[project README](../README.md), each feature's `FEATURE.md`, and the
+[decisions log](decisions.md). Test results belong to the relevant PR.
 
 Work is organised **per feature**. Each feature has an owner who leads it end to end (data → logic → API → page) and decides its additional tech. The same breakdown is in `aiversecity_team_tasks.xlsx` for progress tracking.
 
@@ -21,17 +23,6 @@ Work is organised **per feature**. Each feature has an owner who leads it end to
 | F7 Organisation mode | M4 | Good-to-haves: HR view, aggregated SDG view |
 | F8 Guardrails & transparency | M3 | Guardrails: catalogue-only, sources, LLM disclosure; optional chatbot |
 | Core | M4 | App shell, human-in-charge messaging, multi-language + mobile, integration, deploy, submission |
-
----
-
-## Phase 0: Skeleton (everyone)
-
-1. Agree on `PROJECT_CONTEXT.md`, `TEAM_RULES.md` and this file; adjust anything that doesn't fit.
-2. Generate the skeleton with `docs/ai/SKELETON_PROMPT.md`, review it, merge into `main`.
-3. Everyone pulls, runs the app locally, and checks their feature's stub pages and mock endpoints.
-4. Fill in member names in `TEAM_RULES.md` §2 and the spreadsheet.
-
-**Done when** everyone can run the app and every page shows its stub.
 
 ---
 

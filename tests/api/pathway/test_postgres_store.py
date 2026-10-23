@@ -6,6 +6,7 @@ the CI `database` job runs them on pgvector/pg16.
 
 import pytest
 from fastapi.testclient import TestClient
+from harness.workspaces import BANK, accept_work_plan, work_headers
 
 from app.contracts.pathway import Progress, ReplanStatus, SavedPlan
 from app.core.config import get_settings
@@ -90,7 +91,26 @@ def test_evidence_and_review_persist(client: TestClient) -> None:
     resp = client.post(
         "/api/v1/pathway/verifications", json=decision, headers={"X-Demo-User": "demo-company"}
     )
+    # Personal evidence is private, even when the learner belongs to this manager's team.
+    assert resp.status_code == 409, resp.text
+    assert fresh.evidence("aisyah", ROLE)[course].kind == "self_reported"
+
+    accept_work_plan(ROLE)
+    response = client.post(
+        "/api/v1/pathway/progress",
+        json={"role_id": ROLE, "course_id": course, "status": "completed"},
+        headers=work_headers(),
+    )
+    assert response.status_code == 200, response.text
+    scope = repository.org_scope(BANK)
+    decision["submitted_at"] = fresh.evidence("aisyah", ROLE, scope)[
+        course
+    ].submitted_at.isoformat()
+    resp = client.post(
+        "/api/v1/pathway/verifications", json=decision, headers={"X-Demo-User": "demo-company"}
+    )
     assert resp.status_code == 200, resp.text
-    stored = repository.PostgresStore().evidence("aisyah", ROLE)[course]
+    stored = repository.PostgresStore().evidence("aisyah", ROLE, scope)[course]
     assert stored.kind == "org_confirmed" and stored.reviewed_by == "demo-company"
-    assert ("aisyah", ROLE, course, "completed") in fresh.progress_of(["aisyah"])
+    assert fresh.evidence("aisyah", ROLE)[course].kind == "self_reported"
+    assert ("aisyah", ROLE, course, "completed") in fresh.progress_of(["aisyah"], scope)

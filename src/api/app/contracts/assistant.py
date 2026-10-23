@@ -54,3 +54,7 @@ class AssistantReply(BaseModel):
         description="Numbers in the answer that do not appear in your data (shown as a caution).",
     )
     meta: RecommendationMeta | None = None
+    workspace: str = Field(
+        default="personal", description="Workspace answered in: 'personal' or an organisation id."
+    )
+    workspace_name: str = Field(default="", description="Organisation name; empty if personal.")

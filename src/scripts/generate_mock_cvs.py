@@ -21,7 +21,7 @@ trailer ``/ID`` is the MD5 of the file body, so re-running reproduces
 byte-identical files. ``--check`` proves that without overwriting anything.
 
 No real personal data (AGENTS.md §3): every name is invented or a synthetic
-persona from ``docs/PROJECT_CONTEXT.md``, every email is on ``example.com``, and
+persona from ``docs/project-context.md``, every email is on ``example.com``, and
 no phone number, address or ID number appears.
 
 Usage:

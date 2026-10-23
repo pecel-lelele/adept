@@ -38,6 +38,7 @@ def test_links_point_at_official_targets_with_meaningful_reasons() -> None:
 
 
 AUTHORITATIVE = (
+    "https://sdgs.un.org/goals/",  # official UN target definitions
     "https://unstats.un.org/sdgs/metadata/",
     "https://www.ilo.org/",
     "https://www.unesco.org/",
@@ -50,6 +51,17 @@ def test_every_link_cites_an_authoritative_source() -> None:
         for row in seed.rows("sdg", table):
             assert row["evidence_url"].startswith(AUTHORITATIVE), row
             assert row["evidence_source"] and len(row["evidence_note"]) >= 40, row
+
+
+def test_new_role_evidence_contains_the_actual_official_target_text() -> None:
+    labels = {r["id"]: r["label"] for r in seed.rows("sdg", "sdg_targets")}
+    for row in seed.rows("sdg", "role_sdg_map"):
+        if (
+            row["evidence_source"]
+            == "United Nations Sustainable Development Goals: official target definition"
+        ):
+            assert labels[row["sdg_target_id"]] in row["evidence_note"]
+            assert ": ." not in row["evidence_note"]
 
 
 def test_links_and_plan_links_carry_evidence(client: TestClient) -> None:

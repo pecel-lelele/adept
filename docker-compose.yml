@@ -7,6 +7,17 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-adept}:${POSTGRES_PASSWORD:-adept}@db:5432/${POSTGRES_DB:-adept}
       AUTH_MODE: demo
       M3_BACKEND: postgres
+      LLM_PROVIDER: ${LLM_PROVIDER:-none}
+      LLM_MODEL: ${LLM_MODEL:-}
+      LLM_BASE_URL: ${LLM_BASE_URL:-}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      RUNPOD_API_KEY: ${RUNPOD_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      LLM_FALLBACK_PROVIDER: ${LLM_FALLBACK_PROVIDER:-}
+      LLM_FALLBACK_MODEL: ${LLM_FALLBACK_MODEL:-}
+      LLM_FALLBACK_BASE_URL: ${LLM_FALLBACK_BASE_URL:-}
+      LLM_FALLBACK_API_KEY: ${LLM_FALLBACK_API_KEY:-}
+      LLM_TIMEOUT_S: ${LLM_TIMEOUT_S:-20}
       # Signs session tokens. Set it in the root .env; empty = a random in-memory key
       # (sessions end when the container restarts).
       SESSION_SECRET: ${SESSION_SECRET:-}

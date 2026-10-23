@@ -16,7 +16,7 @@ In explicit demo auth mode, matching uses M1's own documented fixture fallback a
 shows its data provenance note. Other auth modes require M1's strict database snapshot.
 Gap responses and SDG badges use M3's service ports. Persona CSVs are harness-only.
 
-## Goal and tasks (from docs/TASKS.md)
+## Goal and tasks (from docs/tasks.md)
 
 **Goal:** ranked future roles with an explainable score and a clear skills gap.
 

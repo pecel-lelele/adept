@@ -18,6 +18,7 @@ def _signup(client: TestClient, **extra: object) -> dict:
         "email": _email(),
         "password": "correct horse battery",
         "consent": True,
+        "share_skills": True,
         **extra,
     }
     resp = client.post("/api/v1/auth/signup", json=body)
@@ -130,6 +131,36 @@ def test_unknown_join_code_is_rejected(client: TestClient) -> None:
     assert resp.json()["error"]["code"] == "bad_join_code"
 
 
+def test_signup_with_join_code_requires_sharing_consent(client: TestClient) -> None:
+    _manager, join_code = _org(client, "Sharing Consent Org")
+    bad = client.post(
+        "/api/v1/auth/signup",
+        json={
+            "display_name": "No Consent",
+            "email": _email(),
+            "password": "correct horse battery",
+            "consent": True,
+            "join_code": join_code,
+            "share_skills": False,
+        },
+    )
+    assert bad.status_code == 400
+    assert bad.json()["error"]["code"] == "sharing_consent_required"
+
+    good = client.post(
+        "/api/v1/auth/signup",
+        json={
+            "display_name": "With Consent",
+            "email": _email(),
+            "password": "correct horse battery",
+            "consent": True,
+            "join_code": join_code,
+            "share_skills": True,
+        },
+    )
+    assert good.status_code == 201
+
+
 def _org(client: TestClient, name: str) -> tuple[dict, str]:
     manager = _signup(
         client,
@@ -140,24 +171,33 @@ def _org(client: TestClient, name: str) -> tuple[dict, str]:
     return headers, client.get("/api/v1/org/me", headers=headers).json()["join_code"]
 
 
-def test_member_cannot_join_a_second_organisation(client: TestClient) -> None:
+def test_one_account_can_belong_to_several_organisations(client: TestClient) -> None:
     first_h, first_code = _org(client, "First Co")
     _, second_code = _org(client, "Second Co")
     learner = _signup(client, join_code=first_code)
     lh = {"X-Demo-User": learner["token"]}
-    again = client.post("/api/v1/org/join", json={"code": first_code}, headers=lh)
+    again = client.post("/api/v1/org/join", json={"code": first_code, "consent": True}, headers=lh)
     assert again.status_code == 200  # rejoining the same organisation is harmless
-    other = client.post("/api/v1/org/join", json={"code": second_code}, headers=lh)
-    assert other.status_code == 409
-    assert other.json()["error"]["code"] == "already_member"
-    assert client.get("/api/v1/org/me", headers=lh).json()["name"] == "First Co"
+    other = client.post("/api/v1/org/join", json={"code": second_code, "consent": True}, headers=lh)
+    assert other.status_code == 200, other.text
+    assert other.json()["join_code"] is None
 
-    # Once removed, the member is free to join another organisation.
+    spaces = client.get("/api/v1/org/workspaces", headers=lh).json()["workspaces"]
+    assert [w["kind"] for w in spaces] == ["personal", "org", "org"]
+    names = {w["name"]: w for w in spaces if w["kind"] == "org"}
+    assert set(names) == {"First Co", "Second Co"}
+    assert all(w["role"] == "member" for w in names.values())
+    for name, space in names.items():
+        mine = client.get("/api/v1/org/me", headers={**lh, "X-Workspace": space["id"]})
+        assert mine.json()["name"] == name
+
+    # Removing them from one organisation leaves the other workspace in place.
     member_id = learner["account"]["id"]
     assert client.delete(f"/api/v1/org/members/{member_id}", headers=first_h).status_code == 204
-    moved = client.post("/api/v1/org/join", json={"code": second_code}, headers=lh)
-    assert moved.status_code == 200
-    assert moved.json()["name"] == "Second Co"
+    left = client.get("/api/v1/org/workspaces", headers=lh).json()["workspaces"]
+    assert [w["name"] for w in left if w["kind"] == "org"] == ["Second Co"]
+    gone = client.get("/api/v1/org/me", headers={**lh, "X-Workspace": names["First Co"]["id"]})
+    assert gone.status_code == 403
 
 
 def test_failed_organisation_setup_undoes_the_signup(client: TestClient, monkeypatch) -> None:
@@ -256,3 +296,18 @@ def test_export_includes_learning_records(client: TestClient) -> None:
     assert body["saved_plan"]["role_id"] == "data-analyst"
     assert any(r["course_id"] == course_id and r["status"] == "completed" for r in body["learning"])
     assert body["badges"], "the first completed course earns a badge"
+
+
+def test_the_last_manager_cannot_orphan_a_team(client: TestClient) -> None:
+    manager_h, code = _org(client, "Orphan Guard Co")
+    manager = client.get("/api/v1/auth/me", headers=manager_h).json()
+    learner = _signup(client, join_code=code)
+    password = {"password": "correct horse battery"}
+    blocked = client.post("/api/v1/auth/me/delete", json=password, headers=manager_h)
+    assert blocked.status_code == 409 and blocked.json()["error"]["code"] == "last_manager"
+
+    member_id = learner["account"]["id"]
+    assert client.delete(f"/api/v1/org/members/{member_id}", headers=manager_h).status_code == 204
+    gone = client.post("/api/v1/auth/me/delete", json=password, headers=manager_h)
+    assert gone.status_code == 204, gone.text
+    assert manager["id"]

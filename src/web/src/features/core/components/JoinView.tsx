@@ -9,7 +9,7 @@ import { joinOrgAction, type AuthState } from "../auth-actions";
 
 /**
  * A signed-in learner joins an organisation with the code their manager or career centre
- * shared. Beside the form: what joining shares and what stays private.
+ * shared, consenting to share their profile and learning progress with the organisation.
  */
 export function JoinView({ code = "" }: { code?: string }) {
   const t = useTranslations("ui.join");
@@ -34,8 +34,11 @@ export function JoinView({ code = "" }: { code?: string }) {
               </span>
               <h2>{t("done", { org: joined })}</h2>
               <p className="a-muted">{tp("joinedBody")}</p>
-              <Link className="a-btn" href="/app">
-                {tp("joinedCta")} <ArrowRight size={16} aria-hidden />
+              <a className="a-btn" href={`/api/workspace?to=${encodeURIComponent(state.values?.org_id ?? "")}`}>
+                {t("openWorkspace", { org: joined })} <ArrowRight size={16} aria-hidden />
+              </a>
+              <Link className="a-link" href="/app">
+                {tp("joinedCta")}
               </Link>
             </div>
           ) : (
@@ -57,6 +60,18 @@ export function JoinView({ code = "" }: { code?: string }) {
                   placeholder="ABCD1234"
                   defaultValue={state.values?.code ?? code}
                 />
+              </label>
+              <label className="a-check">
+                <input
+                  type="checkbox"
+                  name="consent"
+                  required
+                  defaultChecked={state.values?.consent === "on"}
+                />
+                <span>
+                  <strong>{t("consent")}</strong>
+                  <small>{t("consentHint")}</small>
+                </span>
               </label>
               {state.error ? (
                 <p className="a-notice" data-tone="error" role="alert">

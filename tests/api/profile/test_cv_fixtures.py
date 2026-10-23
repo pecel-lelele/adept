@@ -138,13 +138,11 @@ def test_python_programming_appears_once() -> None:
 @needs_fixtures
 @needs_pdf
 def test_java_and_javascript_invent_no_skills() -> None:
-    """Neither Java nor JavaScript is in the taxonomy, so the result must be empty.
-
-    Also proves the word-boundary rule: "java" must not match inside "JavaScript".
-    """
+    """Java and JavaScript are aliases of the catalogue's Software development skill: they map
+    to that one real skill and nothing else is invented."""
     parsed, _ = parse_cv(_fixture("cv_java_javascript.pdf").read_bytes(), "application/pdf")
     ids = {s.skill_id for s in parsed}
-    assert ids == set(), f"cv_java_javascript.pdf matched {sorted(ids)}"
+    assert ids == {"software-development"}, f"cv_java_javascript.pdf matched {sorted(ids)}"
     assert not any("java" in sid for sid in ids)
 
 

@@ -1,4 +1,4 @@
-"""Synthetic test fixtures (docs/PROJECT_CONTEXT.md §11.5). No real people.
+"""Synthetic test fixtures (docs/project-context.md §11.5). No real people.
 
 The running app has no built-in personas: every account, profile and organisation is
 created through sign-up. The automated tests run on the in-memory stores
@@ -142,4 +142,7 @@ def install() -> None:
     org_repository.reset()
     for org_id, org in ORGS.items():
         org_repository._orgs[org_id] = org.model_copy(update={"join_code": JOIN_CODES[org_id]})
-        org_repository._members[org_id] = [m.model_copy() for m in MEMBERS[org_id]]
+        # The synthetic teams chose to share their skill levels with their organisation.
+        org_repository._members[org_id] = [
+            m.model_copy(update={"skills_shared": True}) for m in MEMBERS[org_id]
+        ]

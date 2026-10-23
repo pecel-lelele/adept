@@ -1021,6 +1021,77 @@
 - **Replaces**: M4-030 free-text answer checks and phase-only provider timeout; M4-028 landing-page assistant placement.
 - **PR / branch**: https://github.com/pecel-lelele/adept/pull/9 / feat/core-adi-assistant
 
+### M4-032: feat(catalogue): enrich future-facing roles skills and public courses
+- **Date**: 2026-10-23
+- **Feature**: F1, F4, F5, F6, F7 / Core integration
+- **Type**: data source | method
+- **Change**: Preserve all existing entities; complete the unfinished expansion to 140 skills, 31 roles, 160 role-skill links and 71 courses. Add 37 provider-verified Microsoft Learn entries, future AI skills in role requirements, BM/CJK aliases and O*NET 31.0 occupation crosswalks. New role SDG links are conservative enabling hypotheses tied to official UN definitions; remove unsupported cloud/mobile-network and cybersecurity/transport arguments.
+- **Why**: The four-role pool could not serve varied career backgrounds. The user requested additive future-facing coverage, never fabricated courses or growth forecasts.
+- **Pipeline**: Microsoft Learn live API, O*NET occupation data and official UN targets → exact-ID/URL/duration validation and retained original rows → curated estimated role/skill edges and draft SDG links → shared F4/F5 catalogues → closed graph with 28 future targets, all roles/skills mapped and provider IDs validated → seed CSVs, provenance JSON and live course sync.
+- **Affects**: M1 trends coverage; M2 taxonomy/profile/matching; M3 courses and SDG mappings.
+- **Replaces**: none
+- **PR / branch**: feat/catalogue-roles-skills-courses
+
+### M4-033: fix(pathway): unify catalogue credit prerequisites and price estimates
+- **Date**: 2026-10-23
+- **Feature**: F1, F4, F5, F6, F7 / Core integration
+- **Type**: method | schema | contract
+- **Change**: Use shared DB-first taxonomy reads in matching, profile, CV and pathways; upsert reference seeds without overwriting user state or dated trend snapshots. Preserve duplicate legacy IDs but merge credit once at the highest canonical level. Add current-role baselines with an explicit target flag. Include external prerequisites, block unavailable foundations, show honest unmet levels and exclude unknown certificate prices from costed plans. HRD eligibility no longer zeroes list prices. Default HR target uses existing team skill fit.
+- **Why**: Expanded data exposed disconnected skill IDs, stale deployments, impossible prerequisite ordering, misleading free certificates and unrelated default team targets.
+- **Affects**: M2 profile/matching; M3 pathway and contracts; M4 organisation defaults. Append-only migration required before seeding.
+- **Replaces**: none
+- **PR / branch**: feat/catalogue-roles-skills-courses
+
+### M4-034: feat(org): persist private member budgets and funding ledgers
+- **Date**: 2026-10-23
+- **Feature**: F1, F4, F5, F6, F7 / Core integration
+- **Type**: schema | contract
+- **Change**: Add typed decimal MYR budgets, immutable course snapshots, request revisions and audit events. Store all budget years in one locked ledger per organisation, with RLS and no public policy; the memory store is synthetic-test-only. Embedded funding and assignment data participate in account export and transactional deletion.
+- **Why**: Per-member caps must remain correct across concurrent API workers, restarts and repeated requests; new private data must not outlive the account deletion flow.
+- **Affects**: M4 accounts/org; M3 course snapshots. Append-only learning_funding migration, no dependencies.
+- **Replaces**: none
+- **PR / branch**: feat/catalogue-roles-skills-courses
+
+### M4-035: feat(org): gate reimbursements on purchase approval and course proof
+- **Date**: 2026-10-23
+- **Feature**: F1, F4, F5, F6, F7 / Core integration
+- **Type**: method | other
+- **Change**: Require HR purchase approval before buying, reserve the approved cap, and accept receipt claims only after current-org HR confirms the certificate. Block over-cap amounts, duplicate course/receipt claims, stale revisions and revoked evidence; distinguish payable from an externally recorded finance payment. Let members submit certificates for approved courses absent from generated plans. Validate current manager membership and stop certificate probes from following redirects.
+- **Why**: Completion-based reimbursement is useful with pre-approval, receipt review and a non-upfront employer procurement option. Certificate URL reachability alone cannot authorize a payment. Subscription/group purchases require separate employer procurement; no bank transfer is performed by Adept.
+- **Affects**: M3 completion verification; M4 finance workflow and security. Tests cover synthetic claim lifecycle, reservation races, scope, stale/revoked proof, export/deletion and blocked redirects.
+- **Replaces**: none
+- **PR / branch**: feat/catalogue-roles-skills-courses
+
+### M4-036: feat(org): compare and assign member-specific learning packages
+- **Date**: 2026-10-23
+- **Feature**: F1, F4, F5, F6, F7 / Core integration
+- **Type**: method | contract
+- **Change**: Offer free-first, per-member-budget-capped and broader-catalogue proposals for an HR-selected role and cohort of 1–50 completed profiles. Reuse F5 for each member, expose costs/time/unmet skills and combined provenance, reject stale offer hashes, persist the selected proposal and require explicit member adoption. Selection does not purchase, reserve funds or overwrite personal plans.
+- **Why**: HR needs comparable, concrete choices rather than one automatically chosen team curriculum. Identical free coverage can legitimately yield coinciding options.
+- **Affects**: M3 pathway engine; M4 organisation APIs and member adoption. Synthetic tests verify cohort isolation, stale budget offers and consent.
+- **Replaces**: none
+- **PR / branch**: feat/catalogue-roles-skills-courses
+
+### M4-037: feat(web): expose plan packages member budgets and expense claims
+- **Date**: 2026-10-23
+- **Feature**: F1, F4, F5, F6, F7 / Core integration
+- **Type**: UI
+- **Change**: Replace the organisation plan page with role/cohort package comparison and per-member course previews; add proposal adoption and account-scoped funding pages for HR budgets, purchase requests, certificates, receipts and external payment records. Display unknown certificate prices and provider learning-achievement caveats. Add English, Malay and Chinese labels and revise obsolete largest-gap guidance.
+- **Why**: A coherent plan-to-purchase-to-proof flow must be accessible to HR and learners, with actual remaining gaps and dated price assumptions visible before a choice.
+- **Affects**: M4 navigation and organisation UI; M3 pathway/catalogue screens. Uses existing design primitives and typed API client.
+- **Replaces**: none
+- **PR / branch**: feat/catalogue-roles-skills-courses
+
+### M4-038: chore(api): regenerate catalogue and organisation contract bindings
+- **Date**: 2026-10-23
+- **Feature**: F1, F4, F5, F6, F7 / Core integration
+- **Type**: contract
+- **Change**: Regenerate OpenAPI and TypeScript from the final typed catalogue, funding, package and account-export contracts.
+- **Why**: Keep generated client bindings in sync with the server contract; separate generated output from handwritten changes for review.
+- **Affects**: All typed API consumers; no handwritten changes to generated files.
+- **Replaces**: none
+- **PR / branch**: feat/catalogue-roles-skills-courses
+
 ### M4-039: Restore grounded personal-plan answers and plural intent coverage
 - **Date**: 2026-10-23
 - **Feature**: Core, F8 (Adi), read-only F5 plan/progress integration
@@ -1030,3 +1101,223 @@
 - **Affects**: M3 F5 read-only data; M4 assistant. No dependencies, schema or public contract changes. Decision IDs 032–038 are already used by the catalogue branch in PR #10.
 - **Replaces**: none (extends M4-031)
 - **PR / branch**: https://github.com/pecel-lelele/adept/pull/9 / feat/core-adi-assistant
+
+### M4-040: fix(org): bound funding transactions and preserve budget history
+- **Date**: 2026-10-23
+- **Feature**: F5, F6, F7 / Core integration
+- **Type**: method | contract
+- **Change**: Read ledgers and assignments through snapshots without write locks. Bind nested synchronous repository calls to the existing transaction connection, with thread isolation and exception-safe reset; lock completion/evidence rows during claim/payment decisions. Move certificate/pathway work outside the funding lock and recheck revisions before recording it. Return accessible budget years, use Malaysia calendar years, and retain historical member records for managers. Add real PostgreSQL regression coverage for ten concurrent approvals plus claim/payment with a one-connection pool, and tests for slow certificate checks, cancellation and rollover.
+- **Why**: Greptile 4352984351 identified pool starvation when lock holders borrowed another connection. Calendar rollover must not change a previously approved purchase year. Real connection contention and failure paths were missing from the original validation.
+- **Affects**: M3 pathways/SDG, M4 organisation and shared database access.
+- **Replaces**: none
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses
+
+### M4-041: fix(web): keep prior-year learning claims accessible
+- **Date**: 2026-10-23
+- **Feature**: F5, F6, F7 / Core integration
+- **Type**: UI
+- **Change**: Add a budget-year selector on both funding pages using the API-provided accessible years. Preserve each claim year in every action, keep historic certificate/receipt/payment forms usable, and limit new purchase requests to the current Malaysia budget year. Historical views avoid unnecessary live catalogue, matching and proposal reads.
+- **Why**: Greptile 4352984368: a December approval disappeared from the UI in January even though the backend retained the original record.
+- **Affects**: M3 pathways/SDG, M4 organisation and shared database access.
+- **Replaces**: none
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses
+
+### M4-042: fix(pathway): retain team prerequisite knowledge
+- **Date**: 2026-10-23
+- **Feature**: F5, F6, F7 / Core integration
+- **Type**: method
+- **Change**: Include the transitive prerequisite closure when deriving the lowest team skill levels. Known foundations are not scheduled again, and newly required foundations are assigned only to members who lack them.
+- **Why**: Greptile 4352984384: aggregating only role-required skills erased known SQL and created foundation steps with no assigned members. Regressions cover both fully-known and mixed-knowledge teams.
+- **Affects**: M3 pathways/SDG, M4 organisation and shared database access.
+- **Replaces**: none
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses
+
+### M4-043: fix(sdg): include official target text in alignment evidence
+- **Date**: 2026-10-23
+- **Feature**: F5, F6, F7 / Core integration
+- **Type**: data source
+- **Change**: Populate all 48 new role alignment evidence notes from the official target label column. Preserve draft enabling status and the explicit distinction between curated alignment and measured impact. Add a regression requiring the actual target definition in every new evidence note.
+- **Why**: Greptile 4352984399: the generator looked for absent title/description fields instead of label, leaving blank target quotations.
+- **Affects**: M3 pathways/SDG, M4 organisation and shared database access.
+- **Replaces**: none
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses
+
+### M4-044: chore(api): regenerate accessible funding year bindings
+- **Date**: 2026-10-23
+- **Feature**: F5, F6, F7 / Core integration
+- **Type**: contract
+- **Change**: Regenerate OpenAPI and TypeScript for the accessible budget-year field.
+- **Why**: Keep the funding history UI and API contract in sync.
+- **Affects**: M3 pathways/SDG, M4 organisation and shared database access.
+- **Replaces**: none
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses
+
+### M4-031: Free-to-learn courses in plans, 27 more verified courses, honest "tops out" gaps
+- **Date**: 2026-10-23
+- **Feature**: F5, F4 (Core integration)
+- **Type**: data source | method
+- **Change**: (1) Plans may use free-to-enrol courses whose certificate fee is unknown as RM 0 learning; they keep `price_status=certificate_price_unknown` and their certificate note, and callers that need certificates filter them out (the HR planning brief). Replaces the rule that excluded them from plans. (2) 25 more Coursera courses checked on 2026-10-23 (each page shows "Enroll for free"; hours = sum of module hours) for machine learning, statistics, cybersecurity, cloud, renewable energy, IoT, UX, digital marketing, business analysis, instructional design, accounting, data engineering, project management, sales, content, warehouse, CRM, semiconductor physics, hotel distribution and Six Sigma; plus UTM's HRDC-claimable Registered Energy Manager course (RM 4,900 HRDC rate) and IBFIM's Fundamentals of Shariah for Islamic Finance (RM 2,730 online, HRDC claimable per brochure). Catalogue 71 → 98 courses. (3) Role requirements are capped at level 3 (24 links were 4): these are entry targets for reskilling, the team's original roles never exceed 3, and level 4+ comes from practice, not courses. (4) A skill whose courses stop at or below the learner's level is reported as "courses stop at level N" instead of "no course in our catalogue".
+- **Why**: Measured coverage: a newcomer with RM 0 could fully reach only 42% of role requirements and many plans were under 2 hours; now 50% (RM 0) / 53% (RM 6,000). The remaining gaps are skills no free or verified course teaches yet (listed by the pipeline run), shown honestly.
+- **Pipeline**: Coursera course pages + Catalog API slug checks, provider pages/brochures → `catalogue_sources.py` → `pipelines.pathway.run` (98 rows, validated) → engine selection (level ladder, cheapest then shortest, free-to-learn allowed) → evaluation: coverage script over 28 roles; tests for tops-out labelling and certificate caveats → serving: `/pathway`, `/org/packages`.
+- **Affects**: M3 (catalogue, engine), M2 (role requirement levels), M4.
+- **Replaces**: the PR #10 rule excluding `certificate_price_unknown` courses from plans.
+- **PR / branch**: feat/catalogue-roles-skills-courses
+
+### M4-045: Personal and organisation workspaces with explicit learning sharing
+- **Date**: 2026-10-23
+- **Feature**: Core, F1, F4, F5, F7, F8 integration
+- **Type**: schema | contract | method | UI
+- **Change**: Add membership-checked `X-Workspace` selection, a server-rendered switcher and employee home, agreements, progress, funding and skill-sharing views. Scope course progress/evidence to `personal` or `org:<id>`; personal completions enter an employer programme only when the member shares them. Keep personal saved plans and assistant conversations separate, require current management membership for team operations, and block last-manager account deletion when it would orphan a team or its learning records. Group role matches by existing skill overlap without changing ranking scores.
+- **Why**: A manager also needs a personal workspace, and a member may belong to several organisations. Joining must not expose personal learning or grant management rights. Reuse the existing F5 engine and funding store rather than create a second progress model.
+- **Affects**: Shared auth, accounts, profile/matching, pathway and organisation contracts; EN/MS/ZH navigation and copy. Migration `20261023120000_core_workspaces.sql` is append-only; its introductory M4-033 comment refers to the earlier integration work, while this entry records the final workspace design.
+- **Replaces**: M4-001 single-default-organisation navigation; extends M4-021 evidence rules with explicit workspace ownership.
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses
+
+### M4-046: Reviewable employer programmes and fluid workspace layouts
+- **Date**: 2026-10-23
+- **Feature**: Core, F7 (programme wizard), read-only F4/F5 integration
+- **Type**: method | contract | UI
+- **Change**: HR chooses catalogue-backed business objectives, roles/headcounts, sharing members, date, paid study hours, budgets and delivery restrictions, then reviews estimated personal routes before sending. Programmes retain dated attribution and require member acceptance; optional programmes can be declined and members can request changes. Add EN/MS/ZH strings and regenerate OpenAPI/TypeScript. Replace pill-based programme headers, steps and filters with wrapping employer identity, status text, numbered steps and checkbox rows; show labelled table records on narrow screens. Generation animation runs only while the request is pending and does not claim unreported stage completion.
+- **Why**: The employer/status row overflowed on narrow cards; fixed minimum columns, edge-to-edge tables and a mobile workspace menu also prevented fluid layouts. HR and employees need understandable agreements and an explicit decision before learning is adopted.
+- **Affects**: M4 organisation features/shared shell styles, M3 pathway metadata. No dependency changes.
+- **Replaces**: none (extends M4-036/M4-037)
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses
+
+### M4-047: Current reference seeds in local Docker and public display wording
+- **Date**: 2026-10-23
+- **Feature**: Core, F2, F4, F5, F6, F8 integration
+- **Type**: data source | UI
+- **Change**: Load current reference CSVs through the existing upsert loader and verify every stored column against the typed CSV rows, plus both dated trend exports. The local database has 98 courses, 140 skills, 31 roles, 160 role/skill requirements, 12 prerequisites, 17 goals, 169 targets, 61 role/SDG and 165 skill/SDG links; all comparisons match. Use “Sample personas and teams” for the source register and “Artificial data generation” for the existing skill ID, preserving its search aliases and dated numerical evidence. Trend fixture presentation resolves labels through the current taxonomy.
+- **Why**: Updated CSV values must reach an existing database, not only a fresh deployment. The user requested plain sample-data wording in the website while preserving provenance and stable catalogue IDs.
+- **Pipeline**: existing public/cited seed CSVs and frozen trend exports → existing FK-ordered, typed upserts (test personas/organisations remain fixture-only) → unchanged skill/course IDs → existing catalogue and trend methods → read-only PostgreSQL record comparison with zero mismatches → Docker PostgreSQL and rebuilt API/web images.
+- **Affects**: M1/M2/M3 read-only consumers; no schema, formula or source changes.
+- **Replaces**: none
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses
+
+### M4-048: Runpod GLM-5.3 primary with separately authenticated Gemini failover
+- **Date**: 2026-10-23
+- **Feature**: Core, F8 (Adi provider configuration)
+- **Type**: method | other
+- **Change**: Configure the user-supplied Runpod public Chat Completions endpoint and `glm-5.3` as primary; call Google Gemini only after primary request/schema failure or timeout. Keep `RUNPOD_API_KEY` and `GEMINI_API_KEY` separate, forward secrets only to the API container, and retain the existing HTTP client. Use low reasoning, capped output and one shared deadline with time reserved for the backup. Logs and assistant replies cite the actual answering provider/model; `/about` and README disclose the configured chain. Preserve the Adi name.
+- **Why**: The presentation uses Runpod credits without deploying a Pod, while Gemini provides continuity during an outage. A fallback model name alone cannot switch endpoints or credentials safely.
+- **Affects**: M3 gateway/provider/config; M4 assistant, Docker and documentation. No dependency changes. Unit tests cover primary-only success, key separation, malformed JSON, cancellation and expired deadlines; one small live request returned a validated ID from Runpod GLM-5.3.
+- **Replaces**: M4-028 Gemini-primary configuration; extends M4-031 grounded answer selection.
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses
+
+### M4-049: Mobile workspace choices and visual skill readiness
+- **Date**: 2026-10-23
+- **Feature**: Core, F7 (employee agreements and mobile navigation)
+- **Type**: UI
+- **Change**: Show workspace choices directly inside the mobile menu rather than expanding a nested dropdown. Use a short menu entrance, visible-focus controls and larger touch targets; prevent the desktop account footer from widening the sidebar. Replace estimate/status pills with wrapping text markers and an evidence disclosure. Show role readiness as an accessible percentage meter with its meaning, compact two-column agreement terms, and courses behind an explicit disclosure.
+- **Why**: A nested dropdown changed the height of an already animated mobile sheet. Stacked text-only terms and boxed status tags obscured the key numbers and caused fatigue on phones. Readiness remains the existing required-skill-level coverage, not a new score or a hiring decision.
+- **Affects**: Shared shell, estimate/badge styling and EN/MS/ZH employee copy. No scoring, schema or data changes.
+- **Replaces**: none (refines M4-046)
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses
+
+### M4-050: Softer agreement hierarchy and unobtrusive phone assistant
+- **Date**: 2026-10-23
+- **Feature**: Core, F7 (employee agreements)
+- **Type**: UI
+- **Change**: Refine the agreement into a rounded sage route panel with an accessible circular skill-coverage gauge and a prominent catalogue role. Use localised dates, icon-led time/date facts, a separate budget amount and planned course cost, and compact programme context. Keep the phone assistant launcher small, hide its promotional callout and remove it while the menu is open; wrap suggestions and use a 16px input to avoid phone zoom.
+- **Why**: The first straight-bar design still felt rigid and text-heavy. Mobile numbers and decisions need more visual hierarchy without adding a new score or obscuring evidence.
+- **Affects**: EN/MS/ZH agreement copy and assistant styles; no API, scoring or data changes.
+- **Replaces**: M4-049 straight-bar visual treatment only; preserves its workspace and evidence rules.
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses
+
+
+### M4-051: Review catalogue omissions without inventing CV skills
+- **Date**: 2026-10-23
+- **Feature**: Core integration, F1 (CV intake), guest preview
+- **Type**: method
+- **Change**: Add optional `unmatched_terms` to CV/guest responses, bounded to 30 short entries from explicit EN/MS/ZH skills lists. Compare complete entries against approved aliases, deduplicate case-insensitively, skip contact/markup/negated/oversized entries and keep the original cleaned wording for transient review. Guest preview and intake explain catalogue limits and truncation; intake can search for a user-confirmed equivalent. Unknown wording is never stored, scored, sent to an LLM or promoted into the taxonomy; unknown-only previews have no role or score.
+- **Why**: The previous parser silently omitted unfamiliar skills and the upload action discarded truncation. Absence from the catalogue must not be presented as lack of ability, and fuzzy guesses must not receive credit.
+- **Pipeline**: in-memory sample CV upload → existing extraction, text cap and scrubbing → exact catalogue aliases plus bounded explicit-list review entries → deterministic extraction with human confirmation → 165 profile/preview checks pass, including mixed/unknown-only lists, aliases, duplicates, truncation, unsafe entries and non-persistence → additive API fields and EN/MS/ZH review interfaces.
+- **Affects**: F1 contracts and generated bindings, public preview, intake; no database migration or score changes.
+- **Replaces**: none
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses
+
+
+### M4-052: Maintained documentation names and retirement of one-off handoffs
+- **Date**: 2026-10-23
+- **Feature**: Core documentation
+- **Type**: other
+- **Change**: Remove obsolete PR #4 validation, feature-status/fix handoff, workspace handoff and proposed UX-flow reports; Git preserves their history. Rename six maintained guides to lowercase kebab-case, update active references and developer-specific links, and add a documentation index. Keep conventional agent/README/FEATURE entrypoints; Claude and Gemini import the authoritative AGENTS manual. Refresh stale skeleton, provider, catalogue and workspace descriptions in active guides and unsigned submission drafts.
+- **Why**: Multiple old reports contradicted the implemented flows and current provider/data configuration. One maintained guide per topic and portable names make the repository easier to navigate without erasing the decision history.
+- **Affects**: Documentation and code-comment references only; existing decisions remain unchanged, including historical paths. No runtime or schema changes.
+- **Replaces**: none
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses
+
+
+### M4-053: PostgreSQL CI fixtures respect workspace privacy and sharing
+- **Date**: 2026-10-23
+- **Feature**: Core, F5/F7 integration tests
+- **Type**: other
+- **Change**: Update the persistent evidence test to reject manager review of private personal evidence, then complete an accepted employer programme and verify its scoped evidence persists independently. Update the earned-level/team test to assert hidden skills are excluded, explicitly enable sharing before team comparisons, and restore the prior sharing choice.
+- **Why**: CI's PostgreSQL upgrade job retained pre-workspace assumptions; new memberships correctly default to private skills and personal evidence cannot be reviewed through employer routes. Memory fixtures had opted into sharing, hiding the integration-test mismatch.
+- **Affects**: Two regression tests only; production privacy, matching, transaction and migration logic are unchanged.
+- **Validation**: Reproduced both CI failures using the exact skeleton upgrade in a disposable PostgreSQL database; all 38 tests from that CI job pass after the change. Existing stale-certificate and multi-skill foundation regressions also pass. Temporary databases are removed; the application database is untouched.
+- **Replaces**: none
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses
+
+
+### M4-054: Claude workspace configuration remains local
+- **Date**: 2026-10-23
+- **Feature**: Core repository hygiene
+- **Type**: other
+- **Change**: Ignore the entire `.claude/` directory and remove its previously tracked launch/helper files from the Git index while preserving local copies. Keep repository-wide `CLAUDE.md` as the intentional agent entrypoint.
+- **Why**: The old rule ignored only `.claude/settings.local.json`; tracked machine-specific launch configuration and helpers continued to appear in commits.
+- **Affects**: Local tool configuration only; no application behaviour or dependency changes.
+- **Replaces**: none
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses
+
+
+### M4-055: Organisation join flow uses explicit member consent and shares profile
+- **Date**: 2026-10-23
+- **Feature**: F7 (Organisation Mode & Heatmaps), Core
+- **Type**: UI / schema / contract
+- **Change**: Replace the optional 'share private skills' toggle on the join-code flow with an explicit consent requirement to join the organisation workspace and share the learner's skill profile and learning progress with organisation managers. Members joining with a valid code and consent default `share_skills` to `True`.
+- **Why**: Joining an organisation workspace is an affirmative, consensual action initiated by the employee/student themselves to collaborate with their team. Explicit consent replaces confusing separate "private skills" choices during intake while ensuring members understand what managers can access.
+- **Affects**: `JoinOrgIn` and `SignupIn` contracts (added `consent`, defaulted `share_skills` to True), `JoinView` and `AuthView` UI components, join API endpoints, and join test assertions.
+- **Replaces**: none
+- **PR / branch**: feat/org-join-consent
+
+
+### M4-056: Privacy hardening across join consent, programme acceptance, and cross-tab workspaces
+- **Date**: 2026-10-23
+- **Feature**: F7 (Organisation Mode & Heatmaps), Core
+- **Type**: contract | UI | method | schema
+- **Change**:
+  1. Signup with an organisation join code requires explicit user consent via a mandatory checkbox to share skill levels and learning progress with managers (`SignupIn.share_skills` defaults to `False` and is enforced by `accounts/service.py`).
+  2. Programme agreement acceptance requires explicit consent when skills sharing is switched off before rebuilding routes with personal profile levels; employer-facing `list_programmes` masks private profile skill levels (`current_level: 0`) for members whose sharing is toggled off.
+  3. Every organisation action, form, and mutation carries the displayed organisation ID (`expected_org`) and passes it into API requests to reject cross-tab workspace cookie drift with 409 `workspace_changed`.
+- **Why**: Resolves Greptile P1 security and privacy findings ("Signup shares skills without notice", "Acceptance reveals private skills", and "Forms change another organisation") while respecting the user choice that membership in an organisation is an affirmative consensual collaboration.
+- **Affects**: `SignupIn`, `AssignmentDecision` contracts, `accounts/service.py`, `programmes.py`, `org/router.py`, `AuthView.tsx`, `auth-actions.ts`, `funding-actions.ts`, `work/actions.ts`, `server.ts`, and i18n locales.
+- **Replaces**: none
+- **PR / branch**: feat/catalogue-roles-skills-courses
+
+### M4-057: Close the remaining gaps in the M4-056 privacy fixes
+- **Date**: 2026-10-23
+- **Feature**: F7 (Organisation Mode & Heatmaps), F5 (progress forms), Core
+- **Type**: method | UI
+- **Change**:
+  1. HR's programme list hides every level derived from a non-sharing member's private skills (`programmes.private_route`): gap statuses are removed, and step and unmet `current_level` are 0. Courses, hours, costs and target levels stay visible because the employer funds them.
+  2. Acceptance consent is an explicit checkbox, shown only to members who do not share skill levels; the web action no longer sends `consent: true` on every accept.
+  3. Progress, certificate, share-from-personal and HR review forms carry the workspace the API rendered (`Progress.workspace`, `VerificationQueue.org_id`), and the package-accept form carries its organisation, so a workspace switched in another tab cannot receive the change.
+- **Why**: Greptile P1 threads "Acceptance reveals private skills" and "Forms change another organisation" were only partly fixed by M4-056: gap statuses still revealed levels, consent was implicit, and pathway forms still followed the shared cookie.
+- **Affects**: M3 (F5 `ProgressView`, `VerificationQueueView`, `pathway/actions.ts`: forms now include a `workspace` field)
+- **Replaces**: none (extends M4-056)
+- **PR / branch**: feat/catalogue-roles-skills-courses
+
+### M4-058: Employer view of private routes is an allowlist; join consent is never assumed
+- **Date**: 2026-10-23
+- **Feature**: F7 (Organisation Mode & Heatmaps), Core
+- **Type**: method | contract | UI
+- **Change**:
+  1. `programmes.private_route` rebuilds each step from an allowlist for members who do not share skills. Step explanations are neutral, with no "You are at level ..." text or gap share. Priority and current level are 0; the reached level comes from the courses' own catalogue levels. Unmet details are generic, and gaps, warnings and segment are removed. New pathway fields therefore stay private by default.
+  2. `JoinOrgIn.consent` now defaults to `false`, so an API join without explicit consent is refused (`consent_required`). This brings the contract in line with M4-055 and M4-056. The join consent and sign-up sharing checkboxes start unticked.
+- **Why**: Greptile (confidence 3/5) found private levels still in step explanations. Review also found the join contract's `consent=True` default contradicted the agreed explicit-consent rule.
+- **Affects**: API clients of `POST /org/join` must send `consent: true`
+- **Replaces**: none (extends M4-056, M4-057)
+- **PR / branch**: feat/catalogue-roles-skills-courses
+
+

@@ -76,7 +76,10 @@ def test_progress_raises_levels_and_awards_badges(client: TestClient) -> None:
     for step in plan.steps:
         for c in step.courses:
             body = _progress(client, c.id)
-    assert body.percent_complete == 1 and body.gap_closed == body.gap_total
+    assert body.percent_complete == 1
+    # Course completion does not erase skills the catalogue cannot fully teach.
+    assert body.gap_closed < body.gap_total
+    assert {s.skill_id for s in body.skills if not s.closed} == {u.skill_id for u in plan.unmet}
     assert {"milestone:halfway", "milestone:complete"} <= {b.id for b in body.badges}
 
 

@@ -36,7 +36,7 @@ def to_contract(account: accounts.Account) -> Account:
         email=account.email,
         kind=account.kind,
         org_id=account.org_id,
-        has_profile=account.kind == "learner" and profile_service.has_profile(account.id),
+        has_profile=profile_service.has_profile(account.id),
     )
 
 
@@ -89,7 +89,21 @@ def signup(body: SignupIn) -> SessionResponse:
         if org_mode and body.organisation is not None:
             org_service.create_org(account, body.organisation)
         elif join_org is not None:
-            org_service.join_org(user_from_account(account), JoinOrgIn(code=body.join_code or ""))
+            if not body.share_skills:
+                raise AppError(
+                    "Consent to share your skills is required when signing up with an "
+                    "organisation join code.",
+                    status_code=400,
+                    code="sharing_consent_required",
+                )
+            org_service.join_org(
+                user_from_account(account),
+                JoinOrgIn(
+                    code=body.join_code or "",
+                    share_skills=body.share_skills,
+                    consent=body.consent,
+                ),
+            )
     except Exception:
         # Sign-up is all or nothing: never leave an account without the organisation it was
         # created for (its email would be taken and /org/setup has nothing to edit).
@@ -114,6 +128,7 @@ def login(body: LoginIn) -> SessionResponse:
 
 def export(user: CurrentUser) -> AccountExport:
     """Everything stored about the signed-in person, as one JSON document (PDPA access)."""
+    from app.features.org import funding_store
     from app.features.pathway import repository as pathway_repository
     from app.features.pathway import service as pathway_service
 
@@ -147,7 +162,30 @@ def export(user: CurrentUser) -> AccountExport:
         plan_history=[p.model_dump(mode="json") for p in store.plan_history(user.id)],
         learning=learning,
         badges={badge: day.isoformat() for badge, day in badges.items()},
+        learning_funding=funding_store.export_user(user.id),
     )
+
+
+def _refuse_orphaning(user_id: str) -> None:
+    """The last manager cannot delete their account while the organisation still has members,
+    programmes or funding records: deleting it would silently erase their colleagues' work data.
+    """
+    from app.features.org import funding_store
+    from app.features.org import repository as org_repository
+
+    for org, role, _shared in org_repository.memberships_of(user_id):
+        if role == "member" or org_repository.managers_of(org.id) != [user_id]:
+            continue
+        members = org_repository.list_members(org.id)
+        state = funding_store.snapshot(org.id)
+        if members or state.claims or state.programmes or state.budgets:
+            raise AppError(
+                f"You are the only manager of {org.name}, which still has "
+                f"{len(members)} member(s) and its learning records. Remove the members first, "
+                "or ask another manager to take over, then delete your account.",
+                status_code=409,
+                code="last_manager",
+            )
 
 
 def delete_account(user: CurrentUser, body: DeleteAccountIn) -> None:
@@ -156,6 +194,7 @@ def delete_account(user: CurrentUser, body: DeleteAccountIn) -> None:
     found = accounts.find_for_login(account.email or "") if account else None
     if found is None or not session.check_password(body.password, found[1]):
         raise UnauthorizedError("Password is incorrect.")
+    _refuse_orphaning(user.id)
     accounts.delete(user.id, strict=True)
     if not use_postgres():
         from app.features.org import repository as org_repository

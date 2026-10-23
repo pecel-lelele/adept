@@ -10,7 +10,9 @@ from app.contracts.profile import Segment
 from app.contracts.sdg import SdgTarget
 
 GapStatus = Literal["have", "partial", "missing"]
-UnmetReason = Literal["no_catalogue_course", "over_budget", "catalogue_tops_out"]
+UnmetReason = Literal[
+    "no_catalogue_course", "over_budget", "catalogue_tops_out", "blocked_prerequisite"
+]
 CourseStatus = Literal["not_started", "in_progress", "completed"]
 CourseFormat = Literal["self_paced", "live_online", "in_person", "hybrid", "subscription"]
 CourseAudience = Literal["individual", "corporate", "both"]
@@ -44,6 +46,8 @@ class Course(BaseModel):
     provider_type: ProviderType = "private_provider"
     location: str = ""
     price_note: str = Field(default="", description="How cost_myr was derived (e.g. FX rate).")
+    price_status: Literal["listed", "certificate_price_unknown"] = "listed"
+    certificate_note: str = ""
 
 
 class SkillGap(BaseModel):
@@ -96,7 +100,10 @@ class Pathway(BaseModel):
     total_hours: float = Field(default=0, ge=0)
     total_cost_myr: float = Field(default=0, ge=0, description="List price of all courses.")
     out_of_pocket_myr: float = Field(
-        default=0, ge=0, description="What the learner pays after HRD Corp claims."
+        default=0,
+        ge=0,
+        description="Estimated list price before unquoted taxes/extras; "
+        "HRD eligibility does not guarantee funding.",
     )
     budget_myr: float = Field(default=0, ge=0)
     within_budget: bool = True
@@ -206,6 +213,21 @@ class CompletionEvidence(BaseModel):
     reviewed_by: str | None = Field(default=None, description="HR or advisor who reviewed it.")
     reviewed_at: datetime | None = None
     review_note: str = ""
+    scope: str = Field(
+        default="personal",
+        pattern=r"^(personal|org:[A-Za-z0-9_-]{1,80})$",
+        description="Workspace that owns this record: 'personal' or 'org:<organisation id>'.",
+    )
+    shared_from: Literal["personal"] | None = Field(
+        default=None, description="Set when the member copied this from their personal learning."
+    )
+
+
+class ShareCompletionIn(BaseModel):
+    """Share a course already completed in the personal workspace with a work programme."""
+
+    role_id: str = Field(max_length=80, description="The work programme's target role.")
+    course_id: str = Field(max_length=120)
 
 
 class EvidenceSubmit(BaseModel):
@@ -286,4 +308,13 @@ class Progress(BaseModel):
         default_factory=dict, description="Course id -> completion evidence."
     )
     pathway: Pathway = Field(description="The plan this progress is tracked against.")
+    workspace: str = Field(
+        default="personal", description="'personal' or the organisation id this plan belongs to."
+    )
+    completed_elsewhere: dict[str, str] = Field(
+        default_factory=dict,
+        description="Course id -> workspace ('personal' or organisation id) where a planned "
+        "course was already completed. Personal plans count your own work learning; work "
+        "programmes count personal learning only after you share it.",
+    )
     meta: RecommendationMeta

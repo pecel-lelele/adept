@@ -18,7 +18,7 @@ export type IntakeInput = {
 };
 
 export type IntakeResult = { error?: string };
-export type CvResult = { error?: string; skills?: Schemas["ExtractedSkill"][] };
+export type CvResult = { error?: string } & Partial<Pick<Schemas["CvExtractionResult"], "skills" | "unmatched_terms" | "truncated">>;
 
 const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, Math.round(n || 0)));
 
@@ -76,7 +76,8 @@ export async function uploadCvAction(form: FormData): Promise<CvResult> {
     });
     const json: unknown = await response.json().catch(() => null);
     if (!response.ok) return { error: errorBody(json, response.status).message };
-    return { skills: (json as Schemas["CvExtractionResult"]).skills };
+    const parsed = json as Schemas["CvExtractionResult"];
+    return { skills: parsed.skills, unmatched_terms: parsed.unmatched_terms, truncated: parsed.truncated };
   } catch {
     return { error: "We couldn’t read that file right now. Please try again." };
   }

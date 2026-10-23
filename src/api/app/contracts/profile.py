@@ -53,6 +53,14 @@ class ExtractedSkill(BaseModel):
 
 class CvExtractionResult(BaseModel):
     skills: list[ExtractedSkill]
+    unmatched_terms: list[str] = Field(
+        default_factory=list,
+        max_length=30,
+        description=(
+            "Up to 30 unrecognised entries from explicit skills lists, for transient human review. "
+            "Not verified skills, not persisted or scored; prose may contain other missed skills."
+        ),
+    )
     truncated: bool = False
     meta: RecommendationMeta
 

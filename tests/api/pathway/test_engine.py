@@ -117,11 +117,11 @@ def test_free_course_preferred_when_not_hrd_eligible() -> None:
     assert plan.out_of_pocket_myr == 0
 
 
-def test_hrd_claimable_course_costs_eligible_learner_nothing() -> None:
+def test_hrd_eligibility_does_not_imply_approved_funding() -> None:
     plan = build([Requirement("py", 3, 1)], learner(budget=0, hrd=True))
-    # Both cost RM0 to this learner; the shorter one wins.
-    assert [c.id for c in plan.steps[0].courses] == ["py-paid"]
-    assert plan.out_of_pocket_myr == 0 and plan.total_cost_myr == 900
+    assert [c.id for c in plan.steps[0].courses] == ["py-free"]
+    assert plan.out_of_pocket_myr == 0 and plan.total_cost_myr == 0
+    assert engine.out_of_pocket(course("paid", "py", 3, 10, cost=900, hrd=True), True) == 900
 
 
 def test_budget_is_respected() -> None:
@@ -171,3 +171,12 @@ def test_zero_hours_falls_back_with_a_warning() -> None:
 )
 def test_week_range(before: float, after: float, hpw: float, expected: tuple[int, int]) -> None:
     assert engine.week_range(before, after, hpw) == expected
+
+
+def test_courses_that_stop_below_the_requirement_are_not_called_missing() -> None:
+    """A skill the catalogue teaches up to level 2 is "tops out", never "no course"."""
+    only = course("only-l2", "sql", level=2, hours=3)
+    sel = engine.select_courses("sql", 2, 3, [only], 0, False, set())
+    assert sel.unmet == "catalogue_tops_out"
+    none = engine.select_courses("python", 0, 3, [only], 0, False, set())
+    assert none.unmet == "no_catalogue_course"
