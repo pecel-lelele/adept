@@ -1258,3 +1258,26 @@
 - **Validation**: Reproduced both CI failures using the exact skeleton upgrade in a disposable PostgreSQL database; all 38 tests from that CI job pass after the change. Existing stale-certificate and multi-skill foundation regressions also pass. Temporary databases are removed; the application database is untouched.
 - **Replaces**: none
 - **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses
+
+
+### M4-054: Claude workspace configuration remains local
+- **Date**: 2026-10-23
+- **Feature**: Core repository hygiene
+- **Type**: other
+- **Change**: Ignore the entire `.claude/` directory and remove its previously tracked launch/helper files from the Git index while preserving local copies. Keep repository-wide `CLAUDE.md` as the intentional agent entrypoint.
+- **Why**: The old rule ignored only `.claude/settings.local.json`; tracked machine-specific launch configuration and helpers continued to appear in commits.
+- **Affects**: Local tool configuration only; no application behaviour or dependency changes.
+- **Replaces**: none
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses
+
+
+### M4-055: Organisation join flow uses explicit member consent and shares profile
+- **Date**: 2026-10-23
+- **Feature**: F7 (Organisation Mode & Heatmaps), Core
+- **Type**: UI / schema / contract
+- **Change**: Replace the optional 'share private skills' toggle on the join-code flow with an explicit consent requirement to join the organisation workspace and share the learner's skill profile and learning progress with organisation managers. Members joining with a valid code and consent default `share_skills` to `True`.
+- **Why**: Joining an organisation workspace is an affirmative, consensual action initiated by the employee/student themselves to collaborate with their team. Explicit consent replaces confusing separate "private skills" choices during intake while ensuring members understand what managers can access.
+- **Affects**: `JoinOrgIn` and `SignupIn` contracts (added `consent`, defaulted `share_skills` to True), `JoinView` and `AuthView` UI components, join API endpoints, and join test assertions.
+- **Replaces**: none
+- **PR / branch**: feat/org-join-consent
+
