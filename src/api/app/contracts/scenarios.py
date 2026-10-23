@@ -27,6 +27,14 @@ class RoleOutlook(BaseModel):
     outlook: float = Field(description="Projected demand index; 1.0 = current demand.")
     low: float
     high: float
+    insufficient_evidence: bool = Field(
+        default=False,
+        description=(
+            "True when skill coverage for this role is below MIN_COVERAGE_THRESHOLD "
+            "(20%). The low/high range is still provided but should be treated with "
+            "extra caution. Always an estimate."
+        ),
+    )
 
 
 class OutlookResponse(BaseModel):

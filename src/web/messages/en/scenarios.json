@@ -1,5 +1,7 @@
 {
   "title": "Scenarios",
   "outlook": "Outlook",
-  "range": "Range {low}–{high}"
+  "range": "Range {low}–{high}",
+  "lowEvidence": "Low evidence",
+  "insufficientEvidenceTitle": "Skill coverage is below 20% — range estimate is less reliable"
 }

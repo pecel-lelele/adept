@@ -1505,7 +1505,8 @@ html[data-locale-switching] .a-page, html[data-locale-switching] .a-shell { opac
 .a-shell .a-outlook { display: grid; gap: 14px; }
 .a-shell .a-outlook-row { display: grid; grid-template-columns: 150px minmax(0, 1fr) 150px; gap: 16px; align-items: center; padding: 10px 12px; border-radius: 10px; font-size: 13.5px; }
 .a-shell .a-outlook-row[data-current] { background: #f3faf0; }
-.a-shell .a-outlook-name { font-weight: 500; }
+.a-shell .a-outlook-name { font-weight: 500; display: flex; align-items: center; gap: 6px; }
+.a-shell .a-outlook-badge { font-size: 10px; font-weight: 600; letter-spacing: .3px; padding: 1px 5px; border-radius: 4px; background: #fef3c7; color: #92400e; border: 1px solid #fde68a; white-space: nowrap; }
 .a-shell .a-outlook-track { position: relative; height: 10px; border-radius: 10px; background: #f2f5f1; }
 .a-shell .a-outlook-range { position: absolute; top: 0; bottom: 0; border-radius: 10px; background: #cfe9d6; }
 .a-shell .a-outlook-base { position: absolute; top: -4px; bottom: -4px; width: 1px; background: #b9c4bb; }

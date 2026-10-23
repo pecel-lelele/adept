@@ -51,3 +51,118 @@ def test_radar_signals_are_derived_from_the_snapshot(client: TestClient) -> None
     kinds = {i["entity_type"] for i in body["items"]}
     assert kinds == {"role", "skill"}
     assert all(src["name"] != "MOCK DATA" for src in body["meta"]["sources"])
+
+
+# ===========================================================================
+# Bug 1 — score_rows() must cover the full skill catalogue (not just exposure_map keys)
+# ===========================================================================
+
+import pytest
+
+from pipelines.trends.score import DEFAULT_EXPOSURE, score_rows
+
+
+class TestScoreRowsFullCatalogue:
+    """score_rows() must include every skill ID in the provided skill_ids set,
+    even those absent from the exposure_map (canonical_skills.csv)."""
+
+    def _inputs(self):
+        counts = {"skill_a": 10.0, "skill_b": 5.0, "skill_c": 3.0}
+        labor = {"skill_a": (0.1, "bls"), "skill_b": (-0.2, "bls")}
+        exposure = {"skill_a": 0.7, "skill_b": 0.3}  # skill_c intentionally absent
+        return counts, labor, exposure
+
+    def test_without_skill_ids_drops_uncovered_skill(self) -> None:
+        counts, labor, exposure = self._inputs()
+        rows = score_rows(counts, 100, counts, 100, labor, exposure, skill_ids=None)
+        assert "skill_c" not in {r["skill_id"] for r in rows}
+
+    def test_with_skill_ids_includes_uncovered_skill(self) -> None:
+        counts, labor, exposure = self._inputs()
+        full = {"skill_a", "skill_b", "skill_c"}
+        rows = score_rows(counts, 100, counts, 100, labor, exposure, skill_ids=full)
+        assert {r["skill_id"] for r in rows} == full
+
+    def test_uncovered_skill_gets_default_exposure(self) -> None:
+        counts, labor, exposure = self._inputs()
+        rows = score_rows(counts, 100, counts, 100, labor, exposure, skill_ids={"skill_a", "skill_b", "skill_c"})
+        row_c = next(r for r in rows if r["skill_id"] == "skill_c")
+        assert row_c["automation_exposure"] == pytest.approx(DEFAULT_EXPOSURE, abs=1e-6)
+
+    def test_canonical_skills_scores_unchanged(self) -> None:
+        counts, labor, exposure = self._inputs()
+        without = {r["skill_id"]: r for r in score_rows(counts, 100, counts, 100, labor, exposure)}
+        with_ = {r["skill_id"]: r for r in score_rows(counts, 100, counts, 100, labor, exposure, skill_ids={"skill_a", "skill_b", "skill_c"})}
+        for sid in ("skill_a", "skill_b"):
+            for key in ("velocity_moderate", "velocity_fast", "automation_exposure"):
+                assert with_[sid][key] == pytest.approx(without[sid][key], abs=1e-9)
+
+    def test_output_count_equals_full_catalogue_count(self) -> None:
+        counts, labor, exposure = self._inputs()
+        full = {"skill_a", "skill_b", "skill_c", "skill_d", "skill_e"}
+        rows = score_rows(counts, 100, counts, 100, labor, exposure, skill_ids=full)
+        assert len(rows) == len(full)
+
+
+# ===========================================================================
+# Bug 2 — enforce_fast_magnitude: |fast| must be >= |moderate| at role level
+# ===========================================================================
+
+from app.features.scenarios.service import enforce_fast_magnitude
+
+
+class TestEnforceFastMagnitude:
+    def test_adversarial_mix_bug_reproduces_then_fixed(self) -> None:
+        """Adversarial: role_moderate=0.14, role_fast=0.125 (before fix). Bug confirmed."""
+        role_moderate = 0.14
+        role_fast_buggy = 0.125
+        assert abs(role_fast_buggy) < abs(role_moderate), "Precondition: bug must exist"
+        fixed = enforce_fast_magnitude(role_moderate, role_fast_buggy)
+        assert abs(fixed) >= abs(role_moderate)
+        assert fixed >= 0, "Direction must be preserved"
+
+    def test_already_satisfied_unchanged(self) -> None:
+        assert enforce_fast_magnitude(0.10, 0.20) == pytest.approx(0.20)
+
+    def test_negative_direction_preserved(self) -> None:
+        fixed = enforce_fast_magnitude(-0.15, -0.08)
+        assert abs(fixed) >= 0.15
+        assert fixed <= 0
+
+    def test_opposite_sign_not_adjusted(self) -> None:
+        assert enforce_fast_magnitude(0.10, -0.05) == pytest.approx(-0.05)
+
+    def test_zero_fast_same_direction_gets_floor(self) -> None:
+        assert abs(enforce_fast_magnitude(0.12, 0.0)) >= 0.12
+
+
+# ===========================================================================
+# Bug 3 — outlook_range: nonzero width at near-zero signal + low coverage
+# ===========================================================================
+
+from app.features.scenarios.service import MIN_COVERAGE_THRESHOLD, BASE_UNCERTAINTY, outlook_range as _range
+
+
+class TestOutlookRangeBug3:
+    def test_near_zero_signal_low_coverage_nonzero_range(self) -> None:
+        low, high = _range([0.001], 0.001, 0.02)
+        assert low != high, f"Near-zero signal + low coverage must produce range. Got {low}, {high}"
+        assert high > low
+
+    def test_near_zero_signal_high_coverage_narrow_range(self) -> None:
+        low, high = _range([0.001], 0.001, 0.95)
+        assert high > low
+        assert (high - low) < 0.10, f"High-coverage should be narrow. Got width={(high-low):.4f}"
+
+    def test_large_signal_low_coverage_wide_range(self) -> None:
+        low, high = _range([0.40], 0.40, 0.10)
+        assert (high - low) > 0.10
+
+    def test_full_coverage_zero_widen(self) -> None:
+        low, high = _range([0.20], 0.20, 1.0)
+        assert low == pytest.approx(high, abs=0.001)
+
+    def test_constants_are_set(self) -> None:
+        assert MIN_COVERAGE_THRESHOLD == pytest.approx(0.20)
+        assert BASE_UNCERTAINTY > 0
+

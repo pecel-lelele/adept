@@ -29,7 +29,14 @@ export async function RoleOutlookPanel({
     <div className="a-outlook">
       {all.map((o) => (
         <div key={o.scenario} className="a-outlook-row" data-current={o.scenario === scenario || undefined}>
-          <span className="a-outlook-name">{tc(o.scenario)}</span>
+          <span className="a-outlook-name">
+            {tc(o.scenario)}
+            {o.insufficient_evidence && (
+              <span className="a-outlook-badge" title={t("insufficientEvidenceTitle")}>
+                {t("lowEvidence")}
+              </span>
+            )}
+          </span>
           <span className="a-outlook-track" aria-hidden>
             <i className="a-outlook-range" style={{ left: pos(o.low), width: `calc(${pos(o.high)} - ${pos(o.low)})` }} />
             <i className="a-outlook-base" style={{ left: pos(1) }} />
