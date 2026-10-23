@@ -1,5 +1,4 @@
-import { asyncView } from "@/lib/next-compat/async-view";
-import { getTranslations } from "@/lib/next-compat/intl";
+import { getTranslations } from "next-intl/server";
 
 import { ApiError, PageHeader } from "@/components";
 import { fetchProgrammeOptions } from "@/features/org/programmes/api";
@@ -7,7 +6,7 @@ import { ProgrammeWizard } from "@/features/org/programmes/components/ProgrammeW
 import { currentWorkspace } from "@/lib/auth/workspace";
 
 /** HR onboarding for a new programme: objective → roles → people → constraints → generate. */
-async function PageAsync() {
+export default async function Page() {
   const t = await getTranslations("org.programmes");
   const [options, workspace] = await Promise.all([fetchProgrammeOptions(), currentWorkspace()]);
   return (
@@ -17,5 +16,3 @@ async function PageAsync() {
     </div>
   );
 }
-
-export default asyncView(PageAsync);

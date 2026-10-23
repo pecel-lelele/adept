@@ -1,8 +1,7 @@
-import { asyncView } from "@/lib/next-compat/async-view";
 import { ArrowRight, ArrowUpRight, BookOpen, Building2, Check, Compass, Leaf, Route, Target, TrendingUp } from "lucide-react";
-import Link from "@/lib/next-compat/link";
-import { redirect } from "@/lib/next-compat/router";
-import { getTranslations } from "@/lib/next-compat/intl";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 
 import { Kpis, MetaBar } from "@/components";
 import { ErrorState } from "@/components/ErrorState";
@@ -21,7 +20,7 @@ import { journeyHref } from "@/lib/navigation";
  * numbers → top roles and the learner's skill trends → the plan and the goals it supports.
  * Charts and lists only; illustrations stay on the public pages.
  */
-async function DashboardViewAsync({ scenario, query }: { scenario: ScenarioId; query: URLSearchParams }) {
+export async function DashboardView({ scenario, query }: { scenario: ScenarioId; query: URLSearchParams }) {
   const account = await getAccount();
   if (account && !account.has_profile) redirect("/app/onboarding");
   const t = await getTranslations("ui.home");
@@ -285,5 +284,3 @@ async function DashboardViewAsync({ scenario, query }: { scenario: ScenarioId; q
     </div>
   );
 }
-
-export const DashboardView = asyncView(DashboardViewAsync);

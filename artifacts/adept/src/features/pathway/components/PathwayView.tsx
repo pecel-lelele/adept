@@ -1,4 +1,3 @@
-import { asyncView } from "@/lib/next-compat/async-view";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -12,8 +11,8 @@ import {
   Target,
   Wallet,
 } from "lucide-react";
-import Link from "@/lib/next-compat/link";
-import { getTranslations } from "@/lib/next-compat/intl";
+import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 import { ApiError, Kpis, MetaBar, PageHeader } from "@/components";
 import { Fold } from "@/components/Fold";
@@ -26,7 +25,7 @@ import { ActionForm } from "./ActionForm";
 import { PathwaySteps } from "./PathwaySteps";
 
 /** The plan's four numbers: how long, how many hours a week, hours in total, what it costs. */
-async function SummaryAsync({ plan }: { plan: Schemas["Pathway"] }) {
+async function Summary({ plan }: { plan: Schemas["Pathway"] }) {
   const tp = await getTranslations("ui.page");
   const t = await getTranslations("pathway");
   const over = plan.within_budget === false;
@@ -49,7 +48,7 @@ async function SummaryAsync({ plan }: { plan: Schemas["Pathway"] }) {
 }
 
 /** Side column: where to go from the plan, then the plan's notes in full. */
-async function PlanAsideAsync({ plan, query }: { plan: Schemas["Pathway"]; query: string }) {
+async function PlanAside({ plan, query }: { plan: Schemas["Pathway"]; query: string }) {
   const t = await getTranslations("pathway");
   const tp = await getTranslations("ui.page");
   const links = [
@@ -93,7 +92,7 @@ async function PlanAsideAsync({ plan, query }: { plan: Schemas["Pathway"]; query
   );
 }
 
-async function ReplanBannerAsync({ status }: { status: Schemas["ReplanStatus"] }) {
+async function ReplanBanner({ status }: { status: Schemas["ReplanStatus"] }) {
   const t = await getTranslations("pathway");
   if (!status.needs_replan) return null;
   // Show skill names, not ids: they appear in the saved plan or the proposed one.
@@ -122,7 +121,7 @@ async function ReplanBannerAsync({ status }: { status: Schemas["ReplanStatus"] }
   );
 }
 
-async function PathwayViewAsync({
+export async function PathwayView({
   roleId,
   scenario,
   snapshotDate,
@@ -200,8 +199,3 @@ async function PathwayViewAsync({
     </div>
   );
 }
-
-export const PathwayView = asyncView(PathwayViewAsync);
-const Summary = asyncView(SummaryAsync);
-const PlanAside = asyncView(PlanAsideAsync);
-const ReplanBanner = asyncView(ReplanBannerAsync);

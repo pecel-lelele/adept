@@ -1,7 +1,7 @@
 "use client";
 
 import { Leaf } from "lucide-react";
-import { usePathname, useRouter, useSearchParams } from "@/lib/next-compat/router";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useBusy } from "@/components/useBusy";
 

@@ -1,4 +1,4 @@
-import { getTranslations } from "@/lib/next-compat/intl";
+import { getTranslations } from "next-intl/server";
 
 export async function componentLabels(): Promise<Record<string, string>> {
   const t = await getTranslations("matching.component");

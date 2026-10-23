@@ -1,7 +1,6 @@
-import { asyncView } from "@/lib/next-compat/async-view";
 import { ClipboardList, Plus } from "lucide-react";
-import Link from "@/lib/next-compat/link";
-import { getTranslations } from "@/lib/next-compat/intl";
+import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 import { ApiError, EmptyState, Kpis, PageHeader } from "@/components";
 
@@ -9,7 +8,7 @@ import { fetchMembers } from "../../api";
 import { fetchProgrammes } from "../api";
 
 /** HR's programmes: who accepted, is still deciding, asked for a change or declined. */
-async function ProgrammesViewAsync() {
+export async function ProgrammesView() {
   const t = await getTranslations("org.programmes");
   const tw = await getTranslations("org.work");
   const [result, members] = await Promise.all([fetchProgrammes(), fetchMembers()]);
@@ -99,5 +98,3 @@ async function ProgrammesViewAsync() {
     </div>
   );
 }
-
-export const ProgrammesView = asyncView(ProgrammesViewAsync);

@@ -1,14 +1,13 @@
-import { asyncView } from "@/lib/next-compat/async-view";
 import { CircleAlert, UserRoundPen, WifiOff } from "lucide-react";
-import Link from "@/lib/next-compat/link";
-import { getTranslations } from "@/lib/next-compat/intl";
+import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 import type { ApiFailure } from "@/lib/api/client";
 
 import { RetryButton } from "./RetryButton";
 
 /** A failed API call with the one action that fixes it: sign in, finish the profile, retry. */
-async function ErrorStateAsync({ failure, compact = false }: { failure: ApiFailure; compact?: boolean }) {
+export async function ErrorState({ failure, compact = false }: { failure: ApiFailure; compact?: boolean }) {
   const t = await getTranslations("ui.error");
   const needsProfile = failure.code === "profile_required";
   const needsLogin = failure.status === 401;
@@ -25,7 +24,7 @@ async function ErrorStateAsync({ failure, compact = false }: { failure: ApiFailu
           {t("profile")}
         </Link>
       ) : needsLogin ? (
-        <a className="a-btn is-small" href="/api/logout">
+        <a className="a-btn is-small" href="/auth/logout">
           {t("signIn")}
         </a>
       ) : (
@@ -35,5 +34,3 @@ async function ErrorStateAsync({ failure, compact = false }: { failure: ApiFailu
   );
   return compact ? body : <section className="a-card">{body}</section>;
 }
-
-export const ErrorState = asyncView(ErrorStateAsync);

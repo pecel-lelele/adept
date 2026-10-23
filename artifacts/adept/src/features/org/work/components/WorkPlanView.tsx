@@ -1,7 +1,6 @@
-import { asyncView } from "@/lib/next-compat/async-view";
 import { ArrowUpRight, Building2, CalendarDays, Clock3, Wallet } from "lucide-react";
-import Link from "@/lib/next-compat/link";
-import { getLocale, getTranslations } from "@/lib/next-compat/intl";
+import Link from "next/link";
+import { getLocale, getTranslations } from "next-intl/server";
 
 import { ApiError, EmptyState, MetaBar, PageHeader } from "@/components";
 import { AssignedPackageView } from "@/features/org/components/AssignedPackageView";
@@ -13,7 +12,7 @@ import { type Assignment, byStatus, fetchMyProgrammes } from "../api";
 
 const REASONS = ["already_have_skill", "pace", "language", "accessibility", "schedule", "upfront_cost", "other"] as const;
 
-async function AgreementCardAsync({ a, org, orgId, shared }: { a: Assignment; org: string; orgId: string; shared: boolean }) {
+async function AgreementCard({ a, org, orgId, shared }: { a: Assignment; org: string; orgId: string; shared: boolean }) {
   const t = await getTranslations("org.work");
   const tp = await getTranslations("org.programmes");
   const g = a.agreement;
@@ -143,7 +142,7 @@ async function AgreementCardAsync({ a, org, orgId, shared }: { a: Assignment; or
 }
 
 /** A member's programme agreements in this organisation, newest first. */
-async function WorkPlanViewAsync({ org }: { org: WorkspaceOption }) {
+export async function WorkPlanView({ org }: { org: WorkspaceOption }) {
   const t = await getTranslations("org.work");
   const result = await fetchMyProgrammes();
   if (!result.ok) return <ApiError message={result.message} />;
@@ -169,6 +168,3 @@ async function WorkPlanViewAsync({ org }: { org: WorkspaceOption }) {
     </div>
   );
 }
-
-export const WorkPlanView = asyncView(WorkPlanViewAsync);
-const AgreementCard = asyncView(AgreementCardAsync);

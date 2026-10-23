@@ -1,6 +1,5 @@
-import { asyncView } from "@/lib/next-compat/async-view";
 import { ArrowUpRight, Award, BookOpen, Building2, Check, Layers, ShieldCheck, Target } from "lucide-react";
-import { getTranslations } from "@/lib/next-compat/intl";
+import { getTranslations } from "next-intl/server";
 
 import { ApiError, Kpis, MetaBar, PageHeader } from "@/components";
 import type { ScenarioId } from "@/lib/api";
@@ -16,7 +15,7 @@ import { EvidenceForm } from "./EvidenceForm";
  * learning too. Organisation workspace (`orgName`): the accepted employer programme, where
  * personal learning counts only after the member shares it.
  */
-async function ProgressViewAsync({
+export async function ProgressView({
   roleId,
   scenario,
   orgName,
@@ -269,5 +268,3 @@ async function ProgressViewAsync({
     </div>
   );
 }
-
-export const ProgressView = asyncView(ProgressViewAsync);

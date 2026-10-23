@@ -1,5 +1,5 @@
 import { Minus, TrendingDown, TrendingUp } from "lucide-react";
-import { useTranslations } from "@/lib/next-compat/intl";
+import { useTranslations } from "next-intl";
 
 /** A skill's demand direction as a word with an arrow, never a bare symbol. */
 export function TrendPill({ direction }: { direction?: string | null }) {

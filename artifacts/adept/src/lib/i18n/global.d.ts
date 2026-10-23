@@ -13,7 +13,7 @@ import type ui from "../../../messages/en/ui.json";
 
 import type { Locale } from "./config";
 
-declare module "use-intl" {
+declare module "next-intl" {
   interface AppConfig {
     Locale: Locale;
     Messages: {

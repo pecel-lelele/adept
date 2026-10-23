@@ -1,8 +1,8 @@
 "use client";
 
 import { Search } from "lucide-react";
-import { usePathname, useRouter, useSearchParams } from "@/lib/next-compat/router";
-import { useTranslations } from "@/lib/next-compat/intl";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 
 import type { ScenarioId, Schemas } from "@/lib/api";

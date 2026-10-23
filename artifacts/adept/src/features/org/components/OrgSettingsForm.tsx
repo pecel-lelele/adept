@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "@/lib/next-compat/intl";
+import { useTranslations } from "next-intl";
 import { useActionState } from "react";
 
 import type { Schemas } from "@/lib/api";

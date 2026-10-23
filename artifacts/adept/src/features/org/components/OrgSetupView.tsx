@@ -1,5 +1,4 @@
-import { asyncView } from "@/lib/next-compat/async-view";
-import { getTranslations } from "@/lib/next-compat/intl";
+import { getTranslations } from "next-intl/server";
 
 import { PageHeader } from "@/components";
 import { ErrorState } from "@/components/ErrorState";
@@ -10,7 +9,7 @@ import { JoinCodeCard } from "./JoinCodeCard";
 import { OrgSettingsForm } from "./OrgSettingsForm";
 
 /** Organisation settings: name, type, industry and size, beside the join code. */
-async function OrgSetupViewAsync() {
+export async function OrgSetupView() {
   const t = await getTranslations("ui.org");
   const tp = await getTranslations("ui.page");
   const org = await fetchMyOrg();
@@ -33,5 +32,3 @@ async function OrgSetupViewAsync() {
     </div>
   );
 }
-
-export const OrgSetupView = asyncView(OrgSetupViewAsync);

@@ -1,7 +1,6 @@
-import { asyncView } from "@/lib/next-compat/async-view";
 import { ArrowUpRight } from "lucide-react";
-import Link from "@/lib/next-compat/link";
-import { getTranslations } from "@/lib/next-compat/intl";
+import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
 
 import { getAccount } from "@/lib/auth/account";
@@ -15,7 +14,7 @@ import { SiteMenu } from "./SiteMenu";
  * switch (landing only) and language pill, then sign-in and a green "Create account".
  * Signed-in visitors get a link to their workspace. Phones get a hamburger menu instead.
  */
-async function SiteHeaderAsync({
+export async function SiteHeader({
   signup,
   audienceSwitch,
 }: {
@@ -89,7 +88,7 @@ async function SiteHeaderAsync({
 }
 
 /** Public footer (partner design): tagline, three link columns, legal line, a large closing word. */
-async function SiteFooterAsync({ note }: { note?: ReactNode }) {
+export async function SiteFooter({ note }: { note?: ReactNode }) {
   const t = await getTranslations("ui.landing");
   const tn = await getTranslations("ui.nav");
   return (
@@ -132,6 +131,3 @@ async function SiteFooterAsync({ note }: { note?: ReactNode }) {
     </footer>
   );
 }
-
-export const SiteHeader = asyncView(SiteHeaderAsync);
-export const SiteFooter = asyncView(SiteFooterAsync);

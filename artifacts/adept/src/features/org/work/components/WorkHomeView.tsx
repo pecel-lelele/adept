@@ -1,7 +1,6 @@
-import { asyncView } from "@/lib/next-compat/async-view";
 import { ArrowRight, Building2, CalendarClock, ClipboardCheck, EyeOff, Share2 } from "lucide-react";
-import Link from "@/lib/next-compat/link";
-import { getTranslations } from "@/lib/next-compat/intl";
+import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 import { ApiError, Kpis, PageHeader } from "@/components";
 import type { WorkspaceOption } from "@/lib/auth/workspaces";
@@ -9,7 +8,7 @@ import type { WorkspaceOption } from "@/lib/auth/workspaces";
 import { byStatus, fetchMyProgrammes } from "../api";
 
 /** Organisation home for a member: their own agreements, programmes and sharing choice. */
-async function WorkHomeViewAsync({ org }: { org: WorkspaceOption }) {
+export async function WorkHomeView({ org }: { org: WorkspaceOption }) {
   const t = await getTranslations("org.work");
   const result = await fetchMyProgrammes();
   if (!result.ok) return <ApiError message={result.message} />;
@@ -101,5 +100,3 @@ async function WorkHomeViewAsync({ org }: { org: WorkspaceOption }) {
     </div>
   );
 }
-
-export const WorkHomeView = asyncView(WorkHomeViewAsync);

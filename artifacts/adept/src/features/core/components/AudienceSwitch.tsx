@@ -1,7 +1,7 @@
 "use client";
 
 import { Building2, UserRound } from "lucide-react";
-import { useTranslations } from "@/lib/next-compat/intl";
+import { useTranslations } from "next-intl";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 

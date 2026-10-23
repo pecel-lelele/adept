@@ -1,12 +1,11 @@
-import { asyncView } from "@/lib/next-compat/async-view";
-import { getTranslations } from "@/lib/next-compat/intl";
+import { getTranslations } from "next-intl/server";
 
 import { ApiError, Card, CardContent, PageHeader, SourceBadge } from "@/components";
 
 import { fetchDataFreshness } from "../api";
 
 /** Admin pages for trend sources and snapshot versions (F2 Final). */
-async function AdminDataViewAsync({ view }: { view: "sources" | "snapshots" }) {
+export async function AdminDataView({ view }: { view: "sources" | "snapshots" }) {
   const t = await getTranslations("trends");
   const result = await fetchDataFreshness();
   return (
@@ -25,5 +24,3 @@ async function AdminDataViewAsync({ view }: { view: "sources" | "snapshots" }) {
     </section>
   );
 }
-
-export const AdminDataView = asyncView(AdminDataViewAsync);

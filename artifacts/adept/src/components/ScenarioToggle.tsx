@@ -1,8 +1,8 @@
 "use client";
 
 import { Gauge, Rabbit, Turtle } from "lucide-react";
-import { usePathname, useRouter, useSearchParams } from "@/lib/next-compat/router";
-import { useTranslations } from "@/lib/next-compat/intl";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useTransition } from "react";
 
 import { parseScenario, SCENARIO_PARAM, SCENARIOS } from "@/lib/scenario";

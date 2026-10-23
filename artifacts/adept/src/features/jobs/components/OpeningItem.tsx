@@ -1,11 +1,10 @@
-import { asyncView } from "@/lib/next-compat/async-view";
 import { ArrowUpRight } from "lucide-react";
-import { getTranslations } from "@/lib/next-compat/intl";
+import { getTranslations } from "next-intl/server";
 
 import type { Schemas } from "@/lib/api";
 
 /** Soft rounded pills with a status dot (green: you have it, amber: in your plan, grey: to learn). */
-async function SkillPillsAsync({ skills, max = 6 }: { skills: Schemas["SkillAsk"][]; max?: number }) {
+export async function SkillPills({ skills, max = 6 }: { skills: Schemas["SkillAsk"][]; max?: number }) {
   const t = await getTranslations("jobs.status");
   if (!skills.length) return null;
   return (
@@ -22,7 +21,7 @@ async function SkillPillsAsync({ skills, max = 6 }: { skills: Schemas["SkillAsk"
 }
 
 /** What the dot colours mean, once per section. */
-async function StatusLegendAsync() {
+export async function StatusLegend() {
   const t = await getTranslations("jobs.status");
   return (
     <p className="a-legend">
@@ -36,7 +35,7 @@ async function StatusLegendAsync() {
 }
 
 /** The share of the job's listed skills the person has: today, and with the plan if it adds any. */
-async function MatchBoxAsync({ now, after }: { now: number; after: number | null }) {
+async function MatchBox({ now, after }: { now: number; after: number | null }) {
   const t = await getTranslations("jobs.match");
   return (
     <div className="a-match" role="group" aria-label={t("label")}>
@@ -66,7 +65,7 @@ async function MatchBoxAsync({ now, after }: { now: number; after: number | null
 }
 
 /** One job: title (links to the employer's ad), company and place, what is left to learn, match. */
-async function OpeningItemAsync({ o, showFit = true }: { o: Schemas["JobOpening"]; showFit?: boolean }) {
+export async function OpeningItem({ o, showFit = true }: { o: Schemas["JobOpening"]; showFit?: boolean }) {
   const t = await getTranslations("jobs");
   const place =
     o.work_mode === "remote" ? t("remote", { scope: o.remote_scope || t("anywhere") }) : o.location || t("malaysia");
@@ -92,8 +91,3 @@ async function OpeningItemAsync({ o, showFit = true }: { o: Schemas["JobOpening"
     </li>
   );
 }
-
-export const SkillPills = asyncView(SkillPillsAsync);
-export const StatusLegend = asyncView(StatusLegendAsync);
-export const OpeningItem = asyncView(OpeningItemAsync);
-const MatchBox = asyncView(MatchBoxAsync);

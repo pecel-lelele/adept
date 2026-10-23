@@ -1,7 +1,6 @@
-import { asyncView } from "@/lib/next-compat/async-view";
 import { Globe2, Link2, ShieldCheck, Target } from "lucide-react";
-import Link from "@/lib/next-compat/link";
-import { getTranslations } from "@/lib/next-compat/intl";
+import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 import { ApiError, Badge, Kpis, MetaBar, PageHeader, SdgBadge } from "@/components";
 import type { ApiResult, ScenarioId, Schemas } from "@/lib/api";
@@ -16,7 +15,7 @@ import {
 
 type Contribution = Schemas["SdgContribution"];
 
-async function GoalGridAsync({ data }: { data: Contribution }) {
+async function GoalGrid({ data }: { data: Contribution }) {
   const t = await getTranslations("sdg");
   const showPeople = data.scope !== "person";
   const goals = [...data.goals_summary].sort((a, b) => b.link_count - a.link_count || a.goal - b.goal);
@@ -44,7 +43,7 @@ async function GoalGridAsync({ data }: { data: Contribution }) {
   );
 }
 
-async function LinkListAsync({ links }: { links: Schemas["SdgLink"][] }) {
+async function LinkList({ links }: { links: Schemas["SdgLink"][] }) {
   const t = await getTranslations("sdg");
   const via = (v: string) => {
     const [kind, id] = v.split(":");
@@ -81,7 +80,7 @@ async function LinkListAsync({ links }: { links: Schemas["SdgLink"][] }) {
   );
 }
 
-async function ContributionBodyAsync({ title, result }: { title: string; result: ApiResult<Contribution> }) {
+async function ContributionBody({ title, result }: { title: string; result: ApiResult<Contribution> }) {
   const t = await getTranslations("sdg");
   const tp = await getTranslations("ui.page");
   if (!result.ok) return <ApiError message={result.message} />;
@@ -133,7 +132,7 @@ async function ContributionBodyAsync({ title, result }: { title: string; result:
 }
 
 /** Person view: how the chosen path contributes. */
-async function SdgContributionViewAsync({
+export async function SdgContributionView({
   roleId,
   scenario,
 }: {
@@ -149,7 +148,7 @@ async function SdgContributionViewAsync({
 }
 
 /** Organisation view with a region switch (company / cohort → state). */
-async function OrgSdgViewAsync({
+export async function OrgSdgView({
   region,
   role,
   scenario,
@@ -190,9 +189,3 @@ async function OrgSdgViewAsync({
     </section>
   );
 }
-
-export const SdgContributionView = asyncView(SdgContributionViewAsync);
-export const OrgSdgView = asyncView(OrgSdgViewAsync);
-const GoalGrid = asyncView(GoalGridAsync);
-const LinkList = asyncView(LinkListAsync);
-const ContributionBody = asyncView(ContributionBodyAsync);

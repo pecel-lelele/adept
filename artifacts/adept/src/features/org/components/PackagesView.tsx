@@ -1,7 +1,6 @@
-import { asyncView } from "@/lib/next-compat/async-view";
-import Form from "@/lib/next-compat/form";
-import Link from "@/lib/next-compat/link";
-import { getTranslations } from "@/lib/next-compat/intl";
+import Form from "next/form";
+import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { ApiError, MetaBar, PageHeader } from "@/components";
 import { CertificationsCard, RoleOpeningsCard } from "@/features/jobs";
 import { ActionForm } from "@/features/pathway/components/ActionForm";
@@ -10,7 +9,7 @@ import { call, getApi, type ScenarioId } from "@/lib/api";
 import { fetchGaps, fetchMembers } from "../api";
 import { selectPackageAction } from "../funding-actions";
 
-async function PackagesViewAsync({ scenario, roleId, memberIds }: {
+export async function PackagesView({ scenario, roleId, memberIds }: {
   scenario: ScenarioId; roleId?: string; memberIds?: string[];
 }) {
   const t = await getTranslations("org.packages");
@@ -66,5 +65,3 @@ async function PackagesViewAsync({ scenario, roleId, memberIds }: {
     </div> : null}
   </div>;
 }
-
-export const PackagesView = asyncView(PackagesViewAsync);

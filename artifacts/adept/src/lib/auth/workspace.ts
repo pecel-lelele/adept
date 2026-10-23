@@ -1,11 +1,9 @@
-import { currentPath } from "@/lib/next-compat/router";
-
-import { getSession } from "./session";
+import { cookies, headers } from "next/headers";
 
 /**
  * Workspaces (M4-033). One account works in a personal workspace (/app) and in each organisation
  * it belongs to: as a member (/work) or as a manager (/org). The page path decides personal vs
- * organisation; a cookie remembers which organisation. The API checks the membership on
+ * organisation; this cookie remembers which organisation. The API checks the membership on
  * every request, so a forged cookie only yields 403.
  */
 export const ORG_COOKIE = "adept_org";
@@ -24,11 +22,12 @@ export function workspaceFor(path: string, org: string | undefined): string | un
 }
 
 export async function selectedOrg(): Promise<string | undefined> {
-  const value = (await getSession()).org ?? undefined;
+  const value = (await cookies()).get(ORG_COOKIE)?.value;
   return isOrgId(value) ? value : undefined;
 }
 
-/** The workspace of the page being rendered. */
+/** The workspace of the page being rendered (server components and server actions). */
 export async function currentWorkspace(): Promise<string | undefined> {
-  return workspaceFor(currentPath(), await selectedOrg());
+  const path = (await headers()).get("x-adept-path") ?? "";
+  return workspaceFor(path, await selectedOrg());
 }

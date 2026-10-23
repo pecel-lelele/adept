@@ -1,6 +1,5 @@
-import { asyncView } from "@/lib/next-compat/async-view";
-import Link from "@/lib/next-compat/link";
-import { getTranslations } from "@/lib/next-compat/intl";
+import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components";
 import type { ScenarioId, Schemas } from "@/lib/api";
@@ -15,7 +14,7 @@ function nextLink(segment: Segment, scenario: ScenarioId): string {
 }
 
 /** What to do next, worded for the learner's segment. The plan above is the same for everyone. */
-async function SegmentGuideAsync({
+export async function SegmentGuide({
   segment,
   scenario,
   roleId,
@@ -50,5 +49,3 @@ async function SegmentGuideAsync({
     </Card>
   );
 }
-
-export const SegmentGuide = asyncView(SegmentGuideAsync);

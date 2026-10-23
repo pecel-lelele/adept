@@ -1,7 +1,6 @@
-import { asyncView } from "@/lib/next-compat/async-view";
 import { ArrowRight, Building2, Clock3, Layers, Pencil, TrendingUp, Wallet } from "lucide-react";
-import Link from "@/lib/next-compat/link";
-import { getTranslations } from "@/lib/next-compat/intl";
+import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 import { Kpis, PageHeader, TrendPill } from "@/components";
 import { ErrorState } from "@/components/ErrorState";
@@ -17,7 +16,7 @@ import { fetchMyProfile, fetchSkillCatalogue } from "../api";
  * Step 1 result. Hierarchy: the four numbers that shape the plan → every confirmed skill as a
  * row (level and demand trend in words) → who the learner is, and the next step.
  */
-async function ProfileViewAsync({ scenario = "moderate" }: { scenario?: ScenarioId }) {
+export async function ProfileView({ scenario = "moderate" }: { scenario?: ScenarioId }) {
   const t = await getTranslations("ui.skills");
   const tp = await getTranslations("ui.page");
   const ti = await getTranslations("ui.intake");
@@ -164,5 +163,3 @@ async function ProfileViewAsync({ scenario = "moderate" }: { scenario?: Scenario
     </div>
   );
 }
-
-export const ProfileView = asyncView(ProfileViewAsync);

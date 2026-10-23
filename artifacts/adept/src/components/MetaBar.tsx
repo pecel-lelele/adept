@@ -1,5 +1,5 @@
 import type { RecommendationMeta } from "@/lib/api";
-import { useTranslations } from "@/lib/next-compat/intl";
+import { useTranslations } from "next-intl";
 
 import { EstimateLabel } from "./EstimateLabel";
 import { SourceBadge } from "./SourceBadge";

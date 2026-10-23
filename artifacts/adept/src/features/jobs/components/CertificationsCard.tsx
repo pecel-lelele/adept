@@ -1,6 +1,5 @@
-import { asyncView } from "@/lib/next-compat/async-view";
 import { Award, ArrowUpRight } from "lucide-react";
-import { getTranslations } from "@/lib/next-compat/intl";
+import { getTranslations } from "next-intl/server";
 
 import { MetaBar } from "@/components";
 import { Fold } from "@/components/Fold";
@@ -12,7 +11,7 @@ import { fetchCertifications } from "../api";
  * Optional certification exams for this role, folded to one line ("3 options from RM 205").
  * `payer`: the learner (personal plan) or the employer (team programme).
  */
-async function CertificationsCardAsync({
+export async function CertificationsCard({
   roleId,
   scenario,
   payer = "learner",
@@ -66,5 +65,3 @@ async function CertificationsCardAsync({
     </Fold>
   );
 }
-
-export const CertificationsCard = asyncView(CertificationsCardAsync);

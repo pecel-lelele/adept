@@ -1,7 +1,6 @@
-import { asyncView } from "@/lib/next-compat/async-view";
 import { Award, BriefcaseBusiness } from "lucide-react";
-import Link from "@/lib/next-compat/link";
-import { getTranslations } from "@/lib/next-compat/intl";
+import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
 
 import type { ScenarioId, Schemas } from "@/lib/api";
@@ -31,7 +30,7 @@ function Tile({ icon, label, value, sub, href }: { icon: ReactNode; label: strin
  * What the plan leads to, beside the plan's own time and cost: the cheapest relevant
  * certification exam and current job openings for the role.
  */
-async function CareerRoadmapAsync({ plan, scenario }: { plan: Schemas["Pathway"]; scenario: ScenarioId }) {
+export async function CareerRoadmap({ plan, scenario }: { plan: Schemas["Pathway"]; scenario: ScenarioId }) {
   const t = await getTranslations("jobs.roadmap");
   const [openings, certs] = await Promise.all([
     fetchRoleOpenings(plan.role_id, scenario),
@@ -65,5 +64,3 @@ async function CareerRoadmapAsync({ plan, scenario }: { plan: Schemas["Pathway"]
     </section>
   );
 }
-
-export const CareerRoadmap = asyncView(CareerRoadmapAsync);

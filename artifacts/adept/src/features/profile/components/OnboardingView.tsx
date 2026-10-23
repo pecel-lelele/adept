@@ -1,4 +1,3 @@
-import { asyncView } from "@/lib/next-compat/async-view";
 import { ErrorState } from "@/components/ErrorState";
 import { getAccount } from "@/lib/auth/account";
 
@@ -6,7 +5,7 @@ import { fetchMyProfile, fetchSkillCatalogue } from "../api";
 import { IntakeWizard } from "./IntakeWizard";
 
 /** Step 1 of the journey: a four-step intake that saves to the learner's profile. */
-async function OnboardingViewAsync() {
+export async function OnboardingView() {
   const [account, catalogue, profile] = await Promise.all([
     getAccount(),
     fetchSkillCatalogue(),
@@ -21,5 +20,3 @@ async function OnboardingViewAsync() {
     />
   );
 }
-
-export const OnboardingView = asyncView(OnboardingViewAsync);

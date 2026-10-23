@@ -1,8 +1,8 @@
 "use client";
 
 import { ArrowLeft, ArrowRight, Check, CircleAlert, Send, Users } from "lucide-react";
-import Link from "@/lib/next-compat/link";
-import { useTranslations } from "@/lib/next-compat/intl";
+import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useMemo, useState, useTransition } from "react";
 
 import { Kpis } from "@/components/Kpis";

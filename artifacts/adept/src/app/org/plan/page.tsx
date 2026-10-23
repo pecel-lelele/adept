@@ -1,8 +1,7 @@
-import { asyncView } from "@/lib/next-compat/async-view";
 import { PlanView } from "@/features/org";
 import { firstParam, parseScenario, type SearchParams } from "@/lib/scenario";
 
-async function PageAsync({
+export default async function Page({
   searchParams,
 }: {
   searchParams: Promise<SearchParams>;
@@ -16,5 +15,3 @@ async function PageAsync({
     />
   );
 }
-
-export default asyncView(PageAsync);

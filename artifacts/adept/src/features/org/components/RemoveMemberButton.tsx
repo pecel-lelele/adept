@@ -1,7 +1,7 @@
 "use client";
 
 import { UserMinus } from "lucide-react";
-import { useTranslations } from "@/lib/next-compat/intl";
+import { useTranslations } from "next-intl";
 import { useTransition } from "react";
 
 import { removeMemberAction } from "../actions";

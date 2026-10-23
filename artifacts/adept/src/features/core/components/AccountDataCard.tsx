@@ -1,7 +1,7 @@
 "use client";
 
 import { Download, Trash2 } from "lucide-react";
-import { useTranslations } from "@/lib/next-compat/intl";
+import { useTranslations } from "next-intl";
 import { useActionState, useState } from "react";
 
 import { deleteAccountAction, type AuthState } from "../auth-actions";

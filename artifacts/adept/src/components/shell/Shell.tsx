@@ -1,7 +1,6 @@
-import { asyncView } from "@/lib/next-compat/async-view";
 import { BookOpen, Building2, LogOut } from "lucide-react";
-import Link from "@/lib/next-compat/link";
-import { getTranslations } from "@/lib/next-compat/intl";
+import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { Suspense, type ReactNode } from "react";
 
 import type { Workspace } from "@/config/navigation";
@@ -34,7 +33,7 @@ function initials(name: string): string {
  * account) and no bar above the content. On pages that depend on it, the "AI pace" switch
  * sits at the top right of the page. Phones: a fixed bottom tab bar replaces the sidebar.
  */
-async function ShellAsync({
+export async function Shell({
   ws,
   account,
   orgName,
@@ -96,7 +95,7 @@ async function ShellAsync({
               <strong>{name}</strong>
               <small>{orgName ?? t(space)}</small>
             </span>
-            <a className="a-iconlink" href="/api/logout" title={t("nav.signOut")} aria-label={t("nav.signOut")}>
+            <a className="a-iconlink" href="/auth/logout" title={t("nav.signOut")} aria-label={t("nav.signOut")}>
               <LogOut size={15} aria-hidden />
             </a>
           </div>
@@ -140,5 +139,3 @@ async function ShellAsync({
     </div>
   );
 }
-
-export const Shell = asyncView(ShellAsync);

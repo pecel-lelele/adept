@@ -1,5 +1,4 @@
-import { asyncView } from "@/lib/next-compat/async-view";
-import { redirect } from "@/lib/next-compat/router";
+import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { Shell } from "@/components/shell/Shell";
@@ -9,7 +8,7 @@ import { getAccount } from "@/lib/auth/account";
 import { getWorkspaces, pickOrg } from "@/lib/auth/workspaces";
 
 /** Organisation management (/org): managers and career advisors of the chosen organisation. */
-async function LayoutAsync({ children }: { children: ReactNode }) {
+export default async function Layout({ children }: { children: ReactNode }) {
   const account = await getAccount();
   if (!account) redirect("/auth/login?next=/org");
   const { chosen, remembered, fallback } = await pickOrg(["manager", "advisor"]);
@@ -30,5 +29,3 @@ async function LayoutAsync({ children }: { children: ReactNode }) {
     </Shell>
   );
 }
-
-export default asyncView(LayoutAsync);

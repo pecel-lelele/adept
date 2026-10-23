@@ -2,7 +2,7 @@ import createClient, { type Client } from "openapi-fetch";
 
 import type { paths } from "./types";
 
-export const API_URL = window.location.origin;
+export const API_URL = process.env.API_URL ?? "http://localhost:8000";
 const TIMEOUT_MS = 15000;
 
 export type ApiClient = Client<paths>;
@@ -13,7 +13,6 @@ export function createApiClient(headers: Record<string, string> = {}): ApiClient
     baseUrl: API_URL,
     headers,
     cache: "no-store",
-    credentials: "include",
     fetch: (request) => fetchWithRetry(request),
   });
 }

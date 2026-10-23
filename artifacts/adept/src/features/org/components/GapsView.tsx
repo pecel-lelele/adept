@@ -1,7 +1,6 @@
-import { asyncView } from "@/lib/next-compat/async-view";
 import { ArrowRight, Grid3x3, Layers, Target } from "lucide-react";
-import Link from "@/lib/next-compat/link";
-import { getTranslations } from "@/lib/next-compat/intl";
+import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 import { Kpis, MetaBar, PageHeader } from "@/components";
 import { ErrorState } from "@/components/ErrorState";
@@ -15,7 +14,7 @@ import { heatRows, topGapSkills } from "./OrgDashboardView";
  * Step 3 for organisations: the team skills-gap heatmap (rows = target roles, columns = the
  * skills the team lacks most), then each role's average gap with a link to its team plan.
  */
-async function GapsViewAsync({ scenario }: { scenario: ScenarioId }) {
+export async function GapsView({ scenario }: { scenario: ScenarioId }) {
   const t = await getTranslations("ui.org");
   const tn = await getTranslations("ui.nav");
   const tp = await getTranslations("ui.page");
@@ -93,5 +92,3 @@ async function GapsViewAsync({ scenario }: { scenario: ScenarioId }) {
     </div>
   );
 }
-
-export const GapsView = asyncView(GapsViewAsync);

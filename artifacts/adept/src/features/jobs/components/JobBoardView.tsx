@@ -1,7 +1,6 @@
-import { asyncView } from "@/lib/next-compat/async-view";
-import Form from "@/lib/next-compat/form";
-import Link from "@/lib/next-compat/link";
-import { getTranslations } from "@/lib/next-compat/intl";
+import Form from "next/form";
+import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 import { ErrorState } from "@/components/ErrorState";
 import { MetaBar, PageHeader } from "@/components";
@@ -13,7 +12,7 @@ import { OpeningItem } from "./OpeningItem";
 type Mode = "onsite" | "hybrid" | "remote";
 
 /** Live openings in Malaysia (and remote roles open to Malaysians), for the roles Adept plans. */
-async function JobBoardViewAsync({
+export async function JobBoardView({
   scenario,
   roleId,
   q,
@@ -104,5 +103,3 @@ async function JobBoardViewAsync({
     </div>
   );
 }
-
-export const JobBoardView = asyncView(JobBoardViewAsync);

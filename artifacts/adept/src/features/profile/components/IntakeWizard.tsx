@@ -1,7 +1,7 @@
 "use client";
 
 import { Briefcase, FileUp, GraduationCap, Repeat, Search, X } from "lucide-react";
-import { useTranslations } from "@/lib/next-compat/intl";
+import { useTranslations } from "next-intl";
 import { useMemo, useRef, useState, useTransition } from "react";
 
 import { CV_SKILLS_KEY } from "@/features/core/components/CvPreview";

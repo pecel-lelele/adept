@@ -1,5 +1,6 @@
+import { cache } from "react";
+
 import { call, createApiClient, type Schemas } from "@/lib/api";
-import { getGeneration } from "@/lib/next-compat/router";
 
 import { getSessionToken } from "./session";
 
@@ -7,24 +8,16 @@ import { selectedOrg } from "./workspace";
 
 export type WorkspaceOption = Schemas["Workspace"];
 
-let cached: { generation: number; promise: Promise<WorkspaceOption[]> } | undefined;
-
-/** Workspaces the signed-in person can switch to (personal first). Cached until refresh. */
-export function getWorkspaces(): Promise<WorkspaceOption[]> {
-  const generation = getGeneration();
-  if (!cached || cached.generation !== generation) {
-    const promise = (async () => {
-      // Membership discovery belongs to the account. A removed/stale selected organisation must
-      // not prevent the person finding their remaining workspaces.
-      if (!(await getSessionToken())) return [];
-      const api = createApiClient();
-      const result = await call(api.GET("/api/v1/org/workspaces"));
-      return result.ok ? result.data.workspaces : [];
-    })();
-    cached = { generation, promise };
-  }
-  return cached.promise;
-}
+/** Workspaces the signed-in person can switch to (personal first). Cached for one render. */
+export const getWorkspaces = cache(async (): Promise<WorkspaceOption[]> => {
+  // Membership discovery belongs to the account. A removed/stale selected organisation must
+  // not prevent the person finding their remaining workspaces.
+  const token = await getSessionToken();
+  if (!token) return [];
+  const api = createApiClient({ "X-Demo-User": token });
+  const result = await call(api.GET("/api/v1/org/workspaces"));
+  return result.ok ? result.data.workspaces : [];
+});
 
 /**
  * The organisation workspace to show on /work or /org: the remembered one if the person still

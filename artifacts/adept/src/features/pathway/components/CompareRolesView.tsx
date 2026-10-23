@@ -1,7 +1,6 @@
-import { asyncView } from "@/lib/next-compat/async-view";
 import { ArrowUpRight } from "lucide-react";
-import Link from "@/lib/next-compat/link";
-import { getTranslations } from "@/lib/next-compat/intl";
+import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 import { ApiError, Badge, MetaBar, PageHeader, SdgBadge } from "@/components";
 import type { ScenarioId, Schemas } from "@/lib/api";
@@ -17,7 +16,7 @@ const DIRECTION_VARIANT = {
   unknown: "outline",
 } as const;
 
-async function OptionCardAsync({
+async function OptionCard({
   option,
   scenario,
   snapshotDate,
@@ -91,7 +90,7 @@ async function OptionCardAsync({
 
 /** Step between matches and the pathway: what each role would take, side by side, before the
  *  learner chooses. It does not rank roles (matching does) and never chooses for the learner. */
-async function CompareRolesViewAsync({
+export async function CompareRolesView({
   scenario,
   roleIds = [],
   snapshotDate,
@@ -137,6 +136,3 @@ async function CompareRolesViewAsync({
     </div>
   );
 }
-
-export const CompareRolesView = asyncView(CompareRolesViewAsync);
-const OptionCard = asyncView(OptionCardAsync);

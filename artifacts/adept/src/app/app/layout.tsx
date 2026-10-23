@@ -1,5 +1,4 @@
-import { asyncView } from "@/lib/next-compat/async-view";
-import { redirect } from "@/lib/next-compat/router";
+import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { Shell } from "@/components/shell/Shell";
@@ -13,7 +12,7 @@ import { getWorkspaces } from "@/lib/auth/workspaces";
  * Personal workspace (/app): every signed-in account has one, managers included. Plans, matches
  * and Adi conversations here are private; organisations see none of it.
  */
-async function LayoutAsync({ children }: { children: ReactNode }) {
+export default async function Layout({ children }: { children: ReactNode }) {
   const account = await getAccount();
   if (!account) redirect("/auth/login?next=/app");
   // Same rule as the Home journey: a profile completes step 1; a saved plan means the learner
@@ -29,5 +28,3 @@ async function LayoutAsync({ children }: { children: ReactNode }) {
     </Shell>
   );
 }
-
-export default asyncView(LayoutAsync);

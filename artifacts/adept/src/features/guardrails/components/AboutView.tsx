@@ -1,13 +1,12 @@
-import { asyncView } from "@/lib/next-compat/async-view";
 import { Check, ShieldCheck, X } from "lucide-react";
-import { getTranslations } from "@/lib/next-compat/intl";
+import { getTranslations } from "next-intl/server";
 
 import { ApiError, Badge } from "@/components";
 import { SiteFooter, SiteHeader } from "@/components/shell/Site";
 import { call, getApi } from "@/lib/api";
 
 /** About page (F8, owner M3): LLM disclosure, methodology, guardrails, sources, fairness. */
-async function AboutViewAsync() {
+export async function AboutView() {
   const t = await getTranslations("guardrails");
   const tl = await getTranslations("ui.landing");
   const api = await getApi();
@@ -128,5 +127,3 @@ async function AboutViewAsync() {
     </div>
   );
 }
-
-export const AboutView = asyncView(AboutViewAsync);

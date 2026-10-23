@@ -1,5 +1,4 @@
-import { asyncView } from "@/lib/next-compat/async-view";
-import { getTranslations } from "@/lib/next-compat/intl";
+import { getTranslations } from "next-intl/server";
 
 import { ApiError, EstimateLabel, SourceBadge } from "@/components";
 import type { ScenarioId } from "@/lib/api";
@@ -10,7 +9,7 @@ import { fetchOutlook } from "../api";
  * Outlook for one role under each scenario, with its low/high range (F3). With a snapshot date
  * the outlook uses only the snapshots up to that date, so it matches a historical match page.
  */
-async function RoleOutlookPanelAsync({
+export async function RoleOutlookPanel({
   roleId,
   scenario,
   snapshotDate,
@@ -56,5 +55,3 @@ async function RoleOutlookPanelAsync({
     </div>
   );
 }
-
-export const RoleOutlookPanel = asyncView(RoleOutlookPanelAsync);

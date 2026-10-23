@@ -1,4 +1,4 @@
-import type { Messages } from "use-intl";
+import type { Messages } from "next-intl";
 
 export type NavKey = keyof Messages["ui"]["nav"];
 /** Icon names resolved on the client (lucide-react), so config stays serialisable. */

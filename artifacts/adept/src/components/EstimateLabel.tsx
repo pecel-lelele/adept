@@ -1,4 +1,4 @@
-import { useTranslations } from "@/lib/next-compat/intl";
+import { useTranslations } from "next-intl";
 
 import type { ScenarioId } from "@/lib/api";
 

@@ -1,5 +1,4 @@
-import { asyncView } from "@/lib/next-compat/async-view";
-import { getTranslations } from "@/lib/next-compat/intl";
+import { getTranslations } from "next-intl/server";
 
 import { ActionForm } from "@/features/pathway/components/ActionForm";
 import { call, getApi } from "@/lib/api";
@@ -10,7 +9,7 @@ import { acceptPackageAction } from "../funding-actions";
  * A team plan HR assigned with a quick package (organisation workspace). Accepting turns it into
  * a work programme; it never replaces the member's personal plan. Hidden once accepted.
  */
-async function AssignedPackageViewAsync({ acceptedIds = [], orgId }: { acceptedIds?: string[]; orgId?: string }) {
+export async function AssignedPackageView({ acceptedIds = [], orgId }: { acceptedIds?: string[]; orgId?: string }) {
   const api = await getApi();
   const result = await call(api.GET("/api/v1/org/packages/assigned"));
   if (!result.ok || !result.data) return null;
@@ -43,5 +42,3 @@ async function AssignedPackageViewAsync({ acceptedIds = [], orgId }: { acceptedI
     </section>
   );
 }
-
-export const AssignedPackageView = asyncView(AssignedPackageViewAsync);

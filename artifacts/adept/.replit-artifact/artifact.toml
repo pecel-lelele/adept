@@ -1,28 +1,30 @@
 kind = "web"
 previewPath = "/"
 title = "Adept"
-description = "Career matching and personalised reskilling for the AI era, with individual, employee, and organisation workspaces."
+description = "Adept's original Next.js app for career matching and personalised reskilling."
 version = "1.0.0"
 id = "artifacts/adept"
 router = "path"
 
 [[services]]
 name = "web"
-paths = [ "/" ]
+paths = ["/"]
 localPort = 24384
 
 [services.development]
 run = "pnpm --filter @workspace/adept run dev"
 
-[services.production]
-build = [ "pnpm", "--filter", "@workspace/adept", "run", "build" ]
-serve = "static"
-publicDir = "artifacts/adept/dist/public"
+[services.production.build]
+args = ["pnpm", "--filter", "@workspace/adept", "run", "build"]
 
-[[services.production.rewrites]]
-from = "/*"
-to = "/index.html"
+[services.production.run]
+args = ["pnpm", "--filter", "@workspace/adept", "run", "start"]
+
+[services.production.run.env]
+NODE_ENV = "production"
+PORT = "24384"
 
 [services.env]
 PORT = "24384"
 BASE_PATH = "/"
+API_URL = "http://127.0.0.1:8000"

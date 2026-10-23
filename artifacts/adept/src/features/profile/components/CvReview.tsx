@@ -3,7 +3,7 @@
 import { Plus, Search } from "lucide-react";
 
 import type { Schemas } from "@/lib/api";
-import { useTranslations } from "@/lib/next-compat/intl";
+import { useTranslations } from "next-intl";
 
 /** Unverified wording stays in this upload's memory, outside saved skills and scores. */
 export function CvReview({ terms, truncated, matchedCount, onSearch, suggestions = [], onAdd, added }: {

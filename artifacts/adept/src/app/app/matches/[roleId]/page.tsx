@@ -1,8 +1,7 @@
-import { asyncView } from "@/lib/next-compat/async-view";
 import { MatchDetailView } from "@/features/matching";
 import { firstParam, parseScenario, type SearchParams } from "@/lib/scenario";
 
-async function PageAsync({
+export default async function Page({
   params,
   searchParams,
 }: {
@@ -15,5 +14,3 @@ async function PageAsync({
   const sdgWeight = Math.min(1, Math.max(0, Number(firstParam(query.sdg)) || 0));
   return <MatchDetailView roleId={roleId} scenario={scenario} snapshotDate={snapshotDate} sdgWeight={sdgWeight} />;
 }
-
-export default asyncView(PageAsync);

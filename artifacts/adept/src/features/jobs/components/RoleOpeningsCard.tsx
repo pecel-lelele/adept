@@ -1,7 +1,6 @@
-import { asyncView } from "@/lib/next-compat/async-view";
 import { ArrowRight, BriefcaseBusiness } from "lucide-react";
-import Link from "@/lib/next-compat/link";
-import { getTranslations } from "@/lib/next-compat/intl";
+import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 import { MetaBar } from "@/components";
 import { Fold } from "@/components/Fold";
@@ -15,7 +14,7 @@ import { OpeningItem, SkillPills, StatusLegend } from "./OpeningItem";
  * match the person's skills now and after the plan, the skills employers ask for, and the jobs
  * that match best. `team` hides personal fit (an HR manager has no learner profile here).
  */
-async function RoleOpeningsCardAsync({
+export async function RoleOpeningsCard({
   roleId,
   scenario,
   limit = 5,
@@ -82,5 +81,3 @@ async function RoleOpeningsCardAsync({
     </Fold>
   );
 }
-
-export const RoleOpeningsCard = asyncView(RoleOpeningsCardAsync);

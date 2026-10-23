@@ -1,9 +1,8 @@
-import { asyncView } from "@/lib/next-compat/async-view";
 import { CatalogueView, parseCatalogueQuery } from "@/features/pathway";
 import { firstParam, type SearchParams } from "@/lib/scenario";
 
 /** HR / career-centre view of the same catalogue (corporate bundles, HRD Corp-claimable). */
-async function PageAsync({
+export default async function Page({
   searchParams,
 }: {
   searchParams: Promise<SearchParams>;
@@ -23,5 +22,3 @@ async function PageAsync({
     />
   );
 }
-
-export default asyncView(PageAsync);

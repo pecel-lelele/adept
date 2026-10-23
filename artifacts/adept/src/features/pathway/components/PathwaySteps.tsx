@@ -1,12 +1,11 @@
-import { asyncView } from "@/lib/next-compat/async-view";
 import { ArrowUpRight, BookOpen, Clock3 } from "lucide-react";
-import { getTranslations } from "@/lib/next-compat/intl";
+import { getTranslations } from "next-intl/server";
 
 import { SdgBadge } from "@/components";
 import type { Schemas } from "@/lib/api";
 
 /** One course in a step: icon tile, title (opens the provider), provider and hours, cost. */
-async function CourseLineAsync({ course }: { course: Schemas["Course"] }) {
+export async function CourseLine({ course }: { course: Schemas["Course"] }) {
   const t = await getTranslations("pathway");
   const free = course.cost_myr === 0;
   return (
@@ -31,7 +30,7 @@ async function CourseLineAsync({ course }: { course: Schemas["Course"] }) {
 }
 
 /** The ordered plan: numbered step cards on a rail, each with its courses and reasons. */
-async function PathwayStepsAsync({
+export async function PathwaySteps({
   steps,
   memberNames,
 }: {
@@ -121,6 +120,3 @@ async function PathwayStepsAsync({
     </ol>
   );
 }
-
-export const CourseLine = asyncView(CourseLineAsync);
-export const PathwaySteps = asyncView(PathwayStepsAsync);

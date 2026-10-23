@@ -1,6 +1,5 @@
-import { asyncView } from "@/lib/next-compat/async-view";
 import { Clock3, MailPlus, UserCheck, Users } from "lucide-react";
-import { getTranslations } from "@/lib/next-compat/intl";
+import { getTranslations } from "next-intl/server";
 
 import { Kpis, PageHeader } from "@/components";
 import { ErrorState } from "@/components/ErrorState";
@@ -13,7 +12,7 @@ import { RemoveMemberButton } from "./RemoveMemberButton";
 const TONE = { complete: "up", in_progress: "warn", invited: undefined } as const;
 
 /** Step 1 for organisations: who joined, how far their profile is, and the code to invite more. */
-async function MembersViewAsync() {
+export async function MembersView() {
   const t = await getTranslations("ui.org");
   const tn = await getTranslations("ui.nav");
   const tp = await getTranslations("ui.page");
@@ -103,5 +102,3 @@ async function MembersViewAsync() {
     </div>
   );
 }
-
-export const MembersView = asyncView(MembersViewAsync);

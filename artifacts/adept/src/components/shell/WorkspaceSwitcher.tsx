@@ -1,6 +1,5 @@
-import { asyncView } from "@/lib/next-compat/async-view";
 import { Building2, Check, ChevronsUpDown, Plus, User } from "lucide-react";
-import { getTranslations } from "@/lib/next-compat/intl";
+import { getTranslations } from "next-intl/server";
 
 import type { WorkspaceOption } from "@/lib/auth/workspaces";
 
@@ -9,7 +8,7 @@ import type { WorkspaceOption } from "@/lib/auth/workspaces";
  * workspace: the server checks the membership and reloads, so nothing from the previous
  * workspace stays on screen.
  */
-async function WorkspaceSwitcherAsync({
+export async function WorkspaceSwitcher({
   workspaces,
   current,
   presentation = "dropdown",
@@ -66,5 +65,3 @@ async function WorkspaceSwitcherAsync({
     </details>
   );
 }
-
-export const WorkspaceSwitcher = asyncView(WorkspaceSwitcherAsync);

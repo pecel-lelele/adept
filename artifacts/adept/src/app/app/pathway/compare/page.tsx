@@ -1,8 +1,7 @@
-import { asyncView } from "@/lib/next-compat/async-view";
 import { CompareRolesView } from "@/features/pathway";
 import { firstParam, parseScenario, type SearchParams } from "@/lib/scenario";
 
-async function PageAsync({
+export default async function Page({
   searchParams,
 }: {
   searchParams: Promise<SearchParams>;
@@ -20,5 +19,3 @@ async function PageAsync({
     />
   );
 }
-
-export default asyncView(PageAsync);

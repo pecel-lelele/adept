@@ -1,12 +1,11 @@
-import { asyncView } from "@/lib/next-compat/async-view";
-import { getTranslations } from "@/lib/next-compat/intl";
+import { getTranslations } from "next-intl/server";
 
 import { call, getApi } from "@/lib/api";
 
 import { Badge } from "./ui/badge";
 
 /** "Trend data as of <date>" from GET /meta/data-freshness. */
-async function DataFreshnessBadgeAsync() {
+export async function DataFreshnessBadge() {
   const t = await getTranslations("common.freshness");
   const api = await getApi();
   const result = await call(api.GET("/api/v1/meta/data-freshness"));
@@ -18,5 +17,3 @@ async function DataFreshnessBadgeAsync() {
     </Badge>
   );
 }
-
-export const DataFreshnessBadge = asyncView(DataFreshnessBadgeAsync);

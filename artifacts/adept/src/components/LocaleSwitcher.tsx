@@ -1,7 +1,7 @@
 "use client";
 
-import { useRouter } from "@/lib/next-compat/router";
-import { useLocale, useTranslations } from "@/lib/next-compat/intl";
+import { useRouter } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useTransition } from "react";
 
 import { LOCALE_COOKIE, localeLabels, locales, type Locale } from "@/lib/i18n/config";

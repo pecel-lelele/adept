@@ -1,6 +1,6 @@
 "use client";
 
-import { useSearchParams } from "@/lib/next-compat/router";
+import { useSearchParams } from "next/navigation";
 
 import type { ScenarioId } from "@/lib/api";
 import { parseScenario, SCENARIO_PARAM } from "@/lib/scenario";

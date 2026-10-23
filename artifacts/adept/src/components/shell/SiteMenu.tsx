@@ -1,7 +1,7 @@
 "use client";
 
-import { usePathname } from "@/lib/next-compat/router";
-import { useTranslations } from "@/lib/next-compat/intl";
+import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 /** Phone menu for the public header: an animated hamburger that opens a panel of links. */

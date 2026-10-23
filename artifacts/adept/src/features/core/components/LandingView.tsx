@@ -1,4 +1,3 @@
-import { asyncView } from "@/lib/next-compat/async-view";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -14,8 +13,8 @@ import {
   ShieldCheck,
   Users,
 } from "lucide-react";
-import Link from "@/lib/next-compat/link";
-import { getTranslations } from "@/lib/next-compat/intl";
+import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import type { CSSProperties, ReactNode } from "react";
 
 import { SiteFooter, SiteHeader } from "@/components/shell/Site";
@@ -165,7 +164,7 @@ function visuals(t: T, o: Overview | null, team: boolean): ReactNode[] {
  * questions and a closing call to action. The "For me ⇄ For my team" switch re-themes the
  * page (light / deep green) and swaps the audience-specific parts.
  */
-async function LandingViewAsync({ audience }: { audience: Audience }) {
+export async function LandingView({ audience }: { audience: Audience }) {
   const t = await getTranslations("ui.landing");
   const ta = await getTranslations("ui.auth");
   const [account, overview] = await Promise.all([
@@ -482,5 +481,3 @@ async function LandingViewAsync({ audience }: { audience: Audience }) {
     </AudienceRoot>
   );
 }
-
-export const LandingView = asyncView(LandingViewAsync);

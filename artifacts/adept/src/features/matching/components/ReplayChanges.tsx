@@ -1,12 +1,11 @@
-import { asyncView } from "@/lib/next-compat/async-view";
 import { ArrowDown, ArrowUp, Minus } from "lucide-react";
-import { getTranslations } from "@/lib/next-compat/intl";
+import { getTranslations } from "next-intl/server";
 
 import type { Schemas } from "@/lib/api";
 
 /** Trend replay, "what changed and why": each role's rank move between two snapshots and the
  *  skills whose trend moved it most. */
-async function ReplayChangesAsync({ data }: { data: Schemas["ReplayResponse"] }) {
+export async function ReplayChanges({ data }: { data: Schemas["ReplayResponse"] }) {
   const t = await getTranslations("matching.changes");
   return (
     <section className="a-card a-replay" aria-labelledby="replay-title">
@@ -52,5 +51,3 @@ async function ReplayChangesAsync({ data }: { data: Schemas["ReplayResponse"] })
     </section>
   );
 }
-
-export const ReplayChanges = asyncView(ReplayChangesAsync);

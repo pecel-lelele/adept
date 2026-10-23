@@ -1,10 +1,9 @@
-import { asyncView } from "@/lib/next-compat/async-view";
 import { JobBoardView } from "@/features/jobs";
 import { firstParam, parseScenario, type SearchParams } from "@/lib/scenario";
 
 const MODES = ["onsite", "hybrid", "remote"] as const;
 
-async function PageAsync({ searchParams }: { searchParams: Promise<SearchParams> }) {
+export default async function Page({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const { scenario, role, q, mode, page } = await searchParams;
   const m = firstParam(mode);
   return (
@@ -17,5 +16,3 @@ async function PageAsync({ searchParams }: { searchParams: Promise<SearchParams>
     />
   );
 }
-
-export default asyncView(PageAsync);

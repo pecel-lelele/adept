@@ -1,7 +1,6 @@
-import { asyncView } from "@/lib/next-compat/async-view";
 import { ArrowRight, CircleDashed, Circle } from "lucide-react";
-import Link from "@/lib/next-compat/link";
-import { getTranslations } from "@/lib/next-compat/intl";
+import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 import { MetaBar, PageHeader } from "@/components";
 import { ErrorState } from "@/components/ErrorState";
@@ -44,7 +43,7 @@ function overlapOf(m: Schemas["RoleMatch"]): number {
  * Step 3: ranked future roles. Ranking options first, then one card per role: rank, name and
  * fit; what drives the score, which skills are missing, which goals the role serves; actions.
  */
-async function MatchesViewAsync({
+export async function MatchesView({
   scenario,
   snapshotDate,
   sdgWeight = 0,
@@ -205,5 +204,3 @@ async function MatchesViewAsync({
     </div>
   );
 }
-
-export const MatchesView = asyncView(MatchesViewAsync);

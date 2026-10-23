@@ -1,8 +1,8 @@
 "use client";
 
 import { ArrowRight, FileUp, Lock, ShieldCheck } from "lucide-react";
-import Link from "@/lib/next-compat/link";
-import { useTranslations } from "@/lib/next-compat/intl";
+import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useRef, useState, type DragEvent, type FormEvent } from "react";
 
 import { Ring, scoreColour } from "@/components/viz/Ring";

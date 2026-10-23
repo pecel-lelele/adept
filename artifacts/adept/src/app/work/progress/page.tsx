@@ -1,6 +1,5 @@
-import { asyncView } from "@/lib/next-compat/async-view";
-import Link from "@/lib/next-compat/link";
-import { getTranslations } from "@/lib/next-compat/intl";
+import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 import { ApiError, EmptyState, PageHeader } from "@/components";
 import { byStatus, fetchMyProgrammes } from "@/features/org/work/api";
@@ -9,7 +8,7 @@ import { ProgressView } from "@/features/pathway";
 import { firstParam, parseScenario, type SearchParams } from "@/lib/scenario";
 
 /** Progress on an accepted programme (organisation scope: HR reviews what is recorded here). */
-async function PageAsync({ searchParams }: { searchParams: Promise<SearchParams> }) {
+export default async function Page({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const params = await searchParams;
   const [org, mine, t] = await Promise.all([workOrg(), fetchMyProgrammes(), getTranslations("org.work")]);
   if (!mine.ok) return <ApiError message={mine.message} />;
@@ -52,5 +51,3 @@ async function PageAsync({ searchParams }: { searchParams: Promise<SearchParams>
     </>
   );
 }
-
-export default asyncView(PageAsync);

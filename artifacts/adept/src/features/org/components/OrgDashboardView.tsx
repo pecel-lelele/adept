@@ -1,7 +1,6 @@
-import { asyncView } from "@/lib/next-compat/async-view";
 import { ArrowRight, ArrowUpRight, Check, Grid3x3, Leaf, Route, Target, UserCheck, Users } from "lucide-react";
-import Link from "@/lib/next-compat/link";
-import { getTranslations } from "@/lib/next-compat/intl";
+import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 import { Kpis, MetaBar } from "@/components";
 import { ErrorState } from "@/components/ErrorState";
@@ -36,7 +35,7 @@ export function heatRows(gaps: Schemas["GapHeatmapResponse"], skills: { id: stri
  * team journey → four headline numbers → where the team is short (heatmap) beside profile
  * status → the team plan beside the goals it supports. Every figure comes from the API.
  */
-async function OrgDashboardViewAsync({ scenario }: { scenario: ScenarioId }) {
+export async function OrgDashboardView({ scenario }: { scenario: ScenarioId }) {
   const t = await getTranslations("ui.org");
   const tn = await getTranslations("ui.nav");
   const tp = await getTranslations("ui.page");
@@ -246,5 +245,3 @@ async function OrgDashboardViewAsync({ scenario }: { scenario: ScenarioId }) {
     </div>
   );
 }
-
-export const OrgDashboardView = asyncView(OrgDashboardViewAsync);

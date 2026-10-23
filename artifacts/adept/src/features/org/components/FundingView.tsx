@@ -1,8 +1,7 @@
-import { asyncView } from "@/lib/next-compat/async-view";
-import Form from "@/lib/next-compat/form";
-import Link from "@/lib/next-compat/link";
-import { redirect } from "@/lib/next-compat/router";
-import { getTranslations } from "@/lib/next-compat/intl";
+import Form from "next/form";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 
 import { ApiError, PageHeader } from "@/components";
 import { ActionForm } from "@/features/pathway/components/ActionForm";
@@ -15,7 +14,7 @@ import { currentBudgetYear } from "../funding-year";
  * HR's yearly training budget per member. It is a planning input for comparing team packages;
  * the organisation pays for training directly, so members have no claims or reimbursements.
  */
-async function FundingViewAsync({ year = currentBudgetYear() }: { year?: number }) {
+export async function FundingView({ year = currentBudgetYear() }: { year?: number }) {
   const t = await getTranslations("org.funding");
   const api = await getApi();
   const result = await call(api.GET("/api/v1/org/funding/{year}", { params: { path: { year } } }));
@@ -60,5 +59,3 @@ async function FundingViewAsync({ year = currentBudgetYear() }: { year?: number 
     </div>
   );
 }
-
-export const FundingView = asyncView(FundingViewAsync);

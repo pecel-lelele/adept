@@ -1,8 +1,7 @@
-import { asyncView } from "@/lib/next-compat/async-view";
 import { OrgSdgView } from "@/features/sdg";
 import { firstParam, parseScenario, type SearchParams } from "@/lib/scenario";
 
-async function PageAsync({ searchParams }: { searchParams: Promise<SearchParams> }) {
+export default async function Page({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const params = await searchParams;
   return (
     <OrgSdgView
@@ -12,5 +11,3 @@ async function PageAsync({ searchParams }: { searchParams: Promise<SearchParams>
     />
   );
 }
-
-export default asyncView(PageAsync);

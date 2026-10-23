@@ -1,7 +1,6 @@
-import { asyncView } from "@/lib/next-compat/async-view";
 import { ArrowRight, Circle, CircleCheck, CircleDashed, Leaf } from "lucide-react";
-import Link from "@/lib/next-compat/link";
-import { getTranslations } from "@/lib/next-compat/intl";
+import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 import { MetaBar, PageHeader, ScoreBreakdown } from "@/components";
 import { ErrorState } from "@/components/ErrorState";
@@ -17,7 +16,7 @@ import { componentLabels } from "./labels";
  * One role, in the same context as the list it was opened from (scenario, snapshot date and
  * UN Goals weight): fit and next action, then why (score parts), the gap, the outlook.
  */
-async function MatchDetailViewAsync({
+export async function MatchDetailView({
   roleId,
   scenario,
   snapshotDate,
@@ -138,5 +137,3 @@ async function MatchDetailViewAsync({
     </div>
   );
 }
-
-export const MatchDetailView = asyncView(MatchDetailViewAsync);

@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowRight } from "lucide-react";
-import { useTranslations } from "@/lib/next-compat/intl";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 
 /** Capability band that scrolls slowly (pausable; still for reduced motion). */

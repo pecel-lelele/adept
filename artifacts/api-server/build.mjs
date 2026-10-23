@@ -103,16 +103,6 @@ async function buildAll() {
     ],
     sourcemap: "linked",
     plugins: [
-      {
-        name: "adept-server-imports",
-        setup(build) {
-          build.onResolve({ filter: /^(?:next\/(?:headers|navigation|cache|server)$|@\/)/ }, args => {
-            if (!args.importer.includes("/lib/adept-server/")) return;
-            if (args.path.startsWith("next/")) return { path: path.resolve(artifactDir, "../../lib/adept-server/context.ts") };
-            return build.resolve(path.resolve(artifactDir, "../../lib/adept-server/source", args.path.slice(2)), { resolveDir: args.resolveDir, kind: args.kind });
-          });
-        },
-      },
       // pino relies on workers to handle logging, instead of externalizing it we use a plugin to handle it
       esbuildPluginPino({ transports: ["pino-pretty"] })
     ],

@@ -1,6 +1,5 @@
-import { asyncView } from "@/lib/next-compat/async-view";
 import { Bot, Minus, Radar, TrendingDown, TrendingUp } from "lucide-react";
-import { getTranslations } from "@/lib/next-compat/intl";
+import { getTranslations } from "next-intl/server";
 
 import { Kpis, MetaBar, PageHeader, TrendPill } from "@/components";
 import { ErrorState } from "@/components/ErrorState";
@@ -16,7 +15,7 @@ import { SignalExplorer } from "./SignalExplorer";
  * strongest movers as a labelled diverging chart, beside the learner's own skills (or, for
  * an organisation, the skills most exposed to automation) → every tracked skill, searchable.
  */
-async function RadarViewAsync({
+export async function RadarView({
   scenario,
   snapshotDate,
   context = "individual",
@@ -139,5 +138,3 @@ async function RadarViewAsync({
     </div>
   );
 }
-
-export const RadarView = asyncView(RadarViewAsync);

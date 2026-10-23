@@ -1,4 +1,4 @@
-import { redirect } from "@/lib/next-compat/router";
+import { redirect } from "next/navigation";
 
 import { pickOrg, type WorkspaceOption } from "@/lib/auth/workspaces";
 

@@ -21,9 +21,9 @@ import {
   Users,
   type LucideIcon,
 } from "lucide-react";
-import Link from "@/lib/next-compat/link";
-import { usePathname, useSearchParams } from "@/lib/next-compat/router";
-import { useTranslations } from "@/lib/next-compat/intl";
+import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
 import {
@@ -233,7 +233,7 @@ export function TabBar({ ws, tools }: { ws: Workspace; tools: ReactNode }) {
             </div>
             <div className="a-sheet-row">
               {tools}
-              <a href="/api/logout" className="a-link">
+              <a href="/auth/logout" className="a-link">
                 <LogOut size={16} aria-hidden /> {t("signOut")}
               </a>
             </div>

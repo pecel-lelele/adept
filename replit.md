@@ -1,45 +1,38 @@
-# [Project name]
+# Adept
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Career matching and personalised reskilling, with personal, employee, and organisation workspaces.
 
-## Run & Operate
+## Framework and scope
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
-- `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- Keep the original Next.js app. The user explicitly chose Next.js over a Vite conversion.
+- Do not publish this project. The user's friend is preparing publication from their own Replit account.
+- Preserve the existing Python/FastAPI backend and PostgreSQL schema; do not rewrite business logic for the workspace scaffold.
 
-## Stack
+## Run
 
-- pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
-- DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+Use the managed workflows:
 
-## Where things live
+- `artifacts/adept: web` — original Next.js app, including server components, server actions, and BFF routes.
+- `artifacts/api-server: API Server` — Express entry point supervising the imported FastAPI process.
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+The web service uses its assigned `PORT` and binds to `0.0.0.0`. Next.js calls FastAPI internally at port 8000. Public `/api/v1` and `/api/healthz` routes belong to the API service; other `/api/*` routes belong to Next.js.
 
-## Architecture decisions
+## Files
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- `artifacts/adept/` — original web source, translations, Next config.
+- `artifacts/api-server/python/src/` — original API, pipelines, database migrations, reference data.
+- `.migration-backup/` — preserved import, excluded from deployment.
+- `pyproject.toml` / `uv.lock` — Python dependencies.
 
-## Product
+## Checks
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- `pnpm --filter @workspace/adept run build` — production build and TypeScript.
+- `pnpm --filter @workspace/api-server run build` — API supervisor build.
 
-## User preferences
+Development database migrations and reference seeding were applied from the imported project. Database contents and secrets do not transfer simply by copying files to a friend's account; that account needs its own configured database, reference data and `SESSION_SECRET`. No production database migration should run automatically at app startup.
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+## Environment
 
-## Gotchas
+Required: `DATABASE_URL`, `SESSION_SECRET`. Optional external model credentials remain optional; Adi defaults to the original built-in guide.
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
-
-## Pointers
-
-- See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details
+`WEB_ORIGIN` may pin the public origin; if unset, web request handlers use proxy-forwarded origin headers. Production must run Next.js as a server, not as static files.

@@ -1,4 +1,4 @@
-import Link from "@/lib/next-compat/link";
+import Link from "next/link";
 
 /** The Adept mark (partner design): an "A" whose green stroke is the step forward. */
 export function BrandMark({ size = 28 }: { size?: number }) {

@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, Copy, RefreshCw } from "lucide-react";
-import { useTranslations } from "@/lib/next-compat/intl";
+import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 
 import { rotateCodeAction } from "../actions";

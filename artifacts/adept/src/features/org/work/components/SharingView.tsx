@@ -1,7 +1,6 @@
-import { asyncView } from "@/lib/next-compat/async-view";
 import { Eye, EyeOff } from "lucide-react";
-import Link from "@/lib/next-compat/link";
-import { getTranslations } from "@/lib/next-compat/intl";
+import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 import { ApiError, PageHeader } from "@/components";
 import { ActionForm } from "@/features/pathway/components/ActionForm";
@@ -14,7 +13,7 @@ import { setSharingAction } from "../actions";
  * What this organisation can see. Members choose whether managers may use their skill levels
  * for team gaps and programme matching; personal plans, matches and Adi chats are never shared.
  */
-async function SharingViewAsync({ org }: { org: WorkspaceOption }) {
+export async function SharingView({ org }: { org: WorkspaceOption }) {
   const t = await getTranslations("org.work");
   const [profile, catalogue] = await Promise.all([fetchMyProfile(), fetchSkillCatalogue()]);
   if (!profile.ok) return <ApiError message={profile.message} />;
@@ -85,5 +84,3 @@ async function SharingViewAsync({ org }: { org: WorkspaceOption }) {
     </div>
   );
 }
-
-export const SharingView = asyncView(SharingViewAsync);

@@ -1,8 +1,7 @@
-import { asyncView } from "@/lib/next-compat/async-view";
-import Form from "@/lib/next-compat/form";
-import Link from "@/lib/next-compat/link";
+import Form from "next/form";
+import Link from "next/link";
 import { ArrowUpRight, BadgeCheck, BookOpen, Clock3, Gift, SlidersHorizontal } from "lucide-react";
-import { getTranslations } from "@/lib/next-compat/intl";
+import { getTranslations } from "next-intl/server";
 
 import { ApiError, Kpis, MetaBar, PageHeader } from "@/components";
 import { call, getApi, type Schemas } from "@/lib/api";
@@ -35,7 +34,7 @@ const PROVIDERS = [
   "government",
 ] as const;
 
-async function CourseCardAsync({ course }: { course: Course }) {
+async function CourseCard({ course }: { course: Course }) {
   const t = await getTranslations("pathway");
   const d = await getTranslations("common.design");
   const basis = course.price_basis ?? "per_course";
@@ -100,7 +99,7 @@ async function CourseCardAsync({ course }: { course: Course }) {
 }
 
 /** Browse every course the pathway may recommend, with filters for learners and HR/L&D. */
-async function CatalogueViewAsync({
+export async function CatalogueView({
   query,
   basePath,
   context = {},
@@ -218,6 +217,3 @@ async function CatalogueViewAsync({
     </div>
   );
 }
-
-export const CatalogueView = asyncView(CatalogueViewAsync);
-const CourseCard = asyncView(CourseCardAsync);

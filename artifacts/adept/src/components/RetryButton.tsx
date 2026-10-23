@@ -1,7 +1,7 @@
 "use client";
 
 import { RotateCw } from "lucide-react";
-import { useRouter } from "@/lib/next-compat/router";
+import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 
 export function RetryButton({ label }: { label: string }) {

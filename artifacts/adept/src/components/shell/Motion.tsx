@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname, useSearchParams } from "@/lib/next-compat/router";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 
 const reduced = () =>

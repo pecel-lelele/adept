@@ -1,5 +1,4 @@
-import { asyncView } from "@/lib/next-compat/async-view";
-import { getTranslations } from "@/lib/next-compat/intl";
+import { getTranslations } from "next-intl/server";
 
 import { Badge } from "@/components";
 import type { Schemas } from "@/lib/api";
@@ -7,7 +6,7 @@ import type { Schemas } from "@/lib/api";
 type Evidence = Schemas["CompletionEvidence"];
 
 /** Shows how strongly a completion is evidenced, weakest to strongest. */
-async function EvidenceBadgeAsync({ evidence }: { evidence: Evidence | null }) {
+export async function EvidenceBadge({ evidence }: { evidence: Evidence | null }) {
   const t = await getTranslations("pathway");
   if (!evidence) return <Badge variant="outline">{t("evidence.kind.self_reported")}</Badge>;
   const linkChecked = evidence.link_status === "provider_verified";
@@ -30,5 +29,3 @@ async function EvidenceBadgeAsync({ evidence }: { evidence: Evidence | null }) {
     </span>
   );
 }
-
-export const EvidenceBadge = asyncView(EvidenceBadgeAsync);

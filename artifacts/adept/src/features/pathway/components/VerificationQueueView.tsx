@@ -1,7 +1,6 @@
-import { asyncView } from "@/lib/next-compat/async-view";
 import { ArrowUpRight, CircleCheck, ClipboardCheck, Inbox } from "lucide-react";
-import Link from "@/lib/next-compat/link";
-import { getTranslations } from "@/lib/next-compat/intl";
+import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 import { ApiError, Badge, EmptyState, Kpis, PageHeader } from "@/components";
 import { call, getApi } from "@/lib/api";
@@ -11,7 +10,7 @@ import { EvidenceBadge } from "./EvidenceBadge";
 import { ReviewForm } from "./ReviewForm";
 
 /** HR (company) or career advisor (institution): review members' course completions. */
-async function VerificationQueueViewAsync() {
+export async function VerificationQueueView() {
   const t = await getTranslations("pathway");
   const tp = await getTranslations("ui.page");
   const api = await getApi();
@@ -107,5 +106,3 @@ async function VerificationQueueViewAsync() {
     </div>
   );
 }
-
-export const VerificationQueueView = asyncView(VerificationQueueViewAsync);

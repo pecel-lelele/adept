@@ -1,9 +1,9 @@
 "use client";
 
 import { Building2, LineChart, Lock, ShieldCheck, UserRound, Users } from "lucide-react";
-import Link from "@/lib/next-compat/link";
-import { usePathname, useSearchParams } from "@/lib/next-compat/router";
-import { useTranslations } from "@/lib/next-compat/intl";
+import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useActionState, useState } from "react";
 
 import { BrandLogo } from "@/components/shell/Brand";

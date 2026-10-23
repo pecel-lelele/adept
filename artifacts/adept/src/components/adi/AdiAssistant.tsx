@@ -1,9 +1,9 @@
 "use client";
 
 import { ArrowUp, ShieldCheck, X } from "lucide-react";
-import Link from "@/lib/next-compat/link";
-import { usePathname, useSearchParams } from "@/lib/next-compat/router";
-import { useLocale, useTranslations } from "@/lib/next-compat/intl";
+import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 
 import type { components } from "@/lib/api/types";
