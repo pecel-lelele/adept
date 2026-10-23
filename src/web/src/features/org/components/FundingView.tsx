@@ -30,7 +30,7 @@ export async function FundingView({ year = currentBudgetYear() }: { year?: numbe
       <button className="a-btn is-small" type="submit">{t("openYear")}</button>
     </Form>
     {year !== currentBudgetYear() ? <p className="a-notice">{t("historicalYear")}</p> : null}
-    {requesting ? <AssignedPackageView /> : null}
+    {requesting ? <AssignedPackageView orgId={ledger.org_id} /> : null}
     <p><Link className="a-link" href={ledger.manager ? "/org/plan" : "/app/progress"}>{t("back")}</Link></p>
     {ledger.budgets.map(b => <section className="a-card" key={b.user_id}>
       <h2>{name(b.user_id)}</h2>

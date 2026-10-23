@@ -208,7 +208,10 @@ def test_non_sharing_member_acceptance_requires_consent_and_sanitizes_for_hr(
         aisyah_assignment = next(
             a for a in programmes[0]["assignments"] if a["user_id"] == "aisyah"
         )
-        assert all(g["current_level"] == 0 for g in aisyah_assignment["pathway"]["gaps"])
-        assert all(u["current_level"] == 0 for u in aisyah_assignment["pathway"]["unmet"])
+        route = aisyah_assignment["pathway"]
+        # Gap statuses and starting levels come from private levels: none reach HR.
+        assert route["gaps"] == []
+        assert all(u["current_level"] == 0 for u in route["unmet"])
+        assert all(step["current_level"] == 0 for step in route["steps"])
     finally:
         client.put("/api/v1/org/me/sharing", headers=member_org, json={"share_skills": True})

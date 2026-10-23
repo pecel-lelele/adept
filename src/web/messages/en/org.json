@@ -188,7 +188,8 @@
     "privacyNote": "Only learning recorded here, or shared from your personal workspace, is visible to {org}.",
     "noAccepted": "No accepted programme yet",
     "noAcceptedHint": "Accept a programme agreement to track its progress here.",
-    "programmesNav": "Your programmes"
+    "programmesNav": "Your programmes",
+    "acceptConsent": "Use my current skill levels to tailor this route. {org} will see the resulting course plan, not your skill levels."
   },
   "programmes": {
     "eyebrow": "Programmes",

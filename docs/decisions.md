@@ -1295,4 +1295,17 @@
 - **Replaces**: none
 - **PR / branch**: feat/catalogue-roles-skills-courses
 
+### M4-057: Close the remaining gaps in the M4-056 privacy fixes
+- **Date**: 2026-10-23
+- **Feature**: F7 (Organisation Mode & Heatmaps), F5 (progress forms), Core
+- **Type**: method | UI
+- **Change**:
+  1. HR's programme list hides every level derived from a non-sharing member's private skills (`programmes.private_route`): gap statuses are removed, and step and unmet `current_level` are 0. Courses, hours, costs and target levels stay visible because the employer funds them.
+  2. Acceptance consent is an explicit checkbox, shown only to members who do not share skill levels; the web action no longer sends `consent: true` on every accept.
+  3. Progress, certificate, share-from-personal and HR review forms carry the workspace the API rendered (`Progress.workspace`, `VerificationQueue.org_id`), and the package-accept form carries its organisation, so a workspace switched in another tab cannot receive the change.
+- **Why**: Greptile P1 threads "Acceptance reveals private skills" and "Forms change another organisation" were only partly fixed by M4-056: gap statuses still revealed levels, consent was implicit, and pathway forms still followed the shared cookie.
+- **Affects**: M3 (F5 `ProgressView`, `VerificationQueueView`, `pathway/actions.ts`: forms now include a `workspace` field)
+- **Replaces**: none (extends M4-056)
+- **PR / branch**: feat/catalogue-roles-skills-courses
+
 

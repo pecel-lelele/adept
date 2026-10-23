@@ -9,7 +9,7 @@ import { acceptPackageAction } from "../funding-actions";
  * A team plan HR assigned with a quick package (organisation workspace). Accepting turns it into
  * a work programme; it never replaces the member's personal plan. Hidden once accepted.
  */
-export async function AssignedPackageView({ acceptedIds = [] }: { acceptedIds?: string[] }) {
+export async function AssignedPackageView({ acceptedIds = [], orgId }: { acceptedIds?: string[]; orgId?: string }) {
   const api = await getApi();
   const result = await call(api.GET("/api/v1/org/packages/assigned"));
   if (!result.ok || !result.data) return null;
@@ -38,7 +38,7 @@ export async function AssignedPackageView({ acceptedIds = [] }: { acceptedIds?: 
           {t("unmet")}: {(p.pathway.unmet ?? []).map((u) => u.label).join(", ") || "—"}
         </p>
       </details>
-      <ActionForm action={acceptPackageAction} label={t("accept")} fields={{ token: p.token }} />
+      <ActionForm action={acceptPackageAction} label={t("accept")} fields={{ token: p.token, ...(orgId ? { org_id: orgId } : {}) }} />
     </section>
   );
 }

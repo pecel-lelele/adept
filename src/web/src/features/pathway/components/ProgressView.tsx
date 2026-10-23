@@ -130,7 +130,7 @@ export async function ProgressView({
                       <ActionForm
                         action={shareCompletionAction}
                         className="a-inline-form"
-                        fields={{ role_id: roleId, scenario, course_id: c.id }}
+                        fields={{ workspace: p.workspace, role_id: roleId, scenario, course_id: c.id }}
                         label={tw("share", { org: orgName ?? "" })}
                         variant="outline"
                       />
@@ -157,7 +157,7 @@ export async function ProgressView({
                           <EvidenceBadge evidence={ev ?? null} />
                           {ev?.review_note ? <p className="a-small a-muted">{t("evidence.reviewNote", { note: ev.review_note })}</p> : null}
                           {ev?.kind !== "org_confirmed" ? (
-                            <EvidenceForm action={submitEvidenceAction} fields={{ role_id: roleId, scenario, course_id: c.id }} />
+                            <EvidenceForm action={submitEvidenceAction} fields={{ workspace: p.workspace, role_id: roleId, scenario, course_id: c.id }} />
                           ) : null}
                         </div>
                       </details>
@@ -166,7 +166,7 @@ export async function ProgressView({
                   <ActionForm
                     action={updateProgressAction}
                     className="a-inline-form"
-                    fields={{ role_id: roleId, scenario, course_id: c.id, status: complete ? "not_started" : "completed" }}
+                    fields={{ workspace: p.workspace, role_id: roleId, scenario, course_id: c.id, status: complete ? "not_started" : "completed" }}
                     label={complete ? t("progress.markUndone") : t("progress.markDone")}
                     variant={complete ? "outline" : "default"}
                   />
@@ -247,7 +247,7 @@ export async function ProgressView({
                         <EvidenceBadge evidence={ev ?? null} />
                         {ev?.review_note ? <p className="a-small a-muted">{t("evidence.reviewNote", { note: ev.review_note })}</p> : null}
                         {ev?.kind !== "org_confirmed" ? (
-                          <EvidenceForm action={submitEvidenceAction} fields={{ role_id: item.role_id, scenario, course_id: c.id }} />
+                          <EvidenceForm action={submitEvidenceAction} fields={{ workspace: p.workspace, role_id: item.role_id, scenario, course_id: c.id }} />
                         ) : null}
                       </div>
                     </details>
@@ -255,7 +255,7 @@ export async function ProgressView({
                   <ActionForm
                     action={updateProgressAction}
                     className="a-inline-form"
-                    fields={{ role_id: item.role_id, scenario, course_id: c.id, status: "not_started" }}
+                    fields={{ workspace: p.workspace, role_id: item.role_id, scenario, course_id: c.id, status: "not_started" }}
                     label={t("progress.markUndone")}
                     variant="outline"
                   />

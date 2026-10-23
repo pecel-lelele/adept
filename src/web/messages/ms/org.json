@@ -188,7 +188,8 @@
     "privacyNote": "Hanya pembelajaran yang direkodkan di sini, atau dikongsi dari ruang kerja peribadi, kelihatan kepada {org}.",
     "noAccepted": "Belum ada program diterima",
     "noAcceptedHint": "Terima perjanjian program untuk menjejak kemajuannya di sini.",
-    "programmesNav": "Program anda"
+    "programmesNav": "Program anda",
+    "acceptConsent": "Gunakan tahap kemahiran semasa saya untuk menyesuaikan laluan ini. {org} akan melihat pelan kursus yang terhasil, bukan tahap kemahiran anda."
   },
   "programmes": {
     "eyebrow": "Program",

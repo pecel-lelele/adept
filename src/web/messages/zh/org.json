@@ -188,7 +188,8 @@
     "privacyNote": "只有此处记录或从个人工作区分享的学习，{org} 才能看到。",
     "noAccepted": "尚未接受任何项目",
     "noAcceptedHint": "接受项目协议后即可在此跟踪进度。",
-    "programmesNav": "你的项目"
+    "programmesNav": "你的项目",
+    "acceptConsent": "使用我当前的技能水平来调整此路线。{org} 将看到生成的课程计划，而不是你的技能水平。"
   },
   "programmes": {
     "eyebrow": "项目",

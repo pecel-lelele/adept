@@ -386,6 +386,21 @@ def _status(record: ProgrammeRecord, assignments: list[ProgrammeAssignment]) -> 
     )
 
 
+def private_route(pathway: Pathway) -> Pathway:
+    """The route as an employer may see it for a member who does not share skill levels.
+
+    Gap statuses and every current level are derived from the member's private levels, so they
+    are dropped; the courses, hours, costs and target levels stay (the employer funds them).
+    """
+    return pathway.model_copy(
+        update={
+            "gaps": [],
+            "unmet": [u.model_copy(update={"current_level": 0}) for u in pathway.unmet],
+            "steps": [s.model_copy(update={"current_level": 0}) for s in pathway.steps],
+        }
+    )
+
+
 def list_programmes(user: CurrentUser) -> ProgrammeList:
     org_id = funding.manager_scope(user)
     state = funding_store.snapshot(org_id)
@@ -394,17 +409,7 @@ def list_programmes(user: CurrentUser) -> ProgrammeList:
     def _sanitize(assignment: ProgrammeAssignment) -> ProgrammeAssignment:
         if shared_members.get(assignment.user_id, False):
             return assignment
-        # Keep private inputs out of employer-visible record when sharing is off
-        sanitized_gaps = [
-            g.model_copy(update={"current_level": 0}) for g in assignment.pathway.gaps
-        ]
-        sanitized_unmet = [
-            u.model_copy(update={"current_level": 0}) for u in assignment.pathway.unmet
-        ]
-        sanitized_pathway = assignment.pathway.model_copy(
-            update={"gaps": sanitized_gaps, "unmet": sanitized_unmet}
-        )
-        return assignment.model_copy(update={"pathway": sanitized_pathway})
+        return assignment.model_copy(update={"pathway": private_route(assignment.pathway)})
 
     return ProgrammeList(
         programmes=[

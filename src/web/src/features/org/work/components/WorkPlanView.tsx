@@ -12,7 +12,7 @@ import { type Assignment, byStatus, fetchMyProgrammes } from "../api";
 
 const REASONS = ["already_have_skill", "pace", "language", "accessibility", "schedule", "upfront_cost", "other"] as const;
 
-async function AgreementCard({ a, org, orgId }: { a: Assignment; org: string; orgId: string }) {
+async function AgreementCard({ a, org, orgId, shared }: { a: Assignment; org: string; orgId: string; shared: boolean }) {
   const t = await getTranslations("org.work");
   const tp = await getTranslations("org.programmes");
   const g = a.agreement;
@@ -93,7 +93,15 @@ async function AgreementCard({ a, org, orgId }: { a: Assignment; org: string; or
       ) : null}
       {open ? (
         <footer className="a-agreement-actions">
-          <ActionForm action={decideProgrammeAction} fields={{ programme_id: g.programme_id, decision: "accept", org_id: orgId }} label={t("accept")} />
+          <ActionForm action={decideProgrammeAction} fields={{ programme_id: g.programme_id, decision: "accept", org_id: orgId }} label={t("accept")}>
+            {shared ? null : (
+              // Not sharing skill levels: accepting rebuilds the route from them, so ask first.
+              <label className="a-check">
+                <input type="checkbox" name="consent" required />
+                <span>{t("acceptConsent", { org })}</span>
+              </label>
+            )}
+          </ActionForm>
           {!g.mandatory ? (
             <ActionForm
               action={decideProgrammeAction}
@@ -143,9 +151,9 @@ export async function WorkPlanView({ org }: { org: WorkspaceOption }) {
   return (
     <div className="a-view">
       <PageHeader eyebrow={org.name} title={t("planTitle")} description={t("planDesc", { org: org.name })} />
-      <AssignedPackageView acceptedIds={accepted.map((a) => a.agreement.programme_id)} />
+      <AssignedPackageView acceptedIds={accepted.map((a) => a.agreement.programme_id)} orgId={org.id} />
       {all.length ? (
-        all.map((a) => <AgreementCard key={a.agreement.programme_id} a={a} org={org.name} orgId={org.id} />)
+        all.map((a) => <AgreementCard key={a.agreement.programme_id} a={a} org={org.name} orgId={org.id} shared={org.skills_shared} />)
       ) : (
         <EmptyState
           title={t("noProgrammes", { org: org.name })}

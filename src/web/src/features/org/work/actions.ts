@@ -42,7 +42,8 @@ export async function decideProgrammeAction(_: ActionState, form: FormData): Pro
         decision,
         reason: decision === "request_change" ? (reason ?? null) : null,
         note: text(form, "note", 500),
-        consent: decision === "accept",
+        // Only an explicit tick counts; members who already share skills need none.
+        consent: decision === "accept" && form.get("consent") === "on",
       },
     }),
   );
