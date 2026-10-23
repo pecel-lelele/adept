@@ -7,7 +7,7 @@ import { useState, useTransition } from "react";
 import { rotateCodeAction } from "../actions";
 
 /** The organisation's join code with copy-link and rotate actions (managers only). */
-export function JoinCodeCard({ code }: { code: string }) {
+export function JoinCodeCard({ code, orgId }: { code: string; orgId?: string }) {
   const t = useTranslations("ui.org");
   const [copied, setCopied] = useState(false);
   const [pending, start] = useTransition();
@@ -39,7 +39,7 @@ export function JoinCodeCard({ code }: { code: string }) {
           disabled={pending}
           onClick={() =>
             start(async () => {
-              const result = await rotateCodeAction();
+              const result = await rotateCodeAction(orgId);
               if (result.error) setError(result.error);
             })
           }

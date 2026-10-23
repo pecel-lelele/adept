@@ -70,7 +70,12 @@ def get_packages(
 
 
 @router.post("/packages/select")
-def select_package(body: PackageChoice, user: CurrentUserDep) -> TeamPackage:
+def select_package(
+    body: PackageChoice,
+    user: CurrentUserDep,
+    expected_org: Annotated[str | None, Query(max_length=100)] = None,
+) -> TeamPackage:
+    _check_workspace(user, expected_org)
     return packages.select(user, body)
 
 
@@ -80,8 +85,13 @@ def get_assigned_package(user: CurrentUserDep) -> AssignedPackage | None:
 
 
 @router.post("/packages/assigned/accept")
-def accept_assigned_package(body: AcceptPackage, user: CurrentUserDep) -> ProgrammeAssignment:
+def accept_assigned_package(
+    body: AcceptPackage,
+    user: CurrentUserDep,
+    expected_org: Annotated[str | None, Query(max_length=100)] = None,
+) -> ProgrammeAssignment:
     """Accept HR's team plan as a work programme; the personal plan is left untouched."""
+    _check_workspace(user, expected_org)
     return packages.accept(user, body.token)
 
 
@@ -133,8 +143,10 @@ def decide_programme(
     programme_id: Annotated[str, Path(max_length=40)],
     body: AssignmentDecision,
     user: CurrentUserDep,
+    expected_org: Annotated[str | None, Query(max_length=100)] = None,
 ) -> ProgrammeAssignment:
     """Accept, decline (optional programmes only) or ask HR for a change."""
+    _check_workspace(user, expected_org)
     return programmes.decide(user, programme_id, body)
 
 
@@ -145,8 +157,12 @@ def get_funding(year: BudgetYear, user: CurrentUserDep) -> FundingLedger:
 
 @router.put("/funding/{year}/budget")
 def set_member_budget(
-    year: BudgetYear, body: MemberBudgetIn, user: CurrentUserDep
+    year: BudgetYear,
+    body: MemberBudgetIn,
+    user: CurrentUserDep,
+    expected_org: Annotated[str | None, Query(max_length=100)] = None,
 ) -> FundingLedger:
+    _check_workspace(user, expected_org)
     return funding.budget(user, year, body)
 
 
@@ -167,7 +183,9 @@ def submit_funding_claim(
     claim_id: str,
     body: FundingSubmission,
     user: CurrentUserDep,
+    expected_org: Annotated[str | None, Query(max_length=100)] = None,
 ) -> FundingLedger:
+    _check_workspace(user, expected_org)
     return funding.submit(user, year, claim_id, body)
 
 
@@ -177,7 +195,9 @@ def complete_funded_course(
     claim_id: str,
     body: FundingCompletion,
     user: CurrentUserDep,
+    expected_org: Annotated[str | None, Query(max_length=100)] = None,
 ) -> FundingLedger:
+    _check_workspace(user, expected_org)
     return funding.complete(user, year, claim_id, body)
 
 
@@ -187,7 +207,9 @@ def decide_funding(
     claim_id: str,
     body: FundingDecision,
     user: CurrentUserDep,
+    expected_org: Annotated[str | None, Query(max_length=100)] = None,
 ) -> FundingLedger:
+    _check_workspace(user, expected_org)
     return funding.decide(user, year, claim_id, body)
 
 
@@ -197,14 +219,23 @@ def get_my_org(user: CurrentUserDep) -> Organization:
 
 
 @router.put("/me")
-def update_my_org(data: OrganizationIn, user: CurrentUserDep) -> Organization:
+def update_my_org(
+    data: OrganizationIn,
+    user: CurrentUserDep,
+    expected_org: Annotated[str | None, Query(max_length=100)] = None,
+) -> Organization:
     """Edit organisation setup (managers and advisors only)."""
+    _check_workspace(user, expected_org)
     return service.update_my_org(user, data)
 
 
 @router.post("/me/join-code")
-def rotate_join_code(user: CurrentUserDep) -> Organization:
+def rotate_join_code(
+    user: CurrentUserDep,
+    expected_org: Annotated[str | None, Query(max_length=100)] = None,
+) -> Organization:
     """Issue a new join code; the old one stops working (managers only)."""
+    _check_workspace(user, expected_org)
     return service.rotate_join_code(user)
 
 
@@ -239,7 +270,12 @@ def list_members(user: CurrentUserDep) -> MemberListResponse:
 
 
 @router.delete("/members/{member_id}", status_code=status.HTTP_204_NO_CONTENT)
-def remove_member(member_id: str, user: CurrentUserDep) -> None:
+def remove_member(
+    member_id: str,
+    user: CurrentUserDep,
+    expected_org: Annotated[str | None, Query(max_length=100)] = None,
+) -> None:
+    _check_workspace(user, expected_org)
     service.remove_member(user, member_id)
 
 

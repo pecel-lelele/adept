@@ -21,7 +21,7 @@ export async function OrgSetupView() {
         <OrgSettingsForm org={org.data} />
         {org.data.join_code ? (
           <aside className="a-card is-sage">
-            <JoinCodeCard code={org.data.join_code} />
+            <JoinCodeCard code={org.data.join_code} orgId={org.data.id} />
             <p className="a-small a-muted" style={{ margin: "14px 0 0" }}>
               {t("inviteBody")}
             </p>

@@ -13,6 +13,7 @@ export function OrgSettingsForm({ org }: { org: Schemas["Organization"] }) {
   const [state, action, pending] = useActionState<OrgActionState, FormData>(updateOrgAction, {});
   return (
     <form action={action} className="a-card a-stack" style={{ gap: 14 }}>
+      <input type="hidden" name="org_id" value={org.id} />
       <label className="a-field">
         {t("orgName")}
         <input className="a-input" name="name" required minLength={2} maxLength={120} defaultValue={org.name} />

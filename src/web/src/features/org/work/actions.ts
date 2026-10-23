@@ -30,17 +30,32 @@ export async function decideProgrammeAction(_: ActionState, form: FormData): Pro
   const decision = raw === "accept" || raw === "decline" ? raw : "request_change";
   const reasonRaw = text(form, "reason");
   const reason = REASONS.find((r) => r === reasonRaw) as Reason | undefined;
-  const api = await getApi();
+  const org_id = text(form, "org_id");
+  const api = await getApi(org_id ? { workspace: org_id } : undefined);
   return settle(
     api.POST("/api/v1/org/programmes/{programme_id}/decision", {
-      params: { path: { programme_id: text(form, "programme_id", 80) } },
-      body: { decision, reason: decision === "request_change" ? (reason ?? null) : null, note: text(form, "note", 500) },
+      params: {
+        path: { programme_id: text(form, "programme_id", 80) },
+        query: org_id ? { expected_org: org_id } : undefined,
+      },
+      body: {
+        decision,
+        reason: decision === "request_change" ? (reason ?? null) : null,
+        note: text(form, "note", 500),
+        consent: decision === "accept",
+      },
     }),
   );
 }
 
 /** The member turns skill-level sharing with this organisation on or off. */
 export async function setSharingAction(_: ActionState, form: FormData): Promise<ActionState> {
-  const api = await getApi();
-  return settle(api.PUT("/api/v1/org/me/sharing", { body: { share_skills: text(form, "share") === "on" } }));
+  const org_id = text(form, "org_id");
+  const api = await getApi(org_id ? { workspace: org_id } : undefined);
+  return settle(
+    api.PUT("/api/v1/org/me/sharing", {
+      params: org_id ? { query: { expected_org: org_id } } : undefined,
+      body: { share_skills: text(form, "share") === "on" },
+    }),
+  );
 }

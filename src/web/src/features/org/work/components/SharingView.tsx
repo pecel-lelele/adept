@@ -32,7 +32,7 @@ export async function SharingView({ org }: { org: WorkspaceOption }) {
           <p className="a-small">{shared ? t("sharingOnBody") : t("sharingOffBody")}</p>
           <ActionForm
             action={setSharingAction}
-            fields={{ share: shared ? "off" : "on" }}
+            fields={{ share: shared ? "off" : "on", org_id: org.id }}
             label={shared ? t("stopSharing") : t("shareNow", { org: org.name })}
             variant={shared ? "outline" : "default"}
           />

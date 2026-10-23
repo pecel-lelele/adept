@@ -12,7 +12,7 @@ import { type Assignment, byStatus, fetchMyProgrammes } from "../api";
 
 const REASONS = ["already_have_skill", "pace", "language", "accessibility", "schedule", "upfront_cost", "other"] as const;
 
-async function AgreementCard({ a, org }: { a: Assignment; org: string }) {
+async function AgreementCard({ a, org, orgId }: { a: Assignment; org: string; orgId: string }) {
   const t = await getTranslations("org.work");
   const tp = await getTranslations("org.programmes");
   const g = a.agreement;
@@ -93,11 +93,11 @@ async function AgreementCard({ a, org }: { a: Assignment; org: string }) {
       ) : null}
       {open ? (
         <footer className="a-agreement-actions">
-          <ActionForm action={decideProgrammeAction} fields={{ programme_id: g.programme_id, decision: "accept" }} label={t("accept")} />
+          <ActionForm action={decideProgrammeAction} fields={{ programme_id: g.programme_id, decision: "accept", org_id: orgId }} label={t("accept")} />
           {!g.mandatory ? (
             <ActionForm
               action={decideProgrammeAction}
-              fields={{ programme_id: g.programme_id, decision: "decline" }}
+              fields={{ programme_id: g.programme_id, decision: "decline", org_id: orgId }}
               label={t("decline")}
               variant="outline"
             />
@@ -106,7 +106,7 @@ async function AgreementCard({ a, org }: { a: Assignment; org: string }) {
             <summary>{t("askChange")}</summary>
             <ActionForm
               action={decideProgrammeAction}
-              fields={{ programme_id: g.programme_id, decision: "request_change" }}
+              fields={{ programme_id: g.programme_id, decision: "request_change", org_id: orgId }}
               label={t("sendChange")}
               variant="outline"
               className="a-form-stack"
@@ -145,7 +145,7 @@ export async function WorkPlanView({ org }: { org: WorkspaceOption }) {
       <PageHeader eyebrow={org.name} title={t("planTitle")} description={t("planDesc", { org: org.name })} />
       <AssignedPackageView acceptedIds={accepted.map((a) => a.agreement.programme_id)} />
       {all.length ? (
-        all.map((a) => <AgreementCard key={a.agreement.programme_id} a={a} org={org.name} />)
+        all.map((a) => <AgreementCard key={a.agreement.programme_id} a={a} org={org.name} orgId={org.id} />)
       ) : (
         <EmptyState
           title={t("noProgrammes", { org: org.name })}

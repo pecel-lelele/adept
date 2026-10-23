@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { ApiError, MetaBar, PageHeader } from "@/components";
 import { ActionForm } from "@/features/pathway/components/ActionForm";
+import { currentWorkspace } from "@/lib/auth/workspace";
 import { call, getApi, type ScenarioId } from "@/lib/api";
 import { fetchGaps, fetchMembers } from "../api";
 import { selectPackageAction } from "../funding-actions";
@@ -11,7 +12,8 @@ export async function PackagesView({ scenario, roleId, memberIds }: {
   scenario: ScenarioId; roleId?: string; memberIds?: string[];
 }) {
   const t = await getTranslations("org.packages");
-  const api = await getApi();
+  const workspace = await currentWorkspace();
+  const api = await getApi(workspace ? { workspace } : undefined);
   const [members, gaps, result] = await Promise.all([
     fetchMembers(), fetchGaps(scenario),
     call(api.GET("/api/v1/org/packages", { params: { query: {
@@ -51,7 +53,7 @@ export async function PackagesView({ scenario, roleId, memberIds }: {
         {(m.pathway.unmet ?? []).length ? <><h4>{t("unmet")}</h4><ul>{(m.pathway.unmet ?? []).map(u => <li key={u.skill_id}>{u.label}: {u.detail}</li>)}</ul></> : null}
         {(m.pathway.warnings ?? []).map((w, i) => <p className="a-small a-muted" key={i}>{w}</p>)}
       </details>)}
-      <ActionForm action={selectPackageAction} label={t("select")} fields={{ role_id: p.role_id, kind: p.kind, token: p.token, scenario }}>
+      <ActionForm action={selectPackageAction} label={t("select")} fields={{ role_id: p.role_id, kind: p.kind, token: p.token, scenario, ...(workspace ? { org_id: workspace } : {}) }}>
         {p.members.map(m => <input key={m.user_id} type="hidden" name="member_id" value={m.user_id} />)}
       </ActionForm>
     </section>)}</div>}

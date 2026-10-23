@@ -28,7 +28,7 @@ function money(n: number): string {
  * restrictions. Adept then proposes one route per person from the catalogue; HR reviews and
  * sends it. Nothing is enrolled, bought or approved here.
  */
-export function ProgrammeWizard({ options }: { options: ProgrammeOptions }) {
+export function ProgrammeWizard({ options, orgId }: { options: ProgrammeOptions; orgId?: string }) {
   const t = useTranslations("org.programmes");
   const [step, setStep] = useState(0);
   const [title, setTitle] = useState("");
@@ -89,7 +89,7 @@ export function ProgrammeWizard({ options }: { options: ProgrammeOptions }) {
     setGenerating(true);
     start(async () => {
       try {
-        const result = await generateProgrammeAction(brief);
+        const result = await generateProgrammeAction(brief, orgId);
         if (result.error !== undefined) setError(result.error);
         else setPlan(result.plan);
       } catch {
@@ -105,7 +105,7 @@ export function ProgrammeWizard({ options }: { options: ProgrammeOptions }) {
     setError(null);
     start(async () => {
       try {
-        const result = await sendProgrammeAction(brief, plan.token);
+        const result = await sendProgrammeAction(brief, plan.token, orgId);
         if (result.sent) setSent(true);
         else setError(result.stale ? t("stale") : result.error);
       } catch {

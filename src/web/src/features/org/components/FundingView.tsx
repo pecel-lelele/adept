@@ -35,13 +35,13 @@ export async function FundingView({ year = currentBudgetYear() }: { year?: numbe
     {ledger.budgets.map(b => <section className="a-card" key={b.user_id}>
       <h2>{name(b.user_id)}</h2>
       <p>{t("balance", { budget: amount(b.amount_myr), reserved: amount(b.reserved_myr), paid: amount(b.paid_myr), available: amount(b.available_myr) })}</p>
-      {ledger.manager ? <ActionForm action={fundingAction} fields={{ op: "budget", year: String(year), user_id: b.user_id }} label={t("setBudget")}>
+      {ledger.manager ? <ActionForm action={fundingAction} fields={{ op: "budget", year: String(year), user_id: b.user_id, org_id: ledger.org_id }} label={t("setBudget")}>
         <label className="a-field">{t("annualBudget")}<input className="a-input" name="amount_myr" type="number" min="0" max="1000000" step="0.01" required defaultValue={Number(b.amount_myr)} /></label>
       </ActionForm> : null}
     </section>)}
     {requesting && catalogue?.ok && matches?.ok ? <section className="a-card">
       <h2>{t("request")}</h2>
-      <ActionForm action={fundingAction} fields={{ op: "request", year: String(year) }} label={t("request")}>
+      <ActionForm action={fundingAction} fields={{ op: "request", year: String(year), org_id: ledger.org_id }} label={t("request")}>
         <label className="a-field">{t("role")}<select className="a-select" name="role_id" required>{matches.data.matches.map(r => <option key={r.role_id} value={r.role_id}>{r.label}</option>)}</select></label>
         <label className="a-field">{t("course")}<select className="a-select" name="course_id" required>{catalogue.data.courses.filter(c => c.price_basis === "per_course" && (c.cost_myr > 0 || c.price_status === "certificate_price_unknown")).map(c => <option key={c.id} value={c.id}>{c.title} · {c.price_status === "certificate_price_unknown" ? t("quoteNeeded") : `RM ${amount(c.cost_myr)}`}</option>)}</select></label>
         <label className="a-field">{t("quote")}<input className="a-input" name="quote_url" type="url" pattern="https://.*" required maxLength={500} /></label>
@@ -51,7 +51,7 @@ export async function FundingView({ year = currentBudgetYear() }: { year?: numbe
     <h2>{t("requests")}</h2>
     {ledger.claims.length === 0 ? <p>{t("empty")}</p> : null}
     {ledger.claims.map(c => {
-      const fields = { year: String(c.year), claim_id: c.id, revision: String(c.revision) };
+      const fields = { year: String(c.year), claim_id: c.id, revision: String(c.revision), org_id: ledger.org_id };
       return <section className="a-card" key={c.id}>
         <h3>{c.course.title} · {name(c.user_id)}</h3>
         <p>{t(`status.${c.status}`)} · {t("amount")}: RM {amount(c.requested_myr)} · {t("claimed")}: RM {amount(c.claimed_myr)}</p>
