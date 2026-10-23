@@ -225,6 +225,46 @@ class TestHasEvidenceFiltering:
         assert by_id["measured"]["has_evidence"] is True
         assert by_id["ghost"]["has_evidence"] is False
 
+    def test_stale_rows_excluded_by_evidenced_filter(self) -> None:
+        """Simulates a rescore: first run emits a skill; second run drops its evidence.
+
+        write_snapshots / publish must delete all rows for the date first so the
+        stale row from run-1 cannot inflate coverage in run-2.  This test verifies
+        the filtering contract: the set of rows passed to the DB write contains only
+        evidenced rows, and the ghost skill (has_evidence=False) is absent.
+        """
+        counts_run1 = {"skill_x": 5.0, "skill_y": 3.0}  # both evidenced
+        rows_run1 = score_rows(
+            counts_run1,
+            100,
+            counts_run1,
+            100,
+            {},
+            {},
+            skill_ids={"skill_x", "skill_y"},
+        )
+        assert all(r["has_evidence"] for r in rows_run1), "run-1: both should be evidenced"
+
+        # Run 2: skill_y loses its arxiv signal → should become has_evidence=False
+        counts_run2: dict[str, float] = {"skill_x": 7.0}  # skill_y absent
+        rows_run2 = score_rows(
+            counts_run2,
+            100,
+            counts_run2,
+            100,
+            {},
+            {},
+            skill_ids={"skill_x", "skill_y"},
+        )
+        evidenced_run2 = [r for r in rows_run2 if r.get("has_evidence", True)]
+        evidenced_ids = {r["skill_id"] for r in evidenced_run2}
+
+        # skill_y must NOT appear in the evidenced set that goes to the DB
+        assert "skill_y" not in evidenced_ids, (
+            "skill_y lost its evidence in run-2; it must be excluded from the DB write"
+        )
+        assert "skill_x" in evidenced_ids
+
 
 # ===========================================================================
 # Bug 2 — enforce_fast_magnitude: |fast| must be >= |moderate| at role level

@@ -114,10 +114,20 @@ def collected_dates(db_url: str, period: str | None = None) -> DateRange | None:
 def publish(
     rows: list[dict], snapshot_date: date, sources: list[dict], note: str, db_url: str
 ) -> None:
-    """Write the snapshot and its provenance in one transaction."""
+    """Write the snapshot and its provenance in one transaction.
+
+    Deletes all existing rows for snapshot_date before inserting so that a
+    rescore never leaves stale rows from a previous run that would inflate
+    role coverage and suppress uncertainty widening.
+    """
     import psycopg  # type: ignore[import]
 
     with psycopg.connect(db_url) as conn, conn.transaction(), conn.cursor() as cur:
+        # Snapshot cleanup: remove any stale rows from a previous run on this date.
+        cur.execute(
+            "DELETE FROM trend_snapshots WHERE snapshot_date = %s",
+            (snapshot_date,),
+        )
         for r in rows:
             cur.execute(
                 """

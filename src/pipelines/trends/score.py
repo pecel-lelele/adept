@@ -232,16 +232,29 @@ def write_snapshots(
     snapshot_date: date,
     db_url: str,
 ) -> None:
-    """Upsert evidenced scored rows into trend_snapshots.
+    """Write evidenced scored rows into trend_snapshots for snapshot_date.
 
     Rows without real signal (``has_evidence=False``) are never written so that
     ``role_signal`` cannot count catalogue-only skills as covered.
+
+    **Snapshot cleanup**: all existing rows for this date are deleted before the
+    new evidenced rows are inserted.  This prevents a rescore from leaving stale
+    rows for skills that were evidenced in a previous run but are not evidenced
+    in the current one — those stale rows would otherwise be counted as covered
+    by ``role_signal`` and silently suppress uncertainty widening.
     """
     import psycopg  # type: ignore[import]
 
     evidenced = [r for r in rows if r.get("has_evidence", True)]
     with psycopg.connect(db_url) as conn:
         with conn.cursor() as cur:
+            # Remove all existing rows for this date so that skills which were
+            # evidenced in a previous run but are no longer evidenced now do not
+            # linger and falsely inflate role coverage.
+            cur.execute(
+                "DELETE FROM trend_snapshots WHERE snapshot_date = %s",
+                (snapshot_date,),
+            )
             for r in evidenced:
                 cur.execute(
                     """
