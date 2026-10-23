@@ -128,6 +128,103 @@ class TestScoreRowsFullCatalogue:
         rows = score_rows(counts, 100, counts, 100, labor, exposure, skill_ids=full)
         assert len(rows) == len(full)
 
+    def test_has_evidence_true_for_measured_skills(self) -> None:
+        """skill_a and skill_b have signal counts and/or BLS data → has_evidence=True."""
+        counts, labor, exposure = self._inputs()
+        rows = score_rows(counts, 100, counts, 100, labor, exposure)
+        by_id = {r["skill_id"]: r for r in rows}
+        assert by_id["skill_a"]["has_evidence"] is True  # arxiv counts + BLS
+        assert by_id["skill_b"]["has_evidence"] is True  # arxiv counts + BLS
+
+    def test_has_evidence_false_for_catalogue_only_skill(self) -> None:
+        """skill_c: in catalogue, no arxiv counts, no BLS mapping → has_evidence=False.
+
+        We explicitly exclude skill_c from the signal counts to simulate a skill that
+        exists in the DB catalogue but was never measured by any arxiv period or BLS entry.
+        """
+        _, labor, exposure = self._inputs()
+        counts_no_c = {"skill_a": 10.0, "skill_b": 5.0}  # skill_c intentionally absent
+        rows = score_rows(
+            counts_no_c,
+            100,
+            counts_no_c,
+            100,
+            labor,
+            exposure,
+            skill_ids={"skill_a", "skill_b", "skill_c"},
+        )
+        row_c = next(r for r in rows if r["skill_id"] == "skill_c")
+        assert row_c["has_evidence"] is False
+
+    def test_has_evidence_true_when_only_bls_no_arxiv(self) -> None:
+        """skill_d: no arxiv counts but has a BLS mapping → still has_evidence=True."""
+        empty_counts: dict[str, float] = {}
+        labor_with_d = {"skill_d": (0.05, "bls")}
+        rows = score_rows(
+            empty_counts,
+            100,
+            empty_counts,
+            100,
+            labor_with_d,
+            {},
+            skill_ids={"skill_d"},
+        )
+        assert rows[0]["has_evidence"] is True
+
+
+# ===========================================================================
+# Issue 3 — write_snapshots / publish must exclude has_evidence=False rows
+# ===========================================================================
+
+
+class TestHasEvidenceFiltering:
+    """Rows with has_evidence=False must never reach trend_snapshots so that
+    role_signal() cannot count catalogue-only skills as covered."""
+
+    def test_default_only_skill_flagged_not_evidenced(self) -> None:
+        """A skill with zero arxiv counts and no BLS entry gets has_evidence=False."""
+        counts: dict[str, float] = {}
+        rows = score_rows(
+            counts,
+            1,
+            counts,
+            1,
+            {},
+            {},
+            skill_ids={"ghost_skill"},
+        )
+        assert len(rows) == 1
+        assert rows[0]["has_evidence"] is False
+
+    def test_arxiv_signal_in_t1_only_is_sufficient_evidence(self) -> None:
+        """A brand-new skill that only appears in t1 (not t0) still has evidence."""
+        rows = score_rows(
+            {},
+            100,
+            {"new_skill": 5.0},
+            100,
+            {},
+            {},
+            skill_ids={"new_skill"},
+        )
+        assert rows[0]["has_evidence"] is True
+
+    def test_evidenced_and_non_evidenced_split_correctly(self) -> None:
+        """score_rows returns both kinds; callers are responsible for filtering."""
+        counts = {"measured": 10.0}
+        rows = score_rows(
+            counts,
+            100,
+            counts,
+            100,
+            {},
+            {},
+            skill_ids={"measured", "ghost"},
+        )
+        by_id = {r["skill_id"]: r for r in rows}
+        assert by_id["measured"]["has_evidence"] is True
+        assert by_id["ghost"]["has_evidence"] is False
+
 
 # ===========================================================================
 # Bug 2 — enforce_fast_magnitude: |fast| must be >= |moderate| at role level

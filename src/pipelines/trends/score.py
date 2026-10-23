@@ -232,12 +232,17 @@ def write_snapshots(
     snapshot_date: date,
     db_url: str,
 ) -> None:
-    """Upsert scored rows into trend_snapshots."""
+    """Upsert evidenced scored rows into trend_snapshots.
+
+    Rows without real signal (``has_evidence=False``) are never written so that
+    ``role_signal`` cannot count catalogue-only skills as covered.
+    """
     import psycopg  # type: ignore[import]
 
+    evidenced = [r for r in rows if r.get("has_evidence", True)]
     with psycopg.connect(db_url) as conn:
         with conn.cursor() as cur:
-            for r in rows:
+            for r in evidenced:
                 cur.execute(
                     """
                     INSERT INTO trend_snapshots
@@ -270,7 +275,7 @@ def write_snapshots(
                     ),
                 )
         conn.commit()
-    print(f"[db] Wrote {len(rows)} snapshot rows for {snapshot_date}.")
+    print(f"[db] Wrote {len(evidenced)} of {len(rows)} snapshot rows for {snapshot_date}.")
 
 
 def score_rows(
@@ -289,6 +294,12 @@ def score_rows(
     receive the neutral DEFAULT_EXPOSURE (0.5) instead of being silently dropped.  When
     omitted the function falls back to iterating over ``exposure_map`` keys only (the
     previous behaviour, preserved for callers that have not yet migrated).
+
+    Each row carries ``has_evidence: bool``.  A skill has evidence when it appeared in at
+    least one arxiv signal period (counts > 0) **or** has a BLS labour-decay mapping.
+    Catalogue-only skills with neither source get ``has_evidence=False``.  Callers
+    (``write_snapshots``, ``run.publish``) must filter these rows out before writing to
+    ``trend_snapshots`` so that ``role_signal`` does not count them as covered.
     """
     master: set[str] = skill_ids if skill_ids is not None else set(exposure_map)
     rows: list[dict] = []
@@ -300,6 +311,11 @@ def score_rows(
         exposure = exposure_map.get(sid, DEFAULT_EXPOSURE)
         v_mod = composite_velocity(rv, ld)
         v_fast = scenario_fast(v_mod, exposure)
+        # Issue 3 fix: a skill only has evidence when it was actually measured.
+        # Catalogue membership alone (sid in skill_ids) is not evidence.
+        has_evidence: bool = (
+            counts_t0.get(sid, 0.0) > 0 or counts_t1.get(sid, 0.0) > 0 or sid in labor_decay_map
+        )
         rows.append(
             {
                 "skill_id": sid,
@@ -311,6 +327,7 @@ def score_rows(
                 "velocity_fast": round(v_fast, 6),
                 "direction_moderate": direction(v_mod),
                 "direction_fast": direction(v_fast),
+                "has_evidence": has_evidence,
             }
         )
     return rows

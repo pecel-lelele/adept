@@ -197,11 +197,23 @@ def main(argv: list[str] | None = None) -> int:
     counts_t0, total_t0 = score.load_signal_raw(db_url, t0)
     counts_t1, total_t1 = score.load_signal_raw(db_url, t1)
     exposure = score.load_automation_exposure()
+    # Issue 2 fix: load the full DB catalogue so score_rows covers every skill,
+    # and so validate uses the same authoritative ID set as the rest of the application.
+    skill_ids = score.load_skill_ids(db_url)
     rows = score.score_rows(
-        counts_t0, total_t0, counts_t1, total_t1, score.load_labor_decay(), exposure
+        counts_t0,
+        total_t0,
+        counts_t1,
+        total_t1,
+        score.load_labor_decay(),
+        exposure,
+        skill_ids=skill_ids,
     )
+    # Issue 3 fix: only validate and publish rows that have real signal; catalogue-only
+    # default rows (has_evidence=False) must not enter trend_snapshots or inflate coverage.
+    evidenced = [r for r in rows if r.get("has_evidence", True)]
 
-    errors = validate(rows, set(exposure), t0, t1)
+    errors = validate(evidenced, skill_ids, t0, t1)
     if errors:
         print("Snapshot NOT published; the previous snapshot stays live:", file=sys.stderr)
         for e in errors:
@@ -213,12 +225,12 @@ def main(argv: list[str] | None = None) -> int:
         print("ERROR: signal collection dates missing; nothing published.", file=sys.stderr)
         return 1
     sources, note = provenance(t0, t1, t0_dates, t1_dates)
-    rising = sum(1 for r in rows if r["direction_moderate"] == "rising")
-    print(f"Valid snapshot {snapshot_date}: {len(rows)} skills, {rising} rising. {note}")
+    rising = sum(1 for r in evidenced if r["direction_moderate"] == "rising")
+    print(f"Valid snapshot {snapshot_date}: {len(evidenced)} skills, {rising} rising. {note}")
     if args.dry_run:
         print("Dry run: nothing published.")
         return 0
-    publish(rows, snapshot_date, sources, note, db_url)
+    publish(evidenced, snapshot_date, sources, note, db_url)
     print(f"Published snapshot {snapshot_date}.")
     return 0
 
