@@ -40,12 +40,23 @@ from app.contracts.programmes import (
     ProgrammeSend,
     ProgrammeStatus,
 )
-from app.core.auth import CurrentUserDep
+from app.core.auth import CurrentUser, CurrentUserDep
+from app.core.errors import AppError
 from app.features.org import funding, packages, programmes, service
 
 router = APIRouter(prefix="/org", tags=["org"])
 
 BudgetYear = Annotated[int, Path(ge=2020, le=2200)]
+
+
+def _check_workspace(user: CurrentUser, expected_org: str | None) -> None:
+    """Reject stale cross-tab submissions where the workspace cookie drifted."""
+    if expected_org is not None and expected_org != user.org_id:
+        raise AppError(
+            "Your workspace changed since this page loaded. Refresh and try again.",
+            status_code=409,
+            code="workspace_changed",
+        )
 
 
 @router.get("/packages")
@@ -84,14 +95,24 @@ def programme_options(user: CurrentUserDep) -> ProgrammeOptions:
 
 
 @router.post("/programmes/generate")
-def generate_programme(body: ProgrammeBriefIn, user: CurrentUserDep) -> ProgrammePlan:
+def generate_programme(
+    body: ProgrammeBriefIn,
+    user: CurrentUserDep,
+    expected_org: Annotated[str | None, Query(max_length=100)] = None,
+) -> ProgrammePlan:
     """Propose a personalised route per person for the brief (nothing is saved or sent)."""
+    _check_workspace(user, expected_org)
     return programmes.generate(user, body)
 
 
 @router.post("/programmes", status_code=status.HTTP_201_CREATED)
-def send_programme(body: ProgrammeSend, user: CurrentUserDep) -> ProgrammeStatus:
+def send_programme(
+    body: ProgrammeSend,
+    user: CurrentUserDep,
+    expected_org: Annotated[str | None, Query(max_length=100)] = None,
+) -> ProgrammeStatus:
     """Send the generated plan to its members (refused if it changed since it was shown)."""
+    _check_workspace(user, expected_org)
     return programmes.send(user, body)
 
 
@@ -130,7 +151,13 @@ def set_member_budget(
 
 
 @router.post("/funding/{year}/requests")
-def request_funding(year: BudgetYear, body: FundingRequest, user: CurrentUserDep) -> FundingLedger:
+def request_funding(
+    year: BudgetYear,
+    body: FundingRequest,
+    user: CurrentUserDep,
+    expected_org: Annotated[str | None, Query(max_length=100)] = None,
+) -> FundingLedger:
+    _check_workspace(user, expected_org)
     return funding.request(user, year, body)
 
 
@@ -195,9 +222,14 @@ def list_workspaces(user: CurrentUserDep) -> WorkspaceList:
 
 
 @router.put("/me/sharing")
-def set_sharing(data: SharingIn, user: CurrentUserDep) -> Workspace:
+def set_sharing(
+    data: SharingIn,
+    user: CurrentUserDep,
+    expected_org: Annotated[str | None, Query(max_length=100)] = None,
+) -> Workspace:
     """Member, in the organisation workspace: share (or stop sharing) your skill levels with
     its managers. Personal plans, matches and Adi conversations are never shared."""
+    _check_workspace(user, expected_org)
     return service.set_sharing(user, data)
 
 
