@@ -24,6 +24,32 @@ env:
   PNPM_VERSION: "10.29.3"
 
 jobs:
+  minilm-workflow:
+    name: MiniLM workflow syntax and publication policy (no build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+
+      # Workflow files only: this job never runs the publisher.
+      - name: Lint workflow syntax
+        env:
+          GOTOOLCHAIN: auto
+          GOSUMDB: sum.golang.org
+        run: go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7 -shellcheck= -pyflakes= .github/workflows/ci.yml .github/workflows/publish-minilm.yml
+
+      - name: Test unsafe workflow fixtures (offline)
+        run: uv run --no-project --python "$PYTHON_VERSION" --with PyYAML==6.0.3 python -m unittest discover -s tests/pipelines/trends -p test_minilm_publish_workflow.py -v
+
+      - name: Check publication policy and public pinned action manifests
+        run: uv run --no-project --python "$PYTHON_VERSION" --with PyYAML==6.0.3 python src/scripts/check_minilm_workflow.py --check-actions
+
   backend:
     name: Backend (ruff, pytest)
     runs-on: ubuntu-latest

@@ -1498,3 +1498,14 @@
 - **Validation**: Full quality gate passed: 918 tests passed, 27 skipped; Ruff, ESLint, translations, TypeScript and generated contracts passed. Fourteen preflight regressions cover private-host rejection, bounded queries, read-only connections, table/sequence privileges, preserved connection options and sanitized failures. CI additionally exercises the preflight against migrated PostgreSQL. Documentation links and submission answer limits passed.
 - **Replaces**: M4-066 (MiniLM pending status); completes deployment integration from M1-011/M4-064.
 - **PR / branch**: feat/minilm-runpod-deploy
+
+### M4-069: Document the verified MiniLM RunPod API contract
+- **Date**: 2026-10-24
+- **Feature**: F2 (AI-Trend Signal Layer), Core deployment
+- **Type**: other
+- **Change**: Document the deployed RunPod endpoint and authenticated batch, status and health routes in the root README and worker guide. Preserve distinct endpoint configuration and inference credentials for MiniLM and Adi's GLM service.
+- **Why**: Operators need usable endpoint details in the repository, and substituting the GLM chat credential or endpoint can disrupt unrelated model access.
+- **Pipeline**: public research sentences and catalogue labels → existing text validation → pinned all-MiniLM-L6-v2 revision `1110a243fdf4706b3f48f1d95db1a4f5529b4d41` → normalized 384-dimensional embeddings → verified two-text live smoke test → existing trend pipeline.
+- **Affects**: M1 (trend refresh), M4 (deployment/docs); no scoring, schema or GLM chat changes
+- **Replaces**: none
+- **PR / branch**: docs/minilm-runpod-endpoint-contract

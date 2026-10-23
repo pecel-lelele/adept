@@ -11,6 +11,8 @@ Replit production setup and publication acceptance.
 - Model: `sentence-transformers/all-MiniLM-L6-v2`.
 - Pinned revision: `1110a243fdf4706b3f48f1d95db1a4f5529b4d41`.
 - Protocol: authenticated RunPod `POST /runsync`, polling `GET /status/<job_id>`.
+- API routes: `POST /run`, `POST /runsync`, `GET /status/<job_id>` and `GET /health` at
+  the endpoint URL above.
 - Input: `input.texts`, 1–64 non-empty strings of at most 4,096 characters each.
 - Output: model, revision, dimensions and normalized 384-dimensional embeddings.
 - Data: public research sentences and catalogue labels; no CVs or private identities.
@@ -21,8 +23,8 @@ inference. Existing cosine threshold 0.55, trend formulas and publication rules 
 
 ## Execution boundaries
 
-[Publish MiniLM](../../../../.github/workflows/publish-minilm.yml) builds the image on
-trusted worker/encoder/workflow changes and pushes GHCR tags. It is separate from
+[Publish MiniLM](../../../../.github/workflows/publish-minilm.yml) is manual-dispatch only
+from the trusted `main` branch. It is separate from
 [Trends refresh](../../../../.github/workflows/trends-refresh.yml), which runs the batch
 pipeline on Mondays and manual dispatch. Only the RunPod worker installs PyTorch and model
 weights; the GitHub pipeline runner installs ordinary client dependencies. The image loads

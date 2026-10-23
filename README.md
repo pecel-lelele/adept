@@ -51,9 +51,25 @@ Adept connects your current skills to future roles, explains the gaps, and build
 | Demo video | Pending |
 | Pitching video | Pending |
 
-The MiniLM endpoint accepts authenticated embedding requests at `POST /runsync` with an
-`input.texts` array. Its inference smoke test passed on 24 October 2026; snapshot publication
-requires a separate successful **Trends refresh** run.
+The queue-based endpoint ID is `ta14jd0by2ijl2` with base URL
+`https://api.runpod.ai/v2/ta14jd0by2ijl2`. Authenticate with the MiniLM-specific
+`TRENDS_RUNPOD_API_KEY` bearer token; do not substitute Adi's GLM `RUNPOD_API_KEY`.
+
+- `POST /runsync` submits a batch and waits for its embeddings.
+- `POST /run` queues a batch; poll `GET /status/{job_id}`.
+- `GET /health` reports endpoint and worker health.
+
+```bash
+curl --fail-with-body --silent --show-error \
+  --request POST 'https://api.runpod.ai/v2/ta14jd0by2ijl2/runsync' \
+  --header "Authorization: Bearer ${TRENDS_RUNPOD_API_KEY}" \
+  --header 'Content-Type: application/json' \
+  --data '{"input":{"texts":["Human-AI collaboration design"]}}'
+```
+
+A completed response contains the pinned model/revision and one finite 384-dimensional
+vector per input. The inference smoke test passed on 24 October 2026; publishing a snapshot
+still requires a separate successful **Trends refresh** run. Store the key in a secret manager.
 
 ## Features
 
