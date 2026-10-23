@@ -29,6 +29,9 @@ flowchart LR
     orgw[/org: members → gaps → programmes → funding/]
     employee[/work: agreements → learning → progress/]
   end
+  encoder["RunPod Serverless<br/>pinned MiniLM · 384 dimensions"]
+  T -- "authenticated embedding batches" --> encoder
+  encoder -- "validated vectors" --> T
   T --> snap
   M --> tax
   S --> sdg
@@ -59,6 +62,31 @@ only on primary failure. Catalogue IDs pass through the validation gateway; prov
 failure can fall back to the deterministic guide. Keys stay in server environment variables.
 See [configuration](../README.md#12-getting-started) and the
 [provider guide](../src/api/app/core/llm/FEATURE.md).
+
+## Hosted trend inference and scheduled publication
+
+MiniLM is deployed at `https://api.runpod.ai/v2/ta14jd0by2ijl2` using the public image
+`ghcr.io/pecel-lelele/adept-minilm:latest`. The queue-based worker contains the pinned
+model weights, loads them offline and returns 384-dimensional embeddings. It does not
+connect to the database. Adi's GLM endpoint and Gemini CV embeddings are separate services.
+
+GitHub Actions separates CI checks, upstream source audits, worker image publication and
+trend refresh. The refresh runs Mondays at 03:41 UTC or by manual dispatch. It verifies
+database access before ingestion or paid inference, then scores, validates and atomically
+writes `trend_snapshots` and `trend_snapshot_meta`. Missing settings skip the refresh
+with a notice, so a green run alone does not establish publication.
+
+The refresh maps repository secret `TREND_DATABASE_URL` to process `DATABASE_URL` and
+uses secret `TRENDS_RUNPOD_API_KEY` plus variable `TRENDS_RUNPOD_ENDPOINT_ID`.
+Replit's published API must read that same production database. The development hostname
+`helium` is private to Replit; the first integrated refresh failed saving there despite
+successful embedding work. Publishing Replit creates a separate production database.
+
+The live inference test passed on 24 October 2026. This does not establish fresh two-week
+research history, sufficient skill coverage or a published snapshot. Page requests serve
+stored snapshots without MiniLM inference. Demo-enabled reads can use labelled fixtures
+when database snapshots are unavailable; strict production reads fail instead. See the
+[operations guide](../src/pipelines/trends/runpod/DEPLOYMENT_HANDOFF.md).
 
 ## Output contract
 

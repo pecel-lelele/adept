@@ -9,8 +9,20 @@ PYTHONPATH=src/api:src python -m pipelines.trends.run --dry-run     # validate, 
 ```
 
 Scheduled by `.github/workflows/trends-refresh.yml` (Mondays) when the `TREND_DATABASE_URL`
-secret points at the deployed database. The scheduled job uses the RunPod MiniLM endpoint; its endpoint ID and API key must
-also be configured. It does not install model weights in GitHub Actions.
+repository secret points at a production database reachable by the GitHub-hosted runner.
+The workflow maps this secret to process `DATABASE_URL`; naming the secret `DATABASE_URL`
+alone does not configure it. Replit's development `helium` host cannot be used externally.
+Publish Replit to provision its production database, then use its production connection
+details. Also configure secret `TRENDS_RUNPOD_API_KEY` and repository variable
+`TRENDS_RUNPOD_ENDPOINT_ID=ta14jd0by2ijl2`. No model weights are installed in Actions.
+
+The schedule is Mondays 03:41 UTC (11:41 WITA), with manual dispatch through
+**Actions → Trends refresh → Run workflow**. Missing settings skip work and can leave a
+green run. Preflight checks database connectivity before ingestion or paid inference.
+Require the actual `Published snapshot YYYY-MM-DD.` log and verify the date in the app.
+A live inference test passed on 24 October 2026; the first integrated refresh fetched 366
+papers but failed saving to private host `helium`. Inference readiness does not establish
+publication. See [deployment evidence and recovery](runpod/DEPLOYMENT_HANDOFF.md).
 
 MiniLM runs on a RunPod Serverless worker for background ingestion, with the same
 scoring and publication rules. Build, endpoint configuration and environment variables

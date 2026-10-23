@@ -1486,3 +1486,15 @@
 - **Validation**: Full quality gate passed (904 tests passed, 27 skipped). All 11 product diagram sources match the originals; GitHub Markdown exposes all 11 Mermaid containers, with nine badges, valid local links and full resource URLs.
 - **Replaces**: M4-066 (diagram placement and link presentation only)
 - **PR / branch**: docs/core-restore-readme-diagrams
+
+### M4-068: Integrate MiniLM deployment and verify database access before inference
+- **Date**: 2026-10-24
+- **Feature**: Core deployment / F2 (AI-Trend Signal Layer)
+- **Type**: method | other
+- **Change**: Integrate the existing trusted GHCR publisher and worker configuration with current main. Refresh the README, operations, architecture, feature and submission docs with the deployed endpoint, pinned model, separate credentials and observed results. Add a bounded database preflight before scheduled ingestion or inference.
+- **Why**: The worker returns the pinned revision and two 384-dimensional vectors, but the first real refresh spent about seven minutes fetching and embedding 366 papers before failing on Replit's private development host `helium`. Preflight rejects that configuration early and sanitizes failures; production publishing and connection setup remain account-owner operations.
+- **Pipeline**: public arXiv/catalogue → existing cleaning → pinned 384-dimensional MiniLM via RunPod → unchanged cosine/scoring → database preflight, vector and snapshot checks → atomic PostgreSQL publication read by Replit.
+- **Affects**: M1 (scheduled refresh), M4 (deployment/docs); no contract, schema, dependency or scoring changes beyond the existing deployment branch.
+- **Validation**: Full quality gate passed: 912 tests passed, 27 skipped; Ruff, ESLint, translations, TypeScript and generated contracts passed. Eight preflight regressions cover private-host rejection before connection, bounded queries and sanitized failures. Documentation links and submission answer limits passed.
+- **Replaces**: M4-066 (MiniLM pending status); completes deployment integration from M1-011/M4-064.
+- **PR / branch**: feat/minilm-runpod-deploy

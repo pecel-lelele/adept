@@ -1,118 +1,167 @@
-# RunPod deployment handoff
+# MiniLM deployment and operations
 
-The Docker image is built and published automatically to **GitHub Container Registry** by
-the `publish-minilm.yml` workflow on every push to `main`. No local Docker build is needed
-unless you are iterating on the worker code itself.
+## Verified state on 24 October 2026
 
-Image: `ghcr.io/pecel-lelele/adept-minilm:latest`
+| Component | Location / evidence |
+|---|---|
+| Public worker image | `ghcr.io/pecel-lelele/adept-minilm:latest` |
+| Queue-based Serverless endpoint | https://api.runpod.ai/v2/ta14jd0by2ijl2 |
+| Pinned model | `sentence-transformers/all-MiniLM-L6-v2`, revision `1110a243fdf4706b3f48f1d95db1a4f5529b4d41` |
+| Image publication | [Successful publisher](https://github.com/pecel-lelele/adept/actions/runs/40007781487), source commit `ee2c4fa3134445e52e4597acb32a4e997ae8ff1e` |
+| Published image digest | `sha256:026b380da15af9314b244111f916653893160458c6092227c84b52aa796689a2` |
+| Live inference | `COMPLETED`; correct model/revision; two 384-dimensional vectors. One test observed 79,821 ms queue/startup delay and 231 ms execution; these are not latency guarantees. |
+| First integrated refresh | [Run 40013352381](https://github.com/pecel-lelele/adept/actions/runs/40013352381) fetched 366 papers and counted mentions, then failed saving to database host `helium`. No new snapshot was published. |
 
----
+The worker is deployed. Inference, database reachability and snapshot publication are
+separate acceptance checks. A successful embedding test does not prove a production write.
 
-## 1. Verify the image is published
+## 1. Architecture and credentials
 
-Open the repository on GitHub → **Packages** (right sidebar). Confirm `adept-minilm` is
-listed and the `latest` tag is recent. If it is missing, go to
-**Actions → Publish MiniLM worker** and click **Run workflow**.
+GitHub Actions runs the batch pipeline: public research → RunPod embeddings → deterministic
+scoring → validation → PostgreSQL publication. Replit's web/API serves saved snapshots;
+opening an app page does not invoke MiniLM. Adi's GLM chat and Gemini CV embeddings use
+separate provider settings.
 
----
+| Where | Exact name | Value / purpose |
+|---|---|---|
+| GitHub repository secret | `TREND_DATABASE_URL` | Reachable connection string for the production database read by the published app. |
+| GitHub repository secret | `TRENDS_RUNPOD_API_KEY` | Dedicated MiniLM key with permission to invoke the endpoint. |
+| GitHub repository variable | `TRENDS_RUNPOD_ENDPOINT_ID` | `ta14jd0by2ijl2`; only the ID. |
+| Pipeline environment | `DATABASE_URL` | Workflow maps the `TREND_DATABASE_URL` secret to this variable. |
+| Pipeline environment | `TRENDS_EMBEDDING_BACKEND` | Workflow sets `runpod`; `local` is explicit CPU development. |
+| RunPod worker | `MINILM_DEVICE` | Automatically chooses CUDA when available; `cpu` is a test option. |
+| Replit app | `DATABASE_URL` | Development and published production environments can have different connections. |
 
-## 2. Create a RunPod Serverless endpoint
+Enter credentials directly into secret stores. MiniLM reads its dedicated key and never
+falls back to Adi's `RUNPOD_API_KEY`. Database URLs, GLM and Gemini keys do not belong in
+the worker container.
 
-1. Log in to [RunPod](https://www.runpod.io/) and open **Serverless → + New Endpoint**.
-2. **Container image**: `ghcr.io/pecel-lelele/adept-minilm:latest`
-   - The image is public; RunPod does not need registry credentials.
-3. **GPU type**: any CUDA-capable GPU (RTX 3090, A4000, or lower-tier for cost savings).
-   The image includes CUDA 12.8 / PyTorch 2.8 weights baked in at build time.
-4. **Worker count**: Min workers `0`, Max workers `1` (sufficient for the weekly batch).
-5. **Container disk**: 10 GB (weights are ~90 MB, PyTorch libraries fill the rest).
-6. **Environment variables** (in the RunPod console — do not commit):
-   - `MINILM_DEVICE=cuda` (auto-selected; set to `cpu` only to test without a GPU)
-7. Leave all other settings at their defaults. Click **Deploy**.
-8. Copy the **Endpoint ID** (short alphanumeric string shown in the endpoint row).
+### Replit development versus production
 
-Test with the built-in RunPod playground → paste this input:
+Host `helium` is Replit's private development database; GitHub-hosted runners cannot
+resolve or access it. Renaming the secret does not make that database reachable.
+
+For the Replit production route, the account owner must **Publish** the app first.
+With current Helium infrastructure, publishing creates a separate production database
+when the development database contains data. In the legacy flow, enable production database
+creation in Publishing settings; copy only intended catalogue and synthetic demo data.
+Then open **Database → Production → Settings / Connection details** and use that production
+connection in GitHub's `TREND_DATABASE_URL`, verifying external access. Keep development
+configuration intact; do not replace the hostname in an existing URL manually.
+
+If production is not ready, test the pipeline inside the Replit environment that owns the
+development database, or use a separately configured PostgreSQL reachable by both app and
+runner. Moving data or adding another scheduler is separate work. See
+[Replit's development/production guide](https://docs.replit.com/features/data-and-storage/development-and-production).
+
+## 2. Build and publish
+
+The [publisher](../../../../.github/workflows/publish-minilm.yml) builds `linux/amd64`
+for relevant worker, encoder or workflow changes on trusted `main` and
+`feat/minilm-runpod-deploy` pushes, plus manual dispatch on those refs. Job-scoped
+`packages: write` and `GITHUB_TOKEN` publish `latest`, commit-SHA and
+`sha-<commit>` tags. PR events do not publish. The verified first publication ran
+from the deployment branch; merging the workflow enables it on main.
+
+PyTorch 2.8 / CUDA 12.8 dependencies and pinned weights are built into the image. The first
+build downloads these; registry push and cache export add time. The verified publication
+took about 11 minutes, including about five minutes exporting one cache layer. Image builds
+do not run for app page loads or inference requests.
+
+GHCR package visibility is separate from repository visibility. The current package is
+public and its manifest was anonymously checked with HTTP 200. Private images need RunPod
+registry credentials; an inference API key cannot authenticate an image pull. Prefer a
+published commit tag or digest for reproducibility. Preserve the image's entrypoint.
+
+Optional manual build from the repository root:
+
+```bash
+docker login YOUR_REGISTRY
+docker build --platform linux/amd64 -f src/pipelines/trends/runpod/Dockerfile -t YOUR_REGISTRY/adept-minilm:v1 .
+docker push YOUR_REGISTRY/adept-minilm:v1
+```
+
+## 3. RunPod settings and inference test
+
+Use a **queue-based Serverless endpoint**, a GPU compatible with the pinned CUDA runtime,
+**Active workers = 0**, and **Max workers = 1** for this batch workload. No custom start
+command is required.
+
+Open **Serverless → adept-minilm → Requests**, paste [test_input.json](test_input.json), and
+click **Run** once:
+
 ```json
-{"input":{"texts":["Human-AI collaboration design","Research on supervised AI agents."]}}
-```
-A successful response contains `output.model`, `output.revision`, `output.dimensions: 384`
-and two arrays of 384 finite floats. Wait for `COMPLETED` before wiring the pipeline.
-
----
-
-## 3. Add the endpoint to the project
-
-### A. Local `.env`
-
-Fill in the two values in your root `.env`:
-```env
-TRENDS_RUNPOD_ENDPOINT_ID=your-endpoint-id   # short ID from the RunPod console
-TRENDS_RUNPOD_API_KEY=rpa_xxxx               # RUNPOD_API_KEY from Account → API Keys
+{"input":{"texts":["Human-AI collaboration design","Research on supervised AI agents and human feedback."]}}
 ```
 
-### B. GitHub Actions secrets/variables
+Let the request complete. Expect `status: COMPLETED`, the pinned model/revision,
+`output.dimensions: 384` and two finite non-zero vectors. A worker saying Running
+alone does not establish inference success. Zero active workers allows automatic scale-down
+after the job; no continuous test or cancellation of a completed request is needed.
 
-In **Settings → Secrets and variables → Actions**:
+API callers send this body to `POST /runsync` with bearer authentication. The client
+polls `GET /status/<job_id>` if queued and validates model/revision, count, dimensions
+and values. Each request allows 1–64 non-empty texts, at most 4,096 characters each.
 
-| Kind     | Name                      | Value                                     |
-|----------|---------------------------|-------------------------------------------|
-| Secret   | `TREND_DATABASE_URL`      | Adept PostgreSQL connection URL           |
-| Secret   | `TRENDS_RUNPOD_API_KEY`   | Your RunPod API key                       |
-| Variable | `TRENDS_RUNPOD_ENDPOINT_ID` | The endpoint ID (no https://, just the ID) |
+## 4. Automatic refresh and acceptance
 
-These are already consumed by `trends-refresh.yml`; the weekly cron will skip
-automatically when any of them is missing.
+1. In repository **Settings → Secrets and variables → Actions**, add the two secrets and
+   one variable from section 1. A secret named only `DATABASE_URL` is not read here.
+2. Open **Actions → Trends refresh → Run workflow → main**.
+3. Inspect the `refresh` job: dependency installation, **Verify database access before
+   inference**, then **Ingest, score, validate and publish**.
+4. Require `Published snapshot YYYY-MM-DD.` in the log and that date in the
+   database-backed Radar. Skipped work or demo fixtures do not establish publication.
 
-### C. Replit deployment
+The schedule is Mondays **03:41 UTC / 11:41 WITA**; manual runs are also supported.
+Missing settings produce a notice and skip work, so a run can be green without inference.
+Preflight checks `SELECT 1` with ten-second connection/query timeouts and a one-minute
+step limit before fetching research or invoking RunPod; failures do not log credentials.
+It does not replace schema migrations or snapshot validation.
 
-When the app runs on Replit, the **trend pipeline runs as a GitHub Actions job, not inside
-Replit itself**. The Replit app only reads stored `trend_snapshots` from the PostgreSQL
-database; it never calls the RunPod MiniLM endpoint directly during a web request.
+Publication needs fresh research, two distinct observed weeks, at least 50 evidenced skills,
+known IDs and finite numeric values. Inference can succeed while data-readiness validation
+fails. Failures leave the previous published snapshot intact; ingestion audit rows may
+already exist. No Replit redeploy is needed per snapshot when the API reads the same database.
 
-Configure the Replit environment (Secrets panel) with the **database connection** (same
-`DATABASE_URL` that GitHub Actions writes to) so the Next.js frontend and FastAPI backend
-can serve the pre-computed snapshots. No RunPod variables belong in Replit; they live only
-in GitHub Actions secrets.
+## 5. Recovery and costs
 
----
+| Symptom | Action |
+|---|---|
+| Image pull denied / unauthorized | Check GHCR package visibility or RunPod registry credentials. |
+| No workers start after failures | Inspect Workers system/container logs. If Max workers was reduced to 0, restore 1 after fixing the cause, then send one test. |
+| Green workflow, no snapshot | Inspect the missing-configuration notice and the publication log. |
+| Database host `helium` cannot resolve | Use a reachable production connection, or run the pipeline inside the owning Replit environment. |
+| Inference works, validation fails | Inspect observation weeks and skill coverage; do not fabricate history or bypass the gate. |
 
-## 4. Smoke-test from the codebase (optional)
+To preserve credits, defer publication and repeated refresh attempts until the production
+database is ready. RunPod flex workers scale to zero; active workers remain billed while
+warm. Running workers are billed through startup, processing and their idle timeout; storage
+can have separate charges. Replit Autoscale uses request-based app compute, Reserved VM
+runs continuously, and production database usage is separate. Database compute pauses
+after inactivity, while stored data can still contribute to usage. Check the account's
+billing controls rather than assuming zero visitors means zero total charges.
 
-Once the endpoint ID and API key are in `.env`, verify the round-trip locally (requires
-Python 3.11 and the root `requirements.txt`):
+References: [RunPod requests](https://docs.runpod.io/serverless/endpoints/send-requests),
+[recovery](https://docs.runpod.io/serverless/troubleshooting),
+[RunPod billing](https://docs.runpod.io/serverless/pricing),
+[Replit publishing costs](https://docs.replit.com/billing/deployment-pricing).
+
+## 6. Local pipeline checks
+
+Install ordinary repository requirements. Securely export `DATABASE_URL` and the
+dedicated MiniLM key in the pipeline process; PowerShell:
 
 ```powershell
+$env:TRENDS_EMBEDDING_BACKEND='runpod'
+$env:TRENDS_RUNPOD_ENDPOINT_ID='ta14jd0by2ijl2'
 $env:PYTHONPATH='src/api;src'
+python -m pipelines.trends.preflight
 python -m pipelines.trends.embed_taxonomy
 python -m pipelines.trends.run --dry-run
 ```
 
-The dry run fetches public research, encodes it via RunPod, and validates the result without
-publishing. An "insufficient history" message means the database has fewer than two weeks of
-snapshots — this is normal for a fresh database and does not indicate a RunPod failure.
-
----
-
-## 5. Enable the weekly refresh
-
-Go to **Actions → Trends refresh → Run workflow** once to verify the full pipeline. It
-publishes a new snapshot if validation passes, or exits cleanly without touching the
-database on any failure.
-
-The cron (`cron: "41 3 * * 1"`) runs every Monday at 03:41 UTC automatically after that.
-
----
-
-## Notes on the image
-
-| Component            | Value                                                  |
-|----------------------|--------------------------------------------------------|
-| Image                | `ghcr.io/pecel-lelele/adept-minilm:latest`             |
-| Base OS              | `python:3.11-slim`                                     |
-| Model                | `sentence-transformers/all-MiniLM-L6-v2`               |
-| Revision (pinned)    | `1110a243fdf4706b3f48f1d95db1a4f5529b4d41`             |
-| Dimensions           | 384                                                    |
-| Max batch            | 64 texts per request                                   |
-| PyTorch              | 2.8.0 + CUDA 12.8                                      |
-
-The image contains baked-in weights; workers start without downloading the model.
-`MINILM_DEVICE=cpu` can be set in the RunPod endpoint environment to test on CPU workers.
+Taxonomy embedding writes catalogue vectors. A dry run can fetch/cache research and write
+ingestion signals but never publishes a snapshot. After validation passes, run
+`python -m pipelines.trends.run` to publish. Local CPU development explicitly sets
+`TRENDS_EMBEDDING_BACKEND=local` and installs sentence-transformers separately.

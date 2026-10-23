@@ -5,7 +5,7 @@ Declaration Template**. Its deadline field is unspecified; confirm it with the o
 This document records repository evidence and explicit unknowns, not a signed compliance claim.
 Personal contact details belong in the private submission PDF, not in this public repository.
 
-Updated 23 October 2026 for current catalogue, workspaces and Runpod/Gemini configuration.
+Updated 24 October 2026 for the deployed MiniLM worker, Actions pipeline and database boundaries.
 
 ## 1. Team and project overview
 
@@ -29,7 +29,7 @@ a typed API client call FastAPI; signed local-account sessions are held in an ht
 FastAPI validates requests with Pydantic and reads PostgreSQL for profiles, catalogue records,
 trend snapshots, plans, progress and organisation membership.
 
-The offline trend pipeline uses a pre-trained MiniLM sentence encoder to map research text to
+The batch trend pipeline uses a pinned MiniLM encoder on RunPod Serverless to map research text to
 skills, combines it with a committed labour baseline and validates a snapshot before publication.
 Matching and pathway generation use deterministic rules. Adi uses Runpod GLM-5.3 for
 grounded assistance, with separately authenticated Gemini failover. IDs are validated before
@@ -37,8 +37,8 @@ use, and provider failure can fall back to a deterministic guide.
 
 Docker Compose runs web, API and PostgreSQL with pgvector under the project name adept. The
 database has a persistent volume. GitHub Actions defines quality checks, a weekly source audit
-and a trend-refresh job that requires a configured database secret. Public cloud hosting is
-planned, not verified. Every recommendation carries dated sources, scenario and estimate metadata.
+and a trend-refresh job with database preflight. MiniLM inference is verified; production
+snapshot publication and public web hosting remain unverified. Recommendations carry dated sources, scenario and estimate metadata.
 <!-- answer:end technical-2.1 -->
 
 **Diagram appendix:** [current system block diagram](submission-proposal.md#31-conceptual-tech-stack),
@@ -75,7 +75,7 @@ This is a direct-dependency inventory; transitive packages retain their own upst
 | PyJWT >=2.8,<3 | MIT | Optional Supabase JWT verification. |
 | PyMuPDF >=1.24,<2 | AGPL-3.0 or commercial | In-memory PDF text extraction; review distribution obligations before release. |
 | PostgreSQL 16; pgvector | PostgreSQL License | Relational storage and 384-dimensional vectors; extension version is not pinned in Compose. |
-| sentence-transformers 3.3.1; CPU torch 2.5.1 in trend workflow | Apache-2.0; BSD-3-Clause | Offline embeddings, installed in the trend job rather than the API image. |
+| sentence-transformers 3.3.1; torch 2.8.0 | Apache-2.0; BSD-3-Clause | Pinned worker-image dependencies for RunPod embeddings. Actions installs ordinary client dependencies, not model weights. See the worker requirements for the complete worker inventory. |
 | pytest >=8.2; httpx >=0.27; Ruff >=0.6 | MIT; BSD-3-Clause; MIT | Tests, HTTP test client and Python quality checks. |
 | ESLint 9.39.5; eslint-config-next 16.2.12 | MIT | Frontend linting. |
 | uv | MIT or Apache-2.0 | Python environment tooling; tool version is environment-dependent. |
@@ -100,20 +100,22 @@ licence is [Apache-2.0](../LICENSE); that does not replace dependency licences.
 | [Bank Negara Malaysia OpenAPI](https://api.bnm.gov.my/) | Public/free endpoint | Exchange rates for foreign-currency course price estimates. |
 | Cited course and evidence provider HTTPS pages | Public page access; not a single API | Course facts, link audits and provider certificate-page reachability checks. |
 | Runpod / Gemini | Server API keys; provider terms and usage charges apply | Runpod `glm-5.3` is the local primary for Adi; Gemini is backup on failure. Keys are environment variables, not committed. |
+| RunPod MiniLM | Dedicated server key; per-worker usage charges apply | Queue-based `/runsync` embeddings for public research/catalogue labels; separate from Adi and Gemini credentials. |
 
 The BLS baseline is committed data, not an external API called by the running recommendation
-service. Model weights may be downloaded from Hugging Face when preparing the offline encoder;
-that is a model acquisition step, not hosted inference. Do not include API keys in this document.
+service. Pinned MiniLM weights are downloaded from Hugging Face while building the worker
+image; inference is hosted on RunPod. The worker loads weights offline at runtime. Do not
+include API keys in this document.
 
 ### 3.2 Cloud platforms and deployment
 
 | Service and provider | Plan / region | Purpose and verified status |
 |---|---|---|
-| GitHub repository / Actions | Account plan and runner region not verified; workflows use `ubuntu-latest` | Version control; quality CI; source audit and conditional trend publication. Workflow presence does not prove a successful run. |
+| GitHub repository / Actions | Account plan and runner region not verified; workflows use `ubuntu-latest` | Quality CI, source audit, GHCR worker publication and conditional trend refresh. The image publisher succeeded; the first real refresh failed saving to private database host `helium`. |
 | Local Docker Compose | Local Windows Docker Desktop; no cloud region | Current verified prototype: web `:3000`, API `:8000`, PostgreSQL host `:5433`, persistent `adept_pgdata`. |
-| Replit, or Vercel + Render | Planned; plan and region not selected | Candidate web/API hosts in project planning; no public deployment verified. |
+| Replit | Partner-managed project; public app deployment not verified | Development database host `helium` is private. Publishing creates a separate production database; Actions requires its reachable connection to the same database used by the published API. |
 | Supabase PostgreSQL / Auth | Optional/planned; plan and region not configured for this local stack | Managed database candidate. API has a JWT-verification path; Compose runs local account authentication. |
-| Runpod | Hosted public endpoint; no Pod deployed; region/credit entitlement not verified | Local Adi primary (`glm-5.3`), checked with a small request on 23 October 2026. |
+| Runpod | GLM public model endpoint and deployed MiniLM Serverless worker; region/credit entitlement not verified | Adi GLM request checked on 23 October; MiniLM inference passed on 24 October with two 384-dimensional vectors. This does not prove production snapshot publication. |
 | Other cloud storage / hosted inference / analytics | None evidenced in the reviewed runtime configuration | Team must add any services used outside this checkout before submission. |
 
 ## 4. AI tools, models and datasets
@@ -122,7 +124,7 @@ that is a model acquisition step, not hosted inference. Do not include API keys 
 
 | Model and version | Source / provider | Licence / terms | Usage |
 |---|---|---|---|
-| [sentence-transformers/all-MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2) | Sentence Transformers model repository on Hugging Face | Apache-2.0 | Pre-trained sentence encoder; no team fine-tuning. Offline 384-dimensional sentence/skill embeddings and cosine matching, threshold 0.55. Model revision is not pinned by the current code. |
+| [sentence-transformers/all-MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2) | Sentence Transformers weights hosted in the team's RunPod worker | Apache-2.0 | Pre-trained, no team fine-tuning. Pinned revision `1110a243fdf4706b3f48f1d95db1a4f5529b4d41`; 384-dimensional sentence/skill embeddings, cosine threshold 0.55. |
 | GLM-5.3 | Runpod, model `glm-5.3` | Provider terms; team to review before signing | Grounded Adi assistance through an OpenAI-compatible endpoint; low reasoning and bounded output. Local request verified. |
 | Gemini | Google; configured fallback model list in [README](../README.md) | Provider terms; team to review before signing | Used only after primary failure; separate credentials. Failover covered by tests; this is not a claim of a live Gemini request. |
 
@@ -185,16 +187,17 @@ mentoring remain for the team to confirm.
 
 | Sponsor | Resource | How used |
 |---|---|---|
-| Runpod | GLM-5.3 public inference endpoint | Adi primary in the local presentation configuration. Credit entitlement remains unverified. |
+| Runpod | GLM-5.3 endpoint and MiniLM Serverless worker | Adi primary and public research/catalogue embeddings; live inference verified separately. Credit entitlement remains unverified. |
 
 **Essential or replaceable (maximum 100 words):**
 
 <!-- answer:start technical-5 limit=100 -->
-Runpod supplies the configured GLM-5.3 inference endpoint for Adi. It is replaceable: Gemini
-is configured as failover, and a deterministic guide remains available on provider failure.
-Matching, pathways and the offline encoder do not require generative inference. Web, API
-and PostgreSQL run locally in containers. Confirm sponsor-provided credits and all team
-usage before signing.
+Runpod supplies GLM-5.3 for Adi and hosts the pinned MiniLM worker for background trend
+embeddings. Gemini and a deterministic guide provide assistant fallback. MiniLM has an
+explicit local CPU development backend. Matching and pathways use deterministic methods.
+Web/API deployment and production database publication require separate verification;
+the first Actions refresh failed on a private development database hostname. Confirm
+sponsor-provided credits and all team usage before signing.
 <!-- answer:end technical-5 -->
 
 ## 6. Security, privacy and responsible use
