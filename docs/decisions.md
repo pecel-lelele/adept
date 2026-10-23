@@ -1464,3 +1464,14 @@
 - **Validation**: Full quality gate passed (904 tests passed, 27 skipped); GitHub Markdown rendering and local documentation links verified.
 - **Replaces**: none
 - **PR / branch**: docs/core-readme-cleanup
+
+### M4-067: Restore README diagrams and explicit setup section
+- **Date**: 2026-10-24
+- **Feature**: Core (documentation)
+- **Type**: other
+- **Change**: Restore all 11 product diagrams to the README: architecture, four journey/pipeline diagrams, scoring and knowledge graph, and four database/provenance views. Keep the architecture visible and group detailed diagrams in expandable sections. Label the retained setup instructions Getting started, display complete URLs in the project-links table, and restore all nine original technology/licence badges.
+- **Why**: The README cleanup removed diagrams beyond the requested separation of design-thinking and deployment-strategy material. Readers need both the diagrams and the run instructions in the README itself.
+- **Affects**: README and decision log only; Replit configuration and local demo-video files remain outside the PR.
+- **Validation**: Full quality gate passed (904 tests passed, 27 skipped). All 11 product diagram sources match the originals; GitHub Markdown exposes all 11 Mermaid containers, with nine badges, valid local links and full resource URLs.
+- **Replaces**: M4-066 (diagram placement and link presentation only)
+- **PR / branch**: docs/core-restore-readme-diagrams
