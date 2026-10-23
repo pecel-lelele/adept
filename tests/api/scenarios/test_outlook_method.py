@@ -1,9 +1,19 @@
 """Scenario parameters and role outlooks are computed from trend snapshots, not hard-coded."""
 
+import pytest
 from fastapi.testclient import TestClient
 
 from app.contracts.scenarios import OutlookResponse, ScenarioListResponse
 from app.features.scenarios import service
+from app.features.scenarios.service import (
+    BASE_UNCERTAINTY,
+    MIN_COVERAGE_THRESHOLD,
+    enforce_fast_magnitude,
+)
+from app.features.scenarios.service import (
+    outlook_range as _range,
+)
+from pipelines.trends.score import DEFAULT_EXPOSURE, score_rows
 
 
 def test_adoption_rate_is_mean_exposure_and_fast_is_amplified() -> None:
@@ -57,10 +67,6 @@ def test_radar_signals_are_derived_from_the_snapshot(client: TestClient) -> None
 # Bug 1 — score_rows() must cover the full skill catalogue (not just exposure_map keys)
 # ===========================================================================
 
-import pytest
-
-from pipelines.trends.score import DEFAULT_EXPOSURE, score_rows
-
 
 class TestScoreRowsFullCatalogue:
     """score_rows() must include every skill ID in the provided skill_ids set,
@@ -85,14 +91,33 @@ class TestScoreRowsFullCatalogue:
 
     def test_uncovered_skill_gets_default_exposure(self) -> None:
         counts, labor, exposure = self._inputs()
-        rows = score_rows(counts, 100, counts, 100, labor, exposure, skill_ids={"skill_a", "skill_b", "skill_c"})
+        rows = score_rows(
+            counts,
+            100,
+            counts,
+            100,
+            labor,
+            exposure,
+            skill_ids={"skill_a", "skill_b", "skill_c"},
+        )
         row_c = next(r for r in rows if r["skill_id"] == "skill_c")
         assert row_c["automation_exposure"] == pytest.approx(DEFAULT_EXPOSURE, abs=1e-6)
 
     def test_canonical_skills_scores_unchanged(self) -> None:
         counts, labor, exposure = self._inputs()
         without = {r["skill_id"]: r for r in score_rows(counts, 100, counts, 100, labor, exposure)}
-        with_ = {r["skill_id"]: r for r in score_rows(counts, 100, counts, 100, labor, exposure, skill_ids={"skill_a", "skill_b", "skill_c"})}
+        with_ = {
+            r["skill_id"]: r
+            for r in score_rows(
+                counts,
+                100,
+                counts,
+                100,
+                labor,
+                exposure,
+                skill_ids={"skill_a", "skill_b", "skill_c"},
+            )
+        }
         for sid in ("skill_a", "skill_b"):
             for key in ("velocity_moderate", "velocity_fast", "automation_exposure"):
                 assert with_[sid][key] == pytest.approx(without[sid][key], abs=1e-9)
@@ -107,8 +132,6 @@ class TestScoreRowsFullCatalogue:
 # ===========================================================================
 # Bug 2 — enforce_fast_magnitude: |fast| must be >= |moderate| at role level
 # ===========================================================================
-
-from app.features.scenarios.service import enforce_fast_magnitude
 
 
 class TestEnforceFastMagnitude:
@@ -140,19 +163,17 @@ class TestEnforceFastMagnitude:
 # Bug 3 — outlook_range: nonzero width at near-zero signal + low coverage
 # ===========================================================================
 
-from app.features.scenarios.service import MIN_COVERAGE_THRESHOLD, BASE_UNCERTAINTY, outlook_range as _range
-
 
 class TestOutlookRangeBug3:
     def test_near_zero_signal_low_coverage_nonzero_range(self) -> None:
         low, high = _range([0.001], 0.001, 0.02)
-        assert low != high, f"Near-zero signal + low coverage must produce range. Got {low}, {high}"
+        assert low != high, f"Near-zero + low coverage must produce range. Got {low}, {high}"
         assert high > low
 
     def test_near_zero_signal_high_coverage_narrow_range(self) -> None:
         low, high = _range([0.001], 0.001, 0.95)
         assert high > low
-        assert (high - low) < 0.10, f"High-coverage should be narrow. Got width={(high-low):.4f}"
+        assert (high - low) < 0.10, f"High-coverage should be narrow. Got width={(high - low):.4f}"
 
     def test_large_signal_low_coverage_wide_range(self) -> None:
         low, high = _range([0.40], 0.40, 0.10)
@@ -165,4 +186,3 @@ class TestOutlookRangeBug3:
     def test_constants_are_set(self) -> None:
         assert MIN_COVERAGE_THRESHOLD == pytest.approx(0.20)
         assert BASE_UNCERTAINTY > 0
-

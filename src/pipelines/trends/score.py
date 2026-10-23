@@ -357,8 +357,12 @@ def main(
     counts_t0, total_t0 = load_signal_raw(db_url, t0_period)
     counts_t1, total_t1 = load_signal_raw(db_url, t1_period)
     scored_rows = score_rows(
-        counts_t0, total_t0, counts_t1, total_t1,
-        labor_decay_map, exposure_map,
+        counts_t0,
+        total_t0,
+        counts_t1,
+        total_t1,
+        labor_decay_map,
+        exposure_map,
         skill_ids=skill_ids,
     )
 
