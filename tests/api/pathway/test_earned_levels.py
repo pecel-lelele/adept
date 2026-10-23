@@ -13,6 +13,7 @@ from app.contracts.pathway import CompletionEvidence, Course, Progress, SavedPla
 from app.core.auth import CurrentUser
 from app.core.db import connection
 from app.features.matching import repository as matching_repository
+from app.features.org import repository as org_repository
 from app.features.org import service as org_service
 from app.features.pathway import data, repository, verification
 from app.features.pathway import service as pathway_service
@@ -206,19 +207,33 @@ def test_plans_comparisons_and_team_gaps_use_the_matching_levels(
     assert response.status_code == 200, response.text
     saved = SavedPlan.model_validate(response.json()).pathway
     assert skill not in {s.skill_id for s in saved.steps}
-    members = org_service.member_learners("org-demo-bank")
-    assert members["aisyah"].skill_levels == matched
-    assert pathway_service.team_gaps({"aisyah": members["aisyah"]}, [ROLE])
-    assert (
-        next(
-            gap
-            for role, sid, gap in pathway_service.team_gaps({"aisyah": members["aisyah"]}, [ROLE])
-            if sid == skill
+    previous = next(m.skills_shared for m in org_repository.list_members(BANK) if m.id == "aisyah")
+    try:
+        hidden = client.put("/api/v1/org/me/sharing", headers=WORK, json={"share_skills": False})
+        assert hidden.status_code == 200, hidden.text
+        assert "aisyah" not in org_service.member_learners(BANK)
+        shared = client.put("/api/v1/org/me/sharing", headers=WORK, json={"share_skills": True})
+        assert shared.status_code == 200, shared.text
+        members = org_service.member_learners(BANK)
+        assert members["aisyah"].skill_levels == matched
+        assert pathway_service.team_gaps({"aisyah": members["aisyah"]}, [ROLE])
+        assert (
+            next(
+                gap
+                for role, sid, gap in pathway_service.team_gaps(
+                    {"aisyah": members["aisyah"]}, [ROLE]
+                )
+                if sid == skill
+            )
+            == 0
         )
-        == 0
-    )
-    team = pathway_service.group_pathway({"aisyah": members["aisyah"]}, ROLE, "moderate", True)
-    assert skill not in {s.skill_id for s in team.steps}
+        team = pathway_service.group_pathway({"aisyah": members["aisyah"]}, ROLE, "moderate", True)
+        assert skill not in {s.skill_id for s in team.steps}
+    finally:
+        restored = client.put(
+            "/api/v1/org/me/sharing", headers=WORK, json={"share_skills": previous}
+        )
+        assert restored.status_code == 200, restored.text
 
 
 def test_work_learning_credit_survives_a_personal_target_change_until_rejected(

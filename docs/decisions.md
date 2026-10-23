@@ -1246,3 +1246,15 @@
 - **Affects**: Documentation and code-comment references only; existing decisions remain unchanged, including historical paths. No runtime or schema changes.
 - **Replaces**: none
 - **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses
+
+
+### M4-053: PostgreSQL CI fixtures respect workspace privacy and sharing
+- **Date**: 2026-10-23
+- **Feature**: Core, F5/F7 integration tests
+- **Type**: other
+- **Change**: Update the persistent evidence test to reject manager review of private personal evidence, then complete an accepted employer programme and verify its scoped evidence persists independently. Update the earned-level/team test to assert hidden skills are excluded, explicitly enable sharing before team comparisons, and restore the prior sharing choice.
+- **Why**: CI's PostgreSQL upgrade job retained pre-workspace assumptions; new memberships correctly default to private skills and personal evidence cannot be reviewed through employer routes. Memory fixtures had opted into sharing, hiding the integration-test mismatch.
+- **Affects**: Two regression tests only; production privacy, matching, transaction and migration logic are unchanged.
+- **Validation**: Reproduced both CI failures using the exact skeleton upgrade in a disposable PostgreSQL database; all 38 tests from that CI job pass after the change. Existing stale-certificate and multi-skill foundation regressions also pass. Temporary databases are removed; the application database is untouched.
+- **Replaces**: none
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses
