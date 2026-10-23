@@ -1401,3 +1401,14 @@
 - **Affects**: M2 (CV extraction), M3 (certification cards), M4 (jobs and funding)
 - **Replaces**: the request-time indexing and archived-reservation behaviour in M4-061/M4-062
 - **PR / branch**: https://github.com/pecel-lelele/adept/pull/13 / feat/jobs-live-openings
+
+### M4-064: Deploy the trend encoder as a RunPod Serverless worker
+- **Date**: 2026-10-24
+- **Feature**: F2 (AI-Trend Signal Layer), Core deployment
+- **Type**: model | dependency | architectural decision
+- **Change**: Background trend jobs use a RunPod client by default for the pinned all-MiniLM-L6-v2 model (384 dimensions). A separate container caches the model weights and serves bounded text batches; local CPU inference remains an explicit development option. The weekly workflow reads the endpoint ID and API key from Actions configuration. Deployment instructions require no application-code edits.
+- **Why**: A teammate will host inference on RunPod; deployment preparation must work without creating an account, spending credits, or placing credentials in the repository. The web API continues serving stored snapshots.
+- **Pipeline**: public research and taxonomy → existing sentence cleaning → normalized 384-dimensional vectors → pinned MiniLM on RunPod, existing cosine threshold → mocked client/worker regressions and full quality gate (882 passed, 26 skipped) → existing validated database snapshots. Live RunPod validation is pending deployment.
+- **Affects**: M1 (trend refresh), M4 (deployment); Adi and CV embedding settings remain separate
+- **Replaces**: local-only trend encoder deployment; scoring formulas are unchanged
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/13 / feat/jobs-live-openings

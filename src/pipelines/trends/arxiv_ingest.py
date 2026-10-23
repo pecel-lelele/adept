@@ -47,6 +47,8 @@ import xml.etree.ElementTree as ET
 from datetime import date
 from pathlib import Path
 
+from pipelines.trends.encoder import Encoder, get_encoder
+
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SEED_DIR = REPO_ROOT / "src" / "data" / "seed"
 CANONICAL = SEED_DIR / "canonical_skills.csv"
@@ -196,17 +198,11 @@ def encode_skills_from_model(
     skills: list[tuple[str, str]],
 ) -> dict[str, list[float]]:
     """Encode skill labels with the model (fallback when DB not ready)."""
-    try:
-        from sentence_transformers import SentenceTransformer  # type: ignore[import]
-    except ImportError:
-        print("ERROR: sentence-transformers is not installed.", file=sys.stderr)
-        sys.exit(1)
-
-    model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+    model = get_encoder()
     ids = [s[0] for s in skills]
     labels = [s[1] for s in skills]
-    vecs = model.encode(labels, batch_size=32, show_progress_bar=True, convert_to_numpy=True)
-    return {sid: vec.tolist() for sid, vec in zip(ids, vecs, strict=False)}
+    vecs = model.encode(labels, batch_size=32, show_progress_bar=True)
+    return dict(zip(ids, vecs, strict=True))
 
 
 def cosine_similarity(a: list[float], b: list[float]) -> float:
@@ -222,7 +218,7 @@ def count_mentions(
     papers: list[dict[str, str]],
     skill_ids: list[str],
     skill_vectors: dict[str, list[float]],
-    model: object,  # SentenceTransformer | None
+    model: Encoder | None,
 ) -> dict[str, int]:
     """
     Count papers that mention each skill via sentence-level cosine similarity.
@@ -238,9 +234,7 @@ def count_mentions(
 
         # Embed sentences
         if model is not None:
-            sent_vecs: list[list[float]] = model.encode(  # type: ignore[union-attr]
-                sentences, batch_size=64, show_progress_bar=False, convert_to_numpy=True
-            ).tolist()
+            sent_vecs = model.encode(sentences, batch_size=64, show_progress_bar=False)
         else:
             # Cannot embed; skip
             continue
@@ -309,16 +303,6 @@ def write_signal_rows(
 
 
 def main() -> None:
-    try:
-        from sentence_transformers import SentenceTransformer  # type: ignore[import]
-    except ImportError:
-        print(
-            "ERROR: sentence-transformers is not installed.\n"
-            "Install with: pip install sentence-transformers",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-
     sys.path.insert(0, str(REPO_ROOT / "src" / "api"))
     from app.core.config import get_settings  # noqa: E402
 
@@ -341,7 +325,7 @@ def main() -> None:
     skill_vectors = load_skill_vectors(skill_ids, db_url)
     missing_ids = [sid for sid in skill_ids if sid not in skill_vectors]
 
-    model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+    model = get_encoder()
 
     if missing_ids:
         print(f"[embed] Encoding {len(missing_ids)} missing skills from model ...")
