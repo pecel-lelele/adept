@@ -115,6 +115,17 @@ billing eligibility and [Replit status](https://status.replit.com). The generic
 or platform check failed. Missing startup commands are a confirmed configuration
 gap; fixing them does not prove that a separate account restriction is resolved.
 
+If the build reports `ERR_PNPM_FETCH_403` at `package-firewall.replit.internal`,
+the package download was denied before Next.js compilation. Check the pinned
+package version against vendor advisories and review Replit's rejection details;
+the generic "No authorization header" message does not establish that a public
+package needs a token. Next.js is pinned to the vendor-patched `16.4.1` release,
+with its matching lint configuration and frozen lockfile. An old workspace still
+requesting `next-16.2.12.tgz` has not loaded that dependency update. Keep the
+platform's package checks enabled; if the patched download is also denied, collect
+the exact URL and rejection body for Replit Support. No Replit-internal registry
+URL is committed in the repository.
+
 After production is reachable, put its externally accessible connection string in
 GitHub's `TREND_DATABASE_URL` secret and follow the
 [MiniLM deployment handoff](../src/pipelines/trends/runpod/DEPLOYMENT_HANDOFF.md).
