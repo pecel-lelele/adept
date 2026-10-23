@@ -9,6 +9,8 @@ attendance, prior-work ownership, employment IP declarations and signature. Thes
 verified from the code. Add personal contact details privately in the submission PDF rather
 than committing them to this public repository. Do not treat an unchecked box as a declaration.
 
+Updated 23 October 2026 for current catalogue, workspaces and Runpod/Gemini configuration.
+
 ## 1. Team and project overview
 
 | Template field | Response |
@@ -59,8 +61,8 @@ outlook and interest fit, together with the skills the learner already has, part
 
 The AI component is an offline pre-trained sentence encoder, all-MiniLM-L6-v2. It relates arXiv
 research sentences to skill labels. A deterministic pipeline combines those signals with a
-labour-market baseline and publishes validated, dated snapshots. The application does not
-call a generative model at request time. Moderate and fast AI scenarios expose uncertainty;
+labour-market baseline and publishes validated, dated snapshots. Adi uses Runpod GLM-5.3
+for grounded assistance, with Gemini only on primary failure. Moderate and fast scenarios expose uncertainty;
 they are decision-support assumptions rather than calibrated forecasts of employment.
 
 For a chosen role, Adept orders catalogue courses using skill prerequisites and shows time,
@@ -70,8 +72,9 @@ heatmap, shared target-role plan and SDG contribution views.
 
 The design applies database architecture and deployment concepts through PostgreSQL with
 pgvector, typed FastAPI contracts, a Next.js interface and Docker containers. GenAI API
-concepts informed a guarded provider interface, but only its null provider is implemented.
-We do not claim workshop attendance or sponsor usage from the code. Every recommendation
+concepts support a guarded provider interface with catalogue-ID validation and a deterministic
+guide on failure. A small Runpod request was verified locally; workshop attendance and
+credit entitlements remain for the team to confirm. Every recommendation
 includes sources, dates, scenario and an estimate label. People choose their roles and learning;
 Adept makes no hiring, firing or admission decisions.
 <!-- answer:end proposal-2.2 -->
@@ -112,10 +115,11 @@ See the [README diagram collection](../README.md#interactive-diagrams) and
 score calculation, catalogue graph and schema excerpts. The job arrow above describes the
 configured publication mechanism; it does not establish that a deployed database secret exists.
 
-**Use of official SDC sponsor GenAI APIs or cloud platforms:** none evidenced by the local
-configuration. Replit and Runpod appear as candidates in the team plan, not as confirmed usage.
-The team must confirm any workshop credits, mentoring or other sponsor resources privately.
-No cloud deployment or sponsor entitlement is asserted in this draft.
+**Use of sponsor GenAI APIs:** the local Adi configuration uses Runpod
+`glm-5.3`, verified with a small request on 23 October 2026. Gemini is configured as backup.
+This uses a hosted public endpoint; no Pod is deployed. The team must confirm any sponsor
+credits, workshop attendance or mentoring privately. No public web deployment or credit
+entitlement is asserted in this draft.
 
 ### 3.2 Design-thinking and deployment strategy
 
@@ -184,7 +188,7 @@ and rights rather than declaring that all work was newly created.
 ### 6.2 Third-party code, datasets or models
 
 **Yes.** The main resources are declared below; the
-[technical declaration](SUBMISSION_TECH_DECLARATION.md#22-languages-frameworks-and-libraries)
+[technical declaration](submission-technical-declaration.md#22-languages-frameworks-and-libraries)
 provides versions, purposes and a fuller inventory.
 
 | Type | Name | Licence / attribution basis |
@@ -221,7 +225,7 @@ and originality declaration in the supplied template. No signature or attestatio
 
 ## Evidence and handoff
 
-- [Feature specification and ownership](TASKS.md), [decisions](decisions.md), [solution design](SOLUTION_DESIGN.md).
+- [Feature specification and ownership](tasks.md), [decisions](decisions.md), [solution design](solution-design.md).
 - [Scoring implementation](../src/api/app/features/matching/scoring.py), [trend publisher](../src/pipelines/trends/run.py), [pathway engine](../src/api/app/features/pathway/engine.py).
 - [Source catalogue](../src/api/app/features/pathway/catalogue_sources.py), [seed records](../src/data/seed/), [append-only migrations](../src/db/migrations/).
 - Before PDF export: complete team declarations, verify actual hosting and sponsor usage, inspect diagram exports and confirm the final form's word limits.

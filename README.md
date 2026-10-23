@@ -18,7 +18,7 @@
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://docs.docker.com/compose/)
 [![License](https://img.shields.io/badge/License-Apache_2.0-18231c)](LICENSE)
 
-<p><a href="docs/SUBMISSION_PROPOSAL.md">Project proposal</a> · <a href="docs/SUBMISSION_TECH_DECLARATION.md">Technical declaration</a> · <a href="#interactive-diagrams">Interactive diagrams</a> · <a href="#12-getting-started">Quick start</a></p>
+<p><a href="docs/submission-proposal.md">Project proposal</a> · <a href="docs/submission-technical-declaration.md">Technical declaration</a> · <a href="#interactive-diagrams">Interactive diagrams</a> · <a href="#12-getting-started">Quick start</a></p>
 
 </div>
 
@@ -36,8 +36,8 @@ Teams get the same engine at team level. HR/L&D managers and career centres see 
 Every recommendation shows its source and date and its AI-pace scenario (moderate or fast), and is labelled as an estimate. The product supports human decisions; it never makes hiring decisions.
 
 > The proposal and the technical-tools declaration are drafted in
-> [docs/SUBMISSION_PROPOSAL.md](docs/SUBMISSION_PROPOSAL.md) and
-> [docs/SUBMISSION_TECH_DECLARATION.md](docs/SUBMISSION_TECH_DECLARATION.md). The diagrams below are
+> [docs/submission-proposal.md](docs/submission-proposal.md) and
+> [docs/submission-technical-declaration.md](docs/submission-technical-declaration.md). The diagrams below are
 > editable Mermaid source, recovered from the repository rather than the blurry screenshots.
 > Use the vector exports for presentation slides and PDF submissions.
 
@@ -320,7 +320,7 @@ graph TB
   OR(("Organisation")) -- "members" --> U
 ```
 
-The catalogue holds 7 future roles, 113 skills, 34 sourced courses, and all 17 goals and 169 targets with 140 role and skill links.
+The catalogue holds 31 roles (28 targets), 140 skills and 98 sourced courses, plus all 17 goals and 169 targets with 61 role-target and 165 skill-target links.
 
 ## 7. Data model (database schema)
 
@@ -770,10 +770,10 @@ submission/           proposal, pitch deck, demo video link
 
 **Further reading:**
 
-- [docs/PROJECT_CONTEXT.md](docs/PROJECT_CONTEXT.md): the brief
-- [docs/SOLUTION_DESIGN.md](docs/SOLUTION_DESIGN.md): the solution design
+- [docs/project-context.md](docs/project-context.md): the brief
+- [docs/solution-design.md](docs/solution-design.md): the solution design
 - [docs/architecture.md](docs/architecture.md): architecture notes
 - [docs/decisions.md](docs/decisions.md): decisions log
-- [docs/FEATURE_STATUS_AND_FIX_HANDOFF.md](docs/FEATURE_STATUS_AND_FIX_HANDOFF.md): feature status
+- [Documentation index](docs/README.md): maintained guides and naming conventions
 
 Licence: Apache License 2.0, see [LICENSE](LICENSE).

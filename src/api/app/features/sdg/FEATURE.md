@@ -18,9 +18,9 @@ Goals, targets and links are refreshed live by `sync.py` (`POST /sdg/sync`). End
 `/sdg/contribution/me?role_id=`, `/sdg/contribution/org`, `/sdg/regions`,
 `/sdg/contribution/region/{state}`. `contribution/me` with no saved role returns an empty
 contribution (it never assumes a role). For F4: `service.role_badges(role_id)` returns the
-reviewed role → target mapping for badges; `GET /sdg/roles/{id}/alignment` feeds SDG-weighted ranking.
+role → target mapping with explicit draft/review status for badges; `GET /sdg/roles/{id}/alignment` feeds SDG-weighted ranking.
 
-## Goal and tasks (from docs/TASKS.md)
+## Goal and tasks (from docs/tasks.md)
 
 **Goal:** every role and skill tagged to at least one SDG; show how the chosen path contributes. Meaningful, not decorative.
 

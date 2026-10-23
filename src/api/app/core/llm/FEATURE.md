@@ -21,7 +21,7 @@ before any prompt, rejects unknown IDs, has a circuit breaker, logs every call, 
 `app/core/fairness.py`, and `app/features/guardrails/` (`/guardrails/disclosure`, `/sources`,
 `/fairness`, rendered on `/about`).
 
-## Goal and tasks (from docs/TASKS.md)
+## Goal and tasks (from docs/tasks.md)
 
 **Goal:** meet the handbook's AI disclosure and "never invent" rules across the whole app.
 

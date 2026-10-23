@@ -10,10 +10,12 @@
 
 ## Status
 
-Skeleton: endpoints return mock data from `mocks.py` with `meta.sources = MOCK DATA`.
-Replace `repository.py` reads with real data, keep the contracts stable.
+Implemented: in-memory PDF/DOCX/text parsing, catalogue aliases and user-confirmed skill
+levels, questionnaire intake and PostgreSQL profiles. The web provides a four-step intake.
+Unmatched wording and truncation are reviewable; uploads never mutate saved skills before
+confirmation. See `cv_parser.py`, `service.py` and `tests/api/profile/`.
 
-## Goal and tasks (from docs/TASKS.md)
+## Goal and tasks (from docs/tasks.md)
 
 **Goal:** capture current skills **and potential** via CV upload, form or questionnaire.
 
@@ -29,16 +31,16 @@ Replace `repository.py` reads with real data, keep the contracts stable.
 
 ## Pipeline
 
-Fill this in as the feature takes shape (copy it into the `docs/decisions.md` entry).
+Current deterministic intake pipeline:
 
 | Stage | Choice | Notes |
 |---|---|---|
-| Source | | |
-| Preprocessing / cleaning | | |
-| Features | | |
-| Model / method | | |
-| Evaluation | | metric + result |
-| Serving | | endpoint(s) |
+| Source | In-memory sample CV or confirmed form | No raw upload storage |
+| Preprocessing / cleaning | PDF/DOCX/text extraction, caps, NFKC and contact scrubbing | `cv_parser.py` |
+| Features | Approved labels/aliases; separate unverified list entries | No invented IDs |
+| Model / method | Alias matching, estimated levels, human confirmation | No LLM for parsing |
+| Evaluation | Format, safety, omission and persistence regressions | `tests/api/profile/` |
+| Serving | CV, questionnaire and skill-confirmation endpoints | OpenAPI contracts |
 
 ## Catalogue omissions (2026-10-23 integration)
 

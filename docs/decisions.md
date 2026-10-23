@@ -1235,3 +1235,14 @@
 - **Affects**: F1 contracts and generated bindings, public preview, intake; no database migration or score changes.
 - **Replaces**: none
 - **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses
+
+
+### M4-052: Maintained documentation names and retirement of one-off handoffs
+- **Date**: 2026-10-23
+- **Feature**: Core documentation
+- **Type**: other
+- **Change**: Remove obsolete PR #4 validation, feature-status/fix handoff, workspace handoff and proposed UX-flow reports; Git preserves their history. Rename six maintained guides to lowercase kebab-case, update active references and developer-specific links, and add a documentation index. Keep conventional agent/README/FEATURE entrypoints; Claude and Gemini import the authoritative AGENTS manual. Refresh stale skeleton, provider, catalogue and workspace descriptions in active guides and unsigned submission drafts.
+- **Why**: Multiple old reports contradicted the implemented flows and current provider/data configuration. One maintained guide per topic and portable names make the repository easier to navigate without erasing the decision history.
+- **Affects**: Documentation and code-comment references only; existing decisions remain unchanged, including historical paths. No runtime or schema changes.
+- **Replaces**: none
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses

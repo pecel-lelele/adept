@@ -1,4 +1,4 @@
-"""Synthetic test fixtures (docs/PROJECT_CONTEXT.md §11.5). No real people.
+"""Synthetic test fixtures (docs/project-context.md §11.5). No real people.
 
 The running app has no built-in personas: every account, profile and organisation is
 created through sign-up. The automated tests run on the in-memory stores

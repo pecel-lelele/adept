@@ -18,7 +18,7 @@ its join code; learners join at sign-up or with `POST /org/join`. Endpoints: `GE
 required level), `GET /org/plan` (default role = strongest existing team skill fit). No built-in
 organisations; tests install fixtures from `tests/harness/fixtures.py`.
 
-## Goal and tasks (from docs/TASKS.md)
+## Goal and tasks (from docs/tasks.md)
 
 **Goal:** serve HR/L&D managers and career centres with team-level views.
 
@@ -94,3 +94,17 @@ midnight, plus ten concurrent approvals and a full receipt/payment flow with a o
 PostgreSQL pool. Run the optional real-database check with `ADEPT_TEST_PG_ADMIN_URL` pointing
 to a local PostgreSQL admin database, then `python -m pytest tests/integration/test_funding_postgres.py`.
 It creates and removes a separate synthetic database; it never migrates the application DB.
+
+
+## Personal and organisation workspaces
+
+Every account has a personal workspace. `/org/workspaces` lists current memberships;
+`X-Workspace` selects a membership-checked employer context. Employee `/work` views expose
+agreements, sharing, progress and funding; manager `/org/programmes` supports the four-step
+brief, deterministic proposal and explicit sending. A member reviews the agreement before
+adoption. Progress and evidence are scoped to `personal` or `org:<id>` and personal
+completions enter employer routes only through explicit sharing.
+
+Programme schemas live in `contracts/programmes.py`; behaviour is covered by
+`tests/api/org/test_programmes.py` and `test_workspaces.py`. Personal saved plans and Adi
+conversations remain separate. Last-manager deletion is blocked when it would orphan a team.

@@ -9,10 +9,12 @@
 
 ## Status
 
-Skeleton: endpoints return mock data from `mocks.py` with `meta.sources = MOCK DATA`.
-Replace `repository.py` reads with real data, keep the contracts stable.
+Implemented: moderate and fast scenarios and role outlooks derived from dated F2 snapshots.
+Role requirements weight skill velocities; stored snapshot variation and missing coverage
+widen the estimate range. These are heuristic assumptions, not calibrated employment
+forecasts. See `service.py` and `tests/api/scenarios/`.
 
-## Goal and tasks (from docs/TASKS.md)
+## Goal and tasks (from docs/tasks.md)
 
 **Goal:** more than one future scenario; predictions clearly marked as estimates.
 
