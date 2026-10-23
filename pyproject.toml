@@ -3,7 +3,7 @@
 [tool.ruff]
 line-length = 100
 target-version = "py311"
-extend-exclude = ["src/web", "src/data"]
+extend-exclude = ["src/web", "src/data", ".local/skills", ".local/secondary_skills"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "W"]
