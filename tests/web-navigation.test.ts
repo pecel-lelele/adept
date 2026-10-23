@@ -38,3 +38,9 @@ test("retains a valid deep link after demo entry", () => {
     "/org/plan?role=data-analyst&scenario=fast",
   );
 });
+
+test("retains employee deep links and a manager's personal workspace", () => {
+  assert.equal(safeReturn("/work/plan", "individual"), "/work/plan");
+  assert.equal(safeReturn("/app/progress", "organisation"), "/app/progress");
+  assert.equal(safeReturn("/workspaces", "individual"), "/app");
+});

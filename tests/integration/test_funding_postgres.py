@@ -116,7 +116,12 @@ def test_ten_concurrent_approvals_and_claim_payment_with_one_connection(
             member = members[0]
             claim = funding.ledger(member, year).claims[0]
             repository.set_course_status(
-                member.id, claim.role_id, claim.course.id, "completed", claim.course
+                member.id,
+                claim.role_id,
+                claim.course.id,
+                "completed",
+                claim.course,
+                scope=repository.org_scope("synthetic-org"),
             )
             repository.save_evidence(
                 member.id,
@@ -128,6 +133,7 @@ def test_ten_concurrent_approvals_and_claim_payment_with_one_connection(
                     submitted_at=datetime.now(UTC),
                     reviewed_by=hr.id,
                     reviewed_at=datetime.now(UTC),
+                    scope=repository.org_scope("synthetic-org"),
                 ),
             )
             submitted = funding.submit(

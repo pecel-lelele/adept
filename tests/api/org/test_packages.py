@@ -48,7 +48,16 @@ def test_hr_compares_proposals_and_member_explicitly_adopts(client: TestClient):
     accepted = client.post(
         "/api/v1/org/packages/assigned/accept", headers=MEMBER, json={"token": offer["token"]}
     )
-    assert accepted.status_code == 200 and accepted.json()["role_id"] == "data-analyst"
+    assert accepted.status_code == 200, accepted.text
+    work = accepted.json()
+    assert work["status"] == "accepted"
+    assert work["agreement"]["role_id"] == "data-analyst"
+    # Accepting a team plan never replaces the learner's personal plan.
+    assert repository.get_plan("aisyah") is None
+    mine = client.get("/api/v1/org/programmes/mine", headers=MEMBER).json()
+    assert [a["agreement"]["programme_id"] for a in mine["assignments"]] == [
+        work["agreement"]["programme_id"]
+    ]
 
 
 def test_cohort_scope_and_stale_budget_reject_changed_offer(client: TestClient):

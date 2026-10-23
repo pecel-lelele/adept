@@ -17,7 +17,13 @@ os.environ["SESSION_SECRET"] = "test-only-session-secret"
 # Never call a real language model (or spend a developer's quota) from the test suite.
 os.environ["LLM_PROVIDER"] = "none"
 os.environ["LLM_MODEL"] = ""
+os.environ["LLM_BASE_URL"] = ""
+os.environ["LLM_API_KEY"] = ""
 os.environ["LLM_FALLBACK_MODEL"] = ""
+os.environ["LLM_FALLBACK_PROVIDER"] = ""
+os.environ["LLM_FALLBACK_API_KEY"] = ""
+os.environ["RUNPOD_API_KEY"] = ""
+os.environ["GEMINI_API_KEY"] = ""
 os.environ["APP_ENV"] = "development"
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # tests/harness
 
@@ -54,3 +60,11 @@ def _fresh_rate_limits() -> None:
             node.counter._windows.clear()
             break
         node = getattr(node, "app", None)
+
+
+@pytest.fixture(autouse=True)
+def _fresh_work_programmes() -> None:
+    """Accepted programmes and funding ledgers never leak from one test into the next."""
+    from app.features.org import funding_store
+
+    funding_store._memory.clear()

@@ -15,11 +15,12 @@ export function safeReturn(
   mode: "individual" | "organisation",
 ): string {
   const base = mode === "organisation" ? "/org" : "/app";
+  const roots = mode === "organisation" ? ["/org", "/app", "/work"] : ["/app", "/work"];
   if (!value || /[\\\r\n]/.test(value)) return base;
   try {
     const url = new URL(value, "https://adept.invalid");
     return url.origin === "https://adept.invalid" &&
-      (url.pathname === base || url.pathname.startsWith(base + "/"))
+      roots.some((root) => url.pathname === root || url.pathname.startsWith(root + "/"))
       ? url.pathname + url.search
       : base;
   } catch {

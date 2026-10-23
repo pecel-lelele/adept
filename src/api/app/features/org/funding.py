@@ -21,7 +21,6 @@ from app.contracts.funding import (
     MemberBudgetIn,
 )
 from app.contracts.pathway import CompletionEvidence
-from app.core import accounts
 from app.core.auth import CurrentUser
 from app.core.db import connection
 from app.core.errors import AppError, NotFoundError
@@ -231,12 +230,16 @@ def complete(
     link_status = verification.check_link(body.url, course, verification.probe)
     checked_at = datetime.now(UTC)
     _scope(user)
+    # Employer-funded learning belongs to the organisation's workspace, so HR can review it.
+    scope = pathway_repository.org_scope(org_id)
 
     def record(state: FundingState) -> None:
         claim = checked(state)
         # PostgreSQL repositories borrow this funding transaction's connection, so
         # progress, evidence and the claim commit or roll back together.
-        pathway_repository.set_course_status(user.id, claim.role_id, course.id, "completed", course)
+        pathway_repository.set_course_status(
+            user.id, claim.role_id, course.id, "completed", course, scope
+        )
         pathway_repository.save_evidence(
             user.id,
             CompletionEvidence(
@@ -247,6 +250,7 @@ def complete(
                 link_status=link_status,
                 link_checked_at=checked_at,
                 submitted_at=datetime.now(UTC),
+                scope=scope,
             ),
         )
         claim.certificate_url = body.url
@@ -264,30 +268,35 @@ def complete(
 
 
 def _completion(claim: FundingClaim, org_id: str) -> CompletionEvidence:
+    scope = pathway_repository.org_scope(org_id)
     if use_postgres():
         # Borrow the ledger transaction and keep evidence/progress stable until its commit.
         with connection() as conn:
-            params = (claim.user_id, claim.role_id, claim.course.id)
+            params = (claim.user_id, scope, claim.role_id, claim.course.id)
             conn.execute(
-                "SELECT 1 FROM course_progress WHERE user_id=%s AND role_id=%s "
+                "SELECT 1 FROM course_progress WHERE user_id=%s AND scope=%s AND role_id=%s "
                 "AND course_id=%s FOR SHARE",
                 params,
             )
             conn.execute(
-                "SELECT 1 FROM course_evidence WHERE user_id=%s AND role_id=%s "
+                "SELECT 1 FROM course_evidence WHERE user_id=%s AND scope=%s AND role_id=%s "
                 "AND course_id=%s FOR SHARE",
                 params,
             )
     rows = pathway_repository.store().learning_records([claim.user_id])
     row = next(
-        (r for r in rows if r.role_id == claim.role_id and r.course_id == claim.course.id), None
+        (
+            r
+            for r in rows
+            if r.scope == scope and r.role_id == claim.role_id and r.course_id == claim.course.id
+        ),
+        None,
     )
     ev = row.evidence if row else None
     if not row or row.status != "completed" or not ev or ev.kind != "org_confirmed" or not ev.url:
         _deny("HR must confirm the completion and certificate before a claim is payable.")
     assert ev is not None
-    reviewer = accounts.find_by_id(ev.reviewed_by) if ev.reviewed_by else None
-    if not reviewer or reviewer.kind != "org_admin" or reviewer.org_id != org_id:
+    if not ev.reviewed_by or not repository.is_current_manager(org_id, ev.reviewed_by):
         _deny("A manager of this organisation must confirm the completion evidence.")
     return ev
 

@@ -192,6 +192,23 @@
               ],
               "title": "Authorization"
             }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
           }
         ],
         "responses": {
@@ -258,6 +275,23 @@
               ],
               "title": "Authorization"
             }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
           }
         ],
         "responses": {
@@ -323,6 +357,23 @@
                 }
               ],
               "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
             }
           }
         ],
@@ -392,6 +443,23 @@
                 }
               ],
               "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
             }
           }
         ],
@@ -581,6 +649,23 @@
               ],
               "title": "Authorization"
             }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
           }
         ],
         "responses": {
@@ -706,6 +791,23 @@
               ],
               "title": "Authorization"
             }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
           }
         ],
         "responses": {
@@ -827,6 +929,23 @@
               ],
               "title": "Authorization"
             }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
           }
         ],
         "responses": {
@@ -942,6 +1061,23 @@
               ],
               "title": "Authorization"
             }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
           }
         ],
         "responses": {
@@ -1006,6 +1142,23 @@
                 }
               ],
               "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
             }
           }
         ],
@@ -1082,6 +1235,23 @@
               ],
               "title": "Authorization"
             }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
           }
         ],
         "responses": {
@@ -1122,6 +1292,7 @@
           "org"
         ],
         "summary": "Accept Assigned Package",
+        "description": "Accept HR's team plan as a work programme; the personal plan is left untouched.",
         "operationId": "org_accept_assigned_package",
         "parameters": [
           {
@@ -1155,6 +1326,23 @@
               ],
               "title": "Authorization"
             }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
           }
         ],
         "requestBody": {
@@ -1173,7 +1361,543 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SavedPlan"
+                  "$ref": "#/components/schemas/ProgrammeAssignment"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/org/programmes/options": {
+      "get": {
+        "tags": [
+          "org"
+        ],
+        "summary": "Programme Options",
+        "description": "Objectives, roles with team readiness and members, to fill in a programme brief.",
+        "operationId": "org_programme_options",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgrammeOptions"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/org/programmes/generate": {
+      "post": {
+        "tags": [
+          "org"
+        ],
+        "summary": "Generate Programme",
+        "description": "Propose a personalised route per person for the brief (nothing is saved or sent).",
+        "operationId": "org_generate_programme",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProgrammeBriefIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgrammePlan"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/org/programmes": {
+      "post": {
+        "tags": [
+          "org"
+        ],
+        "summary": "Send Programme",
+        "description": "Send the generated plan to its members (refused if it changed since it was shown).",
+        "operationId": "org_send_programme",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProgrammeSend"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgrammeStatus"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "org"
+        ],
+        "summary": "List Programmes",
+        "description": "Sent programmes with each member's agreement status.",
+        "operationId": "org_list_programmes",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgrammeList"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/org/programmes/mine": {
+      "get": {
+        "tags": [
+          "org"
+        ],
+        "summary": "My Programmes",
+        "description": "The signed-in member's work programme assignments and agreements.",
+        "operationId": "org_my_programmes",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyProgrammes"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/org/programmes/{programme_id}/decision": {
+      "post": {
+        "tags": [
+          "org"
+        ],
+        "summary": "Decide Programme",
+        "description": "Accept, decline (optional programmes only) or ask HR for a change.",
+        "operationId": "org_decide_programme",
+        "parameters": [
+          {
+            "name": "programme_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 40,
+              "title": "Programme Id"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignmentDecision"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgrammeAssignment"
                 }
               }
             }
@@ -1240,6 +1964,23 @@
                 }
               ],
               "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
             }
           }
         ],
@@ -1316,6 +2057,23 @@
                 }
               ],
               "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
             }
           }
         ],
@@ -1402,6 +2160,23 @@
                 }
               ],
               "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
             }
           }
         ],
@@ -1498,6 +2273,23 @@
               ],
               "title": "Authorization"
             }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
           }
         ],
         "requestBody": {
@@ -1592,6 +2384,23 @@
                 }
               ],
               "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
             }
           }
         ],
@@ -1688,6 +2497,23 @@
               ],
               "title": "Authorization"
             }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
           }
         ],
         "requestBody": {
@@ -1763,6 +2589,23 @@
               ],
               "title": "Authorization"
             }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
           }
         ],
         "responses": {
@@ -1826,6 +2669,23 @@
                 }
               ],
               "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
             }
           }
         ],
@@ -1903,6 +2763,23 @@
               ],
               "title": "Authorization"
             }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
           }
         ],
         "responses": {
@@ -1935,7 +2812,7 @@
           "org"
         ],
         "summary": "Join Org",
-        "description": "A signed-in learner joins with the code their manager or advisor shared.",
+        "description": "Join as a member with the code a manager or advisor shared. A join code never grants\nmanagement rights; one account can belong to several organisations.",
         "operationId": "org_join_org",
         "parameters": [
           {
@@ -1969,6 +2846,23 @@
               ],
               "title": "Authorization"
             }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
           }
         ],
         "requestBody": {
@@ -1988,6 +2882,182 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Organization"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/org/workspaces": {
+      "get": {
+        "tags": [
+          "org"
+        ],
+        "summary": "List Workspaces",
+        "description": "Workspaces the signed-in person can switch to: personal, then each organisation.",
+        "operationId": "org_list_workspaces",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceList"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/org/me/sharing": {
+      "put": {
+        "tags": [
+          "org"
+        ],
+        "summary": "Set Sharing",
+        "description": "Member, in the organisation workspace: share (or stop sharing) your skill levels with\nits managers. Personal plans, matches and Adi conversations are never shared.",
+        "operationId": "org_set_sharing",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SharingIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Workspace"
                 }
               }
             }
@@ -2043,6 +3113,23 @@
                 }
               ],
               "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
             }
           }
         ],
@@ -2118,6 +3205,23 @@
               ],
               "title": "Authorization"
             }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
           }
         ],
         "responses": {
@@ -2189,6 +3293,23 @@
                 }
               ],
               "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
             }
           }
         ],
@@ -2285,6 +3406,23 @@
                 }
               ],
               "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
             }
           }
         ],
@@ -2400,6 +3538,23 @@
                 }
               ],
               "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
             }
           }
         ],
@@ -2519,6 +3674,23 @@
                 }
               ],
               "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
             }
           }
         ],
@@ -2787,6 +3959,23 @@
               ],
               "title": "Authorization"
             }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
           }
         ],
         "requestBody": {
@@ -2863,6 +4052,23 @@
               ],
               "title": "Authorization"
             }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
           }
         ],
         "responses": {
@@ -2928,6 +4134,23 @@
               ],
               "title": "Authorization"
             }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
           }
         ],
         "responses": {
@@ -2960,7 +4183,7 @@
           "pathway"
         ],
         "summary": "Get Progress",
-        "description": "Progress on `role_id`; without it, on the learner's saved target role.",
+        "description": "Progress on `role_id` in the current workspace (X-Workspace). Personal: your own plan\n(default: the saved target role). Organisation: your accepted programme for that role\n(default: the newest accepted programme).",
         "operationId": "pathway_get_progress",
         "parameters": [
           {
@@ -3023,6 +4246,23 @@
                 }
               ],
               "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
             }
           }
         ],
@@ -3101,6 +4341,23 @@
               ],
               "title": "Authorization"
             }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
           }
         ],
         "requestBody": {
@@ -3143,7 +4400,7 @@
           "pathway"
         ],
         "summary": "Submit Evidence",
-        "description": "Attach a certificate link to a completed course; it is checked against the provider's\nofficial verification pages and shown to the learner's HR or career advisor.",
+        "description": "Attach a certificate link to a completed course; it is checked against the provider's\nofficial verification pages. In an organisation workspace HR reviews it.",
         "operationId": "pathway_submit_evidence",
         "parameters": [
           {
@@ -3191,6 +4448,23 @@
               ],
               "title": "Authorization"
             }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
           }
         ],
         "requestBody": {
@@ -3199,6 +4473,113 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/EvidenceSubmit"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Progress"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pathway/progress/share": {
+      "post": {
+        "tags": [
+          "pathway"
+        ],
+        "summary": "Share Completion",
+        "description": "Organisation workspace: share a course you completed in your personal workspace with\nthis programme. HR sees only what you share.",
+        "operationId": "pathway_share_completion",
+        "parameters": [
+          {
+            "name": "scenario",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "moderate",
+                "fast"
+              ],
+              "type": "string",
+              "default": "moderate",
+              "title": "Scenario"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShareCompletionIn"
               }
             }
           }
@@ -3267,6 +4648,23 @@
               ],
               "title": "Authorization"
             }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
           }
         ],
         "responses": {
@@ -3330,6 +4728,23 @@
                 }
               ],
               "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
             }
           }
         ],
@@ -3464,6 +4879,23 @@
               ],
               "title": "Authorization"
             }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
           }
         ],
         "requestBody": {
@@ -3539,6 +4971,23 @@
                 }
               ],
               "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
             }
           }
         ],
@@ -3636,6 +5085,23 @@
               ],
               "title": "Authorization"
             }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
           }
         ],
         "responses": {
@@ -3701,6 +5167,23 @@
                 }
               ],
               "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
             }
           }
         ],
@@ -3778,6 +5261,23 @@
               ],
               "title": "Authorization"
             }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
           }
         ],
         "requestBody": {
@@ -3854,6 +5354,23 @@
                 }
               ],
               "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
             }
           }
         ],
@@ -4269,6 +5786,23 @@
               ],
               "title": "Authorization"
             }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
           }
         ],
         "responses": {
@@ -4364,6 +5898,23 @@
                 }
               ],
               "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
             }
           }
         ],
@@ -4490,6 +6041,23 @@
                 }
               ],
               "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
             }
           }
         ],
@@ -4844,6 +6412,110 @@
         "title": "AccountExport",
         "description": "Everything Adept stores about the signed-in person (PDPA access request)."
       },
+      "Agreement": {
+        "properties": {
+          "programme_id": {
+            "type": "string",
+            "title": "Programme Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "objectives": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "ai_adoption",
+                "process_automation",
+                "data_driven",
+                "customer_experience",
+                "cybersecurity",
+                "sustainability_esg",
+                "compliance_risk",
+                "smart_manufacturing",
+                "digital_health",
+                "people_learning",
+                "digital_marketing",
+                "redeploy_at_risk"
+              ]
+            },
+            "type": "array",
+            "title": "Objectives"
+          },
+          "role_id": {
+            "type": "string",
+            "title": "Role Id"
+          },
+          "role_label": {
+            "type": "string",
+            "title": "Role Label"
+          },
+          "route": {
+            "type": "string",
+            "enum": [
+              "foundation",
+              "applied",
+              "advanced"
+            ],
+            "title": "Route"
+          },
+          "readiness": {
+            "type": "number",
+            "title": "Readiness"
+          },
+          "mandatory": {
+            "type": "boolean",
+            "title": "Mandatory"
+          },
+          "target_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Target Date"
+          },
+          "hours_per_week": {
+            "type": "number",
+            "title": "Hours Per Week"
+          },
+          "budget_myr": {
+            "type": "number",
+            "title": "Budget Myr",
+            "description": "What the employer has committed for this person."
+          },
+          "cost_myr": {
+            "type": "number",
+            "title": "Cost Myr"
+          },
+          "sent_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Sent At"
+          },
+          "sent_by": {
+            "type": "string",
+            "title": "Sent By"
+          }
+        },
+        "type": "object",
+        "required": [
+          "programme_id",
+          "title",
+          "objectives",
+          "role_id",
+          "role_label",
+          "route",
+          "readiness",
+          "mandatory",
+          "target_date",
+          "hours_per_week",
+          "budget_myr",
+          "cost_myr",
+          "sent_at",
+          "sent_by"
+        ],
+        "title": "Agreement",
+        "description": "What a person is shown before accepting a programme."
+      },
       "AnswerPart": {
         "properties": {
           "kind": {
@@ -4925,6 +6597,50 @@
           "pathway"
         ],
         "title": "AssignedPackage"
+      },
+      "AssignmentDecision": {
+        "properties": {
+          "decision": {
+            "type": "string",
+            "enum": [
+              "accept",
+              "decline",
+              "request_change"
+            ],
+            "title": "Decision"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "already_have_skill",
+                  "pace",
+                  "language",
+                  "accessibility",
+                  "schedule",
+                  "upfront_cost",
+                  "other"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Note",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "decision"
+        ],
+        "title": "AssignmentDecision"
       },
       "AssistantIn": {
         "properties": {
@@ -5050,6 +6766,18 @@
                 "type": "null"
               }
             ]
+          },
+          "workspace": {
+            "type": "string",
+            "title": "Workspace",
+            "description": "Workspace answered in: 'personal' or an organisation id.",
+            "default": "personal"
+          },
+          "workspace_name": {
+            "type": "string",
+            "title": "Workspace Name",
+            "description": "Organisation name; empty if personal.",
+            "default": ""
           }
         },
         "type": "object",
@@ -5262,6 +6990,26 @@
             "type": "string",
             "title": "Review Note",
             "default": ""
+          },
+          "scope": {
+            "type": "string",
+            "pattern": "^(personal|org:[A-Za-z0-9_-]{1,80})$",
+            "title": "Scope",
+            "description": "Workspace that owns this record: 'personal' or 'org:<organisation id>'.",
+            "default": "personal"
+          },
+          "shared_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "personal"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shared From",
+            "description": "Set when the member copied this from their personal learning."
           }
         },
         "type": "object",
@@ -6578,6 +8326,12 @@
             "maxLength": 16,
             "minLength": 4,
             "title": "Code"
+          },
+          "share_skills": {
+            "type": "boolean",
+            "title": "Share Skills",
+            "description": "Share my skill levels with this organisation's managers.",
+            "default": false
           }
         },
         "type": "object",
@@ -6670,6 +8424,12 @@
               "complete"
             ],
             "title": "Intake Status"
+          },
+          "skills_shared": {
+            "type": "boolean",
+            "title": "Skills Shared",
+            "description": "The member chose to share their skill levels with this organisation. Only shared members count in team gaps and programme matching.",
+            "default": false
           }
         },
         "type": "object",
@@ -6726,6 +8486,116 @@
         ],
         "title": "MemberListResponse"
       },
+      "MemberRoute": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
+          },
+          "role_id": {
+            "type": "string",
+            "title": "Role Id"
+          },
+          "role_label": {
+            "type": "string",
+            "title": "Role Label"
+          },
+          "route": {
+            "type": "string",
+            "enum": [
+              "foundation",
+              "applied",
+              "advanced"
+            ],
+            "title": "Route"
+          },
+          "readiness": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Readiness",
+            "description": "Share of required levels already held."
+          },
+          "pathway": {
+            "$ref": "#/components/schemas/Pathway"
+          },
+          "weeks_needed": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Weeks Needed"
+          },
+          "weeks_available": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Weeks Available"
+          },
+          "on_track": {
+            "type": "boolean",
+            "title": "On Track"
+          },
+          "hours_per_week_needed": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Hours Per Week Needed",
+            "description": "Weekly hours to finish the courses by the target date."
+          },
+          "cost_myr": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Cost Myr"
+          },
+          "budget_myr": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Budget Myr",
+            "description": "What the programme can spend on this person."
+          },
+          "open_gaps": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Open Gaps",
+            "description": "Required skills courses cannot fully close."
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "display_name",
+          "role_id",
+          "role_label",
+          "route",
+          "readiness",
+          "pathway",
+          "weeks_needed",
+          "weeks_available",
+          "on_track",
+          "hours_per_week_needed",
+          "cost_myr",
+          "budget_myr",
+          "open_gaps"
+        ],
+        "title": "MemberRoute"
+      },
+      "MyProgrammes": {
+        "properties": {
+          "assignments": {
+            "items": {
+              "$ref": "#/components/schemas/ProgrammeAssignment"
+            },
+            "type": "array",
+            "title": "Assignments"
+          }
+        },
+        "type": "object",
+        "required": [
+          "assignments"
+        ],
+        "title": "MyProgrammes"
+      },
       "NormalisedSkill": {
         "properties": {
           "skill_id": {
@@ -6755,6 +8625,42 @@
         ],
         "title": "NormalisedSkill",
         "description": "Read-only view of a skill with its 0.0–1.0 normalised level.\n\nFormula: (level - 1) / 4.0 — same as matching/repository.py."
+      },
+      "ObjectiveOption": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "enum": [
+              "ai_adoption",
+              "process_automation",
+              "data_driven",
+              "customer_experience",
+              "cybersecurity",
+              "sustainability_esg",
+              "compliance_risk",
+              "smart_manufacturing",
+              "digital_health",
+              "people_learning",
+              "digital_marketing",
+              "redeploy_at_risk"
+            ],
+            "title": "Id"
+          },
+          "role_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Role Ids",
+            "description": "Roles in the catalogue that serve this objective."
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "role_ids"
+        ],
+        "title": "ObjectiveOption"
       },
       "Organization": {
         "properties": {
@@ -7525,6 +9431,443 @@
         ],
         "title": "ProfileIn"
       },
+      "ProgrammeAssignment": {
+        "properties": {
+          "agreement": {
+            "$ref": "#/components/schemas/Agreement"
+          },
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "pathway": {
+            "$ref": "#/components/schemas/Pathway"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "assigned",
+              "accepted",
+              "declined",
+              "change_requested"
+            ],
+            "title": "Status",
+            "default": "assigned"
+          },
+          "decided_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided At"
+          },
+          "change_reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "already_have_skill",
+                  "pace",
+                  "language",
+                  "accessibility",
+                  "schedule",
+                  "upfront_cost",
+                  "other"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change Reason"
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Note",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "agreement",
+          "user_id",
+          "pathway"
+        ],
+        "title": "ProgrammeAssignment"
+      },
+      "ProgrammeBriefIn": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 3,
+            "title": "Title"
+          },
+          "objectives": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "ai_adoption",
+                "process_automation",
+                "data_driven",
+                "customer_experience",
+                "cybersecurity",
+                "sustainability_esg",
+                "compliance_risk",
+                "smart_manufacturing",
+                "digital_health",
+                "people_learning",
+                "digital_marketing",
+                "redeploy_at_risk"
+              ]
+            },
+            "type": "array",
+            "maxItems": 4,
+            "minItems": 1,
+            "title": "Objectives"
+          },
+          "roles": {
+            "items": {
+              "$ref": "#/components/schemas/RoleTarget"
+            },
+            "type": "array",
+            "maxItems": 5,
+            "minItems": 1,
+            "title": "Roles"
+          },
+          "member_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "minItems": 1,
+            "title": "Member Ids"
+          },
+          "target_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Target Date"
+          },
+          "hours_per_week": {
+            "type": "number",
+            "maximum": 20.0,
+            "minimum": 1.0,
+            "title": "Hours Per Week",
+            "description": "Paid learning time during work."
+          },
+          "budget_total_myr": {
+            "type": "number",
+            "maximum": 5000000.0,
+            "minimum": 0.0,
+            "title": "Budget Total Myr",
+            "description": "Programme ceiling."
+          },
+          "budget_per_member_myr": {
+            "type": "number",
+            "maximum": 100000.0,
+            "minimum": 0.0,
+            "title": "Budget Per Member Myr",
+            "description": "Individual limit."
+          },
+          "mandatory": {
+            "type": "boolean",
+            "title": "Mandatory",
+            "default": false
+          },
+          "certificate_required": {
+            "type": "boolean",
+            "title": "Certificate Required",
+            "description": "Only courses with a completion certificate at a known price.",
+            "default": false
+          },
+          "hrd_claimable_only": {
+            "type": "boolean",
+            "title": "Hrd Claimable Only",
+            "default": false
+          },
+          "formats": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "self_paced",
+                "live_online",
+                "in_person",
+                "hybrid"
+              ]
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Formats"
+          },
+          "scenario": {
+            "type": "string",
+            "enum": [
+              "moderate",
+              "fast"
+            ],
+            "title": "Scenario",
+            "default": "moderate"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "objectives",
+          "roles",
+          "member_ids",
+          "target_date",
+          "hours_per_week",
+          "budget_total_myr",
+          "budget_per_member_myr"
+        ],
+        "title": "ProgrammeBriefIn"
+      },
+      "ProgrammeList": {
+        "properties": {
+          "programmes": {
+            "items": {
+              "$ref": "#/components/schemas/ProgrammeStatus"
+            },
+            "type": "array",
+            "title": "Programmes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "programmes"
+        ],
+        "title": "ProgrammeList"
+      },
+      "ProgrammeMember": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "display_name"
+        ],
+        "title": "ProgrammeMember"
+      },
+      "ProgrammeOptions": {
+        "properties": {
+          "objectives": {
+            "items": {
+              "$ref": "#/components/schemas/ObjectiveOption"
+            },
+            "type": "array",
+            "title": "Objectives"
+          },
+          "roles": {
+            "items": {
+              "$ref": "#/components/schemas/RoleReadiness"
+            },
+            "type": "array",
+            "title": "Roles"
+          },
+          "members": {
+            "items": {
+              "$ref": "#/components/schemas/ProgrammeMember"
+            },
+            "type": "array",
+            "title": "Members"
+          },
+          "default_target_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Default Target Date"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RecommendationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "objectives",
+          "roles",
+          "members",
+          "default_target_date",
+          "meta"
+        ],
+        "title": "ProgrammeOptions"
+      },
+      "ProgrammePlan": {
+        "properties": {
+          "brief": {
+            "$ref": "#/components/schemas/ProgrammeBriefIn"
+          },
+          "token": {
+            "type": "string",
+            "title": "Token",
+            "description": "Changes when members, catalogue, prices or budgets change."
+          },
+          "routes": {
+            "items": {
+              "$ref": "#/components/schemas/MemberRoute"
+            },
+            "type": "array",
+            "title": "Routes"
+          },
+          "allocations": {
+            "items": {
+              "$ref": "#/components/schemas/RoleAllocation"
+            },
+            "type": "array",
+            "title": "Allocations"
+          },
+          "unassigned_member_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Unassigned Member Ids"
+          },
+          "total_cost_myr": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Total Cost Myr"
+          },
+          "within_programme_budget": {
+            "type": "boolean",
+            "title": "Within Programme Budget"
+          },
+          "members_on_track": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Members On Track"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Notes",
+            "description": "How the plan was decided."
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RecommendationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "brief",
+          "token",
+          "routes",
+          "allocations",
+          "total_cost_myr",
+          "within_programme_budget",
+          "members_on_track",
+          "meta"
+        ],
+        "title": "ProgrammePlan"
+      },
+      "ProgrammeRecord": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "brief": {
+            "$ref": "#/components/schemas/ProgrammeBriefIn"
+          },
+          "sent_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Sent At"
+          },
+          "sent_by": {
+            "type": "string",
+            "title": "Sent By"
+          },
+          "total_cost_myr": {
+            "type": "number",
+            "title": "Total Cost Myr"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "brief",
+          "sent_at",
+          "sent_by",
+          "total_cost_myr"
+        ],
+        "title": "ProgrammeRecord"
+      },
+      "ProgrammeSend": {
+        "properties": {
+          "brief": {
+            "$ref": "#/components/schemas/ProgrammeBriefIn"
+          },
+          "token": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 64,
+            "title": "Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "brief",
+          "token"
+        ],
+        "title": "ProgrammeSend"
+      },
+      "ProgrammeStatus": {
+        "properties": {
+          "record": {
+            "$ref": "#/components/schemas/ProgrammeRecord"
+          },
+          "assignments": {
+            "items": {
+              "$ref": "#/components/schemas/ProgrammeAssignment"
+            },
+            "type": "array",
+            "title": "Assignments"
+          },
+          "accepted": {
+            "type": "integer",
+            "title": "Accepted"
+          },
+          "pending": {
+            "type": "integer",
+            "title": "Pending"
+          },
+          "declined": {
+            "type": "integer",
+            "title": "Declined"
+          },
+          "change_requested": {
+            "type": "integer",
+            "title": "Change Requested"
+          }
+        },
+        "type": "object",
+        "required": [
+          "record",
+          "assignments",
+          "accepted",
+          "pending",
+          "declined",
+          "change_requested"
+        ],
+        "title": "ProgrammeStatus",
+        "description": "A sent programme as HR sees it: who accepted, declined or asked for changes."
+      },
       "Progress": {
         "properties": {
           "role_id": {
@@ -7593,6 +9936,20 @@
           "pathway": {
             "$ref": "#/components/schemas/Pathway",
             "description": "The plan this progress is tracked against."
+          },
+          "workspace": {
+            "type": "string",
+            "title": "Workspace",
+            "description": "'personal' or the organisation id this plan belongs to.",
+            "default": "personal"
+          },
+          "completed_elsewhere": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Completed Elsewhere",
+            "description": "Course id -> workspace ('personal' or organisation id) where a planned course was already completed. Personal plans count your own work learning; work programmes count personal learning only after you share it."
           },
           "meta": {
             "$ref": "#/components/schemas/RecommendationMeta"
@@ -8075,6 +10432,41 @@
         ],
         "title": "ReviewDecision"
       },
+      "RoleAllocation": {
+        "properties": {
+          "role_id": {
+            "type": "string",
+            "title": "Role Id"
+          },
+          "role_label": {
+            "type": "string",
+            "title": "Role Label"
+          },
+          "headcount": {
+            "type": "integer",
+            "title": "Headcount"
+          },
+          "assigned": {
+            "type": "integer",
+            "title": "Assigned"
+          },
+          "shortfall": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Shortfall",
+            "description": "Places with nobody assigned."
+          }
+        },
+        "type": "object",
+        "required": [
+          "role_id",
+          "role_label",
+          "headcount",
+          "assigned",
+          "shortfall"
+        ],
+        "title": "RoleAllocation"
+      },
       "RoleComparison": {
         "properties": {
           "options": {
@@ -8392,6 +10784,78 @@
           "high"
         ],
         "title": "RoleOutlook"
+      },
+      "RoleReadiness": {
+        "properties": {
+          "role_id": {
+            "type": "string",
+            "title": "Role Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "skills": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Skills",
+            "description": "Capabilities (skill ids) the role requires."
+          },
+          "skill_labels": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Skill Labels"
+          },
+          "team_readiness": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Team Readiness",
+            "description": "Average share of required skill levels members already hold."
+          },
+          "ready_members": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Ready Members",
+            "description": "Members holding 70%+ of the requirement."
+          }
+        },
+        "type": "object",
+        "required": [
+          "role_id",
+          "label",
+          "skills",
+          "skill_labels",
+          "team_readiness",
+          "ready_members"
+        ],
+        "title": "RoleReadiness"
+      },
+      "RoleTarget": {
+        "properties": {
+          "role_id": {
+            "type": "string",
+            "maxLength": 80,
+            "title": "Role Id"
+          },
+          "headcount": {
+            "type": "integer",
+            "maximum": 50.0,
+            "minimum": 1.0,
+            "title": "Headcount",
+            "description": "People the company wants in this role."
+          }
+        },
+        "type": "object",
+        "required": [
+          "role_id",
+          "headcount"
+        ],
+        "title": "RoleTarget"
       },
       "RoleTrendResponse": {
         "properties": {
@@ -8854,6 +11318,41 @@
         ],
         "title": "SessionResponse"
       },
+      "ShareCompletionIn": {
+        "properties": {
+          "role_id": {
+            "type": "string",
+            "maxLength": 80,
+            "title": "Role Id",
+            "description": "The work programme's target role."
+          },
+          "course_id": {
+            "type": "string",
+            "maxLength": 120,
+            "title": "Course Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role_id",
+          "course_id"
+        ],
+        "title": "ShareCompletionIn",
+        "description": "Share a course already completed in the personal workspace with a work programme."
+      },
+      "SharingIn": {
+        "properties": {
+          "share_skills": {
+            "type": "boolean",
+            "title": "Share Skills"
+          }
+        },
+        "type": "object",
+        "required": [
+          "share_skills"
+        ],
+        "title": "SharingIn"
+      },
       "SignupIn": {
         "properties": {
           "display_name": {
@@ -8905,6 +11404,11 @@
               }
             ],
             "title": "Join Code"
+          },
+          "share_skills": {
+            "type": "boolean",
+            "title": "Share Skills",
+            "default": false
           },
           "consent": {
             "type": "boolean",
@@ -9901,6 +12405,88 @@
           "items"
         ],
         "title": "VerificationQueue"
+      },
+      "Workspace": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "'personal' or an organisation id (sent as X-Workspace)."
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "personal",
+              "org"
+            ],
+            "title": "Kind"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Organisation name; empty for the personal workspace."
+          },
+          "org_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "company",
+                  "institution"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Org Type"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "member",
+                  "manager",
+                  "advisor"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role"
+          },
+          "skills_shared": {
+            "type": "boolean",
+            "title": "Skills Shared",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "name"
+        ],
+        "title": "Workspace",
+        "description": "A workspace the signed-in person can switch to."
+      },
+      "WorkspaceList": {
+        "properties": {
+          "workspaces": {
+            "items": {
+              "$ref": "#/components/schemas/Workspace"
+            },
+            "type": "array",
+            "title": "Workspaces"
+          }
+        },
+        "type": "object",
+        "required": [
+          "workspaces"
+        ],
+        "title": "WorkspaceList"
       }
     }
   }

@@ -13,11 +13,11 @@ from __future__ import annotations
 
 import secrets
 from collections.abc import Callable
-from typing import Any, Literal, TypeVar
+from typing import Any, TypeVar
 
 import psycopg
 
-from app.contracts.org import Member, Organization
+from app.contracts.org import Member, MembershipRole, Organization
 from app.core.db import connection
 from app.core.logging import get_logger
 from app.core.refdata import StorageUnavailableError, use_postgres
@@ -25,7 +25,6 @@ from app.core.refdata import StorageUnavailableError, use_postgres
 log = get_logger("app.org.repository")
 
 T = TypeVar("T")
-MembershipRole = Literal["member", "manager", "advisor"]
 _RANK = {"invited": 0, "in_progress": 1, "complete": 2}
 # No 0/O/1/I so a code read aloud in a classroom is typed correctly.
 _CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
@@ -114,7 +113,8 @@ def list_members(org_id: str) -> list[Member]:
         "load the members",
         lambda c: c.execute(
             """
-            SELECT u.id, u.display_name, p.current_role_id, m.intake_status
+            SELECT u.id, u.display_name, p.current_role_id, m.intake_status,
+                   m.share_skills AS skills_shared
             FROM memberships m
             JOIN users u ON u.id = m.user_id
             LEFT JOIN profiles p ON p.user_id = m.user_id
@@ -127,13 +127,100 @@ def list_members(org_id: str) -> list[Member]:
     return [Member.model_validate(r) for r in rows]
 
 
-def is_current_manager(org_id: str, user_id: str) -> bool:
-    """Money operations check current membership, even when a JWT or account cache is stale."""
+def membership_role(user_id: str, org_id: str) -> MembershipRole | None:
+    """The person's current role in this organisation, or None. Read on every request made in
+    an organisation workspace, so removal takes effect immediately."""
     if not use_postgres():
+        if _managers.get(user_id) == org_id:
+            return "manager"
+        if any(m.id == user_id for m in _members.get(org_id, [])):
+            return "member"
         from app.core import accounts
 
         account = accounts.find_by_id(user_id)
-        return bool(account and account.kind == "org_admin" and account.org_id == org_id)
+        if account and account.kind == "org_admin" and account.org_id == org_id:
+            return "manager"
+        return None
+    row = _db(
+        "check the membership",
+        lambda c: c.execute(
+            "SELECT role FROM memberships WHERE user_id = %s AND org_id = %s", (user_id, org_id)
+        ).fetchone(),
+    )
+    return row["role"] if row else None
+
+
+def memberships_of(user_id: str) -> list[tuple[Organization, MembershipRole, bool]]:
+    """Every organisation this person belongs to: (organisation, role, skills shared)."""
+    if not use_postgres():
+        out: list[tuple[Organization, MembershipRole, bool]] = []
+        for org_id, org in _orgs.items():
+            role = membership_role(user_id, org_id)
+            if role is None:
+                continue
+            member = next((m for m in _members.get(org_id, []) if m.id == user_id), None)
+            out.append((org, role, bool(member and member.skills_shared)))
+        return out
+    rows = _db(
+        "load your organisations",
+        lambda c: c.execute(
+            "SELECT o.id, o.type, o.name, o.industry, o.size, o.join_code, m.role, "
+            "m.share_skills FROM memberships m JOIN organizations o ON o.id = m.org_id "
+            "WHERE m.user_id = %s ORDER BY m.joined_at, o.id",
+            (user_id,),
+        ).fetchall(),
+    )
+    return [(Organization.model_validate(r), r["role"], bool(r["share_skills"])) for r in rows]
+
+
+def managers_of(org_id: str) -> list[str]:
+    """User ids of the organisation's managers and advisors."""
+    if not use_postgres():
+        from app.core import accounts
+
+        found = {uid for uid, oid in _managers.items() if oid == org_id}
+        found |= {
+            a.id
+            for a, _hash in accounts._memory.values()
+            if a.kind == "org_admin" and a.org_id == org_id
+        }
+        return sorted(found)
+    rows = _db(
+        "load the managers",
+        lambda c: c.execute(
+            "SELECT user_id FROM memberships WHERE org_id = %s AND role <> 'member'", (org_id,)
+        ).fetchall(),
+    )
+    return [str(r["user_id"]) for r in rows]
+
+
+def set_share_skills(org_id: str, user_id: str, share: bool) -> bool:
+    """A member turns skill sharing on or off for one organisation. False if not a member."""
+    if use_postgres():
+        return _db(
+            "save your sharing choice",
+            lambda c: (
+                c.execute(
+                    "UPDATE memberships SET share_skills = %s, "
+                    "skills_shared_at = CASE WHEN %s THEN now() ELSE NULL END "
+                    "WHERE org_id = %s AND user_id = %s AND role = 'member'",
+                    (share, share, org_id, user_id),
+                ).rowcount
+                > 0
+            ),
+        )
+    members = _members.get(org_id, [])
+    for i, m in enumerate(members):
+        if m.id == user_id:
+            members[i] = m.model_copy(update={"skills_shared": share})
+            return True
+    return False
+
+
+def is_current_manager(org_id: str, user_id: str) -> bool:
+    """Money operations check current membership, even when a JWT or account cache is stale."""
+    if not use_postgres():
+        return membership_role(user_id, org_id) in ("manager", "advisor")
     return bool(
         _db(
             "check the current manager membership",
@@ -179,9 +266,16 @@ def add_member(org_id: str, member: Member) -> Member:
         _db(
             "join the organisation",
             lambda c: c.execute(
-                "INSERT INTO memberships (user_id, org_id, role, intake_status) "
-                "VALUES (%s, %s, 'member', %s) ON CONFLICT (user_id, org_id) DO NOTHING",
-                (member.id, org_id, member.intake_status),
+                "INSERT INTO memberships (user_id, org_id, role, intake_status, share_skills, "
+                "skills_shared_at) VALUES (%s, %s, 'member', %s, %s, "
+                "CASE WHEN %s THEN now() END) ON CONFLICT (user_id, org_id) DO NOTHING",
+                (
+                    member.id,
+                    org_id,
+                    member.intake_status,
+                    member.skills_shared,
+                    member.skills_shared,
+                ),
             ),
         )
     else:

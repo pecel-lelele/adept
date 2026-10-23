@@ -134,7 +134,7 @@ flowchart TB
 
   subgraph API["FastAPI services"]
     feat["Feature services<br/>profile · trends · scenarios · matching<br/>pathway · sdg · org · guardrails"]
-    guard["Guardrails<br/>catalogue-ID validator · PII redaction<br/>rate limits · LLM gateway (Adi: Gemini)"]
+    guard["Guardrails<br/>catalogue-ID validator · PII redaction<br/>rate limits · LLM gateway (Adi: Runpod → Gemini)"]
   end
 
   db[("PostgreSQL 16 + pgvector")]
@@ -157,7 +157,7 @@ flowchart TB
 
 **How the workshop elements connect:**
 
-- **AI components:** (1) an offline sentence-embedding model (`all-MiniLM-L6-v2`) turns research abstracts into skill signals inside the trend pipeline; (2) **Adi**, the in-app guide, uses Google **Gemini 3.5 Flash Lite** (fallbacks Gemini 3.6 Flash, Gemini 3.1 Flash Lite) through Google AI Studio to select validated answer blocks built from the person's own Adept data. Model-written prose is never displayed; without a model Adi answers with a built-in guide.
+- **AI components:** (1) an offline sentence-embedding model (`all-MiniLM-L6-v2`) turns research abstracts into skill signals inside the trend pipeline; (2) **Adi**, the in-app guide, uses Z.ai **GLM-5.3** (`glm-5.3`) through a Runpod public endpoint to select validated answer blocks built from the person's own Adept data. Google Gemini 3.5 Flash Lite (then Gemini 3.6 Flash / Gemini 3.1 Flash Lite) is tried only if Runpod fails. Model-written prose is never displayed; if both providers fail, Adi answers with a built-in guide.
 - **Database architecture:** one PostgreSQL schema with versioned migrations. `pgvector` stores skill embeddings, and typed contracts are generated from Pydantic to TypeScript.
 - **Cloud deployment:** containers for web and API, with managed PostgreSQL and scheduled jobs in GitHub Actions (see [§9](#9-design-thinking-and-deployment-strategy)).
 
@@ -183,7 +183,7 @@ flowchart TB
 | Quality and CI | pytest, ruff, ESLint, `tsc --noEmit`, translation-key parity, contract drift; GitHub Actions | One `make check` gate before every PR |
 | Scheduled jobs | GitHub Actions: weekly trend refresh and weekly data-source check | Keeps signals fresh; failed runs publish nothing |
 
-**Sponsor resources:** Adi's language model runs on Google AI Studio (Gemini). The provider layer also supports Replit AI Integrations (billed to Replit credits when the API runs on Replit) and a Runpod Serverless vLLM endpoint; the team must confirm which sponsor resource is used in the deployed demo before declaring it. See the Phase 2 plan in section 9.
+**Sponsor resources:** The local presentation setup uses the Runpod GLM-5.3 public endpoint for Adi, with Google AI Studio (Gemini) as a separately authenticated fallback. No Pod is deployed. `/about` discloses the configured providers; each assistant reply identifies the provider and model that actually answered.
 
 ## 5. How it works: flows and sequences
 
@@ -561,7 +561,7 @@ Migrations are in [`src/db/migrations`](src/db/migrations). New changes always g
 
 **AI disclosure:**
 
-- **Language model:** Adi, the assistant available in signed-in workspaces, uses **Google Gemini 3.5 Flash Lite** (`gemini-3.5-flash-lite`, Google AI Studio), with `gemini-3.6-flash` and `gemini-3.1-flash-lite` as fallbacks when the first is rate-limited. `/about` shows the provider and model that are actually configured.
+- **Language model:** Adi, the assistant available in signed-in workspaces, uses **Z.ai GLM-5.3** (`glm-5.3`) on Runpod as primary. On failure, rate limiting, timeout or invalid structured output, it tries **Google Gemini 3.5 Flash Lite** (`gemini-3.5-flash-lite`, Google AI Studio), with `gemini-3.6-flash` and `gemini-3.1-flash-lite` as backup models. Both providers share one bounded request deadline; Runpod requests use `reasoning_effort=low`, at most 1,024 output tokens (800 for answer-block selection). `/about` shows the configured chain, and answers/logs identify the provider actually used. Unknown IDs are still rejected by `validate_ids` and fall back to the built-in guide.
 - **What the model does and does not do:** it selects one or two server-authored answer-block IDs through the F8 gateway and `validate_ids`. Those blocks use the person's own profile, matches, saved-plan progress, team gaps and dated trends; model prose and rationale are never displayed. Scores, plans, trends and SDG links are still computed by deterministic, tested rules; the model never computes them.
 - **Guardrails on every answer** (`src/api/app/features/assistant/`, `src/api/app/core/llm/`):
   - the question is injection-filtered and personal data (email, MyKad NRIC, passport, phone) is redacted before it is sent;
@@ -711,8 +711,18 @@ All variables are documented in [`.env.example`](.env.example). These matter mos
 | `AUTH_MODE` | `demo` | Local accounts; `supabase` verifies Supabase JWTs |
 | `SESSION_SECRET` | empty | Set in production; locally a random key is kept in `.session-secret` (gitignored) |
 | `LLM_PROVIDER` | `none` | `gemini` (Google AI Studio key), `replit` (Replit AI Integrations), `runpod`, `openai`, `openrouter`; `none` = Adi's built-in guide |
-| `LLM_MODEL` / `LLM_FALLBACK_MODEL` | empty | e.g. `gemini-3.5-flash-lite` / `gemini-3.6-flash,gemini-3.1-flash-lite` |
+| `LLM_MODEL` / `LLM_FALLBACK_MODEL` | empty | Presentation: `glm-5.3` / `gemini-3.5-flash-lite,gemini-3.6-flash,gemini-3.1-flash-lite` |
+| `LLM_BASE_URL` | provider default | Runpod public endpoint: `https://api.runpod.ai/v2/b1dd8hy2hqo1nb/openai/v1` |
+| `RUNPOD_API_KEY` / `GEMINI_API_KEY` | empty | Separate server-only keys in root `.env` or deployment secrets; never `NEXT_PUBLIC_*` |
+| `LLM_FALLBACK_PROVIDER` | empty | Set `gemini` to use it only after Runpod failure. Empty keeps legacy same-provider model retries |
+| `LLM_FALLBACK_BASE_URL` / `LLM_FALLBACK_API_KEY` | empty | Optional custom backup endpoint/key; never borrows the primary key |
 | `API_URL` | `http://localhost:8000` | Where the web server calls the API |
+
+For the presentation, set `LLM_PROVIDER=runpod`, `LLM_MODEL=glm-5.3`, the Runpod base URL
+above, `LLM_FALLBACK_PROVIDER=gemini` and the Gemini model list. Keep the two keys only in
+the root `.env`; Docker Compose forwards them to the API container, never the web container.
+After changing a key, recreate the API with `docker compose up -d --force-recreate api`.
+The existing HTTP client speaks Chat Completions directly, so no OpenAI SDK dependency is needed.
 
 ## 13. Development, testing and CI
 

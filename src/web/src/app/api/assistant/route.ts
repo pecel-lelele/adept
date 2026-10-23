@@ -1,6 +1,7 @@
 import { API_URL } from "@/lib/api/client";
 import { trustedClientIp } from "@/lib/api/server";
 import { getSessionToken } from "@/lib/auth/session";
+import { selectedOrg, workspaceFor } from "@/lib/auth/workspace";
 
 const PROXY_SECRET = process.env.PROXY_SHARED_SECRET ?? "";
 const TRUSTED_PROXY_HOPS = Number.parseInt(process.env.TRUSTED_PROXY_HOPS ?? "0", 10) || 0;
@@ -36,6 +37,15 @@ async function readCapped(request: Request): Promise<string | null> {
   return new TextDecoder().decode(all);
 }
 
+function pageOf(body: string): string {
+  try {
+    const page = (JSON.parse(body) as { page?: unknown }).page;
+    return typeof page === "string" ? page : "";
+  } catch {
+    return "";
+  }
+}
+
 /** Relays a question to Adi with the signed-in session (httpOnly cookie) when there is one. */
 export async function POST(request: Request) {
   const publicOrigin = process.env.WEB_ORIGIN ?? "http://localhost:3000";
@@ -47,6 +57,9 @@ export async function POST(request: Request) {
   if (text === null) return tooLarge();
   const headers: Record<string, string> = { "content-type": "application/json" };
   headers["X-Demo-User"] = token;
+  // Adi answers inside the workspace of the page the question was asked on.
+  const workspace = workspaceFor(pageOf(text), await selectedOrg());
+  if (workspace) headers["X-Workspace"] = workspace;
   const ip = trustedClientIp(request.headers.get("x-forwarded-for"), TRUSTED_PROXY_HOPS);
   if (PROXY_SECRET && ip) {
     headers["X-Real-IP"] = ip;

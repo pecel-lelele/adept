@@ -1162,3 +1162,54 @@
 - **Affects**: M3 (catalogue, engine), M2 (role requirement levels), M4.
 - **Replaces**: the PR #10 rule excluding `certificate_price_unknown` courses from plans.
 - **PR / branch**: feat/catalogue-roles-skills-courses
+
+### M4-045: Personal and organisation workspaces with explicit learning sharing
+- **Date**: 2026-10-23
+- **Feature**: Core, F1, F4, F5, F7, F8 integration
+- **Type**: schema | contract | method | UI
+- **Change**: Add membership-checked `X-Workspace` selection, a server-rendered switcher and employee home, agreements, progress, funding and skill-sharing views. Scope course progress/evidence to `personal` or `org:<id>`; personal completions enter an employer programme only when the member shares them. Keep personal saved plans and assistant conversations separate, require current management membership for team operations, and block last-manager account deletion when it would orphan a team or its learning records. Group role matches by existing skill overlap without changing ranking scores.
+- **Why**: A manager also needs a personal workspace, and a member may belong to several organisations. Joining must not expose personal learning or grant management rights. Reuse the existing F5 engine and funding store rather than create a second progress model.
+- **Affects**: Shared auth, accounts, profile/matching, pathway and organisation contracts; EN/MS/ZH navigation and copy. Migration `20261023120000_core_workspaces.sql` is append-only; its introductory M4-033 comment refers to the earlier integration work, while this entry records the final workspace design.
+- **Replaces**: M4-001 single-default-organisation navigation; extends M4-021 evidence rules with explicit workspace ownership.
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses
+
+### M4-046: Reviewable employer programmes and fluid workspace layouts
+- **Date**: 2026-10-23
+- **Feature**: Core, F7 (programme wizard), read-only F4/F5 integration
+- **Type**: method | contract | UI
+- **Change**: HR chooses catalogue-backed business objectives, roles/headcounts, sharing members, date, paid study hours, budgets and delivery restrictions, then reviews estimated personal routes before sending. Programmes retain dated attribution and require member acceptance; optional programmes can be declined and members can request changes. Add EN/MS/ZH strings and regenerate OpenAPI/TypeScript. Replace pill-based programme headers, steps and filters with wrapping employer identity, status text, numbered steps and checkbox rows; show labelled table records on narrow screens. Generation animation runs only while the request is pending and does not claim unreported stage completion.
+- **Why**: The employer/status row overflowed on narrow cards; fixed minimum columns, edge-to-edge tables and a mobile workspace menu also prevented fluid layouts. HR and employees need understandable agreements and an explicit decision before learning is adopted.
+- **Affects**: M4 organisation features/shared shell styles, M3 pathway metadata. No dependency changes.
+- **Replaces**: none (extends M4-036/M4-037)
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses
+
+### M4-047: Current reference seeds in local Docker and public display wording
+- **Date**: 2026-10-23
+- **Feature**: Core, F2, F4, F5, F6, F8 integration
+- **Type**: data source | UI
+- **Change**: Load current reference CSVs through the existing upsert loader and verify every stored column against the typed CSV rows, plus both dated trend exports. The local database has 98 courses, 140 skills, 31 roles, 160 role/skill requirements, 12 prerequisites, 17 goals, 169 targets, 61 role/SDG and 165 skill/SDG links; all comparisons match. Use “Sample personas and teams” for the source register and “Artificial data generation” for the existing skill ID, preserving its search aliases and dated numerical evidence. Trend fixture presentation resolves labels through the current taxonomy.
+- **Why**: Updated CSV values must reach an existing database, not only a fresh deployment. The user requested plain sample-data wording in the website while preserving provenance and stable catalogue IDs.
+- **Pipeline**: existing public/cited seed CSVs and frozen trend exports → existing FK-ordered, typed upserts (test personas/organisations remain fixture-only) → unchanged skill/course IDs → existing catalogue and trend methods → read-only PostgreSQL record comparison with zero mismatches → Docker PostgreSQL and rebuilt API/web images.
+- **Affects**: M1/M2/M3 read-only consumers; no schema, formula or source changes.
+- **Replaces**: none
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses
+
+### M4-048: Runpod GLM-5.3 primary with separately authenticated Gemini failover
+- **Date**: 2026-10-23
+- **Feature**: Core, F8 (Adi provider configuration)
+- **Type**: method | other
+- **Change**: Configure the user-supplied Runpod public Chat Completions endpoint and `glm-5.3` as primary; call Google Gemini only after primary request/schema failure or timeout. Keep `RUNPOD_API_KEY` and `GEMINI_API_KEY` separate, forward secrets only to the API container, and retain the existing HTTP client. Use low reasoning, capped output and one shared deadline with time reserved for the backup. Logs and assistant replies cite the actual answering provider/model; `/about` and README disclose the configured chain. Preserve the Adi name.
+- **Why**: The presentation uses Runpod credits without deploying a Pod, while Gemini provides continuity during an outage. A fallback model name alone cannot switch endpoints or credentials safely.
+- **Affects**: M3 gateway/provider/config; M4 assistant, Docker and documentation. No dependency changes. Unit tests cover primary-only success, key separation, malformed JSON, cancellation and expired deadlines; one small live request returned a validated ID from Runpod GLM-5.3.
+- **Replaces**: M4-028 Gemini-primary configuration; extends M4-031 grounded answer selection.
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses
+
+### M4-049: Mobile workspace choices and visual skill readiness
+- **Date**: 2026-10-23
+- **Feature**: Core, F7 (employee agreements and mobile navigation)
+- **Type**: UI
+- **Change**: Show workspace choices directly inside the mobile menu rather than expanding a nested dropdown. Use a short menu entrance, visible-focus controls and larger touch targets; prevent the desktop account footer from widening the sidebar. Replace estimate/status pills with wrapping text markers and an evidence disclosure. Show role readiness as an accessible percentage meter with its meaning, compact two-column agreement terms, and courses behind an explicit disclosure.
+- **Why**: A nested dropdown changed the height of an already animated mobile sheet. Stacked text-only terms and boxed status tags obscured the key numbers and caused fatigue on phones. Readiness remains the existing required-skill-level coverage, not a new score or a hiring decision.
+- **Affects**: Shared shell, estimate/badge styling and EN/MS/ZH employee copy. No scoring, schema or data changes.
+- **Replaces**: none (refines M4-046)
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses

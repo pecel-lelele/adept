@@ -22,7 +22,7 @@ explainable-ai,Explainable AI (XAI) methods,adept-canonical,explainable ai metho
 ai-ethics,AI ethics & governance,adept-canonical,ai ethics & governance|ai ethics|responsible ai|etika ai|人工智能伦理,Emerging AI-native skill
 llm-evaluation,LLM evaluation & red-teaming,adept-canonical,llm evaluation & red-teaming|llm evaluation,Emerging AI-native skill
 data-pipelines,Data pipeline engineering,adept-canonical,data pipeline engineering|data pipelines|etl|elt|data engineering|airflow|dbt|kejuruteraan data|数据工程,Emerging AI-native skill
-synthetic-data-gen,Synthetic data generation,adept-canonical,synthetic data generation|synthetic data gen,Emerging AI-native skill
+synthetic-data-gen,Artificial data generation,adept-canonical,synthetic data generation|synthetic data gen,Emerging AI-native skill
 feature-engineering,Feature engineering for ML,adept-canonical,feature engineering for ml|feature engineering,Emerging AI-native skill
 model-monitoring,ML model monitoring & drift detection,adept-canonical,ml model monitoring & drift detection|model monitoring,Emerging AI-native skill
 federated-learning,Federated & privacy-preserving ML,adept-canonical,federated & privacy-preserving ml|federated learning,Emerging AI-native skill

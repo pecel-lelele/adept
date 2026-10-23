@@ -180,6 +180,10 @@ export function AuthView() {
                       <input className="a-input" name="join_code" maxLength={16} autoCapitalize="characters" defaultValue={values.join_code ?? params.get("code") ?? ""} />
                       <small>{t("joinCodeHint")}</small>
                     </label>
+                    <label className="a-check">
+                      <input type="checkbox" name="share_skills" defaultChecked={values.share_skills === "on"} />
+                      <span>{t("shareSkills")}</span>
+                    </label>
                   </div>
                 </fieldset>
                 </div>

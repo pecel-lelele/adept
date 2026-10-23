@@ -213,6 +213,21 @@ class CompletionEvidence(BaseModel):
     reviewed_by: str | None = Field(default=None, description="HR or advisor who reviewed it.")
     reviewed_at: datetime | None = None
     review_note: str = ""
+    scope: str = Field(
+        default="personal",
+        pattern=r"^(personal|org:[A-Za-z0-9_-]{1,80})$",
+        description="Workspace that owns this record: 'personal' or 'org:<organisation id>'.",
+    )
+    shared_from: Literal["personal"] | None = Field(
+        default=None, description="Set when the member copied this from their personal learning."
+    )
+
+
+class ShareCompletionIn(BaseModel):
+    """Share a course already completed in the personal workspace with a work programme."""
+
+    role_id: str = Field(max_length=80, description="The work programme's target role.")
+    course_id: str = Field(max_length=120)
 
 
 class EvidenceSubmit(BaseModel):
@@ -293,4 +308,13 @@ class Progress(BaseModel):
         default_factory=dict, description="Course id -> completion evidence."
     )
     pathway: Pathway = Field(description="The plan this progress is tracked against.")
+    workspace: str = Field(
+        default="personal", description="'personal' or the organisation id this plan belongs to."
+    )
+    completed_elsewhere: dict[str, str] = Field(
+        default_factory=dict,
+        description="Course id -> workspace ('personal' or organisation id) where a planned "
+        "course was already completed. Personal plans count your own work learning; work "
+        "programmes count personal learning only after you share it.",
+    )
     meta: RecommendationMeta

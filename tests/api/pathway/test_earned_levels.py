@@ -6,6 +6,7 @@ from datetime import UTC, date, datetime
 
 import pytest
 from fastapi.testclient import TestClient
+from harness.workspaces import BANK, accept_work_plan, work_headers
 
 from app.contracts.org import Member
 from app.contracts.pathway import CompletionEvidence, Course, Progress, SavedPlan
@@ -13,10 +14,9 @@ from app.core.auth import CurrentUser
 from app.core.db import connection
 from app.features.matching import repository as matching_repository
 from app.features.org import service as org_service
-from app.features.pathway import data, repository
+from app.features.pathway import data, repository, verification
 from app.features.pathway import service as pathway_service
 from app.features.pathway.verification import effective_statuses
-from app.features.profile import repository as profile_repository
 from app.main import app
 
 NOW = datetime(2026, 10, 22, tzinfo=UTC)
@@ -107,35 +107,68 @@ def learning_backend(request: pytest.FixtureRequest) -> None:
         request.getfixturevalue("pg_backend")
 
 
-def _complete_and_confirm(client: TestClient) -> tuple[Course, str]:
-    response = client.post("/api/v1/pathway/plans", json={"role_id": ROLE})
-    assert response.status_code == 200, response.text
-    plan = SavedPlan.model_validate(response.json()).pathway
-    step, course = next(
-        (step, course)
-        for step in plan.steps
+HR = {"X-Demo-User": "demo-company"}
+WORK = work_headers()
+
+
+def _closing_course(plan: object) -> tuple[str, Course]:
+    return next(
+        (step.skill_id, course)
+        for step in plan.steps  # type: ignore[attr-defined]
         for course in step.courses
         if course.level >= step.target_level
     )
-    response = client.post(
-        "/api/v1/pathway/progress",
-        json={"role_id": ROLE, "course_id": course.id, "status": "completed"},
-    )
+
+
+def _complete_and_confirm(client: TestClient) -> tuple[Course, str]:
+    """Personal learning with a provider-checked certificate: it earns matching credit."""
+    response = client.post("/api/v1/pathway/plans", json={"role_id": ROLE})
     assert response.status_code == 200, response.text
-    evidence = repository.evidence("aisyah", ROLE)[course.id]
+    skill, course = _closing_course(SavedPlan.model_validate(response.json()).pathway)
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(verification, "probe", lambda url: 200)
+        response = client.post(
+            "/api/v1/pathway/progress/evidence",
+            json={
+                "role_id": ROLE,
+                "course_id": course.id,
+                "url": f"https://www.credly.com/badges/{course.id}",
+            },
+        )
+    assert response.status_code == 200, response.text
+    assert Progress.model_validate(response.json()).evidence[course.id].link_status == (
+        "provider_verified"
+    )
+    return course, skill
+
+
+def _review_work(client: TestClient, course: Course, decision: str) -> None:
+    evidence = repository.evidence("aisyah", ROLE, repository.org_scope(BANK))[course.id]
     response = client.post(
         "/api/v1/pathway/verifications",
         json={
             "user_id": "aisyah",
             "role_id": ROLE,
             "course_id": course.id,
-            "decision": "confirm",
+            "decision": decision,
             "submitted_at": evidence.submitted_at.isoformat(),
         },
-        headers={"X-Demo-User": "demo-company"},
+        headers=HR,
     )
     assert response.status_code == 200, response.text
-    return course, step.skill_id
+
+
+def _work_complete_and_confirm(client: TestClient) -> tuple[Course, str]:
+    """Learning in an accepted Demo Bank programme, confirmed by HR."""
+    skill, course = _closing_course(accept_work_plan(ROLE))
+    response = client.post(
+        "/api/v1/pathway/progress",
+        json={"role_id": ROLE, "course_id": course.id, "status": "completed"},
+        headers=WORK,
+    )
+    assert response.status_code == 200, response.text
+    _review_work(client, course, "confirm")
+    return course, skill
 
 
 def test_target_change_and_retired_course_keep_earned_levels(
@@ -152,14 +185,8 @@ def test_target_change_and_retired_course_keep_earned_levels(
     assert pathway_service.evidenced_levels("aisyah")[skill] == course.level
     assert matching_repository.load_profile("aisyah").skills == before
     assert repository.course_facts("aisyah", ROLE)[course.id] == course
-    assert (
-        pathway_service.verification_queue(
-            CurrentUser("demo-company", "Demo HR", "org_admin", "org-demo-bank")
-        )
-        .items[0]
-        .course
-        == course
-    )
+    hr = CurrentUser("demo-company", "Demo HR", "org_admin", "org-demo-bank", "org")
+    assert pathway_service.verification_queue(hr).items == [], "personal learning is private"
 
 
 def test_plans_comparisons_and_team_gaps_use_the_matching_levels(
@@ -194,23 +221,15 @@ def test_plans_comparisons_and_team_gaps_use_the_matching_levels(
     assert skill not in {s.skill_id for s in team.steps}
 
 
-def test_rejection_after_target_change_removes_previous_credit(client: TestClient) -> None:
-    course, skill = _complete_and_confirm(client)
+def test_work_learning_credit_survives_a_personal_target_change_until_rejected(
+    client: TestClient,
+) -> None:
+    course, skill = _work_complete_and_confirm(client)
+    assert pathway_service.evidenced_levels("aisyah")[skill] == course.level
     other_role = next(role for role in data.target_role_ids() if role != ROLE)
     assert client.post("/api/v1/pathway/plans", json={"role_id": other_role}).status_code == 200
-    evidence = repository.evidence("aisyah", ROLE)[course.id]
-    response = client.post(
-        "/api/v1/pathway/verifications",
-        json={
-            "user_id": "aisyah",
-            "role_id": ROLE,
-            "course_id": course.id,
-            "decision": "reject",
-            "submitted_at": evidence.submitted_at.isoformat(),
-        },
-        headers={"X-Demo-User": "demo-company"},
-    )
-    assert response.status_code == 200, response.text
+    assert pathway_service.evidenced_levels("aisyah")[skill] == course.level
+    _review_work(client, course, "reject")
     assert skill not in pathway_service.evidenced_levels("aisyah")
 
 
@@ -329,81 +348,33 @@ def test_new_target_keeps_old_history_and_badges(client: TestClient) -> None:
     )
 
 
-def test_rejection_after_replan_removes_badges_but_keeps_reviewable_history(
+def test_reviewed_work_learning_shows_in_personal_history_without_personal_badges(
     client: TestClient,
 ) -> None:
-    course, _skill = _complete_and_confirm(client)
-    assert client.post("/api/v1/pathway/plans/me/accept-replan").status_code == 200
-    evidence = repository.evidence("aisyah", ROLE)[course.id]
-    response = client.post(
-        "/api/v1/pathway/verifications",
-        json={
-            "user_id": "aisyah",
-            "role_id": ROLE,
-            "course_id": course.id,
-            "decision": "reject",
-            "submitted_at": evidence.submitted_at.isoformat(),
-        },
-        headers={"X-Demo-User": "demo-company"},
+    course, _skill = _work_complete_and_confirm(client)
+    _review_work(client, course, "reject")
+    body = Progress.model_validate(
+        client.get("/api/v1/pathway/progress", params={"role_id": ROLE}).json()
     )
-    assert response.status_code == 200, response.text
-    body = Progress.model_validate(client.get("/api/v1/pathway/progress").json())
+    item = next(i for i in body.history if i.course.id == course.id)
+    assert item.evidence is not None and item.evidence.kind == "org_rejected"
     assert "milestone:first" not in {badge.id for badge in body.badges}
-    assert body.history[0].evidence.kind == "org_rejected"
 
 
-@pytest.mark.parametrize("replan", [False, True], ids=["current-rejection", "past-rejection"])
-def test_rejected_course_only_counts_towards_progress_while_in_current_plan(
-    client: TestClient, replan: bool, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    monkeypatch.setattr(
-        profile_repository,
-        "_store",
-        {uid: profile.model_copy(deep=True) for uid, profile in profile_repository._store.items()},
+def test_rejected_work_course_stays_listed_but_stops_counting(client: TestClient) -> None:
+    course, _skill = _work_complete_and_confirm(client)
+    before = Progress.model_validate(
+        client.get("/api/v1/pathway/progress", params={"role_id": ROLE}, headers=WORK).json()
     )
-    course, _skill = _complete_and_confirm(client)
-    evidence = repository.evidence("aisyah", ROLE)[course.id]
-    response = client.post(
-        "/api/v1/pathway/verifications",
-        json={
-            "user_id": "aisyah",
-            "role_id": ROLE,
-            "course_id": course.id,
-            "decision": "reject",
-            "submitted_at": evidence.submitted_at.isoformat(),
-        },
-        headers={"X-Demo-User": "demo-company"},
+    assert before.percent_complete > 0
+    _review_work(client, course, "reject")
+    body = Progress.model_validate(
+        client.get("/api/v1/pathway/progress", params={"role_id": ROLE}, headers=WORK).json()
     )
-    assert response.status_code == 200, response.text
-    if replan:
-        # The learner independently closes those skills through their confirmed profile.
-        profile = client.get("/api/v1/profile/me").json()
-        skills = {skill["skill_id"]: skill for skill in profile["skills"]}
-        skills.update(
-            {sid: {"skill_id": sid, "level": 5, "source": "confirmed"} for sid in course.skill_ids}
-        )
-        response = client.put("/api/v1/profile/skills", json={"skills": list(skills.values())})
-        assert response.status_code == 200, response.text
-        response = client.post("/api/v1/pathway/plans", json={"role_id": ROLE})
-        assert response.status_code == 200, response.text
-    plan = repository.get_plan("aisyah").pathway
-    courses = {c.id for step in plan.steps for c in step.courses}
-    assert (course.id not in courses) == replan
-    assert courses - {course.id}
-    for course_id in courses - {course.id}:
-        response = client.post(
-            "/api/v1/pathway/progress",
-            json={"role_id": ROLE, "course_id": course_id, "status": "completed"},
-        )
-        assert response.status_code == 200, response.text
-    body = Progress.model_validate(client.get("/api/v1/pathway/progress").json())
-    rejected = next(item for item in body.history if item.course.id == course.id)
-    assert rejected.evidence.kind == "org_rejected"
     assert body.course_status[course.id] == "completed"
-    if replan:
-        assert body.percent_complete == 1.0
-    else:
-        assert 0 < body.percent_complete < 1.0
+    assert body.evidence[course.id].kind == "org_rejected"
+    assert body.percent_complete < before.percent_complete
+    assert body.badges == [], "programmes show milestones, not personal badges"
 
 
 def test_team_earned_learning_is_one_batch_read_and_members_are_loaded_once(
@@ -448,7 +419,7 @@ def test_postgres_learning_read_joins_all_targets_in_one_query(
         calls.append((sql, params))
         return [
             (uid, f"target-{target}", course.id, "completed",
-             course.model_dump(mode="json"), evidence.model_dump(mode="json"))
+             course.model_dump(mode="json"), evidence.model_dump(mode="json"), "personal")
             for uid in user_ids for target in range(3)
         ]  # fmt: skip
 

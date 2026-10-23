@@ -10,7 +10,7 @@
     "impact": "Impact",
     "team": "Team",
     "gaps": "Skill gaps",
-    "teamPlan": "Team plan",
+    "teamPlan": "Quick team plan",
     "verify": "Reviews",
     "settings": "Settings",
     "more": "More",
@@ -28,7 +28,9 @@
     "snapshots": "Snapshots",
     "admin": "Admin",
     "menu": "Open menu",
-    "funding": "Learning funds"
+    "funding": "Learning funds",
+    "myWork": "My organisation",
+    "programmes": "Programmes"
   },
   "shell": {
     "disclaimer": "Projections are estimates from public data. You stay in charge: Adept never makes hiring decisions.",
@@ -76,7 +78,8 @@
     "trustSources": "Every estimate shows its source",
     "trustYou": "You make the decisions",
     "eyebrowMe": "For you",
-    "eyebrowTeam": "For your team"
+    "eyebrowTeam": "For your team",
+    "shareSkills": "Share my skill levels with that organisation"
   },
   "landing": {
     "eyebrow": "Future-ready careers",
@@ -434,7 +437,10 @@
     "title": "Join an organisation",
     "body": "Enter the code your manager or career centre gave you.",
     "cta": "Join",
-    "done": "You joined {org}."
+    "done": "You joined {org}.",
+    "shareSkills": "Share my skill levels with this organisation",
+    "shareSkillsHint": "Managers use shared levels to plan team training. Your personal plans and matches stay private. You can change this later.",
+    "openWorkspace": "Open {org}"
   },
   "error": {
     "title": "Something didn’t load",
@@ -633,6 +639,16 @@
     "unchecked": "Couldn’t check these figures against your data: {figures}",
     "s1": "What should I do next?",
     "s2": "Which skills are rising?",
-    "s3": "How does Adept work?"
+    "s3": "How does Adept work?",
+    "inOrg": "Answering in {name}",
+    "inPersonal": "Answering in your personal workspace"
+  },
+  "workspace": {
+    "personal": "Personal",
+    "personalHint": "Private to you",
+    "member": "Employee",
+    "manager": "Manager",
+    "switch": "Switch workspace",
+    "join": "Join another organisation"
   }
 }

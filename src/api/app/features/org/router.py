@@ -18,6 +18,9 @@ from app.contracts.org import (
     MemberListResponse,
     Organization,
     OrganizationIn,
+    SharingIn,
+    Workspace,
+    WorkspaceList,
 )
 from app.contracts.packages import (
     AcceptPackage,
@@ -26,9 +29,19 @@ from app.contracts.packages import (
     PackageOptions,
     TeamPackage,
 )
-from app.contracts.pathway import SavedPlan
+from app.contracts.programmes import (
+    AssignmentDecision,
+    MyProgrammes,
+    ProgrammeAssignment,
+    ProgrammeBriefIn,
+    ProgrammeList,
+    ProgrammeOptions,
+    ProgrammePlan,
+    ProgrammeSend,
+    ProgrammeStatus,
+)
 from app.core.auth import CurrentUserDep
-from app.features.org import funding, packages, service
+from app.features.org import funding, packages, programmes, service
 
 router = APIRouter(prefix="/org", tags=["org"])
 
@@ -56,8 +69,52 @@ def get_assigned_package(user: CurrentUserDep) -> AssignedPackage | None:
 
 
 @router.post("/packages/assigned/accept")
-def accept_assigned_package(body: AcceptPackage, user: CurrentUserDep) -> SavedPlan:
+def accept_assigned_package(body: AcceptPackage, user: CurrentUserDep) -> ProgrammeAssignment:
+    """Accept HR's team plan as a work programme; the personal plan is left untouched."""
     return packages.accept(user, body.token)
+
+
+# --- employer programmes: objective-first briefs, personalised routes, agreements ---------
+
+
+@router.get("/programmes/options")
+def programme_options(user: CurrentUserDep) -> ProgrammeOptions:
+    """Objectives, roles with team readiness and members, to fill in a programme brief."""
+    return programmes.options(user)
+
+
+@router.post("/programmes/generate")
+def generate_programme(body: ProgrammeBriefIn, user: CurrentUserDep) -> ProgrammePlan:
+    """Propose a personalised route per person for the brief (nothing is saved or sent)."""
+    return programmes.generate(user, body)
+
+
+@router.post("/programmes", status_code=status.HTTP_201_CREATED)
+def send_programme(body: ProgrammeSend, user: CurrentUserDep) -> ProgrammeStatus:
+    """Send the generated plan to its members (refused if it changed since it was shown)."""
+    return programmes.send(user, body)
+
+
+@router.get("/programmes")
+def list_programmes(user: CurrentUserDep) -> ProgrammeList:
+    """Sent programmes with each member's agreement status."""
+    return programmes.list_programmes(user)
+
+
+@router.get("/programmes/mine")
+def my_programmes(user: CurrentUserDep) -> MyProgrammes:
+    """The signed-in member's work programme assignments and agreements."""
+    return programmes.my_programmes(user)
+
+
+@router.post("/programmes/{programme_id}/decision")
+def decide_programme(
+    programme_id: Annotated[str, Path(max_length=40)],
+    body: AssignmentDecision,
+    user: CurrentUserDep,
+) -> ProgrammeAssignment:
+    """Accept, decline (optional programmes only) or ask HR for a change."""
+    return programmes.decide(user, programme_id, body)
 
 
 @router.get("/funding/{year}")
@@ -126,8 +183,22 @@ def rotate_join_code(user: CurrentUserDep) -> Organization:
 
 @router.post("/join")
 def join_org(data: JoinOrgIn, user: CurrentUserDep) -> Organization:
-    """A signed-in learner joins with the code their manager or advisor shared."""
+    """Join as a member with the code a manager or advisor shared. A join code never grants
+    management rights; one account can belong to several organisations."""
     return service.join_org(user, data)
+
+
+@router.get("/workspaces")
+def list_workspaces(user: CurrentUserDep) -> WorkspaceList:
+    """Workspaces the signed-in person can switch to: personal, then each organisation."""
+    return service.workspaces(user)
+
+
+@router.put("/me/sharing")
+def set_sharing(data: SharingIn, user: CurrentUserDep) -> Workspace:
+    """Member, in the organisation workspace: share (or stop sharing) your skill levels with
+    its managers. Personal plans, matches and Adi conversations are never shared."""
+    return service.set_sharing(user, data)
 
 
 @router.get("/members")

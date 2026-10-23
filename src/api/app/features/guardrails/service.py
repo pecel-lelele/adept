@@ -128,11 +128,11 @@ def get_sources() -> SourcesResponse:
             )
     out.append(
         DataSourceInfo(
-            name="Synthetic personas and teams",
+            name="Sample personas and teams",
             url="https://github.com/pecel-lelele/adept/tree/main/src/data/seed",
             retrieved_at=date(2026, 10, 20),
             kind="synthetic",
-            used_for="Demo learners, organisations and their skills (no real people)",
+            used_for="Example learners, organisations and skills used for testing (no real people)",
             records=len(seed.rows("personas", "users")) + len(seed.rows("org", "users")),
         )
     )

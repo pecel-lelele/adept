@@ -31,6 +31,13 @@ function ScoreParts({ parts, labels }: { parts: Schemas["ScoreComponent"][]; lab
   );
 }
 
+/** Share of the role's required skill levels the person already holds (the overlap part). */
+export const READY_OVERLAP = 0.5;
+
+function overlapOf(m: Schemas["RoleMatch"]): number {
+  return m.components.find((c) => c.name === "skill_overlap")?.value ?? 0;
+}
+
 /**
  * Step 3: ranked future roles. Ranking options first, then one card per role: rank, name and
  * fit; what drives the score, which skills are missing, which goals the role serves; actions.
@@ -81,8 +88,25 @@ export async function MatchesView({
         <ErrorState failure={result} />
       ) : (
         <>
+          {(
+            [
+              ["ready", result.data.matches.filter((m) => overlapOf(m) >= READY_OVERLAP)],
+              ["explore", result.data.matches.filter((m) => overlapOf(m) < READY_OVERLAP)],
+            ] as const
+          ).map(([group, matches]) =>
+            matches.length ? (
+              <section key={group} className="a-stack" aria-labelledby={`matches-${group}`}>
+                <header className="a-section-head">
+                  <h2 id={`matches-${group}`}>{t(group === "ready" ? "readyNow" : "worthExploring")}</h2>
+                  <p className="a-muted a-small">
+                    {t(group === "ready" ? "readyNowHint" : "worthExploringHint", {
+                      share: Math.round(READY_OVERLAP * 100),
+                    })}
+                  </p>
+                </header>
           <ol className="a-rolecards">
-            {result.data.matches.map((m, i) => {
+            {matches.map((m) => {
+              const i = result.data.matches.indexOf(m);
               const goals = [...new Map(m.sdg_targets.map((s) => [s.goal, { goal: s.goal, title: s.label }])).values()];
               const pct = Math.round(m.score * 100);
               const detail = `/app/matches/${encodeURIComponent(m.role_id)}?scenario=${scenario}${replay}`;
@@ -158,6 +182,9 @@ export async function MatchesView({
               );
             })}
           </ol>
+              </section>
+            ) : null,
+          )}
           {result.data.data_provenance_note ? (
             <p className="a-small a-muted">
               {t("provenance")}: {result.data.data_provenance_note}

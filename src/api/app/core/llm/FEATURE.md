@@ -8,7 +8,13 @@
 
 ## Status
 
-`LLM_PROVIDER=none` (no model is used). The gateway redacts PII and filters prompt injection
+`LLM_PROVIDER=none` is the safe default. The presentation setup uses Runpod `glm-5.3` as the
+primary model at the supplied public OpenAI-compatible endpoint, with separately authenticated
+Google Gemini models only on primary failure. Runpod uses `RUNPOD_API_KEY`, Gemini uses
+`GEMINI_API_KEY`; both stay in root `.env` or deployment secrets and only the API container
+receives them. Requests use low reasoning and capped output, share one request deadline and
+reserve time for the fallback. `/about`, API replies and logs disclose the actual provider/model.
+The gateway redacts PII and filters prompt injection
 before any prompt, rejects unknown IDs, has a circuit breaker, logs every call, and
 `select_ids_or_fallback` degrades to deterministic logic. Related F8 code:
 `app/core/security/` (rate limit, body limit, headers, sanitiser, PII, Supabase JWT),

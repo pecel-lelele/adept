@@ -10,7 +10,7 @@
     "impact": "影响",
     "team": "团队",
     "gaps": "技能差距",
-    "teamPlan": "团队计划",
+    "teamPlan": "快速团队计划",
     "verify": "审核",
     "settings": "设置",
     "more": "更多",
@@ -28,7 +28,9 @@
     "snapshots": "快照",
     "admin": "管理",
     "menu": "打开菜单",
-    "funding": "学习资金"
+    "funding": "学习资金",
+    "myWork": "我的组织",
+    "programmes": "项目"
   },
   "shell": {
     "disclaimer": "预测是基于公开数据的估计。决定权在你：Adept 从不做招聘决定。",
@@ -76,7 +78,8 @@
     "trustSources": "每个估计都注明来源",
     "trustYou": "由你做决定",
     "eyebrowMe": "为你",
-    "eyebrowTeam": "为你的团队"
+    "eyebrowTeam": "为你的团队",
+    "shareSkills": "与该组织分享我的技能水平"
   },
   "landing": {
     "eyebrow": "面向未来的职业",
@@ -434,7 +437,10 @@
     "title": "加入机构",
     "body": "输入经理或就业中心提供的代码。",
     "cta": "加入",
-    "done": "你已加入 {org}。"
+    "done": "你已加入 {org}。",
+    "shareSkills": "与该组织分享我的技能水平",
+    "shareSkillsHint": "管理者用分享的水平规划团队培训。你的个人计划和匹配结果保持私密。之后可以更改。",
+    "openWorkspace": "打开 {org}"
   },
   "error": {
     "title": "有内容未能载入",
@@ -633,6 +639,16 @@
     "unchecked": "以下数字无法与你的数据核对：{figures}",
     "s1": "我下一步该做什么？",
     "s2": "哪些技能在上升？",
-    "s3": "Adept 如何运作？"
+    "s3": "Adept 如何运作？",
+    "inOrg": "在 {name} 中回答",
+    "inPersonal": "在你的个人工作区中回答"
+  },
+  "workspace": {
+    "personal": "个人",
+    "personalHint": "仅你可见",
+    "member": "员工",
+    "manager": "管理者",
+    "switch": "切换工作区",
+    "join": "加入其他组织"
   }
 }

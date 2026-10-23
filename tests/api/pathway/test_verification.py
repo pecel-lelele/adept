@@ -4,12 +4,14 @@ from datetime import date
 
 import pytest
 from fastapi.testclient import TestClient
+from harness.workspaces import accept_work_plan, work_headers
 
 from app.contracts.pathway import Course, Progress, VerificationItem, VerificationQueue
 from app.features.pathway import data, verification
 
 ROLE = "process-automation-analyst"
 HR = {"X-Demo-User": "demo-company"}
+WORK = work_headers()
 
 
 def _seen(client: TestClient, course_id: str) -> str | None:
@@ -75,6 +77,20 @@ def _save_and_complete(client: TestClient) -> tuple[str, str]:
     return course_ids[0], course_ids[1]
 
 
+def _work_complete(client: TestClient) -> tuple[str, str]:
+    """Aisyah completes two courses of an accepted Demo Bank programme (work learning)."""
+    plan = accept_work_plan(ROLE)
+    course_ids = [c.id for s in plan.steps for c in s.courses]
+    for cid in course_ids[:2]:
+        resp = client.post(
+            "/api/v1/pathway/progress",
+            json={"role_id": ROLE, "course_id": cid, "status": "completed"},
+            headers=WORK,
+        )
+        assert resp.status_code == 200, resp.text
+    return course_ids[0], course_ids[1]
+
+
 def test_marking_done_is_self_reported(client: TestClient) -> None:
     first, _ = _save_and_complete(client)
     body = Progress.model_validate(
@@ -112,7 +128,7 @@ def test_evidence_needs_https_and_a_planned_course(client: TestClient) -> None:
 
 
 def test_hr_sees_members_completions_and_confirms(client: TestClient) -> None:
-    first, second = _save_and_complete(client)  # Aisyah is in Demo Bank
+    first, second = _work_complete(client)  # Aisyah is in Demo Bank
     queue = VerificationQueue.model_validate(
         client.get("/api/v1/pathway/verifications", headers=HR).json()
     )
@@ -139,8 +155,8 @@ def test_hr_sees_members_completions_and_confirms(client: TestClient) -> None:
 
 
 def test_rejected_completion_stops_counting(client: TestClient) -> None:
-    first, _ = _save_and_complete(client)
-    before = client.get("/api/v1/pathway/progress", params={"role_id": ROLE}).json()
+    first, _ = _work_complete(client)
+    before = client.get("/api/v1/pathway/progress", params={"role_id": ROLE}, headers=WORK).json()
     decision = {
         "user_id": "aisyah",
         "role_id": ROLE,
@@ -153,7 +169,7 @@ def test_rejected_completion_stops_counting(client: TestClient) -> None:
         client.post("/api/v1/pathway/verifications", json=decision, headers=HR).status_code == 200
     )
     after = Progress.model_validate(
-        client.get("/api/v1/pathway/progress", params={"role_id": ROLE}).json()
+        client.get("/api/v1/pathway/progress", params={"role_id": ROLE}, headers=WORK).json()
     )
     assert after.percent_complete < before["percent_complete"]
     assert after.evidence[first].kind == "org_rejected"
@@ -161,7 +177,7 @@ def test_rejected_completion_stops_counting(client: TestClient) -> None:
 
 
 def test_reviewers_only_see_their_own_members(client: TestClient) -> None:
-    _save_and_complete(client)  # Aisyah belongs to Demo Bank, not the polytechnic
+    _work_complete(client)  # Aisyah belongs to Demo Bank, not the polytechnic
     queue = client.get("/api/v1/pathway/verifications", headers=ADVISOR).json()
     assert queue["items"] == []
     other = {
@@ -179,12 +195,13 @@ def test_reviewers_only_see_their_own_members(client: TestClient) -> None:
 def test_review_of_changed_proof_is_refused(
     client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    first, _ = _save_and_complete(client)
+    first, _ = _work_complete(client)
     seen = _seen(client, first)  # HR opens the self-reported completion
     monkeypatch.setattr(verification, "probe", lambda url: 200)
     client.post(  # the learner then submits a certificate link
         "/api/v1/pathway/progress/evidence",
         json={"role_id": ROLE, "course_id": first, "url": "https://www.credly.com/badges/new"},
+        headers=WORK,
     )
     decision = {
         "user_id": "aisyah",
@@ -196,7 +213,7 @@ def test_review_of_changed_proof_is_refused(
     resp = client.post("/api/v1/pathway/verifications", json=decision, headers=HR)
     assert resp.status_code == 409 and resp.json()["error"]["code"] == "evidence_changed"
     ev = Progress.model_validate(
-        client.get("/api/v1/pathway/progress", params={"role_id": ROLE}).json()
+        client.get("/api/v1/pathway/progress", params={"role_id": ROLE}, headers=WORK).json()
     ).evidence[first]
     assert ev.kind == "certificate_link", "the unseen link was not confirmed"
     decision["submitted_at"] = _seen(client, first)
@@ -219,6 +236,49 @@ def test_probe_is_looked_up_per_call(client: TestClient, monkeypatch: pytest.Mon
         json={"role_id": ROLE, "course_id": first, "url": url},
     )
     assert calls == [url], "the patched probe is used, so tests never reach live pages"
+
+
+def test_personal_learning_stays_private_until_the_member_shares_it(client: TestClient) -> None:
+    first, second = _save_and_complete(client)  # personal workspace
+    queue = client.get("/api/v1/pathway/verifications", headers=HR).json()
+    assert queue["items"] == [], "HR never sees personal learning"
+
+    plan = accept_work_plan(ROLE)
+    work = client.get("/api/v1/pathway/progress", params={"role_id": ROLE}, headers=WORK).json()
+    assert work["workspace"] == "org-demo-bank"
+    assert work["course_status"] == {}, "personal completions do not count until shared"
+    assert work["completed_elsewhere"].get(first) == "personal"
+    assert any(c.id == first for s in plan.steps for c in s.courses)
+
+    shared = client.post(
+        "/api/v1/pathway/progress/share",
+        json={"role_id": ROLE, "course_id": first},
+        headers=WORK,
+    )
+    assert shared.status_code == 200, shared.text
+    assert shared.json()["course_status"] == {first: "completed"}
+    items = client.get("/api/v1/pathway/verifications", headers=HR).json()["items"]
+    assert [i["course"]["id"] for i in items] == [first], "only what was shared"
+    assert items[0]["evidence"]["shared_from"] == "personal"
+
+    # Work learning counts in the personal plan too, labelled with where it was done.
+    done_at_work = next(c.id for s in plan.steps for c in s.courses if c.id not in {first, second})
+    client.post(
+        "/api/v1/pathway/progress",
+        json={"role_id": ROLE, "course_id": done_at_work, "status": "completed"},
+        headers=WORK,
+    )
+    mine = client.get("/api/v1/pathway/progress", params={"role_id": ROLE}).json()
+    if done_at_work in {c["id"] for s in mine["pathway"]["steps"] for c in s["courses"]}:
+        assert mine["completed_elsewhere"][done_at_work] == "org-demo-bank"
+
+
+def test_sharing_needs_the_organisation_workspace(client: TestClient) -> None:
+    first, _ = _save_and_complete(client)
+    body = {"role_id": ROLE, "course_id": first}
+    assert client.post("/api/v1/pathway/progress/share", json=body).status_code == 403
+    outsider = {"X-Demo-User": "aisyah", "X-Workspace": "org-demo-poly"}
+    assert client.get("/api/v1/pathway/progress", headers=outsider).status_code == 403
 
 
 def test_learners_cannot_review(client: TestClient) -> None:

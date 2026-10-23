@@ -18,6 +18,7 @@ from app.contracts.pathway import (
     RoleComparison,
     SavedPlan,
     SavePlanIn,
+    ShareCompletionIn,
     VerificationItem,
     VerificationQueue,
 )
@@ -97,26 +98,45 @@ def accept_replan(user: CurrentUserDep) -> SavedPlan:
 
 @router.get("/progress")
 def get_progress(
-    user: CurrentUserDep, role_id: str | None = None, scenario: ScenarioId = "moderate"
+    user: CurrentUserDep,
+    role_id: str | None = None,
+    scenario: ScenarioId = "moderate",
 ) -> Progress:
-    """Progress on `role_id`; without it, on the learner's saved target role."""
-    return service.get_progress(user, service.resolve_role(user, role_id), scenario)
+    """Progress on `role_id` in the current workspace (X-Workspace). Personal: your own plan
+    (default: the saved target role). Organisation: your accepted programme for that role
+    (default: the newest accepted programme)."""
+    return service.get_progress(user, service.progress_role(user, role_id), scenario)
 
 
 @router.post("/progress")
 def update_progress(
-    body: ProgressUpdate, user: CurrentUserDep, scenario: ScenarioId = "moderate"
+    body: ProgressUpdate,
+    user: CurrentUserDep,
+    scenario: ScenarioId = "moderate",
 ) -> Progress:
     return service.update_progress(user, body, scenario)
 
 
 @router.post("/progress/evidence")
 def submit_evidence(
-    body: EvidenceSubmit, user: CurrentUserDep, scenario: ScenarioId = "moderate"
+    body: EvidenceSubmit,
+    user: CurrentUserDep,
+    scenario: ScenarioId = "moderate",
 ) -> Progress:
     """Attach a certificate link to a completed course; it is checked against the provider's
-    official verification pages and shown to the learner's HR or career advisor."""
+    official verification pages. In an organisation workspace HR reviews it."""
     return service.submit_evidence(user, body, scenario)
+
+
+@router.post("/progress/share")
+def share_completion(
+    body: ShareCompletionIn,
+    user: CurrentUserDep,
+    scenario: ScenarioId = "moderate",
+) -> Progress:
+    """Organisation workspace: share a course you completed in your personal workspace with
+    this programme. HR sees only what you share."""
+    return service.share_completion(user, body, scenario)
 
 
 @router.get("/verifications")

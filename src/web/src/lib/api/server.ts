@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 
 import { getSessionToken } from "@/lib/auth/session";
+import { currentWorkspace } from "@/lib/auth/workspace";
 
 import { createApiClient, type ApiClient } from "./client";
 
@@ -30,6 +31,8 @@ export function trustedClientIp(forwardedFor: string | null, hops: number): stri
 export async function getApi(): Promise<ApiClient> {
   const token = await getSessionToken();
   const forward: Record<string, string> = token ? { "X-Demo-User": token } : {};
+  const workspace = token ? await currentWorkspace() : undefined;
+  if (workspace) forward["X-Workspace"] = workspace;
   if (PROXY_SECRET) {
     const ip = trustedClientIp((await headers()).get("x-forwarded-for"), TRUSTED_PROXY_HOPS);
     if (ip) {

@@ -69,12 +69,15 @@ def _parse_meta(raw_meta: dict, scenario: str) -> TrendSnapshotMeta:
 
 
 def _parse_items(raw_items: list[dict], scenario: str) -> list[SkillVelocity]:
+    from app.core import seed
+
+    labels = {row["id"]: row["label"] for row in seed.rows("taxonomy", "skills")}
     items = []
     for item in raw_items:
         items.append(
             SkillVelocity(
                 skill_id=item["skill_id"],
-                skill_label=item["skill_label"],
+                skill_label=labels.get(item["skill_id"], item["skill_label"]),
                 research_velocity=item["research_velocity"],
                 labor_decay=item["labor_decay"],
                 labor_decay_source_note=item["labor_decay_source_note"],

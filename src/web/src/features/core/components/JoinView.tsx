@@ -34,8 +34,11 @@ export function JoinView({ code = "" }: { code?: string }) {
               </span>
               <h2>{t("done", { org: joined })}</h2>
               <p className="a-muted">{tp("joinedBody")}</p>
-              <Link className="a-btn" href="/app">
-                {tp("joinedCta")} <ArrowRight size={16} aria-hidden />
+              <a className="a-btn" href={`/api/workspace?to=${encodeURIComponent(state.values?.org_id ?? "")}`}>
+                {t("openWorkspace", { org: joined })} <ArrowRight size={16} aria-hidden />
+              </a>
+              <Link className="a-link" href="/app">
+                {tp("joinedCta")}
               </Link>
             </div>
           ) : (
@@ -57,6 +60,13 @@ export function JoinView({ code = "" }: { code?: string }) {
                   placeholder="ABCD1234"
                   defaultValue={state.values?.code ?? code}
                 />
+              </label>
+              <label className="a-check">
+                <input type="checkbox" name="share_skills" defaultChecked={state.values?.share_skills === "on"} />
+                <span>
+                  <strong>{t("shareSkills")}</strong>
+                  <small>{t("shareSkillsHint")}</small>
+                </span>
               </label>
               {state.error ? (
                 <p className="a-notice" data-tone="error" role="alert">

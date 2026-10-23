@@ -30,11 +30,18 @@ PAGES: dict[str, str] = {
     "/app/progress": "Progress and badges",
     "/app/courses": "Course catalogue",
     "/app/sdg": "SDG impact",
-    "/app/join": "Join a team",
+    "/app/join": "Join an organisation",
+    "/work": "Organisation home",
+    "/work/skills": "What I share",
+    "/work/plan": "Programme plans",
+    "/work/progress": "Programme progress",
+    "/work/funding": "Employer learning budget",
     "/org": "Team home",
     "/org/members": "Team members",
     "/org/radar": "Team radar",
     "/org/gaps": "Team skill gaps",
+    "/org/programmes": "Programmes",
+    "/org/programmes/new": "New programme",
     "/org/plan": "Team plan",
     "/org/sdg": "Team SDG impact",
     "/org/verify": "Review completions",
@@ -56,7 +63,10 @@ class Refs:
 
 @dataclass
 class Context:
-    audience: str  # "visitor" | "learner" | "manager"
+    # "visitor" | "learner" (personal workspace) | "employee" (organisation member) | "manager"
+    audience: str
+    workspace: str = "personal"  # "personal" or the organisation id
+    org_name: str = ""
     lines: list[str] = field(default_factory=list)
     refs: Refs = field(default_factory=Refs)
     grounded_on: list[str] = field(default_factory=list)
@@ -232,6 +242,7 @@ def _learner(ctx: Context, user: CurrentUser, scenario: ScenarioId) -> None:
         ctx.facts["plan_steps"] = [
             {"skill": s.skill_id, "courses": [c.id for c in s.courses]} for s in p.steps
         ]
+        ctx.facts["plan_gaps"] = sum(1 for g in getattr(p, "gaps", []) if g.status != "have")
         progress = _try(
             "progress", lambda: pathway_service.get_progress(user, plan.role_id, plan.scenario)
         )
@@ -257,11 +268,84 @@ def _learner(ctx: Context, user: CurrentUser, scenario: ScenarioId) -> None:
     _trends(ctx, scenario, own)
 
 
-def _manager(ctx: Context, user: CurrentUser, scenario: ScenarioId) -> None:
+def _org_name(ctx: Context, user: CurrentUser) -> bool:
     from app.features.org import service as org_service
 
     org = _try("org", lambda: org_service.get_my_org(user))
     if org is None:
+        return False
+    ctx.org_name = org.name
+    ctx.workspace = org.id
+    return True
+
+
+def _employee(ctx: Context, user: CurrentUser, scenario: ScenarioId) -> None:
+    """A member in their organisation's workspace: only their own participation in it."""
+    from app.features.org import programmes
+    from app.features.org import service as org_service
+    from app.features.pathway import service as pathway_service
+
+    if not _org_name(ctx, user):
+        ctx.lines.append("The organisation workspace could not be loaded.")
+        return
+    ctx.lines.append(
+        f"WORKSPACE: organisation '{ctx.org_name}'. Answer only about the person's participation "
+        "in its programmes. Their personal plans, matches and conversations are private and "
+        "belong to the personal workspace."
+    )
+    spaces = _try("workspaces", lambda: org_service.workspaces(user))
+    if spaces is not None:
+        mine = next((w for w in spaces.workspaces if w.id == ctx.workspace), None)
+        ctx.facts["skills_shared"] = bool(mine and mine.skills_shared)
+    assignments = _try("programmes", lambda: programmes.my_programmes(user).assignments) or []
+    pending = [a for a in assignments if a.status in ("assigned", "change_requested")]
+    accepted = [a for a in assignments if a.status == "accepted"]
+    ctx.facts["work_pending"] = [
+        {"title": a.agreement.title, "role": a.agreement.role_id, "status": a.status}
+        for a in pending
+    ]
+    for a in pending:
+        ctx.lines.append(
+            f"PROGRAMME AWAITING THE PERSON ({a.status}): '{a.agreement.title}' toward "
+            f"[[role:{a.agreement.role_id}]], {a.agreement.hours_per_week:g} h/week until "
+            f"{a.agreement.target_date}."
+        )
+    if accepted:
+        a = accepted[0]
+        work = {
+            "title": a.agreement.title,
+            "role": a.agreement.role_id,
+            "date": a.agreement.target_date.isoformat(),
+            "hours": a.agreement.hours_per_week,
+            "budget": a.agreement.budget_myr,
+            "courses": [c.id for s in a.pathway.steps for c in s.courses],
+        }
+        ctx.plan_meta = a.pathway.meta
+        progress = _try(
+            "work progress",
+            lambda: pathway_service.get_progress(user, a.agreement.role_id, scenario),
+        )
+        if progress is not None:
+            from app.features.pathway.verification import effective_statuses
+
+            statuses = effective_statuses(progress.course_status, progress.evidence)
+            work["done"] = [cid for cid, st in statuses.items() if st == "completed"]
+            work["share"] = progress.percent_complete
+        ctx.facts["work_active"] = work
+        ctx.lines.append(
+            f"ACCEPTED PROGRAMME '{a.agreement.title}' toward [[role:{a.agreement.role_id}]]: "
+            f"{a.agreement.hours_per_week:g} h/week of paid learning time until "
+            f"{a.agreement.target_date}; employer committed up to RM {a.agreement.budget_myr:g}."
+        )
+    ctx.grounded_on.append(f"your {ctx.org_name} programmes")
+    _trends(ctx, scenario, set())
+
+
+def _manager(ctx: Context, user: CurrentUser, scenario: ScenarioId) -> None:
+    from app.features.org import programmes
+    from app.features.org import service as org_service
+
+    if not _org_name(ctx, user):
         ctx.lines.append("The manager has not finished setting up the organisation.")
         _trends(ctx, scenario, set())
         return
@@ -269,10 +353,15 @@ def _manager(ctx: Context, user: CurrentUser, scenario: ScenarioId) -> None:
     if members is not None:
         total = len(members.members)
         done = sum(1 for m in members.members if m.intake_status == "complete")
+        shared = sum(
+            1 for m in members.members if m.intake_status == "complete" and m.skills_shared
+        )
         ctx.facts["members"] = (total, done)
+        ctx.facts["members_shared"] = shared
         ctx.lines.append(
-            f"TEAM '{org.name}' ({org.type}): {total} members, {done} with a complete skill "
-            "profile (only complete profiles count in gaps and plans)."
+            f"TEAM '{ctx.org_name}': {total} members, {done} with a complete skill profile, "
+            f"{shared} of them sharing their skill levels (only those count in gaps and "
+            "programme matching)."
         )
     gaps = _try("gaps", lambda: org_service.get_gaps(user, scenario))
     if gaps is not None and gaps.role_gaps:
@@ -282,17 +371,24 @@ def _manager(ctx: Context, user: CurrentUser, scenario: ScenarioId) -> None:
             "Average team gap per target role (share of required skill level missing): "
             + ", ".join(f"[[role:{r}]] {_pct(g)}" for r, g in ranked)
         )
-    plan = _try("team plan", lambda: org_service.get_plan(user, scenario))
-    if plan is not None:
-        ctx.facts["team_plan_role"] = plan.target_role_id
-        ctx.lines.append(
-            f"TEAM PLAN toward [[role:{plan.target_role_id}]]: {len(plan.steps)} steps, about "
-            f"{plan.total_weeks} weeks, assigned to {len(plan.assigned_member_ids)} members."
-        )
-        for step in plan.steps[:5]:
+    sent = _try("programmes", lambda: programmes.list_programmes(user).programmes)
+    if sent is not None:
+        ctx.facts["programmes"] = [
+            {
+                "title": p.record.brief.title,
+                "accepted": p.accepted,
+                "pending": p.pending,
+                "declined": p.declined,
+                "changes": p.change_requested,
+            }
+            for p in sent
+        ]
+        for p in sent[:5]:
+            roles = ", ".join(f"[[role:{r.role_id}]]" for r in p.record.brief.roles)
             ctx.lines.append(
-                f"  Step {step.order}: [[skill:{step.skill_id}]]: "
-                + "; ".join(f"[[course:{c.id}]]" for c in step.courses)
+                f"PROGRAMME '{p.record.brief.title}' ({roles}) due {p.record.brief.target_date}: "
+                f"{p.accepted} accepted, {p.pending} waiting, {p.change_requested} asked for "
+                f"changes, {p.declined} declined."
             )
     ctx.grounded_on.append("your team")
     _trends(ctx, scenario, set())
@@ -330,19 +426,26 @@ HOW_IT_WORKS = (
 )
 
 
-def build(user: CurrentUser | None, scenario: ScenarioId) -> Context:
+def audience_of(user: CurrentUser | None) -> str:
     if user is None:
-        ctx = Context(audience="visitor")
-    elif user.kind == "org_admin":
-        ctx = Context(audience="manager")
-    else:
-        ctx = Context(audience="learner")
+        return "visitor"
+    if user.kind == "org_admin":
+        return "manager"
+    return "employee" if user.workspace == "org" and user.org_id else "learner"
+
+
+def build(user: CurrentUser | None, scenario: ScenarioId) -> Context:
+    """Facts for the workspace the question was asked in, and nothing from other workspaces."""
+    ctx = Context(audience=audience_of(user))
     ctx.lines.append(HOW_IT_WORKS)
     _catalogue_refs(ctx.refs)
     if user is None:
         _visitor(ctx, scenario)
-    elif user.kind == "org_admin":
+    elif ctx.audience == "manager":
         _manager(ctx, user, scenario)
+    elif ctx.audience == "employee":
+        _employee(ctx, user, scenario)
     else:
+        ctx.lines.append("WORKSPACE: personal. Plans and matches here are private to the person.")
         _learner(ctx, user, scenario)
     return ctx

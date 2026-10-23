@@ -16,6 +16,15 @@ from app.features.assistant.context import Context
 INTENTS: dict[str, tuple[str, ...]] = {
     "privacy": (
         "privacy",
+        "employer see",
+        "hr see",
+        "manager see",
+        "who can see",
+        "what can hr",
+        "majikan nampak",
+        "siapa boleh lihat",
+        "雇主能看到",
+        "谁能看到",
         "stored",
         "store my",
         "my data",
@@ -237,6 +246,21 @@ T: dict[str, dict[str, str]] = {
         "team_plan": " The team plan targets [[role:{role}]]: see [[page:/org/plan]].",
         "team_none": "Share your join code from [[page:/org/members]] so your people can add "
         "their skills; then I can show the gaps.",
+        "plan_done": "You have completed every course in your saved plan toward [[role:{role}]]. {gaps} Compare other roles on [[page:/app/pathway/compare]] or check your skills on [[page:/app/progress]].",
+        "plan_done_gaps": "{open} required skill(s) still need practice or courses the catalogue does not yet cover.",
+        "plan_done_closed": "Its listed skill gaps are closed.",
+        "work_pending": "In {org}, the programme “{title}” toward [[role:{role}]] is waiting for your answer. Review the learning agreement on [[page:/work/plan]]: accept it, or ask for a change.",
+        "work_active": "In {org}, your programme “{title}” builds toward [[role:{role}]] by {date}, with {hours} hours a week of paid learning time and up to RM {budget} from your employer. {share} of its course hours are recorded complete.",
+        "work_next": " Next: [[course:{course}]]. Track it on [[page:/work/progress]].",
+        "work_done": " Every course is recorded complete; HR reviews the evidence on [[page:/work/progress]].",
+        "work_none": "{org} has not sent you a programme yet. When it does, you will review the agreement on [[page:/work/plan]]. Your personal plans stay in your personal workspace.",
+        "work_roles": "Career exploration is private and lives in your personal workspace: switch to Personal to see your matched roles. Here in {org} I only cover its programmes.",
+        "privacy_work": "{org} sees your programme progress, the evidence you submit or share here{skills}. Your personal plans, matches and conversations with me stay private. Change sharing on [[page:/work/skills]].",
+        "privacy_shared": ", and the skill levels you chose to share",
+        "privacy_not_shared": "; you are not sharing your skill levels",
+        "programmes": " Programmes: {count} sent; {accepted} accepted, {pending} waiting, {changes} asked for changes, {declined} declined. See [[page:/org/programmes]].",
+        "programmes_none": " No programme sent yet: start from a business objective on [[page:/org/programmes/new]].",
+        "team_shared": " {shared} of them share their skill levels.",
     },
     "ms": {
         "hello": "Hai, saya Adi! Saya boleh terangkan peranan padanan anda, apa perlu dipelajari, "
@@ -278,6 +302,21 @@ T: dict[str, dict[str, str]] = {
         "team_plan": " Pelan pasukan menyasarkan [[role:{role}]]: lihat [[page:/org/plan]].",
         "team_none": "Kongsi kod sertai dari [[page:/org/members]] supaya pasukan anda boleh "
         "menambah kemahiran mereka.",
+        "plan_done": "Anda telah menamatkan semua kursus dalam pelan tersimpan untuk [[role:{role}]]. {gaps} Bandingkan peranan lain di [[page:/app/pathway/compare]] atau semak kemahiran di [[page:/app/progress]].",
+        "plan_done_gaps": "{open} kemahiran yang diperlukan masih perlu latihan atau kursus yang belum ada dalam katalog.",
+        "plan_done_closed": "Jurang kemahiran yang disenaraikan telah ditutup.",
+        "work_pending": "Di {org}, program “{title}” untuk [[role:{role}]] menunggu jawapan anda. Semak perjanjian pembelajaran di [[page:/work/plan]]: terima, atau minta perubahan.",
+        "work_active": "Di {org}, program “{title}” anda menuju [[role:{role}]] menjelang {date}, dengan {hours} jam seminggu masa belajar berbayar dan sehingga RM {budget} daripada majikan. {share} jam kursus direkodkan selesai.",
+        "work_next": " Seterusnya: [[course:{course}]]. Jejak di [[page:/work/progress]].",
+        "work_done": " Semua kursus direkodkan selesai; HR menyemak bukti di [[page:/work/progress]].",
+        "work_none": "{org} belum menghantar program kepada anda. Apabila dihantar, anda akan menyemak perjanjian di [[page:/work/plan]]. Pelan peribadi anda kekal di ruang kerja peribadi.",
+        "work_roles": "Penerokaan kerjaya adalah peribadi dan berada di ruang kerja peribadi: tukar ke Peribadi untuk melihat peranan padanan. Di {org} saya hanya membantu dengan programnya.",
+        "privacy_work": "{org} melihat kemajuan program anda, bukti yang anda hantar atau kongsi di sini{skills}. Pelan peribadi, padanan dan perbualan anda dengan saya kekal peribadi. Ubah perkongsian di [[page:/work/skills]].",
+        "privacy_shared": ", dan tahap kemahiran yang anda pilih untuk dikongsi",
+        "privacy_not_shared": "; anda tidak berkongsi tahap kemahiran",
+        "programmes": " Program: {count} dihantar; {accepted} diterima, {pending} menunggu, {changes} minta perubahan, {declined} ditolak. Lihat [[page:/org/programmes]].",
+        "programmes_none": " Belum ada program dihantar: mulakan dari objektif perniagaan di [[page:/org/programmes/new]].",
+        "team_shared": " {shared} daripadanya berkongsi tahap kemahiran.",
     },
     "zh": {
         "hello": "你好，我是 Adi！我可以解释你的匹配职位、下一步该学什么、技能趋势、课程费用与 HRD Corp "
@@ -306,6 +345,21 @@ T: dict[str, dict[str, str]] = {
         "team_gap": " 平均差距最大的是 [[role:{role}]]（{gap}）。",
         "team_plan": " 团队计划目标为 [[role:{role}]]：详见 [[page:/org/plan]]。",
         "team_none": "在 [[page:/org/members]] 分享加入码，让成员添加他们的技能。",
+        "plan_done": "你已完成为 [[role:{role}]] 保存的计划中的全部课程。{gaps} 可在 [[page:/app/pathway/compare]] 比较其他职位，或在 [[page:/app/progress]] 查看技能。",
+        "plan_done_gaps": "仍有 {open} 项所需技能需要实践，或目录中尚无对应课程。",
+        "plan_done_closed": "列出的技能差距均已补齐。",
+        "work_pending": "在 {org}，面向 [[role:{role}]] 的项目“{title}”正在等待你的答复。请在 [[page:/work/plan]] 查看学习协议：接受，或申请调整。",
+        "work_active": "在 {org}，你的项目“{title}”将在 {date} 前帮助你迈向 [[role:{role}]]，每周 {hours} 小时带薪学习时间，雇主最多承担 RM {budget}。已记录完成 {share} 的课程学时。",
+        "work_next": " 下一步：[[course:{course}]]。在 [[page:/work/progress]] 跟踪。",
+        "work_done": " 所有课程均已记录完成；HR 会在 [[page:/work/progress]] 审核凭证。",
+        "work_none": "{org} 尚未向你发送项目。收到后，你可以在 [[page:/work/plan]] 查看协议。你的个人计划保留在个人工作区。",
+        "work_roles": "职业探索属于个人隐私，位于个人工作区：切换到“个人”即可查看匹配职位。在 {org} 中我只解答其项目相关问题。",
+        "privacy_work": "{org} 可以看到你的项目进度、你在此提交或分享的凭证{skills}。你的个人计划、匹配结果以及与我的对话均保持私密。可在 [[page:/work/skills]] 更改分享设置。",
+        "privacy_shared": "，以及你选择分享的技能水平",
+        "privacy_not_shared": "；你没有分享技能水平",
+        "programmes": " 项目：已发送 {count} 个；{accepted} 人接受，{pending} 人待定，{changes} 人申请调整，{declined} 人拒绝。详见 [[page:/org/programmes]]。",
+        "programmes_none": " 尚未发送项目：可在 [[page:/org/programmes/new]] 从业务目标开始。",
+        "team_shared": " 其中 {shared} 人分享了技能水平。",
     },
 }
 
@@ -317,9 +371,14 @@ SUGGESTIONS: dict[str, dict[str, list[str]]] = {
             "Why is my top role a match?",
             "Which courses are HRD Corp claimable?",
         ],
+        "employee": [
+            "What should I do next?",
+            "What does my employer see?",
+            "How far along is my programme?",
+        ],
         "manager": [
             "Where is my team's biggest gap?",
-            "What is our team plan?",
+            "How are our programmes going?",
             "Which skills are rising?",
         ],
     },
@@ -334,16 +393,22 @@ SUGGESTIONS: dict[str, dict[str, list[str]]] = {
             "Kenapa peranan teratas sesuai?",
             "Kursus mana boleh tuntut HRD Corp?",
         ],
+        "employee": [
+            "Apa langkah seterusnya?",
+            "Apa yang majikan nampak?",
+            "Bagaimana kemajuan program saya?",
+        ],
         "manager": [
             "Di mana jurang terbesar pasukan?",
-            "Apa pelan pasukan kami?",
+            "Bagaimana program kami?",
             "Kemahiran apa yang meningkat?",
         ],
     },
     "zh": {
         "visitor": ["Adept 如何运作？", "我的简历会被保存吗？", "哪些技能在上升？"],
         "learner": ["我下一步该做什么？", "为什么这个职位最匹配？", "哪些课程可用 HRD Corp 报销？"],
-        "manager": ["团队最大的差距在哪里？", "我们的团队计划是什么？", "哪些技能在上升？"],
+        "employee": ["我下一步该做什么？", "雇主能看到什么？", "我的项目进度如何？"],
+        "manager": ["团队最大的差距在哪里？", "我们的项目进展如何？", "哪些技能在上升？"],
     },
 }
 
@@ -351,7 +416,7 @@ SUGGESTIONS: dict[str, dict[str, list[str]]] = {
 def intent(question: str, audience: str = "learner") -> str:
     q = question.lower()
     for name, words in INTENTS.items():
-        if name in PERSONAL_PLAN_INTENTS and audience != "learner":
+        if name in PERSONAL_PLAN_INTENTS and audience not in ("learner", "employee"):
             continue
         # Saved-plan totals answer only questions about the plan itself: "Which courses can I
         # finish in two hours?" is course advice, not "how long is my plan?".
@@ -388,6 +453,8 @@ def reply_for_intent(kind: str, ctx: Context, locale: Locale) -> str:
     """Render one server-authored answer from checked application facts."""
     t = T[locale]
     f = ctx.facts
+    if ctx.audience == "employee":
+        return _employee_reply(kind, ctx, t)
     if kind == "privacy":
         return t["privacy"]
     if kind == "how":
@@ -439,8 +506,19 @@ def reply_for_intent(kind: str, ctx: Context, locale: Locale) -> str:
         if f.get("role_gaps"):
             role, value = f["role_gaps"][0]
             gap = t["team_gap"].format(role=role, gap=_pct(value))
-        if f.get("team_plan_role"):
-            gap += t["team_plan"].format(role=f["team_plan_role"])
+        if "members_shared" in f:
+            gap = t["team_shared"].format(shared=f["members_shared"]) + gap
+        programmes = f.get("programmes")
+        if programmes:
+            gap += t["programmes"].format(
+                count=len(programmes),
+                accepted=sum(p["accepted"] for p in programmes),
+                pending=sum(p["pending"] for p in programmes),
+                changes=sum(p["changes"] for p in programmes),
+                declined=sum(p["declined"] for p in programmes),
+            )
+        elif programmes is not None:
+            gap += t["programmes_none"]
         return t["team"].format(members=total, complete=complete, gap=gap)
     if ctx.audience == "visitor":
         return (
@@ -462,6 +540,15 @@ def reply_for_intent(kind: str, ctx: Context, locale: Locale) -> str:
             todo = [c for c in step["courses"] if c not in done]
             if todo:
                 return t["plan"].format(role=f["plan_role"], skill=step["skill"], course=todo[0])
+        if steps and f.get("plan_role"):
+            open_gaps = f.get("plan_gaps", 0)
+            if f.get("plan_progress"):
+                progress = f["plan_progress"]
+                open_gaps = progress["gap_total"] - progress["gap_closed"]
+            gaps = (
+                t["plan_done_gaps"].format(open=open_gaps) if open_gaps else t["plan_done_closed"]
+            )
+            return t["plan_done"].format(role=f["plan_role"], gaps=gaps)
         if matches:
             top = matches[0]
             missing = top["missing"] + top["partial"]
@@ -489,6 +576,48 @@ def reply_for_intent(kind: str, ctx: Context, locale: Locale) -> str:
             body += " " + t["gap"].format(skills=_tags("skill", missing[:3]))
         return body
     return t["hello"]
+
+
+def _employee_reply(kind: str, ctx: Context, t: dict[str, str]) -> str:
+    """Organisation workspace: the member's own programmes only, named with the organisation."""
+    f = ctx.facts
+    org = ctx.org_name or "your organisation"
+    if kind == "privacy":
+        skills = t["privacy_shared"] if f.get("skills_shared") else t["privacy_not_shared"]
+        return t["privacy_work"].format(org=org, skills=skills)
+    if kind == "how":
+        return t["how"]
+    if kind == "trend":
+        return t["trend"].format(skills=_tags("skill", f.get("rising", [])[:5]) or "—")
+    if kind == "sdg":
+        return t["sdg"].format(badges="")
+    if kind == "roles":
+        return t["work_roles"].format(org=org)
+    pending = f.get("work_pending") or []
+    if pending and kind in ("next", "learn"):
+        first = pending[0]
+        return t["work_pending"].format(org=org, title=first["title"], role=first["role"])
+    work = f.get("work_active")
+    if work is None:
+        if pending:
+            first = pending[0]
+            return t["work_pending"].format(org=org, title=first["title"], role=first["role"])
+        return t["work_none"].format(org=org)
+    out = t["work_active"].format(
+        org=org,
+        title=work["title"],
+        role=work["role"],
+        date=work["date"],
+        hours=f"{work['hours']:g}",
+        budget=f"{work['budget']:,.0f}",
+        share=_pct(work["share"]) if "share" in work else "—",
+    )
+    done = set(work.get("done") or [])
+    todo = [c for c in work["courses"] if c not in done]
+    out += t["work_next"].format(course=todo[0]) if todo else t["work_done"]
+    if kind == "cost":
+        out += "\n\n" + t["cost"]
+    return out
 
 
 def suggestions(ctx: Context, page: str, locale: Locale) -> list[str]:

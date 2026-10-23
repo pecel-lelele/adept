@@ -23,7 +23,7 @@ export async function FundingView({ year = currentBudgetYear() }: { year?: numbe
   return <div className="a-view">
     <PageHeader title={t("title")} description={t("description", { year })} />
     <p className="a-notice">{t("policy")}</p>
-    <Form action={ledger.manager ? "/org/funding" : "/app/funding"} className="a-rolepick">
+    <Form action={ledger.manager ? "/org/funding" : "/work/funding"} className="a-rolepick">
       <label className="a-field">{t("budgetYear")}<select name="year" defaultValue={year} className="a-select">
         {(ledger.available_years ?? [year]).map(y => <option key={y} value={y}>{y}</option>)}
       </select></label>

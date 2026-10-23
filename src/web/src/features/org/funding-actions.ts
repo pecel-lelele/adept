@@ -45,6 +45,7 @@ export async function fundingAction(_: ActionState, form: FormData): Promise<Act
   if (!result.ok) return { error: result.message };
   revalidatePath("/org", "layout");
   revalidatePath("/app", "layout");
+  revalidatePath("/work", "layout");
   return { done: Date.now() };
 }
 
@@ -60,6 +61,7 @@ export async function selectPackageAction(_: ActionState, form: FormData): Promi
   if (!result.ok) return { error: result.message };
   revalidatePath("/org/plan");
   revalidatePath("/app", "layout");
+  revalidatePath("/work", "layout");
   return { done: Date.now() };
 }
 
@@ -70,5 +72,6 @@ export async function acceptPackageAction(_: ActionState, form: FormData): Promi
   }));
   if (!result.ok) return { error: result.message };
   revalidatePath("/app", "layout");
+  revalidatePath("/work", "layout");
   return { done: Date.now() };
 }

@@ -36,7 +36,7 @@ def to_contract(account: accounts.Account) -> Account:
         email=account.email,
         kind=account.kind,
         org_id=account.org_id,
-        has_profile=account.kind == "learner" and profile_service.has_profile(account.id),
+        has_profile=profile_service.has_profile(account.id),
     )
 
 
@@ -89,7 +89,10 @@ def signup(body: SignupIn) -> SessionResponse:
         if org_mode and body.organisation is not None:
             org_service.create_org(account, body.organisation)
         elif join_org is not None:
-            org_service.join_org(user_from_account(account), JoinOrgIn(code=body.join_code or ""))
+            org_service.join_org(
+                user_from_account(account),
+                JoinOrgIn(code=body.join_code or "", share_skills=body.share_skills),
+            )
     except Exception:
         # Sign-up is all or nothing: never leave an account without the organisation it was
         # created for (its email would be taken and /org/setup has nothing to edit).
@@ -152,12 +155,35 @@ def export(user: CurrentUser) -> AccountExport:
     )
 
 
+def _refuse_orphaning(user_id: str) -> None:
+    """The last manager cannot delete their account while the organisation still has members,
+    programmes or funding records: deleting it would silently erase their colleagues' work data.
+    """
+    from app.features.org import funding_store
+    from app.features.org import repository as org_repository
+
+    for org, role, _shared in org_repository.memberships_of(user_id):
+        if role == "member" or org_repository.managers_of(org.id) != [user_id]:
+            continue
+        members = org_repository.list_members(org.id)
+        state = funding_store.snapshot(org.id)
+        if members or state.claims or state.programmes or state.budgets:
+            raise AppError(
+                f"You are the only manager of {org.name}, which still has "
+                f"{len(members)} member(s) and its learning records. Remove the members first, "
+                "or ask another manager to take over, then delete your account.",
+                status_code=409,
+                code="last_manager",
+            )
+
+
 def delete_account(user: CurrentUser, body: DeleteAccountIn) -> None:
     """Permanently delete the signed-in account after re-checking its password."""
     account = accounts.find_by_id(user.id)
     found = accounts.find_for_login(account.email or "") if account else None
     if found is None or not session.check_password(body.password, found[1]):
         raise UnauthorizedError("Password is incorrect.")
+    _refuse_orphaning(user.id)
     accounts.delete(user.id, strict=True)
     if not use_postgres():
         from app.features.org import repository as org_repository

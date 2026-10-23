@@ -34,6 +34,12 @@ class Settings(BaseSettings):
     llm_timeout_s: float = 20.0
     # Comma-separated models tried when LLM_MODEL is rate-limited or failing (same provider).
     llm_fallback_model: str = ""
+    # Separate credentials: a fallback provider must never receive the primary provider's key.
+    runpod_api_key: str = ""
+    gemini_api_key: str = ""
+    llm_fallback_provider: str = ""
+    llm_fallback_base_url: str = ""
+    llm_fallback_api_key: str = ""
     # Largest accepted upload (CV) in bytes; bigger files are rejected with 413.
     max_upload_bytes: int = 5 * 1024 * 1024
     # Largest accepted non-upload request body (JSON) in bytes.

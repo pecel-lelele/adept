@@ -89,7 +89,7 @@ BREAKER = CircuitBreaker()
 def _record(provider: LLMProvider, task: str, n: int, outcome: Outcome, **ids: list[str]) -> None:
     rec = LlmCallRecord(
         at=datetime.now(UTC),
-        provider=provider.name,
+        provider=getattr(provider, "last_provider", provider.name),
         model=getattr(provider, "last_model", provider.model),
         task=task[:120],
         n_candidates=n,

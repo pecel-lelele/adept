@@ -1,22 +1,39 @@
-import { ArrowUpRight, Award, BookOpen, Check, Layers, Target } from "lucide-react";
+import { ArrowUpRight, Award, BookOpen, Building2, Check, Layers, ShieldCheck, Target } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
 import { ApiError, Kpis, MetaBar, PageHeader } from "@/components";
 import type { ScenarioId } from "@/lib/api";
 
-import { submitEvidenceAction, updateProgressAction } from "../actions";
+import { shareCompletionAction, submitEvidenceAction, updateProgressAction } from "../actions";
 import { fetchProgress } from "../api";
 import { ActionForm } from "./ActionForm";
 import { EvidenceBadge } from "./EvidenceBadge";
 import { EvidenceForm } from "./EvidenceForm";
 
-export async function ProgressView({ roleId, scenario }: { roleId: string; scenario: ScenarioId }) {
+/**
+ * Progress on one plan. Personal workspace: the saved plan, counting the person's own work
+ * learning too. Organisation workspace (`orgName`): the accepted employer programme, where
+ * personal learning counts only after the member shares it.
+ */
+export async function ProgressView({
+  roleId,
+  scenario,
+  orgName,
+}: {
+  roleId: string;
+  scenario: ScenarioId;
+  orgName?: string;
+}) {
   const t = await getTranslations("pathway");
+  const tw = await getTranslations("org.work");
   const d = await getTranslations("common.design");
   const tp = await getTranslations("ui.page");
   const progress = await fetchProgress(roleId, scenario);
   if (!progress.ok) return <ApiError message={progress.message} />;
   const p = progress.data;
+  const isWork = p.workspace !== "personal";
+  const elsewhere = p.completed_elsewhere ?? {};
+  const reviewed = Object.values(p.evidence ?? {}).filter((e) => e.kind === "org_confirmed").length;
   // Courses come from the plan the API tracks progress against, so every button is valid.
   const courses = p.pathway.steps.flatMap((s) => s.courses.map((c) => ({ ...c, step: s.order })));
   const unique = courses.filter((c, i) => courses.findIndex((x) => x.id === c.id) === i);
@@ -36,7 +53,16 @@ export async function ProgressView({ roleId, scenario }: { roleId: string; scena
 
   return (
     <div className="a-view">
-      <PageHeader eyebrow={p.pathway.role_label || d("progress")} title={t("progressTitle")} description={tp("progressDesc")}>
+      <PageHeader
+        eyebrow={p.pathway.role_label || d("progress")}
+        title={isWork ? tw("progressTitle") : t("progressTitle")}
+        description={isWork ? tw("progressDesc", { org: orgName ?? "" }) : tp("progressDesc")}
+      >
+        {isWork ? (
+          <span className="a-chip a-workchip">
+            <Building2 size={13} aria-hidden /> {tw("fundedLabel", { org: orgName ?? "" })}
+          </span>
+        ) : null}
         <MetaBar meta={p.meta} />
       </PageHeader>
 
@@ -67,7 +93,9 @@ export async function ProgressView({ roleId, scenario }: { roleId: string; scena
             icon: <Layers size={15} />,
             note: tp("gapClosedNote"),
           },
-          { label: tp("kBadges"), value: p.badges.length, icon: <Award size={15} />, note: tp("badgeNote") },
+          isWork
+            ? { label: tw("kReviewed"), value: reviewed, icon: <ShieldCheck size={15} />, note: tw("kReviewedNote") }
+            : { label: tp("kBadges"), value: p.badges.length, icon: <Award size={15} />, note: tp("badgeNote") },
         ]}
       />
 
@@ -83,6 +111,33 @@ export async function ProgressView({ roleId, scenario }: { roleId: string; scena
             {unique.map((c) => {
               const complete = p.course_status[c.id] === "completed";
               const ev = p.evidence?.[c.id];
+              const doneElsewhere = complete ? undefined : elsewhere[c.id];
+              if (doneElsewhere) {
+                return (
+                  <li key={c.id} data-done={!isWork}>
+                    <span className="a-tickmark" aria-hidden>
+                      <Check size={14} />
+                    </span>
+                    <div className="a-checklist-main">
+                      <a href={c.url} target="_blank" rel="noreferrer">
+                        {c.title} <ArrowUpRight size={13} aria-hidden />
+                      </a>
+                      <small>
+                        {c.provider} · {isWork ? tw("donePersonally") : tw("doneAtWork")}
+                      </small>
+                    </div>
+                    {isWork ? (
+                      <ActionForm
+                        action={shareCompletionAction}
+                        className="a-inline-form"
+                        fields={{ role_id: roleId, scenario, course_id: c.id }}
+                        label={tw("share", { org: orgName ?? "" })}
+                        variant="outline"
+                      />
+                    ) : null}
+                  </li>
+                );
+              }
               return (
                 <li key={c.id} data-done={complete}>
                   <span className="a-tickmark" aria-hidden>
@@ -137,6 +192,13 @@ export async function ProgressView({ roleId, scenario }: { roleId: string; scena
               ))}
             </div>
           </div>
+          {isWork ? (
+            <div className="a-card is-sage">
+              <p className="a-small" style={{ margin: 0 }}>
+                {tw("privacyNote", { org: orgName ?? "" })}
+              </p>
+            </div>
+          ) : (
           <div className="a-card is-sage">
             <div className="a-card-head">
               <h2>
@@ -161,6 +223,7 @@ export async function ProgressView({ roleId, scenario }: { roleId: string; scena
               </div>
             )}
           </div>
+          )}
         </aside>
       </div>
 

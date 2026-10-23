@@ -88,7 +88,7 @@ export function SideNav({ ws, doneSteps }: { ws: Workspace; doneSteps: number[] 
   };
 
   return (
-    <nav aria-label={t(ws.mode === "organisation" ? "organisation" : "learner")} className="a-sidenav">
+    <nav aria-label={t(ws.mode === "organisation" || ws.mode === "employee" ? "organisation" : "learner")} className="a-sidenav">
       {ws.groups.map((group, i) => (
         <div className="a-navgroup" key={group.label}>
           {ws.groups.length > 1 ? (
@@ -132,7 +132,8 @@ export function TabBar({ ws, tools }: { ws: Workspace; tools: ReactNode }) {
     if (!open) return;
     const sheet = sheetRef.current;
     const focusables = () =>
-      Array.from(sheet?.querySelectorAll<HTMLElement>("a[href], button:not([disabled]), select, input") ?? []);
+      Array.from(sheet?.querySelectorAll<HTMLElement>("a[href], button:not([disabled]), summary, select, input") ?? [])
+        .filter((element) => element.getClientRects().length > 0);
     focusables()[0]?.focus();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {

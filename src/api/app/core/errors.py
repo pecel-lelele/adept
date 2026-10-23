@@ -29,6 +29,11 @@ class UnauthorizedError(AppError):
         super().__init__(message, status_code=401, code="unauthorized")
 
 
+class ForbiddenError(AppError):
+    def __init__(self, message: str, code: str = "forbidden") -> None:
+        super().__init__(message, status_code=403, code=code)
+
+
 class ProfileRequiredError(AppError):
     """Raised when a user without a saved profile attempts to compute matches.
 

@@ -2,7 +2,7 @@
 
 import hashlib
 from dataclasses import replace
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 from app.contracts.common import ScenarioId
 from app.contracts.funding import FundingState
@@ -13,11 +13,11 @@ from app.contracts.packages import (
     PackageOptions,
     TeamPackage,
 )
-from app.contracts.pathway import SavedPlan
+from app.contracts.programmes import Agreement, ProgrammeAssignment
 from app.core.auth import CurrentUser
 from app.core.errors import AppError, NotFoundError
-from app.features.org import funding, funding_store, service
-from app.features.pathway import data, repository, trend_port
+from app.features.org import funding, funding_store, programmes, service
+from app.features.pathway import data, trend_port
 from app.features.pathway import service as pathways
 
 
@@ -125,21 +125,77 @@ def assigned(user: CurrentUser) -> AssignedPackage | None:
     return read(funding_store.snapshot(org_id))
 
 
-def accept(user: CurrentUser, token: str) -> SavedPlan:
+def accept(user: CurrentUser, token: str) -> ProgrammeAssignment:
+    """Accept the assigned team plan as a work programme.
+
+    It never overwrites the person's personal plan, and it re-checks the route against today's
+    skills, catalogue and budget instead of adopting a stale copy.
+    """
     package = assigned(user)
     if package is None:
         raise NotFoundError("No assigned package.")
     if package.token != token:
         raise AppError("Your assignment changed. Refresh first.", status_code=409)
-    # Selecting a proposal never overwrites a member's plan. This explicit action does.
-    plan = package.pathway
-    return repository.save_plan(
-        user.id,
-        SavedPlan(
+    org_id = funding._scope(user)
+    stored = package.pathway
+    learner = service.member_learners(org_id, only=user.id).get(user.id)
+    plan = stored
+    budget = stored.total_cost_myr
+    if learner is not None:
+        budgets = {
+            b.user_id: float(b.available_myr)
+            for b in funding.ledger(user, funding.current_year()).budgets
+        }
+        budget = 0 if package.kind == "free_first" else budgets.get(user.id, 0)
+        plan = pathways.build_pathway(
+            replace(learner, budget_myr=budget, hrd_eligible=False),
+            stored.role_id,
+            stored.meta.scenario,
+            catalogue=[
+                c
+                for c in data.catalogue()
+                if c.price_status == "listed"
+                and c.price_basis == "per_course"
+                and c.format != "subscription"
+            ],
+        )
+    now = datetime.now(UTC)
+    weeks = max(1, plan.total_weeks)
+    record_id = f"pkg-{token[:12]}"
+    assignment = ProgrammeAssignment(
+        user_id=user.id,
+        pathway=plan,
+        status="accepted",
+        decided_at=now,
+        agreement=Agreement(
+            programme_id=record_id,
+            title=f"Team plan: {plan.role_label or stored.role_id}",
+            objectives=[],
             role_id=plan.role_id,
-            scenario=plan.meta.scenario,
-            snapshot_version=plan.snapshot_version,
-            saved_at=datetime.now(UTC),
-            pathway=plan,
+            role_label=plan.role_label or data.role_labels().get(plan.role_id, plan.role_id),
+            route=programmes.route_for(
+                programmes.readiness(dict(learner.skill_levels), plan.role_id) if learner else 0
+            ),
+            readiness=programmes.readiness(dict(learner.skill_levels), plan.role_id)
+            if learner
+            else 0,
+            mandatory=False,
+            target_date=now.date() + timedelta(weeks=weeks),
+            hours_per_week=plan.hours_per_week,
+            budget_myr=float(budget),
+            cost_myr=plan.total_cost_myr,
+            sent_at=package.selected_at,
+            sent_by="",
         ),
     )
+
+    def save(state: FundingState) -> ProgrammeAssignment:
+        state.assignments = [
+            a
+            for a in state.assignments
+            if not (a.user_id == user.id and a.agreement.programme_id == record_id)
+        ]
+        state.assignments.append(assignment)
+        return assignment
+
+    return funding_store.transact(org_id, funding.current_year(), save)

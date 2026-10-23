@@ -33,6 +33,7 @@ async function settle(
   }
   revalidatePath(path, type);
   revalidatePath("/app", "layout");
+  revalidatePath("/work", "layout");
   return { done: Date.now() };
 }
 
@@ -125,5 +126,20 @@ export async function reviewCompletionAction(
       },
     }),
     "/org/verify",
+  );
+}
+
+/** Member, in the organisation workspace: share a personally completed course with the programme. */
+export async function shareCompletionAction(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const api = await getApi();
+  return settle(
+    api.POST("/api/v1/pathway/progress/share", {
+      params: { query: { scenario: parseScenario(text(form, "scenario")) } },
+      body: { role_id: text(form, "role_id"), course_id: text(form, "course_id") },
+    }),
+    "/work/progress",
   );
 }

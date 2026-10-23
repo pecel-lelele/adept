@@ -89,7 +89,10 @@ MANAGER_ONLY = ("/api/v1/org/", "/api/v1/sdg/contribution/org", "/api/v1/sdg/con
 def test_every_recommendation_cites_dated_sources(
     client: TestClient, path: str, query: dict[str, str], persona: str
 ) -> None:
-    resp = client.get(path, params=query, headers={"X-Demo-User": persona})
+    headers = {"X-Demo-User": persona}
+    if persona == "demo-company" and not path.startswith(MANAGER_ONLY):
+        headers["X-Workspace"] = "personal"  # a manager's own learning is personal
+    resp = client.get(path, params=query, headers=headers)
     if persona == "aisyah" and path.startswith(MANAGER_ONLY):
         assert resp.status_code == 403, f"{path} leaks team data to a member"
         return

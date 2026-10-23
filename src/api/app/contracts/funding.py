@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field, HttpUrl
 
 from app.contracts.packages import TeamPackage
 from app.contracts.pathway import Course
+from app.contracts.programmes import ProgrammeAssignment, ProgrammeRecord
 
 Money = Annotated[Decimal, Field(ge=0, le=1_000_000, max_digits=10, decimal_places=2)]
 FundingStatus = Literal[
@@ -99,3 +100,6 @@ class FundingState(BaseModel):
     claims: list[FundingClaim] = Field(default_factory=list)
     budget_events: list[FundingEvent] = Field(default_factory=list)
     packages: list[TeamPackage] = Field(default_factory=list)
+    # Employer programmes and each member's assignment and agreement status (F7).
+    programmes: list[ProgrammeRecord] = Field(default_factory=list)
+    assignments: list[ProgrammeAssignment] = Field(default_factory=list)

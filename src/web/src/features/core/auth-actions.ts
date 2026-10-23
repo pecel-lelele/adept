@@ -24,7 +24,7 @@ function keep(form: FormData): Record<string, string> {
 }
 
 function destination(next: string, apiNext: string): string {
-  // A deep link only wins when it belongs to the workspace the account lands in.
+  // Keep valid personal/employee deep links. Workspace layouts check the membership/role.
   if (!next) return apiNext;
   const mode = apiNext.startsWith("/org") ? "organisation" : "individual";
   const safe = safeReturn(next, mode);
@@ -45,6 +45,7 @@ export async function signupAction(_: AuthState, form: FormData): Promise<AuthSt
         workspace,
         consent: form.get("consent") === "on",
         join_code: workspace === "individual" ? text(form, "join_code", 16) || null : null,
+        share_skills: workspace === "individual" && form.get("share_skills") === "on",
         organisation:
           workspace === "organisation"
             ? {
@@ -79,10 +80,14 @@ export async function loginAction(_: AuthState, form: FormData): Promise<AuthSta
 
 export async function joinOrgAction(_: AuthState, form: FormData): Promise<AuthState> {
   const api = await getApi();
-  const result = await call(api.POST("/api/v1/org/join", { body: { code: text(form, "code", 16) } }));
+  const result = await call(
+    api.POST("/api/v1/org/join", {
+      body: { code: text(form, "code", 16), share_skills: form.get("share_skills") === "on" },
+    }),
+  );
   if (!result.ok) return { error: result.message, values: keep(form) };
   revalidatePath("/app", "layout");
-  return { values: { joined: result.data.name } };
+  return { values: { joined: result.data.name, org_id: result.data.id } };
 }
 
 export async function signOutAction(): Promise<void> {

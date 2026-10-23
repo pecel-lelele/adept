@@ -1,7 +1,6 @@
-import { FundingView } from "@/features/org/components/FundingView";
-import { fundingYear } from "@/features/org/funding-year";
-import { firstParam, type SearchParams } from "@/lib/scenario";
+import { redirect } from "next/navigation";
 
-export default async function Page({ searchParams }: { searchParams: Promise<SearchParams> }) {
-  return <FundingView year={fundingYear(firstParam((await searchParams).year))} />;
+/** Employer learning funds belong to the organisation workspace. */
+export default function Page() {
+  redirect("/work/funding");
 }

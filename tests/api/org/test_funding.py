@@ -16,6 +16,8 @@ from app.core.errors import AppError
 from app.features.org import funding, funding_store
 from app.features.pathway import repository, verification
 
+SCOPE = repository.org_scope("org-demo-bank")  # funded learning is work learning
+
 HR = {"X-Demo-User": "demo-company"}
 MEMBER = {"X-Demo-User": "aisyah"}
 OTHER = {"X-Demo-User": "weijie"}
@@ -70,7 +72,7 @@ def _approved(client: TestClient) -> dict:
 
 def _proof(claim: dict) -> None:
     course = next(c for c in funding.ledger(MANAGER, YEAR).claims if c.id == claim["id"]).course
-    repository.set_course_status("aisyah", claim["role_id"], course.id, "completed", course)
+    repository.set_course_status("aisyah", claim["role_id"], course.id, "completed", course, SCOPE)
     repository.save_evidence(
         "aisyah",
         CompletionEvidence(
@@ -81,6 +83,7 @@ def _proof(claim: dict) -> None:
             submitted_at=datetime.now(UTC),
             reviewed_by="demo-company",
             reviewed_at=datetime.now(UTC),
+            scope=SCOPE,
         ),
     )
 
@@ -138,7 +141,7 @@ def test_evidence_revocation_blocks_payment(client: TestClient):
     _proof(claim)
     submitted = _submit(client, claim).json()["claims"][0]
     accepted = _decision(client, submitted, "accept_claim").json()["claims"][0]
-    ev = repository.evidence("aisyah", claim["role_id"])[claim["course"]["id"]]
+    ev = repository.evidence("aisyah", claim["role_id"], SCOPE)[claim["course"]["id"]]
     repository.save_evidence("aisyah", ev.model_copy(update={"kind": "org_rejected"}))
     assert _decision(client, accepted, "mark_paid", payment_reference="DEMO-PAY").status_code == 409
 
@@ -151,7 +154,10 @@ def test_approved_course_outside_algorithmic_plan_can_submit_a_certificate(clien
         json={"revision": claim["revision"], "url": "https://example.com/synthetic-certificate"},
     )
     assert response.status_code == 200, response.text
-    assert repository.course_status("aisyah", "data-analyst")[claim["course"]["id"]] == "completed"
+    assert (
+        repository.course_status("aisyah", "data-analyst", SCOPE)[claim["course"]["id"]]
+        == "completed"
+    )
     assert client.get("/api/v1/pathway/verifications", headers=HR).json()["pending"] == 1
     assert _submit(client, response.json()["claims"][0]).status_code == 409
 
@@ -328,8 +334,8 @@ def test_cancellation_during_certificate_check_is_not_overwritten(
             pending.result(timeout=2)
     result = funding.ledger(member, YEAR)
     assert result.claims[0].status == "cancelled" and result.budgets[0].reserved_myr == 0
-    assert repository.course_status(member.id, claim["role_id"]) == {}
-    assert repository.evidence(member.id, claim["role_id"]) == {}
+    assert repository.course_status(member.id, claim["role_id"], SCOPE) == {}
+    assert repository.evidence(member.id, claim["role_id"], SCOPE) == {}
 
 
 def test_budget_year_switches_at_malaysia_midnight(monkeypatch: pytest.MonkeyPatch):
@@ -374,7 +380,7 @@ def test_stale_certificate_cannot_erase_hr_review_or_block_payment(
                 claim["id"],
                 FundingCompletion(revision=claim["revision"], url=winner_url),
             ).claims[0]
-            proof = repository.evidence(member.id, claim["role_id"])[claim["course"]["id"]]
+            proof = repository.evidence(member.id, claim["role_id"], SCOPE)[claim["course"]["id"]]
             reviewed = client.post(
                 "/api/v1/pathway/verifications",
                 headers=HR,
@@ -391,7 +397,7 @@ def test_stale_certificate_cannot_erase_hr_review_or_block_payment(
             release.set()
         with pytest.raises(AppError, match="changed"):
             pending.result(timeout=2)
-    stored = repository.evidence(member.id, claim["role_id"])[claim["course"]["id"]]
+    stored = repository.evidence(member.id, claim["role_id"], SCOPE)[claim["course"]["id"]]
     assert stored.kind == "org_confirmed" and stored.url == winner_url
     assert stored.submitted_at == proof.submitted_at
     submitted = _submit(client, winner.model_dump(mode="json"))

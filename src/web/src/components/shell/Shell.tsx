@@ -5,6 +5,8 @@ import { Suspense, type ReactNode } from "react";
 
 import type { Workspace } from "@/config/navigation";
 import type { Account } from "@/lib/auth/account";
+import { PERSONAL } from "@/lib/auth/workspace";
+import type { WorkspaceOption } from "@/lib/auth/workspaces";
 
 import { AdiAssistant } from "../adi/AdiAssistant";
 import { LocaleSwitcher } from "../LocaleSwitcher";
@@ -12,6 +14,7 @@ import { ScenarioToggle } from "../ScenarioToggle";
 import { BrandLogo } from "./Brand";
 import { NavProgress, PageEnter } from "./Motion";
 import { ScenarioSlot, SideNav, TabBar } from "./Nav";
+import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
 
 function initials(name: string): string {
   return (
@@ -35,19 +38,26 @@ export async function Shell({
   account,
   orgName,
   doneSteps = [],
+  workspaces = [],
+  current = PERSONAL,
   children,
 }: {
   ws: Workspace;
   account: Account | null;
   orgName?: string;
   doneSteps?: number[];
+  /** Workspaces this account can switch to, and the one shown. */
+  workspaces?: WorkspaceOption[];
+  current?: string;
   children: ReactNode;
 }) {
   const t = await getTranslations("ui");
   const name = account?.display_name ?? "Adept";
-  // Learners not in an organisation always see how to join one (sidebar and mobile menu).
-  const joinable = ws.mode === "individual" && !!account && !account.org_id;
-  const space = ws.mode === "organisation" ? "nav.organisation" : ws.mode === "admin" ? "nav.admin" : "nav.learner";
+  // People in no organisation always see how to join one (sidebar and mobile menu).
+  const joinable = ws.mode === "individual" && !!account && !workspaces.some((w) => w.kind === "org");
+  const space =
+    ws.mode === "organisation" || ws.mode === "employee" ? "nav.organisation" : ws.mode === "admin" ? "nav.admin" : "nav.learner";
+  const switcher = <WorkspaceSwitcher workspaces={workspaces} current={current} />;
   return (
     <div className="a-shell" data-mode={ws.mode}>
       <Suspense>
@@ -59,6 +69,7 @@ export async function Shell({
       <aside className="a-side">
         <BrandLogo href={ws.home} />
         <span className="a-eyebrow a-side-space">{t(space)}</span>
+        {switcher}
         <Suspense>
           <SideNav ws={ws} doneSteps={doneSteps} />
         </Suspense>
@@ -109,6 +120,7 @@ export async function Shell({
           ws={ws}
           tools={
             <>
+              <WorkspaceSwitcher workspaces={workspaces} current={current} presentation="list" />
               <LocaleSwitcher />
               {joinable ? (
                 <Link href="/app/join" className="a-link">
@@ -121,7 +133,7 @@ export async function Shell({
       </Suspense>
       {account && ws.mode !== "admin" ? (
         <Suspense>
-          <AdiAssistant who={account.id} />
+          <AdiAssistant who={account.id} workspace={current} workspaceName={current === PERSONAL ? "" : (orgName ?? "")} />
         </Suspense>
       ) : null}
     </div>
