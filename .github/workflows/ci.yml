@@ -50,6 +50,16 @@ jobs:
       - name: Check publication policy and public pinned action manifests
         run: uv run --no-project --python "$PYTHON_VERSION" --with PyYAML==6.0.3 python src/scripts/check_minilm_workflow.py --check-actions
 
+  guide-examples:
+    name: Bundled guide Python examples
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Check Python syntax in bundled guides
+        run: python3 src/scripts/check_guide_python.py
+
   backend:
     name: Backend (ruff, pytest)
     runs-on: ubuntu-latest
