@@ -1,0 +1,28 @@
+{
+  "title": "Sumbangan laluan anda kepada SDG",
+  "orgTitle": "Sumbangan SDG organisasi anda",
+  "regionTitle": "Sumbangan SDG di {region}",
+  "description": "Kesemua 17 Matlamat Pembangunan Mampan dipaparkan; domain ini memberi tumpuan kepada matlamat 4, 5, 8, 9 dan 10. Matlamat yang tidak disentuh laluan anda kekal kelihatan.",
+  "goals": "Matlamat",
+  "links": "Pautan",
+  "linkCount": "{count} pautan",
+  "focus": "tumpuan",
+  "direct": "langsung",
+  "enabling": "pemboleh",
+  "strengthHint": "Langsung: kerja itu sendiri memajukan sasaran. Pemboleh: membina keupayaan yang diperlukan sasaran.",
+  "contributors": "{count} orang",
+  "draft": "draf, menunggu semakan",
+  "forRoles": "Untuk peranan: {roles}",
+  "via": {
+    "role": "peranan",
+    "skill": "kemahiran",
+    "pathway": "pelan anda"
+  },
+  "scope": {
+    "organisation": "Organisasi",
+    "region": "Wilayah"
+  },
+  "evidence": "Bukti",
+  "noRoleYet": "Anda belum memilih peranan sasaran, jadi tiada sumbangan untuk dipaparkan.",
+  "compareRoles": "Bandingkan peranan dan pilih satu"
+}

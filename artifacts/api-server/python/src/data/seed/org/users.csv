@@ -1,0 +1,7 @@
+id,display_name,kind,is_synthetic
+demo-company,Demo Bank HR,org_admin,true
+demo-institution,Demo Polytechnic Career Centre,org_admin,true
+emp-002,Employee 002,learner,true
+emp-003,Employee 003,learner,true
+emp-004,Employee 004,learner,true
+stu-002,Student 002,learner,true

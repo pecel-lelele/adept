@@ -1,0 +1,195 @@
+{
+  "title": "您的再培训路径",
+  "totalWeeks": "约 {weeks} 周",
+  "weeks": "第 {start}–{end} 周",
+  "hours": "{hours} 小时",
+  "free": "免费",
+  "cost": "RM {amount}",
+  "hrdClaimable": "可申请 HRD Corp 报销",
+  "verified": "核实于 {date}",
+  "progressTitle": "您的进度",
+  "progressBody": "完成课程后请勾选。每个徽章会显示其课程的证明方式：自行报告、证书链接或由您的机构确认。徽章并非考核。",
+  "estimateNote": "周数及每门课程可达到的水平均为估计。",
+  "catalogueOnly": "课程仅来自我们的目录，每门课程都附有来源和核实日期。",
+  "summary": {
+    "title": "计划概要",
+    "pace": "每周 {hours} 小时",
+    "totalHours": "共 {hours} 小时",
+    "outOfPocket": "您需支付 RM {amount}（预算 RM {budget}）",
+    "listPrice": "标价 RM {amount}",
+    "hrdNote": "可申请 HRD Corp 的课程对您免费：雇主须在课程开始前申请培训税补助。",
+    "overBudget": "超出预算"
+  },
+  "step": {
+    "levels": "水平 {current} → {reaches}（职位要求 {target}）",
+    "prerequisites": "前置技能：{skills}",
+    "alternatives": "其他目录选项（{count}）",
+    "members": "需要的成员 {count} 人：{members}",
+    "source": "来源：{name}",
+    "sdg": "SDG 具体目标"
+  },
+  "unmet": {
+    "title": "在工作中培养的技能",
+    "no_catalogue_course": "暂无相关课程",
+    "over_budget": "课程费用超出你的预算",
+    "catalogue_tops_out": "课程涵盖基础；其余靠实际工作积累",
+    "blocked_prerequisite": "请先完成前一步",
+    "count": "{count, plural, other {# 项技能}}"
+  },
+  "plan": {
+    "save": "选择此职位并保存计划",
+    "saved": "已保存为您的计划（{date}）",
+    "decide": "由您决定。保存不代表任何承诺，可随时更改。",
+    "sdgLink": "这条路径对 SDG 的贡献",
+    "progressLink": "跟踪进度"
+  },
+  "replan": {
+    "title": "新的趋势数据改变了您的计划",
+    "accept": "接受更新后的计划",
+    "keep": "保留当前计划",
+    "change": {
+      "added": "新增",
+      "removed": "移除",
+      "reordered": "顺序调整",
+      "courses_changed": "课程变更"
+    }
+  },
+  "progress": {
+    "percent": "已完成计划学时的 {percent}",
+    "gapClosed": "已弥补 {closed}/{total} 项技能差距",
+    "markDone": "标记完成",
+    "markUndone": "撤销",
+    "badges": "徽章",
+    "noBadges": "还没有徽章。完成一门课程即可获得第一枚。",
+    "skills": "技能",
+    "level": "水平 {current}/{target}",
+    "courses": "计划中的课程"
+  },
+  "actionFailed": "未保存：{message}",
+  "saving": "正在保存…",
+  "saved": "已保存。您的进度和徽章已更新。",
+  "catalogue": {
+    "title": "课程目录",
+    "description": "Adept 可能推荐的所有课程：免费与付费、线上与线下，附 HRD Corp 状态、计价方式、来源及核实日期。",
+    "browse": "浏览全部课程",
+    "any": "全部",
+    "skills": "技能",
+    "level": "可达到水平 {level}（估计）",
+    "formatLabel": "形式",
+    "providerLabel": "提供方类型",
+    "audienceLabel": "适用对象",
+    "maxCost": "最高 RM",
+    "apply": "筛选",
+    "reset": "重置",
+    "count": "{count} 门课程",
+    "price": {
+      "per_course": "RM {amount}",
+      "per_user_year": "RM {amount} / 人 / 年",
+      "per_user_month": "RM {amount} / 人 / 月",
+      "per_group": "RM {amount} / 团体"
+    },
+    "format": {
+      "self_paced": "线上自学",
+      "live_online": "线上直播",
+      "in_person": "线下面授",
+      "hybrid": "混合",
+      "subscription": "订阅"
+    },
+    "provider": {
+      "mooc": "在线平台",
+      "university": "大学",
+      "industry_body": "行业组织",
+      "professional_body": "专业团体",
+      "private_provider": "培训机构",
+      "government": "政府"
+    },
+    "audience": {
+      "individual": "个人",
+      "corporate": "企业",
+      "both": "个人与企业"
+    }
+  },
+  "evidence": {
+    "hint": "勾选课程属于自我报告。证书链接只说明课程页面存在，并不证明你已掌握该技能；你的 HR 或职业顾问可以确认。",
+    "addProof": "添加证书链接",
+    "urlPlaceholder": "https://www.coursera.org/account/accomplishments/verify/…",
+    "sent": "链接已保存。我们只检查了它能在提供方网站打开；是否属于你由审核人确认。",
+    "reviewNote": "审核备注：{note}",
+    "kind": {
+      "self_reported": "自行报告",
+      "certificate_link": "证书链接",
+      "org_confirmed": "已由您的机构确认",
+      "org_rejected": "未被您的机构接受"
+    },
+    "link": {
+      "not_submitted": "尚无链接",
+      "provider_verified": "链接可在提供方网站打开（未核验归属和内容）",
+      "unreachable": "无法打开链接",
+      "not_provider_page": "非官方验证页面：需要人工核对"
+    }
+  },
+  "verify": {
+    "title": "审核课程完成情况",
+    "description": "确认或拒绝机构成员报告的课程完成情况。学员会看到您的决定和备注。",
+    "hrdHint": "对于可申请 HRD Corp 的课程，请以 HRD Corp 申请中提供方的出勤记录为依据。",
+    "pending": "{count} 项待审核",
+    "empty": "尚无报告的完成情况。",
+    "forRole": "计划：{role}",
+    "openProof": "打开证书链接",
+    "checkName": "请核对姓名和课程是否一致",
+    "note": "给学员的备注",
+    "notePlaceholder": "给学员的备注（可选）",
+    "confirm": "确认",
+    "reject": "拒绝"
+  },
+  "guide": {
+    "working": {
+      "title": "报名之前",
+      "body": "可申请 HRD Corp 的步骤由您的雇主申请，而不是由您申请。报名前请先与 HR 分享此计划；完成后，他们可以确认您的完成情况。",
+      "link": "查看可申请 HRD Corp 的课程"
+    },
+    "graduate": {
+      "title": "先学免费课程，保留证明",
+      "body": "从免费步骤开始。每完成一项，就在进度页面添加证书链接，方便向雇主和就业中心展示。",
+      "link": "浏览免费课程"
+    },
+    "switcher": {
+      "title": "在已有基础上发展",
+      "body": "您的计划只覆盖差距：已掌握的技能不会重复学习。比较职位，看看哪些技能可以沿用。",
+      "link": "比较职位"
+    },
+    "sameplan": "此建议取决于您的情况；计划本身对拥有相同技能、时间和预算的任何人都一样。"
+  },
+  "compare": {
+    "link": "比较其他职位",
+    "title": "选择前先比较职位",
+    "description": "每个未来职位对你意味着什么：时间、费用、需补足的技能、趋势展望和SDG关联。由你决定，系统不会替你选择。",
+    "yourChoice": "你的选择",
+    "direction": {
+      "rising": "需求上升",
+      "stable": "需求稳定",
+      "declining": "需求下降",
+      "unknown": "无趋势数据"
+    },
+    "outOfPocket": "你需支付 RM {amount}",
+    "skillsToClose": "需补足 {count} 项技能",
+    "unmet": "{count} 项不在我们的课程目录中",
+    "coverage": "趋势数据覆盖该职位 {percent}% 的技能；其余按中性计算。",
+    "preview": "预览学习路径",
+    "choose": "选择此职位",
+    "snapshot": "趋势快照 {version}。",
+    "seeMatches": "查看你的匹配排名",
+    "humanInCharge": "此比较仅辅助你的决定，不会替你排序或选择职位。"
+  },
+  "badge": {
+    "first": "完成第一门课程",
+    "halfway": "已完成一半",
+    "complete": "计划已完成",
+    "skill": "{skill} 已达到目标水平"
+  },
+  "history": {
+    "title": "已完成的学习记录",
+    "description": "更换目标或调整待完成计划后，已完成的课程仍会保留在这里。你可以查看证明或撤销完成状态。"
+  },
+  "certificateQuote": "证书价格：需报价"
+}

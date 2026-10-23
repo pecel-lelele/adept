@@ -1,0 +1,112 @@
+{
+  "appName": "Adept",
+  "tagline": "Future-ready careers in the AI era",
+  "humanInCharge": "You decide. Adept suggests options; it never makes hiring decisions.",
+  "stub": {
+    "banner": "STUB · {feature} · mock data from {endpoint}",
+    "static": "STUB · {feature} · no endpoint yet"
+  },
+  "scenario": {
+    "label": "Scenario",
+    "moderate": "Moderate AI disruption",
+    "fast": "Fast AI disruption",
+    "pace": "AI pace",
+    "moderateShort": "Moderate",
+    "fastShort": "Fast",
+    "hint": "How fast AI changes work. Rankings and outlooks are estimates under each pace."
+  },
+  "estimate": {
+    "label": "Estimate",
+    "hint": "Predictions are estimates, not facts."
+  },
+  "source": {
+    "label": "Source",
+    "asOf": "data as of {date}"
+  },
+  "freshness": {
+    "label": "Trend data as of {date}",
+    "unavailable": "Trend data unavailable"
+  },
+  "nav": {
+    "overview": "Overview",
+    "courses": "Explore courses",
+    "verify": "Review completions",
+    "onboarding": "Start",
+    "profile": "Profile",
+    "radar": "Trends",
+    "matches": "Career matches",
+    "pathway": "My learning",
+    "sdg": "My impact",
+    "progress": "Achievements",
+    "setup": "Settings",
+    "members": "Members",
+    "gaps": "Skills insights",
+    "plan": "Team learning",
+    "about": "About",
+    "sources": "Sources",
+    "snapshots": "Snapshots"
+  },
+  "landing": {
+    "individual": "Individual",
+    "organisation": "Organisation",
+    "individualTitle": "See where your skills can take you in the AI era",
+    "individualBody": "Tell us about yourself, see which skills are rising, get matched to future roles and follow a reskilling pathway linked to the SDGs.",
+    "individualCta": "Get started",
+    "individualDemo": "Try the demo as Aisyah",
+    "organisationTitle": "Plan how your team or cohort reskills for AI",
+    "organisationBody": "For HR, L&D and career centres: team skills-gap heatmaps, group reskilling plans and an aggregated SDG view.",
+    "organisationCta": "Set up your organisation",
+    "organisationDemo": "Try the demo company"
+  },
+  "auth": {
+    "loginTitle": "Log in",
+    "signupTitle": "Sign up",
+    "consentTitle": "Your data and consent",
+    "consentBody": "Adept uses only the information you enter to suggest options. You stay in charge of every decision.",
+    "joinTitle": "Join with a code",
+    "notImplemented": "Real sign-in is not built yet. Use a demo account."
+  },
+  "error": {
+    "apiTitle": "Could not load data"
+  },
+  "empty": {
+    "title": "Nothing here yet"
+  },
+  "locale": {
+    "label": "Language"
+  },
+  "design": {
+    "more": "More",
+    "signOut": "Sign out",
+    "details": "Details & sources",
+    "filters": "Filter courses",
+    "courseDetails": "Course details",
+    "continue": "Continue learning",
+    "progress": "Your progress",
+    "evidence": "Sources & methodology",
+    "options": "Learning options",
+    "pathBody": "A clear sequence. A pace that works for you.",
+    "snapshot": "Data edition",
+    "rising": "Rising",
+    "stable": "Steady",
+    "declining": "Declining",
+    "search": "Search skills",
+    "all": "All skills",
+    "pace": "Hours per week",
+    "duration": "Weeks",
+    "cost": "Estimated cost",
+    "complete": "Courses completed",
+    "next": "Up next",
+    "saved": "Your chosen direction",
+    "choose": "Explore roles",
+    "stepDetails": "Why this step?",
+    "visit": "Explore course",
+    "skillBank": "Your skill bank",
+    "skillBankBody": "Build on what you know. Select a skill to explore courses.",
+    "skillLevel": "Level {level} of 5",
+    "review": "Review",
+    "moreSkills": "Show {count} more skills",
+    "addSkills": "Review your skills",
+    "observed": "data measured {from} to {to}"
+  }
+}

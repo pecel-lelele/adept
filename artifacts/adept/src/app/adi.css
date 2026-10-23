@@ -1,0 +1,107 @@
+/* ---------- Adi, the Adept guide (components/adi) ---------- */
+.adi { display: block; overflow: visible; }
+.adi .adi-float { animation: adi-bob 3.2s var(--a-ease, ease-in-out) infinite; transform-origin: 60px 116px; }
+.adi .adi-shadow { animation: adi-shadow 3.2s ease-in-out infinite; transform-origin: 60px 126px; }
+.adi .adi-eye { animation: adi-blink 5.2s infinite; transform-box: fill-box; transform-origin: center; }
+.adi .adi-ping { opacity: 0; animation: adi-ping 2.4s ease-out infinite; }
+.adi .adi-ping-2 { animation-delay: .5s; }
+.adi .adi-arm-right { transform-box: fill-box; transform-origin: 0% 100%; }
+.adi .adi-mouth { opacity: 0; transform-box: fill-box; transform-origin: center; }
+.adi[data-mood="wave"] .adi-arm-right { animation: adi-wave 1.1s ease-in-out 3; }
+.adi[data-mood="happy"] .adi-arm-right, .adi[data-mood="happy"] .adi-arm-left { animation: adi-cheer .9s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: 50% 0%; }
+.adi[data-mood="think"] .adi-antenna { animation: adi-tilt 1.2s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: 50% 100%; }
+.adi[data-mood="think"] .adi-eyes { transform: translate(3px, -3px); transition: transform .3s; }
+.adi[data-mood="think"] .adi-ping { animation-duration: 1.1s; }
+.adi[data-mood="talk"] .adi-smile { opacity: 0; }
+.adi[data-mood="talk"] .adi-mouth { opacity: 1; animation: adi-talk .32s ease-in-out infinite alternate; }
+
+@keyframes adi-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@keyframes adi-shadow { 0%, 100% { transform: scaleX(1); opacity: .14; } 50% { transform: scaleX(.86); opacity: .09; } }
+@keyframes adi-blink { 0%, 94%, 100% { transform: scaleY(1); } 96% { transform: scaleY(.1); } }
+@keyframes adi-ping { 0% { opacity: 0; transform: translateY(4px); } 30% { opacity: .9; } 100% { opacity: 0; transform: translateY(-3px); } }
+@keyframes adi-wave { 0%, 100% { transform: rotate(0deg); } 30% { transform: rotate(-22deg); } 65% { transform: rotate(14deg); } }
+@keyframes adi-cheer { from { transform: rotate(0deg); } to { transform: rotate(-12deg); } }
+@keyframes adi-tilt { from { transform: rotate(-10deg); } to { transform: rotate(10deg); } }
+@keyframes adi-talk { from { transform: scaleY(.45); } to { transform: scaleY(1); } }
+
+/* speech bubble beside Adi */
+.adi-bubble { position: relative; background: #fff; color: var(--a-ink, #18231c); border-radius: 16px; padding: 10px 14px; font-size: 13.5px; line-height: 1.45; font-weight: 500; box-shadow: 0 10px 28px #0d2a1726, 0 2px 4px #0d2a1712; max-width: 240px; }
+.adi-bubble::after { content: ""; position: absolute; width: 14px; height: 14px; background: inherit; transform: rotate(45deg); border-radius: 3px; }
+.adi-bubble[data-tail="left"]::after { left: -5px; bottom: 18px; }
+.adi-bubble[data-tail="right"]::after { right: 22px; bottom: -5px; }
+.adi-bubble { animation: adi-pop .5s var(--a-ease, ease-out) both; }
+@keyframes adi-pop { from { opacity: 0; transform: translateY(6px) scale(.96); } to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .adi *, .adi-bubble { animation: none !important; transition: none !important; }
+}
+
+/* ---------- 3D Adi ---------- */
+.adi3d { position: relative; display: grid; place-items: end center; }
+.adi3d-canvas { position: absolute; inset: 0; width: 100% !important; height: 100% !important; opacity: 0; transition: opacity .5s ease; }
+.adi3d[data-ready="true"] .adi3d-canvas { opacity: 1; }
+.adi3d-fallback { transition: opacity .4s ease; }
+
+/* ---------- dock: Adi bottom-right, "Ask me anything", chat panel ---------- */
+.adi-dock { position: fixed; right: clamp(12px, 2vw, 28px); bottom: clamp(12px, 2vw, 24px); z-index: 60; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; font-family: var(--a-font, Arial, sans-serif); }
+.adi-launch { border: 0; padding: 0; background: none; cursor: pointer; border-radius: 28px; filter: drop-shadow(0 12px 20px #0d2a1733); transition: transform .25s var(--a-ease, ease); }
+.adi-launch:hover { transform: translateY(-3px) scale(1.03); }
+.adi-launch:focus-visible { outline: 3px solid var(--a-up, #16863e); outline-offset: 4px; }
+.adi-callout { position: relative; margin-right: 18px; }
+.adi-callout .adi-bubble { border: 1px solid #d6eadb; cursor: pointer; font: inherit; font-size: 14px; font-weight: 600; padding: 11px 16px; text-align: left; }
+.adi-callout .adi-bubble:hover { background: #f3faf0; }
+.adi-dismiss { position: absolute; top: -8px; right: -8px; width: 22px; height: 22px; border-radius: 50%; border: 1px solid #d6eadb; background: #fff; color: #4f6354; display: grid; place-items: center; cursor: pointer; box-shadow: 0 2px 6px #0d2a1722; }
+
+.adi-panel { width: min(400px, calc(100vw - 24px)); height: min(620px, calc(100dvh - 40px)); display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto auto; background: #fff; border: 1px solid #dfe8e1; border-radius: 22px; box-shadow: 0 30px 70px #0d2a1733, 0 4px 12px #0d2a1714; overflow: hidden; animation: adi-pop .35s var(--a-ease, ease-out) both; }
+.adi-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 10px 12px 10px 14px; background: linear-gradient(135deg, #0f766e, #15803d 60%, #166534); color: #fff; }
+.adi-head strong { display: block; font-size: 16px; }
+.adi-head span { display: block; font-size: 12px; color: #d9f7e3; }
+.adi-icon { width: 34px; height: 34px; border-radius: 10px; border: 1px solid #ffffff40; background: #ffffff1a; color: #fff; display: grid; place-items: center; cursor: pointer; }
+.adi-icon:hover { background: #ffffff33; }
+.adi-log { overflow-y: auto; padding: 14px; display: grid; align-content: start; gap: 10px; background: linear-gradient(#f7fbf8, #fff 120px); overscroll-behavior: contain; }
+.adi-msg { max-width: 88%; padding: 10px 13px; border-radius: 16px; font-size: 14px; line-height: 1.55; color: var(--a-ink, #18231c); }
+.adi-msg p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.adi-msg.is-adi { background: #fff; border: 1px solid #e4ece6; border-bottom-left-radius: 6px; justify-self: start; box-shadow: 0 2px 6px #0d2a170a; }
+.adi-msg.is-me { background: #16863e; color: #fff; border-bottom-right-radius: 6px; justify-self: end; }
+.adi-msg.is-error { border-color: #efd2cb; background: #fff5f2; color: #9b3a28; }
+.adi-msg small { display: block; margin-top: 6px; font-size: 11px; color: #758078; }
+.adi-msg .adi-warn { color: #84561a; }
+.adi-ref { display: inline; padding: 1px 6px; border-radius: 6px; background: #e9f7ee; color: #14532d; font-weight: 600; white-space: normal; }
+.adi-ref.is-course { background: #eef4ff; color: #1e3a8a; }
+.adi-ref.is-sdg { background: #fff4e5; color: #7c3d00; }
+.adi-ref.is-page { background: #f1f4f0; color: #1b3022; }
+.adi-reflink { text-decoration: none; }
+.adi-reflink:hover .adi-ref { text-decoration: underline; }
+.adi-msg.is-typing { display: inline-flex; gap: 5px; padding: 13px 14px; }
+.adi-msg.is-typing span { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; animation: adi-dot 1s ease-in-out infinite; }
+.adi-msg.is-typing span:nth-child(2) { animation-delay: .15s; }
+.adi-msg.is-typing span:nth-child(3) { animation-delay: .3s; }
+@keyframes adi-dot { 0%, 100% { opacity: .3; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-4px); } }
+.adi-suggest { display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 8px 14px 0; max-height: 108px; overflow-y: auto; }
+.adi-suggest button { min-height: 36px; max-width: 100%; border: 0; border-bottom: 1px solid #d6eadb; background: transparent; color: #14532d; padding: 5px 0; font: inherit; font-size: 12.5px; text-align: left; cursor: pointer; overflow-wrap: anywhere; }
+.adi-suggest button:hover:not(:disabled) { background: #e3f5e9; }
+.adi-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: end; padding: 10px 12px; }
+.adi-form textarea { resize: none; max-height: 120px; min-height: 44px; border: 1px solid #dfe8e1; border-radius: 14px; padding: 11px 13px; font: inherit; font-size: 14px; line-height: 1.4; color: var(--a-ink, #18231c); field-sizing: content; }
+.adi-form textarea:focus { outline: none; border-color: #84c88d; box-shadow: 0 0 0 3px #22c55e26; }
+.adi-send { width: 44px; height: 44px; border-radius: 14px; border: 0; background: var(--a-accent, #22c55e); color: var(--a-accent-ink, #092d14); display: grid; place-items: center; cursor: pointer; box-shadow: 0 3px 0 var(--a-accent-edge, #18a849); }
+.adi-send:disabled { opacity: .45; cursor: not-allowed; }
+.adi-foot { margin: 0; padding: 0 14px 10px; font-size: 11px; color: #758078; display: flex; gap: 5px; align-items: center; }
+
+/* phones: above the workspace tab bar; the panel fills the width */
+@media (max-width: 900px) {
+  .adi-dock[data-placement="workspace"] { bottom: calc(var(--a-tab-h, 64px) + 10px + env(safe-area-inset-bottom)); }
+  .adi-callout { display: none; }
+  .adi-launch { width: 52px; height: 52px; overflow: hidden; border: 1px solid #dfe8e1; border-radius: 14px; background: #fff; filter: drop-shadow(0 4px 8px #0d2a1718); }
+  .adi-launch .adi3d { transform: scale(.6); transform-origin: top left; }
+  .adi-panel { animation-duration: 160ms; }
+  .adi-icon { width: 44px; height: 44px; }
+  .adi-form textarea { font-size: 16px; }
+  body:has(.a-sheet) .adi-dock { visibility: hidden; pointer-events: none; }
+}
+@media (max-width: 520px) {
+  .adi-dock[data-open="true"] { left: 8px; right: 8px; bottom: 8px; }
+  .adi-panel { width: 100%; height: min(78dvh, 640px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .adi-panel, .adi-msg.is-typing span, .adi-launch { animation: none !important; transition: none !important; }
+}

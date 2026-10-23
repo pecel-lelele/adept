@@ -1,0 +1,32 @@
+id,label,taxonomy,interest_tags,is_target
+bank-operations-executive,Bank Operations Executive,custom,,false
+data-entry-clerk,Data Entry Clerk,custom,,false
+logistics-supervisor,Logistics Supervisor,custom,,false
+data-analyst,Data Analyst,custom,data|analytics|software,true
+ai-operations-specialist,AI Operations Specialist,custom,software|AI|automation,true
+process-automation-analyst,Process Automation Analyst,custom,process improvement|operations|automation|finance,true
+compliance-analytics-officer,Compliance Analytics Officer,custom,finance|risk|data|compliance,true
+machine-learning-engineer,Machine Learning Engineer,custom,AI|software|data,true
+data-engineer,Data Engineer,custom,data|software|cloud,true
+cloud-solutions-architect,Cloud Solutions Architect,custom,cloud|software,true
+cybersecurity-analyst,Cybersecurity Analyst,custom,security|risk|software,true
+ai-product-manager,AI Product Manager,custom,AI|product|people,true
+ux-designer,UX / UI Designer,custom,design|software|people,true
+digital-marketing-specialist,Digital Marketing Specialist,custom,marketing|customer|creative,true
+business-analyst,Business Analyst,custom,data|process improvement|operations,true
+solar-pv-engineer,Solar PV & Renewable Energy Engineer,custom,sustainability|energy|engineering,true
+energy-manager,Energy Manager,custom,sustainability|energy|operations,true
+esg-sustainability-analyst,ESG & Sustainability Analyst,custom,sustainability|finance|compliance,true
+smart-manufacturing-engineer,Smart Manufacturing Engineer,custom,manufacturing|engineering|automation,true
+semiconductor-process-engineer,Semiconductor Process Engineer,custom,manufacturing|engineering,true
+supply-chain-analyst,Supply Chain Analyst,custom,logistics|operations|data,true
+precision-agriculture-specialist,Precision Agriculture Specialist,custom,agriculture|sustainability|data,true
+health-informatics-specialist,Health Informatics Specialist,custom,healthcare|data,true
+digital-health-nurse,Digital Health Nurse,custom,healthcare|people,true
+learning-experience-designer,Learning Experience Designer,custom,education|people|creative,true
+tvet-digital-skills-trainer,TVET & Digital Skills Trainer,custom,education|people,true
+customer-success-specialist,Customer Success Specialist,custom,customer|people|AI,true
+islamic-finance-analyst,Islamic Finance Analyst,custom,finance|risk|compliance,true
+people-analytics-specialist,People Analytics Specialist,custom,people|data|HR,true
+hospitality-experience-manager,Hospitality Experience Manager,custom,tourism|customer|people,true
+responsible-ai-officer,Responsible AI & Governance Officer,custom,AI|risk|compliance,true

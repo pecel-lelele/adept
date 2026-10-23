@@ -1,0 +1,10 @@
+{
+  "name": "@workspace/adept-server",
+  "private": true,
+  "type": "module",
+  "exports": "./index.ts",
+  "dependencies": {
+    "openapi-fetch": "^0.14.1",
+    "react": "catalog:"
+  }
+}
