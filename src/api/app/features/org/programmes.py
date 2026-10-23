@@ -424,15 +424,26 @@ def decide(user: CurrentUser, programme_id: str, body: AssignmentDecision) -> Pr
         # Accepting re-checks the route against today's catalogue, prices and skills, within
         # what the employer committed, instead of adopting a stale copy.
         learner = service.member_learners(user.org_id, only=user.id).get(user.id)
+        effective_budget = current.agreement.budget_myr
         if learner is not None:
-            record = next(
-                r for r in funding_store.snapshot(user.org_id).programmes if r.id == programme_id
+            snap = funding_store.snapshot(user.org_id)
+            record = next(r for r in snap.programmes if r.id == programme_id)
+            # Cap the individual budget to the remaining programme ceiling so the
+            # rebuilt route cannot silently exceed the total the employer committed.
+            already_accepted = sum(
+                a.agreement.cost_myr
+                for a in snap.assignments
+                if a.agreement.programme_id == programme_id
+                and a.status == "accepted"
+                and a.user_id != user.id
             )
+            ceiling_left = max(0.0, record.brief.budget_total_myr - already_accepted)
+            effective_budget = min(current.agreement.budget_myr, ceiling_left)
             refreshed = pathways.build_pathway(
                 replace(
                     learner,
                     hours_per_week=current.agreement.hours_per_week,
-                    budget_myr=current.agreement.budget_myr,
+                    budget_myr=effective_budget,
                     hrd_eligible=False,
                 ),
                 current.agreement.role_id,
@@ -456,9 +467,29 @@ def decide(user: CurrentUser, programme_id: str, body: AssignmentDecision) -> Pr
                 if refreshed is not None:
                     update["pathway"] = refreshed
                     update["agreement"] = a.agreement.model_copy(
-                        update={"cost_myr": refreshed.total_cost_myr}
+                        update={
+                            "cost_myr": refreshed.total_cost_myr,
+                            "budget_myr": effective_budget,
+                        }
                     )
                 state.assignments[i] = a.model_copy(update=update)
+                # Enforce programme budget ceiling atomically within the transaction.
+                if body.decision == "accept":
+                    rec = next((r for r in state.programmes if r.id == programme_id), None)
+                    if rec is not None:
+                        accepted_total = sum(
+                            sa.agreement.cost_myr
+                            for sa in state.assignments
+                            if sa.agreement.programme_id == programme_id and sa.status == "accepted"
+                        )
+                        if round(accepted_total, 2) > round(rec.brief.budget_total_myr, 2):
+                            raise AppError(
+                                "Accepting this route would exceed the programme's "
+                                "total budget. Ask your manager to regenerate the "
+                                "programme.",
+                                status_code=409,
+                                code="ceiling_exceeded",
+                            )
                 return state.assignments[i]
         raise NotFoundError("No programme assignment.")
 
