@@ -124,6 +124,40 @@ class LintRunnerTests(unittest.TestCase):
         )
         self.assertIn("make check failed: lint", err.getvalue())
 
+    def test_make_check_reports_lint_and_later_stage_failures_together(self) -> None:
+        self.command_results((1, 0, 0))
+        stage_names = {
+            "i18n": "task_i18n_check",
+            "test": "task_test",
+            "typecheck": "task_typecheck",
+            "contracts": "task_contracts_check",
+        }
+        failures = {"i18n", "typecheck", "contracts"}
+        callbacks = {}
+        with ExitStack() as patches:
+            for stage, callback_name in stage_names.items():
+                callback = Mock(
+                    side_effect=(
+                        self.dev.TaskError(f"{stage} failure") if stage in failures else None
+                    )
+                )
+                callbacks[stage] = callback
+                patches.enter_context(patch.object(self.dev, callback_name, callback))
+
+            err = io.StringIO()
+            with redirect_stdout(io.StringIO()), redirect_stderr(err):
+                self.assertEqual(self.dev.main(["check"]), 1)
+
+            self.assert_commands_once()
+            for callback in callbacks.values():
+                callback.assert_called_once_with()
+            self.assertIn(
+                "make check failed: lint, i18n, typecheck, contracts", err.getvalue()
+            )
+            self.assertIn("FAILED lint: make lint failed: ruff lint", err.getvalue())
+            for stage in failures:
+                self.assertIn(f"FAILED {stage}: {stage} failure", err.getvalue())
+
     def test_make_check_reports_all_combinations_of_multiple_non_lint_failures(self) -> None:
         stage_names = ["i18n", "test", "typecheck", "contracts"]
         callbacks_by_stage = {
