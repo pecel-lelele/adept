@@ -9,11 +9,16 @@
 <p>Career matching and personalised reskilling for the AI era.</p>
 
 [![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white)](https://nextjs.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-Python_3.11-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![React](https://img.shields.io/badge/React-19-20232A?logo=react&logoColor=61DAFB)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-Pydantic_v2-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16_%2B_pgvector-4169E1?logo=postgresql&logoColor=white)](https://github.com/pgvector/pgvector)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://docs.docker.com/compose/)
 [![License](https://img.shields.io/badge/License-Apache_2.0-18231c)](LICENSE)
 
-<p><a href="#features">Features</a> · <a href="#quick-start">Quick start</a> · <a href="#ai-and-data">AI and data</a> · <a href="#project-structure">Project structure</a></p>
+<p><a href="#features">Features</a> · <a href="#getting-started">Getting started</a> · <a href="#diagrams">Diagrams</a> · <a href="#ai-and-data">AI and data</a> · <a href="#project-structure">Project structure</a></p>
 
 </div>
 
@@ -37,10 +42,10 @@ Adept connects your current skills to future roles, explains the gaps, and build
 
 | Resource | Link / status |
 |:---|:---|
-| GitHub repository | [pecel-lelele/adept](https://github.com/pecel-lelele/adept) |
-| Replit project | [Open project](https://replit.com/@darrensuwandi06/adept) |
+| GitHub repository | https://github.com/pecel-lelele/adept |
+| Replit project | https://replit.com/@darrensuwandi06/adept |
 | Live demo | Pending |
-| RunPod · Adi / GLM-5.3 | [Configured API endpoint](https://api.runpod.ai/v2/b1dd8hy2hqo1nb/openai/v1) — API key required |
+| RunPod · Adi / GLM-5.3 | https://api.runpod.ai/v2/b1dd8hy2hqo1nb/openai/v1 |
 | RunPod · MiniLM-L6-v2 | Pending deployment |
 | Slide deck | Pending |
 | Demo video | Pending |
@@ -61,7 +66,9 @@ English, Bahasa Melayu and Chinese are supported. Adi explains the information i
 
 <a name="12-getting-started"></a>
 
-## Quick start
+<a name="quick-start"></a>
+
+## Getting started
 
 **Requirements:** Python 3.11, [uv](https://docs.astral.sh/uv/), Node.js 20+, and Docker Desktop running.
 
@@ -124,10 +131,419 @@ Data comes from arXiv, BLS projections, the UN SDG API, Microsoft Learn, verifie
 
 On Windows, use `uv run --no-project python src/scripts/dev.py <command>` for the same tasks. GitHub Actions runs PR checks and scheduled trend/source refreshes.
 
-<a name="3-system-architecture"></a>
+**Technical guides:** [Architecture](docs/architecture.md) · [Solution design](docs/solution-design.md) · [Diagrams](docs/diagrams/index.html) · [Decisions](docs/decisions.md) · [MiniLM RunPod setup](src/pipelines/trends/runpod/DEPLOYMENT_HANDOFF.md)
+
 <a name="interactive-diagrams"></a>
 
-**Technical guides:** [Architecture](docs/architecture.md) · [Solution design](docs/solution-design.md) · [Diagrams](docs/diagrams/index.html) · [Decisions](docs/decisions.md) · [MiniLM RunPod setup](src/pipelines/trends/runpod/DEPLOYMENT_HANDOFF.md)
+## Diagrams
+
+The architecture is shown below. Expand the other sections for the user journeys, pipeline, matching logic and database views. The [interactive diagram viewer](docs/diagrams/index.html) supports zoom, pan and SVG download; download the HTML file and open it locally.
+
+<a name="3-system-architecture"></a>
+
+### System architecture
+
+```mermaid
+flowchart TB
+  user(["Learner or HR manager<br/>browser · EN / BM / 中文"])
+
+  subgraph WEB["Next.js web app"]
+    direction LR
+    ui["Pages and shared UI<br/>(server components)"]
+    bff["Server actions + typed API client<br/>signed httpOnly session cookie"]
+  end
+
+  subgraph API["FastAPI services"]
+    feat["Feature services<br/>profile · trends · scenarios · matching<br/>pathway · sdg · org · guardrails"]
+    guard["Guardrails<br/>catalogue-ID validator · PII redaction<br/>rate limits · LLM gateway (Adi: Runpod → Gemini)"]
+  end
+
+  db[("PostgreSQL 16 + pgvector")]
+
+  subgraph JOBS["GitHub Actions"]
+    refresh["Weekly trend refresh<br/>ingest → embed → score → validate → publish"]
+    check["Weekly source check<br/>SDG list · course catalogue · links"]
+  end
+
+  ext[("Public data<br/>arXiv cs.AI RSS · BLS projections<br/>UN SDG API · Microsoft Learn · Coursera<br/>Bank Negara Malaysia · provider pages")]
+
+  user --> ui --> bff
+  bff -- "JSON + meta: sources, date, scenario, estimate" --> feat
+  feat --> guard
+  feat <--> db
+  ext --> refresh --> db
+  ext --> check
+  ext -. "admin sync" .-> feat
+```
+
+<details>
+<summary><strong>User journeys, sequences and trend pipeline · 4 diagrams</strong></summary>
+
+### User journey (both modes)
+
+```mermaid
+flowchart TD
+  L["Landing page<br/>For me | For my team"] --> P{"Try first?"}
+  P -- "upload a CV" --> PV["Instant preview<br/>skills found · their trend · best-fit role"]
+  PV --> S
+  P -- "create account" --> S["Sign up<br/>career or team"]
+
+  S -- career --> I["1 · Intake<br/>stage · interests · time & budget · skills"]
+  I --> R["2 · Skills radar<br/>rising / steady / declining"]
+  R --> M["3 · Role matches<br/>score parts · skills gap · UN Goals"]
+  M --> PL["4 · Learning plan<br/>ordered courses · weeks · cost"]
+  PL --> PR["Progress · badges · evidence"]
+  PR -. "confirmed evidence raises skill levels" .-> M
+  PL --> SDG["Impact: SDG contribution"]
+
+  S -- team --> T1["Team home: join code"]
+  T1 --> T2["Members join and complete intake"]
+  T2 --> T3["Team radar · skills-gap heatmap"]
+  T3 --> T4["Team plan towards a target role"]
+  T4 --> T5["Review completions · team SDG impact"]
+```
+
+### Individual: from CV to a saved plan
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor U as Learner
+  participant W as Web (Next.js)
+  participant A as API (FastAPI)
+  participant DB as PostgreSQL
+  U->>W: Upload CV (PDF) or fill the questionnaire
+  W->>A: POST /profile/cv (parsed in memory)
+  A-->>W: Skills found (taxonomy IDs) + confidence
+  U->>W: Confirm skills and levels, time, budget
+  W->>A: POST /profile and PUT /profile/skills/confirm
+  A->>DB: Save profile and user_skills
+  W->>A: GET /trends/snapshot?scenario=moderate
+  A->>DB: Latest dated snapshot + provenance
+  A-->>W: Rising / declining skills + meta
+  W->>A: GET /matches?scenario=moderate&sdg_weight=0
+  A->>DB: Profile, taxonomy, snapshot, SDG links
+  A-->>W: Ranked roles: score parts, gap, SDG targets, meta
+  U->>W: Choose a target role (human decision)
+  W->>A: POST /pathway/plans
+  A->>DB: Ordered steps from the course catalogue
+  A-->>W: Plan: weeks, hours, cost, HRD Corp notes
+  U->>W: Mark course done, add certificate link
+  W->>A: POST /pathway/progress and /pathway/progress/evidence
+  A->>DB: Progress, badges, evidence (link checked)
+```
+
+### Organisation: from join code to a team plan
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor H as HR manager
+  actor E as Team member
+  participant W as Web
+  participant A as API
+  participant DB as PostgreSQL
+  H->>W: Sign up for my team (company or institution)
+  W->>A: POST /auth/signup (organisation)
+  A->>DB: User + organisation + join code
+  H-->>E: Shares the join code or link
+  E->>W: Sign up or Join a team with the code
+  W->>A: POST /org/join
+  A->>DB: Membership (intake: invited → complete)
+  E->>W: Completes intake (skills)
+  H->>W: Opens team dashboard
+  W->>A: GET /org/members, /org/gaps, /org/plan
+  A->>DB: Member profiles, role requirements
+  A-->>W: Heatmap, role_gaps, plan towards the largest-gap role
+  H->>W: Picks another target role, reviews evidence
+  W->>A: GET /org/plan?role=…, POST /pathway/verifications
+  A->>DB: Review decision (members see it)
+```
+
+### Trend data pipeline (weekly, validated)
+
+```mermaid
+flowchart TB
+  A["arXiv cs.AI listing<br/>(public API)"] --> B["Clean abstracts<br/>split into sentences"]
+  B --> C["Embed sentences + skills<br/>all-MiniLM-L6-v2"]
+  C --> D["Mention counts per skill<br/>per ISO week (cosine ≥ 0.55)"]
+  D --> E[("skill_signal_raw")]
+  F["BLS projections 2023–2033<br/>(labour baseline)"] --> G
+  E --> G["Score<br/>RV = ln(freq t1 / freq t0)<br/>V = 0.6·RV + 0.4·labour<br/>fast scenario by exposure"]
+  G --> H{"Validate<br/>fresh ingest? two weeks?<br/>≥ 50 skills? known IDs?<br/>finite values?"}
+  H -- pass --> I[("trend_snapshots +<br/>trend_snapshot_meta")]
+  H -- fail --> J["Publish nothing<br/>last valid snapshot stays live"]
+  I --> K["Radar · matching · outlook · re-plan"]
+```
+
+</details>
+
+<details>
+<summary><strong>Match scoring and knowledge graph · 2 diagrams</strong></summary>
+
+### Explainable match score
+
+```mermaid
+flowchart LR
+  S["Skill overlap<br/>Σ importance × min(level / required, 1)<br/>divided by Σ importance"] -- "× 0.45" --> T(("Fit score"))
+  R["Trend outlook<br/>importance-weighted percentile<br/>of skill velocity (scenario)"] -- "× 0.25" --> T
+  I["Interest fit<br/>Jaccard(user interests, role tags)"] -- "× 0.30" --> T
+  G["UN Goals impact (optional λ)<br/>direct links 1 · enabling 0.5"] -. "score' = (1−λ)·score + λ·impact" .-> T
+  T --> O["Ranked roles + have / partial / missing skills<br/>each part shown with its explanation"]
+```
+
+- Protected attributes (age, gender, background) are never read by matching. Counterfactual tests swap personas and require identical results.
+- Completed learning can raise a skill's effective matching level when an organisation reviewer confirms it, or when a certificate link passes the provider-page check. That link check confirms reachability and provider domain, not certificate ownership.
+
+### Knowledge graph
+
+The catalogue is a graph. Pathways walk it from the learner's skills to a target role.
+
+```mermaid
+graph TB
+  U(("Learner")) -- "has · level 1–5" --> SK["Skill"]
+  RO["Future role"] -- "requires · level, importance" --> SK
+  SK -- "prerequisite of" --> SK
+  CO["Course"] -- "teaches · reaches level" --> SK
+  SN["Trend snapshot"] -- "velocity · direction · exposure" --> SK
+  RO -- "links · direct / enabling + reason" --> TG["SDG target"]
+  SK -- "links · reason + evidence" --> TG
+  TG -- "part of" --> GO["SDG goal (1–17)"]
+  U -- "saves" --> PL["Plan"]
+  PL -- "ordered steps" --> SK
+  PL -- "uses" --> CO
+  OR(("Organisation")) -- "members" --> U
+```
+
+The catalogue holds 31 roles (28 targets), 140 skills and 98 sourced courses, plus all 17 goals and 169 targets with 61 role-target and 165 skill-target links.
+
+</details>
+
+<details>
+<summary><strong>Database schema and provenance · 4 diagrams</strong></summary>
+
+### Identity, intake and role requirements
+
+Selected columns from the append-only [SQL migrations](src/db/migrations/), not replacement DDL.
+Solid ER relationships below reflect declared foreign keys. Array and JSON references are
+explained separately rather than presented as enforced foreign keys.
+
+```mermaid
+erDiagram
+  users ||--o| profiles : has
+  users ||--o{ user_skills : has
+  skills ||--o{ user_skills : rates
+  users ||--o{ memberships : joins
+  organizations ||--o{ memberships : contains
+  organizations ||--o| org_regions : locates
+  roles |o--o{ profiles : current_role
+  roles ||--o{ role_skills : requires
+  skills ||--o{ role_skills : required_by
+  users {
+    text id PK
+    text email UK
+    text kind
+    text password_hash
+    boolean is_synthetic
+  }
+  profiles {
+    text user_id PK,FK
+    text current_role_id FK
+    text segment
+    text[] interests
+    integer hours_per_week
+    numeric budget_myr
+    text learning_style
+  }
+  memberships {
+    text user_id PK,FK
+    text org_id PK,FK
+    text role
+    text intake_status
+  }
+  organizations {
+    text id PK
+    text type
+    text name
+    text join_code
+  }
+  org_regions {
+    text org_id PK,FK
+    text state
+  }
+  user_skills {
+    text user_id PK,FK
+    text skill_id PK,FK
+    smallint level
+    text source
+  }
+  skills {
+    text id PK
+    text label
+    text taxonomy
+    text aliases
+  }
+  roles {
+    text id PK
+    text label
+    text interest_tags
+  }
+  role_skills {
+    text role_id PK,FK
+    text skill_id PK,FK
+    smallint required_level
+    real importance
+  }
+```
+
+### Learning plans and evidence
+
+```mermaid
+erDiagram
+  users ||--o| pathway_plans : saves
+  roles ||--o{ pathway_plans : targets
+  users ||--o{ course_progress : tracks
+  courses ||--o{ course_progress : course
+  users ||--o{ course_evidence : submits
+  users |o--o{ course_evidence : reviews
+  courses ||--o{ course_evidence : course
+  users ||--o{ user_badges : earns
+  skills ||--o{ skill_prerequisites : skill
+  skills ||--o{ skill_prerequisites : prerequisite
+  users {
+    text id PK
+  }
+  roles {
+    text id PK
+  }
+  skills {
+    text id PK
+  }
+  courses {
+    text id PK
+    text title
+    text provider
+    text[] skill_ids
+    numeric hours
+    numeric cost_myr
+    date verified_at
+  }
+  pathway_plans {
+    text user_id PK,FK
+    text role_id FK
+    text scenario
+    text snapshot_version
+    jsonb steps
+  }
+  course_progress {
+    text user_id PK,FK
+    text role_id PK
+    text course_id PK,FK
+    text status
+    jsonb course_snapshot
+  }
+  course_evidence {
+    text user_id PK,FK
+    text role_id PK
+    text course_id PK,FK
+    text reviewed_by FK
+    text kind
+    text link_status
+  }
+  user_badges {
+    text user_id PK,FK
+    text badge_id PK
+    text evidence
+  }
+  skill_prerequisites {
+    text skill_id PK,FK
+    text prerequisite_id PK,FK
+    text reason
+  }
+```
+
+`courses.skill_ids` is an array and `pathway_plans.steps` is JSONB; application logic resolves
+those IDs. `role_id` in progress and evidence is part of the composite key, not a declared
+foreign key. Evidence has separate submitter and nullable reviewer references to `users`.
+`course_progress.course_snapshot` preserves course facts independently of the saved target.
+Accepted completions across all targets feed the same effective skill levels to matching,
+individual learning plans and team gaps; rejection and undo still revoke that credit.
+
+### SDG mappings
+
+```mermaid
+erDiagram
+  roles ||--o{ role_sdg_map : maps
+  skills ||--o{ skill_sdg_map : maps
+  sdg_targets ||--o{ role_sdg_map : target
+  sdg_targets ||--o{ skill_sdg_map : target
+  roles {
+    text id PK
+  }
+  skills {
+    text id PK
+  }
+  sdg_targets {
+    text id PK
+    smallint goal
+    text label
+    date retrieved_at
+  }
+  role_sdg_map {
+    text role_id PK,FK
+    text sdg_target_id PK,FK
+    text strength
+    text reason
+    text evidence_url
+    text reviewed_by
+  }
+  skill_sdg_map {
+    text skill_id PK,FK
+    text sdg_target_id PK,FK
+    text strength
+    text reason
+    text evidence_url
+    text reviewed_by
+  }
+```
+
+`sdg_targets.goal` resolves to `sdg_goals.id` in application data; the migrations do not
+add a foreign-key constraint for it. SDG mapping `reviewed_by` is attribution text,
+not an account foreign key. Unreviewed links remain draft mappings.
+
+### Trend storage and provenance
+
+```mermaid
+flowchart TB
+  skills["skills<br/>id: primary key"]
+  embed["skill_embeddings<br/>skill_id: primary key<br/>embedding: vector of 384 values"]
+  raw["skill_signal_raw<br/>id: primary key<br/>skill_id, period, retrieved_at<br/>value, total_papers"]
+  snap["trend_snapshots<br/>id: primary key<br/>unique: skill_id + snapshot_date<br/>moderate / fast velocities and directions"]
+  meta["trend_snapshot_meta<br/>snapshot_date: primary key<br/>sources JSONB, provenance_note"]
+  skills -. "logical skill_id join" .-> embed
+  skills -. "logical skill_id join" .-> raw
+  raw -->|scoring job| snap
+  meta -. "logical snapshot_date join" .-> snap
+```
+
+Dotted connections are logical joins, not declared foreign keys. Embeddings, raw signals,
+and trend snapshot `skill_id` columns are not constrained to `skills` by the current DDL;
+publish-time validation checks taxonomy membership. `trend_snapshot_meta` is joined by date.
+
+
+The diagram omits some supporting tables:
+
+| Table | Purpose |
+|---|---|
+| `arxiv_fetch_log` | Audit of each arXiv pull |
+| `data_syncs` | Catalogue and SDG sync runs |
+| `fx_rates` | Bank Negara Malaysia rates for converting course prices |
+| `llm_calls` | Log of LLM gateway calls (empty while `LLM_PROVIDER=none`) |
+| `snapshots`, `trend_signals` | Early skeleton tables kept for compatibility |
+
+Migrations are in [`src/db/migrations`](src/db/migrations). New changes always go in a new file.
+
+</details>
 
 ## Project structure
 
