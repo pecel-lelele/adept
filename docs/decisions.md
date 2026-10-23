@@ -1498,3 +1498,14 @@
 - **Validation**: Full quality gate passed: 918 tests passed, 27 skipped; Ruff, ESLint, translations, TypeScript and generated contracts passed. Fourteen preflight regressions cover private-host rejection, bounded queries, read-only connections, table/sequence privileges, preserved connection options and sanitized failures. CI additionally exercises the preflight against migrated PostgreSQL. Documentation links and submission answer limits passed.
 - **Replaces**: M4-066 (MiniLM pending status); completes deployment integration from M1-011/M4-064.
 - **PR / branch**: feat/minilm-runpod-deploy
+
+### M4-069: Explicit Replit production build and supervised startup
+- **Date**: 2026-10-24
+- **Feature**: Core deployment
+- **Type**: other
+- **Change**: Add a versioned Autoscale build/start configuration and stdlib production launcher. Build Next.js standalone assets and Python dependencies; co-host a private FastAPI process with one public web port, honor existing workspace port mappings, resolve Nix's GCC runtime for PyMuPDF and stop both children on failures. Document workspace preservation, production secrets, database preparation and publishing diagnostics.
+- **Why**: GitHub main had no Replit configuration. The partner's unpushed workspace configuration provided only a development Preview workflow, without deployment build/run commands. Explicit production commands close that gap; the generic disabled Publish banner still requires account-side validation after configuration is loaded.
+- **Affects**: M4 (Replit deployment), all features served by the app; no schema, contract, scoring or dependency changes.
+- **Validation**: Full quality gate passed (932 tests, 27 skipped), including 14 launcher regressions. The exact production build passed; a local production smoke test verified the public landing/About/sign-in pages, static assets and API database health using synthetic local data with model providers disabled. Replit account-side publishing remains unverified.
+- **Replaces**: none
+- **PR / branch**: fix/core-replit-deployment
