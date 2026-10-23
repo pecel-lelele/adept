@@ -1509,3 +1509,14 @@
 - **Validation**: Full quality gate passed (932 tests, 27 skipped), including 14 launcher regressions. The exact production build passed; a local production smoke test verified the public landing/About/sign-in pages, static assets and API database health using synthetic local data with model providers disabled. Replit account-side publishing remains unverified.
 - **Replaces**: none
 - **PR / branch**: fix/core-replit-deployment
+
+### M4-071: Patch Next.js before retrying Replit package installation
+- **Date**: 2026-10-24
+- **Feature**: Core deployment
+- **Type**: dependency
+- **Change**: Pin Next.js and eslint-config-next to 16.4.1 and regenerate the existing pnpm 10.29.3 lockfile. Document diagnosis of Replit package-firewall rejection without disabling platform checks or adding registry credentials.
+- **Why**: The live Replit build successfully installed Python dependencies, then received HTTP 403 downloading Next.js 16.2.12 from its internal package firewall. Vendor advisories identify critical affected-version ranges covering 16.2.12 and prescribe 16.4.1. The firewall's precise rejection reason remains unconfirmed; the dependency update independently addresses the published advisories. The official public tarball for 16.2.12 remains reachable, and the repository contains no internal registry URL.
+- **Affects**: All Next.js pages and production web builds; no API contracts, schema, model or scoring changes.
+- **Validation**: Full quality gate passed (932 tests, 27 skipped), including ESLint with the aligned configuration, translations, TypeScript and generated contracts. The exact Replit build passed with the frozen lockfile; a local production smoke test verified landing/About/sign-in pages, static assets and API/database health without model calls. The advisory query returned no published matches for Next.js 16.4.1 at verification time. Replit's own package download remains to be retested by the account owner.
+- **Replaces**: Next.js/eslint-config-next 16.2.12 pins only
+- **PR / branch**: fix/core-replit-next-patch
