@@ -1464,3 +1464,14 @@
 - **Affects**: Deployments must apply the new migration before the next jobs refresh
 - **Replaces**: none (completes M4-063)
 - **PR / branch**: https://github.com/pecel-lelele/adept/pull/13 / feat/jobs-live-openings
+
+### M4-066: Concise project README and confirmed team details
+- **Date**: 2026-10-24
+- **Feature**: Core (documentation and submission)
+- **Type**: other
+- **Change**: Restructure the README around the product, confirmed Pecel Lele team information, project links, setup, model disclosure and development commands. Separate the configured Adi GLM endpoint from the pending MiniLM endpoint, and include a collapsible inventory of tracked application files and folders. Remove submission-draft references and detailed PDF preparation material from the README.
+- **Why**: Give readers a clear project entry point while preserving the disclosures and instructions needed to understand and run the app. Design-thinking, deployment-strategy and detailed implementation references are saved separately as local working documents; this PR contains only the README and this decision entry.
+- **Affects**: Project documentation only. Replit Agent will handle platform configuration in a separate PR; demo-video files stay local.
+- **Validation**: Full quality gate passed (904 tests passed, 27 skipped); GitHub Markdown rendering and local documentation links verified.
+- **Replaces**: none
+- **PR / branch**: docs/core-readme-cleanup

@@ -1,782 +1,986 @@
 <div align="center">
 
-<img src="src/web/src/app/icon.svg" width="80" height="85" alt="Adept logo">
+<img src="src/web/src/app/icon.svg" width="76" height="80" alt="Adept logo">
 
 <h1>Adept</h1>
 
 <strong>Find your next role. Build the skills to get there.</strong>
 
-<p>Explainable career matching and personalised reskilling for the AI era.</p>
+<p>Career matching and personalised reskilling for the AI era.</p>
 
 [![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white)](https://nextjs.org/)
-[![React](https://img.shields.io/badge/React-19-20232A?logo=react&logoColor=61DAFB)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
-[![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-Pydantic_v2-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-Python_3.11-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16_%2B_pgvector-4169E1?logo=postgresql&logoColor=white)](https://github.com/pgvector/pgvector)
-[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://docs.docker.com/compose/)
 [![License](https://img.shields.io/badge/License-Apache_2.0-18231c)](LICENSE)
 
-<p><a href="docs/submission-proposal.md">Project proposal</a> · <a href="docs/submission-technical-declaration.md">Technical declaration</a> · <a href="#interactive-diagrams">Interactive diagrams</a> · <a href="#12-getting-started">Quick start</a></p>
+<p><a href="#features">Features</a> · <a href="#quick-start">Quick start</a> · <a href="#ai-and-data">AI and data</a> · <a href="#project-structure">Project structure</a></p>
 
 </div>
 
-**Adept** takes a person from *"who I am today"* to *"where I can be in the AI era"*. It is our entry for the
-**SDC XMUM Hackathon 2026, Domain 1: The Aiversecity Future-Ready Workforce** (main SDG 4, with 8, 5, 9 and 10).
+Adept connects your current skills to future roles, explains the gaps, and builds a learning plan around your time and budget. Individuals and organisations use the same engine, with dedicated workspaces for learners, employees and HR teams.
 
-You give Adept your skills, from a CV or a short questionnaire. It shows:
+<p align="center"><strong>Your skills → AI signals → Role matches → Learning plan → Job openings</strong></p>
 
-- which of your skills are rising or declining, from updatable AI-research and labour-market signals;
-- which future roles fit you, with an explainable score and a clear skills gap;
-- an ordered, costed learning plan, with every role and skill linked to the UN Sustainable Development Goals.
+## Team
 
-Teams get the same engine at team level. HR/L&D managers and career centres see a skills-gap heatmap, a shared team plan and the goals the plan supports.
+| Field | Details |
+|:---|:---|
+| Team | **Pecel Lele** |
+| University | Xiamen University Malaysia |
+| Team leader | David Kurniawan |
+| Members | 4 |
+| Competition | SDC XMUM Hackathon 2026 |
+| Domain | **Domain 1 — The Aiversecity Future-Ready Workforce** |
+| SDG track | **SDG 4 — Quality Education**; supporting SDGs 5, 8, 9 and 10 |
 
-Every recommendation shows its source and date and its AI-pace scenario (moderate or fast), and is labelled as an estimate. The product supports human decisions; it never makes hiring decisions.
+## Links
 
-> The proposal and the technical-tools declaration are drafted in
-> [docs/submission-proposal.md](docs/submission-proposal.md) and
-> [docs/submission-technical-declaration.md](docs/submission-technical-declaration.md). The diagrams below are
-> editable Mermaid source, recovered from the repository rather than the blurry screenshots.
-> Use the vector exports for presentation slides and PDF submissions.
+| Resource | Link / status |
+|:---|:---|
+| GitHub repository | [pecel-lelele/adept](https://github.com/pecel-lelele/adept) |
+| Replit project | [Open project](https://replit.com/@darrensuwandi06/adept) |
+| Live demo | Pending |
+| RunPod · Adi / GLM-5.3 | [Configured API endpoint](https://api.runpod.ai/v2/b1dd8hy2hqo1nb/openai/v1) — API key required |
+| RunPod · MiniLM-L6-v2 | Pending deployment |
+| Slide deck | Pending |
+| Demo video | Pending |
+| Pitching video | Pending |
 
-### Interactive diagrams
+## Features
 
-Open [the diagram viewer](docs/diagrams/index.html) locally in your browser. It includes every
-README diagram, with **wheel/pinch zoom, drag-to-pan, a zoom slider, Fit, 100%, fullscreen,
-SVG download and Mermaid source download**. Resize the canvas from its lower-right corner.
-On a keyboard, use `+` / `-` to zoom, arrow keys to pan and `0` to fit.
+| Step | What you can do |
+|:---|:---|
+| **Understand your skills** | Upload a synthetic CV or complete the questionnaire, then confirm the extracted skills. |
+| **Explore AI signals** | See dated skill trends, compare moderate and fast scenarios, and replay earlier snapshots. |
+| **Find a direction** | Compare roles with a score breakdown, skills gap and SDG links. |
+| **Build a plan** | Choose courses around your hours and budget; track progress and supporting evidence. |
+| **Connect to work** | Explore job openings and relevant certification exams alongside your target role. |
+| **Plan for a team** | Review team gaps, create training programmes, manage funding and review evidence. |
 
-GitHub displays `.html` files as source and cannot run JavaScript inside a README. Download
-[`docs/diagrams/index.html`](docs/diagrams/index.html) and open it, or serve the checked-out docs:
+English, Bahasa Melayu and Chinese are supported. Adi explains the information in your signed-in workspace.
+
+<a name="12-getting-started"></a>
+
+## Quick start
+
+**Requirements:** Python 3.11, [uv](https://docs.astral.sh/uv/), Node.js 20+, and Docker Desktop running.
+
+From the repository root:
 
 ```bash
-python -m http.server 8765 --bind 127.0.0.1 --directory docs
+make setup
+make dev
 ```
 
-Then open [the interactive viewer](http://localhost:8765/diagrams/). It works offline when
-opened directly; all rendered vector diagrams and their Mermaid sources are embedded.
-The source blocks below also render natively on GitHub. Larger schemas are split by domain.
+Setup installs dependencies, creates `.env`, starts PostgreSQL, applies migrations and loads the committed seed data. Open [Adept](http://localhost:3000) or the [API documentation](http://localhost:8000/docs).
 
-To rebuild the offline viewer after editing a source block, run
-`node docs/diagrams/render.mjs <mermaid/dist> <playwright/index.mjs>` with Mermaid 11.12.0 and
-Playwright installed in a separate tooling directory. Set `DIAGRAM_BROWSER_CHANNEL=msedge`
-or `chrome` to use an installed browser, otherwise Playwright uses its bundled Chromium.
-`viewer.template.html` holds the controls; `index.html` is the generated, standalone result.
+<details>
+<summary><strong>Windows without Make</strong></summary>
 
-## Contents
-
-1. [The problem and who it is for](#1-the-problem-and-who-it-is-for)
-2. [What Adept does](#2-what-adept-does)
-3. [System architecture](#3-system-architecture) *(proposal §3.1, declaration §2.1)*
-4. [Tech stack](#4-tech-stack) *(proposal §3.1, declaration §2.2–3.2)*
-5. [How it works: flows and sequences](#5-how-it-works-flows-and-sequences)
-6. [Recommendation logic and graph topology](#6-recommendation-logic-and-graph-topology)
-7. [Data model (database schema)](#7-data-model-database-schema)
-8. [Data sources, AI and guardrails](#8-data-sources-ai-and-guardrails) *(declaration §3–4, §6)*
-9. [Design thinking and deployment strategy](#9-design-thinking-and-deployment-strategy) *(proposal §3.2)*
-10. [SDG impact framework](#10-sdg-impact-framework) *(proposal §4)*
-11. [Third-party code, datasets and models](#11-third-party-code-datasets-and-models) *(proposal §6.2, declaration §2.2, §4)*
-12. [Getting started](#12-getting-started)
-13. [Development, testing and CI](#13-development-testing-and-ci)
-14. [Repository layout and team](#14-repository-layout-and-team)
-
----
-
-## 1. The problem and who it is for
-
-AI is changing which jobs exist faster than training programmes can follow. In Malaysia:
-
-- In Hays' 2025 Malaysia findings, 56% of professionals used AI tools at work and 26% had received training to use them: a 30 percentage-point difference between the two reported shares. This is historical context, not a 2026 measurement or an individual-level estimate. [Hays Malaysia](https://www.hays.com.my/press-release/content/future-of-work-malaysia-technology-ai-impact).
-
-Workers don't know which skills to learn, employers can't tell which roles to train for, and static course lists go out of date quickly.
-
-**Who Adept serves:**
-
-| Mode | Users | What they walk away with |
-|---|---|---|
-| Individual (`/app`) | Working adults at risk of displacement, fresh graduates, career switchers | Ranked future roles, the skills gap for each, a saved learning plan that fits their hours and budget, progress and badges |
-| Organisation (`/org`) | HR / L&D managers, TVET and university career centres | A team skills-gap heatmap, a shared plan towards a target role, evidence review, the team's SDG contribution |
-
-## 2. What Adept does
-
-| Handbook must-have | How Adept delivers it | Where |
-|---|---|---|
-| 1. Skills profile intake | CV upload (PDF/text, parsed in memory) or a four-step questionnaire: stage, interests, time and budget, learning style, skills with levels 1–5. The user confirms every skill. | `/`, `/app/onboarding`, `/app/profile` |
-| 2. AI-trend signal layer | Dated, versioned snapshots from arXiv cs.AI research signals and BLS 2023–2033 projections; a weekly refresh job that validates before publishing; source, date and measured period shown on every view. | `/app/radar`, `src/pipelines/trends` |
-| 3. Future-role matching | Explainable score = weighted skill overlap + trend outlook + interest fit, shown part by part with have / partial / missing skills. Optional UN Goals weight. Replay against an older snapshot explains what changed. | `/app/matches` |
-| 4. Personalised pathway | Ordered steps from a prerequisite graph and a sourced course catalogue (free, paid, HRD Corp-claimable), with weeks from the learner's hours per week and cost against budget. | `/app/pathway`, `/app/courses` |
-| 5. SDG mapping | Every role and skill is linked to SDG targets with a reason and evidence source. Person, company and region contribution views. | `/app/sdg`, `/org/sdg` |
-| 6. Handling uncertainty | A moderate and a fast AI-pace scenario change scores and outlooks; outlooks show low–high ranges; every prediction is labelled an estimate. | AI-pace switch on every relevant page |
-
-**Good-to-haves also built:**
-
-- an employer heatmap and team plan;
-- automatic re-planning when trend data or the profile changes;
-- English, Bahasa Melayu and Chinese, with a mobile layout;
-- progress, badges and evidence review;
-- fairness checks;
-- trend replay;
-- the SDG-weighted ranking slider.
-
-## 3. System architecture
-
-```mermaid
-flowchart TB
-  user(["Learner or HR manager<br/>browser · EN / BM / 中文"])
-
-  subgraph WEB["Next.js web app"]
-    direction LR
-    ui["Pages and shared UI<br/>(server components)"]
-    bff["Server actions + typed API client<br/>signed httpOnly session cookie"]
-  end
-
-  subgraph API["FastAPI services"]
-    feat["Feature services<br/>profile · trends · scenarios · matching<br/>pathway · sdg · org · guardrails"]
-    guard["Guardrails<br/>catalogue-ID validator · PII redaction<br/>rate limits · LLM gateway (Adi: Runpod → Gemini)"]
-  end
-
-  db[("PostgreSQL 16 + pgvector")]
-
-  subgraph JOBS["GitHub Actions"]
-    refresh["Weekly trend refresh<br/>ingest → embed → score → validate → publish"]
-    check["Weekly source check<br/>SDG list · course catalogue · links"]
-  end
-
-  ext[("Public data<br/>arXiv cs.AI RSS · BLS projections<br/>UN SDG API · Microsoft Learn · Coursera<br/>Bank Negara Malaysia · provider pages")]
-
-  user --> ui --> bff
-  bff -- "JSON + meta: sources, date, scenario, estimate" --> feat
-  feat --> guard
-  feat <--> db
-  ext --> refresh --> db
-  ext --> check
-  ext -. "admin sync" .-> feat
+```powershell
+uv run --no-project python src/scripts/dev.py setup
+uv run --no-project python src/scripts/dev.py dev
 ```
 
-**How the workshop elements connect:**
+</details>
 
-- **AI components:** (1) a background sentence encoder (`all-MiniLM-L6-v2`, deployment target: RunPod) turns research abstracts into skill signals inside the trend pipeline; (2) **Adi**, the in-app guide, uses Z.ai **GLM-5.3** (`glm-5.3`) through a Runpod public endpoint to select validated answer blocks built from the person's own Adept data. Google Gemini 3.5 Flash Lite (then Gemini 3.6 Flash / Gemini 3.1 Flash Lite) is tried only if Runpod fails. Model-written prose is never displayed; if both providers fail, Adi answers with a built-in guide. (3) **Gemini embeddings** (`gemini-embedding-001`, 768 dimensions, stored in PostgreSQL with pgvector) suggest the closest catalogue skill for CV skills-list phrases that match no approved alias; only those short phrases are sent, after contact details are removed, and a suggestion is added only if the person chooses it (`EMBEDDINGS_PROVIDER=gemini`).
-- **Database architecture:** one PostgreSQL schema with versioned migrations. `pgvector` stores skill embeddings, and typed contracts are generated from Pydantic to TypeScript.
-- **Cloud deployment:** containers for web and API, with managed PostgreSQL and scheduled jobs in GitHub Actions (see [§9](#9-design-thinking-and-deployment-strategy)).
-
-**Output contract.** Every response that contains a recommendation, score or trend carries:
-
-```json
-{ "sources": [{ "name": "…", "url": "…", "retrieved_at": "YYYY-MM-DD" }],
-  "snapshot_date": "YYYY-MM-DD", "observed_from": "YYYY-MM-DD", "observed_to": "YYYY-MM-DD",
-  "scenario": "moderate | fast", "is_estimate": true }
-```
-
-## 4. Tech stack
-
-| Layer | Technology | Why |
-|---|---|---|
-| Frontend | Next.js 16 (App Router, server components, server actions), React 19, TypeScript 5.9 (strict), Tailwind CSS 4, lucide-react, next-intl 4 (EN / BM / ZH) | Fast first render, typed end to end, three languages, mobile layout |
-| API | FastAPI, Pydantic v2, Uvicorn (Python 3.11) | Explainable logic in small, tested functions; OpenAPI out of the box |
-| Contracts | Pydantic → `openapi.json` → `openapi-typescript` → `openapi-fetch` | Frontend and backend cannot drift (`make check` fails on drift) |
-| Database | PostgreSQL 16 + pgvector, psycopg 3, SQL migrations (`src/db/migrations`) | Relational core, vectors for skill embeddings, one store for everything |
-| Data / ML pipeline | sentence-transformers `all-MiniLM-L6-v2` (background batch on RunPod; local CPU development option), arXiv API, BLS projections, deterministic scoring | Updatable trend signals; web requests read stored snapshots |
-| CV parsing | PyMuPDF (in memory; nothing stored) + skill alias matching against the taxonomy | Skills found only if they exist in the catalogue |
-| Auth | Local accounts (scrypt password hashes, signed session tokens); Supabase JWT supported | Real sign-up for individuals and organisations |
-| Quality and CI | pytest, ruff, ESLint, `tsc --noEmit`, translation-key parity, contract drift; GitHub Actions | One `make check` gate before every PR |
-| Scheduled jobs | GitHub Actions: weekly trend refresh and weekly data-source check | Keeps signals fresh; failed runs publish nothing |
-
-**Sponsor resources:** The local presentation setup uses the Runpod GLM-5.3 public endpoint for Adi, with Google AI Studio (Gemini) as a separately authenticated fallback. No Pod is deployed. `/about` discloses the configured providers; each assistant reply identifies the provider and model that actually answered.
-
-## 5. How it works: flows and sequences
-
-### 5.1 User journey (both modes)
-
-```mermaid
-flowchart TD
-  L["Landing page<br/>For me | For my team"] --> P{"Try first?"}
-  P -- "upload a CV" --> PV["Instant preview<br/>skills found · their trend · best-fit role"]
-  PV --> S
-  P -- "create account" --> S["Sign up<br/>career or team"]
-
-  S -- career --> I["1 · Intake<br/>stage · interests · time & budget · skills"]
-  I --> R["2 · Skills radar<br/>rising / steady / declining"]
-  R --> M["3 · Role matches<br/>score parts · skills gap · UN Goals"]
-  M --> PL["4 · Learning plan<br/>ordered courses · weeks · cost"]
-  PL --> PR["Progress · badges · evidence"]
-  PR -. "confirmed evidence raises skill levels" .-> M
-  PL --> SDG["Impact: SDG contribution"]
-
-  S -- team --> T1["Team home: join code"]
-  T1 --> T2["Members join and complete intake"]
-  T2 --> T3["Team radar · skills-gap heatmap"]
-  T3 --> T4["Team plan towards a target role"]
-  T4 --> T5["Review completions · team SDG impact"]
-```
-
-### 5.2 Individual: from CV to a saved plan
-
-```mermaid
-sequenceDiagram
-  autonumber
-  actor U as Learner
-  participant W as Web (Next.js)
-  participant A as API (FastAPI)
-  participant DB as PostgreSQL
-  U->>W: Upload CV (PDF) or fill the questionnaire
-  W->>A: POST /profile/cv (parsed in memory)
-  A-->>W: Skills found (taxonomy IDs) + confidence
-  U->>W: Confirm skills and levels, time, budget
-  W->>A: POST /profile and PUT /profile/skills/confirm
-  A->>DB: Save profile and user_skills
-  W->>A: GET /trends/snapshot?scenario=moderate
-  A->>DB: Latest dated snapshot + provenance
-  A-->>W: Rising / declining skills + meta
-  W->>A: GET /matches?scenario=moderate&sdg_weight=0
-  A->>DB: Profile, taxonomy, snapshot, SDG links
-  A-->>W: Ranked roles: score parts, gap, SDG targets, meta
-  U->>W: Choose a target role (human decision)
-  W->>A: POST /pathway/plans
-  A->>DB: Ordered steps from the course catalogue
-  A-->>W: Plan: weeks, hours, cost, HRD Corp notes
-  U->>W: Mark course done, add certificate link
-  W->>A: POST /pathway/progress and /pathway/progress/evidence
-  A->>DB: Progress, badges, evidence (link checked)
-```
-
-### 5.3 Organisation: from join code to a team plan
-
-```mermaid
-sequenceDiagram
-  autonumber
-  actor H as HR manager
-  actor E as Team member
-  participant W as Web
-  participant A as API
-  participant DB as PostgreSQL
-  H->>W: Sign up for my team (company or institution)
-  W->>A: POST /auth/signup (organisation)
-  A->>DB: User + organisation + join code
-  H-->>E: Shares the join code or link
-  E->>W: Sign up or Join a team with the code
-  W->>A: POST /org/join
-  A->>DB: Membership (intake: invited → complete)
-  E->>W: Completes intake (skills)
-  H->>W: Opens team dashboard
-  W->>A: GET /org/members, /org/gaps, /org/plan
-  A->>DB: Member profiles, role requirements
-  A-->>W: Heatmap, role_gaps, plan towards the largest-gap role
-  H->>W: Picks another target role, reviews evidence
-  W->>A: GET /org/plan?role=…, POST /pathway/verifications
-  A->>DB: Review decision (members see it)
-```
-
-### 5.4 Trend data pipeline (weekly, validated)
-
-```mermaid
-flowchart TB
-  A["arXiv cs.AI listing<br/>(public API)"] --> B["Clean abstracts<br/>split into sentences"]
-  B --> C["Embed sentences + skills<br/>all-MiniLM-L6-v2"]
-  C --> D["Mention counts per skill<br/>per ISO week (cosine ≥ 0.55)"]
-  D --> E[("skill_signal_raw")]
-  F["BLS projections 2023–2033<br/>(labour baseline)"] --> G
-  E --> G["Score<br/>RV = ln(freq t1 / freq t0)<br/>V = 0.6·RV + 0.4·labour<br/>fast scenario by exposure"]
-  G --> H{"Validate<br/>fresh ingest? two weeks?<br/>≥ 50 skills? known IDs?<br/>finite values?"}
-  H -- pass --> I[("trend_snapshots +<br/>trend_snapshot_meta")]
-  H -- fail --> J["Publish nothing<br/>last valid snapshot stays live"]
-  I --> K["Radar · matching · outlook · re-plan"]
-```
-
-## 6. Recommendation logic and graph topology
-
-### 6.1 Explainable match score
-
-```mermaid
-flowchart LR
-  S["Skill overlap<br/>Σ importance × min(level / required, 1)<br/>divided by Σ importance"] -- "× 0.45" --> T(("Fit score"))
-  R["Trend outlook<br/>importance-weighted percentile<br/>of skill velocity (scenario)"] -- "× 0.25" --> T
-  I["Interest fit<br/>Jaccard(user interests, role tags)"] -- "× 0.30" --> T
-  G["UN Goals impact (optional λ)<br/>direct links 1 · enabling 0.5"] -. "score' = (1−λ)·score + λ·impact" .-> T
-  T --> O["Ranked roles + have / partial / missing skills<br/>each part shown with its explanation"]
-```
-
-- Protected attributes (age, gender, background) are never read by matching. Counterfactual tests swap personas and require identical results.
-- Completed learning can raise a skill's effective matching level when an organisation reviewer confirms it, or when a certificate link passes the provider-page check. That link check confirms reachability and provider domain, not certificate ownership.
-
-### 6.2 Knowledge graph
-
-The catalogue is a graph. Pathways walk it from the learner's skills to a target role.
-
-```mermaid
-graph TB
-  U(("Learner")) -- "has · level 1–5" --> SK["Skill"]
-  RO["Future role"] -- "requires · level, importance" --> SK
-  SK -- "prerequisite of" --> SK
-  CO["Course"] -- "teaches · reaches level" --> SK
-  SN["Trend snapshot"] -- "velocity · direction · exposure" --> SK
-  RO -- "links · direct / enabling + reason" --> TG["SDG target"]
-  SK -- "links · reason + evidence" --> TG
-  TG -- "part of" --> GO["SDG goal (1–17)"]
-  U -- "saves" --> PL["Plan"]
-  PL -- "ordered steps" --> SK
-  PL -- "uses" --> CO
-  OR(("Organisation")) -- "members" --> U
-```
-
-The catalogue holds 31 roles (28 targets), 140 skills and 98 sourced courses, plus all 17 goals and 169 targets with 61 role-target and 165 skill-target links.
-
-## 7. Data model (database schema)
-
-### 7.1 Identity, intake and role requirements
-
-Selected columns from the append-only [SQL migrations](src/db/migrations/), not replacement DDL.
-Solid ER relationships below reflect declared foreign keys. Array and JSON references are
-explained separately rather than presented as enforced foreign keys.
-
-```mermaid
-erDiagram
-  users ||--o| profiles : has
-  users ||--o{ user_skills : has
-  skills ||--o{ user_skills : rates
-  users ||--o{ memberships : joins
-  organizations ||--o{ memberships : contains
-  organizations ||--o| org_regions : locates
-  roles |o--o{ profiles : current_role
-  roles ||--o{ role_skills : requires
-  skills ||--o{ role_skills : required_by
-  users {
-    text id PK
-    text email UK
-    text kind
-    text password_hash
-    boolean is_synthetic
-  }
-  profiles {
-    text user_id PK,FK
-    text current_role_id FK
-    text segment
-    text[] interests
-    integer hours_per_week
-    numeric budget_myr
-    text learning_style
-  }
-  memberships {
-    text user_id PK,FK
-    text org_id PK,FK
-    text role
-    text intake_status
-  }
-  organizations {
-    text id PK
-    text type
-    text name
-    text join_code
-  }
-  org_regions {
-    text org_id PK,FK
-    text state
-  }
-  user_skills {
-    text user_id PK,FK
-    text skill_id PK,FK
-    smallint level
-    text source
-  }
-  skills {
-    text id PK
-    text label
-    text taxonomy
-    text aliases
-  }
-  roles {
-    text id PK
-    text label
-    text interest_tags
-  }
-  role_skills {
-    text role_id PK,FK
-    text skill_id PK,FK
-    smallint required_level
-    real importance
-  }
-```
-
-### 7.2 Learning plans and evidence
-
-```mermaid
-erDiagram
-  users ||--o| pathway_plans : saves
-  roles ||--o{ pathway_plans : targets
-  users ||--o{ course_progress : tracks
-  courses ||--o{ course_progress : course
-  users ||--o{ course_evidence : submits
-  users |o--o{ course_evidence : reviews
-  courses ||--o{ course_evidence : course
-  users ||--o{ user_badges : earns
-  skills ||--o{ skill_prerequisites : skill
-  skills ||--o{ skill_prerequisites : prerequisite
-  users {
-    text id PK
-  }
-  roles {
-    text id PK
-  }
-  skills {
-    text id PK
-  }
-  courses {
-    text id PK
-    text title
-    text provider
-    text[] skill_ids
-    numeric hours
-    numeric cost_myr
-    date verified_at
-  }
-  pathway_plans {
-    text user_id PK,FK
-    text role_id FK
-    text scenario
-    text snapshot_version
-    jsonb steps
-  }
-  course_progress {
-    text user_id PK,FK
-    text role_id PK
-    text course_id PK,FK
-    text status
-    jsonb course_snapshot
-  }
-  course_evidence {
-    text user_id PK,FK
-    text role_id PK
-    text course_id PK,FK
-    text reviewed_by FK
-    text kind
-    text link_status
-  }
-  user_badges {
-    text user_id PK,FK
-    text badge_id PK
-    text evidence
-  }
-  skill_prerequisites {
-    text skill_id PK,FK
-    text prerequisite_id PK,FK
-    text reason
-  }
-```
-
-`courses.skill_ids` is an array and `pathway_plans.steps` is JSONB; application logic resolves
-those IDs. `role_id` in progress and evidence is part of the composite key, not a declared
-foreign key. Evidence has separate submitter and nullable reviewer references to `users`.
-`course_progress.course_snapshot` preserves course facts independently of the saved target.
-Accepted completions across all targets feed the same effective skill levels to matching,
-individual learning plans and team gaps; rejection and undo still revoke that credit.
-
-### 7.3 SDG mappings
-
-```mermaid
-erDiagram
-  roles ||--o{ role_sdg_map : maps
-  skills ||--o{ skill_sdg_map : maps
-  sdg_targets ||--o{ role_sdg_map : target
-  sdg_targets ||--o{ skill_sdg_map : target
-  roles {
-    text id PK
-  }
-  skills {
-    text id PK
-  }
-  sdg_targets {
-    text id PK
-    smallint goal
-    text label
-    date retrieved_at
-  }
-  role_sdg_map {
-    text role_id PK,FK
-    text sdg_target_id PK,FK
-    text strength
-    text reason
-    text evidence_url
-    text reviewed_by
-  }
-  skill_sdg_map {
-    text skill_id PK,FK
-    text sdg_target_id PK,FK
-    text strength
-    text reason
-    text evidence_url
-    text reviewed_by
-  }
-```
-
-`sdg_targets.goal` resolves to `sdg_goals.id` in application data; the migrations do not
-add a foreign-key constraint for it. SDG mapping `reviewed_by` is attribution text,
-not an account foreign key. Unreviewed links remain draft mappings.
-
-### 7.4 Trend storage and provenance
-
-```mermaid
-flowchart TB
-  skills["skills<br/>id: primary key"]
-  embed["skill_embeddings<br/>skill_id: primary key<br/>embedding: vector of 384 values"]
-  raw["skill_signal_raw<br/>id: primary key<br/>skill_id, period, retrieved_at<br/>value, total_papers"]
-  snap["trend_snapshots<br/>id: primary key<br/>unique: skill_id + snapshot_date<br/>moderate / fast velocities and directions"]
-  meta["trend_snapshot_meta<br/>snapshot_date: primary key<br/>sources JSONB, provenance_note"]
-  skills -. "logical skill_id join" .-> embed
-  skills -. "logical skill_id join" .-> raw
-  raw -->|scoring job| snap
-  meta -. "logical snapshot_date join" .-> snap
-```
-
-Dotted connections are logical joins, not declared foreign keys. Embeddings, raw signals,
-and trend snapshot `skill_id` columns are not constrained to `skills` by the current DDL;
-publish-time validation checks taxonomy membership. `trend_snapshot_meta` is joined by date.
-
-
-The diagram omits some supporting tables:
-
-| Table | Purpose |
-|---|---|
-| `arxiv_fetch_log` | Audit of each arXiv pull |
-| `data_syncs` | Catalogue and SDG sync runs |
-| `fx_rates` | Bank Negara Malaysia rates for converting course prices |
-| `llm_calls` | Log of LLM gateway calls (empty while `LLM_PROVIDER=none`) |
-| `snapshots`, `trend_signals` | Early skeleton tables kept for compatibility |
-
-Migrations are in [`src/db/migrations`](src/db/migrations). New changes always go in a new file.
-
-## 8. Data sources, AI and guardrails
-
-| Source | Type | Used for |
-|---|---|---|
-| [arXiv API](https://info.arxiv.org/help/api/index.html) (cs.AI) | Public API | Research-attention signal per skill |
-| [BLS Employment Projections 2023–2033](https://www.bls.gov/emp/tables/occupational-projections-and-characteristics.htm) | Public dataset | Labour-market baseline per skill |
-| [UN SDG API](https://unstats.un.org/SDGAPI/v1/sdg/Goal/List) | Public API | Official 17 goals and 169 targets |
-| [Microsoft Learn Catalog API](https://learn.microsoft.com/en-us/training/support/catalog-api) | Public API | Free courses (title, URL, duration) |
-| Coursera catalogue API and course pages | Public API / pages | Course availability and pricing checks |
-| [Bank Negara Malaysia OpenAPI](https://api.bnm.gov.my/) | Public API | Exchange rates for course prices |
-| Provider and university course pages (FMM, MAICSA, UKM, UNIMAS and others) | Verified public pages | HRD Corp-claimable and local courses, with the date checked |
-| Adept SDG mapping | Curated (draft, pending human review) | Role and skill → SDG target links with reason and evidence |
-| Synthetic personas, teams and CVs | Synthetic | Tests, evaluation and the demo (no real people) |
-
-**AI disclosure:**
-
-- **Language model:** Adi, the assistant available in signed-in workspaces, uses **Z.ai GLM-5.3** (`glm-5.3`) on Runpod as primary. On failure, rate limiting, timeout or invalid structured output, it tries **Google Gemini 3.5 Flash Lite** (`gemini-3.5-flash-lite`, Google AI Studio), with `gemini-3.6-flash` and `gemini-3.1-flash-lite` as backup models. Both providers share one bounded request deadline; Runpod requests use `reasoning_effort=low`, at most 1,024 output tokens (800 for answer-block selection). `/about` shows the configured chain, and answers/logs identify the provider actually used. Unknown IDs are still rejected by `validate_ids` and fall back to the built-in guide.
-- **What the model does and does not do:** it selects one or two server-authored answer-block IDs through the F8 gateway and `validate_ids`. Those blocks use the person's own profile, matches, saved-plan progress, team gaps and dated trends; model prose and rationale are never displayed. Scores, plans, trends and SDG links are still computed by deterministic, tested rules; the model never computes them.
-- **Guardrails on every answer** (`src/api/app/features/assistant/`, `src/api/app/core/llm/`):
-  - the question is injection-filtered and personal data (email, MyKad NRIC, passport, phone) is redacted before it is sent;
-  - answer-block IDs are validated and their role, skill, course, SDG and page references resolve to official catalogue labels; unknown selections fall back to the guide;
-  - names, numbers and explanations are rendered from application facts rather than model-generated claims;
-  - if no model is configured or it fails, a deterministic guide answers in EN/BM/中文;
-  - every call is logged (provider, model, outcome, rejected IDs).
-- **Background trend encoder:** `sentence-transformers/all-MiniLM-L6-v2` relates research text to skill labels inside the trend pipeline.
-- **Encoder hosting:** RunPod Serverless is the deployment target for MiniLM; endpoint setup is required. Only public research sentences and catalogue labels are sent; scoring stays in the background pipeline. See [deployment instructions](src/pipelines/trends/runpod/README.md). This is separate from Adi's chat-model endpoint and the Gemini CV-suggestion model.
-
-**Guardrails:**
-
-- Recommendations cite a source and date.
-- Predictions are labelled estimates.
-- Trend data shows the period it actually measured.
-- Nothing invents jobs, courses or statistics: everything comes from the catalogue or a cited source.
-- Matching excludes protected attributes and is covered by counterfactual tests.
-- The learner chooses the target role; nothing is applied without their acceptance, and re-planning is proposed, not forced.
-
-## 9. Design thinking and deployment strategy
-
-**Design-thinking process** (≤ 200 words, for proposal §3.2):
-
-> **Empathise.** We started from four people the handbook names: Aisyah, a bank operations executive facing
-> automation; Wei Jie, a fresh IT graduate; Ravi, a logistics supervisor switching careers; and an HR manager
-> planning a team. Their shared moment of need: *"Which skills should I build next, and is it worth it?"*
-> **Define.** A useful answer must be explainable, current and costed, so every result shows its parts, source,
-> date and an estimate label. **Ideate.** One engine, two modes (individual and team), with the human always
-> choosing the target role. **Prototype.** We built thin end-to-end slices first (intake → radar → matches →
-> plan), then added the team view, SDG links and scenarios, on real sourced data and synthetic personas.
-> **Test.** Automated API and pipeline tests, matching evaluation on labelled personas, counterfactual fairness tests and
-> repeated UI reviews at desktop and phone widths drove each iteration. **Deployment readiness.** Typed
-> contracts, versioned database migrations, a single quality gate in CI, three languages, and a weekly
-> trend-refresh job that never publishes an invalid snapshot make the prototype ready to host for Phase 2.
-
-**Phase 2 deployment plan** (planned, not yet live):
-
-```mermaid
-flowchart LR
-  dev["GitHub repo<br/>main branch"] -- "CI: make check" --> ci["GitHub Actions"]
-  ci -- deploy --> web["Web container<br/>Next.js standalone build"]
-  ci -- deploy --> api["API container<br/>Uvicorn + FastAPI"]
-  web -- "HTTPS, server-side calls" --> api
-  api --> pg[("Managed PostgreSQL 16<br/>+ pgvector")]
-  cron["Weekly trend refresh<br/>(GitHub Actions)"] -- "TREND_DATABASE_URL" --> pg
-  users(["Judges and users"]) --> web
-```
-
-- **Hosting:** Candidates in the team plan are Replit, or Vercel for the web and Render for the API, with Supabase PostgreSQL and pgvector. These are planned options, not evidence of a deployed service or sponsor-credit usage. CI currently validates builds; no automatic deployment workflow is implemented.
-- **Configuration:** set `SESSION_SECRET`, `DATABASE_URL`, `AUTH_MODE`, `CORS_ORIGINS` and `API_URL` in the host; add the `TREND_DATABASE_URL` repository secret for the weekly refresh. No secrets are committed; [`.env.example`](.env.example) lists every variable.
-
-## 10. SDG impact framework
-
-This is draft material for proposal §4. Numbers marked *proposed* are targets, not results.
-
-| Field | Draft answer |
-|---|---|
-| Target SDG sub-targets | **4.4**: increase the number of youth and adults with relevant skills, including technical and vocational skills, for employment and decent jobs. **8.5**: full and productive employment and decent work for all. Supporting: 4.3 (affordable technical and vocational training) and 8.2 (productivity through innovation). |
-| Current problem baseline | Hays' 2025 Malaysia findings report 56% AI use and 26% training: a 30 percentage-point difference between reported shares. This is historical survey context, not a measured Adept outcome. [Primary source](https://www.hays.com.my/press-release/content/future-of-work-malaysia-technology-ai-impact). |
-| Core measurable KPI | Median time from first visit to a saved, sourced learning plan for a target role, measured on matched fictional cases against a static course-catalogue workflow; also the share of plans whose every step has a source and date (a proposed 100% validity requirement). |
-| Phase 2 impact target | *Proposed:* at least 20% lower median time to a valid, evidence-supported plan than the static-catalogue baseline, with no drop in the share of valid plans. The baseline will be measured before Phase 2. |
-
-We don't claim job placements, income gains or national outcomes from the prototype.
-
-## 11. Third-party code, datasets and models
-
-| Type | Name | License | Purpose |
-|---|---|---|---|
-| Code | Next.js 16, React 19 | MIT | Web framework and UI |
-| Code | TypeScript 5.9 | Apache-2.0 | Typed frontend |
-| Code | Tailwind CSS 4 | MIT | Styling |
-| Code | next-intl 4 | MIT | EN / BM / ZH translations |
-| Code | lucide-react | ISC | Icons |
-| Code | Inter (via @fontsource-variable/inter) | SIL OFL 1.1 (font), MIT (package) | Installed dependency; not loaded (the UI uses Arial) |
-| Code | openapi-fetch, openapi-typescript | MIT | Typed API client generated from the contract |
-| Code | class-variance-authority, clsx, tailwind-merge | Apache-2.0 / MIT / MIT | Component class helpers |
-| Code | FastAPI, Pydantic v2, pydantic-settings | MIT | API and contracts |
-| Code | Uvicorn | BSD-3-Clause | ASGI server |
-| Code | psycopg 3, psycopg-pool | LGPL-3.0 | PostgreSQL driver |
-| Code | PyJWT | MIT | Supabase token verification |
-| Code | PyMuPDF | [AGPL-3.0 or commercial](https://pymupdf.readthedocs.io/en/latest/about.html#license-and-copyright) | In-memory CV text extraction; licence to be reconciled before a commercial deployment |
-| Code | PostgreSQL 16, pgvector | PostgreSQL License | Database and vector storage |
-| Code | sentence-transformers, PyTorch (pipeline only) | Apache-2.0, BSD-3-Clause | Offline embeddings in the trend job |
-| Code | pytest, ruff, ESLint | MIT | Testing and linting |
-| Model | sentence-transformers/all-MiniLM-L6-v2 | [Apache-2.0](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2) | Pre-trained sentence embeddings (not fine-tuned) |
-| Dataset | arXiv API metadata (cs.AI) | [arXiv API terms](https://info.arxiv.org/help/api/tou.html); article licences vary | Research signal |
-| Dataset | BLS Employment Projections 2023–2033 | US public domain | Labour baseline |
-| Dataset | UN SDG API (goals, targets) | UN data terms (free use with attribution) | SDG goals and targets |
-| Dataset | Microsoft Learn Catalog API | Microsoft APIs terms of use | Course catalogue |
-| Dataset | Bank Negara Malaysia OpenAPI | BNM terms of use | Exchange rates |
-| Dataset | Course and provider pages (Coursera, FMM, MAICSA, UKM, UNIMAS, others) | Cited facts, linked to source | Course facts and HRD Corp status |
-| Dataset | Synthetic personas, teams, CVs | Created by the team | Tests, evaluation, demo |
-
-## 12. Getting started
-
-### Prerequisites
-
-- Python 3.11 and [uv](https://docs.astral.sh/uv/) (uv can install Python 3.11 for you)
-- Node.js 20+ (pnpm runs through `npx` if it isn't installed)
-- Docker Desktop, for PostgreSQL 16 + pgvector on host port 5433
-- GNU Make (optional). On Windows without make, run `uv run --no-project python src/scripts/dev.py <target>` with the same target names.
-
-### Run the complete Docker stack
+<details>
+<summary><strong>Run the complete app with Docker instead</strong></summary>
 
 ```bash
 docker compose -p adept up -d --build --wait
 ```
 
-This starts `adept-web-1`, `adept-api-1` and `adept-db-1` together, applies migrations
-and loads seed data. Web: <http://localhost:3000>; API docs: <http://localhost:8000/docs>;
-PostgreSQL: `localhost:5433`. Stop with `docker compose -p adept down`; volumes are retained.
+This builds web and API containers, starts PostgreSQL, applies migrations and seeds the database. Open the same local URLs above. Stop with `docker compose -p adept down`.
 
-### Run it locally for development
+</details>
 
-```bash
-make setup
+**Try the app:** upload a [sample synthetic CV](tests/api/profile/fixtures/cvs/), create a career account with an `example.test` email, and follow **Radar → Roles → Plan → Progress**. Create a separate team account to try organisation features and invite the learner with its join code.
+
+**Configuration:** [`.env.example`](.env.example) lists the application, database and model settings. Keep secrets in `.env` locally or in the hosting platform's Secrets. When using Replit Database, keep its supplied `DATABASE_URL`; importing GitHub files does not copy the local database.
+
+## AI and data
+
+| Component | Provider / model | Purpose |
+|:---|:---|:---|
+| Adi | Z.ai **GLM-5.3** (`glm-5.3`) through RunPod | Selects validated answer blocks using the user's Adept data. |
+| Adi fallback | Google **Gemini 3.5 Flash Lite**, with Gemini 3.6 Flash / 3.1 Flash Lite backups | Handles provider failure; a built-in guide remains available. |
+| Trend encoder | Sentence Transformers **all-MiniLM-L6-v2** | Relates public research sentences to catalogue skills. RunPod worker prepared; deployment pending. |
+| CV skill suggestions | Google **gemini-embedding-001** | Suggests catalogue matches for unfamiliar skill phrases; the user confirms additions. |
+
+Model features are configurable; the default assistant uses the built-in guide. Role scores, learning plans and trend calculations use deterministic rules. Model-selected IDs pass through `validate_ids` before display.
+
+Data comes from arXiv, BLS projections, the UN SDG API, Microsoft Learn, verified course and certification providers, public job-board APIs, and Bank Negara Malaysia exchange rates. Recommendations show sources, dates, scenarios and estimate labels. The prototype uses public data and synthetic profiles/CVs; people choose their own next steps.
+
+## Development
+
+| Command | Purpose |
+|:---|:---|
+| `make check` | Ruff, ESLint, TypeScript, translation parity, pytest and contract drift checks |
+| `make test` | Run the Python test suite |
+| `make contracts` | Regenerate OpenAPI and the TypeScript API types |
+| `make db-migrate` | Apply pending database migrations |
+| `make seed` | Load committed reference and synthetic datasets |
+
+On Windows, use `uv run --no-project python src/scripts/dev.py <command>` for the same tasks. GitHub Actions runs PR checks and scheduled trend/source refreshes.
+
+<a name="3-system-architecture"></a>
+<a name="interactive-diagrams"></a>
+
+**Technical guides:** [Architecture](docs/architecture.md) · [Solution design](docs/solution-design.md) · [Diagrams](docs/diagrams/index.html) · [Decisions](docs/decisions.md) · [MiniLM RunPod setup](src/pipelines/trends/runpod/DEPLOYMENT_HANDOFF.md)
+
+## Project structure
+
+| Path | Contents |
+|:---|:---|
+| `.github/workflows/` | CI, trend refresh and data-source checks |
+| `src/api/` | FastAPI services, shared contracts, security and model gateways |
+| `src/web/` | Next.js routes, feature components, translations and assets |
+| `src/pipelines/` | Trend, matching, pathway, SDG and jobs pipelines |
+| `src/data/seed/` | Public reference datasets and synthetic demo data |
+| `src/db/` | SQL migrations, migration runner and seeding |
+| `src/docker/` | Container builds and startup |
+| `src/scripts/` | Development runner and local utilities |
+| `tests/` | API, pipeline and synthetic CV test fixtures |
+| `docs/` | Architecture, methods and team documentation |
+
+<details>
+<summary><strong>Expand the complete source, configuration and test tree</strong></summary>
+
+Tracked application files and supporting documentation are listed below. Temporary submission drafts and ignored local files are omitted.
+
+```text
+adept/
+├── .github/
+│   └── workflows/
+│       ├── ci.yml
+│       ├── data-sources.yml
+│       └── trends-refresh.yml
+├── docs/
+│   ├── diagrams/
+│   │   ├── index.html
+│   │   ├── render.mjs
+│   │   └── viewer.template.html
+│   ├── architecture.md
+│   ├── decisions.md
+│   ├── project-context.md
+│   ├── README.md
+│   ├── skill-exposure-methodology.md
+│   ├── solution-design.md
+│   ├── tasks.md
+│   └── team-rules.md
+├── src/
+│   ├── api/
+│   │   ├── app/
+│   │   │   ├── contracts/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── accounts.py
+│   │   │   │   ├── assistant.py
+│   │   │   │   ├── common.py
+│   │   │   │   ├── funding.py
+│   │   │   │   ├── guardrails.py
+│   │   │   │   ├── jobs.py
+│   │   │   │   ├── matching.py
+│   │   │   │   ├── org.py
+│   │   │   │   ├── packages.py
+│   │   │   │   ├── pathway.py
+│   │   │   │   ├── profile.py
+│   │   │   │   ├── programmes.py
+│   │   │   │   ├── scenarios.py
+│   │   │   │   ├── sdg.py
+│   │   │   │   └── trends.py
+│   │   │   ├── core/
+│   │   │   │   ├── llm/
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── CLAUDE.md
+│   │   │   │   │   ├── FEATURE.md
+│   │   │   │   │   ├── gateway.py
+│   │   │   │   │   ├── GEMINI.md
+│   │   │   │   │   ├── provider.py
+│   │   │   │   │   └── validator.py
+│   │   │   │   ├── security/
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── body_limit.py
+│   │   │   │   │   ├── headers.py
+│   │   │   │   │   ├── pii.py
+│   │   │   │   │   ├── rate_limit.py
+│   │   │   │   │   ├── sanitize.py
+│   │   │   │   │   ├── session.py
+│   │   │   │   │   └── tokens.py
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── accounts.py
+│   │   │   │   ├── auth.py
+│   │   │   │   ├── config.py
+│   │   │   │   ├── db.py
+│   │   │   │   ├── embeddings.py
+│   │   │   │   ├── errors.py
+│   │   │   │   ├── fairness.py
+│   │   │   │   ├── logging.py
+│   │   │   │   ├── overview.py
+│   │   │   │   ├── refdata.py
+│   │   │   │   ├── routes.py
+│   │   │   │   ├── seed.py
+│   │   │   │   └── taxonomy.py
+│   │   │   ├── features/
+│   │   │   │   ├── accounts/
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── router.py
+│   │   │   │   │   └── service.py
+│   │   │   │   ├── assistant/
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── CLAUDE.md
+│   │   │   │   │   ├── context.py
+│   │   │   │   │   ├── FEATURE.md
+│   │   │   │   │   ├── guide.py
+│   │   │   │   │   ├── router.py
+│   │   │   │   │   └── service.py
+│   │   │   │   ├── guardrails/
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── datasync.py
+│   │   │   │   │   ├── router.py
+│   │   │   │   │   └── service.py
+│   │   │   │   ├── jobs/
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── CLAUDE.md
+│   │   │   │   │   ├── FEATURE.md
+│   │   │   │   │   ├── fit.py
+│   │   │   │   │   ├── GEMINI.md
+│   │   │   │   │   ├── repository.py
+│   │   │   │   │   ├── router.py
+│   │   │   │   │   └── service.py
+│   │   │   │   ├── matching/
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── CLAUDE.md
+│   │   │   │   │   ├── evaluation.py
+│   │   │   │   │   ├── FEATURE.md
+│   │   │   │   │   ├── gap_port.py
+│   │   │   │   │   ├── GEMINI.md
+│   │   │   │   │   ├── personas.py
+│   │   │   │   │   ├── replay.py
+│   │   │   │   │   ├── replay_diff.py
+│   │   │   │   │   ├── repository.py
+│   │   │   │   │   ├── router.py
+│   │   │   │   │   ├── schemas.py
+│   │   │   │   │   ├── scoring.py
+│   │   │   │   │   ├── sdg_port.py
+│   │   │   │   │   ├── sdg_weight.py
+│   │   │   │   │   ├── service.py
+│   │   │   │   │   └── trend_port.py
+│   │   │   │   ├── org/
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── CLAUDE.md
+│   │   │   │   │   ├── FEATURE.md
+│   │   │   │   │   ├── funding.py
+│   │   │   │   │   ├── funding_store.py
+│   │   │   │   │   ├── GEMINI.md
+│   │   │   │   │   ├── packages.py
+│   │   │   │   │   ├── programmes.py
+│   │   │   │   │   ├── repository.py
+│   │   │   │   │   ├── router.py
+│   │   │   │   │   ├── schemas.py
+│   │   │   │   │   └── service.py
+│   │   │   │   ├── pathway/
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── catalogue_sources.py
+│   │   │   │   │   ├── CLAUDE.md
+│   │   │   │   │   ├── data.py
+│   │   │   │   │   ├── engine.py
+│   │   │   │   │   ├── FEATURE.md
+│   │   │   │   │   ├── GEMINI.md
+│   │   │   │   │   ├── progress.py
+│   │   │   │   │   ├── replan.py
+│   │   │   │   │   ├── repository.py
+│   │   │   │   │   ├── router.py
+│   │   │   │   │   ├── schemas.py
+│   │   │   │   │   ├── service.py
+│   │   │   │   │   ├── sync.py
+│   │   │   │   │   ├── trend_port.py
+│   │   │   │   │   └── verification.py
+│   │   │   │   ├── preview/
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   └── router.py
+│   │   │   │   ├── profile/
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── CLAUDE.md
+│   │   │   │   │   ├── cv_parser.py
+│   │   │   │   │   ├── FEATURE.md
+│   │   │   │   │   ├── GEMINI.md
+│   │   │   │   │   ├── repository.py
+│   │   │   │   │   ├── router.py
+│   │   │   │   │   ├── schemas.py
+│   │   │   │   │   ├── service.py
+│   │   │   │   │   └── skill_match.py
+│   │   │   │   ├── scenarios/
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── CLAUDE.md
+│   │   │   │   │   ├── FEATURE.md
+│   │   │   │   │   ├── GEMINI.md
+│   │   │   │   │   ├── repository.py
+│   │   │   │   │   ├── router.py
+│   │   │   │   │   ├── schemas.py
+│   │   │   │   │   └── service.py
+│   │   │   │   ├── sdg/
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── CLAUDE.md
+│   │   │   │   │   ├── FEATURE.md
+│   │   │   │   │   ├── GEMINI.md
+│   │   │   │   │   ├── repository.py
+│   │   │   │   │   ├── router.py
+│   │   │   │   │   ├── schemas.py
+│   │   │   │   │   ├── service.py
+│   │   │   │   │   ├── sources.py
+│   │   │   │   │   └── sync.py
+│   │   │   │   ├── trends/
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── CLAUDE.md
+│   │   │   │   │   ├── FEATURE.md
+│   │   │   │   │   ├── GEMINI.md
+│   │   │   │   │   ├── mocks.py
+│   │   │   │   │   ├── provenance.py
+│   │   │   │   │   ├── repository.py
+│   │   │   │   │   ├── router.py
+│   │   │   │   │   ├── schemas.py
+│   │   │   │   │   └── service.py
+│   │   │   │   └── __init__.py
+│   │   │   ├── __init__.py
+│   │   │   ├── export_openapi.py
+│   │   │   └── main.py
+│   │   └── openapi.json
+│   ├── data/
+│   │   └── seed/
+│   │       ├── arxiv_raw/
+│   │       │   ├── 2024-10-06_2024-10-12.json
+│   │       │   ├── 2024-10-13_2024-10-19.json
+│   │       │   └── 2026-10-20.json
+│   │       ├── courses/
+│   │       │   ├── courses.csv
+│   │       │   └── README.md
+│   │       ├── jobs/
+│   │       │   ├── certifications.csv
+│   │       │   ├── fetch_log.json
+│   │       │   └── job_postings.csv
+│   │       ├── org/
+│   │       │   ├── memberships.csv
+│   │       │   ├── organizations.csv
+│   │       │   ├── README.md
+│   │       │   └── users.csv
+│   │       ├── pathway/
+│   │       │   ├── README.md
+│   │       │   └── skill_prerequisites.csv
+│   │       ├── personas/
+│   │       │   ├── expected_roles.csv
+│   │       │   ├── profiles.csv
+│   │       │   ├── README.md
+│   │       │   ├── user_skills.csv
+│   │       │   └── users.csv
+│   │       ├── sdg/
+│   │       │   ├── org_regions.csv
+│   │       │   ├── README.md
+│   │       │   ├── role_sdg_map.csv
+│   │       │   ├── sdg_goals.csv
+│   │       │   ├── sdg_targets.csv
+│   │       │   └── skill_sdg_map.csv
+│   │       ├── taxonomy/
+│   │       │   ├── provenance.json
+│   │       │   ├── README.md
+│   │       │   ├── role_skills.csv
+│   │       │   ├── roles.csv
+│   │       │   └── skills.csv
+│   │       ├── trends/
+│   │       │   ├── README.md
+│   │       │   ├── snapshots.csv
+│   │       │   └── trend_signals.csv
+│   │       ├── bls_projections_2023_2033.csv
+│   │       ├── canonical_skills.csv
+│   │       ├── labor_decay.csv
+│   │       ├── mock_trends.json
+│   │       ├── mock_trends_2026-10-13.json
+│   │       ├── mock_trends_2026-10-20.json
+│   │       └── README.md
+│   ├── db/
+│   │   ├── migrations/
+│   │   │   ├── 20261019120000_core_init.sql
+│   │   │   ├── 20261020120000_m3_pathway_sdg_guardrails.sql
+│   │   │   ├── 20261020160000_m1_trends_signal_tables.sql
+│   │   │   ├── 20261021090000_m3_live_data_and_shared_state.sql
+│   │   │   ├── 20261021120000_m3_catalogue_formats_and_fx.sql
+│   │   │   ├── 20261021130000_m3_completion_evidence.sql
+│   │   │   ├── 20261021140000_m1_signal_aggregation_by_fetch_date.sql
+│   │   │   ├── 20261021150000_core_skill_aliases.sql
+│   │   │   ├── 20261021150000_m2_skill_aliases.sql
+│   │   │   ├── 20261021160000_m2_role_interest_tags.sql
+│   │   │   ├── 20261022090000_core_local_accounts.sql
+│   │   │   ├── 20261022120000_core_trend_snapshot_meta.sql
+│   │   │   ├── 20261022150000_m2_profile_learning_style.sql
+│   │   │   ├── 20261022220000_core_completion_course_snapshots.sql
+│   │   │   ├── 20261022223000_core_pathway_plan_history.sql
+│   │   │   ├── 20261023035000_role_target_scope.sql
+│   │   │   ├── 20261023040000_learning_funding.sql
+│   │   │   ├── 20261023120000_core_workspaces.sql
+│   │   │   ├── 20261023160000_jobs_openings_certifications.sql
+│   │   │   ├── 20261023170000_catalogue_embeddings.sql
+│   │   │   └── 20261024010000_jobs_partial_fetch_status.sql
+│   │   ├── migrate.py
+│   │   └── seed.py
+│   ├── docker/
+│   │   ├── api.Dockerfile
+│   │   ├── boot.py
+│   │   └── web.Dockerfile
+│   ├── pipelines/
+│   │   ├── guardrails/
+│   │   │   ├── __init__.py
+│   │   │   └── check_links.py
+│   │   ├── jobs/
+│   │   │   ├── __init__.py
+│   │   │   ├── boards.py
+│   │   │   ├── certifications.py
+│   │   │   ├── classify.py
+│   │   │   ├── run.py
+│   │   │   └── sources.py
+│   │   ├── matching/
+│   │   │   ├── __init__.py
+│   │   │   ├── README.md
+│   │   │   └── run.py
+│   │   ├── pathway/
+│   │   │   ├── __init__.py
+│   │   │   ├── README.md
+│   │   │   └── run.py
+│   │   ├── sdg/
+│   │   │   ├── __init__.py
+│   │   │   ├── README.md
+│   │   │   └── run.py
+│   │   ├── trends/
+│   │   │   ├── runpod/
+│   │   │   │   ├── .env.example
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── DEPLOYMENT_HANDOFF.md
+│   │   │   │   ├── Dockerfile
+│   │   │   │   ├── Dockerfile.dockerignore
+│   │   │   │   ├── handler.py
+│   │   │   │   ├── README.md
+│   │   │   │   ├── requirements.txt
+│   │   │   │   └── test_input.json
+│   │   │   ├── __init__.py
+│   │   │   ├── arxiv_ingest.py
+│   │   │   ├── embed_taxonomy.py
+│   │   │   ├── encoder.py
+│   │   │   ├── export_fixtures_from_db.py
+│   │   │   ├── generate_mock_fixtures.py
+│   │   │   ├── labor_baseline.py
+│   │   │   ├── populate_dual_snapshot.py
+│   │   │   ├── README.md
+│   │   │   ├── run.py
+│   │   │   └── score.py
+│   │   ├── __init__.py
+│   │   └── README.md
+│   ├── scripts/
+│   │   ├── dev.py
+│   │   ├── generate_mock_cvs.py
+│   │   └── smoke_workspace.py
+│   └── web/
+│       ├── messages/
+│       │   ├── en/
+│       │   │   ├── common.json
+│       │   │   ├── guardrails.json
+│       │   │   ├── jobs.json
+│       │   │   ├── matching.json
+│       │   │   ├── org.json
+│       │   │   ├── pathway.json
+│       │   │   ├── profile.json
+│       │   │   ├── scenarios.json
+│       │   │   ├── sdg.json
+│       │   │   ├── trends.json
+│       │   │   └── ui.json
+│       │   ├── ms/
+│       │   │   ├── common.json
+│       │   │   ├── guardrails.json
+│       │   │   ├── jobs.json
+│       │   │   ├── matching.json
+│       │   │   ├── org.json
+│       │   │   ├── pathway.json
+│       │   │   ├── profile.json
+│       │   │   ├── scenarios.json
+│       │   │   ├── sdg.json
+│       │   │   ├── trends.json
+│       │   │   └── ui.json
+│       │   └── zh/
+│       │       ├── common.json
+│       │       ├── guardrails.json
+│       │       ├── jobs.json
+│       │       ├── matching.json
+│       │       ├── org.json
+│       │       ├── pathway.json
+│       │       ├── profile.json
+│       │       ├── scenarios.json
+│       │       ├── sdg.json
+│       │       ├── trends.json
+│       │       └── ui.json
+│       ├── src/
+│       │   ├── app/
+│       │   │   ├── about/
+│       │   │   │   └── page.tsx
+│       │   │   ├── admin/
+│       │   │   │   ├── snapshots/
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── sources/
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── layout.tsx
+│       │   │   │   └── page.tsx
+│       │   │   ├── api/
+│       │   │   │   ├── account/
+│       │   │   │   │   └── export/
+│       │   │   │   │       └── route.ts
+│       │   │   │   ├── assistant/
+│       │   │   │   │   └── route.ts
+│       │   │   │   ├── preview/
+│       │   │   │   │   └── route.ts
+│       │   │   │   └── workspace/
+│       │   │   │       └── route.ts
+│       │   │   ├── app/
+│       │   │   │   ├── courses/
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── funding/
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── jobs/
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── join/
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── matches/
+│       │   │   │   │   ├── [roleId]/
+│       │   │   │   │   │   └── page.tsx
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── onboarding/
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── pathway/
+│       │   │   │   │   ├── compare/
+│       │   │   │   │   │   └── page.tsx
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── profile/
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── progress/
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── radar/
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── sdg/
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── layout.tsx
+│       │   │   │   ├── loading.tsx
+│       │   │   │   └── page.tsx
+│       │   │   ├── auth/
+│       │   │   │   ├── (entry)/
+│       │   │   │   │   ├── login/
+│       │   │   │   │   │   └── page.tsx
+│       │   │   │   │   ├── signup/
+│       │   │   │   │   │   └── page.tsx
+│       │   │   │   │   └── layout.tsx
+│       │   │   │   ├── consent/
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── join/
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── logout/
+│       │   │   │   │   └── route.ts
+│       │   │   │   └── layout.tsx
+│       │   │   ├── org/
+│       │   │   │   ├── courses/
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── funding/
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── gaps/
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── members/
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── plan/
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── programmes/
+│       │   │   │   │   ├── new/
+│       │   │   │   │   │   └── page.tsx
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── radar/
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── sdg/
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── setup/
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── verify/
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── layout.tsx
+│       │   │   │   ├── loading.tsx
+│       │   │   │   └── page.tsx
+│       │   │   ├── try/
+│       │   │   │   └── page.tsx
+│       │   │   ├── work/
+│       │   │   │   ├── funding/
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── plan/
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── progress/
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── skills/
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── layout.tsx
+│       │   │   │   ├── loading.tsx
+│       │   │   │   └── page.tsx
+│       │   │   ├── adept.css
+│       │   │   ├── adi.css
+│       │   │   ├── globals.css
+│       │   │   ├── icon.svg
+│       │   │   ├── insight.css
+│       │   │   ├── layout.tsx
+│       │   │   ├── page.tsx
+│       │   │   └── workspace.css
+│       │   ├── components/
+│       │   │   ├── adi/
+│       │   │   │   ├── Adi3D.tsx
+│       │   │   │   ├── AdiAssistant.tsx
+│       │   │   │   └── AdiMascot.tsx
+│       │   │   ├── shell/
+│       │   │   │   ├── Brand.tsx
+│       │   │   │   ├── Motion.tsx
+│       │   │   │   ├── Nav.tsx
+│       │   │   │   ├── PageSkeleton.tsx
+│       │   │   │   ├── Shell.tsx
+│       │   │   │   ├── Site.tsx
+│       │   │   │   ├── SiteMenu.tsx
+│       │   │   │   └── WorkspaceSwitcher.tsx
+│       │   │   ├── ui/
+│       │   │   │   ├── badge.tsx
+│       │   │   │   ├── button.tsx
+│       │   │   │   └── card.tsx
+│       │   │   ├── viz/
+│       │   │   │   ├── FeatureArt.tsx
+│       │   │   │   ├── Heatmap.tsx
+│       │   │   │   ├── index.ts
+│       │   │   │   ├── OrgScene.tsx
+│       │   │   │   ├── PathScene.tsx
+│       │   │   │   ├── Ring.tsx
+│       │   │   │   ├── RiseArt.tsx
+│       │   │   │   ├── Scene3D.tsx
+│       │   │   │   ├── ScoreBar.tsx
+│       │   │   │   ├── SdgTiles.tsx
+│       │   │   │   ├── StackBar.tsx
+│       │   │   │   ├── StepTrack.tsx
+│       │   │   │   └── TrendBars.tsx
+│       │   │   ├── ApiError.tsx
+│       │   │   ├── DataFreshnessBadge.tsx
+│       │   │   ├── EmptyState.tsx
+│       │   │   ├── ErrorState.tsx
+│       │   │   ├── EstimateLabel.tsx
+│       │   │   ├── Fold.tsx
+│       │   │   ├── index.ts
+│       │   │   ├── Kpis.tsx
+│       │   │   ├── LocaleSwitcher.tsx
+│       │   │   ├── MetaBar.tsx
+│       │   │   ├── PageHeader.tsx
+│       │   │   ├── RetryButton.tsx
+│       │   │   ├── ScenarioToggle.tsx
+│       │   │   ├── ScoreBreakdown.tsx
+│       │   │   ├── SdgBadge.tsx
+│       │   │   ├── SourceBadge.tsx
+│       │   │   ├── StubBanner.tsx
+│       │   │   ├── TrendPill.tsx
+│       │   │   └── useBusy.ts
+│       │   ├── config/
+│       │   │   └── navigation.ts
+│       │   ├── features/
+│       │   │   ├── core/
+│       │   │   │   ├── components/
+│       │   │   │   │   ├── AccountDataCard.tsx
+│       │   │   │   │   ├── AudienceSwitch.tsx
+│       │   │   │   │   ├── AuthView.tsx
+│       │   │   │   │   ├── CvPreview.tsx
+│       │   │   │   │   ├── DashboardView.tsx
+│       │   │   │   │   ├── JoinView.tsx
+│       │   │   │   │   ├── LandingMotion.tsx
+│       │   │   │   │   ├── LandingParts.tsx
+│       │   │   │   │   ├── LandingView.tsx
+│       │   │   │   │   └── SkillBankPanel.tsx
+│       │   │   │   ├── auth-actions.ts
+│       │   │   │   └── index.ts
+│       │   │   ├── guardrails/
+│       │   │   │   ├── components/
+│       │   │   │   │   └── AboutView.tsx
+│       │   │   │   └── index.ts
+│       │   │   ├── jobs/
+│       │   │   │   ├── components/
+│       │   │   │   │   ├── CareerRoadmap.tsx
+│       │   │   │   │   ├── CertificationsCard.tsx
+│       │   │   │   │   ├── JobBoardView.tsx
+│       │   │   │   │   ├── OpeningItem.tsx
+│       │   │   │   │   └── RoleOpeningsCard.tsx
+│       │   │   │   ├── api.ts
+│       │   │   │   └── index.ts
+│       │   │   ├── matching/
+│       │   │   │   ├── components/
+│       │   │   │   │   ├── labels.ts
+│       │   │   │   │   ├── MatchDetailView.tsx
+│       │   │   │   │   ├── MatchesView.tsx
+│       │   │   │   │   ├── ReplayChanges.tsx
+│       │   │   │   │   ├── SdgWeightSlider.tsx
+│       │   │   │   │   └── SnapshotPicker.tsx
+│       │   │   │   ├── hooks/
+│       │   │   │   │   └── .gitkeep
+│       │   │   │   ├── api.ts
+│       │   │   │   └── index.ts
+│       │   │   ├── org/
+│       │   │   │   ├── components/
+│       │   │   │   │   ├── AssignedPackageView.tsx
+│       │   │   │   │   ├── FundingView.tsx
+│       │   │   │   │   ├── GapsView.tsx
+│       │   │   │   │   ├── JoinCodeCard.tsx
+│       │   │   │   │   ├── MembersView.tsx
+│       │   │   │   │   ├── OrgDashboardView.tsx
+│       │   │   │   │   ├── OrgSettingsForm.tsx
+│       │   │   │   │   ├── OrgSetupView.tsx
+│       │   │   │   │   ├── PackagesView.tsx
+│       │   │   │   │   ├── PlanView.tsx
+│       │   │   │   │   └── RemoveMemberButton.tsx
+│       │   │   │   ├── hooks/
+│       │   │   │   │   └── .gitkeep
+│       │   │   │   ├── programmes/
+│       │   │   │   │   ├── components/
+│       │   │   │   │   │   ├── ProgrammesView.tsx
+│       │   │   │   │   │   └── ProgrammeWizard.tsx
+│       │   │   │   │   ├── actions.ts
+│       │   │   │   │   └── api.ts
+│       │   │   │   ├── work/
+│       │   │   │   │   ├── components/
+│       │   │   │   │   │   ├── SharingView.tsx
+│       │   │   │   │   │   ├── WorkHomeView.tsx
+│       │   │   │   │   │   └── WorkPlanView.tsx
+│       │   │   │   │   ├── actions.ts
+│       │   │   │   │   ├── api.ts
+│       │   │   │   │   └── org.ts
+│       │   │   │   ├── actions.ts
+│       │   │   │   ├── api.ts
+│       │   │   │   ├── funding-actions.ts
+│       │   │   │   ├── funding-year.ts
+│       │   │   │   └── index.ts
+│       │   │   ├── pathway/
+│       │   │   │   ├── components/
+│       │   │   │   │   ├── ActionForm.tsx
+│       │   │   │   │   ├── CatalogueView.tsx
+│       │   │   │   │   ├── CompareRolesView.tsx
+│       │   │   │   │   ├── EvidenceBadge.tsx
+│       │   │   │   │   ├── EvidenceForm.tsx
+│       │   │   │   │   ├── PathwaySteps.tsx
+│       │   │   │   │   ├── PathwayView.tsx
+│       │   │   │   │   ├── ProgressView.tsx
+│       │   │   │   │   ├── ReviewForm.tsx
+│       │   │   │   │   ├── SegmentGuide.tsx
+│       │   │   │   │   └── VerificationQueueView.tsx
+│       │   │   │   ├── hooks/
+│       │   │   │   │   └── .gitkeep
+│       │   │   │   ├── action-state.ts
+│       │   │   │   ├── actions.ts
+│       │   │   │   ├── api.ts
+│       │   │   │   ├── catalogue-query.ts
+│       │   │   │   └── index.ts
+│       │   │   ├── profile/
+│       │   │   │   ├── components/
+│       │   │   │   │   ├── CvReview.tsx
+│       │   │   │   │   ├── IntakeWizard.tsx
+│       │   │   │   │   ├── OnboardingView.tsx
+│       │   │   │   │   └── ProfileView.tsx
+│       │   │   │   ├── hooks/
+│       │   │   │   │   └── .gitkeep
+│       │   │   │   ├── actions.ts
+│       │   │   │   ├── api.ts
+│       │   │   │   └── index.ts
+│       │   │   ├── scenarios/
+│       │   │   │   ├── components/
+│       │   │   │   │   └── RoleOutlookPanel.tsx
+│       │   │   │   ├── hooks/
+│       │   │   │   │   └── useScenario.ts
+│       │   │   │   ├── api.ts
+│       │   │   │   └── index.ts
+│       │   │   ├── sdg/
+│       │   │   │   ├── components/
+│       │   │   │   │   └── SdgContributionView.tsx
+│       │   │   │   ├── hooks/
+│       │   │   │   │   └── .gitkeep
+│       │   │   │   ├── api.ts
+│       │   │   │   └── index.ts
+│       │   │   └── trends/
+│       │   │       ├── components/
+│       │   │       │   ├── AdminDataView.tsx
+│       │   │       │   ├── RadarView.tsx
+│       │   │       │   └── SignalExplorer.tsx
+│       │   │       ├── hooks/
+│       │   │       │   └── .gitkeep
+│       │   │       ├── api.ts
+│       │   │       └── index.ts
+│       │   ├── lib/
+│       │   │   ├── api/
+│       │   │   │   ├── client.ts
+│       │   │   │   ├── index.ts
+│       │   │   │   ├── server.ts
+│       │   │   │   └── types.ts
+│       │   │   ├── auth/
+│       │   │   │   ├── account.ts
+│       │   │   │   ├── session.ts
+│       │   │   │   ├── workspace.ts
+│       │   │   │   └── workspaces.ts
+│       │   │   ├── i18n/
+│       │   │   │   ├── config.ts
+│       │   │   │   ├── global.d.ts
+│       │   │   │   └── request.ts
+│       │   │   ├── navigation.ts
+│       │   │   ├── scenario.ts
+│       │   │   ├── skill-bank.ts
+│       │   │   └── utils.ts
+│       │   └── proxy.ts
+│       ├── components.json
+│       ├── eslint.config.mjs
+│       ├── next.config.ts
+│       ├── package.json
+│       ├── pnpm-lock.yaml
+│       ├── postcss.config.mjs
+│       └── tsconfig.json
+├── tests/
+│   ├── api/
+│   │   ├── assistant/
+│   │   │   ├── test_assistant.py
+│   │   │   └── test_workspaces.py
+│   │   ├── core/
+│   │   │   ├── test_accounts.py
+│   │   │   ├── test_core.py
+│   │   │   ├── test_dev_script.py
+│   │   │   ├── test_overview.py
+│   │   │   ├── test_seed_reader.py
+│   │   │   └── test_session_secret.py
+│   │   ├── guardrails/
+│   │   │   ├── test_auth_tokens.py
+│   │   │   ├── test_fairness.py
+│   │   │   ├── test_middleware.py
+│   │   │   ├── test_rate_limit.py
+│   │   │   ├── test_rate_limit_postgres.py
+│   │   │   ├── test_router.py
+│   │   │   ├── test_sanitize_pii.py
+│   │   │   ├── test_security_config.py
+│   │   │   ├── test_sources_everywhere.py
+│   │   │   └── test_sync_guard.py
+│   │   ├── jobs/
+│   │   │   └── test_jobs.py
+│   │   ├── llm/
+│   │   │   ├── test_failover.py
+│   │   │   └── test_gateway.py
+│   │   ├── matching/
+│   │   │   ├── conftest.py
+│   │   │   ├── test_evaluation.py
+│   │   │   ├── test_gap_and_sdg.py
+│   │   │   ├── test_interest_jaccard.py
+│   │   │   ├── test_matching_scoring.py
+│   │   │   ├── test_pipeline_e2e.py
+│   │   │   ├── test_review_validation.py
+│   │   │   ├── test_router.py
+│   │   │   ├── test_saved_profile.py
+│   │   │   ├── test_sdg_weight_and_replay.py
+│   │   │   ├── test_snapshot_meta.py
+│   │   │   ├── test_snapshot_replay_api.py
+│   │   │   ├── test_trend_coverage.py
+│   │   │   └── test_trend_port.py
+│   │   ├── org/
+│   │   │   ├── test_funding.py
+│   │   │   ├── test_member_privacy.py
+│   │   │   ├── test_packages.py
+│   │   │   ├── test_programmes.py
+│   │   │   ├── test_router.py
+│   │   │   └── test_workspaces.py
+│   │   ├── pathway/
+│   │   │   ├── conftest.py
+│   │   │   ├── test_catalogue_connectivity.py
+│   │   │   ├── test_certificate_redirect.py
+│   │   │   ├── test_earned_levels.py
+│   │   │   ├── test_engine.py
+│   │   │   ├── test_fairness.py
+│   │   │   ├── test_integration_ports.py
+│   │   │   ├── test_plans_progress.py
+│   │   │   ├── test_postgres_refdata.py
+│   │   │   ├── test_postgres_store.py
+│   │   │   ├── test_postgres_sync.py
+│   │   │   ├── test_router.py
+│   │   │   └── test_verification.py
+│   │   ├── preview/
+│   │   │   └── test_preview.py
+│   │   ├── profile/
+│   │   │   ├── fixtures/
+│   │   │   │   └── cvs/
+│   │   │   │       ├── cv_aisyah.pdf
+│   │   │   │       ├── cv_data_entry.pdf
+│   │   │   │       ├── cv_java_javascript.pdf
+│   │   │   │       ├── cv_long.txt
+│   │   │   │       ├── cv_python_programming.pdf
+│   │   │   │       ├── cv_ravi.pdf
+│   │   │   │       ├── cv_scanned.pdf
+│   │   │   │       ├── cv_weijie.pdf
+│   │   │   │       └── README.md
+│   │   │   ├── conftest.py
+│   │   │   ├── test_cv_edge_cases.py
+│   │   │   ├── test_cv_fixtures.py
+│   │   │   ├── test_cv_parser_prompt5.py
+│   │   │   ├── test_cv_sections_and_suggestions.py
+│   │   │   ├── test_f1_intake.py
+│   │   │   ├── test_interest_sanitising.py
+│   │   │   ├── test_learning_style.py
+│   │   │   ├── test_review_validation.py
+│   │   │   ├── test_router.py
+│   │   │   └── test_unmatched_review.py
+│   │   ├── scenarios/
+│   │   │   ├── test_outlook_method.py
+│   │   │   └── test_router.py
+│   │   ├── sdg/
+│   │   │   ├── conftest.py
+│   │   │   ├── test_mapping.py
+│   │   │   └── test_router.py
+│   │   └── trends/
+│   │       ├── test_provenance.py
+│   │       ├── test_router.py
+│   │       ├── test_source_resolution.py
+│   │       └── test_strict_mode_and_timeouts.py
+│   ├── harness/
+│   │   ├── __init__.py
+│   │   ├── fixtures.py
+│   │   └── workspaces.py
+│   ├── pipelines/
+│   │   ├── guardrails/
+│   │   │   └── test_check_links.py
+│   │   ├── jobs/
+│   │   │   ├── test_classify.py
+│   │   │   ├── test_postgres_refresh.py
+│   │   │   └── test_refresh_preservation.py
+│   │   ├── matching/
+│   │   │   └── test_run.py
+│   │   ├── pathway/
+│   │   │   ├── fixtures/
+│   │   │   │   └── catalog_sample.json
+│   │   │   └── test_run.py
+│   │   ├── sdg/
+│   │   │   ├── fixtures/
+│   │   │   │   └── goal_list_sample.json
+│   │   │   └── test_run.py
+│   │   └── trends/
+│   │       ├── test_labor_baseline.py
+│   │       ├── test_mock_fixture_consistency.py
+│   │       ├── test_run.py
+│   │       ├── test_runpod_encoder.py
+│   │       └── test_score.py
+│   ├── conftest.py
+│   └── web-navigation.test.ts
+├── .dockerignore
+├── .env.example
+├── .gitattributes
+├── .gitignore
+├── AGENTS.md
+├── CLAUDE.md
+├── docker-compose.yml
+├── GEMINI.md
+├── LICENSE
+├── Makefile
+├── pyproject.toml
+├── pyrightconfig.json
+├── README.md
+├── requirements.txt
+└── uv.lock
 ```
 
-```bash
-make dev
-```
-
-`make setup` creates `.env` from `.env.example`, creates `.venv`, installs Python and web dependencies, starts the database, and applies migrations and seed data. `make dev` starts the API at <http://localhost:8000/docs> and the web app at <http://localhost:3000>.
-
-### Try the demo (synthetic data only)
-
-1. Open <http://localhost:3000>. On the landing page, upload a synthetic CV for an instant preview (skills found, their trend, best-fit role). Sample CVs are in [`tests/api/profile/fixtures/cvs/`](tests/api/profile/fixtures/cvs/):
-   - `cv_aisyah.pdf` (bank operations)
-   - `cv_weijie.pdf` (IT graduate)
-   - `cv_ravi.pdf` (logistics, career switcher)
-2. **Create account → For my career** with a synthetic email (for example `aisyah@example.test`). Then:
-   1. complete the intake;
-   2. open **Radar**;
-   3. open **Roles**: try the AI-pace switch, the UN Goals slider and an older snapshot;
-   4. choose a role and save the plan;
-   5. mark a course done on **Progress**.
-3. **Create account → For my team** (a separate synthetic account). Copy the join code from the dashboard. Sign in as the learner, use **Join a team**, then return to the team account to see the heatmap, team plan and impact.
-
-Use Ravi to show a rank-order change between the 2026-10-13 and 2026-10-20 snapshots. Those snapshots replay October 2024 research windows, and the app labels them as historical data.
-
-### Configuration
-
-All variables are documented in [`.env.example`](.env.example). These matter most:
-
-| Variable | Default | Notes |
-|---|---|---|
-| `DATABASE_URL` | local Docker database | PostgreSQL with pgvector |
-| `AUTH_MODE` | `demo` | Local accounts; `supabase` verifies Supabase JWTs |
-| `SESSION_SECRET` | empty | Set in production; locally a random key is kept in `.session-secret` (gitignored) |
-| `LLM_PROVIDER` | `none` | `gemini` (Google AI Studio key), `replit` (Replit AI Integrations), `runpod`, `openai`, `openrouter`; `none` = Adi's built-in guide |
-| `LLM_MODEL` / `LLM_FALLBACK_MODEL` | empty | Presentation: `glm-5.3` / `gemini-3.5-flash-lite,gemini-3.6-flash,gemini-3.1-flash-lite` |
-| `LLM_BASE_URL` | provider default | Runpod public endpoint: `https://api.runpod.ai/v2/b1dd8hy2hqo1nb/openai/v1` |
-| `RUNPOD_API_KEY` / `GEMINI_API_KEY` | empty | Separate server-only keys in root `.env` or deployment secrets; never `NEXT_PUBLIC_*` |
-| `LLM_FALLBACK_PROVIDER` | empty | Set `gemini` to use it only after Runpod failure. Empty keeps legacy same-provider model retries |
-| `LLM_FALLBACK_BASE_URL` / `LLM_FALLBACK_API_KEY` | empty | Optional custom backup endpoint/key; never borrows the primary key |
-| `EMBEDDINGS_PROVIDER` / `EMBEDDINGS_MODEL` | `none` / `gemini-embedding-001` | `gemini` turns on CV skill suggestions by cosine similarity (uses `GEMINI_API_KEY`); index: `python -m app.features.profile.skill_match` |
-| `CAREERJET_API_KEY` / `JOOBLE_API_KEY` / `WEB3_CAREER_TOKEN` | empty | Optional keyed job boards for the live openings pipeline (`src/pipelines/jobs`) |
-| `API_URL` | `http://localhost:8000` | Where the web server calls the API |
-
-For the presentation, set `LLM_PROVIDER=runpod`, `LLM_MODEL=glm-5.3`, the Runpod base URL
-above, `LLM_FALLBACK_PROVIDER=gemini` and the Gemini model list. Keep the two keys only in
-the root `.env`; Docker Compose forwards them to the API container, never the web container.
-After changing a key, recreate the API with `docker compose up -d --force-recreate api`.
-The existing HTTP client speaks Chat Completions directly, so no OpenAI SDK dependency is needed.
-
-## 13. Development, testing and CI
-
-| Command | What it does |
-|---|---|
-| `make check` | Quality gate: ruff, ESLint, translation-key parity, pytest, `tsc --noEmit`, contract drift |
-| `make test` | pytest over `tests/` (see the latest run for counts) |
-| `make contracts` | Regenerate `src/api/openapi.json` and `src/web/src/lib/api/types.ts` |
-| `make db-up` / `make db-down` | Start / stop PostgreSQL + pgvector |
-| `make db-migrate` / `make seed` | Apply migrations / load reference data |
-| `PYTHONPATH=src/api:src python -m pipelines.trends.run --dry-run` | Validate a trend refresh without publishing |
-
-**GitHub Actions:**
-
-- `ci.yml` runs the backend, frontend, contract and database jobs on every PR.
-- `trends-refresh.yml` runs the weekly trend refresh when `TREND_DATABASE_URL` is set.
-- `data-sources.yml` runs a weekly check that the public sources still answer.
-
-## 14. Repository layout and team
-
-The root layout is set by the hackathon committee.
-
-```
-docs/                 project context, team rules, tasks, decisions log, submission drafts
-src/api/              FastAPI app: core/ (config, auth, security, llm gateway), contracts/, features/<f>/
-src/web/              Next.js app: src/app (routes), src/features/<f>, src/components, messages/<locale>
-src/pipelines/<f>/    offline data jobs (trends, matching, sdg, pathway)
-src/db/               migrations/ (timestamped SQL), migrate.py, seed.py
-src/data/seed/<f>/    reference and synthetic seed data
-tests/                api/<feature>/ and pipelines/<feature>/ tests, synthetic CV fixtures
-submission/           proposal, pitch deck, demo video link
-```
-
-| Feature | Owner | Code |
-|---|---|---|
-| F1 Skills profile intake | M2 | `profile` |
-| F2 AI-trend signal layer | M1 | `trends`, `src/pipelines/trends` |
-| F3 Scenarios and uncertainty | M1 | `scenarios` |
-| F4 Future-role matching | M2 | `matching`, `src/pipelines/matching` |
-| F5 Reskilling pathway | M3 | `pathway`, `src/pipelines/pathway` |
-| F6 SDG mapping | M3 | `sdg`, `src/pipelines/sdg` |
-| F7 Organisation mode | M4 | `org` |
-| F8 Guardrails and transparency | M3 | `guardrails`, `src/api/app/core/{llm,security}` |
-| Core | M4 | shell, shared UI, auth, `src/web/src/features/core` |
-
-**Further reading:**
-
-- [docs/project-context.md](docs/project-context.md): the brief
-- [docs/solution-design.md](docs/solution-design.md): the solution design
-- [docs/architecture.md](docs/architecture.md): architecture notes
-- [docs/decisions.md](docs/decisions.md): decisions log
-- [Documentation index](docs/README.md): maintained guides and naming conventions
-
-Licence: Apache License 2.0, see [LICENSE](LICENSE).
+</details>
