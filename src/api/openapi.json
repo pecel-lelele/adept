@@ -1472,6 +1472,23 @@
         "operationId": "org_generate_programme",
         "parameters": [
           {
+            "name": "expected_org",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Expected Org"
+            }
+          },
+          {
             "name": "x-demo-user",
             "in": "header",
             "required": false,
@@ -1564,6 +1581,23 @@
         "description": "Send the generated plan to its members (refused if it changed since it was shown).",
         "operationId": "org_send_programme",
         "parameters": [
+          {
+            "name": "expected_org",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Expected Org"
+            }
+          },
           {
             "name": "x-demo-user",
             "in": "header",
@@ -2128,6 +2162,23 @@
               "maximum": 2200,
               "minimum": 2020,
               "title": "Year"
+            }
+          },
+          {
+            "name": "expected_org",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Expected Org"
             }
           },
           {
@@ -2991,6 +3042,23 @@
         "description": "Member, in the organisation workspace: share (or stop sharing) your skill levels with\nits managers. Personal plans, matches and Adi conversations are never shared.",
         "operationId": "org_set_sharing",
         "parameters": [
+          {
+            "name": "expected_org",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Expected Org"
+            }
+          },
           {
             "name": "x-demo-user",
             "in": "header",
@@ -8344,11 +8412,17 @@
             "minLength": 4,
             "title": "Code"
           },
+          "consent": {
+            "type": "boolean",
+            "title": "Consent",
+            "description": "Consent to join the organisation and share skills profile with managers.",
+            "default": true
+          },
           "share_skills": {
             "type": "boolean",
             "title": "Share Skills",
-            "description": "Share my skill levels with this organisation's managers.",
-            "default": false
+            "description": "Share skill levels with this organisation's managers.",
+            "default": true
           }
         },
         "type": "object",
@@ -11425,7 +11499,7 @@
           "share_skills": {
             "type": "boolean",
             "title": "Share Skills",
-            "default": false
+            "default": true
           },
           "consent": {
             "type": "boolean",

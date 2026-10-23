@@ -67,7 +67,9 @@ def test_sharing_is_changed_by_the_member_in_that_workspace(client: TestClient) 
     assert client.put("/api/v1/org/me/sharing", headers=HR, json=body).status_code == 403
 
 
-def test_a_join_code_grants_membership_without_sharing_by_default(client: TestClient) -> None:
+def test_a_join_code_grants_membership_with_consent_and_shares_skills(
+    client: TestClient,
+) -> None:
     signup = client.post(
         "/api/v1/auth/signup",
         json={
@@ -82,8 +84,30 @@ def test_a_join_code_grants_membership_without_sharing_by_default(client: TestCl
     token = signup.json()["token"]
     spaces = client.get("/api/v1/org/workspaces", headers={"X-Demo-User": token}).json()
     bank = next(w for w in spaces["workspaces"] if w["id"] == BANK)
-    assert bank["role"] == "member" and bank["skills_shared"] is False
+    assert bank["role"] == "member" and bank["skills_shared"] is True
     joiner = signup.json()["account"]["id"]
     work = {"X-Demo-User": token, "X-Workspace": BANK}
     assert client.get("/api/v1/org/members", headers=work).status_code == 403
+    # Synthetic Joiner has not completed profile intake yet, so not in option members
     assert joiner not in _option_members(client)
+
+
+def test_joining_org_without_consent_fails(client: TestClient) -> None:
+    signup = client.post(
+        "/api/v1/auth/signup",
+        json={
+            "display_name": "No Consent Joiner",
+            "email": "no.consent.joiner@example.com",
+            "password": "correct-horse-battery",
+            "consent": True,
+        },
+    )
+    assert signup.status_code == 201
+    token = signup.json()["token"]
+    res = client.post(
+        "/api/v1/org/join",
+        headers={"X-Demo-User": token},
+        json={"code": "BANKDEMO", "consent": False},
+    )
+    assert res.status_code == 400
+    assert res.json()["error"]["code"] == "consent_required"

@@ -18,8 +18,8 @@ class SignupIn(BaseModel):
     organisation: OrganizationIn | None = None
     # Optional for an individual: join an organisation with the code its manager shared.
     join_code: str | None = Field(default=None, max_length=16)
-    # With a join code: share my skill levels with that organisation's managers.
-    share_skills: bool = False
+    # With a join code: joining shares skill levels with the organisation's managers by consent.
+    share_skills: bool = True
     consent: bool = Field(description="Accepted the data-use and estimates notice.")
 
 

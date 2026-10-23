@@ -118,6 +118,12 @@ def rotate_join_code(user: CurrentUser) -> Organization:
 def join_org(user: CurrentUser, body: JoinOrgIn) -> Organization:
     """Join as an employee/student. Management rights are never granted by a join code, and one
     account may belong to several organisations, each its own workspace."""
+    if not body.consent:
+        raise AppError(
+            "Consent is required to join an organisation.",
+            status_code=400,
+            code="consent_required",
+        )
     org = repository.find_org_by_code(body.code)
     if org is None:
         raise NotFoundError("That join code does not match any organisation.")

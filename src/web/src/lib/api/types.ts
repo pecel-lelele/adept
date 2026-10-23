@@ -2319,9 +2319,15 @@ export interface components {
             /** Code */
             code: string;
             /**
+             * Consent
+             * @description Consent to join the organisation and share skills profile with managers.
+             * @default true
+             */
+            consent: boolean;
+            /**
              * Share Skills
-             * @description Share my skill levels with this organisation's managers.
-             * @default false
+             * @description Share skill levels with this organisation's managers.
+             * @default true
              */
             share_skills: boolean;
         };
@@ -3677,7 +3683,7 @@ export interface components {
             join_code?: string | null;
             /**
              * Share Skills
-             * @default false
+             * @default true
              */
             share_skills: boolean;
             /**
@@ -4803,7 +4809,9 @@ export interface operations {
     };
     org_generate_programme: {
         parameters: {
-            query?: never;
+            query?: {
+                expected_org?: string | null;
+            };
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
@@ -4873,7 +4881,9 @@ export interface operations {
     };
     org_send_programme: {
         parameters: {
-            query?: never;
+            query?: {
+                expected_org?: string | null;
+            };
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
@@ -5056,7 +5066,9 @@ export interface operations {
     };
     org_request_funding: {
         parameters: {
-            query?: never;
+            query?: {
+                expected_org?: string | null;
+            };
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;
@@ -5388,7 +5400,9 @@ export interface operations {
     };
     org_set_sharing: {
         parameters: {
-            query?: never;
+            query?: {
+                expected_org?: string | null;
+            };
             header?: {
                 "x-demo-user"?: string | null;
                 authorization?: string | null;

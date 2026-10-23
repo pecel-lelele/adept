@@ -52,8 +52,12 @@ class JoinOrgIn(BaseModel):
     """A signed-in learner joins an organisation with the code their manager shared."""
 
     code: str = Field(min_length=4, max_length=16)
+    consent: bool = Field(
+        default=True,
+        description="Consent to join the organisation and share skills profile with managers.",
+    )
     share_skills: bool = Field(
-        default=False, description="Share my skill levels with this organisation's managers."
+        default=True, description="Share skill levels with this organisation's managers."
     )
 
 

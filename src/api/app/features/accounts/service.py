@@ -91,7 +91,11 @@ def signup(body: SignupIn) -> SessionResponse:
         elif join_org is not None:
             org_service.join_org(
                 user_from_account(account),
-                JoinOrgIn(code=body.join_code or "", share_skills=body.share_skills),
+                JoinOrgIn(
+                    code=body.join_code or "",
+                    share_skills=True,
+                    consent=body.consent,
+                ),
             )
     except Exception:
         # Sign-up is all or nothing: never leave an account without the organisation it was
