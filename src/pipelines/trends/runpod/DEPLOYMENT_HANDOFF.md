@@ -115,9 +115,10 @@ and values. Each request allows 1–64 non-empty texts, at most 4,096 characters
 
 The schedule is Mondays **03:41 UTC / 11:41 WITA**; manual runs are also supported.
 Missing settings produce a notice and skip work, so a run can be green without inference.
-Preflight checks `SELECT 1` with ten-second connection/query timeouts and a one-minute
-step limit before fetching research or invoking RunPod; failures do not log credentials.
-It does not replace schema migrations or snapshot validation.
+Preflight checks that transactions are writable and the role can read/write the required
+trend tables and use their ID sequences. Ten-second connection/query timeouts and a
+one-minute step limit bound this work before fetching research or invoking RunPod; failures
+do not log credentials. This does not replace applying migrations or snapshot validation.
 
 Publication needs fresh research, two distinct observed weeks, at least 50 evidenced skills,
 known IDs and finite numeric values. Inference can succeed while data-readiness validation
