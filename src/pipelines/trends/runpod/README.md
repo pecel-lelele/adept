@@ -10,7 +10,14 @@ The API continues serving stored snapshots; no GPU is needed for web requests.
 
 ## Build and deploy
 
-From the repository root, replace `YOUR_REGISTRY` with your image registry:
+The worker image is automatically built and published to GitHub Container Registry by the
+`publish-minilm.yml` GitHub Actions workflow on push to `main`:
+
+`ghcr.io/pecel-lelele/adept-minilm:latest`
+
+RunPod can pull directly from this public registry image without credentials.
+
+To build and push manually instead, from the repository root:
 
 ```bash
 docker build --platform linux/amd64 -f src/pipelines/trends/runpod/Dockerfile -t YOUR_REGISTRY/adept-minilm:v1 .

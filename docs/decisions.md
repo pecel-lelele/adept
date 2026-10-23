@@ -189,6 +189,17 @@
 - **Replaces**: none
 - **PR / branch**: `feat/m1-trends-contract`
 
+### M1-011: Automated MiniLM worker publishing to GHCR and Replit-RunPod integration architecture
+- **Date**: 2026-10-24
+- **Feature**: F2 (AI-Trend Signal Layer) / Core deployment
+- **Type**: model | dependency | architectural decision
+- **Change**: Added `.github/workflows/publish-minilm.yml` to automatically build and publish the MiniLM RunPod worker image to GitHub Container Registry (`ghcr.io/pecel-lelele/adept-minilm:latest`) on changes to the worker or manual trigger. Added `TRENDS_*` variables to `.env.example` and root `.env`. Updated `DEPLOYMENT_HANDOFF.md` and `README.md` documenting the Replit + RunPod architecture.
+- **Why**: Facilitates deploying the pinned sentence-transformers `all-MiniLM-L6-v2` worker to RunPod Serverless without local Docker setup. When the web app is hosted on Replit, it serves pre-computed PostgreSQL `trend_snapshots` with zero GPU cold-start delay, while the batch trend pipeline runs on GitHub Actions or locally, making authenticated calls to the RunPod Serverless worker endpoint.
+- **Pipeline** (data/ML only): arXiv cs.AI + BLS 2023-2033 -> clean HTML, sentence chunk -> 384-d MiniLM vectors via RunPod Serverless (`ghcr.io/pecel-lelele/adept-minilm:latest`) -> cosine similarity (threshold >= 0.55) -> composite velocity -> PostgreSQL `trend_snapshots` served on Replit.
+- **Affects**: M1 (trend pipeline execution), M4 (Replit deployment / RunPod setup)
+- **Replaces**: none
+- **PR / branch**: `feat/minilm-runpod-deploy`
+
 ---
 
 ## M2: Profile Intake & Matching (F1, F4)
