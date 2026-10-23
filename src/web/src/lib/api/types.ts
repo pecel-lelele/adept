@@ -3413,6 +3413,12 @@ export interface components {
             low: number;
             /** High */
             high: number;
+            /**
+             * Insufficient Evidence
+             * @description True when skill coverage for this role is below MIN_COVERAGE_THRESHOLD (20%). The low/high range is still provided but should be treated with extra caution. Always an estimate.
+             * @default false
+             */
+            insufficient_evidence: boolean;
         };
         /** RoleReadiness */
         RoleReadiness: {

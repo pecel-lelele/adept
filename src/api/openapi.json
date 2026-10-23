@@ -11040,6 +11040,12 @@
           "high": {
             "type": "number",
             "title": "High"
+          },
+          "insufficient_evidence": {
+            "type": "boolean",
+            "title": "Insufficient Evidence",
+            "description": "True when skill coverage for this role is below MIN_COVERAGE_THRESHOLD (20%). The low/high range is still provided but should be treated with extra caution. Always an estimate.",
+            "default": false
           }
         },
         "type": "object",

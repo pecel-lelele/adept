@@ -65,6 +65,9 @@ V_CLAMP_MAX = 2.0
 DIRECTION_RISE = 0.05
 DIRECTION_DECLINE = -0.05
 
+# Default automation exposure applied to skills missing from canonical_skills.csv.
+DEFAULT_EXPOSURE = 0.5
+
 
 # ---------------------------------------------------------------------------
 # Pure scoring functions (testable without I/O)
@@ -197,38 +200,18 @@ def load_signal_raw(db_url: str, period: str) -> tuple[dict[str, float], int]:
     return counts, max(total, 1)
 
 
-def score_rows(
-    counts_t0: dict[str, float],
-    total_t0: int,
-    counts_t1: dict[str, float],
-    total_t1: int,
-    labor_decay_map: dict[str, tuple[float, str]],
-    exposure_map: dict[str, float],
-) -> list[dict]:
-    """One scored row per known skill (pure; used by ``main`` and ``pipelines.trends.run``)."""
-    rows: list[dict] = []
-    for sid in sorted(exposure_map):
-        freq_t0 = counts_t0.get(sid, 0.0) / max(total_t0, 1)
-        freq_t1 = counts_t1.get(sid, 0.0) / max(total_t1, 1)
-        rv = research_velocity(freq_t0, freq_t1)
-        ld, ld_note = labor_decay_map.get(sid, (0.0, "no BLS mapping"))
-        exposure = exposure_map.get(sid, 0.5)
-        v_mod = composite_velocity(rv, ld)
-        v_fast = scenario_fast(v_mod, exposure)
-        rows.append(
-            {
-                "skill_id": sid,
-                "research_velocity": round(rv, 6),
-                "labor_decay": round(ld, 6),
-                "labor_decay_source_note": ld_note,
-                "automation_exposure": round(exposure, 4),
-                "velocity_moderate": round(v_mod, 6),
-                "velocity_fast": round(v_fast, 6),
-                "direction_moderate": direction(v_mod),
-                "direction_fast": direction(v_fast),
-            }
-        )
-    return rows
+def load_skill_ids(db_url: str) -> set[str]:
+    """Return all skill IDs from the DB ``skills`` table — the application's canonical catalogue.
+
+    This is the same source used by the ID validation layer (validate_ids) and the matching
+    feature.  Using it as the master iteration set in score_rows() ensures every catalogued
+    skill appears in every snapshot, even if it is absent from canonical_skills.csv.
+    """
+    import psycopg  # type: ignore[import]
+
+    with psycopg.connect(db_url) as conn:
+        rows = conn.execute("SELECT id FROM skills").fetchall()
+    return {row[0] for row in rows}
 
 
 def list_available_periods(db_url: str) -> list[str]:
@@ -249,12 +232,30 @@ def write_snapshots(
     snapshot_date: date,
     db_url: str,
 ) -> None:
-    """Upsert scored rows into trend_snapshots."""
+    """Write evidenced scored rows into trend_snapshots for snapshot_date.
+
+    Rows without real signal (``has_evidence=False``) are never written so that
+    ``role_signal`` cannot count catalogue-only skills as covered.
+
+    **Snapshot cleanup**: all existing rows for this date are deleted before the
+    new evidenced rows are inserted.  This prevents a rescore from leaving stale
+    rows for skills that were evidenced in a previous run but are not evidenced
+    in the current one — those stale rows would otherwise be counted as covered
+    by ``role_signal`` and silently suppress uncertainty widening.
+    """
     import psycopg  # type: ignore[import]
 
+    evidenced = [r for r in rows if r.get("has_evidence", True)]
     with psycopg.connect(db_url) as conn:
         with conn.cursor() as cur:
-            for r in rows:
+            # Remove all existing rows for this date so that skills which were
+            # evidenced in a previous run but are no longer evidenced now do not
+            # linger and falsely inflate role coverage.
+            cur.execute(
+                "DELETE FROM trend_snapshots WHERE snapshot_date = %s",
+                (snapshot_date,),
+            )
+            for r in evidenced:
                 cur.execute(
                     """
                     INSERT INTO trend_snapshots
@@ -287,7 +288,62 @@ def write_snapshots(
                     ),
                 )
         conn.commit()
-    print(f"[db] Wrote {len(rows)} snapshot rows for {snapshot_date}.")
+    print(f"[db] Wrote {len(evidenced)} of {len(rows)} snapshot rows for {snapshot_date}.")
+
+
+def score_rows(
+    counts_t0: dict[str, float],
+    total_t0: int,
+    counts_t1: dict[str, float],
+    total_t1: int,
+    labor_decay_map: dict[str, tuple[float, str]],
+    exposure_map: dict[str, float],
+    skill_ids: set[str] | None = None,
+) -> list[dict]:
+    """One scored row per known skill (pure; used by ``main`` and ``pipelines.trends.run``).
+
+    ``skill_ids`` — the full application skill catalogue (from the DB skills table).  When
+    provided, every skill in the catalogue is scored; skills absent from ``exposure_map``
+    receive the neutral DEFAULT_EXPOSURE (0.5) instead of being silently dropped.  When
+    omitted the function falls back to iterating over ``exposure_map`` keys only (the
+    previous behaviour, preserved for callers that have not yet migrated).
+
+    Each row carries ``has_evidence: bool``.  A skill has evidence when it appeared in at
+    least one arxiv signal period (counts > 0) **or** has a BLS labour-decay mapping.
+    Catalogue-only skills with neither source get ``has_evidence=False``.  Callers
+    (``write_snapshots``, ``run.publish``) must filter these rows out before writing to
+    ``trend_snapshots`` so that ``role_signal`` does not count them as covered.
+    """
+    master: set[str] = skill_ids if skill_ids is not None else set(exposure_map)
+    rows: list[dict] = []
+    for sid in sorted(master):
+        freq_t0 = counts_t0.get(sid, 0.0) / max(total_t0, 1)
+        freq_t1 = counts_t1.get(sid, 0.0) / max(total_t1, 1)
+        rv = research_velocity(freq_t0, freq_t1)
+        ld, ld_note = labor_decay_map.get(sid, (0.0, "no BLS mapping"))
+        exposure = exposure_map.get(sid, DEFAULT_EXPOSURE)
+        v_mod = composite_velocity(rv, ld)
+        v_fast = scenario_fast(v_mod, exposure)
+        # Issue 3 fix: a skill only has evidence when it was actually measured.
+        # Catalogue membership alone (sid in skill_ids) is not evidence.
+        has_evidence: bool = (
+            counts_t0.get(sid, 0.0) > 0 or counts_t1.get(sid, 0.0) > 0 or sid in labor_decay_map
+        )
+        rows.append(
+            {
+                "skill_id": sid,
+                "research_velocity": round(rv, 6),
+                "labor_decay": round(ld, 6),
+                "labor_decay_source_note": ld_note,
+                "automation_exposure": round(exposure, 4),
+                "velocity_moderate": round(v_mod, 6),
+                "velocity_fast": round(v_fast, 6),
+                "direction_moderate": direction(v_mod),
+                "direction_fast": direction(v_fast),
+                "has_evidence": has_evidence,
+            }
+        )
+    return rows
 
 
 # ---------------------------------------------------------------------------
@@ -324,10 +380,20 @@ def main(
 
     print(f"Scoring: t0={t0_period}, t1={t1_period}, snapshot_date={snapshot_date}")
 
+    labor_decay_map = load_labor_decay()
+    exposure_map = load_automation_exposure()
+    skill_ids = load_skill_ids(db_url)
+
     counts_t0, total_t0 = load_signal_raw(db_url, t0_period)
     counts_t1, total_t1 = load_signal_raw(db_url, t1_period)
     scored_rows = score_rows(
-        counts_t0, total_t0, counts_t1, total_t1, load_labor_decay(), load_automation_exposure()
+        counts_t0,
+        total_t0,
+        counts_t1,
+        total_t1,
+        labor_decay_map,
+        exposure_map,
+        skill_ids=skill_ids,
     )
 
     write_snapshots(scored_rows, snapshot_date, db_url)
