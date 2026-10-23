@@ -18,6 +18,7 @@ def _signup(client: TestClient, **extra: object) -> dict:
         "email": _email(),
         "password": "correct horse battery",
         "consent": True,
+        "share_skills": True,
         **extra,
     }
     resp = client.post("/api/v1/auth/signup", json=body)
@@ -128,6 +129,36 @@ def test_unknown_join_code_is_rejected(client: TestClient) -> None:
     )
     assert resp.status_code == 422
     assert resp.json()["error"]["code"] == "bad_join_code"
+
+
+def test_signup_with_join_code_requires_sharing_consent(client: TestClient) -> None:
+    _manager, join_code = _org(client, "Sharing Consent Org")
+    bad = client.post(
+        "/api/v1/auth/signup",
+        json={
+            "display_name": "No Consent",
+            "email": _email(),
+            "password": "correct horse battery",
+            "consent": True,
+            "join_code": join_code,
+            "share_skills": False,
+        },
+    )
+    assert bad.status_code == 400
+    assert bad.json()["error"]["code"] == "sharing_consent_required"
+
+    good = client.post(
+        "/api/v1/auth/signup",
+        json={
+            "display_name": "With Consent",
+            "email": _email(),
+            "password": "correct horse battery",
+            "consent": True,
+            "join_code": join_code,
+            "share_skills": True,
+        },
+    )
+    assert good.status_code == 201
 
 
 def _org(client: TestClient, name: str) -> tuple[dict, str]:

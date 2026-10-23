@@ -79,7 +79,8 @@
     "trustYou": "Anda yang membuat keputusan",
     "eyebrowMe": "Untuk anda",
     "eyebrowTeam": "Untuk pasukan anda",
-    "shareSkills": "Kongsi tahap kemahiran saya dengan organisasi itu"
+    "shareSkills": "Kongsi tahap kemahiran saya dengan organisasi itu",
+    "shareSkillsHint": "Pengurus menggunakan tahap yang dikongsi untuk merancang latihan pasukan. Pelan peribadi dan padanan anda kekal peribadi."
   },
   "landing": {
     "eyebrow": "Kerjaya bersedia masa depan",

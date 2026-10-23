@@ -79,7 +79,8 @@
     "trustYou": "You make the decisions",
     "eyebrowMe": "For you",
     "eyebrowTeam": "For your team",
-    "shareSkills": "Share my skill levels with that organisation"
+    "shareSkills": "Share my skill levels with that organisation",
+    "shareSkillsHint": "Managers use shared levels to plan team training. Your personal plans and matches stay private."
   },
   "landing": {
     "eyebrow": "Future-ready careers",

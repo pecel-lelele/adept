@@ -79,7 +79,8 @@
     "trustYou": "由你做决定",
     "eyebrowMe": "为你",
     "eyebrowTeam": "为你的团队",
-    "shareSkills": "与该组织分享我的技能水平"
+    "shareSkills": "与该组织分享我的技能水平",
+    "shareSkillsHint": "管理者使用共享的技能水平规划团队培训。您的个人计划和匹配结果保持私密。"
   },
   "landing": {
     "eyebrow": "面向未来的职业",

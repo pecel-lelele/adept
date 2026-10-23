@@ -35,6 +35,14 @@ function destination(next: string, apiNext: string): string {
 export async function signupAction(_: AuthState, form: FormData): Promise<AuthState> {
   const workspace = text(form, "workspace") === "organisation" ? "organisation" : "individual";
   const size = Number.parseInt(text(form, "size", 7), 10);
+  const joinCode = workspace === "individual" ? text(form, "join_code", 16) || null : null;
+  const shareSkills = workspace === "individual" && Boolean(joinCode) && form.get("share_skills") === "on";
+  if (joinCode && !shareSkills) {
+    return {
+      error: "Consent to share your skill profile with the organisation is required when signing up with a join code.",
+      values: keep(form),
+    };
+  }
   const api = await getApi();
   const result = await call(
     api.POST("/api/v1/auth/signup", {
@@ -44,8 +52,8 @@ export async function signupAction(_: AuthState, form: FormData): Promise<AuthSt
         password: typeof form.get("password") === "string" ? String(form.get("password")).slice(0, 128) : "",
         workspace,
         consent: form.get("consent") === "on",
-        join_code: workspace === "individual" ? text(form, "join_code", 16) || null : null,
-        share_skills: workspace === "individual" && Boolean(text(form, "join_code", 16)),
+        join_code: joinCode,
+        share_skills: shareSkills,
         organisation:
           workspace === "organisation"
             ? {

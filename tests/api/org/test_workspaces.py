@@ -78,6 +78,7 @@ def test_a_join_code_grants_membership_with_consent_and_shares_skills(
             "password": "correct-horse-battery",
             "join_code": "BANKDEMO",
             "consent": True,
+            "share_skills": True,
         },
     )
     assert signup.status_code == 201, signup.text

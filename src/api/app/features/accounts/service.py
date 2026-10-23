@@ -89,11 +89,18 @@ def signup(body: SignupIn) -> SessionResponse:
         if org_mode and body.organisation is not None:
             org_service.create_org(account, body.organisation)
         elif join_org is not None:
+            if not body.share_skills:
+                raise AppError(
+                    "Consent to share your skills is required when signing up with an "
+                    "organisation join code.",
+                    status_code=400,
+                    code="sharing_consent_required",
+                )
             org_service.join_org(
                 user_from_account(account),
                 JoinOrgIn(
                     code=body.join_code or "",
-                    share_skills=True,
+                    share_skills=body.share_skills,
                     consent=body.consent,
                 ),
             )
