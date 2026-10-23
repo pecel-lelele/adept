@@ -9,7 +9,7 @@ import { joinOrgAction, type AuthState } from "../auth-actions";
 
 /**
  * A signed-in learner joins an organisation with the code their manager or career centre
- * shared. Beside the form: what joining shares and what stays private.
+ * shared, consenting to share their profile and learning progress with the organisation.
  */
 export function JoinView({ code = "" }: { code?: string }) {
   const t = useTranslations("ui.join");
@@ -62,10 +62,15 @@ export function JoinView({ code = "" }: { code?: string }) {
                 />
               </label>
               <label className="a-check">
-                <input type="checkbox" name="share_skills" defaultChecked={state.values?.share_skills === "on"} />
+                <input
+                  type="checkbox"
+                  name="consent"
+                  required
+                  defaultChecked={state.values?.consent ? state.values.consent === "on" : true}
+                />
                 <span>
-                  <strong>{t("shareSkills")}</strong>
-                  <small>{t("shareSkillsHint")}</small>
+                  <strong>{t("consent")}</strong>
+                  <small>{t("consentHint")}</small>
                 </span>
               </label>
               {state.error ? (

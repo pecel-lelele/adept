@@ -439,6 +439,8 @@
     "body": "Enter the code your manager or career centre gave you.",
     "cta": "Join",
     "done": "You joined {org}.",
+    "consent": "I consent to join this organisation and share my profile",
+    "consentHint": "Organisation managers will see your skill levels and learning progress to coordinate training.",
     "shareSkills": "Share my skill levels with this organisation",
     "shareSkillsHint": "Managers use shared levels to plan team training. Your personal plans and matches stay private. You can change this later.",
     "openWorkspace": "Open {org}"

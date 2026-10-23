@@ -45,7 +45,7 @@ export async function signupAction(_: AuthState, form: FormData): Promise<AuthSt
         workspace,
         consent: form.get("consent") === "on",
         join_code: workspace === "individual" ? text(form, "join_code", 16) || null : null,
-        share_skills: workspace === "individual" && form.get("share_skills") === "on",
+        share_skills: workspace === "individual" && Boolean(text(form, "join_code", 16)),
         organisation:
           workspace === "organisation"
             ? {
@@ -79,10 +79,14 @@ export async function loginAction(_: AuthState, form: FormData): Promise<AuthSta
 }
 
 export async function joinOrgAction(_: AuthState, form: FormData): Promise<AuthState> {
+  const consent = form.get("consent") === "on";
+  if (!consent) {
+    return { error: "Please consent to join the organisation and share your profile.", values: keep(form) };
+  }
   const api = await getApi();
   const result = await call(
     api.POST("/api/v1/org/join", {
-      body: { code: text(form, "code", 16), share_skills: form.get("share_skills") === "on" },
+      body: { code: text(form, "code", 16), share_skills: true, consent: true },
     }),
   );
   if (!result.ok) return { error: result.message, values: keep(form) };

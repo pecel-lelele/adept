@@ -439,6 +439,8 @@
     "body": "Masukkan kod daripada pengurus atau pusat kerjaya anda.",
     "cta": "Sertai",
     "done": "Anda telah menyertai {org}.",
+    "consent": "Saya bersetuju untuk menyertai organisasi ini dan berkongsi profil saya",
+    "consentHint": "Pengurus organisasi akan melihat tahap kemahiran dan kemajuan pembelajaran anda untuk menyelaraskan latihan.",
     "shareSkills": "Kongsi tahap kemahiran saya dengan organisasi ini",
     "shareSkillsHint": "Pengurus menggunakan tahap yang dikongsi untuk merancang latihan. Pelan peribadi dan padanan anda kekal peribadi. Boleh diubah kemudian.",
     "openWorkspace": "Buka {org}"
