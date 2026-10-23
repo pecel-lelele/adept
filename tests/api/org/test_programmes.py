@@ -163,3 +163,52 @@ def test_members_cannot_generate_or_send(client: TestClient) -> None:
         == 403
     )
     assert client.get("/api/v1/org/programmes", headers=MEMBER).status_code == 403
+
+
+def test_non_sharing_member_acceptance_requires_consent_and_sanitizes_for_hr(
+    client: TestClient,
+) -> None:
+    brief = _brief(client)
+    plan = _generate(client, brief)
+    client.post("/api/v1/org/programmes", headers=HR, json={"brief": brief, "token": plan["token"]})
+    mine = client.get("/api/v1/org/programmes/mine", headers=MEMBER).json()["assignments"]
+    if not mine:
+        pytest.skip("aisyah was not assigned in this brief")
+    pid = mine[0]["agreement"]["programme_id"]
+
+    member_org = {**MEMBER, "X-Workspace": "org-demo-bank"}
+
+    try:
+        # Member switches off skills sharing
+        resp = client.put(
+            "/api/v1/org/me/sharing", headers=member_org, json={"share_skills": False}
+        )
+        assert resp.status_code == 200
+
+        # Accepting without consent is refused
+        bad = client.post(
+            f"/api/v1/org/programmes/{pid}/decision",
+            headers=member_org,
+            json={"decision": "accept", "consent": False},
+        )
+        assert bad.status_code == 400
+        assert bad.json()["error"]["code"] == "sharing_consent_required"
+
+        # Accepting with explicit consent succeeds
+        good = client.post(
+            f"/api/v1/org/programmes/{pid}/decision",
+            headers=member_org,
+            json={"decision": "accept", "consent": True},
+        )
+        assert good.status_code == 200
+
+        # HR view of list_programmes masks private skills for members whose sharing is off
+        programmes = client.get("/api/v1/org/programmes", headers=HR).json()["programmes"]
+        assert programmes
+        aisyah_assignment = next(
+            a for a in programmes[0]["assignments"] if a["user_id"] == "aisyah"
+        )
+        assert all(g["current_level"] == 0 for g in aisyah_assignment["pathway"]["gaps"])
+        assert all(u["current_level"] == 0 for u in aisyah_assignment["pathway"]["unmet"])
+    finally:
+        client.put("/api/v1/org/me/sharing", headers=member_org, json={"share_skills": True})

@@ -389,8 +389,28 @@ def _status(record: ProgrammeRecord, assignments: list[ProgrammeAssignment]) -> 
 def list_programmes(user: CurrentUser) -> ProgrammeList:
     org_id = funding.manager_scope(user)
     state = funding_store.snapshot(org_id)
+    shared_members = {m.id: m.skills_shared for m in service.repository.list_members(org_id)}
+
+    def _sanitize(assignment: ProgrammeAssignment) -> ProgrammeAssignment:
+        if shared_members.get(assignment.user_id, False):
+            return assignment
+        # Keep private inputs out of employer-visible record when sharing is off
+        sanitized_gaps = [
+            g.model_copy(update={"current_level": 0}) for g in assignment.pathway.gaps
+        ]
+        sanitized_unmet = [
+            u.model_copy(update={"current_level": 0}) for u in assignment.pathway.unmet
+        ]
+        sanitized_pathway = assignment.pathway.model_copy(
+            update={"gaps": sanitized_gaps, "unmet": sanitized_unmet}
+        )
+        return assignment.model_copy(update={"pathway": sanitized_pathway})
+
     return ProgrammeList(
-        programmes=[_status(r, state.assignments) for r in reversed(state.programmes)]
+        programmes=[
+            _status(r, [_sanitize(a) for a in state.assignments])
+            for r in reversed(state.programmes)
+        ]
     )
 
 
@@ -423,7 +443,25 @@ def decide(user: CurrentUser, programme_id: str, body: AssignmentDecision) -> Pr
     if body.decision == "accept":
         # Accepting re-checks the route against today's catalogue, prices and skills, within
         # what the employer committed, instead of adopting a stale copy.
-        learner = service.member_learners(user.org_id, only=user.id).get(user.id)
+        # When sharing is off and no explicit consent is given, do not bypass the sharing flag
+        # with private profile levels.
+        member = next(
+            (m for m in service.repository.list_members(user.org_id) if m.id == user.id),
+            None,
+        )
+        sharing_on = bool(member and member.skills_shared)
+        if not sharing_on and not body.consent:
+            raise AppError(
+                "Consent to share your refreshed programme route with managers is required to "
+                "accept this agreement.",
+                status_code=400,
+                code="sharing_consent_required",
+            )
+        learner = (
+            service.member_learners(user.org_id, only=user.id).get(user.id)
+            if (sharing_on or body.consent)
+            else None
+        )
         effective_budget = current.agreement.budget_myr
         if learner is not None:
             snap = funding_store.snapshot(user.org_id)

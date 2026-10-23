@@ -197,3 +197,9 @@ class AssignmentDecision(BaseModel):
     decision: Literal["accept", "decline", "request_change"]
     reason: ChangeReason | None = None
     note: str = Field(default="", max_length=500)
+    consent: bool = Field(
+        default=False,
+        description=(
+            "Explicit consent to share current skill levels and pathway gaps for this programme."
+        ),
+    )
