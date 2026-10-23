@@ -353,10 +353,10 @@ def intent(question: str, audience: str = "learner") -> str:
     for name, words in INTENTS.items():
         if name in PERSONAL_PLAN_INTENTS and audience != "learner":
             continue
-        if name == "plan_cost" and not any(_contains(q, word) for word in PLAN_WORDS):
-            continue
-        if name == "plan_duration" and not any(
-            _contains(q, word) for word in (*PLAN_WORDS, "i", "my", "saya", "我")
+        # Saved-plan totals answer only questions about the plan itself: "Which courses can I
+        # finish in two hours?" is course advice, not "how long is my plan?".
+        if name in ("plan_cost", "plan_duration") and not any(
+            _contains(q, word) for word in PLAN_WORDS
         ):
             continue
         if name == "team" and audience != "manager":

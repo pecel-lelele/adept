@@ -599,3 +599,9 @@ def test_expired_context_does_not_start_a_model_call() -> None:
         )
     provider.assert_not_called()
     assert result.used_llm is False
+
+
+def test_course_questions_are_not_answered_with_plan_totals() -> None:
+    assert guide.intent("Which courses can I finish in two hours?", "learner") != "plan_duration"
+    assert guide.intent("How long will my plan take?", "learner") == "plan_duration"
+    assert guide.intent("Berapa lama pelan saya?", "learner") == "plan_duration"
