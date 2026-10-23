@@ -1350,4 +1350,106 @@
 - **Replaces**: none (extends M4-056, M4-057)
 - **PR / branch**: feat/catalogue-roles-skills-courses
 
+### M4-059: Live job openings from public employer and job-board feeds
+- **Date**: 2026-10-23
+- **Feature**: Core (new `jobs` feature; works with F4, F5, F7)
+- **Type**: data source | method | schema | contract | UI
+- **Change**: New pipeline `src/pipelines/jobs` reads current openings and stores them in `job_postings` (migration `20261023160000`) and `src/data/seed/jobs/job_postings.csv`. It keeps openings in Malaysia, plus remote ones open to Malaysians. Sources are 45 employer feeds (Greenhouse, Lever, Ashby, Workday and Jibe career sites) and 4 remote boards. Each ad is matched to an Adept role by job title. The skills it names are read with the CV parser's catalogue matcher. Ad text is never stored. New `/jobs` endpoints serve:
+  - openings per role, with how many are within reach today and after the learner's plan;
+  - a filtered job board;
+  - opening counts for the matches list.
 
+  The web shows a `/app/jobs` page, a "Hiring now" card on role and plan pages, opening counts on match cards and a learn → prove → apply roadmap on the plan.
+- **Why**: Mentor feedback asked for a path to real jobs after training, not only projections. Rejected sources:
+  - JobStreet: its terms (clause 7(d)) ban scraping;
+  - LinkedIn and Indeed: no public jobs API;
+  - EY: its robots.txt disallows the feed path;
+  - SmartRecruiters: its API host disallows crawlers.
+
+  Careerjet, Jooble and web3.career are wired but run only with a free publisher key. A role match from skills alone was tried and dropped: it filed a React developer as an ML engineer.
+- **Pipeline**:
+  1. Source: public ATS and remote-board APIs. robots.txt is checked for every host, with a delay per host.
+  2. Cleaning: Malaysia filter, HTML to text, dedupe.
+  3. Features: catalogue skills, named certifications and seniority.
+  4. Method: ordered title patterns per role.
+  5. Evaluation: title rules are at least 95% right on 31 hand-labelled titles. The share of openings assigned to a role, and the job families left unassigned, are logged in `fetch_log.json`.
+  6. Serving: seed CSV plus a `--db` upsert. A board read successfully closes the openings it no longer lists, and any opening unseen for 14 days is closed.
+- **Affects**:
+  - M2: match cards and role detail show openings.
+  - M3: the plan page shows the roadmap and openings; the jobs feature reads `pathway_service.learner_for`, `get_saved_plan` and `get_pathway`.
+  - M4: `/org/plan` shows market demand.
+- **Replaces**: none
+- **PR / branch**: feat/jobs-live-openings
+
+### M4-060: Paid certification exams linked to role skills, payer by context
+- **Date**: 2026-10-23
+- **Feature**: Core (jobs), F5, F7
+- **Type**: data source | schema | contract | UI
+- **Change**: `certifications` table and seed hold 14 exams, each with the official fee for a candidate in Malaysia, the page it was read from and the date checked:
+  - Microsoft PL-900/PL-300/DP-900/DP-700/AZ-900/AZ-104/AI-901/SC-900/SC-200, priced from Microsoft's exam-pricing data (USD 50 Fundamentals, USD 83 role-based);
+  - AWS CLF-C02 and AIF-C01 (USD 100);
+  - Google Cloud Digital Leader (USD 99);
+  - IIBA ECBA ("$395 or less" bundle);
+  - IAPP AIGP (USD 799 for non-members).
+
+  Ringgit amounts use the BNM selling rate. `GET /jobs/certifications` lists the exams covering a role's required skills. Each entry shows the learner's status per skill, the plan courses that prepare for it and how many current ads name it. On a personal plan the learner pays the issuer. With `payer=employer` (team programme) the organisation buys exams like courses and no personal skills are shown.
+- **Why**: Mentor feedback said to link course completion to certifications employers recognise. Free courses teach the skills; a paid exam is what an employer can verify. In practice HR buys team training and exams directly, so the team view frames exams as programme budget, not member reimbursement.
+- **Pipeline**: source (issuer pages, read 2026-10-23) → validation (skills exist in the catalogue, https URLs, positive fee, dated) → features (role coverage = overlap with required skills) → serving (seed CSV, DB upsert, API)
+- **Affects**: M3 (plan page card); M4 (`/org/plan` card)
+- **Replaces**: none
+- **PR / branch**: feat/jobs-live-openings
+
+### M4-061: Section-aware CV review list and Gemini embedding skill suggestions
+- **Date**: 2026-10-23
+- **Feature**: F1 (Skills Profile Intake), Core
+- **Type**: method | model | schema | contract | dependency
+- **Change**: (1) `cv_parser` reads a skills list only up to the next heading of any kind and rejoins wrapped and hyphenated lines, so "Wording to review" no longer lists employers, job titles, dates or sentences. On the five synthetic CVs it drops from 16–25 noisy entries each to 2–3 genuine skill phrases. (2) New `app.core.embeddings` (Gemini `gemini-embedding-001`, 768 dims) and `features/profile/skill_match.py`. Catalogue skills are embedded into `catalogue_embeddings` (pgvector, HNSW cosine; migration `20261023170000`). CV skills-list entries that no alias matches get a suggested nearest skill: similarity >= 0.80, lead over runner-up >= 0.015, and never when the nearest skill is already found. `CvExtractionResult` and the guest preview gain `suggestions`, and the web review list shows "≈ skill (n% similar)" with an Add button.
+- **Why**: Users saw non-skills in the review list (company names, locations, sentences) because "PROFESSIONAL EXPERIENCE" did not end the skills section. The KerjaCerdas approach (structured, field-separated extraction) was adapted: sections give the separation, and embeddings map unfamiliar wording to the catalogue without letting a model invent skills.
+- **Pipeline**: catalogue labels + aliases + descriptions → embed (redacted, batched, rate-limit aware) → pgvector → per-term cosine top-3 → threshold + margin rule → proposal → person adds and sets the level
+- **Evaluation**: calibrated on 18 entries. Matched: Power BI / Tableau / QlikSense → Data visualisation; "problem solving" → Critical thinking; "stakeholder communication" → Stakeholder management. Rejected: "Kuala Lumpur" (0.775), "Rust", "teamwork", "exception handling" (ambiguous). Unit tests use fake vectors; the suite never calls the API.
+- **Affects**: M2 (F1 parser and contract: new optional `suggestions` field); M3 (`/about` disclosure lists the embedding model)
+- **Replaces**: the F1 FEATURE note that unmatched entries are never sent to a model, for these short entries only
+- **PR / branch**: feat/jobs-live-openings
+
+### M4-062: Organisation pays for training; member reimbursement removed
+- **Date**: 2026-10-23
+- **Feature**: F7 (Organisation Mode & Heatmaps)
+- **Type**: method | contract | UI
+- **Change**: Removed the member purchase-request, completion, receipt-claim and HR decision/payment endpoints (`POST /org/funding/{year}/requests...`) and their contracts, the member "Learning funds" page and nav entry (`/work/funding` and `/app/funding` now redirect to `/work/plan`), and the claim UI. `/org/funding` is now "Training budgets": HR sets a yearly amount per member, and `/org/packages` uses it for the budget-capped option. Stored claim records stay readable only for export and deletion.
+- **Why**: In practice HR chooses team training and pays providers directly (often under HRD Corp), not by reimbursing employees. The reimbursement flow added steps and risk without matching how companies buy upskilling.
+- **Affects**: M3 (no change to pathway or verification); API clients of the removed endpoints
+- **Replaces**: the claim workflow parts of M4-040, M4-041 and the funding notes in F7 FEATURE.md
+- **PR / branch**: feat/jobs-live-openings
+
+### M4-063: Resolve the live-openings PR's eight Greptile findings
+- **Date**: 2026-10-24
+- **Feature**: Core (jobs), F1, F7
+- **Type**: method | UI
+- **Change**: CV requests read only an existing, current catalogue embedding index without waiting for its build; acronyms no longer terminate skills lists. Job refreshes distinguish incomplete reads, preserve skipped/failed boards in CSV mode, and close missing listings only after a complete read; API reads apply the same 14-day stale limit. Security title rules exclude securities banking jobs, and five affected seed rows were corrected. Archived unpaid claims no longer reserve training funds, while paid historical expenses remain recorded. Certification cards show every option counted in their heading.
+- **Why**: Greptile identified optional embedding retries blocking uploads, incomplete refreshes hiding valid jobs, stale or misclassified jobs appearing live, unusable budget reservations, and advertised exam options being inaccessible.
+- **Evaluation**: Focused regressions passed; full repository quality gate passed with 882 tests passed and 26 skipped. Checks call no paid endpoints.
+- **Affects**: M2 (CV extraction), M3 (certification cards), M4 (jobs and funding)
+- **Replaces**: the request-time indexing and archived-reservation behaviour in M4-061/M4-062
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/13 / feat/jobs-live-openings
+
+### M4-064: Deploy the trend encoder as a RunPod Serverless worker
+- **Date**: 2026-10-24
+- **Feature**: F2 (AI-Trend Signal Layer), Core deployment
+- **Type**: model | dependency | architectural decision
+- **Change**: Background trend jobs use a RunPod client by default for the pinned all-MiniLM-L6-v2 model (384 dimensions). A separate container caches the model weights and serves bounded text batches; local CPU inference remains an explicit development option. The weekly workflow reads the endpoint ID and API key from Actions configuration. Deployment instructions require no application-code edits.
+- **Why**: A teammate will host inference on RunPod; deployment preparation must work without creating an account, spending credits, or placing credentials in the repository. The web API continues serving stored snapshots.
+- **Pipeline**: public research and taxonomy → existing sentence cleaning → normalized 384-dimensional vectors → pinned MiniLM on RunPod, existing cosine threshold → mocked client/worker regressions and full quality gate (882 passed, 26 skipped) → existing validated database snapshots. Live RunPod validation is pending deployment.
+- **Affects**: M1 (trend refresh), M4 (deployment); Adi and CV embedding settings remain separate
+- **Replaces**: local-only trend encoder deployment; scoring formulas are unchanged
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/13 / feat/jobs-live-openings
+
+### M4-065: Allow partial board reads in the PostgreSQL fetch log
+- **Date**: 2026-10-24
+- **Feature**: Core (jobs)
+- **Type**: schema
+- **Change**: Append migration `20261024010000_jobs_partial_fetch_status.sql` to allow `partial` in the fetch-log status constraint. Downgrading preserves those audit rows as errors with an explanatory detail. PostgreSQL CI now exercises the real pipeline transaction with both partial and complete boards.
+- **Why**: Greptile found that the status introduced in M4-063 was rejected by the original database constraint, rolling back successful boards along with the incomplete one.
+- **Evaluation**: Eight focused regressions passed, including a real PostgreSQL test in an isolated schema: the partial board stays active, a complete board closes missing openings, both audit records commit, and the migration reverses and reapplies successfully. The full quality gate also passed (882 passed, 27 skipped; the PostgreSQL regression was run separately with its database configured).
+- **Affects**: Deployments must apply the new migration before the next jobs refresh
+- **Replaces**: none (completes M4-063)
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/13 / feat/jobs-live-openings

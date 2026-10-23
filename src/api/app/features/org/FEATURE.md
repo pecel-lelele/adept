@@ -55,25 +55,18 @@ the same coverage. HR sends one via `POST /org/packages/select`; a hash refuses 
 Members see only their own assignment and explicitly adopt it at `/app/pathway` or
 `/app/funding`. Selection is not enrolment, funding approval or a hiring decision.
 
-`/org/funding` sets annual MYR budgets per member; `/app/funding` requests a specific course
-purchase against a provider quote. Purchase approval reserves the full cap atomically.
-Members submit completion certificates (including approved courses outside the generated
-plan) to the existing F5 HR verification queue. Receipt claims require current-manager
-confirmed completion, a purchase after approval and an amount within the cap. HR reviews
-receipts before marking payable, then separately records an external finance payment
-reference. Revoked/replaced evidence blocks payment. Rejection/cancellation releases the
-reservation, actual payment releases any unused cap. Subscriptions and group purchases
-require employer procurement. Members unable to pay upfront can ask HR to purchase directly;
-Adept does not process that purchase or transfer money.
+`/org/funding` ("Training budgets") sets a yearly MYR budget per member. It is a planning
+input only: `/org/packages` uses it for the budget-capped option. The organisation chooses and
+pays for training directly (often under its HRD Corp levy). Members do not pay upfront, request
+purchases, upload receipts or claim reimbursement (decision M4-062): those endpoints and the
+member `/work/funding` page were removed, and old links go to `/work/plan`, where members review
+the programme HR assigned. Claim records stored by the earlier flow remain in
+`learning_funding.state` only for account export and deletion.
 
-`learning_funding` uses one locked PostgreSQL row per organisation across budget years,
-private behind RLS with no public policy. A separate volatile backend is for synthetic tests
-only. Writes fail closed, current membership is checked for money operations, and records
-participate in account export and deletion. No receipts, certificate pages or real personal
-records were ingested in development. Only synthetic test evidence is permitted by the
-current repository policy.
+## Funding contention and year rollover (PR #10 review, historical)
 
-## Funding contention and year rollover (PR #10 review)
+Superseded in part by M4-062: the claim, receipt and payment flow described here no longer exists.
+
 
 Read-only ledger and assignment requests use a snapshot without a write lock and release the
 database connection before other repository work. Mutations bind their existing connection to

@@ -22,8 +22,6 @@ import xml.etree.ElementTree as ET
 from datetime import date
 from pathlib import Path
 
-from sentence_transformers import SentenceTransformer
-
 REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT / "src" / "api"))
 sys.path.insert(0, str(REPO_ROOT / "src"))
@@ -34,6 +32,7 @@ from pipelines.trends.arxiv_ingest import (  # noqa: E402
     load_skills,
     write_signal_rows,
 )
+from pipelines.trends.encoder import get_encoder  # noqa: E402
 from pipelines.trends.score import main as score_main  # noqa: E402
 
 CACHE_DIR = REPO_ROOT / "src" / "data" / "seed" / "arxiv_raw"
@@ -112,7 +111,7 @@ def run() -> None:
     print(f"Window 2 (2026-10-20 / 2026-W43): {len(papers_w43)} papers")
 
     skill_vectors = load_skill_vectors(skill_ids, db_url)
-    model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+    model = get_encoder()
 
     print("\nCounting mentions for Window 1 (W42) ...")
     counts_w42 = count_mentions(papers_w42, skill_ids, skill_vectors, model)

@@ -10,6 +10,11 @@
 
 ## Status
 
+Embedding suggestions require an existing catalogue index. Pre-build it with
+`PYTHONPATH=src/api python -m app.features.profile.skill_match` using the configured
+database. CV requests never build the index or wait for an in-progress build; an absent
+or stale index falls back to exact catalogue matches without optional suggestions.
+
 Implemented: in-memory PDF/DOCX/text parsing, catalogue aliases and user-confirmed skill
 levels, questionnaire intake and PostgreSQL profiles. The web provides a four-step intake.
 Unmatched wording and truncation are reviewable; uploads never mutate saved skills before
@@ -37,8 +42,8 @@ Current deterministic intake pipeline:
 |---|---|---|
 | Source | In-memory sample CV or confirmed form | No raw upload storage |
 | Preprocessing / cleaning | PDF/DOCX/text extraction, caps, NFKC and contact scrubbing | `cv_parser.py` |
-| Features | Approved labels/aliases; separate unverified list entries | No invented IDs |
-| Model / method | Alias matching, estimated levels, human confirmation | No LLM for parsing |
+| Features | Approved labels/aliases; skills-list entries read section by section | No invented IDs |
+| Model / method | Alias matching, estimated levels, human confirmation; Gemini embeddings + pgvector cosine suggestions for unmatched entries | Suggestions are proposals the person adds |
 | Evaluation | Format, safety, omission and persistence regressions | `tests/api/profile/` |
 | Serving | CV, questionnaire and skill-confirmation endpoints | OpenAPI contracts |
 
@@ -55,3 +60,21 @@ Both guest preview and intake state that limitation, preserve truncation warning
 and distinguish zero recognised catalogue skills from zero actual skills. Unknown
 only previews produce no role or score. Existing exact aliases, level review,
 file limits, scanned/encrypted PDF errors and ID validation remain in force.
+
+## Section-aware review list and embedding suggestions (2026-10-23)
+
+A skills list now ends at the next heading of any kind (any experience/education/project/
+summary heading in EN/MS/ZH, or a short all-capitals line), so employers, job titles, dates
+and sentences from other sections no longer appear in "Wording to review". Wrapped lines are
+rejoined before splitting ("exception / handling."), words hyphenated at a line break are
+rejoined, bullets and one-per-line lists still split per line, and "X (ABBR)" entries whose
+halves both match are treated as matched (`skills_section_entries`, `unmatched_skill_terms`).
+
+`skill_match.py` embeds the catalogue once (`gemini-embedding-001`, 768 dimensions, table
+`catalogue_embeddings`, HNSW cosine index; re-embedded only when a label/alias changes) and,
+for each unmatched entry, proposes the nearest skill when similarity >= 0.80 and it leads the
+runner-up by >= 0.015; nothing is proposed when the nearest skill is already on the CV. Only
+the short skills-list entries leave the API (PII-redacted), never the CV. With
+`EMBEDDINGS_PROVIDER=none`, no key, or a provider failure, suggestions are empty and exact
+matching is unchanged. This supersedes the "never sent to an LLM" note above for these short
+entries only (decision M4-061).

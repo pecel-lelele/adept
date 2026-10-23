@@ -2096,3 +2096,79 @@ html[data-busy] .a-main::after { content: ""; }
 .a-cv-review li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--a-line); }
 .a-cv-review li > span { min-width: 0; overflow-wrap: anywhere; }
 .a-cv-review button { flex-shrink: 0; border: 0; background: transparent; cursor: pointer; min-height: 44px; font-size: 12px; }
+
+/* Jobs, certifications and the plan's next steps (features/jobs). Same language as the
+   landing page's feature cards: soft grey panels, light large numbers, few words. */
+.a-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.a-tile { display: grid; align-content: start; gap: 4px; padding: 22px 24px; background: #f6f8f6; border: 1px solid #edf1ed; border-radius: var(--a-radius); color: var(--a-ink); text-decoration: none; }
+.a-tile.is-link { transition: background var(--a-med), border-color var(--a-med); }
+.a-tile.is-link:hover { background: #f0f5ef; border-color: #dde8dd; }
+.a-tile-label { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: var(--a-muted); }
+.a-tile-label svg { color: var(--a-deep); }
+.a-tile-value { font-size: 30px; line-height: 1.15; font-weight: 500; letter-spacing: -0.03em; margin-top: 6px; }
+.a-tile-sub { font-size: 13px; color: var(--a-ink-2); }
+
+.a-fold { padding: 0; }
+.a-fold-head { display: flex; align-items: center; gap: 14px; padding: 20px 26px; cursor: pointer; list-style: none; }
+.a-fold-head::-webkit-details-marker { display: none; }
+.a-fold-title { display: inline-flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 500; color: var(--a-ink); }
+.a-fold-title svg { color: var(--a-deep); }
+.a-fold-meta { margin-left: auto; font-size: 13.5px; color: var(--a-muted); text-align: right; }
+.a-fold-chevron { color: var(--a-muted); flex-shrink: 0; transition: transform var(--a-med) var(--a-ease); }
+.a-fold-title + .a-fold-chevron { margin-left: auto; }
+.a-fold[open] .a-fold-chevron { transform: rotate(180deg); }
+.a-fold-head:focus-visible { outline: 2px solid var(--a-accent-edge); outline-offset: -2px; border-radius: var(--a-radius); }
+.a-fold-body { display: grid; gap: 20px; padding: 0 26px 24px; }
+.a-fold-anchor { display: block; height: 0; scroll-margin-top: 120px; }
+.a-fold-text { margin: 0; font-size: 14px; line-height: 1.7; color: var(--a-muted); max-width: 62ch; }
+.a-fold-group { display: grid; gap: 10px; }
+.a-fold-group h3 { margin: 0; font-size: 14px; font-weight: 500; color: var(--a-ink); }
+.a-fold-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+
+.a-bignums { display: flex; flex-wrap: wrap; gap: 14px; }
+.a-bignums > div { flex: 1 1 180px; display: grid; gap: 2px; padding: 18px 22px; background: #f6f8f6; border-radius: var(--a-radius-sm); }
+.a-bignums strong { font-size: 34px; line-height: 1.1; font-weight: 500; letter-spacing: -0.03em; }
+.a-bignums > div[data-tone="up"] strong { color: var(--a-up); }
+.a-bignums span { font-size: 13px; color: var(--a-ink-2); }
+
+.a-pills { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.a-pill { display: inline-flex; align-items: center; gap: 7px; padding: 5px 12px; border-radius: 999px; background: #f2f5f1; font-size: 13px; color: var(--a-ink-2); }
+.a-pill i, .a-legend i { width: 7px; height: 7px; border-radius: 50%; background: var(--a-flat); flex-shrink: 0; display: inline-block; }
+.a-pill[data-status="have"] i, .a-legend [data-status="have"] i { background: var(--a-up); }
+.a-pill[data-status="in_plan"] i, .a-legend [data-status="in_plan"] i { background: var(--a-warn); }
+.a-legend { display: flex; flex-wrap: wrap; gap: 16px; margin: 0; font-size: 12px; color: var(--a-muted); }
+.a-legend span { display: inline-flex; align-items: center; gap: 6px; }
+
+.a-jobs { display: grid; gap: 10px; list-style: none; margin: 0; padding: 0; }
+.a-job { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 16px 18px; background: #f6f8f6; border: 1px solid #edf1ed; border-radius: var(--a-radius-sm); }
+.a-job-main { display: grid; gap: 3px; min-width: 0; }
+.a-job-title { display: inline-flex; align-items: center; gap: 5px; font-size: 15px; font-weight: 500; color: var(--a-ink); text-decoration: none; overflow-wrap: anywhere; }
+.a-job-title svg { color: var(--a-muted); flex-shrink: 0; }
+.a-job-title:hover { color: var(--a-deep); }
+.a-job-where { font-size: 13px; color: var(--a-muted); }
+.a-job-learn { font-size: 13px; color: var(--a-ink-2); }
+.a-job-good { font-size: 13px; color: var(--a-up); }
+.a-job-fit { display: grid; justify-items: end; flex-shrink: 0; text-align: right; }
+.a-job-fit strong { font-size: 20px; font-weight: 500; letter-spacing: -0.02em; }
+.a-job-fit small { font-size: 12px; color: var(--a-muted); }
+.a-match { display: grid; gap: 4px; flex-shrink: 0; width: 158px; padding: 10px 12px; background: #fff; border: 1px solid #e3e9e0; border-radius: 10px; }
+.a-match-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font-size: 12.5px; color: var(--a-muted); }
+.a-match-row strong { font-size: 14px; font-weight: 500; color: var(--a-ink-2); }
+.a-match-row.is-main { color: var(--a-ink); }
+.a-match-row.is-main strong { font-size: 18px; color: var(--a-up); }
+.a-match-row.is-main strong[data-zero] { color: var(--a-ink-2); }
+.a-match-bar { position: relative; display: block; height: 5px; margin-top: 4px; border-radius: 999px; background: #e8eee7; overflow: hidden; }
+.a-match-bar i { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: var(--a-deep); }
+.a-match-bar i[data-kind="plan"] { background: #9fd3ae; }
+.a-jobfilters .a-btn { align-self: flex-end; }
+.a-pager { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 12px; }
+.a-suggest { color: var(--a-deep); }
+
+@media (max-width: 700px) {
+  .a-tiles { grid-template-columns: 1fr; }
+  .a-tile { padding: 18px 20px; }
+  .a-fold-head { padding: 18px 20px; flex-wrap: wrap; }
+  .a-fold-meta { margin-left: 0; flex-basis: 100%; text-align: left; order: 3; }
+  .a-fold-chevron { margin-left: auto; }
+  .a-fold-body { padding: 0 20px 20px; }
+}

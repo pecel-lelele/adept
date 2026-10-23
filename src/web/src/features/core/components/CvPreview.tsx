@@ -185,7 +185,7 @@ export function CvPreview() {
             ) : null}
           </div>
 
-          <CvReview terms={result.unmatched_terms ?? []} truncated={result.truncated} matchedCount={result.skills.length} />
+          <CvReview terms={result.unmatched_terms ?? []} truncated={result.truncated} matchedCount={result.skills.length} suggestions={result.suggestions ?? []} />
           {result.top_role ? <div className="a-locked">
             <div className="a-locked-content" aria-hidden="true">
               {[t("lockedRoles"), t("lockedGap"), t("lockedPlan"), t("lockedImpact")].map((label, i) => (

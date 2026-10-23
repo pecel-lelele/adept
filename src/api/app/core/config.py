@@ -40,6 +40,11 @@ class Settings(BaseSettings):
     llm_fallback_provider: str = ""
     llm_fallback_base_url: str = ""
     llm_fallback_api_key: str = ""
+    # Text embeddings for cosine-similarity skill matching (app.core.embeddings). "gemini" uses
+    # GEMINI_API_KEY; "none" turns suggestions off and keeps exact catalogue matching only.
+    embeddings_provider: Literal["gemini", "none"] = "none"
+    embeddings_model: str = "gemini-embedding-001"
+    embeddings_timeout_s: float = 15.0
     # Largest accepted upload (CV) in bytes; bigger files are rejected with 413.
     max_upload_bytes: int = 5 * 1024 * 1024
     # Largest accepted non-upload request body (JSON) in bytes.

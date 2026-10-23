@@ -9,8 +9,13 @@ PYTHONPATH=src/api:src python -m pipelines.trends.run --dry-run     # validate, 
 ```
 
 Scheduled by `.github/workflows/trends-refresh.yml` (Mondays) when the `TREND_DATABASE_URL`
-secret points at the deployed database. Ingestion needs `sentence-transformers` (installed by
-the workflow, CPU-only).
+secret points at the deployed database. The scheduled job uses the RunPod MiniLM endpoint; its endpoint ID and API key must
+also be configured. It does not install model weights in GitHub Actions.
+
+MiniLM runs on a RunPod Serverless worker for background ingestion, with the same
+scoring and publication rules. Build, endpoint configuration and environment variables
+are in [`runpod/README.md`](runpod/README.md). Explicitly select
+`TRENDS_EMBEDDING_BACKEND=local` for local CPU development.
 
 | Stage | Choice |
 |---|---|

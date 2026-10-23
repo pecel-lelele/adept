@@ -235,6 +235,89 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/jobs/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Summary
+         * @description Live openings per Adept role, read from public employer and job-board feeds.
+         */
+        get: operations["jobs_summary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/jobs/board": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Board
+         * @description Every live opening matched to an Adept role. With `role_id`, each opening also shows
+         *     which of its skills the learner has now and which their plan adds.
+         */
+        get: operations["jobs_board"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/jobs/roles/{role_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Role Openings
+         * @description Current openings for one role, the skills they ask for most, and how many are within the
+         *     learner's reach today and after their plan.
+         */
+        get: operations["jobs_role_openings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/jobs/certifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Certifications
+         * @description Paid certification exams that prove this role's skills, with dated official fees. With
+         *     payer=employer (team programmes) the learner's own skills are not shown.
+         */
+        get: operations["jobs_certifications"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/matches": {
         parameters: {
             query?: never;
@@ -492,74 +575,6 @@ export interface paths {
         /** Set Member Budget */
         put: operations["org_set_member_budget"];
         post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/org/funding/{year}/requests": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Request Funding */
-        post: operations["org_request_funding"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/org/funding/{year}/requests/{claim_id}/submit": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Submit Funding Claim */
-        post: operations["org_submit_funding_claim"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/org/funding/{year}/requests/{claim_id}/completion": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Complete Funded Course */
-        post: operations["org_complete_funded_course"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/org/funding/{year}/requests/{claim_id}/decision": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Decide Funding */
-        post: operations["org_decide_funding"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1705,6 +1720,80 @@ export interface components {
             courses: components["schemas"]["Course"][];
             meta: components["schemas"]["RecommendationMeta"];
         };
+        /** Certification */
+        Certification: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Issuer */
+            issuer: string;
+            /** Exam Code */
+            exam_code: string;
+            /** Url */
+            url: string;
+            /**
+             * Level
+             * @enum {string}
+             */
+            level: "foundational" | "associate" | "professional";
+            /** Fee Amount */
+            fee_amount: number;
+            /** Fee Currency */
+            fee_currency: string;
+            /** Fee Myr */
+            fee_myr: number;
+            /** Fee Note */
+            fee_note: string;
+            /** Fee Source Url */
+            fee_source_url: string;
+            /**
+             * Verified At
+             * Format: date
+             */
+            verified_at: string;
+            /**
+             * Validity Note
+             * @default
+             */
+            validity_note: string;
+            /**
+             * Skills
+             * @description Skills the exam covers, with the learner's status.
+             */
+            skills: components["schemas"]["SkillAsk"][];
+            /**
+             * Role Skills
+             * @description How many of the role's required skills it covers.
+             */
+            role_skills: number;
+            /**
+             * Prep Course Ids
+             * @description Courses in the learner's plan that teach its skills.
+             */
+            prep_course_ids?: string[];
+            /**
+             * Openings Naming
+             * @description Current openings for this role whose ad names this certification.
+             */
+            openings_naming: number;
+        };
+        /** CertificationList */
+        CertificationList: {
+            /** Role Id */
+            role_id: string;
+            /** Role Label */
+            role_label: string;
+            /**
+             * Payer
+             * @description Who normally pays the exam fee in this context: the learner on a personal plan, the employer on a team programme. Adept never takes payment.
+             * @enum {string}
+             */
+            payer: "learner" | "employer";
+            /** Certifications */
+            certifications: components["schemas"]["Certification"][];
+            meta: components["schemas"]["RecommendationMeta"];
+        };
         /** CompletionEvidence */
         CompletionEvidence: {
             /** Role Id */
@@ -1888,6 +1977,11 @@ export interface components {
              * @description Up to 30 unrecognised entries from explicit skills lists, for transient human review. Not verified skills, not persisted or scored; prose may contain other missed skills.
              */
             unmatched_terms?: string[];
+            /**
+             * Suggestions
+             * @description Catalogue skills close in meaning to some `unmatched_terms` (embedding cosine similarity). Proposals only: nothing is added unless the person chooses it.
+             */
+            suggestions?: components["schemas"]["SkillSuggestion"][];
             /**
              * Truncated
              * @default false
@@ -2093,33 +2187,6 @@ export interface components {
             /** Events */
             events?: components["schemas"]["FundingEvent"][];
         };
-        /** FundingCompletion */
-        FundingCompletion: {
-            /** Revision */
-            revision: number;
-            /** Url */
-            url: string;
-        };
-        /** FundingDecision */
-        FundingDecision: {
-            /** Revision */
-            revision: number;
-            /**
-             * Action
-             * @enum {string}
-             */
-            action: "approve" | "reject" | "cancel" | "accept_claim" | "mark_paid";
-            /**
-             * Note
-             * @default
-             */
-            note: string;
-            /**
-             * Payment Reference
-             * @default
-             */
-            payment_reference: string;
-        };
         /** FundingEvent */
         FundingEvent: {
             /**
@@ -2151,39 +2218,6 @@ export interface components {
             claims: components["schemas"]["FundingClaim"][];
             /** Available Years */
             available_years?: number[];
-        };
-        /** FundingRequest */
-        FundingRequest: {
-            /** Course Id */
-            course_id: string;
-            /** Role Id */
-            role_id: string;
-            /** Amount Myr */
-            amount_myr: number | string;
-            /**
-             * Quote Url
-             * Format: uri
-             */
-            quote_url: string;
-        };
-        /** FundingSubmission */
-        FundingSubmission: {
-            /** Revision */
-            revision: number;
-            /** Amount Myr */
-            amount_myr: number | string;
-            /**
-             * Receipt Url
-             * Format: uri
-             */
-            receipt_url: string;
-            /** Receipt Reference */
-            receipt_reference: string;
-            /**
-             * Purchased At
-             * Format: date-time
-             */
-            purchased_at: string;
         };
         /** GapHeatmapCell */
         GapHeatmapCell: {
@@ -2278,6 +2312,11 @@ export interface components {
             /** Unmatched Terms */
             unmatched_terms?: string[];
             /**
+             * Suggestions
+             * @default []
+             */
+            suggestions: components["schemas"]["SkillSuggestion"][];
+            /**
              * Skill Trends
              * @default []
              */
@@ -2316,6 +2355,101 @@ export interface components {
              * @enum {string}
              */
             database: "ok" | "unavailable";
+        };
+        /**
+         * JobBoardPage
+         * @description Every live opening matched to an Adept role, filtered and paged.
+         */
+        JobBoardPage: {
+            /** Openings */
+            openings: components["schemas"]["JobOpening"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Roles */
+            roles: components["schemas"]["RoleOpeningCount"][];
+            /** Fetched On */
+            fetched_on?: string | null;
+            meta: components["schemas"]["RecommendationMeta"];
+        };
+        /** JobOpening */
+        JobOpening: {
+            /** Id */
+            id: string;
+            /** Title */
+            title: string;
+            /** Employer */
+            employer: string;
+            /** Location */
+            location: string;
+            /**
+             * Work Mode
+             * @enum {string}
+             */
+            work_mode: "onsite" | "hybrid" | "remote";
+            /**
+             * Remote Scope
+             * @description Remote only: who may apply.
+             * @default
+             */
+            remote_scope: string;
+            /**
+             * Employment Type
+             * @default
+             */
+            employment_type: string;
+            /**
+             * Seniority
+             * @default unknown
+             * @enum {string}
+             */
+            seniority: "intern" | "entry" | "mid" | "senior" | "lead" | "unknown";
+            /**
+             * Url
+             * @description The employer's or job board's own ad; applications go there.
+             */
+            url: string;
+            /**
+             * Source Name
+             * @description Where the opening was read from (credited in the UI).
+             */
+            source_name: string;
+            /** Posted At */
+            posted_at?: string | null;
+            /**
+             * First Seen
+             * Format: date
+             */
+            first_seen: string;
+            /**
+             * Role Method
+             * @description How the opening was matched to the role: its job title, or its skills.
+             * @enum {string}
+             */
+            role_method: "title" | "skills";
+            /**
+             * Skills
+             * @description Catalogue skills the ad names.
+             */
+            skills: components["schemas"]["SkillAsk"][];
+            /**
+             * Cert Ids
+             * @description Certifications the ad names.
+             */
+            cert_ids?: string[];
+            /**
+             * Match Now
+             * @description Share of the ad's skills the learner has now; None if it names under two.
+             */
+            match_now?: number | null;
+            /**
+             * Match After Plan
+             * @description The same share once the plan is finished.
+             */
+            match_after_plan?: number | null;
         };
         /**
          * JoinOrgIn
@@ -2468,6 +2602,18 @@ export interface components {
              * @description Roles in the catalogue that serve this objective.
              */
             role_ids: string[];
+        };
+        /** OpeningsSummary */
+        OpeningsSummary: {
+            /** Roles */
+            roles: components["schemas"]["RoleOpeningCount"][];
+            /** Total Open */
+            total_open: number;
+            /** Employer Count */
+            employer_count: number;
+            /** Fetched On */
+            fetched_on?: string | null;
+            meta: components["schemas"]["RecommendationMeta"];
         };
         /** Organization */
         Organization: {
@@ -3341,6 +3487,72 @@ export interface components {
              */
             drivers: components["schemas"]["ReplayDriver"][];
         };
+        /** RoleOpeningCount */
+        RoleOpeningCount: {
+            /** Role Id */
+            role_id: string;
+            /** Role Label */
+            role_label: string;
+            /** Open Count */
+            open_count: number;
+            /** Employer Count */
+            employer_count: number;
+            /** Remote Count */
+            remote_count: number;
+        };
+        /** RoleOpenings */
+        RoleOpenings: {
+            /** Role Id */
+            role_id: string;
+            /** Role Label */
+            role_label: string;
+            /** Open Count */
+            open_count: number;
+            /** Employer Count */
+            employer_count: number;
+            /** Remote Count */
+            remote_count: number;
+            /**
+             * Employers
+             * @description Employers with the most openings, most first.
+             */
+            employers: string[];
+            /** Openings */
+            openings: components["schemas"]["JobOpening"][];
+            /**
+             * Skill Demand
+             * @description Skills these ads ask for most.
+             */
+            skill_demand: components["schemas"]["SkillDemand"][];
+            /**
+             * Ready Threshold
+             * @description An opening counts as within reach at this share of its skills or more.
+             */
+            ready_threshold: number;
+            /**
+             * Ready Now
+             * @description Openings within reach today.
+             */
+            ready_now: number;
+            /**
+             * Ready After Plan
+             * @description Openings within reach after the plan.
+             */
+            ready_after_plan: number;
+            /**
+             * Rated
+             * @description Openings that name enough skills to rate (>= 2).
+             */
+            rated: number;
+            /**
+             * Has Plan
+             * @description False when no plan could be built for this learner.
+             */
+            has_plan: boolean;
+            /** Fetched On */
+            fetched_on?: string | null;
+            meta: components["schemas"]["RecommendationMeta"];
+        };
         /**
          * RoleOption
          * @description One candidate target role, so the learner can compare before choosing.
@@ -3712,6 +3924,19 @@ export interface components {
             /** Label */
             label: string;
         };
+        /** SkillAsk */
+        SkillAsk: {
+            /** Skill Id */
+            skill_id: string;
+            /** Label */
+            label: string;
+            /**
+             * Status
+             * @description have: the learner already meets it; in_plan: their learning plan for this role reaches it; missing: neither; not_rated: no learner profile in this context (e.g. an HR manager viewing a team programme).
+             * @enum {string}
+             */
+            status: "have" | "in_plan" | "missing" | "not_rated";
+        };
         /** SkillCatalogueResponse */
         SkillCatalogueResponse: {
             /** Skills */
@@ -3755,6 +3980,25 @@ export interface components {
              * @default Skills confirmed and saved.
              */
             message: string;
+        };
+        /** SkillDemand */
+        SkillDemand: {
+            /** Skill Id */
+            skill_id: string;
+            /** Label */
+            label: string;
+            /**
+             * Openings
+             * @description Open roles of this kind whose ad names the skill.
+             */
+            openings: number;
+            /** Share */
+            share: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "have" | "in_plan" | "missing" | "not_rated";
         };
         /**
          * SkillEdit
@@ -3825,6 +4069,32 @@ export interface components {
             target_level: number;
             /** Closed */
             closed: boolean;
+        };
+        /**
+         * SkillSuggestion
+         * @description A catalogue skill whose meaning is close to an unrecognised skills-list entry.
+         */
+        SkillSuggestion: {
+            /**
+             * Term
+             * @description The CV's own wording (one of `unmatched_terms`).
+             */
+            term: string;
+            /** Skill Id */
+            skill_id: string;
+            /** Label */
+            label: string;
+            /**
+             * Similarity
+             * @description Cosine similarity of the embeddings.
+             */
+            similarity: number;
+            /**
+             * Runner Up
+             * @description The next-closest skill, for context.
+             * @default
+             */
+            runner_up: string;
         };
         /**
          * SkillTrend
@@ -4522,6 +4792,155 @@ export interface operations {
             };
         };
     };
+    jobs_summary: {
+        parameters: {
+            query?: {
+                scenario?: "moderate" | "fast";
+            };
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+                "x-workspace"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpeningsSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    jobs_board: {
+        parameters: {
+            query?: {
+                scenario?: "moderate" | "fast";
+                role_id?: string | null;
+                q?: string;
+                work_mode?: ("onsite" | "hybrid" | "remote") | null;
+                page?: number;
+            };
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+                "x-workspace"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobBoardPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    jobs_role_openings: {
+        parameters: {
+            query?: {
+                scenario?: "moderate" | "fast";
+                limit?: number;
+            };
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+                "x-workspace"?: string | null;
+            };
+            path: {
+                role_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoleOpenings"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    jobs_certifications: {
+        parameters: {
+            query: {
+                role_id: string;
+                scenario?: "moderate" | "fast";
+                payer?: "learner" | "employer";
+            };
+            header?: {
+                "x-demo-user"?: string | null;
+                authorization?: string | null;
+                "x-workspace"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CertificationList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     matching_list_matches: {
         parameters: {
             query?: {
@@ -5062,173 +5481,6 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["MemberBudgetIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FundingLedger"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    org_request_funding: {
-        parameters: {
-            query?: {
-                expected_org?: string | null;
-            };
-            header?: {
-                "x-demo-user"?: string | null;
-                authorization?: string | null;
-                "x-workspace"?: string | null;
-            };
-            path: {
-                year: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["FundingRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FundingLedger"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    org_submit_funding_claim: {
-        parameters: {
-            query?: {
-                expected_org?: string | null;
-            };
-            header?: {
-                "x-demo-user"?: string | null;
-                authorization?: string | null;
-                "x-workspace"?: string | null;
-            };
-            path: {
-                year: number;
-                claim_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["FundingSubmission"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FundingLedger"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    org_complete_funded_course: {
-        parameters: {
-            query?: {
-                expected_org?: string | null;
-            };
-            header?: {
-                "x-demo-user"?: string | null;
-                authorization?: string | null;
-                "x-workspace"?: string | null;
-            };
-            path: {
-                year: number;
-                claim_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["FundingCompletion"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FundingLedger"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    org_decide_funding: {
-        parameters: {
-            query?: {
-                expected_org?: string | null;
-            };
-            header?: {
-                "x-demo-user"?: string | null;
-                authorization?: string | null;
-                "x-workspace"?: string | null;
-            };
-            path: {
-                year: number;
-                claim_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["FundingDecision"];
             };
         };
         responses: {

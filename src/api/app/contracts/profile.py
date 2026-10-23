@@ -51,6 +51,16 @@ class ExtractedSkill(BaseModel):
     confidence: float = Field(ge=0, le=1)
 
 
+class SkillSuggestion(BaseModel):
+    """A catalogue skill whose meaning is close to an unrecognised skills-list entry."""
+
+    term: str = Field(description="The CV's own wording (one of `unmatched_terms`).")
+    skill_id: str
+    label: str
+    similarity: float = Field(ge=-1, le=1, description="Cosine similarity of the embeddings.")
+    runner_up: str = Field(default="", description="The next-closest skill, for context.")
+
+
 class CvExtractionResult(BaseModel):
     skills: list[ExtractedSkill]
     unmatched_terms: list[str] = Field(
@@ -59,6 +69,13 @@ class CvExtractionResult(BaseModel):
         description=(
             "Up to 30 unrecognised entries from explicit skills lists, for transient human review. "
             "Not verified skills, not persisted or scored; prose may contain other missed skills."
+        ),
+    )
+    suggestions: list[SkillSuggestion] = Field(
+        default_factory=list,
+        description=(
+            "Catalogue skills close in meaning to some `unmatched_terms` (embedding cosine "
+            "similarity). Proposals only: nothing is added unless the person chooses it."
         ),
     )
     truncated: bool = False

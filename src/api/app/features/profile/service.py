@@ -22,13 +22,14 @@ from app.contracts.profile import (
     ProfileIn,
     SkillCatalogueResponse,
     SkillOption,
+    SkillSuggestion,
     UserSkill,
 )
 from app.core import refdata
 from app.core.auth import CurrentUser
 from app.core.errors import AppError
 from app.features.org import repository as org_repository
-from app.features.profile import repository
+from app.features.profile import repository, skill_match
 from app.features.profile.cv_parser import parse_cv_review
 from app.features.profile.schemas import (
     NormalisedSkill,
@@ -150,8 +151,23 @@ def extract_cv(
         for ps in parsed
     ]
 
+    found = {s.skill_id for s in skills}
+    suggestions = [
+        SkillSuggestion(
+            term=s.term,
+            skill_id=s.skill_id,
+            label=s.label,
+            similarity=s.similarity,
+            runner_up=s.runner_up,
+        )
+        for s in skill_match.suggest(unmatched, exclude=found)
+    ]
     return CvExtractionResult(
-        skills=skills, unmatched_terms=unmatched, truncated=truncated, meta=TAXONOMY_META
+        skills=skills,
+        unmatched_terms=unmatched,
+        suggestions=suggestions,
+        truncated=truncated,
+        meta=TAXONOMY_META,
     )
 
 

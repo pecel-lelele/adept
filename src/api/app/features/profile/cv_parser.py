@@ -552,70 +552,150 @@ def extract_skills(text: str) -> list[ParsedSkill]:
 
 
 _SKILL_HEADING = re.compile(
-    r"^(?:technical skills|core skills|skills|competencies|kemahiran teknikal|"
-    r"kemahiran|技能|专业技能)"
+    r"^(?:(?:core|key|technical|professional|relevant|hard|soft|digital|tools? (?:and|&)|"
+    r"technical (?:and|&) soft)\s+)?(?:skills?|competenc(?:y|ies)|expertise|"
+    r"skills? (?:and|&) (?:tools|competencies|expertise|technologies)|tools (?:and|&) technologies|"
+    r"kemahiran(?: teknikal| utama| insaniah)?|kepakaran|技能|专业技能|核心技能)"
     r"\s*(?:[:：]\s*(.*))?$",
     re.IGNORECASE,
 )
+# Any other section of a CV. A skills list ends at the first of these (or at a generic
+# all-capitals heading), so job titles, employers and dates are never read as skills.
 _SECTION_HEADING = re.compile(
-    r"^(?:experience|work experience|employment|education|projects|certifications|references|"
-    r"contact|summary|languages|pengalaman|pendidikan|rujukan|工作经历|教育背景|项目经历|联系方式)\b",
+    r"^(?:(?:professional|work|employment|relevant|career|industry|research|teaching|"
+    r"volunteer(?:ing)?|leadership|internship)\s+)?(?:experience|history)|"
+    r"^(?:employment|career history|work history|education|academic|qualifications?|"
+    r"certifications?|certificates?|licen[cs]es?|(?:selected |key |personal )?projects?|"
+    r"achievements?|awards?|honou?rs|publications?|references?|referees?|contact|"
+    r"(?:professional |career |personal )?(?:summary|profile|objective)|about me|languages?|"
+    r"interests?|hobbies|activities|additional information|personal (?:details|information)|"
+    r"training|courses|memberships?|declaration|pengalaman|pendidikan|kelayakan|sijil|"
+    r"projek|rujukan|ringkasan|bahasa|maklumat|工作经历|工作经验|教育背景|项目经历|联系方式|"
+    r"个人简介|证书|语言)\b",
     re.IGNORECASE,
 )
+# A short line in capitals ("PROFESSIONAL EXPERIENCE", "SELECTED PROJECT") is a heading.
+_CAPS_HEADING = re.compile(r"^[A-Z][A-Z &/+-]{2,40}:?$")
 _LIST_SEPARATOR = re.compile(r"[,;|•●·、，；]")
+_TRAILING = " \t-*–—.:;"
+_BULLET = re.compile(r"^(?:[-*•●·–—▪◦‣]|\d{1,2}[.)])\s+")
+_PAREN = re.compile(r"^(.*?)\s*\(([^()]{1,30})\)$")
+
+
+def _is_heading(line: str) -> bool:
+    if _SECTION_HEADING.match(line):
+        return True
+    # Short acronyms and catalogue labels are skills even when written in capitals.
+    if (len(line.split()) == 1 and len(line.rstrip(":")) <= 5) or _covered(
+        line, {entry.phrase for entry in _build_alias_index()}
+    ):
+        return False
+    return bool(_CAPS_HEADING.match(line) and len(line.split()) <= 5)
+
+
+def skills_section_entries(text: str) -> list[str]:
+    """Every entry of the CV's skills list(s), in order, with wrapped lines rejoined.
+
+    A section starts at a skills heading and ends at the next heading of any kind. Its lines
+    are joined first, so an entry broken over two lines ("exception" / "handling.") stays one
+    entry, and a word hyphenated at a line break ("val-" / "idation") is rejoined. Sub-labels
+    such as "Tools: Excel, SQL" keep only the list after the colon.
+    """
+    entries: list[str] = []
+    block: list[str] = []
+    active = False
+
+    def flush() -> None:
+        joined = ""
+        prev = ""
+        for part in block:
+            bullet = _BULLET.match(part)
+            if bullet:
+                part = part[bullet.end() :]
+            if not joined:
+                joined = part
+            elif joined.endswith("-") and part[:1].islower() and not bullet:
+                joined = joined[:-1] + part  # a word hyphenated at the line break
+            elif bullet or (not _LIST_SEPARATOR.search(prev) and len(prev.split()) <= 5):
+                joined = f"{joined}; {part}"  # one entry per line
+            else:
+                joined = f"{joined} {part}"  # a wrapped line of a comma-separated list
+            prev = part
+        for item in _LIST_SEPARATOR.split(joined):
+            item = item.split(":", 1)[1] if re.match(r"^[^:]{2,30}:\s", item.strip()) else item
+            item = re.sub(r"\s+", " ", item).strip(_TRAILING)
+            if item:
+                entries.append(item)
+        block.clear()
+
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        heading = _SKILL_HEADING.fullmatch(line)
+        if heading:
+            flush()
+            active = True
+            if heading.group(1):
+                block.append(heading.group(1))
+            continue
+        if not active:
+            continue
+        if _is_heading(line):
+            flush()
+            active = False
+            continue
+        if line:
+            block.append(line)
+        if len(block) >= 20:  # a skills list is short; anything longer is prose
+            flush()
+            active = False
+    flush()
+    return entries
+
+
+def _covered(term: str, known: set[str]) -> bool:
+    """True when the whole entry is an approved label or alias, including the common
+    "Robotic process automation (RPA)" form where both halves name the same skill."""
+    norm = unicodedata.normalize("NFKC", term).casefold()
+    if norm in known:
+        return True
+    m = _PAREN.match(norm)
+    return bool(m and m.group(1).strip() in known and m.group(2).strip() in known)
 
 
 def unmatched_skill_terms(text: str) -> list[str]:
     """Bounded review hints from explicit skill lists, never a new skill catalogue.
 
-    Do not mine arbitrary prose, infer synonyms or transmit text to an LLM. Full
-    entries are compared to approved aliases: a partial hit must not hide the
-    unfamiliar part of a mixed phrase. Names and other prose are not classified
-    as skills. Only short list entries are echoed, transiently, for human review.
-    This deliberately cannot discover every skill in every CV layout.
+    Only entries of the CV's skills section(s) are considered (see `skills_section_entries`):
+    job titles, employers, dates, contact details and prose from other sections never are.
+    Full entries are compared to approved aliases: a partial hit must not hide the
+    unfamiliar part of a mixed phrase. Only short list entries are returned, transiently, for
+    human review; matching them to the catalogue is a suggestion the person confirms.
     """
     _load_taxonomy()
     known = {entry.phrase for entry in _build_alias_index()}
     terms: list[str] = []
     seen: set[str] = set()
-    active = False
-    section_lines = 0
-    for raw_line in text.splitlines():
-        line = raw_line.strip()
-        heading = _SKILL_HEADING.fullmatch(line)
-        if heading:
-            active, section_lines = True, 0
-            line = heading.group(1) or ""
-            if not line:
-                continue
-        elif not active:
+    for term in skills_section_entries(text):
+        normalised = unicodedata.normalize("NFKC", term).casefold()
+        # Reject prose, contact data, markup, numbers and long input. Unknown
+        # text is still untrusted: the web renders these strings as text only.
+        if (
+            not 2 <= len(term) <= 64
+            or len(term.split()) > 6
+            or not any(c.isalpha() for c in term)
+            or not all(c.isalnum() or c in " +#./&()-'" for c in term)
+            or _EMAIL_RE.search(term)
+            or _URL_RE.search(term)
+            or sum(c.isdigit() for c in term) > 4
+            or _is_negated(normalised, len(normalised))
+            or normalised.startswith(("no ", "without ", "not ", "tiada ", "tidak ", "没有"))
+        ):
             continue
-        elif not line or _SECTION_HEADING.search(line) or section_lines >= 20:
-            active = False
-            continue
-        section_lines += 1
-        for item in _LIST_SEPARATOR.split(line):
-            term = item.strip(" \t-*–—")
-            normalised = unicodedata.normalize("NFKC", term).casefold()
-            # Reject prose, contact data, markup, numbers and long input. Unknown
-            # text is still untrusted: the web renders these strings as text only.
-            if (
-                not 2 <= len(term) <= 64
-                or len(term.split()) > 6
-                or not any(c.isalpha() for c in term)
-                or not all(c.isalnum() or c in " +#./&()-" for c in term)
-                or _EMAIL_RE.search(term)
-                or _URL_RE.search(term)
-                or sum(c.isdigit() for c in term) > 4
-                or _is_negated(normalised, len(normalised))
-                or normalised.startswith(("no ", "without ", "not ", "tiada ", "tidak ", "没有"))
-            ):
-                continue
-            if normalised not in known and normalised not in seen:
-                seen.add(normalised)
-                terms.append(term)
-                if len(terms) == 30:
-                    return terms
+        if not _covered(term, known) and normalised not in seen:
+            seen.add(normalised)
+            terms.append(term)
+            if len(terms) == 30:
+                return terms
     return terms
 
 

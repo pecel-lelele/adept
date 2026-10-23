@@ -1,0 +1,81 @@
+{
+  "openingsChip": "{count, plural, one {# job opening} other {# job openings}}",
+  "status": {
+    "have": "You have it",
+    "in_plan": "In your plan",
+    "missing": "To learn",
+    "not_rated": "Asked for"
+  },
+  "remote": "Remote ({scope})",
+  "anywhere": "worldwide",
+  "malaysia": "Malaysia",
+  "hybrid": "Hybrid",
+  "posted": "Posted {date}",
+  "openings": {
+    "title": "Job openings",
+    "meta": "{count, plural, one {# opening} other {# openings}} at {employers, plural, one {# company} other {# companies}}",
+    "metaNone": "No openings right now",
+    "none": "No openings for {role} right now. New jobs are added every day.",
+    "asked": "Skills employers ask for",
+    "all": "View all {count}"
+  },
+  "reach": {
+    "label": "Jobs that match your skills",
+    "now": "match your skills now",
+    "after": "after your plan",
+    "noPlan": "after a plan",
+    "hint": "A job matches when you have at least 60% of the skills it asks for."
+  },
+  "certs": {
+    "title": "Certifications",
+    "meta": "{count, plural, one {# option} other {# options}} from RM {fee}",
+    "payLearner": "Optional exams that employers recognise. You book and pay the exam provider.",
+    "payEmployer": "Optional exams that employers recognise, usually paid by the company with the course fees.",
+    "level": {
+      "foundational": "Foundational",
+      "associate": "Associate",
+      "professional": "Professional"
+    },
+    "named": "{count, plural, one {Asked for in # job ad} other {Asked for in # job ads}}",
+    "prepared": "Your plan prepares you"
+  },
+  "roadmap": {
+    "title": "After this plan",
+    "learn": "Learning",
+    "weeks": "{weeks} weeks",
+    "learnSub": "{hours} h · RM {cost}",
+    "prove": "Certification",
+    "proveSub": "Optional · RM {fee}",
+    "proveNone": "Not required",
+    "apply": "Job openings",
+    "applySub": "{after} match your skills after the plan",
+    "applyCount": "Openings for this role",
+    "applyNone": "No openings right now"
+  },
+  "board": {
+    "title": "Jobs",
+    "description": "{count} openings in Malaysia and remote roles you can apply for.",
+    "role": "Role",
+    "allRoles": "All roles",
+    "where": "Work type",
+    "anyMode": "Any",
+    "onsite": "On site",
+    "remoteOnly": "Remote",
+    "search": "Search",
+    "searchHint": "Job title, company or city",
+    "apply": "Search",
+    "results": "{count, plural, one {# opening} other {# openings}}",
+    "empty": "No openings match these filters. Try another role or work type.",
+    "pages": "Pages",
+    "prev": "Previous",
+    "next": "Next",
+    "page": "Page {page} of {pages}",
+    "pickRole": "Choose a role to see which skills you already have for each job."
+  },
+  "toLearn": "To learn: {skills}",
+  "match": {
+    "label": "Skill match",
+    "today": "Today",
+    "withPlan": "With your plan"
+  }
+}

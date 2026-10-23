@@ -1,7 +1,6 @@
-import { FundingView } from "@/features/org/components/FundingView";
-import { fundingYear } from "@/features/org/funding-year";
-import { firstParam, type SearchParams } from "@/lib/scenario";
+import { redirect } from "next/navigation";
 
-export default async function Page({ searchParams }: { searchParams: Promise<SearchParams> }) {
-  return <FundingView year={fundingYear(firstParam((await searchParams).year))} />;
+/** Members no longer manage learning funds: the organisation pays for training directly. */
+export default function Page() {
+  redirect("/work/plan");
 }

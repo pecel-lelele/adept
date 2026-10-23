@@ -28,9 +28,10 @@
     "snapshots": "Snapshots",
     "admin": "Admin",
     "menu": "Open menu",
-    "funding": "Learning funds",
+    "funding": "Training budgets",
     "myWork": "My organisation",
-    "programmes": "Programmes"
+    "programmes": "Programmes",
+    "jobs": "Jobs"
   },
   "shell": {
     "disclaimer": "Projections are estimates from public data. You stay in charge: Adept never makes hiring decisions.",
@@ -663,6 +664,10 @@
     "body": "No approved match yet. Check spelling or search for an equivalent. Choose it only if it accurately describes your skill.",
     "notSaved": "Review only: not saved or scored. Up to 30 entries shown.",
     "search": "Search catalogue",
-    "searchFor": "Search the catalogue for {term}"
+    "searchFor": "Search the catalogue for {term}",
+    "closest": "Closest skill: {label} ({pct}% match)",
+    "add": "Add {label}",
+    "addFor": "Add {label} for “{term}”",
+    "added": "Added"
   }
 }

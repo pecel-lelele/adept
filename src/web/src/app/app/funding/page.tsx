@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-/** Employer learning funds belong to the organisation workspace. */
+/** Members no longer manage learning funds: the organisation pays for training directly. */
 export default function Page() {
-  redirect("/work/funding");
+  redirect("/work/plan");
 }

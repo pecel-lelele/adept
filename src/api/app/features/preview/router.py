@@ -9,7 +9,7 @@ from fastapi import APIRouter, Form, UploadFile
 from pydantic import BaseModel, Field
 
 from app.contracts.common import RecommendationMeta, ScenarioId
-from app.contracts.profile import ExtractedSkill
+from app.contracts.profile import ExtractedSkill, SkillSuggestion
 from app.core.config import get_settings
 from app.core.errors import AppError
 from app.features.matching.repository import load_roles, role_label
@@ -39,6 +39,7 @@ class SkillTrend(BaseModel):
 class GuestPreview(BaseModel):
     skills: list[ExtractedSkill]
     unmatched_terms: list[str] = Field(default_factory=list, max_length=30)
+    suggestions: list[SkillSuggestion] = []
     skill_trends: list[SkillTrend] = []
     top_role: TopRole | None
     other_role_count: int
@@ -62,6 +63,7 @@ def build_preview(
         return GuestPreview(
             skills=[],
             unmatched_terms=extraction.unmatched_terms,
+            suggestions=extraction.suggestions,
             top_role=None,
             other_role_count=0,
             meta=extraction.meta,
@@ -84,6 +86,7 @@ def build_preview(
     return GuestPreview(
         skills=extraction.skills,
         unmatched_terms=extraction.unmatched_terms,
+        suggestions=extraction.suggestions,
         skill_trends=trends,
         top_role=TopRole(
             role_id=top.role_id,

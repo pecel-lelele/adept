@@ -6,48 +6,17 @@ import type { ActionState } from "@/features/pathway/action-state";
 
 const text = (f: FormData, key: string) => String(f.get(key) ?? "").trim();
 
-export async function fundingAction(_: ActionState, form: FormData): Promise<ActionState> {
+/** HR sets a member's yearly training budget (used to build the budget-capped package). */
+export async function budgetAction(_: ActionState, form: FormData): Promise<ActionState> {
   const org_id = text(form, "org_id");
   const api = await getApi(org_id ? { workspace: org_id } : undefined);
   const year = Number(text(form, "year"));
-  const claim_id = text(form, "claim_id");
-  const revision = Number(text(form, "revision"));
-  const op = text(form, "op");
-  const query = org_id ? { expected_org: org_id } : undefined;
-  let result;
-  if (op === "budget") {
-    result = await call(api.PUT("/api/v1/org/funding/{year}/budget", {
-      params: { path: { year }, query },
-      body: { user_id: text(form, "user_id"), amount_myr: text(form, "amount_myr") },
-    }));
-  } else if (op === "request") {
-    result = await call(api.POST("/api/v1/org/funding/{year}/requests", {
-      params: { path: { year }, query },
-      body: { course_id: text(form, "course_id"), role_id: text(form, "role_id"),
-        amount_myr: text(form, "amount_myr"), quote_url: text(form, "quote_url") },
-    }));
-  } else if (op === "completion") {
-    result = await call(api.POST("/api/v1/org/funding/{year}/requests/{claim_id}/completion", {
-      params: { path: { year, claim_id }, query }, body: { revision, url: text(form, "certificate_url") },
-    }));
-  } else if (op === "submit") {
-    result = await call(api.POST("/api/v1/org/funding/{year}/requests/{claim_id}/submit", {
-      params: { path: { year, claim_id }, query },
-      body: { revision, amount_myr: text(form, "amount_myr"), receipt_url: text(form, "receipt_url"),
-        receipt_reference: text(form, "receipt_reference"),
-        purchased_at: text(form, "purchased_at") + "+08:00" },
-    }));
-  } else if (["approve", "reject", "cancel", "accept_claim", "mark_paid"].includes(op)) {
-    result = await call(api.POST("/api/v1/org/funding/{year}/requests/{claim_id}/decision", {
-      params: { path: { year, claim_id }, query },
-      body: { revision, action: op as "approve" | "reject" | "cancel" | "accept_claim" | "mark_paid",
-        note: text(form, "note"), payment_reference: text(form, "payment_reference") },
-    }));
-  } else return { error: "Unknown action." };
+  const result = await call(api.PUT("/api/v1/org/funding/{year}/budget", {
+    params: { path: { year }, query: org_id ? { expected_org: org_id } : undefined },
+    body: { user_id: text(form, "user_id"), amount_myr: text(form, "amount_myr") },
+  }));
   if (!result.ok) return { error: result.message };
   revalidatePath("/org", "layout");
-  revalidatePath("/app", "layout");
-  revalidatePath("/work", "layout");
   return { done: Date.now() };
 }
 

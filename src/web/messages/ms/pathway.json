@@ -29,11 +29,12 @@
     "sdg": "Sasaran SDG"
   },
   "unmet": {
-    "title": "Jurang yang belum dapat ditutup oleh katalog kami",
-    "no_catalogue_course": "Tiada kursus dalam katalog",
-    "over_budget": "Melebihi bajet",
-    "catalogue_tops_out": "Perlu latihan di luar kursus",
-    "blocked_prerequisite": "Prasyarat belum dipenuhi"
+    "title": "Kemahiran yang dibina semasa bekerja",
+    "no_catalogue_course": "Belum ada kursus",
+    "over_budget": "Kos kursus melebihi bajet anda",
+    "catalogue_tops_out": "Kursus merangkumi asas; kerja sebenar membina selebihnya",
+    "blocked_prerequisite": "Pelajari langkah sebelumnya dahulu",
+    "count": "{count, plural, other {# kemahiran}}"
   },
   "plan": {
     "save": "Pilih peranan ini dan simpan pelan",

@@ -4,7 +4,7 @@ export type NavKey = keyof Messages["ui"]["nav"];
 /** Icon names resolved on the client (lucide-react), so config stays serialisable. */
 export type IconName =
   | "home" | "skills" | "radar" | "roles" | "plan" | "progress" | "courses" | "impact"
-  | "team" | "gaps" | "verify" | "settings" | "sources" | "snapshots";
+  | "team" | "gaps" | "verify" | "settings" | "sources" | "snapshots" | "jobs";
 
 export type NavItem = {
   key: NavKey;
@@ -35,6 +35,7 @@ const learnerItems = {
   progress: { key: "progress", href: "/app/progress", icon: "progress", scenario: true },
   courses: { key: "courses", href: "/app/courses", icon: "courses" },
   impact: { key: "impact", href: "/app/sdg", icon: "impact", scenario: true },
+  jobs: { key: "jobs", href: "/app/jobs", icon: "jobs", scenario: true },
 } satisfies Record<string, NavItem>;
 
 export const learnerWorkspace: Workspace = {
@@ -45,7 +46,7 @@ export const learnerWorkspace: Workspace = {
       label: "journey",
       items: [learnerItems.home, learnerItems.skills, learnerItems.radar, learnerItems.roles, learnerItems.plan],
     },
-    { label: "track", items: [learnerItems.progress, learnerItems.courses, learnerItems.impact] },
+    { label: "track", items: [learnerItems.progress, learnerItems.jobs, learnerItems.courses, learnerItems.impact] },
   ],
   tabs: ["home", "radar", "roles", "plan"],
 };
@@ -65,7 +66,6 @@ export const workWorkspace: Workspace = {
         { key: "skills", href: "/work/skills", icon: "skills" },
         { key: "plan", href: "/work/plan", icon: "plan", scenario: true },
         { key: "progress", href: "/work/progress", icon: "progress", scenario: true },
-        { key: "funding", href: "/work/funding", icon: "courses" },
       ],
     },
   ],

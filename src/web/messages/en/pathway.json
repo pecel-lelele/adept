@@ -29,11 +29,12 @@
     "sdg": "SDG targets"
   },
   "unmet": {
-    "title": "Gaps our catalogue cannot close yet",
-    "no_catalogue_course": "No catalogue course",
-    "over_budget": "Over budget",
-    "catalogue_tops_out": "Needs practice beyond courses",
-    "blocked_prerequisite": "Prerequisite not yet covered"
+    "title": "Skills you build at work",
+    "no_catalogue_course": "No course available yet",
+    "over_budget": "Courses cost more than your budget",
+    "catalogue_tops_out": "Courses cover the basics; real work builds the rest",
+    "blocked_prerequisite": "Learn the earlier step first",
+    "count": "{count, plural, one {# skill} other {# skills}}"
   },
   "plan": {
     "save": "Choose this role and save the plan",

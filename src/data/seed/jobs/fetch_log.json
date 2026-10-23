@@ -1,0 +1,431 @@
+{
+  "fetched_on": "2026-10-23",
+  "fx": "Bank Negara Malaysia OpenAPI (exchange rates), selling rate 4.0925 on 2026-10-23",
+  "evaluation": {
+    "openings": 1210,
+    "employers": 127,
+    "by_source": {
+      "remoteok": 54,
+      "remotive": 7,
+      "jobicy": 39,
+      "greenhouse": 155,
+      "workday": 768,
+      "lever": 97,
+      "jibe": 54,
+      "himalayas": 17,
+      "ashby": 19
+    },
+    "assigned_share": 0.38,
+    "method": {
+      "title": 460,
+      "unassigned": 750
+    },
+    "by_role": {
+      "semiconductor-process-engineer": 102,
+      "smart-manufacturing-engineer": 83,
+      "compliance-analytics-officer": 39,
+      "cybersecurity-analyst": 33,
+      "digital-marketing-specialist": 33,
+      "supply-chain-analyst": 31,
+      "customer-success-specialist": 29,
+      "cloud-solutions-architect": 18,
+      "data-analyst": 17,
+      "logistics-supervisor": 13,
+      "machine-learning-engineer": 12,
+      "ai-product-manager": 10,
+      "business-analyst": 10,
+      "tvet-digital-skills-trainer": 5,
+      "bank-operations-executive": 4,
+      "data-engineer": 4,
+      "ux-designer": 4,
+      "ai-operations-specialist": 3,
+      "solar-pv-engineer": 3,
+      "esg-sustainability-analyst": 2,
+      "process-automation-analyst": 2,
+      "health-informatics-specialist": 1,
+      "islamic-finance-analyst": 1,
+      "learning-experience-designer": 1
+    },
+    "with_skills_share": 0.887,
+    "median_skills_per_ad": 3,
+    "with_cert_share": 0.002,
+    "unassigned_families": {
+      "other": 314,
+      "finance & accounting": 115,
+      "engineering & technicians": 99,
+      "sales & business development": 74,
+      "operations & admin": 69,
+      "software engineering": 60,
+      "people & HR": 19
+    }
+  },
+  "boards": [
+    {
+      "source": "greenhouse",
+      "board": "agoda",
+      "employer": "Agoda",
+      "status": "ok",
+      "kept": 16
+    },
+    {
+      "source": "greenhouse",
+      "board": "xendit",
+      "employer": "Xendit",
+      "status": "ok",
+      "kept": 8
+    },
+    {
+      "source": "greenhouse",
+      "board": "okx",
+      "employer": "OKX",
+      "status": "ok",
+      "kept": 11
+    },
+    {
+      "source": "greenhouse",
+      "board": "bybit",
+      "employer": "Bybit",
+      "status": "ok",
+      "kept": 74
+    },
+    {
+      "source": "greenhouse",
+      "board": "binance",
+      "employer": "Binance",
+      "status": "ok",
+      "kept": 43
+    },
+    {
+      "source": "greenhouse",
+      "board": "mongodb",
+      "employer": "MongoDB",
+      "status": "ok",
+      "kept": 2
+    },
+    {
+      "source": "greenhouse",
+      "board": "adyen",
+      "employer": "Adyen",
+      "status": "ok",
+      "kept": 1
+    },
+    {
+      "source": "lever",
+      "board": "ninjavan",
+      "employer": "Ninja Van",
+      "status": "ok",
+      "kept": 84
+    },
+    {
+      "source": "lever",
+      "board": "lalamove",
+      "employer": "Lalamove",
+      "status": "ok",
+      "kept": 8
+    },
+    {
+      "source": "lever",
+      "board": "dlocal",
+      "employer": "dLocal",
+      "status": "ok",
+      "kept": 5
+    },
+    {
+      "source": "ashby",
+      "board": "airwallex",
+      "employer": "Airwallex",
+      "status": "ok",
+      "kept": 10
+    },
+    {
+      "source": "ashby",
+      "board": "mindvalley",
+      "employer": "Mindvalley",
+      "status": "ok",
+      "kept": 8
+    },
+    {
+      "source": "ashby",
+      "board": "snowflake",
+      "employer": "Snowflake",
+      "status": "ok",
+      "kept": 1
+    },
+    {
+      "source": "workday",
+      "board": "intel",
+      "employer": "Intel",
+      "status": "ok",
+      "kept": 40
+    },
+    {
+      "source": "jibe",
+      "board": "amd",
+      "employer": "AMD",
+      "status": "ok",
+      "kept": 54
+    },
+    {
+      "source": "workday",
+      "board": "pwc",
+      "employer": "PwC",
+      "status": "ok",
+      "kept": 41
+    },
+    {
+      "source": "workday",
+      "board": "micron",
+      "employer": "Micron",
+      "status": "ok",
+      "kept": 102
+    },
+    {
+      "source": "workday",
+      "board": "nxp",
+      "employer": "NXP Semiconductors",
+      "status": "ok",
+      "kept": 40
+    },
+    {
+      "source": "workday",
+      "board": "motorolasolutions",
+      "employer": "Motorola Solutions",
+      "status": "ok",
+      "kept": 40
+    },
+    {
+      "source": "workday",
+      "board": "citi",
+      "employer": "Citi",
+      "status": "ok",
+      "kept": 39
+    },
+    {
+      "source": "workday",
+      "board": "aia",
+      "employer": "AIA",
+      "status": "ok",
+      "kept": 40
+    },
+    {
+      "source": "workday",
+      "board": "manulife",
+      "employer": "Manulife",
+      "status": "ok",
+      "kept": 22
+    },
+    {
+      "source": "workday",
+      "board": "jabil",
+      "employer": "Jabil",
+      "status": "ok",
+      "kept": 37
+    },
+    {
+      "source": "workday",
+      "board": "flextronics",
+      "employer": "Flex",
+      "status": "ok",
+      "kept": 40
+    },
+    {
+      "source": "workday",
+      "board": "hp",
+      "employer": "HP",
+      "status": "ok",
+      "kept": 36
+    },
+    {
+      "source": "workday",
+      "board": "sanofi",
+      "employer": "Sanofi",
+      "status": "ok",
+      "kept": 21
+    },
+    {
+      "source": "workday",
+      "board": "gsk",
+      "employer": "GSK",
+      "status": "ok",
+      "kept": 15
+    },
+    {
+      "source": "workday",
+      "board": "astrazeneca",
+      "employer": "AstraZeneca",
+      "status": "ok",
+      "kept": 25
+    },
+    {
+      "source": "workday",
+      "board": "bdx",
+      "employer": "BD (Becton Dickinson)",
+      "status": "ok",
+      "kept": 40
+    },
+    {
+      "source": "workday",
+      "board": "bakerhughes",
+      "employer": "Baker Hughes",
+      "status": "ok",
+      "kept": 12
+    },
+    {
+      "source": "workday",
+      "board": "dxctechnology",
+      "employer": "DXC Technology",
+      "status": "ok",
+      "kept": 39
+    },
+    {
+      "source": "workday",
+      "board": "spgi",
+      "employer": "S&P Global",
+      "status": "ok",
+      "kept": 14
+    },
+    {
+      "source": "workday",
+      "board": "lseg",
+      "employer": "LSEG",
+      "status": "ok",
+      "kept": 10
+    },
+    {
+      "source": "workday",
+      "board": "abbott",
+      "employer": "Abbott",
+      "status": "ok",
+      "kept": 34
+    },
+    {
+      "source": "workday",
+      "board": "agilent",
+      "employer": "Agilent",
+      "status": "ok",
+      "kept": 21
+    },
+    {
+      "source": "workday",
+      "board": "amat",
+      "employer": "Applied Materials",
+      "status": "ok",
+      "kept": 18
+    },
+    {
+      "source": "workday",
+      "board": "mastercard",
+      "employer": "Mastercard",
+      "status": "ok",
+      "kept": 12
+    },
+    {
+      "source": "workday",
+      "board": "shell",
+      "employer": "Shell",
+      "status": "ok",
+      "kept": 3
+    },
+    {
+      "source": "workday",
+      "board": "pg",
+      "employer": "Procter & Gamble",
+      "status": "ok",
+      "kept": 9
+    },
+    {
+      "source": "workday",
+      "board": "kla",
+      "employer": "KLA",
+      "status": "ok",
+      "kept": 3
+    },
+    {
+      "source": "workday",
+      "board": "3m",
+      "employer": "3M",
+      "status": "ok",
+      "kept": 5
+    },
+    {
+      "source": "workday",
+      "board": "broadcom",
+      "employer": "Broadcom",
+      "status": "ok",
+      "kept": 4
+    },
+    {
+      "source": "workday",
+      "board": "equinix",
+      "employer": "Equinix",
+      "status": "ok",
+      "kept": 2
+    },
+    {
+      "source": "workday",
+      "board": "workday",
+      "employer": "Workday",
+      "status": "ok",
+      "kept": 2
+    },
+    {
+      "source": "workday",
+      "board": "fico",
+      "employer": "FICO",
+      "status": "ok",
+      "kept": 2
+    },
+    {
+      "source": "himalayas",
+      "board": "himalayas",
+      "employer": "",
+      "status": "ok",
+      "kept": 17
+    },
+    {
+      "source": "jobicy",
+      "board": "jobicy",
+      "employer": "",
+      "status": "ok",
+      "kept": 39
+    },
+    {
+      "source": "remoteok",
+      "board": "remoteok",
+      "employer": "",
+      "status": "ok",
+      "kept": 54
+    },
+    {
+      "source": "remotive",
+      "board": "remotive",
+      "employer": "",
+      "status": "ok",
+      "kept": 7
+    },
+    {
+      "source": "careerjet",
+      "board": "careerjet-my",
+      "employer": "",
+      "status": "skipped",
+      "kept": 0,
+      "detail": "set CAREERJET_API_KEY to enable"
+    },
+    {
+      "source": "jooble",
+      "board": "jooble-my",
+      "employer": "",
+      "status": "skipped",
+      "kept": 0,
+      "detail": "set JOOBLE_API_KEY to enable"
+    },
+    {
+      "source": "web3career",
+      "board": "web3career",
+      "employer": "",
+      "status": "skipped",
+      "kept": 0,
+      "detail": "set WEB3_CAREER_TOKEN to enable"
+    }
+  ]
+}

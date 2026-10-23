@@ -44,7 +44,12 @@ export function IntakeWizard({
     (initial?.skills ?? []).map((s) => ({ skill_id: s.skill_id, level: s.level })),
   );
   const [query, setQuery] = useState("");
-  const [cvReview, setCvReview] = useState<{ terms: string[]; truncated: boolean; count: number } | null>(null);
+  const [cvReview, setCvReview] = useState<{
+    terms: string[];
+    truncated: boolean;
+    count: number;
+    suggestions: Schemas["SkillSuggestion"][];
+  } | null>(null);
   const [error, setError] = useState("");
   const [cvBusy, startCv] = useTransition();
   const [saving, startSave] = useTransition();
@@ -98,7 +103,7 @@ export function IntakeWizard({
     startCv(async () => {
       const result = await uploadCvAction(form);
       if (result.error) setError(result.error);
-      else setCvReview({ terms: result.unmatched_terms ?? [], truncated: result.truncated ?? false, count: result.skills?.length ?? 0 });
+      else setCvReview({ terms: result.unmatched_terms ?? [], truncated: result.truncated ?? false, count: result.skills?.length ?? 0, suggestions: result.suggestions ?? [] });
       for (const s of result.skills ?? []) addSkill(s.skill_id, s.level, true);
     });
   }
@@ -242,6 +247,8 @@ export function IntakeWizard({
             />
             {cvReview ? (
               <CvReview terms={cvReview.terms} truncated={cvReview.truncated} matchedCount={cvReview.count}
+                suggestions={cvReview.suggestions} onAdd={(id) => addSkill(id)}
+                added={new Set(skills.map((s) => s.skill_id))}
                 onSearch={(term) => { setQuery(term); searchRef.current?.focus(); }} />
             ) : null}
             <label className="a-field" style={{ position: "relative" }}>
