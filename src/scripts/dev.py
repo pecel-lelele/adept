@@ -213,6 +213,12 @@ def task_lint() -> None:
         except TaskError as exc:
             print(f"FAILED {name}: {exc}", file=sys.stderr)
             failed.append(name)
+        except Exception as exc:
+            print(
+                f"FAILED {name}: unexpected {type(exc).__name__}: {exc}",
+                file=sys.stderr,
+            )
+            failed.append(name)
     if failed:
         raise TaskError(f"make lint failed: {', '.join(failed)}")
 
@@ -299,6 +305,12 @@ def task_check() -> None:
             fn()
         except TaskError as exc:
             print(f"FAILED {name}: {exc}", file=sys.stderr)
+            failed.append(name)
+        except Exception as exc:
+            print(
+                f"FAILED {name}: unexpected {type(exc).__name__}: {exc}",
+                file=sys.stderr,
+            )
             failed.append(name)
     if failed:
         raise TaskError(f"make check failed: {', '.join(failed)}")

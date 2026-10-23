@@ -98,6 +98,24 @@ class LintRunnerTests(unittest.TestCase):
         self.assertEqual(self.dev.py.call_count, 2)
         self.assertEqual([call.args[0] for call in self.commands.call_args_list], [COMMANDS[2]])
 
+    def test_unexpected_lint_runner_error_does_not_hide_later_checks(self) -> None:
+        self.commands.side_effect = [
+            FileNotFoundError("ruff executable missing"),
+            subprocess.CompletedProcess(COMMANDS[1], 0),
+            subprocess.CompletedProcess(COMMANDS[2], 0),
+        ]
+        out, err = io.StringIO(), io.StringIO()
+        with redirect_stdout(out), redirect_stderr(err):
+            self.assertEqual(self.dev.main(["lint"]), 1)
+        self.assert_commands_once()
+        for label in LABELS:
+            self.assertIn(f"lint: {label}", out.getvalue())
+        self.assertIn(
+            "FAILED ruff lint: unexpected FileNotFoundError: ruff executable missing",
+            err.getvalue(),
+        )
+        self.assertIn("make lint failed: ruff lint", err.getvalue())
+
     def test_make_check_continues_other_stages_after_aggregated_lint_failure(self) -> None:
         self.command_results((1, 1, 1))
         stages = [
@@ -123,6 +141,30 @@ class LintRunnerTests(unittest.TestCase):
             "FAILED lint: make lint failed: ruff lint, ruff format, frontend lint", err.getvalue()
         )
         self.assertIn("make check failed: lint", err.getvalue())
+
+    def test_make_check_continues_after_unexpected_stage_error_and_fails(self) -> None:
+        self.command_results((0, 0, 0))
+        callbacks = {}
+        with ExitStack() as patches:
+            for stage, callback_name in (
+                ("i18n", "task_i18n_check"),
+                ("test", "task_test"),
+                ("typecheck", "task_typecheck"),
+                ("contracts", "task_contracts_check"),
+            ):
+                error = RuntimeError("runner crashed") if stage == "test" else None
+                callback = Mock(side_effect=error)
+                callbacks[stage] = callback
+                patches.enter_context(patch.object(self.dev, callback_name, callback))
+
+            err = io.StringIO()
+            with redirect_stdout(io.StringIO()), redirect_stderr(err):
+                self.assertEqual(self.dev.main(["check"]), 1)
+
+        for callback in callbacks.values():
+            callback.assert_called_once_with()
+        self.assertIn("FAILED test: unexpected RuntimeError: runner crashed", err.getvalue())
+        self.assertIn("make check failed: test", err.getvalue())
 
     def test_make_check_reports_lint_and_later_stage_failures_together(self) -> None:
         self.command_results((1, 0, 0))
