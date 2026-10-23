@@ -7,7 +7,7 @@ import io
 import itertools
 import subprocess
 import unittest
-from contextlib import redirect_stderr, redirect_stdout
+from contextlib import ExitStack, redirect_stderr, redirect_stdout
 from pathlib import Path
 from unittest.mock import Mock, patch
 
@@ -123,6 +123,45 @@ class LintRunnerTests(unittest.TestCase):
             "FAILED lint: make lint failed: ruff lint, ruff format, frontend lint", err.getvalue()
         )
         self.assertIn("make check failed: lint", err.getvalue())
+
+    def test_make_check_reports_all_combinations_of_multiple_non_lint_failures(self) -> None:
+        stage_names = ["i18n", "test", "typecheck", "contracts"]
+        callbacks_by_stage = {
+            "i18n": "task_i18n_check",
+            "test": "task_test",
+            "typecheck": "task_typecheck",
+            "contracts": "task_contracts_check",
+        }
+        for failures in itertools.chain.from_iterable(
+            itertools.combinations(stage_names, count) for count in range(2, len(stage_names) + 1)
+        ):
+            with self.subTest(failures=failures):
+                self.command_results((0, 0, 0))
+                callbacks = {}
+                with ExitStack() as patches:
+                    for stage, callback_name in callbacks_by_stage.items():
+                        callback = Mock(
+                            side_effect=(
+                                self.dev.TaskError(f"{stage} failure")
+                                if stage in failures
+                                else None
+                            )
+                        )
+                        callbacks[stage] = callback
+                        patches.enter_context(patch.object(self.dev, callback_name, callback))
+
+                    err = io.StringIO()
+                    with redirect_stdout(io.StringIO()), redirect_stderr(err):
+                        self.assertEqual(self.dev.main(["check"]), 1)
+
+                    self.assert_commands_once()
+                    for stage, callback in callbacks.items():
+                        callback.assert_called_once_with()
+                        self.assertEqual(
+                            f"FAILED {stage}: {stage} failure" in err.getvalue(),
+                            stage in failures,
+                        )
+                    self.assertIn(f"make check failed: {', '.join(failures)}", err.getvalue())
 
 
 if __name__ == "__main__":
