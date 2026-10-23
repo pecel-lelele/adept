@@ -1308,4 +1308,16 @@
 - **Replaces**: none (extends M4-056)
 - **PR / branch**: feat/catalogue-roles-skills-courses
 
+### M4-058: Employer view of private routes is an allowlist; join consent is never assumed
+- **Date**: 2026-10-23
+- **Feature**: F7 (Organisation Mode & Heatmaps), Core
+- **Type**: method | contract | UI
+- **Change**:
+  1. `programmes.private_route` rebuilds each step from an allowlist for members who do not share skills. Step explanations are neutral, with no "You are at level ..." text or gap share. Priority and current level are 0; the reached level comes from the courses' own catalogue levels. Unmet details are generic, and gaps, warnings and segment are removed. New pathway fields therefore stay private by default.
+  2. `JoinOrgIn.consent` now defaults to `false`, so an API join without explicit consent is refused (`consent_required`). This brings the contract in line with M4-055 and M4-056. The join consent and sign-up sharing checkboxes start unticked.
+- **Why**: Greptile (confidence 3/5) found private levels still in step explanations. Review also found the join contract's `consent=True` default contradicted the agreed explicit-consent rule.
+- **Affects**: API clients of `POST /org/join` must send `consent: true`
+- **Replaces**: none (extends M4-056, M4-057)
+- **PR / branch**: feat/catalogue-roles-skills-courses
+
 

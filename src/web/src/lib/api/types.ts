@@ -2326,8 +2326,8 @@ export interface components {
             code: string;
             /**
              * Consent
-             * @description Consent to join the organisation and share skills profile with managers.
-             * @default true
+             * @description Explicit consent to join and share the skills profile with managers. Required: a join without it is refused (M4-055).
+             * @default false
              */
             consent: boolean;
             /**

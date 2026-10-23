@@ -112,3 +112,8 @@ def test_joining_org_without_consent_fails(client: TestClient) -> None:
     )
     assert res.status_code == 400
     assert res.json()["error"]["code"] == "consent_required"
+    # Leaving consent out is not consent: the API never assumes it.
+    silent = client.post(
+        "/api/v1/org/join", headers={"X-Demo-User": token}, json={"code": "BANKDEMO"}
+    )
+    assert silent.status_code == 400 and silent.json()["error"]["code"] == "consent_required"

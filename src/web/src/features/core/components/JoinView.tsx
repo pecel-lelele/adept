@@ -66,7 +66,7 @@ export function JoinView({ code = "" }: { code?: string }) {
                   type="checkbox"
                   name="consent"
                   required
-                  defaultChecked={state.values?.consent ? state.values.consent === "on" : true}
+                  defaultChecked={state.values?.consent === "on"}
                 />
                 <span>
                   <strong>{t("consent")}</strong>

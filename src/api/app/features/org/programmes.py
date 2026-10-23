@@ -17,7 +17,7 @@ from datetime import UTC, date, datetime, timedelta
 
 from app.contracts.common import RecommendationMeta
 from app.contracts.funding import FundingState
-from app.contracts.pathway import Course, Pathway
+from app.contracts.pathway import Course, Pathway, PathwayStep, UnmetSkill
 from app.contracts.programmes import (
     Agreement,
     AssignmentDecision,
@@ -386,18 +386,58 @@ def _status(record: ProgrammeRecord, assignments: list[ProgrammeAssignment]) -> 
     )
 
 
+_PRIVATE_UNMET = {
+    "no_catalogue_course": "No catalogue course teaches this skill yet.",
+    "over_budget": "Catalogue courses for this skill cost more than the agreed budget.",
+    "catalogue_tops_out": "Catalogue courses do not reach the required level; it needs practice "
+    "on real work.",
+    "blocked_prerequisite": "A prerequisite skill must be established first.",
+}
+
+
 def private_route(pathway: Pathway) -> Pathway:
     """The route as an employer may see it for a member who does not share skill levels.
 
-    Gap statuses and every current level are derived from the member's private levels, so they
-    are dropped; the courses, hours, costs and target levels stay (the employer funds them).
+    Built from an allowlist, so a field added to the pathway later stays private by default.
+    Kept: the courses, schedule, costs, target levels and SDG links (the employer funds and
+    plans them). Dropped or neutralised: anything computed from the member's private levels,
+    i.e. gap statuses, current and reached levels, priorities, the step explanations ("You are
+    at level ..."), unmet details and profile warnings.
     """
+    steps = [
+        PathwayStep(
+            order=step.order,
+            skill_id=step.skill_id,
+            skill_label=step.skill_label,
+            courses=step.courses,
+            alternatives=step.alternatives,
+            est_hours=step.est_hours,
+            week_start=step.week_start,
+            week_end=step.week_end,
+            target_level=step.target_level,
+            # What the courses themselves teach (catalogue facts), never the member's level.
+            reaches_level=min(step.target_level, max((c.level for c in step.courses), default=0)),
+            prerequisites=step.prerequisites,
+            out_of_pocket_myr=step.out_of_pocket_myr,
+            sdg_targets=step.sdg_targets,
+            reason=f"Builds {step.skill_label or step.skill_id} toward level "
+            f"{step.target_level} for this programme.",
+        )
+        for step in pathway.steps
+    ]
+    unmet = [
+        UnmetSkill(
+            skill_id=u.skill_id,
+            label=u.label,
+            current_level=0,
+            required_level=u.required_level,
+            reason=u.reason,
+            detail=_PRIVATE_UNMET.get(u.reason, ""),
+        )
+        for u in pathway.unmet
+    ]
     return pathway.model_copy(
-        update={
-            "gaps": [],
-            "unmet": [u.model_copy(update={"current_level": 0}) for u in pathway.unmet],
-            "steps": [s.model_copy(update={"current_level": 0}) for s in pathway.steps],
-        }
+        update={"steps": steps, "unmet": unmet, "gaps": [], "warnings": [], "segment": None}
     )
 
 

@@ -213,5 +213,12 @@ def test_non_sharing_member_acceptance_requires_consent_and_sanitizes_for_hr(
         assert route["gaps"] == []
         assert all(u["current_level"] == 0 for u in route["unmet"])
         assert all(step["current_level"] == 0 for step in route["steps"])
+        # Explanations and priorities are computed from levels too: neutral for HR.
+        assert all("level" not in step["reason"].split("toward")[0] for step in route["steps"])
+        assert all(step["priority"] == 0 for step in route["steps"])
+        assert route["warnings"] == [] and route["segment"] is None
+        mine = client.get("/api/v1/org/programmes/mine", headers=member_org).json()
+        own = mine["assignments"][0]["pathway"]
+        assert own["gaps"], "the member still sees their full route"
     finally:
         client.put("/api/v1/org/me/sharing", headers=member_org, json={"share_skills": True})

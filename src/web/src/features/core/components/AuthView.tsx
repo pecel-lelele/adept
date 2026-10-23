@@ -181,7 +181,7 @@ export function AuthView() {
                       <small>{t("joinCodeHint")}</small>
                     </label>
                     <label className="a-check" style={{ marginTop: "0.5rem" }}>
-                      <input type="checkbox" name="share_skills" defaultChecked={values.share_skills !== "off"} />
+                      <input type="checkbox" name="share_skills" defaultChecked={values.share_skills === "on"} />
                       <span>{t("shareSkills")}</span>
                     </label>
                     <small className="a-muted" style={{ display: "block", marginTop: "0.25rem" }}>
