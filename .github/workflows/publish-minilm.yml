@@ -11,7 +11,7 @@ name: Publish MiniLM worker
 
 on:
   push:
-    branches: [main]
+    branches: [main, "feat/**"]
     paths:
       - "src/pipelines/trends/runpod/**"
       - "src/pipelines/trends/encoder.py"
