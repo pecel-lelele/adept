@@ -206,6 +206,10 @@ def start() -> int:
 
     signal.signal(signal.SIGTERM, shutdown)
     try:
+        # Autoscale probes GET / shortly after launch. Start the lightweight web
+        # server before waiting on API/database readiness so the probe can answer.
+        print(f"[replit] Starting public web on 0.0.0.0:{env['PORT']}", flush=True)
+        processes.append(subprocess.Popen(["node", "server.js"], cwd=STANDALONE, env=env))
         print("[replit] Starting private API on 127.0.0.1:8000", flush=True)
         processes.append(
             subprocess.Popen(
@@ -224,11 +228,9 @@ def start() -> int:
                 env=native_library_env(env),
             )
         )
-        wait_for_api(processes[0])
-        print(f"[replit] Starting public web on 0.0.0.0:{env['PORT']}", flush=True)
-        processes.append(subprocess.Popen(["node", "server.js"], cwd=STANDALONE, env=env))
+        wait_for_api(processes[1])
         while True:
-            for name, process in zip(["API", "web"], processes, strict=True):
+            for name, process in zip(["web", "API"], processes, strict=True):
                 code = process.poll()
                 if code is not None:
                     print(f"[replit] {name} exited ({code}); stopping container.", flush=True)

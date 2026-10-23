@@ -1545,12 +1545,13 @@
 - **Replaces**: M4-071
 - **PR / branch**: fix/core-replit-publish-live
 
-### M4-074: Report independent lint failures together
+### M4-075: Start the HTTP server before waiting for API readiness
 - **Date**: 2026-10-24
-- **Feature**: Core developer tooling
+- **Feature**: Core production launcher
 - **Type**: method
-- **Change**: Run Ruff lint, Ruff format validation and frontend lint once each even when another lint check fails. Preserve command diagnostics, report each failed check by name and raise a final task error whenever any check fails.
-- **Why**: Failing early within the lint stage hid formatting and frontend failures, requiring repeated quality-gate runs to discover independent problems. Match the outer quality gate's failure aggregation without adding fixes or weakening validation.
-- **Affects**: The shared lint runner only; Makefile commands, validation rules and database behavior are unchanged. Isolated mocked-process tests cover every success/failure combination, preparation failures and propagation through the outer quality gate.
+- **Change**: Launch the web server before waiting for FastAPI and its database health check. Continue to require API/database health before the launcher enters steady-state supervision, and stop both processes if API startup fails.
+- **Why**: Replit Autoscale probes `GET /` soon after launch and its documented health-check timeout is five seconds. The prior sequence could spend up to 45 seconds waiting for API/database readiness before opening the public HTTP port, making a healthy web process unavailable to the startup probe.
+- **Affects**: Production process startup only; the web server remains supervised with the API, and the API health check remains required. The startup order is covered by launcher tests.
 - **Replaces**: none
 - **PR / branch**: fix/core-replit-publish-live
+

@@ -1,1 +1,2 @@
 - [Nix subprocess test isolation](nix-subprocess-test-isolation.md) — server-process mocks can also intercept compiler runtime probes on Replit.
+- [Replit Autoscale startup probes](replit-autoscale-startup.md) — open the HTTP listener promptly while API/database readiness is checked.
