@@ -1390,3 +1390,14 @@
 - **Affects**: M3 (no change to pathway or verification); API clients of the removed endpoints
 - **Replaces**: the claim workflow parts of M4-040, M4-041 and the funding notes in F7 FEATURE.md
 - **PR / branch**: feat/jobs-live-openings
+
+### M4-063: Resolve the live-openings PR's eight Greptile findings
+- **Date**: 2026-10-24
+- **Feature**: Core (jobs), F1, F7
+- **Type**: method | UI
+- **Change**: CV requests read only an existing, current catalogue embedding index without waiting for its build; acronyms no longer terminate skills lists. Job refreshes distinguish incomplete reads, preserve skipped/failed boards in CSV mode, and close missing listings only after a complete read; API reads apply the same 14-day stale limit. Security title rules exclude securities banking jobs, and five affected seed rows were corrected. Archived unpaid claims no longer reserve training funds, while paid historical expenses remain recorded. Certification cards show every option counted in their heading.
+- **Why**: Greptile identified optional embedding retries blocking uploads, incomplete refreshes hiding valid jobs, stale or misclassified jobs appearing live, unusable budget reservations, and advertised exam options being inaccessible.
+- **Evaluation**: Focused regressions passed; full repository quality gate passed with 882 tests passed and 26 skipped. Checks call no paid endpoints.
+- **Affects**: M2 (CV extraction), M3 (certification cards), M4 (jobs and funding)
+- **Replaces**: the request-time indexing and archived-reservation behaviour in M4-061/M4-062
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/13 / feat/jobs-live-openings

@@ -426,6 +426,10 @@ def jibe(f: Fetcher, b: Board) -> Iterator[RawPosting]:
 # --- remote-job boards -----------------------------------------------------------------------
 
 
+class IncompleteRead(RuntimeError):
+    """A board yielded some results but could not complete the read."""
+
+
 def himalayas(f: Fetcher, b: Board) -> Iterator[RawPosting]:
     """Himalayas: remote jobs whose location rules include Malaysia (or no restriction)."""
     api = "https://himalayas.app/jobs/api/search"
@@ -436,7 +440,7 @@ def himalayas(f: Fetcher, b: Board) -> Iterator[RawPosting]:
             page = f.get_json(api, params={"q": q, "country": "Malaysia", "page": 1})
         except httpx.HTTPStatusError as exc:
             if exc.response.status_code == 429:
-                break  # shared public allowance used up; keep what we have
+                raise IncompleteRead("Himalayas rate limit; previous listings retained") from exc
             raise
         for j in page.get("jobs", []):
             guid = j.get("guid") or j.get("applicationLink", "")

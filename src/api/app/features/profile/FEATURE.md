@@ -10,6 +10,11 @@
 
 ## Status
 
+Embedding suggestions require an existing catalogue index. Pre-build it with
+`PYTHONPATH=src/api python -m app.features.profile.skill_match` using the configured
+database. CV requests never build the index or wait for an in-progress build; an absent
+or stale index falls back to exact catalogue matches without optional suggestions.
+
 Implemented: in-memory PDF/DOCX/text parsing, catalogue aliases and user-confirmed skill
 levels, questionnaire intake and PostgreSQL profiles. The web provides a four-step intake.
 Unmatched wording and truncation are reviewable; uploads never mutate saved skills before

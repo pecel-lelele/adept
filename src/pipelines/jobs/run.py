@@ -50,7 +50,14 @@ from app.features.profile.cv_parser import extract_skills
 from pipelines.jobs import boards
 from pipelines.jobs.certifications import CERTS
 from pipelines.jobs.classify import RoleReq, assign_role, cert_mentions, seniority
-from pipelines.jobs.sources import CONNECTORS, SOURCE_NAMES, Fetcher, MissingKey, RawPosting
+from pipelines.jobs.sources import (
+    CONNECTORS,
+    SOURCE_NAMES,
+    Fetcher,
+    IncompleteRead,
+    MissingKey,
+    RawPosting,
+)
 
 ROOT = Path(__file__).resolve().parents[3]
 SEED_DIR = ROOT / "src" / "data" / "seed" / "jobs"
@@ -88,18 +95,21 @@ def fetch(only: set[str] | None) -> tuple[list[RawPosting], list[dict[str, Any]]
         if only and b.source not in only and b.board not in only:
             continue
         entry: dict[str, Any] = {"source": b.source, "board": b.board, "employer": b.employer}
+        found: list[RawPosting] = []
         try:
-            found = list(CONNECTORS[b.source](fetcher, b))
-            for p in found:
-                if p.title and p.url:
-                    postings.setdefault(f"{p.source}:{p.board}:{p.source_id}", p)
+            found.extend(CONNECTORS[b.source](fetcher, b))
             entry |= {"status": "ok", "kept": len(found)}
+        except IncompleteRead as exc:
+            entry |= {"status": "partial", "kept": len(found), "detail": str(exc)}
         except MissingKey as exc:
             entry |= {"status": "skipped", "kept": 0, "detail": f"set {exc} to enable"}
         except PermissionError as exc:
             entry |= {"status": "blocked", "kept": 0, "detail": str(exc)}
         except (httpx.HTTPError, ValueError, KeyError) as exc:
             entry |= {"status": "error", "kept": 0, "detail": f"{type(exc).__name__}: {exc}"[:300]}
+        for p in found:
+            if p.title and p.url:
+                postings.setdefault(f"{p.source}:{p.board}:{p.source_id}", p)
         print(f"  {b.source:16} {b.board:20} {entry['status']:8} {entry['kept']:4}", flush=True)
         log.append(entry)
     return list(postings.values()), log
@@ -283,6 +293,26 @@ def _write_csv(path: Path, fields: tuple[str, ...], rows: list[dict[str, Any]]) 
         w.writerows(rows)
 
 
+def merge_postings(
+    previous: list[dict[str, Any]],
+    refreshed: list[dict[str, Any]],
+    log: list[dict[str, Any]],
+    today: date,
+) -> list[dict[str, Any]]:
+    """CSV and database use the same complete-read, expiry and stale closing rules."""
+    complete = {(entry["source"], entry["board"]) for entry in log if entry["status"] == "ok"}
+    seen = {row["id"] for row in refreshed}
+    merged = {row["id"]: dict(row) for row in previous}
+    merged.update({row["id"]: dict(row) for row in refreshed})
+    for row in merged.values():
+        missing = (row["source"], row["board"]) in complete and row["id"] not in seen
+        stale = date.fromisoformat(row["last_seen"]) < today - STALE_AFTER
+        expired = bool(row.get("expires_at") and date.fromisoformat(row["expires_at"]) < today)
+        if missing or stale or expired:
+            row["active"] = "false"
+    return sorted(merged.values(), key=lambda row: row["id"])
+
+
 def save_raw(raw: list[RawPosting], today: date) -> Path:
     """Full ads (with text) for re-classifying without refetching. Gitignored, never served."""
     RAW_DIR.mkdir(parents=True, exist_ok=True)
@@ -388,8 +418,9 @@ def main() -> int:
         raw, log = fetch(set(args.only) if args.only else None)
         print(f"raw ads cached at {save_raw(raw, today).relative_to(ROOT)}")
 
-    rows = classify(raw, today)
-    report = evaluate(rows)
+    refreshed = classify(raw, today)
+    rows = merge_postings(_read_csv(POSTINGS_CSV), refreshed, log, today)
+    report = evaluate([row for row in rows if row["active"] == "true"])
     certs, fx = cert_rows()
     _write_csv(POSTINGS_CSV, POSTING_FIELDS, rows)
     _write_csv(CERTS_CSV, CERT_FIELDS, certs)
@@ -404,7 +435,7 @@ def main() -> int:
     )
     print(f"wrote {POSTINGS_CSV.relative_to(ROOT)} ({len(rows)} openings), {CERTS_CSV.name}")
     if args.db:
-        to_db(rows, certs, log, today)
+        to_db(refreshed, certs, log, today)
     return 0
 
 

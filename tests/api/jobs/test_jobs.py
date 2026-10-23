@@ -14,6 +14,27 @@ from app.features.jobs.repository import CertRow, Posting
 TODAY = date.today()
 
 
+def test_csv_read_excludes_stale_openings_even_when_refresh_stops(monkeypatch):
+    base = {
+        "id": "public-job",
+        "source": "greenhouse",
+        "board": "demo",
+        "source_name": "Demo",
+        "employer": "Fictional employer",
+        "title": "Data Analyst",
+        "url": "https://example.test/job",
+        "api_url": "https://example.test/feed",
+        "first_seen": TODAY.isoformat(),
+        "active": "true",
+    }
+    rows = [
+        dict(base, id=str(days), last_seen=(TODAY - timedelta(days=days)).isoformat())
+        for days in [0, 14, 15]
+    ]
+    monkeypatch.setattr(repository.refdata, "rows", lambda *args: rows)
+    assert {p.id for p in repository.openings()} == {"0", "14"}
+
+
 def _posting(pid: str, role: str, skills: tuple[str, ...], **kw: object) -> Posting:
     base: dict[str, object] = {
         "id": pid,

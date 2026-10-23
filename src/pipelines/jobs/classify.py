@@ -107,7 +107,7 @@ ROLE_TITLES: tuple[tuple[str, tuple[str, ...]], ...] = (
     (
         "cybersecurity-analyst",
         (
-            r"secur",
+            r"\bsecur(?:ity|e)\b",
             r"\bsoc analyst",
             r"cyber",
             r"penetration",

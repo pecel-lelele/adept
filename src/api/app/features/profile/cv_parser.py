@@ -583,9 +583,14 @@ _PAREN = re.compile(r"^(.*?)\s*\(([^()]{1,30})\)$")
 
 
 def _is_heading(line: str) -> bool:
-    return bool(
-        _SECTION_HEADING.match(line) or (_CAPS_HEADING.match(line) and len(line.split()) <= 5)
-    )
+    if _SECTION_HEADING.match(line):
+        return True
+    # Short acronyms and catalogue labels are skills even when written in capitals.
+    if (len(line.split()) == 1 and len(line.rstrip(":")) <= 5) or _covered(
+        line, {entry.phrase for entry in _build_alias_index()}
+    ):
+        return False
+    return bool(_CAPS_HEADING.match(line) and len(line.split()) <= 5)
 
 
 def skills_section_entries(text: str) -> list[str]:

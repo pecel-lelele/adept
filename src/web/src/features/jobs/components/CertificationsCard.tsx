@@ -15,13 +15,11 @@ export async function CertificationsCard({
   roleId,
   scenario,
   payer = "learner",
-  max = 3,
   open = false,
 }: {
   roleId: string;
   scenario: ScenarioId;
   payer?: "learner" | "employer";
-  max?: number;
   open?: boolean;
 }) {
   const t = await getTranslations("jobs");
@@ -40,7 +38,7 @@ export async function CertificationsCard({
     >
       <p className="a-fold-text">{t(payer === "employer" ? "certs.payEmployer" : "certs.payLearner")}</p>
       <ul className="a-jobs">
-        {d.certifications.slice(0, max).map((c) => (
+        {d.certifications.map((c) => (
           <li key={c.id} className="a-job">
             <div className="a-job-main">
               <a className="a-job-title" href={c.url} target="_blank" rel="noopener">

@@ -36,6 +36,7 @@ MAX_TERMS = 30
 _lock = threading.Lock()
 _index: dict[str, list[float]] = {}
 _index_model = ""
+_index_hashes: dict[str, str] = {}
 
 
 @dataclass(frozen=True)
@@ -101,11 +102,12 @@ def _save_db(model: str, rows: list[tuple[str, str, list[float]]]) -> None:
 
 def ensure_index() -> dict[str, list[float]]:
     """Catalogue vectors for the current model, embedding only new or changed skills."""
-    global _index, _index_model  # noqa: PLW0603
+    global _index, _index_model, _index_hashes  # noqa: PLW0603
     model = embeddings.model_name()
     texts = catalogue_texts()
+    hashes = {sid: _hash(text) for sid, text in texts.items()}
     with _lock:
-        if _index_model == model and set(_index) == set(texts):
+        if _index_model == model and _index_hashes == hashes:
             return _index
         stored: dict[str, tuple[str, list[float]]] = {}
         use_db = refdata.use_postgres()
@@ -128,7 +130,7 @@ def ensure_index() -> dict[str, list[float]]:
             log.info("embedded %d catalogue skill(s) with %s", len(fresh), model)
         index = {sid: v for sid, (_, v) in stored.items() if sid in texts}
         index.update({sid: v for sid, _, v in fresh})
-        _index, _index_model = index, model
+        _index, _index_model, _index_hashes = index, model, hashes
         return _index
 
 
@@ -140,6 +142,32 @@ def _nearest_db(vector: list[float], model: str, k: int = 3) -> list[tuple[str, 
             (_vector_literal(vector), model, _vector_literal(vector), k),
         ).fetchall()
     return [(str(r["item_id"]), float(r["sim"])) for r in rows]
+
+
+def ready_index() -> dict[str, list[float]]:
+    """Read an existing catalogue index; requests never build or wait for one."""
+    model = embeddings.model_name()
+    texts = catalogue_texts()
+    hashes = {sid: _hash(text) for sid, text in texts.items()}
+    if not _lock.acquire(blocking=False):
+        return {}
+    try:
+        if _index_model == model and _index_hashes == hashes and set(_index) == set(texts):
+            return dict(_index)
+        if not refdata.use_postgres():
+            return {}
+        try:
+            stored = _load_db(model)
+        except psycopg.Error:
+            return {}
+        index = {
+            sid: vector
+            for sid, (text_hash, vector) in stored.items()
+            if sid in texts and text_hash == _hash(texts[sid])
+        }
+        return index if set(index) == set(texts) else {}
+    finally:
+        _lock.release()
 
 
 def _nearest_memory(
@@ -171,22 +199,16 @@ def suggest(terms: Sequence[str], exclude: set[str] | None = None) -> list[Sugge
     if not terms or not embeddings.enabled():
         return []
     try:
-        index = ensure_index()
+        index = ready_index()
+        if not index:
+            return []
         vectors = embeddings.embed(terms)
     except embeddings.EmbeddingsUnavailable:
         return []
     labels = {sid: s.label for sid, s in cv_parser._load_taxonomy().items()}  # noqa: SLF001
-    model = embeddings.model_name()
     out: list[Suggestion] = []
     for term, vector in zip(terms, vectors, strict=True):
-        ranked: list[tuple[str, float]] = []
-        if refdata.use_postgres():
-            try:
-                ranked = _nearest_db(vector, model, 3)
-            except psycopg.Error:
-                ranked = []
-        if not ranked:
-            ranked = _nearest_memory(vector, index, 3)
+        ranked = _nearest_memory(vector, index, 3)
         found = decide(term, ranked, labels, exclude or set())
         if found:
             out.append(found)

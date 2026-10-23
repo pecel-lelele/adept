@@ -20,8 +20,6 @@ from app.core.auth import CurrentUser
 from app.core.errors import AppError, NotFoundError
 from app.features.org import funding_store, repository, service
 
-RESERVED = {"approved", "submitted", "payable"}
-
 
 def current_year() -> int:
     """Employer budget years follow Malaysia's calendar, including the January boundary."""
@@ -52,7 +50,8 @@ def manager_scope(user: CurrentUser) -> str:
 
 def _budget(state: FundingState, user_id: str, year: int) -> FundingBudget:
     claims = [c for c in state.claims if c.user_id == user_id and c.year == year]
-    reserved = sum((c.approved_myr for c in claims if c.status in RESERVED), Decimal(0))
+    # Archived requests cannot be acted on, so their holds no longer reserve planning funds.
+    reserved = Decimal(0)
     paid = sum((c.claimed_myr for c in claims if c.status == "paid"), Decimal(0))
     amount = state.budgets.get(f"{year}:{user_id}", Decimal(0))
     return FundingBudget(

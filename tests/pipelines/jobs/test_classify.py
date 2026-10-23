@@ -16,6 +16,9 @@ from pipelines.jobs.run import requirements
 # Hand-labelled titles from real Malaysian ads (Oct 2026) -> the Adept role a careers adviser
 # would file them under (None = no Adept role fits). Title rules must get these right.
 LABELLED: list[tuple[str, str | None]] = [
+    ("Securities & Derivatives Analyst", None),
+    ("Securities Services Officer", None),
+    ("Securitization Operations", None),
     ("Senior Data Analyst", "data-analyst"),
     ("Business Intelligence Analyst", "data-analyst"),
     ("Data Engineer (Kuala Lumpur)", "data-engineer"),

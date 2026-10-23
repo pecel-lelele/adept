@@ -60,7 +60,7 @@ export async function PackagesView({ scenario, roleId, memberIds }: {
       </ActionForm>
     </section>)}</div>}
     {chosenRole ? <div className="a-split">
-      <CertificationsCard roleId={chosenRole} scenario={scenario} payer="employer" max={3} />
+      <CertificationsCard roleId={chosenRole} scenario={scenario} payer="employer" />
       <RoleOpeningsCard roleId={chosenRole} scenario={scenario} variant="team" limit={4} />
     </div> : null}
   </div>;

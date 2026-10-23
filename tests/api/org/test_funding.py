@@ -7,6 +7,8 @@ import pytest
 from fastapi.testclient import TestClient
 from harness import fixtures
 
+from app.contracts.funding import FundingClaim, FundingState
+from app.contracts.pathway import Course
 from app.core.auth import CurrentUser
 from app.features.org import funding, funding_store
 
@@ -39,6 +41,45 @@ def test_members_cannot_set_budgets(client: TestClient):
         ROOT + "/budget", headers=MEMBER, json={"user_id": "aisyah", "amount_myr": "1"}
     )
     assert response.status_code == 403
+
+
+@pytest.mark.parametrize("status", ["approved", "submitted", "payable"])
+def test_archived_claims_no_longer_hold_planning_budgets(client: TestClient, status: str):
+    course = Course(
+        id="synthetic-course",
+        title="Synthetic course",
+        provider="Synthetic provider",
+        url="https://example.test/course",
+        hours=2,
+        cost_myr=400,
+        hrd_claimable=False,
+        verified_at=datetime.now(UTC).date(),
+    )
+    claim = FundingClaim(
+        year=YEAR,
+        id="archived",
+        user_id="aisyah",
+        role_id="data-analyst",
+        course=course,
+        requested_myr=Decimal(400),
+        approved_myr=Decimal(400),
+        quote_url=course.url,
+        status=status,
+        requested_at=datetime.now(UTC),
+    )
+    funding_store._memory["org-demo-bank"] = FundingState(
+        budgets={f"{YEAR}:aisyah": Decimal(500)},
+        claims=[claim],
+    )
+    response = client.put(
+        ROOT + "/budget", headers=HR, json={"user_id": "aisyah", "amount_myr": "100.00"}
+    )
+    assert response.status_code == 200, response.text
+    ledger = response.json()
+    budget = next(b for b in ledger["budgets"] if b["user_id"] == "aisyah")
+    assert Decimal(budget["reserved_myr"]) == 0
+    assert Decimal(budget["available_myr"]) == 100
+    assert ledger["claims"][0]["id"] == "archived"
 
 
 @pytest.mark.parametrize(

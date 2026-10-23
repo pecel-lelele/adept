@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
 
 from app.core import refdata, seed
 from app.core.seed import pg_array
@@ -71,6 +71,9 @@ def openings() -> list[Posting]:
         if expires and expires < today:
             continue
         first = _day(r["first_seen"]) or today
+        last = _day(r["last_seen"]) or first
+        if last < today - timedelta(days=14):
+            continue
         out.append(
             Posting(
                 id=r["id"],
@@ -88,7 +91,7 @@ def openings() -> list[Posting]:
                 api_url=r["api_url"],
                 posted_at=_day(r.get("posted_at", "")),
                 first_seen=first,
-                last_seen=_day(r["last_seen"]) or first,
+                last_seen=last,
                 role_id=r.get("role_id", ""),
                 role_method=r.get("role_method", ""),
                 skill_ids=tuple(pg_array(r.get("skill_ids") or "{}")),

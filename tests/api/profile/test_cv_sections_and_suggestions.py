@@ -97,9 +97,32 @@ def test_suggest_maps_a_term_to_its_nearest_skill(monkeypatch: pytest.MonkeyPatc
     monkeypatch.setattr(embeddings, "embed", fake_embed)
     monkeypatch.setattr(skill_match, "_index", {})
     monkeypatch.setattr(skill_match, "_index_model", "")
+    skill_match.ensure_index()  # Explicit offline preparation, never part of the CV request.
     found = skill_match.suggest(["Tableau", "Kuala Lumpur"])
     assert [(s.term, s.skill_id) for s in found] == [("Tableau", target)]
     assert found[0].similarity == pytest.approx(1.0, abs=1e-3)
+
+
+@pytest.mark.parametrize("acronym", ["SQL", "RPA", "AWS"])
+def test_skill_acronyms_do_not_end_the_skills_section(acronym: str) -> None:
+    text = f"Skills\n{acronym}\nRust\nQlikSense\nWORK EXPERIENCE\nFictional Employer"
+    assert cv_parser.skills_section_entries(text) == [acronym, "Rust", "QlikSense"]
+    assert {"Rust", "QlikSense"} <= set(cv_parser.unmatched_skill_terms(text))
+
+
+def test_cv_suggestions_do_not_build_an_empty_index(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(embeddings, "enabled", lambda: True)
+    monkeypatch.setattr(skill_match, "_index", {})
+    monkeypatch.setattr(skill_match, "_index_model", "")
+    monkeypatch.setattr(skill_match.refdata, "use_postgres", lambda: False)
+    monkeypatch.setattr(embeddings, "embed", lambda *a, **k: pytest.fail("request built an index"))
+    assert skill_match.suggest(["Tableau"]) == []
+
+
+def test_cv_request_does_not_wait_for_an_index_build(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(embeddings, "enabled", lambda: True)
+    with skill_match._lock:
+        assert skill_match.suggest(["Tableau"]) == []
 
 
 def test_embedding_failure_falls_back_to_exact_matching(monkeypatch: pytest.MonkeyPatch) -> None:
