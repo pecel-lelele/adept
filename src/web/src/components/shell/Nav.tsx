@@ -2,6 +2,7 @@
 
 import {
   BookOpen,
+  BriefcaseBusiness,
   Check,
   ChartNoAxesCombined,
   ClipboardCheck,
@@ -49,6 +50,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   settings: Settings2,
   sources: Database,
   snapshots: ChartNoAxesCombined,
+  jobs: BriefcaseBusiness,
 };
 
 function useHref() {

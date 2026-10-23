@@ -15,6 +15,8 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
 import { ApiError, Kpis, MetaBar, PageHeader } from "@/components";
+import { Fold } from "@/components/Fold";
+import { CareerRoadmap, CertificationsCard, RoleOpeningsCard } from "@/features/jobs";
 import type { ScenarioId, Schemas } from "@/lib/api";
 
 import { acceptReplanAction, savePlanAction } from "../actions";
@@ -73,11 +75,11 @@ async function PlanAside({ plan, query }: { plan: Schemas["Pathway"]; query: str
           ))}
         </ul>
       </nav>
-      <section className="a-card is-sage" aria-labelledby="h-notes">
-        <div className="a-card-head">
-          <h2 id="h-notes">{tp("planNotes")}</h2>
-        </div>
-        <ul className="a-notes">
+      <details className="a-card is-sage a-fold">
+        <summary className="a-fold-head">
+          <span className="a-fold-title">{tp("planNotes")}</span>
+        </summary>
+        <ul className="a-notes a-fold-body">
           <li>{t("summary.outOfPocket", { amount: plan.out_of_pocket_myr ?? 0, budget: plan.budget_myr ?? 0 })}</li>
           {plan.hrd_eligible ? <li>{t("summary.hrdNote")}</li> : null}
           {(plan.warnings ?? []).map((w) => (
@@ -85,7 +87,7 @@ async function PlanAside({ plan, query }: { plan: Schemas["Pathway"]; query: str
           ))}
           <li>{t("estimateNote")}</li>
         </ul>
-      </section>
+      </details>
     </aside>
   );
 }
@@ -166,24 +168,30 @@ export async function PathwayView({
       {!savedHere && !snapshotDate ? <p className="a-notice" data-tone="info">{t("plan.decide")}</p> : null}
       {status.ok && savedHere ? <ReplanBanner status={status.data} /> : null}
       <Summary plan={plan} />
+      {!snapshotDate ? <CareerRoadmap plan={plan} scenario={scenario} /> : null}
 
       <div className="a-split is-wide">
         <div className="a-stack">
           <PathwaySteps steps={plan.steps} />
           {(plan.unmet ?? []).length > 0 ? (
-            <section className="a-card">
-              <div className="a-card-head">
-                <h2>{t("unmet.title")}</h2>
-              </div>
-              <div className="a-card-body">
+            <Fold title={t("unmet.title")} meta={t("unmet.count", { count: (plan.unmet ?? []).length })}>
+              <ul className="a-jobs">
                 {(plan.unmet ?? []).map((u) => (
-                  <div key={u.skill_id} className="a-unmet">
-                    <strong>{u.label}</strong> <span className="a-chip" data-tone="warn">{t(`unmet.${u.reason}`)}</span>
-                    <p className="a-small a-muted">{u.detail}</p>
-                  </div>
+                  <li key={u.skill_id} className="a-job">
+                    <div className="a-job-main">
+                      <strong className="a-job-title">{u.label}</strong>
+                      <span className="a-job-where">{t(`unmet.${u.reason}`)}</span>
+                    </div>
+                  </li>
                 ))}
-              </div>
-            </section>
+              </ul>
+            </Fold>
+          ) : null}
+          {!snapshotDate ? (
+            <>
+              <CertificationsCard roleId={plan.role_id} scenario={scenario} />
+              <RoleOpeningsCard roleId={plan.role_id} scenario={scenario} limit={4} />
+            </>
           ) : null}
         </div>
         <PlanAside plan={plan} query={query} />

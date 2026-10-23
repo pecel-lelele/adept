@@ -18,7 +18,7 @@ from app.contracts.guardrails import (
     FairnessReport,
     SourcesResponse,
 )
-from app.core import seed
+from app.core import embeddings, seed
 from app.core.fairness import PROTECTED_TERMS, counterfactual_diffs, protected_terms_in
 from app.core.llm import CALL_LOG, disclosure
 from app.features.guardrails import datasync
@@ -58,6 +58,13 @@ def get_disclosure() -> Disclosure:
             "scores and SDG links are deterministic."
         ]
     )
+    if embeddings.enabled():
+        purpose.append(
+            f"Google {embeddings.model_name().split('@')[0]} embeddings (768 dimensions, stored "
+            "with pgvector) suggest the closest catalogue skill for CV skills-list phrases "
+            "Adept does not recognise. Only those short phrases are sent, after contact details "
+            "are removed; suggestions are added only if you choose them."
+        )
     return Disclosure(
         llm_enabled=enabled,
         provider=provider,

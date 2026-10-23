@@ -4,11 +4,7 @@ from fastapi import APIRouter, Path, Query, status
 
 from app.contracts.common import ScenarioId
 from app.contracts.funding import (
-    FundingCompletion,
-    FundingDecision,
     FundingLedger,
-    FundingRequest,
-    FundingSubmission,
     MemberBudgetIn,
 )
 from app.contracts.org import (
@@ -164,53 +160,6 @@ def set_member_budget(
 ) -> FundingLedger:
     _check_workspace(user, expected_org)
     return funding.budget(user, year, body)
-
-
-@router.post("/funding/{year}/requests")
-def request_funding(
-    year: BudgetYear,
-    body: FundingRequest,
-    user: CurrentUserDep,
-    expected_org: Annotated[str | None, Query(max_length=100)] = None,
-) -> FundingLedger:
-    _check_workspace(user, expected_org)
-    return funding.request(user, year, body)
-
-
-@router.post("/funding/{year}/requests/{claim_id}/submit")
-def submit_funding_claim(
-    year: BudgetYear,
-    claim_id: str,
-    body: FundingSubmission,
-    user: CurrentUserDep,
-    expected_org: Annotated[str | None, Query(max_length=100)] = None,
-) -> FundingLedger:
-    _check_workspace(user, expected_org)
-    return funding.submit(user, year, claim_id, body)
-
-
-@router.post("/funding/{year}/requests/{claim_id}/completion")
-def complete_funded_course(
-    year: BudgetYear,
-    claim_id: str,
-    body: FundingCompletion,
-    user: CurrentUserDep,
-    expected_org: Annotated[str | None, Query(max_length=100)] = None,
-) -> FundingLedger:
-    _check_workspace(user, expected_org)
-    return funding.complete(user, year, claim_id, body)
-
-
-@router.post("/funding/{year}/requests/{claim_id}/decision")
-def decide_funding(
-    year: BudgetYear,
-    claim_id: str,
-    body: FundingDecision,
-    user: CurrentUserDep,
-    expected_org: Annotated[str | None, Query(max_length=100)] = None,
-) -> FundingLedger:
-    _check_workspace(user, expected_org)
-    return funding.decide(user, year, claim_id, body)
 
 
 @router.get("/me")

@@ -28,9 +28,10 @@
     "snapshots": "Snapshot",
     "admin": "Pentadbir",
     "menu": "Buka menu",
-    "funding": "Dana pembelajaran",
+    "funding": "Bajet latihan",
     "myWork": "Organisasi saya",
-    "programmes": "Program"
+    "programmes": "Program",
+    "jobs": "Pekerjaan"
   },
   "shell": {
     "disclaimer": "Unjuran ialah anggaran daripada data awam. Anda yang membuat keputusan: Adept tidak pernah membuat keputusan pengambilan pekerja.",
@@ -663,6 +664,10 @@
     "body": "Belum ada padanan yang diluluskan. Semak ejaan atau cari padanan. Pilih hanya jika ia benar-benar menggambarkan kemahiran anda.",
     "notSaved": "Untuk semakan sahaja: tidak disimpan atau diberi skor. Sehingga 30 entri.",
     "search": "Cari katalog",
-    "searchFor": "Cari {term} dalam katalog"
+    "searchFor": "Cari {term} dalam katalog",
+    "closest": "Kemahiran terdekat: {label} ({pct}% padanan)",
+    "add": "Tambah {label}",
+    "addFor": "Tambah {label} untuk “{term}”",
+    "added": "Ditambah"
   }
 }

@@ -29,11 +29,12 @@
     "sdg": "SDG 具体目标"
   },
   "unmet": {
-    "title": "目录暂时无法弥补的差距",
-    "no_catalogue_course": "目录中没有课程",
-    "over_budget": "超出预算",
-    "catalogue_tops_out": "需要课程以外的实践",
-    "blocked_prerequisite": "先修技能尚未补足"
+    "title": "在工作中培养的技能",
+    "no_catalogue_course": "暂无相关课程",
+    "over_budget": "课程费用超出你的预算",
+    "catalogue_tops_out": "课程涵盖基础；其余靠实际工作积累",
+    "blocked_prerequisite": "请先完成前一步",
+    "count": "{count, plural, other {# 项技能}}"
   },
   "plan": {
     "save": "选择此职位并保存计划",

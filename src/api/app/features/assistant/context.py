@@ -35,7 +35,6 @@ PAGES: dict[str, str] = {
     "/work/skills": "What I share",
     "/work/plan": "Programme plans",
     "/work/progress": "Programme progress",
-    "/work/funding": "Employer learning budget",
     "/org": "Team home",
     "/org/members": "Team members",
     "/org/radar": "Team radar",

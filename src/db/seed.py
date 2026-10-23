@@ -42,6 +42,8 @@ TABLE_ORDER = [
     "sdg_targets",
     "role_sdg_map",
     "skill_sdg_map",
+    "certifications",
+    "job_postings",
     "org_regions",
 ]
 REFERENCE_KEYS = {
@@ -54,6 +56,8 @@ REFERENCE_KEYS = {
     "sdg_targets": ("id",),
     "role_sdg_map": ("role_id", "sdg_target_id"),
     "skill_sdg_map": ("skill_id", "sdg_target_id"),
+    "certifications": ("id",),
+    "job_postings": ("id",),
 }
 
 SERIAL_TABLES = {"snapshots", "trend_signals"}

@@ -5,6 +5,7 @@ import { getTranslations } from "next-intl/server";
 import { MetaBar, PageHeader, ScoreBreakdown } from "@/components";
 import { ErrorState } from "@/components/ErrorState";
 import { scoreColour, SdgTiles } from "@/components/viz";
+import { RoleOpeningsCard } from "@/features/jobs";
 import { RoleOutlookPanel } from "@/features/scenarios/components/RoleOutlookPanel";
 import type { ScenarioId } from "@/lib/api";
 
@@ -118,6 +119,8 @@ export async function MatchDetailView({
           ) : null}
         </aside>
       </div>
+
+      <RoleOpeningsCard roleId={m.role_id} scenario={scenario} limit={5} />
 
       <section className="a-card" aria-labelledby="h-outlook">
         <div className="a-card-head">

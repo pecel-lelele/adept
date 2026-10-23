@@ -2,6 +2,7 @@ import Form from "next/form";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { ApiError, MetaBar, PageHeader } from "@/components";
+import { CertificationsCard, RoleOpeningsCard } from "@/features/jobs";
 import { ActionForm } from "@/features/pathway/components/ActionForm";
 import { currentWorkspace } from "@/lib/auth/workspace";
 import { call, getApi, type ScenarioId } from "@/lib/api";
@@ -23,6 +24,7 @@ export async function PackagesView({ scenario, roleId, memberIds }: {
   const people = members.ok ? members.data.members.filter(m => m.intake_status === "complete") : [];
   const names = Object.fromEntries(people.map(m => [m.id, m.display_name]));
   const selected = memberIds ?? people.map(m => m.id);
+  const chosenRole = roleId ?? (result.ok ? result.data.packages[0]?.role_id : undefined);
   return <div className="a-view">
     <PageHeader title={t("title")} description={t("description")} />
     <p className="a-notice">{t("policy")}</p>
@@ -57,5 +59,9 @@ export async function PackagesView({ scenario, roleId, memberIds }: {
         {p.members.map(m => <input key={m.user_id} type="hidden" name="member_id" value={m.user_id} />)}
       </ActionForm>
     </section>)}</div>}
+    {chosenRole ? <div className="a-split">
+      <CertificationsCard roleId={chosenRole} scenario={scenario} payer="employer" max={3} />
+      <RoleOpeningsCard roleId={chosenRole} scenario={scenario} variant="team" limit={4} />
+    </div> : null}
   </div>;
 }

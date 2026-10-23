@@ -157,7 +157,7 @@ flowchart TB
 
 **How the workshop elements connect:**
 
-- **AI components:** (1) an offline sentence-embedding model (`all-MiniLM-L6-v2`) turns research abstracts into skill signals inside the trend pipeline; (2) **Adi**, the in-app guide, uses Z.ai **GLM-5.3** (`glm-5.3`) through a Runpod public endpoint to select validated answer blocks built from the person's own Adept data. Google Gemini 3.5 Flash Lite (then Gemini 3.6 Flash / Gemini 3.1 Flash Lite) is tried only if Runpod fails. Model-written prose is never displayed; if both providers fail, Adi answers with a built-in guide.
+- **AI components:** (1) an offline sentence-embedding model (`all-MiniLM-L6-v2`) turns research abstracts into skill signals inside the trend pipeline; (2) **Adi**, the in-app guide, uses Z.ai **GLM-5.3** (`glm-5.3`) through a Runpod public endpoint to select validated answer blocks built from the person's own Adept data. Google Gemini 3.5 Flash Lite (then Gemini 3.6 Flash / Gemini 3.1 Flash Lite) is tried only if Runpod fails. Model-written prose is never displayed; if both providers fail, Adi answers with a built-in guide. (3) **Gemini embeddings** (`gemini-embedding-001`, 768 dimensions, stored in PostgreSQL with pgvector) suggest the closest catalogue skill for CV skills-list phrases that match no approved alias; only those short phrases are sent, after contact details are removed, and a suggestion is added only if the person chooses it (`EMBEDDINGS_PROVIDER=gemini`).
 - **Database architecture:** one PostgreSQL schema with versioned migrations. `pgvector` stores skill embeddings, and typed contracts are generated from Pydantic to TypeScript.
 - **Cloud deployment:** containers for web and API, with managed PostgreSQL and scheduled jobs in GitHub Actions (see [§9](#9-design-thinking-and-deployment-strategy)).
 
@@ -716,6 +716,8 @@ All variables are documented in [`.env.example`](.env.example). These matter mos
 | `RUNPOD_API_KEY` / `GEMINI_API_KEY` | empty | Separate server-only keys in root `.env` or deployment secrets; never `NEXT_PUBLIC_*` |
 | `LLM_FALLBACK_PROVIDER` | empty | Set `gemini` to use it only after Runpod failure. Empty keeps legacy same-provider model retries |
 | `LLM_FALLBACK_BASE_URL` / `LLM_FALLBACK_API_KEY` | empty | Optional custom backup endpoint/key; never borrows the primary key |
+| `EMBEDDINGS_PROVIDER` / `EMBEDDINGS_MODEL` | `none` / `gemini-embedding-001` | `gemini` turns on CV skill suggestions by cosine similarity (uses `GEMINI_API_KEY`); index: `python -m app.features.profile.skill_match` |
+| `CAREERJET_API_KEY` / `JOOBLE_API_KEY` / `WEB3_CAREER_TOKEN` | empty | Optional keyed job boards for the live openings pipeline (`src/pipelines/jobs`) |
 | `API_URL` | `http://localhost:8000` | Where the web server calls the API |
 
 For the presentation, set `LLM_PROVIDER=runpod`, `LLM_MODEL=glm-5.3`, the Runpod base URL

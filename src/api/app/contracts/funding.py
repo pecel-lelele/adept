@@ -1,10 +1,10 @@
-"""F7 employer learning budgets and completion-based expense claims (MYR)."""
+"""F7 per-member training budgets HR sets for planning team packages (MYR)."""
 
 from datetime import datetime
 from decimal import Decimal
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, Field
 
 from app.contracts.packages import TeamPackage
 from app.contracts.pathway import Course
@@ -19,33 +19,6 @@ FundingStatus = Literal[
 class MemberBudgetIn(BaseModel):
     user_id: str = Field(min_length=1, max_length=120)
     amount_myr: Money
-
-
-class FundingRequest(BaseModel):
-    course_id: str = Field(min_length=1, max_length=120)
-    role_id: str = Field(min_length=1, max_length=80)
-    amount_myr: Money
-    quote_url: HttpUrl
-
-
-class FundingSubmission(BaseModel):
-    revision: int = Field(ge=1)
-    amount_myr: Money
-    receipt_url: HttpUrl
-    receipt_reference: str = Field(min_length=3, max_length=120)
-    purchased_at: datetime
-
-
-class FundingCompletion(BaseModel):
-    revision: int = Field(ge=1)
-    url: str = Field(min_length=12, max_length=500, pattern=r"^https://")
-
-
-class FundingDecision(BaseModel):
-    revision: int = Field(ge=1)
-    action: Literal["approve", "reject", "cancel", "accept_claim", "mark_paid"]
-    note: str = Field(default="", max_length=300)
-    payment_reference: str = Field(default="", max_length=120)
 
 
 class FundingEvent(BaseModel):

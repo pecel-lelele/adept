@@ -7,6 +7,7 @@ FEATURES = {
     "accounts",
     "assistant",
     "guardrails",
+    "jobs",
     "matching",
     "org",
     "pathway",

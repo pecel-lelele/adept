@@ -5,6 +5,7 @@ import { getTranslations } from "next-intl/server";
 import { MetaBar, PageHeader } from "@/components";
 import { ErrorState } from "@/components/ErrorState";
 import { scoreColour, SdgTiles } from "@/components/viz";
+import { fetchJobsSummary } from "@/features/jobs";
 import { fetchRadar } from "@/features/trends/api";
 import type { ScenarioId, Schemas } from "@/lib/api";
 
@@ -54,11 +55,14 @@ export async function MatchesView({
   const t = await getTranslations("matching");
   const th = await getTranslations("ui.home");
   const tp = await getTranslations("ui.page");
-  const [result, radar, changes] = await Promise.all([
+  const [result, radar, changes, jobs] = await Promise.all([
     fetchMatches(scenario, snapshotDate, sdgWeight),
     fetchRadar(scenario),
     snapshotDate ? fetchReplay(scenario, snapshotDate, sdgWeight) : Promise.resolve(null),
+    fetchJobsSummary(scenario),
   ]);
+  const tj = await getTranslations("jobs");
+  const openings = new Map(jobs.ok ? jobs.data.roles.map((r) => [r.role_id, r.open_count]) : []);
   const labels = await componentLabels();
   // The detail page must explain the same ranking: carry the snapshot and the UN Goals weight.
   const replay =
@@ -127,6 +131,11 @@ export async function MatchesView({
                           <span className="a-chip" data-tone={m.partial_skills.length ? "warn" : "up"}>
                             {tp("toImprove", { count: m.partial_skills.length })}
                           </span>
+                          {openings.get(m.role_id) ? (
+                            <Link className="a-chip" data-tone="dark" href={`/app/jobs?role=${encodeURIComponent(m.role_id)}&scenario=${scenario}`}>
+                              {tj("openingsChip", { count: openings.get(m.role_id) ?? 0 })}
+                            </Link>
+                          ) : null}
                         </span>
                       </div>
                       <div className="a-fit" style={{ color: scoreColour(m.score) }}>

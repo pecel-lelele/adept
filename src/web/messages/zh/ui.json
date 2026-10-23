@@ -28,9 +28,10 @@
     "snapshots": "快照",
     "admin": "管理",
     "menu": "打开菜单",
-    "funding": "学习资金",
+    "funding": "培训预算",
     "myWork": "我的组织",
-    "programmes": "项目"
+    "programmes": "项目",
+    "jobs": "职位"
   },
   "shell": {
     "disclaimer": "预测是基于公开数据的估计。决定权在你：Adept 从不做招聘决定。",
@@ -663,6 +664,10 @@
     "body": "暂无已核实的匹配。请检查拼写或搜索对应技能，仅在确实描述您的技能时选择。",
     "notSaved": "仅供核对，不会保存或计分。最多显示30条。",
     "search": "搜索目录",
-    "searchFor": "在目录中搜索{term}"
+    "searchFor": "在目录中搜索{term}",
+    "closest": "最接近的技能：{label}（匹配度 {pct}%）",
+    "add": "添加 {label}",
+    "addFor": "为“{term}”添加 {label}",
+    "added": "已添加"
   }
 }
