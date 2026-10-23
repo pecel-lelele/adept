@@ -15,6 +15,14 @@ with source and observation-window metadata. The offline pipeline ingests, score
 and atomically publishes snapshots; scheduled refresh requires a configured database.
 See `repository.py`, `src/pipelines/trends/` and the feature tests for current behaviour.
 
+MiniLM is deployed on queue-based RunPod Serverless with a pinned revision and 384-dimensional
+output. GitHub Actions runs batch ingestion and publication; page requests read saved
+snapshots. The refresh needs a production database reachable from the runner, a dedicated
+MiniLM API key and endpoint ID, and checks database access before inference. The live model
+test passed on 24 October 2026; the first integrated refresh failed on Replit's private
+development host `helium`. See the
+[operations guide](../../../../pipelines/trends/runpod/DEPLOYMENT_HANDOFF.md).
+
 ## Goal and tasks (from docs/tasks.md)
 
 **Goal:** at least one updatable AI/job-market source; source and date visible; no hard-coded lists.
@@ -37,13 +45,11 @@ See `repository.py`, `src/pipelines/trends/` and the feature tests for current b
 
 ## Pipeline
 
-Fill this in as the feature takes shape (copy it into the `docs/decisions.md` entry).
-
 | Stage | Choice | Notes |
 |---|---|---|
-| Source | | |
-| Preprocessing / cleaning | | |
-| Features | | |
-| Model / method | | |
-| Evaluation | | metric + result |
-| Serving | | endpoint(s) |
+| Source | arXiv cs.AI RSS and BLS 2023-2033 baseline | Public research and cited labour data |
+| Preprocessing / cleaning | Strip HTML and split abstracts into sentences | Cached raw ingestion |
+| Features | Pinned MiniLM via RunPod; cosine threshold 0.55 | Per-skill mentions per observed ISO week |
+| Model / method | Research log-ratio blended 0.6/0.4 with labour decay | Moderate and fast scenarios remain estimates |
+| Evaluation | IDs, finite values, two periods and minimum evidence coverage | Failure prevents publication |
+| Serving | Atomic PostgreSQL snapshot/provenance transaction | GET `/api/v1/trends/snapshot` |

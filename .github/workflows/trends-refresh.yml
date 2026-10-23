@@ -44,6 +44,11 @@ jobs:
         run: |
           pip install -r requirements.txt
 
+      - name: Verify database access before inference
+        if: env.DATABASE_URL != '' && env.TRENDS_RUNPOD_ENDPOINT_ID != '' && env.TRENDS_RUNPOD_API_KEY != ''
+        timeout-minutes: 1
+        run: PYTHONPATH=src/api:src python -m pipelines.trends.preflight
+
       - name: Ingest, score, validate and publish
         if: env.DATABASE_URL != '' && env.TRENDS_RUNPOD_ENDPOINT_ID != '' && env.TRENDS_RUNPOD_API_KEY != ''
         run: PYTHONPATH=src/api:src python -m pipelines.trends.run

@@ -189,6 +189,17 @@
 - **Replaces**: none
 - **PR / branch**: `feat/m1-trends-contract`
 
+### M1-011: Automated MiniLM worker publishing to GHCR and Replit-RunPod integration architecture
+- **Date**: 2026-10-24
+- **Feature**: F2 (AI-Trend Signal Layer) / Core deployment
+- **Type**: model | dependency | architectural decision
+- **Change**: Added `.github/workflows/publish-minilm.yml` to automatically build and publish the MiniLM RunPod worker image to GitHub Container Registry (`ghcr.io/pecel-lelele/adept-minilm:latest`) on changes to the worker or manual trigger. Added `TRENDS_*` variables to `.env.example` and root `.env`. Updated `DEPLOYMENT_HANDOFF.md` and `README.md` documenting the Replit + RunPod architecture.
+- **Why**: Facilitates deploying the pinned sentence-transformers `all-MiniLM-L6-v2` worker to RunPod Serverless without local Docker setup. When the web app is hosted on Replit, it serves pre-computed PostgreSQL `trend_snapshots` with zero GPU cold-start delay, while the batch trend pipeline runs on GitHub Actions or locally, making authenticated calls to the RunPod Serverless worker endpoint.
+- **Pipeline** (data/ML only): arXiv cs.AI + BLS 2023-2033 -> clean HTML, sentence chunk -> 384-d MiniLM vectors via RunPod Serverless (`ghcr.io/pecel-lelele/adept-minilm:latest`) -> cosine similarity (threshold >= 0.55) -> composite velocity -> PostgreSQL `trend_snapshots` served on Replit.
+- **Affects**: M1 (trend pipeline execution), M4 (Replit deployment / RunPod setup)
+- **Replaces**: none
+- **PR / branch**: `feat/minilm-runpod-deploy`
+
 ---
 
 ## M2: Profile Intake & Matching (F1, F4)
@@ -1475,3 +1486,15 @@
 - **Validation**: Full quality gate passed (904 tests passed, 27 skipped). All 11 product diagram sources match the originals; GitHub Markdown exposes all 11 Mermaid containers, with nine badges, valid local links and full resource URLs.
 - **Replaces**: M4-066 (diagram placement and link presentation only)
 - **PR / branch**: docs/core-restore-readme-diagrams
+
+### M4-068: Integrate MiniLM deployment and verify database access before inference
+- **Date**: 2026-10-24
+- **Feature**: Core deployment / F2 (AI-Trend Signal Layer)
+- **Type**: method | other
+- **Change**: Integrate the existing trusted GHCR publisher and worker configuration with current main. Refresh the README, operations, architecture, feature and submission docs with the deployed endpoint, pinned model, separate credentials and observed results. Add a bounded database preflight before scheduled ingestion or inference, including read-write transaction status, table privileges and ID sequence access; exercise it against PostgreSQL in CI.
+- **Why**: The worker returns the pinned revision and two 384-dimensional vectors, but the first real refresh spent about seven minutes fetching and embedding 366 papers before failing on Replit's private development host `helium`. Preflight rejects that configuration early and sanitizes failures; production publishing and connection setup remain account-owner operations.
+- **Pipeline**: public arXiv/catalogue → existing cleaning → pinned 384-dimensional MiniLM via RunPod → unchanged cosine/scoring → database preflight, vector and snapshot checks → atomic PostgreSQL publication read by Replit.
+- **Affects**: M1 (scheduled refresh), M4 (deployment/docs); no contract, schema, dependency or scoring changes beyond the existing deployment branch.
+- **Validation**: Full quality gate passed: 918 tests passed, 27 skipped; Ruff, ESLint, translations, TypeScript and generated contracts passed. Fourteen preflight regressions cover private-host rejection, bounded queries, read-only connections, table/sequence privileges, preserved connection options and sanitized failures. CI additionally exercises the preflight against migrated PostgreSQL. Documentation links and submission answer limits passed.
+- **Replaces**: M4-066 (MiniLM pending status); completes deployment integration from M1-011/M4-064.
+- **PR / branch**: feat/minilm-runpod-deploy

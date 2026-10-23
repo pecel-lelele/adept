@@ -9,7 +9,7 @@ attendance, prior-work ownership, employment IP declarations and signature. Thes
 verified from the code. Add personal contact details privately in the submission PDF rather
 than committing them to this public repository. Do not treat an unchecked box as a declaration.
 
-Updated 23 October 2026 for current catalogue, workspaces and Runpod/Gemini configuration.
+Updated 24 October 2026 for the deployed MiniLM worker, Actions pipeline and database boundaries.
 
 ## 1. Team and project overview
 
@@ -59,8 +59,8 @@ catalogue skills and levels, and sets interests, weekly learning time and budget
 shows rising, steady and declining skill signals. Ranked roles expose skill overlap, trend
 outlook and interest fit, together with the skills the learner already has, partly meets or lacks.
 
-The AI component is an offline pre-trained sentence encoder, all-MiniLM-L6-v2. It relates arXiv
-research sentences to skill labels. A deterministic pipeline combines those signals with a
+The AI component is a pre-trained sentence encoder, all-MiniLM-L6-v2, deployed on RunPod
+Serverless for batch processing. It relates arXiv research sentences to skill labels. A deterministic pipeline combines those signals with a
 labour-market baseline and publishes validated, dated snapshots. Adi uses Runpod GLM-5.3
 for grounded assistance, with Gemini only on primary failure. Moderate and fast scenarios expose uncertainty;
 they are decision-support assumptions rather than calibrated forecasts of employment.
@@ -89,7 +89,7 @@ Adept makes no hiring, firing or admission decisions.
 | Presentation | Tailwind CSS 4.1.18, next-intl 4.4.0, Lucide | Responsive interface in English, Bahasa Melayu and Chinese. |
 | API | Python 3.11, FastAPI, Pydantic v2, Uvicorn | Validated feature services and OpenAPI contracts. |
 | Persistence | PostgreSQL 16, pgvector, psycopg 3 | Profiles, catalogue, snapshots, plans, evidence and organisations. |
-| AI / methods | Sentence Transformers all-MiniLM-L6-v2 offline; deterministic matching and pathway rules | Semantic skill signals; transparent scoring and learning-step ordering. |
+| AI / methods | Pinned all-MiniLM-L6-v2 on RunPod Serverless; deterministic matching and pathway rules | 384-dimensional research/skill embeddings; transparent scoring and ordering. |
 | Data | arXiv cs.AI RSS, committed BLS-derived baseline, official UN SDGs, Microsoft Learn, Coursera, cited provider pages, BNM exchange rates | Research signals, catalogue facts and source attribution. |
 | Local deployment | Docker Compose | `adept-web-1`, `adept-api-1`, `adept-db-1`. |
 | Quality / automation | pytest, Ruff, ESLint, TypeScript, contract and locale checks; GitHub Actions | Automated checks; conditional weekly trend refresh and source audit. |
@@ -105,19 +105,25 @@ flowchart TB
   web["adept-web-1<br/>Next.js :3000<br/>signed session cookie and server-side API client"]
   api["adept-api-1<br/>FastAPI :8000<br/>profile, trends, matches, pathway, SDG, organisation"]
   db[("adept-db-1<br/>PostgreSQL 16 + pgvector<br/>host :5433 / internal :5432")]
-  job["Conditional weekly trend job<br/>ingest, score, validate, publish"]
+  job["GitHub Actions trend job<br/>preflight, ingest, score, validate, publish"]
+  encoder["RunPod Serverless<br/>pinned MiniLM embeddings"]
   browser --> web --> api --> db
+  job -- "public-text batches" --> encoder
+  encoder -- "validated vectors" --> job
   job -. "deployment DB secret required" .-> db
 ```
 
 See the [README diagram collection](../README.md#interactive-diagrams) and
 [offline viewer](diagrams/index.html) for the full architecture, journeys, sequences,
 score calculation, catalogue graph and schema excerpts. The job arrow above describes the
-configured publication mechanism; it does not establish that a deployed database secret exists.
+configured publication mechanism. A live MiniLM test passed on 24 October 2026, while the
+first integrated refresh failed on private development database host `helium`; no production
+snapshot publication is asserted. The workflow now checks database access before inference.
 
 **Use of sponsor GenAI APIs:** the local Adi configuration uses Runpod
 `glm-5.3`, verified with a small request on 23 October 2026. Gemini is configured as backup.
-This uses a hosted public endpoint; no Pod is deployed. The team must confirm any sponsor
+Adi uses a hosted public model endpoint. MiniLM uses the team's deployed queue-based
+Serverless worker with baked-in weights. The team must confirm any sponsor
 credits, workshop attendance or mentoring privately. No public web deployment or credit
 entitlement is asserted in this draft.
 
