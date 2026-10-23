@@ -79,6 +79,25 @@ def _purge(state: FundingState, user_id: str) -> None:
             if event.actor_id == user_id:
                 event.actor_id = "deleted-account"
                 event.note = ""
+    # Programme assignments and records (F7 programmes feature).
+    state.assignments = [a for a in state.assignments if a.user_id != user_id]
+    for assignment in state.assignments:
+        if assignment.agreement.sent_by == user_id:
+            assignment.agreement = assignment.agreement.model_copy(
+                update={"sent_by": "deleted-account"}
+            )
+    for prog in state.programmes:
+        if prog.sent_by == user_id:
+            prog.sent_by = "deleted-account"
+        if user_id in prog.brief.member_ids:
+            prog.brief = prog.brief.model_copy(
+                update={
+                    "member_ids": [
+                        "deleted-account" if mid == user_id else mid
+                        for mid in prog.brief.member_ids
+                    ]
+                }
+            )
 
 
 def forget_user(user_id: str, conn: psycopg.Connection[Any] | None = None) -> None:
@@ -124,8 +143,21 @@ def export_user(user_id: str) -> list[dict[str, object]]:
             for m in p.members
             if m.user_id == user_id
         ]
-        if budgets or claims or assignments:
+        programme_assignments = [
+            a.model_dump(mode="json") for a in state.assignments if a.user_id == user_id
+        ]
+        programmes_sent = [
+            p.model_dump(mode="json") for p in state.programmes if p.sent_by == user_id
+        ]
+        if budgets or claims or assignments or programme_assignments or programmes_sent:
             result.append(
-                dict(org_id=org_id, budgets=budgets, claims=claims, assignments=assignments)
+                dict(
+                    org_id=org_id,
+                    budgets=budgets,
+                    claims=claims,
+                    assignments=assignments,
+                    programme_assignments=programme_assignments,
+                    programmes_sent=programmes_sent,
+                )
             )
     return result
