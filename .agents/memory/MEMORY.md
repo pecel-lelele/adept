@@ -1,0 +1,1 @@
+- [Nix subprocess test isolation](nix-subprocess-test-isolation.md) — server-process mocks can also intercept compiler runtime probes on Replit.

@@ -200,9 +200,21 @@ def supervise(procs: dict[str, subprocess.Popen[bytes]], poll_s: float = 0.5) ->
 
 
 def task_lint() -> None:
-    run(py("-m", "ruff", "check", "."))
-    run(py("-m", "ruff", "format", "--check", "."))
-    web_run("lint")
+    steps: list[tuple[str, Callable[[], int]]] = [
+        ("ruff lint", lambda: run(py("-m", "ruff", "check", "."))),
+        ("ruff format", lambda: run(py("-m", "ruff", "format", "--check", "."))),
+        ("frontend lint", lambda: web_run("lint")),
+    ]
+    failed: list[str] = []
+    for name, fn in steps:
+        log(f"lint: {name}")
+        try:
+            fn()
+        except TaskError as exc:
+            print(f"FAILED {name}: {exc}", file=sys.stderr)
+            failed.append(name)
+    if failed:
+        raise TaskError(f"make lint failed: {', '.join(failed)}")
 
 
 def task_format() -> None:

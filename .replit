@@ -1,5 +1,5 @@
 entrypoint = "src/scripts/replit.py"
-modules = ["python-3.11", "nodejs-22"]
+modules = ["python-3.11", "nodejs-22", "postgresql-16"]
 run = ["python3", "src/scripts/dev.py", "dev"]
 
 [nix]
@@ -12,5 +12,29 @@ build = ["python3", "src/scripts/replit.py", "build"]
 run = ["python3", "src/scripts/replit.py", "start"]
 
 [[ports]]
-localPort = 3000
+localPort = 5000
 externalPort = 80
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Start application"
+
+[[workflows.workflow]]
+name = "Start application"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python src/scripts/replit_dev.py"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"

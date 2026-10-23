@@ -1531,3 +1531,26 @@
 - **Validation**: Full quality gate passed (949 tests, 32 skipped, 48 subtests); all 18 targeted recovery/rate-limit checks passed against disposable PostgreSQL 16, including real administrative session termination, and 35 existing PostgreSQL integration checks passed after loading CI's synthetic upgrade personas. Seven web retry regressions and the production web build passed. The currently deployed public pages and unsigned app redirect passed read-only smoke checks; the repair still needs publishing and signed-in production verification.
 - **Replaces**: none (extends M4-027 and M4-005)
 - **PR / branch**: fix/core-database-recovery
+
+### M4-073: Update the blocked Next.js publishing dependencies
+- **Date**: 2026-10-24
+- **Feature**: Core deployment
+- **Type**: dependency
+- **Change**: Update Next.js and its matching ESLint configuration from 16.2.12 to the registry's current 16.4.3 release and regenerate the pnpm lockfile.
+- **Why**: Publishing failed during the frozen dependency installation with `ERR_PNPM_FETCH_403` for Next.js 16.2.12 at Replit's package firewall, before compilation. Updating the existing framework resolves the blocked dependency without bypassing the firewall or changing package registries.
+- **Validation**: The exact production build command completes with a frozen-lockfile installation, successful Next.js compilation, TypeScript validation and standalone assets; frontend lint and all 14 launcher tests pass. Launcher test fixtures isolate workspace port configuration and Nix library probing. No database writes or model calls are performed.
+- **Preview compatibility**: Allow the current `REPLIT_DEV_DOMAIN` hostname for development assets only; do not broaden production origins or allow arbitrary preview hosts.
+- **Runtime compatibility**: Apply the Nix C++ library override only to the Python API child. Injecting it into Node can select an older GCC runtime than Node's ICU libraries require; launcher tests verify environment separation and preserve inherited library paths.
+- **Affects**: Web framework and matching lint dependencies; no database schema, API contract or model configuration changes.
+- **Replaces**: M4-071
+- **PR / branch**: fix/core-replit-publish-live
+
+### M4-074: Report independent lint failures together
+- **Date**: 2026-10-24
+- **Feature**: Core developer tooling
+- **Type**: method
+- **Change**: Run Ruff lint, Ruff format validation and frontend lint once each even when another lint check fails. Preserve command diagnostics, report each failed check by name and raise a final task error whenever any check fails.
+- **Why**: Failing early within the lint stage hid formatting and frontend failures, requiring repeated quality-gate runs to discover independent problems. Match the outer quality gate's failure aggregation without adding fixes or weakening validation.
+- **Affects**: The shared lint runner only; Makefile commands, validation rules and database behavior are unchanged. Isolated mocked-process tests cover every success/failure combination, preparation failures and propagation through the outer quality gate.
+- **Replaces**: none
+- **PR / branch**: fix/core-replit-publish-live

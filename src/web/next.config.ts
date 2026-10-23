@@ -8,6 +8,8 @@ const withNextIntl = createNextIntlPlugin("./src/lib/i18n/request.ts");
 const nextConfig: NextConfig = {
   output: "standalone",
   reactStrictMode: true,
+  // Permit this workspace's proxied preview without allowing other external origins.
+  allowedDevOrigins: process.env.REPLIT_DEV_DOMAIN ? [process.env.REPLIT_DEV_DOMAIN] : [],
   // src/web is its own pnpm project; pin the root so a stray lockfile higher up is ignored.
   turbopack: { root: path.resolve(process.cwd()) },
   // CV uploads go through a Server Action (features/profile/actions.ts) and may be up to

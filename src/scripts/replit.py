@@ -195,7 +195,7 @@ def stop(processes: list[subprocess.Popen[bytes]]) -> None:
 
 
 def start() -> int:
-    env = native_library_env(production_env(os.environ))
+    env = production_env(os.environ)
     diagnostics = doctor()
     if diagnostics["status"] != "ready":
         raise DeploymentError(diagnostics["details"])
@@ -220,7 +220,8 @@ def start() -> int:
                     "8000",
                 ],
                 cwd=ROOT,
-                env=env,
+                # PyMuPDF needs Nix's GCC runtime; Node must retain its own runtime.
+                env=native_library_env(env),
             )
         )
         wait_for_api(processes[0])

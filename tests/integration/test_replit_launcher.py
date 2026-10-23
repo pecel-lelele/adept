@@ -23,7 +23,10 @@ def deployment_env(monkeypatch: pytest.MonkeyPatch) -> dict[str, str]:
     return env
 
 
-def test_runtime_uses_private_api_and_production_mode(deployment_env: dict[str, str]) -> None:
+def test_runtime_uses_private_api_and_production_mode(
+    deployment_env: dict[str, str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(replit, "configured_port", lambda: "3000")
     env = replit.production_env(dict(deployment_env, API_URL="https://stale.example.test"))
     assert env["APP_ENV"] == env["NODE_ENV"] == "production"
     assert env["API_URL"] == "http://127.0.0.1:8000"
@@ -84,6 +87,7 @@ def test_api_failure_stops_container_without_starting_web(
     deployment_env: dict[str, str], monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setattr(replit, "doctor", lambda: {"status": "ready"})
+    monkeypatch.setattr(replit, "native_library_env", lambda env: dict(env))
     api = MagicMock()
     api.poll.return_value = 1
     popen = MagicMock(return_value=api)
@@ -98,14 +102,25 @@ def test_web_failure_terminates_api(
     deployment_env: dict[str, str], monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setattr(replit, "doctor", lambda: {"status": "ready"})
+    monkeypatch.setenv("LD_LIBRARY_PATH", "inherited-runtime")
+    monkeypatch.setattr(
+        replit,
+        "native_library_env",
+        lambda env: dict(env, LD_LIBRARY_PATH="api-runtime:inherited-runtime"),
+    )
     monkeypatch.setattr(replit, "wait_for_api", lambda _: None)
     api, web = MagicMock(), MagicMock()
     api.poll.return_value = None
     web.poll.return_value = 2
-    monkeypatch.setattr(replit.subprocess, "Popen", MagicMock(side_effect=[api, web]))
+    popen = MagicMock(side_effect=[api, web])
+    monkeypatch.setattr(replit.subprocess, "Popen", popen)
     assert replit.start() == 2
     api.terminate.assert_called_once()
     api.wait.assert_called_once()
+    assert popen.call_args_list[0].kwargs["env"]["LD_LIBRARY_PATH"] == (
+        "api-runtime:inherited-runtime"
+    )
+    assert popen.call_args_list[1].kwargs["env"]["LD_LIBRARY_PATH"] == "inherited-runtime"
 
 
 def test_api_wait_rejects_unavailable_database(monkeypatch: pytest.MonkeyPatch) -> None:
