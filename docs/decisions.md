@@ -1213,3 +1213,13 @@
 - **Affects**: Shared shell, estimate/badge styling and EN/MS/ZH employee copy. No scoring, schema or data changes.
 - **Replaces**: none (refines M4-046)
 - **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses
+
+### M4-050: Softer agreement hierarchy and unobtrusive phone assistant
+- **Date**: 2026-10-23
+- **Feature**: Core, F7 (employee agreements)
+- **Type**: UI
+- **Change**: Refine the agreement into a rounded sage route panel with an accessible circular skill-coverage gauge and a prominent catalogue role. Use localised dates, icon-led time/date facts, a separate budget amount and planned course cost, and compact programme context. Keep the phone assistant launcher small, hide its promotional callout and remove it while the menu is open; wrap suggestions and use a 16px input to avoid phone zoom.
+- **Why**: The first straight-bar design still felt rigid and text-heavy. Mobile numbers and decisions need more visual hierarchy without adding a new score or obscuring evidence.
+- **Affects**: EN/MS/ZH agreement copy and assistant styles; no API, scoring or data changes.
+- **Replaces**: M4-049 straight-bar visual treatment only; preserves its workspace and evidence rules.
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses

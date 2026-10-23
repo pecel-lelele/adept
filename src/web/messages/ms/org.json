@@ -149,6 +149,8 @@
     "termTime": "Masa belajar berbayar",
     "hoursWeek": "{hours} j/minggu",
     "termBudget": "Bajet majikan untuk anda",
+    "budgetCap": "Sehingga RM {budget}",
+    "plannedCost": "Kursus dirancang · RM {cost}",
     "budgetLine": "Sehingga RM {budget} (dirancang RM {cost})",
     "termRequired": "Status",
     "termWhy": "Mengapa",

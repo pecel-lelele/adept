@@ -150,6 +150,8 @@
     "hoursWeek": "{hours} h/week",
     "termBudget": "Employer budget for you",
     "budgetLine": "Up to RM {budget} (planned RM {cost})",
+    "budgetCap": "Up to RM {budget}",
+    "plannedCost": "Planned courses · RM {cost}",
     "termRequired": "Status",
     "termWhy": "Why",
     "courses": "{count} courses · about {weeks} weeks",

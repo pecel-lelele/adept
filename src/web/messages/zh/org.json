@@ -149,6 +149,8 @@
     "termTime": "带薪学习时间",
     "hoursWeek": "每周 {hours} 小时",
     "termBudget": "雇主为你提供的预算",
+    "budgetCap": "最高 RM {budget}",
+    "plannedCost": "计划课程 · RM {cost}",
     "budgetLine": "最多 RM {budget}（计划 RM {cost}）",
     "termRequired": "状态",
     "termWhy": "原因",

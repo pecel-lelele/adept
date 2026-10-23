@@ -77,8 +77,8 @@
 .adi-msg.is-typing span:nth-child(2) { animation-delay: .15s; }
 .adi-msg.is-typing span:nth-child(3) { animation-delay: .3s; }
 @keyframes adi-dot { 0%, 100% { opacity: .3; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-4px); } }
-.adi-suggest { display: flex; gap: 6px; padding: 8px 12px 0; overflow-x: auto; scrollbar-width: none; }
-.adi-suggest button { flex: none; border: 1px solid #d6eadb; background: #f3faf0; color: #14532d; border-radius: 999px; padding: 6px 11px; font: inherit; font-size: 12.5px; cursor: pointer; white-space: nowrap; }
+.adi-suggest { display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 8px 14px 0; max-height: 108px; overflow-y: auto; }
+.adi-suggest button { min-height: 36px; max-width: 100%; border: 0; border-bottom: 1px solid #d6eadb; background: transparent; color: #14532d; padding: 5px 0; font: inherit; font-size: 12.5px; text-align: left; cursor: pointer; overflow-wrap: anywhere; }
 .adi-suggest button:hover:not(:disabled) { background: #e3f5e9; }
 .adi-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: end; padding: 10px 12px; }
 .adi-form textarea { resize: none; max-height: 120px; min-height: 44px; border: 1px solid #dfe8e1; border-radius: 14px; padding: 11px 13px; font: inherit; font-size: 14px; line-height: 1.4; color: var(--a-ink, #18231c); field-sizing: content; }
@@ -88,9 +88,15 @@
 .adi-foot { margin: 0; padding: 0 14px 10px; font-size: 11px; color: #758078; display: flex; gap: 5px; align-items: center; }
 
 /* phones: above the workspace tab bar; the panel fills the width */
-@media (max-width: 860px) {
+@media (max-width: 900px) {
   .adi-dock[data-placement="workspace"] { bottom: calc(var(--a-tab-h, 64px) + 10px + env(safe-area-inset-bottom)); }
-  .adi-launch .adi3d { transform: scale(.8); transform-origin: bottom right; }
+  .adi-callout { display: none; }
+  .adi-launch { width: 52px; height: 52px; overflow: hidden; border: 1px solid #dfe8e1; border-radius: 14px; background: #fff; filter: drop-shadow(0 4px 8px #0d2a1718); }
+  .adi-launch .adi3d { transform: scale(.6); transform-origin: top left; }
+  .adi-panel { animation-duration: 160ms; }
+  .adi-icon { width: 44px; height: 44px; }
+  .adi-form textarea { font-size: 16px; }
+  body:has(.a-sheet) .adi-dock { visibility: hidden; pointer-events: none; }
 }
 @media (max-width: 520px) {
   .adi-dock[data-open="true"] { left: 8px; right: 8px; bottom: 8px; }

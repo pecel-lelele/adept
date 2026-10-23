@@ -1,6 +1,6 @@
-import { ArrowUpRight, Building2 } from "lucide-react";
+import { ArrowUpRight, Building2, CalendarDays, Clock3, Wallet } from "lucide-react";
 import Link from "next/link";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 
 import { ApiError, EmptyState, MetaBar, PageHeader } from "@/components";
 import { AssignedPackageView } from "@/features/org/components/AssignedPackageView";
@@ -16,6 +16,9 @@ async function AgreementCard({ a, org }: { a: Assignment; org: string }) {
   const t = await getTranslations("org.work");
   const tp = await getTranslations("org.programmes");
   const g = a.agreement;
+  const locale = await getLocale();
+  const number = (value: number) => new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(value);
+  const targetDate = new Intl.DateTimeFormat(locale, { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${g.target_date}T00:00:00Z`));
   const open = a.status === "assigned" || a.status === "change_requested";
   const courses = a.pathway.steps.flatMap((s) => s.courses.map((c) => ({ ...c, skill: s.skill_label || s.skill_id })));
   const unique = courses.filter((c, i) => courses.findIndex((x) => x.id === c.id) === i);
@@ -35,40 +38,35 @@ async function AgreementCard({ a, org }: { a: Assignment; org: string }) {
       </header>
       <section className="a-readiness" data-route={g.route} aria-label={t("termRoute")}>
         <div className="a-readiness-heading"><span>{t("termRoute")}</span><strong>{tp(`route.${g.route}`)}</strong></div>
-        <div className="a-readiness-value"><strong>{Math.round(g.readiness * 100)}<small>%</small></strong><p>{t("readinessCaption")}</p></div>
-        <div className="a-readiness-track" role="meter" aria-label={t("readinessCaption")} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(g.readiness * 100)}>
-          <span style={{ width: `${Math.round(g.readiness * 100)}%` }} />
+        <div className="a-readiness-body">
+          <div className="a-readiness-gauge" role="meter" aria-label={t("readinessCaption")} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(g.readiness * 100)}>
+            <svg viewBox="0 0 96 96" aria-hidden>
+              <circle cx="48" cy="48" r="40" className="a-gauge-track" />
+              <circle cx="48" cy="48" r="40" className="a-gauge-value" pathLength="100" strokeDasharray={`${Math.round(g.readiness * 100)} 100`} transform="rotate(-90 48 48)" />
+            </svg>
+            <strong>{Math.round(g.readiness * 100)}<small>%</small></strong>
+          </div>
+          <div className="a-readiness-role"><h3>{g.role_label}</h3><p>{t("readinessCaption")}</p></div>
         </div>
-        <div className="a-readiness-scale" aria-hidden><span>0%</span><span>100%</span></div>
       </section>
       <dl className="a-terms">
         <div>
-          <dt>{t("termRole")}</dt>
-          <dd>{g.role_label}</dd>
+          <dt><CalendarDays size={15} aria-hidden />{t("termDate")}</dt>
+          <dd><time dateTime={g.target_date}>{targetDate}</time></dd>
         </div>
         <div>
-          <dt>{t("termDate")}</dt>
-          <dd>{g.target_date}</dd>
-        </div>
-        <div>
-          <dt>{t("termTime")}</dt>
+          <dt><Clock3 size={15} aria-hidden />{t("termTime")}</dt>
           <dd>{t("hoursWeek", { hours: g.hours_per_week })}</dd>
         </div>
-        <div>
-          <dt>{t("termBudget")}</dt>
-          <dd>{t("budgetLine", { budget: Math.round(g.budget_myr), cost: Math.round(g.cost_myr) })}</dd>
+        <div className="a-term-budget">
+          <dt><Wallet size={15} aria-hidden />{t("termBudget")}</dt>
+          <dd><strong>{t("budgetCap", { budget: number(g.budget_myr) })}</strong><small>{t("plannedCost", { cost: number(g.cost_myr) })}</small></dd>
         </div>
-        <div>
-          <dt>{t("termRequired")}</dt>
-          <dd>{g.mandatory ? t("required") : t("optional")}</dd>
-        </div>
-        {g.objectives.length ? (
-          <div>
-            <dt>{t("termWhy")}</dt>
-            <dd>{g.objectives.map((o) => tp(`objective.${o}`)).join(" · ")}</dd>
-          </div>
-        ) : null}
       </dl>
+      <div className="a-programme-context">
+        <span>{g.mandatory ? t("required") : t("optional")}</span>
+        {g.objectives.length ? <p>{g.objectives.map((o) => tp(`objective.${o}`)).join(" · ")}</p> : null}
+      </div>
       <details className="a-disclosure">
         <summary>{t("courses", { count: unique.length, weeks: a.pathway.total_weeks })}</summary>
         <ol className="a-rows">
