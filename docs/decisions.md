@@ -1223,3 +1223,15 @@
 - **Affects**: EN/MS/ZH agreement copy and assistant styles; no API, scoring or data changes.
 - **Replaces**: M4-049 straight-bar visual treatment only; preserves its workspace and evidence rules.
 - **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses
+
+
+### M4-051: Review catalogue omissions without inventing CV skills
+- **Date**: 2026-10-23
+- **Feature**: Core integration, F1 (CV intake), guest preview
+- **Type**: method
+- **Change**: Add optional `unmatched_terms` to CV/guest responses, bounded to 30 short entries from explicit EN/MS/ZH skills lists. Compare complete entries against approved aliases, deduplicate case-insensitively, skip contact/markup/negated/oversized entries and keep the original cleaned wording for transient review. Guest preview and intake explain catalogue limits and truncation; intake can search for a user-confirmed equivalent. Unknown wording is never stored, scored, sent to an LLM or promoted into the taxonomy; unknown-only previews have no role or score.
+- **Why**: The previous parser silently omitted unfamiliar skills and the upload action discarded truncation. Absence from the catalogue must not be presented as lack of ability, and fuzzy guesses must not receive credit.
+- **Pipeline**: in-memory sample CV upload → existing extraction, text cap and scrubbing → exact catalogue aliases plus bounded explicit-list review entries → deterministic extraction with human confirmation → 165 profile/preview checks pass, including mixed/unknown-only lists, aliases, duplicates, truncation, unsafe entries and non-persistence → additive API fields and EN/MS/ZH review interfaces.
+- **Affects**: F1 contracts and generated bindings, public preview, intake; no database migration or score changes.
+- **Replaces**: none
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses

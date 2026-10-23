@@ -6,7 +6,7 @@ import asyncio
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Form, UploadFile
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.contracts.common import RecommendationMeta, ScenarioId
 from app.contracts.profile import ExtractedSkill
@@ -38,6 +38,7 @@ class SkillTrend(BaseModel):
 
 class GuestPreview(BaseModel):
     skills: list[ExtractedSkill]
+    unmatched_terms: list[str] = Field(default_factory=list, max_length=30)
     skill_trends: list[SkillTrend] = []
     top_role: TopRole | None
     other_role_count: int
@@ -60,6 +61,7 @@ def build_preview(
     if not extraction.skills:
         return GuestPreview(
             skills=[],
+            unmatched_terms=extraction.unmatched_terms,
             top_role=None,
             other_role_count=0,
             meta=extraction.meta,
@@ -81,6 +83,7 @@ def build_preview(
     ]
     return GuestPreview(
         skills=extraction.skills,
+        unmatched_terms=extraction.unmatched_terms,
         skill_trends=trends,
         top_role=TopRole(
             role_id=top.role_id,

@@ -29,7 +29,7 @@ from app.core.auth import CurrentUser
 from app.core.errors import AppError
 from app.features.org import repository as org_repository
 from app.features.profile import repository
-from app.features.profile.cv_parser import parse_cv
+from app.features.profile.cv_parser import parse_cv_review
 from app.features.profile.schemas import (
     NormalisedSkill,
     QuestionnaireIn,
@@ -137,7 +137,7 @@ def extract_cv(
         PdfSupportUnavailable: fitz absent and a PDF was uploaded.
         PdfNoText:             PDF has no extractable text.
     """
-    parsed, truncated = parse_cv(content, content_type)
+    parsed, truncated, unmatched = parse_cv_review(content, content_type)
     labels = _skill_labels()
 
     skills = [
@@ -150,7 +150,9 @@ def extract_cv(
         for ps in parsed
     ]
 
-    return CvExtractionResult(skills=skills, truncated=truncated, meta=TAXONOMY_META)
+    return CvExtractionResult(
+        skills=skills, unmatched_terms=unmatched, truncated=truncated, meta=TAXONOMY_META
+    )
 
 
 # ---------------------------------------------------------------------------

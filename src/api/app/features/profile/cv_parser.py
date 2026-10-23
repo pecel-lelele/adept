@@ -551,6 +551,84 @@ def extract_skills(text: str) -> list[ParsedSkill]:
 # ---------------------------------------------------------------------------
 
 
+_SKILL_HEADING = re.compile(
+    r"^(?:technical skills|core skills|skills|competencies|kemahiran teknikal|"
+    r"kemahiran|技能|专业技能)"
+    r"\s*(?:[:：]\s*(.*))?$",
+    re.IGNORECASE,
+)
+_SECTION_HEADING = re.compile(
+    r"^(?:experience|work experience|employment|education|projects|certifications|references|"
+    r"contact|summary|languages|pengalaman|pendidikan|rujukan|工作经历|教育背景|项目经历|联系方式)\b",
+    re.IGNORECASE,
+)
+_LIST_SEPARATOR = re.compile(r"[,;|•●·、，；]")
+
+
+def unmatched_skill_terms(text: str) -> list[str]:
+    """Bounded review hints from explicit skill lists, never a new skill catalogue.
+
+    Do not mine arbitrary prose, infer synonyms or transmit text to an LLM. Full
+    entries are compared to approved aliases: a partial hit must not hide the
+    unfamiliar part of a mixed phrase. Names and other prose are not classified
+    as skills. Only short list entries are echoed, transiently, for human review.
+    This deliberately cannot discover every skill in every CV layout.
+    """
+    _load_taxonomy()
+    known = {entry.phrase for entry in _build_alias_index()}
+    terms: list[str] = []
+    seen: set[str] = set()
+    active = False
+    section_lines = 0
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        heading = _SKILL_HEADING.fullmatch(line)
+        if heading:
+            active, section_lines = True, 0
+            line = heading.group(1) or ""
+            if not line:
+                continue
+        elif not active:
+            continue
+        elif not line or _SECTION_HEADING.search(line) or section_lines >= 20:
+            active = False
+            continue
+        section_lines += 1
+        for item in _LIST_SEPARATOR.split(line):
+            term = item.strip(" \t-*–—")
+            normalised = unicodedata.normalize("NFKC", term).casefold()
+            # Reject prose, contact data, markup, numbers and long input. Unknown
+            # text is still untrusted: the web renders these strings as text only.
+            if (
+                not 2 <= len(term) <= 64
+                or len(term.split()) > 6
+                or not any(c.isalpha() for c in term)
+                or not all(c.isalnum() or c in " +#./&()-" for c in term)
+                or _EMAIL_RE.search(term)
+                or _URL_RE.search(term)
+                or sum(c.isdigit() for c in term) > 4
+                or _is_negated(normalised, len(normalised))
+                or normalised.startswith(("no ", "without ", "not ", "tiada ", "tidak ", "没有"))
+            ):
+                continue
+            if normalised not in known and normalised not in seen:
+                seen.add(normalised)
+                terms.append(term)
+                if len(terms) == 30:
+                    return terms
+    return terms
+
+
+def parse_cv_review(
+    data: bytes | str, content_type: str = "text/plain"
+) -> tuple[list[ParsedSkill], bool, list[str]]:
+    """Extract once, scrub and bound the text, then return matches and review hints."""
+    raw_text = extract_text(data, content_type)
+    truncated_text, truncated = _truncate_text(raw_text)
+    cleaned = _clean_text(truncated_text)
+    return extract_skills(cleaned), truncated, unmatched_skill_terms(cleaned)
+
+
 def parse_cv(data: bytes | str, content_type: str = "text/plain") -> tuple[list[ParsedSkill], bool]:
     """Full pipeline: extract text -> truncate -> clean -> scan skills.
 
@@ -568,7 +646,5 @@ def parse_cv(data: bytes | str, content_type: str = "text/plain") -> tuple[list[
         AppError (422):        empty or unreadable PDF.
         PdfNoText:             PDF has no extractable text.
     """
-    raw_text = extract_text(data, content_type)
-    truncated_text, truncated = _truncate_text(raw_text)
-    cleaned = _clean_text(truncated_text)
-    return extract_skills(cleaned), truncated
+    skills, truncated, _ = parse_cv_review(data, content_type)
+    return skills, truncated

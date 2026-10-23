@@ -7271,6 +7271,15 @@
             "type": "array",
             "title": "Skills"
           },
+          "unmatched_terms": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 30,
+            "title": "Unmatched Terms",
+            "description": "Up to 30 unrecognised entries from explicit skills lists, for transient human review. Not verified skills, not persisted or scored; prose may contain other missed skills."
+          },
           "truncated": {
             "type": "boolean",
             "title": "Truncated",
@@ -8226,6 +8235,14 @@
             },
             "type": "array",
             "title": "Skills"
+          },
+          "unmatched_terms": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 30,
+            "title": "Unmatched Terms"
           },
           "skill_trends": {
             "items": {

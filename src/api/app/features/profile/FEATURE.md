@@ -39,3 +39,17 @@ Fill this in as the feature takes shape (copy it into the `docs/decisions.md` en
 | Model / method | | |
 | Evaluation | | metric + result |
 | Serving | | endpoint(s) |
+
+## Catalogue omissions (2026-10-23 integration)
+
+CV responses include `unmatched_terms`: up to 30 short entries from explicit
+EN/MS/ZH skills lists which do not exactly match an approved label or alias.
+These are unverified wording for transient review, not skill IDs. They are never
+saved as profile skills, ranked, sent to an LLM or added to the taxonomy. Users
+may search the existing catalogue and explicitly choose a valid equivalent.
+
+This bounded rule cannot find every unfamiliar skill in prose or every CV layout.
+Both guest preview and intake state that limitation, preserve truncation warnings,
+and distinguish zero recognised catalogue skills from zero actual skills. Unknown
+only previews produce no role or score. Existing exact aliases, level review,
+file limits, scanned/encrypted PDF errors and ID validation remain in force.

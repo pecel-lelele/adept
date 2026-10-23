@@ -2085,3 +2085,13 @@ html[data-busy] .a-main::after { content: ""; }
   .a-shell .a-checklist-rows li { grid-template-columns: 24px minmax(0, 1fr); }
   .a-shell .a-checklist-rows li > .a-inline-form { grid-column: 2; justify-self: start; }
 }
+
+/* CV wording is a review list, never a scored skill badge. */
+.a-cv-review { min-width: 0; padding: 16px 0; border-block: 1px solid var(--a-line); }
+.a-cv-review h3 { margin: 16px 0 8px; font-size: 16px; font-weight: 550; }
+.a-cv-review p { margin: 0 0 10px; }
+.a-cv-review p:last-child { margin-bottom: 0; }
+.a-cv-review ul { list-style: none; margin: 12px 0; padding: 0; }
+.a-cv-review li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--a-line); }
+.a-cv-review li > span { min-width: 0; overflow-wrap: anywhere; }
+.a-cv-review button { flex-shrink: 0; border: 0; background: transparent; cursor: pointer; min-height: 44px; font-size: 12px; }

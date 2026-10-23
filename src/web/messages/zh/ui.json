@@ -115,7 +115,7 @@
     "errorConsent": "请勾选同意，我们才能读取你的简历。",
     "errorGeneric": "无法读取该文件，请换一个试试。",
     "found": "{count, plural, =0 {未找到技能} other {找到 # 项技能}}",
-    "noneFound": "未能在此文件中识别到技能。扫描版 PDF 没有可读文字，请改用 Word 或文本型 PDF，或注册后手动选择技能。",
+    "noneFound": "无法将此文件中的技能与目录匹配。",
     "bestFit": "最适合你的未来职位",
     "fit": "匹配",
     "trendTitle": "你的技能在 AI 时代",
@@ -308,7 +308,8 @@
     "sRisingLabel": "上升的技能",
     "sHrdLabel": "可申请 HRD Corp",
     "sGoalsLabel": "覆盖的联合国目标",
-    "sFoot": "更新于 {date} · 来源：{sources}"
+    "sFoot": "更新于 {date} · 来源：{sources}",
+    "manualSkills": "手动选择技能"
   },
   "intake": {
     "title": "建立你的资料",
@@ -650,5 +651,15 @@
     "manager": "管理者",
     "switch": "切换工作区",
     "join": "加入其他组织"
+  },
+  "cvReview": {
+    "title": "待核对的用词",
+    "scope": "结果仅使用目录中已匹配的技能。其他技能、陌生术语或不同拼写可能未被识别。",
+    "none": "没有目录匹配不代表没有技能。请搜索技能库，添加您能确认的技能。",
+    "truncated": "文件较长，只读取了前面部分。请检查并手动补充遗漏的技能。",
+    "body": "暂无已核实的匹配。请检查拼写或搜索对应技能，仅在确实描述您的技能时选择。",
+    "notSaved": "仅供核对，不会保存或计分。最多显示30条。",
+    "search": "搜索目录",
+    "searchFor": "在目录中搜索{term}"
   }
 }

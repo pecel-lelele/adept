@@ -8,6 +8,7 @@ import { CV_SKILLS_KEY } from "@/features/core/components/CvPreview";
 import type { Schemas } from "@/lib/api";
 
 import { saveIntakeAction, uploadCvAction, type IntakeInput } from "../actions";
+import { CvReview } from "./CvReview";
 
 type Option = Schemas["SkillOption"];
 type Picked = { skill_id: string; level: number; fromCv?: boolean };
@@ -43,10 +44,12 @@ export function IntakeWizard({
     (initial?.skills ?? []).map((s) => ({ skill_id: s.skill_id, level: s.level })),
   );
   const [query, setQuery] = useState("");
+  const [cvReview, setCvReview] = useState<{ terms: string[]; truncated: boolean; count: number } | null>(null);
   const [error, setError] = useState("");
   const [cvBusy, startCv] = useTransition();
   const [saving, startSave] = useTransition();
   const fileRef = useRef<HTMLInputElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
 
   /** Skills found by the CV preview on the home page, before the account existed. */
   function cvSkillsFromHome(): Picked[] {
@@ -91,9 +94,11 @@ export function IntakeWizard({
     const form = new FormData();
     form.set("file", file);
     setError("");
+    setCvReview(null);
     startCv(async () => {
       const result = await uploadCvAction(form);
       if (result.error) setError(result.error);
+      else setCvReview({ terms: result.unmatched_terms ?? [], truncated: result.truncated ?? false, count: result.skills?.length ?? 0 });
       for (const s of result.skills ?? []) addSkill(s.skill_id, s.level, true);
     });
   }
@@ -235,11 +240,16 @@ export function IntakeWizard({
               hidden
               onChange={(e) => onFile(e.target.files?.[0])}
             />
+            {cvReview ? (
+              <CvReview terms={cvReview.terms} truncated={cvReview.truncated} matchedCount={cvReview.count}
+                onSearch={(term) => { setQuery(term); searchRef.current?.focus(); }} />
+            ) : null}
             <label className="a-field" style={{ position: "relative" }}>
               <span className="a-sr">{t("search")}</span>
               <Search size={16} aria-hidden style={{ position: "absolute", left: 14, top: 15, color: "var(--a-muted)" }} />
               <input
                 className="a-input"
+                ref={searchRef}
                 style={{ paddingLeft: 38 }}
                 placeholder={t("search")}
                 value={query}

@@ -115,7 +115,7 @@
     "errorConsent": "Sila tandakan kotak supaya kami boleh membaca CV anda.",
     "errorGeneric": "Kami tidak dapat membaca fail itu. Sila cuba yang lain.",
     "found": "{count, plural, =0 {Tiada kemahiran ditemui} other {# kemahiran ditemui}}",
-    "noneFound": "Kami tidak menemui kemahiran dalam fail ini. PDF imbasan tiada teks yang boleh dibaca, jadi cuba fail Word atau PDF berasaskan teks, atau daftar dan pilih kemahiran anda.",
+    "noneFound": "Kami tidak dapat memadankan kemahiran dalam fail ini dengan katalog.",
     "bestFit": "Peranan masa depan paling sesuai",
     "fit": "padanan",
     "trendTitle": "Kemahiran anda dalam era AI",
@@ -308,7 +308,8 @@
     "sRisingLabel": "Kemahiran meningkat",
     "sHrdLabel": "Boleh tuntut HRD Corp",
     "sGoalsLabel": "Matlamat PBB diliputi",
-    "sFoot": "Dikemas kini {date} · Sumber: {sources}"
+    "sFoot": "Dikemas kini {date} · Sumber: {sources}",
+    "manualSkills": "Pilih kemahiran secara manual"
   },
   "intake": {
     "title": "Mari bina profil anda",
@@ -650,5 +651,15 @@
     "manager": "Pengurus",
     "switch": "Tukar ruang kerja",
     "join": "Sertai organisasi lain"
+  },
+  "cvReview": {
+    "title": "Istilah untuk disemak",
+    "scope": "Hasil hanya menggunakan padanan katalog. Kemahiran lain, istilah baharu dan variasi ejaan mungkin terlepas.",
+    "none": "Tiada padanan katalog tidak bermakna tiada kemahiran. Cari bank kemahiran dan tambah kemahiran yang boleh anda sahkan.",
+    "truncated": "Fail ini panjang. Hanya bahagian awal dibaca; semak dan tambah kemahiran yang tertinggal secara manual.",
+    "body": "Belum ada padanan yang diluluskan. Semak ejaan atau cari padanan. Pilih hanya jika ia benar-benar menggambarkan kemahiran anda.",
+    "notSaved": "Untuk semakan sahaja: tidak disimpan atau diberi skor. Sehingga 30 entri.",
+    "search": "Cari katalog",
+    "searchFor": "Cari {term} dalam katalog"
   }
 }

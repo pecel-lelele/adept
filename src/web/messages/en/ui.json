@@ -115,7 +115,7 @@
     "errorConsent": "Please tick the box so we can read your CV.",
     "errorGeneric": "We couldn’t read that file. Please try another.",
     "found": "{count, plural, =0 {No skills found} one {# skill found} other {# skills found}}",
-    "noneFound": "We couldn’t spot skills in this file. Scanned PDFs have no readable text, so try a Word or text-based PDF, or sign up and pick your skills.",
+    "noneFound": "We could not match skills in this file to our catalogue.",
     "bestFit": "Your best-fit future role",
     "fit": "fit",
     "trendTitle": "Your skills in the AI era",
@@ -308,7 +308,8 @@
     "sRisingLabel": "Skills rising",
     "sHrdLabel": "HRD Corp-claimable",
     "sGoalsLabel": "UN Goals covered",
-    "sFoot": "Updated {date} · Sources: {sources}"
+    "sFoot": "Updated {date} · Sources: {sources}",
+    "manualSkills": "Choose my skills manually"
   },
   "intake": {
     "title": "Let’s build your profile",
@@ -650,5 +651,15 @@
     "manager": "Manager",
     "switch": "Switch workspace",
     "join": "Join another organisation"
+  },
+  "cvReview": {
+    "title": "Wording to review",
+    "scope": "Results use catalogue matches only. Other skills, unfamiliar terms and spelling variations may be missed.",
+    "none": "No catalogue matches does not mean no skills. Search the skill bank and add skills you can confirm.",
+    "truncated": "This file is long. Only the first part was read; review and add any missing skills manually.",
+    "body": "No approved match yet. Check spelling or search for an equivalent. Choose it only if it accurately describes your skill.",
+    "notSaved": "Review only: not saved or scored. Up to 30 entries shown.",
+    "search": "Search catalogue",
+    "searchFor": "Search the catalogue for {term}"
   }
 }

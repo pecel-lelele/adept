@@ -1878,6 +1878,11 @@ export interface components {
             /** Skills */
             skills: components["schemas"]["ExtractedSkill"][];
             /**
+             * Unmatched Terms
+             * @description Up to 30 unrecognised entries from explicit skills lists, for transient human review. Not verified skills, not persisted or scored; prose may contain other missed skills.
+             */
+            unmatched_terms?: string[];
+            /**
              * Truncated
              * @default false
              */
@@ -2264,6 +2269,8 @@ export interface components {
         GuestPreview: {
             /** Skills */
             skills: components["schemas"]["ExtractedSkill"][];
+            /** Unmatched Terms */
+            unmatched_terms?: string[];
             /**
              * Skill Trends
              * @default []
