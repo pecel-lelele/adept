@@ -171,3 +171,12 @@ def test_zero_hours_falls_back_with_a_warning() -> None:
 )
 def test_week_range(before: float, after: float, hpw: float, expected: tuple[int, int]) -> None:
     assert engine.week_range(before, after, hpw) == expected
+
+
+def test_courses_that_stop_below_the_requirement_are_not_called_missing() -> None:
+    """A skill the catalogue teaches up to level 2 is "tops out", never "no course"."""
+    only = course("only-l2", "sql", level=2, hours=3)
+    sel = engine.select_courses("sql", 2, 3, [only], 0, False, set())
+    assert sel.unmet == "catalogue_tops_out"
+    none = engine.select_courses("python", 0, 3, [only], 0, False, set())
+    assert none.unmet == "no_catalogue_course"

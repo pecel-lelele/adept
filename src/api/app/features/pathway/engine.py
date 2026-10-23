@@ -167,7 +167,9 @@ def select_courses(
         if skill_id in c.skill_ids
         and c.level > current
         and c.format != "subscription"
-        and c.price_status == "listed"
+        # Free-to-learn courses (certificate fee unknown) count as RM 0 learning; callers that
+        # need a certificate filter them out of the catalogue first (HR planning brief).
+        and c.price_status in ("listed", "certificate_price_unknown")
     ]
     by_cost = sorted(
         candidates, key=lambda c: (c.level, out_of_pocket(c, hrd_eligible), c.hours, c.id)
@@ -199,8 +201,13 @@ def select_courses(
     alternatives = [c for c in by_cost if c.id not in chosen][:3]
     unmet: UnmetReason | None = None
     if level < required:
-        if not candidates:
+        # "No course" only when the catalogue never teaches the skill; if courses exist but stop
+        # at or below the learner's level, the honest message is that practice is needed.
+        teaches = any(skill_id in c.skill_ids and c.format != "subscription" for c in catalogue)
+        if not candidates and not teaches:
             unmet = "no_catalogue_course"
+        elif not candidates:
+            unmet = "catalogue_tops_out"
         elif over_budget:
             unmet = "over_budget"
         else:
@@ -284,12 +291,27 @@ def build(
             continue
         sel = select_courses(
             skill,
-            gap.current_level,
+            levels.get(skill, 0),
             gap.required_level,
             catalogue,
             budget_left,
             learner.hrd_eligible,
             set(booked),
+        )
+        # Earlier multi-skill courses can already cover this gap. Keep their links
+        # for progress/explanations without buying lower-level foundations again.
+        sel.covered_by_earlier = list(
+            {
+                c.id: c
+                for c in [
+                    *(
+                        c
+                        for c in catalogue
+                        if c.id in booked and skill in c.skill_ids and c.level > gap.current_level
+                    ),
+                    *sel.covered_by_earlier,
+                ]
+            }.values()
         )
         levels[skill] = max(levels.get(skill, 0), sel.reaches_level)
         for course in sel.courses + sel.covered_by_earlier:

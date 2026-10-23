@@ -20,16 +20,15 @@ from app.contracts.funding import (
     FundingSubmission,
     MemberBudgetIn,
 )
-from app.contracts.pathway import CompletionEvidence, EvidenceSubmit
+from app.contracts.pathway import CompletionEvidence
 from app.core import accounts
 from app.core.auth import CurrentUser
 from app.core.db import connection
 from app.core.errors import AppError, NotFoundError
 from app.core.refdata import use_postgres
 from app.features.org import funding_store, repository, service
-from app.features.pathway import data
+from app.features.pathway import data, verification
 from app.features.pathway import repository as pathway_repository
-from app.features.pathway import service as pathway_service
 
 RESERVED = {"approved", "submitted", "payable"}
 
@@ -220,8 +219,8 @@ def complete(
         return claim
 
     snapshot = checked(funding_store.snapshot(org_id))
-    # Certificate probing and pathway/trend work happen with no ledger lock or borrowed
-    # connection. The final revision check refuses concurrent approval/cancellation changes.
+    # Only the slow external check runs before the final revision check. Progress and
+    # evidence must not change when a concurrent submission or cancellation wins.
     course = snapshot.course.model_copy(
         update={
             "cost_myr": float(snapshot.approved_myr),
@@ -229,22 +228,27 @@ def complete(
             "price_note": "Member quote approved by HR; verify against the receipt.",
         }
     )
-    pathway_repository.set_course_status(
-        user.id, snapshot.role_id, course.id, "in_progress", course
-    )
-    pathway_service.submit_evidence(
-        user,
-        EvidenceSubmit(
-            role_id=snapshot.role_id,
-            course_id=course.id,
-            url=body.url,
-        ),
-        "moderate",
-    )
+    link_status = verification.check_link(body.url, course, verification.probe)
+    checked_at = datetime.now(UTC)
     _scope(user)
 
     def record(state: FundingState) -> None:
         claim = checked(state)
+        # PostgreSQL repositories borrow this funding transaction's connection, so
+        # progress, evidence and the claim commit or roll back together.
+        pathway_repository.set_course_status(user.id, claim.role_id, course.id, "completed", course)
+        pathway_repository.save_evidence(
+            user.id,
+            CompletionEvidence(
+                role_id=claim.role_id,
+                course_id=course.id,
+                kind="certificate_link",
+                url=body.url,
+                link_status=link_status,
+                link_checked_at=checked_at,
+                submitted_at=datetime.now(UTC),
+            ),
+        )
         claim.certificate_url = body.url
         claim.revision += 1
         claim.events.append(

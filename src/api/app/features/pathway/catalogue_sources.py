@@ -36,6 +36,7 @@ MSLEARN_SOURCE = "Microsoft Learn Catalog API"
 MSLEARN_SOURCE_URL = "https://learn.microsoft.com/en-us/training/support/catalog-api"
 COURSERA_API = "https://api.coursera.org/api/courses.v1?q=slug&slug={slug}&fields=workload"
 CHECKED = date(2026, 10, 20)
+CHECKED_2 = date(2026, 10, 23)  # catalogue enrichment pass
 
 
 @dataclass(frozen=True)
@@ -354,7 +355,14 @@ _COURSERA_FREE = (
 
 
 def _coursera(
-    slug: str, title: str, partner: str, hours: float, skill: str, level: int, stated: str
+    slug: str,
+    title: str,
+    partner: str,
+    hours: float,
+    skill: str,
+    level: int,
+    stated: str,
+    checked: date = CHECKED,
 ) -> CourseRow:
     url = f"https://www.coursera.org/learn/{slug}"
     return CourseRow(
@@ -365,7 +373,7 @@ def _coursera(
         hours=hours,
         cost_myr=0,
         hrd_claimable=False,
-        verified_at=CHECKED,
+        verified_at=checked,
         skill_ids=(skill,),
         level=level,
         source_name="Coursera course page",
@@ -390,6 +398,71 @@ COURSERA: tuple[CourseRow, ...] = (
               18, "prompt-engineering", 3, "2 weeks at 10 hours a week"),
     _coursera("supply-chain-logistics", "Supply Chain Logistics", "Rutgers University", 10,
               "logistics-planning", 2, "1 week at 10 hours a week"),
+    # Checked 2026-10-23: each page shows "Enroll for free"; hours = sum of module hours.
+    *(
+        _coursera(slug, title, partner, hours, skill, level, stated, CHECKED_2)
+        for slug, title, partner, hours, skill, level, stated in (
+            ("machine-learning", "Supervised Machine Learning: Regression and Classification",
+             "DeepLearning.AI and Stanford Online", 33, "machine-learning", 2,
+             "3 weeks at 10 hours a week"),
+            ("foundations-data", "Foundations: Data, Data, Everywhere", "Google", 13,
+             "statistics", 1, "1 week at 10 hours a week"),
+            ("foundations-of-cybersecurity", "Foundations of Cybersecurity", "Google", 10,
+             "cybersecurity-operations", 2, "1 week at 10 hours a week"),
+            ("renewable-energy-technology-fundamentals",
+             "Renewable Energy Technology Fundamentals", "University of Colorado Boulder", 13,
+             "renewable-energy-systems", 2, "1 week at 10 hours a week"),
+            ("project-management-foundations", "Foundations of Project Management", "Google",
+             12, "project-management", 2, "4 modules: 2, 4, 3 and 3 hours"),
+            ("foundations-user-experience-design", "Foundations of User Experience (UX) Design",
+             "Google", 12, "ux-design", 2, "4 modules: 4, 2, 4 and 2 hours"),
+            ("foundations-of-digital-marketing-and-e-commerce",
+             "Foundations of Digital Marketing and E-commerce", "Google", 11,
+             "digital-marketing", 2, "4 modules: 3, 3, 3 and 2 hours"),
+            ("introduction-to-cloud", "Introduction to Cloud Computing", "IBM", 13,
+             "cloud-computing", 2, "5 weeks of study, ~2 hours/week"),
+            ("cloud-computing-foundations-duke", "Cloud Computing Foundations",
+             "Duke University", 35, "cloud-computing", 3, "4 weeks at 10 hours a week"),
+            ("basic-statistics", "Basic Statistics", "University of Amsterdam", 17,
+             "statistics", 3, "2 weeks at 10 hours a week"),
+            ("iot", "Introduction to the Internet of Things and Embedded Systems",
+             "University of California, Irvine", 12, "iot-systems", 2, "4 weeks, 1-3 hours/week"),
+            ("business-analysis-fundamentals", "Business Analysis Fundamentals", "Microsoft",
+             18, "business-analysis", 2, "2 weeks at 10 hours a week"),
+            ("instructional-design-foundations-applications",
+             "Instructional Design Foundations and Applications",
+             "University of Illinois Urbana-Champaign", 13, "instructional-design", 2,
+             "1 week at 10 hours a week"),
+            ("html-css-javascript-for-web-developers",
+             "HTML, CSS, and Javascript for Web Developers", "Johns Hopkins University", 4,
+             "software-development", 1, "one 4-hour module"),
+            ("financial-accounting-basics", "Financial Accounting: Foundations",
+             "University of Illinois Urbana-Champaign", 12, "accounting-reporting", 2,
+             "4 weeks of study, 4-6 hours/week"),
+            ("introduction-to-data-engineering", "Introduction to Data Engineering", "IBM", 14,
+             "data-pipelines", 2, "4 modules: 2, 5, 4 and 3 hours"),
+            ("cybersecurity-for-everyone", "Cybersecurity for Everyone",
+             "University of Maryland, College Park", 22, "cybersecurity-governance", 2,
+             "6 modules totalling 22 hours"),
+            ("agile-project-management", "Agile Project Management", "Google", 20,
+             "project-management", 3, "4 modules: 4, 2, 9 and 5 hours"),
+            ("sales-strategy", "Sales Strategy", "Fundação Instituto de Administração (FIA)", 16,
+             "sales-account-management", 3, "2 weeks at 10 hours a week (intermediate level)"),
+            ("social-media-marketing", "Social Media Marketing", "SkillUp", 13,
+             "content-creation", 2, "4 weeks of study, 2-4 hours/week"),
+            ("inventory-management", "Inventory Management", "University of California, Irvine",
+             4, "warehouse-management", 2, "4 modules of 1 hour (page: 5 hours to complete)"),
+            ("salesforce-fundamentals", "Salesforce Basics", "University of California, Irvine",
+             5, "crm-systems", 2, "3 weeks of study, 3-5 hours/week"),
+            ("semiconductor-physics", "Semiconductor Physics", "University of Colorado Boulder",
+             15, "semiconductor-process", 2, "2 weeks at 10 hours a week (advanced level)"),
+            ("hotel-distribution", "The fundamentals of hotel distribution",
+             "ESSEC Business School", 18, "tourism-hospitality", 2, "4 weeks, 2-4 hours/week"),
+            ("six-sigma-define-measure-advanced", "Six Sigma Advanced Define and Measure Phases",
+             "Kennesaw State University", 12, "quality-management", 3,
+             "7 modules totalling 12 hours (intermediate level)"),
+        )
+    ),
 )  # fmt: skip
 
 _TWO_DAYS = "Brochure states 2 days; 14 h assumes 7 h/day, the HRD Corp maximum session length."
@@ -630,6 +703,59 @@ MANUAL: tuple[CourseRow, ...] = (
         audience="both",
         provider_type="industry_body",
         location="FMM Eastern Branch",
+    ),
+    CourseRow(
+        id="utm-registered-energy-manager-type1",
+        title="Registered Energy Manager (REM) - Type 1 Training (5 days)",
+        provider="UTMSPACE with UTM PROSPECT",
+        url="https://research.utm.my/prospect/registered-energy-manager-rem-type-1-training/",
+        hours=35,
+        cost_myr=4900,
+        hrd_claimable=True,
+        verified_at=CHECKED_2,
+        skill_ids=("energy-efficiency",),
+        level=3,
+        source_name="UTM course page",
+        source_url="https://research.utm.my/prospect/registered-energy-manager-rem-type-1-training/",
+        hrd_note=(
+            'Course page: "HRD Corp Claimable"; "RM 4,900 per participant (HRDC claimable '
+            'rate)", "RM 4,600 per participant (normal rate)". For professionals seeking REM '
+            "certification under Suruhanjaya Tenaga (Energy Efficiency and Conservation Act)."
+        ),
+        duration_note=(
+            "5 days full time at UTMSPACE Johor Bahru; 35 h assumes 7 h/day. The listed run "
+            "(10-14 Nov 2025) has passed: ask UTMSPACE for the next intake."
+        ),
+        format="in_person",
+        audience="both",
+        provider_type="university",
+        location="Johor Bahru",
+    ),
+    CourseRow(
+        id="ibfim-fundamentals-shariah-islamic-finance",
+        title="Fundamentals of Shariah for Islamic Finance (FCIBT Module 1)",
+        provider="IBFIM",
+        url="https://ibfimonline.com/wp-content/uploads/2022/12/brochure/10-FCIBT.pdf",
+        hours=21,
+        cost_myr=2730,
+        hrd_claimable=True,
+        verified_at=CHECKED_2,
+        skill_ids=("islamic-finance",),
+        level=2,
+        source_name="IBFIM FCIBT brochure (PDF, Version 1.0)",
+        source_url="https://ibfimonline.com/wp-content/uploads/2022/12/brochure/10-FCIBT.pdf",
+        hrd_note=(
+            'Brochure: "HRDC - All the programme listed are HRDC claimable"; module fee MYR '
+            "2,730 online (MYR 3,450 face-to-face), subject to SST; assessment MYR 100."
+        ),
+        duration_note=(
+            "21 hours (3 days) per module, online or face-to-face; entry requirement SPM. "
+            "Brochure dated 2022 (6% SST): confirm the current fee with IBFIM."
+        ),
+        format="live_online",
+        audience="both",
+        provider_type="professional_body",
+        location="Online / Kuala Lumpur",
     ),
 )
 

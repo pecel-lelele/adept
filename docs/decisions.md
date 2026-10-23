@@ -1151,3 +1151,14 @@
 - **Affects**: M3 pathways/SDG, M4 organisation and shared database access.
 - **Replaces**: none
 - **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses
+
+### M4-031: Free-to-learn courses in plans, 27 more verified courses, honest "tops out" gaps
+- **Date**: 2026-10-23
+- **Feature**: F5, F4 (Core integration)
+- **Type**: data source | method
+- **Change**: (1) Plans may use free-to-enrol courses whose certificate fee is unknown as RM 0 learning; they keep `price_status=certificate_price_unknown` and their certificate note, and callers that need certificates filter them out (the HR planning brief). Replaces the rule that excluded them from plans. (2) 25 more Coursera courses checked on 2026-10-23 (each page shows "Enroll for free"; hours = sum of module hours) for machine learning, statistics, cybersecurity, cloud, renewable energy, IoT, UX, digital marketing, business analysis, instructional design, accounting, data engineering, project management, sales, content, warehouse, CRM, semiconductor physics, hotel distribution and Six Sigma; plus UTM's HRDC-claimable Registered Energy Manager course (RM 4,900 HRDC rate) and IBFIM's Fundamentals of Shariah for Islamic Finance (RM 2,730 online, HRDC claimable per brochure). Catalogue 71 → 98 courses. (3) Role requirements are capped at level 3 (24 links were 4): these are entry targets for reskilling, the team's original roles never exceed 3, and level 4+ comes from practice, not courses. (4) A skill whose courses stop at or below the learner's level is reported as "courses stop at level N" instead of "no course in our catalogue".
+- **Why**: Measured coverage: a newcomer with RM 0 could fully reach only 42% of role requirements and many plans were under 2 hours; now 50% (RM 0) / 53% (RM 6,000). The remaining gaps are skills no free or verified course teaches yet (listed by the pipeline run), shown honestly.
+- **Pipeline**: Coursera course pages + Catalog API slug checks, provider pages/brochures → `catalogue_sources.py` → `pipelines.pathway.run` (98 rows, validated) → engine selection (level ladder, cheapest then shortest, free-to-learn allowed) → evaluation: coverage script over 28 roles; tests for tops-out labelling and certificate caveats → serving: `/pathway`, `/org/packages`.
+- **Affects**: M3 (catalogue, engine), M2 (role requirement levels), M4.
+- **Replaces**: the PR #10 rule excluding `certificate_price_unknown` courses from plans.
+- **PR / branch**: feat/catalogue-roles-skills-courses

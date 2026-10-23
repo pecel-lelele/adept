@@ -230,9 +230,10 @@ def test_slow_certificate_submission_does_not_hold_funding_lock(
 
     def slow_certificate(*_args):
         started.set()
-        assert release.wait(2)
+        assert release.wait(5)
+        return "not_provider_page"
 
-    monkeypatch.setattr(funding.pathway_service, "submit_evidence", slow_certificate)
+    monkeypatch.setattr(verification, "check_link", slow_certificate)
     member = CurrentUser("aisyah", "Synthetic member", "learner", "org-demo-bank")
     with ThreadPoolExecutor(max_workers=2) as pool:
         pending = pool.submit(
@@ -294,9 +295,10 @@ def test_cancellation_during_certificate_check_is_not_overwritten(
 
     def slow_certificate(*_args):
         started.set()
-        assert release.wait(2)
+        assert release.wait(5)
+        return "not_provider_page"
 
-    monkeypatch.setattr(funding.pathway_service, "submit_evidence", slow_certificate)
+    monkeypatch.setattr(verification, "check_link", slow_certificate)
     member = CurrentUser("aisyah", "Synthetic member", "learner", "org-demo-bank")
     with ThreadPoolExecutor(max_workers=2) as pool:
         pending = pool.submit(
@@ -326,6 +328,8 @@ def test_cancellation_during_certificate_check_is_not_overwritten(
             pending.result(timeout=2)
     result = funding.ledger(member, YEAR)
     assert result.claims[0].status == "cancelled" and result.budgets[0].reserved_myr == 0
+    assert repository.course_status(member.id, claim["role_id"]) == {}
+    assert repository.evidence(member.id, claim["role_id"]) == {}
 
 
 def test_budget_year_switches_at_malaysia_midnight(monkeypatch: pytest.MonkeyPatch):
@@ -336,6 +340,68 @@ def test_budget_year_switches_at_malaysia_midnight(monkeypatch: pytest.MonkeyPat
 
     monkeypatch.setattr(funding, "datetime", Boundary)
     assert funding.current_year() == 2027
+
+
+def test_stale_certificate_cannot_erase_hr_review_or_block_payment(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+):
+    claim = _approved(client)
+    started, release = Event(), Event()
+    slow_url = "https://example.com/synthetic-slow-certificate"
+    winner_url = "https://example.com/synthetic-reviewed-certificate"
+
+    def check_link(url, *_args):
+        if url == slow_url:
+            started.set()
+            assert release.wait(5)
+        return "not_provider_page"
+
+    monkeypatch.setattr(verification, "check_link", check_link)
+    member = CurrentUser("aisyah", "Synthetic member", "learner", "org-demo-bank")
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        pending = pool.submit(
+            funding.complete,
+            member,
+            YEAR,
+            claim["id"],
+            FundingCompletion(revision=claim["revision"], url=slow_url),
+        )
+        try:
+            assert started.wait(1)
+            winner = funding.complete(
+                member,
+                YEAR,
+                claim["id"],
+                FundingCompletion(revision=claim["revision"], url=winner_url),
+            ).claims[0]
+            proof = repository.evidence(member.id, claim["role_id"])[claim["course"]["id"]]
+            reviewed = client.post(
+                "/api/v1/pathway/verifications",
+                headers=HR,
+                json={
+                    "user_id": member.id,
+                    "role_id": claim["role_id"],
+                    "course_id": claim["course"]["id"],
+                    "decision": "confirm",
+                    "submitted_at": proof.submitted_at.isoformat(),
+                },
+            )
+            assert reviewed.status_code == 200, reviewed.text
+        finally:
+            release.set()
+        with pytest.raises(AppError, match="changed"):
+            pending.result(timeout=2)
+    stored = repository.evidence(member.id, claim["role_id"])[claim["course"]["id"]]
+    assert stored.kind == "org_confirmed" and stored.url == winner_url
+    assert stored.submitted_at == proof.submitted_at
+    submitted = _submit(client, winner.model_dump(mode="json"))
+    assert submitted.status_code == 200, submitted.text
+    accepted = _decision(client, submitted.json()["claims"][0], "accept_claim")
+    assert accepted.status_code == 200, accepted.text
+    paid = _decision(
+        client, accepted.json()["claims"][0], "mark_paid", payment_reference="SYN-STALE-SAFE"
+    )
+    assert paid.status_code == 200, paid.text
 
 
 @pytest.mark.parametrize("amount", ["-1", "NaN", "Infinity", "0.001"])

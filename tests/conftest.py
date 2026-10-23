@@ -41,3 +41,16 @@ def _fresh_trend_cache() -> None:
     from app.features.trends import service as trends_service
 
     trends_service.clear_cache()
+
+
+@pytest.fixture(autouse=True)
+def _fresh_rate_limits() -> None:
+    """Each test gets its own rate-limit allowance (the app keeps one counter per process)."""
+    from app.core.security.rate_limit import RateLimitMiddleware
+
+    node = app.middleware_stack
+    while node is not None:
+        if isinstance(node, RateLimitMiddleware):
+            node.counter._windows.clear()
+            break
+        node = getattr(node, "app", None)
