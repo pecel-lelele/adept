@@ -1,37 +1,55 @@
-# secrets
-.env
-.env.*
-!.env.example
-.session-secret
+# See https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
 
-# data
-src/data/raw/
-
-# python
-.venv/
-__pycache__/
-*.py[cod]
-.pytest_cache/
-.ruff_cache/
-
-# node / next
-node_modules/
-.next/
-out/
-next-env.d.ts
+# compiled output
+dist
+tmp
+out-tsc
 *.tsbuildinfo
-.pnpm-store/
+.expo
+.expo-shared
+.next
+.turbo
+.svelte-kit
+.nuxt
+.output
+.vercel
 
-# personal AI settings
-CLAUDE.local.md
-.gemini/settings.json
-.claude/
+# dependencies
+node_modules
 
-# os / editors
+# IDEs and editors
+/.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# IDE - VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# misc
+/.sass-cache
+/connect.lock
+/coverage
+/libpeerconnection.log
+npm-debug.log
+yarn-error.log
+testem.log
+/typings
+
+# System Files
 .DS_Store
 Thumbs.db
-.vscode/
-.idea/
 
-# media / submission
-submission/demo-video/
+.cursor/rules/nx-rules.mdc
+.github/instructions/nx.instructions.md
+
+# Replit
+.cache/
+.local/
