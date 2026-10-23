@@ -110,6 +110,12 @@ This builds web and API containers, starts PostgreSQL, applies migrations and se
 
 **Configuration:** [`.env.example`](.env.example) lists the application, database and model settings. Keep secrets in `.env` locally or in the hosting platform's Secrets. When using Replit Database, keep its supplied `DATABASE_URL`; importing GitHub files does not copy the local database.
 
+**Publish on Replit:** [`.replit`](.replit) supplies Autoscale build/start commands for
+the production Next.js and FastAPI servers. Follow the [Replit deployment guide](docs/replit-deployment.md)
+to preserve local workspace changes, configure the published origin and secrets,
+initialize the production database and inspect build/run logs. The Preview runner
+is for development. Pull merged GitHub changes into Replit before publishing.
+
 ## AI and data
 
 | Component | Provider / model | Purpose |
