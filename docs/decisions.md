@@ -159,6 +159,36 @@
 - **Replaces**: M1-006 bounded-read claim (adds the missing client-side network deadline)
 - **PR / branch**: `feat/m1-trends-contract`
 
+### M1-008: Bug fix — score_rows() iterates full DB skill catalogue (Bug 1)
+- **Date**: 2026-10-23
+- **Feature**: F2 (AI-trend signal layer)
+- **Type**: method
+- **Change**: Added `load_skill_ids(db_url) -> set[str]` that queries `SELECT id FROM skills` (same canonical source as `validate_ids`). Added optional `skill_ids: set[str] | None = None` to `score_rows()`; when provided, iterates `sorted(skill_ids)` instead of `sorted(exposure_map)`, skills absent from `canonical_skills.csv` receive `DEFAULT_EXPOSURE = 0.5`. Refactored `main()` to delegate to `score_rows()` (eliminates duplicate inline loop).
+- **Why**: Skills absent from `canonical_skills.csv` were silently dropped from every snapshot, violating the zero-invented-entities guardrail by omission. The DB `skills` table is the only authoritative catalogue.
+- **Affects**: pipeline output only; API contract unchanged
+- **Replaces**: none
+- **PR / branch**: `feat/m1-trends-contract`
+
+### M1-009: Bug fix — fast scenario magnitude invariant at role level (Bug 2)
+- **Date**: 2026-10-23
+- **Feature**: F3 (Scenarios & uncertainty)
+- **Type**: formula
+- **Change**: Added `enforce_fast_magnitude(moderate, fast) -> float` which floors `|fast deviation|` to `|moderate deviation|` when same sign, without flipping sign. Applied in `get_outlook()` after importance-weighted aggregation. Added range clamping `low = min(low, outlook_val)` / `high = max(high, outlook_val)` to guarantee `low <= outlook <= high` after adjustment.
+- **Why**: Mixed-exposure role aggregations can partially cancel, making the aggregate fast signal less extreme than moderate — breaking Must-Have #6 (the judge toggles scenario switch live and sees fast < moderate). Guard restores the invariant at role level without changing per-skill math.
+- **Affects**: none (no contract field change)
+- **Replaces**: none
+- **PR / branch**: `feat/m1-trends-contract`
+
+### M1-010: Bug fix — nonzero uncertainty range at low coverage (Bug 3)
+- **Date**: 2026-10-23
+- **Feature**: F3 (Scenarios & uncertainty)
+- **Type**: formula | contract | UI
+- **Change**: Changed `outlook_range()` widen from `(1-cov)*|signal|` to `(1-cov)*(|signal|+BASE_UNCERTAINTY)` where `BASE_UNCERTAINTY=0.10`. Added `MIN_COVERAGE_THRESHOLD=0.20`; roles below this get additive field `insufficient_evidence=True` (default `False`) on `RoleOutlook`. Amber "Low evidence" badge added to `RoleOutlookPanel.tsx`, styled in `adept.css`, i18n keys in all three locales.
+- **Why**: Old formula collapsed widen to 0 at near-zero signal regardless of coverage, giving a false point estimate — violating Must-Have #6. The flag surfaces thin-evidence cases without hiding the numeric range.
+- **Affects**: M4 (frontend consumes new optional field); all consumers of `OutlookResponse` (additive, default `False`)
+- **Replaces**: none
+- **PR / branch**: `feat/m1-trends-contract`
+
 ---
 
 ## M2: Profile Intake & Matching (F1, F4)
