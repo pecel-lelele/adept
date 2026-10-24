@@ -745,6 +745,29 @@
 - **Replaces**: none
 - **PR / branch**: feat/core-m3-workspace-navigation
 
+### M3-028: Clarify submission provenance and actual AI development tools
+
+- **Date**: 2026-10-25
+- **Feature**: F8 (transparency), Core (submission documentation)
+- **Type**: other
+- **Change**: Record the team leader's clarification that KerjaCerdas belongs to a different team and informed security concepts, rather than supplying a prior-owned implementation. Correct the active solution guide, security docstrings and submission draft; preserve earlier decision entries as history. Declare confirmed Codex debugging, Claude Code video/pitch work, Replit Agent and Antigravity exploration, and Greptile PR review. Ignore local pitch-planning Markdown and PPTX assets under `submission/pitch/`.
+- **Why**: Earlier wording implied shared authorship and code reuse that the leader says did not occur; AI-tool placeholders also omitted confirmed work. Distinguish team product decisions, conceptual references and actual tool contributions without understating AI assistance.
+- **Affects**: Submission reviewers; no runtime behaviour, contracts, dependencies or schema changes
+- **Replaces**: M3-003 provenance wording and M3-001's reuse-map description; implementation decisions remain unchanged
+- **PR / branch**: docs/core-submission-accuracy
+
+### M3-029: Select five complete synthetic CVs for the public demo guide
+
+- **Date**: 2026-10-25
+- **Feature**: Core (README/demo), F1 (synthetic intake references)
+- **Type**: data source | other
+- **Change**: Add the leader-supplied Imran Hakim, Sofia Tan, Meera Anand, Adrian Lim and Nur Hana PDFs unchanged under `submission/demo-cvs/`; point README and submission references to them. Supply complete, editable synthetic intake settings separately from CV facts using existing profile fields and catalogue IDs. Keep older seeded personas and parser edge cases for regression tests.
+- **Why**: The README's test-fixture link did not identify the team's selected presentation CVs. A separate guide makes the demo reproducible without claiming that budgets, HRD eligibility or proficiency are extracted or verified.
+- **Pipeline**: supplied synthetic PDFs → in-memory deterministic CV parsing → known catalogue skill IDs with reviewable omissions → human confirmation with explicit demo assumptions → all five parse without truncation; profile shapes and IDs checked → downloadable demo assets and manual intake guide, no database import
+- **Affects**: Manual demos and submission documentation; no matching/parser behaviour, API schema or existing test fixtures changed
+- **Replaces**: none
+- **PR / branch**: docs/core-submission-accuracy
+
 ---
 
 ## M4: Core & Organisation (Core, F7)

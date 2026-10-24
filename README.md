@@ -124,10 +124,21 @@ setting an environment variable there uses `$env:NAME='value'`.
 Replit Preview uses the root development command in [replit.md](replit.md). App containers are not part of the current local Compose file.
 Migrations/seeding are explicit setup operations, not production startup actions.
 
-**Try the app:** upload a [synthetic CV](tests/api/profile/fixtures/cvs/),
+**Try the app:** choose one of the [five complete synthetic demo CVs and intake profiles](submission/demo-cvs/),
 create an invented `example.test` account, and follow **Radar → Roles → Plan → Progress → Jobs**.
 Create a team account to try programmes, funding decisions and completion reviews, and join
 with a synthetic learner using its join code. Personal and organisation learning stay separate.
+
+| Synthetic demo profile | CV |
+|:---|:---|
+| Imran Hakim · Compliance Analytics Officer | [Download PDF](submission/demo-cvs/cv_imran_hakim_compliance_analytics_officer.pdf) |
+| Sofia Tan · Process Automation Analyst | [Download PDF](submission/demo-cvs/cv_sofia_tan_process_automation_analyst.pdf) |
+| Meera Anand · Logistics Supervisor | [Download PDF](submission/demo-cvs/cv_meera_anand_logistics_supervisor.pdf) |
+| Adrian Lim · Data Analyst | [Download PDF](submission/demo-cvs/cv_adrian_lim_data_analyst.pdf) |
+| Nur Hana · Bank Operations Executive | [Download PDF](submission/demo-cvs/cv_nur_hana_bank_operations_executive.pdf) |
+
+The demo guide supplies editable synthetic intake settings; time, budget and proficiency
+choices are not verified CV facts. Parser regression fixtures remain under `tests/`.
 
 **Publish on Replit:** use the root `.replit` build/start commands and
 [publishing handoff](replit.md#publishing-handoff). The web starts with the monorepo standalone

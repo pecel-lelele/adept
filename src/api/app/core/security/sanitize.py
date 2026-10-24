@@ -1,4 +1,4 @@
-"""Input sanitisation for text that reaches an LLM or is stored. Adapted from KerjaCerdas.
+"""Input sanitisation for text that reaches an LLM or is stored by Adept.
 
 - `sanitize_text`: strict; raises 422 when user-typed text contains a prompt-injection pattern.
 - `clean_extracted_text`: soft; for document text (CVs) it neutralises the same patterns

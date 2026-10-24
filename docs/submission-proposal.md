@@ -11,6 +11,10 @@ than committing them to this public repository. Do not treat an unchecked box as
 
 Updated 24 October 2026 for the root-only, single-public-server deployment, current dependencies, job feeds, certifications and organisation workflows. This source describes the proposed code revision; publishing that revision remains an owner action.
 
+Updated 25 October 2026 with the leader's provenance clarification and selected
+[five synthetic demo CVs and intake profiles](../submission/demo-cvs/). Older persona fixtures
+remain test inputs; they are not the selected presentation CVs.
+
 ## 1. Team and project overview
 
 | Template field | Response |
@@ -199,12 +203,14 @@ Sources: [UN Goal 4](https://sdgs.un.org/goals/goal4),
 
 ### 6.1 Pre-existing / prior-owned work
 
-**Yes / No: team to confirm.** Repository history does not establish when the hackathon's
-originality period began or each member's ownership rights. The team must list any reused
-code, designs, research and their owners before selecting an answer. KerjaCerdas and Orion
-were consulted for README presentation; this does not establish reuse of their application code.
-The guardrail feature documentation also mentions patterns from KerjaCerdas: review provenance
-and rights rather than declaring that all work was newly created.
+**No, based on the team leader's provenance clarification on 25 October 2026.** The team
+reports that Adept's implementation was created for this hackathon. KerjaCerdas belongs to
+a different team and was consulted for general security concepts, implemented for Adept's
+own APIs and use cases; the team does not declare a reused prior-owned implementation.
+Earlier repository statements describing KerjaCerdas as work by the same team or as imported
+security code were inaccurate; see decision M3-028. Third-party frameworks, public data,
+pre-trained models and development tools remain disclosed separately in section 6.2 and the
+technical declaration. The leader must confirm the final form reflects the actual work.
 
 ### 6.2 Third-party code, datasets or models
 

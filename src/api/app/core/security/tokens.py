@@ -1,4 +1,4 @@
-"""JWT verification for AUTH_MODE=supabase. Pattern from KerjaCerdas `auth_service.py`.
+"""Fail-closed JWT verification for Adept's optional AUTH_MODE=supabase.
 
 Supabase signs access tokens with the project's JWT secret (HS256) and sets
 `aud = "authenticated"`. We fail closed: no secret configured → no access.

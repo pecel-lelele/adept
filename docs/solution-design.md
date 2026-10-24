@@ -155,22 +155,30 @@ statistics; and an open demo API is easy to abuse.
 - **API security**: per-IP sliding-window rate limiting, request-size limits, capped upload reads,
   security headers, JWT verification for the Supabase auth mode, Postgres bound to localhost.
 
-## 5. Reuse from KerjaCerdas
+## 5. Security design references and provenance
 
-KerjaCerdas (an earlier job-matching project by the same team) solved several of the same
-problems. Adapted, not copied blindly:
+KerjaCerdas, a project by a different team, was a conceptual reference for security and
+evidence-handling patterns. The Adept team leader clarified on 25 October 2026 that these
+concepts were implemented for Adept's own APIs, connections and use cases, rather than
+importing a prior implementation. The earlier wording describing the same team and reused
+code was inaccurate. This records the team's provenance clarification, not an independent
+source-code comparison. Historical decisions remain intact; M3-028 records the correction.
 
-| KerjaCerdas | Adept | Change |
+| Concept considered | Adept implementation | Application |
 |---|---|---|
-| `api/middleware/rate_limiter.py` sliding window, per (IP, bucket), LRU-capped, never evicts a throttled key, proxy-secret trust | `core/security/rate_limit.py` | Buckets for Adept routes (CV upload, pathway, LLM-backed calls); settings-driven |
-| `api/middleware/sanitization.py` prompt-injection patterns, HTML strip, filename sanitiser, request-size middleware | `core/security/sanitize.py`, `core/security/body_limit.py` | Used by the LLM gateway and CV upload |
-| `services/privacy/redact.py` regex PII redaction before any LLM call | `core/security/pii.py` | Malaysian formats: MyKad NRIC, +60 phone numbers |
-| `api/services/auth_service.py` PyJWT decode, fail closed | `core/security/jwt.py` | Supabase HS256 tokens, `aud=authenticated` |
-| `llm_factory.py` circuit breaker | `core/llm/gateway.py` | Breaker around `complete_structured` |
-| `main.py` security headers middleware | `core/security/headers.py` | Same headers for API responses |
-| `services/matching/evidence.py` proof levels (claimed < quiz < HR confirmed) | Progress badges | Course completion is *self-reported* evidence, labelled as such |
-| Course fallback tiers with "not verified" marking | Catalogue-only rule | Stricter: no tier ever invents a course |
-| `.github/workflows/ci.yml` gated lint, tests, Postgres service | `.github/workflows/ci.yml` | Runs `make check` plus a migration + seed job |
+| Sliding-window limits and bounded counters | `core/security/rate_limit.py` | Per-IP/route buckets, capped state and trusted-proxy checks |
+| Input filtering and request-size limits | `core/security/sanitize.py`, `body_limit.py` | CV uploads, JSON bodies and LLM-bound text |
+| Contact-data redaction | `core/security/pii.py` | Malaysian identity/phone formats and CV date-range preservation |
+| Fail-closed JWT verification | `core/security/tokens.py` | Optional Supabase HS256 verification and trusted privilege fields |
+| Circuit breaker and structured selection | `core/llm/gateway.py` | Provider failures and validated candidate IDs |
+| Response security headers | `core/security/headers.py` | API response headers |
+| Distinguishable evidence levels | Pathway progress and verification | Self-reported completion remains distinct from reviewed evidence |
+| Catalogue grounding | Pathway engine and ID validator | Unknown entities are rejected; uncovered gaps are reported |
+| Automated quality gates | `.github/workflows/ci.yml` | Lint, tests, types, contracts and PostgreSQL checks |
+
+Third-party frameworks, datasets, models and actual development tools are declared separately
+in the technical declaration. Conceptual inspiration does not imply shared team membership
+or establish code ownership.
 
 ## 6. Routing summary
 

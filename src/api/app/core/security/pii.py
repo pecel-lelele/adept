@@ -1,4 +1,4 @@
-"""Deterministic PII redaction before any text reaches an LLM or a log. From KerjaCerdas.
+"""Deterministic PII redaction before text reaches an LLM or an Adept log.
 
 Prompt instructions ("do not repeat personal data") can fail, so fixed rules run first.
 Adapted to Malaysian formats:
@@ -8,8 +8,8 @@ Adapted to Malaysian formats:
     passport A12345678         -> [passport]
     phone +60 12-345 6789      -> [phone]  (mobile, landline, international)
 
-Phone patterns are specific on purpose: KerjaCerdas's generic "8+ digits with separators"
-rule also redacted date ranges such as 2019-2024, which a CV needs.
+Phone patterns are specific on purpose: a generic "8+ digits with separators" rule
+would also redact date ranges such as 2019-2024, which a CV needs.
 """
 
 from __future__ import annotations

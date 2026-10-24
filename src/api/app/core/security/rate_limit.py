@@ -1,6 +1,6 @@
-"""Sliding-window rate limiter per (client IP, route bucket). Adapted from KerjaCerdas.
+"""Sliding-window rate limiter per (client IP, route bucket) for Adept.
 
-Design (kept from KerjaCerdas `api/middleware/rate_limiter.py`):
+Design:
 
 - Counters are keyed by ``(ip, bucket)``, where *bucket* is the matched route prefix or
   ``__default__``. Keying by raw path would give every URL its own allowance and let an

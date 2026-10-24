@@ -1,0 +1,91 @@
+[
+  {
+    "user_id": "demo-imran",
+    "display_name": "Imran Hakim",
+    "current_role_id": "compliance-analytics-officer",
+    "segment": "working",
+    "interests": ["finance", "risk", "data", "compliance"],
+    "hours_per_week": 6,
+    "budget_myr": 500,
+    "hrd_eligible": true,
+    "learning_style": "mixed",
+    "skills": [
+      {"skill_id": "excel", "level": 2, "source": "confirmed"},
+      {"skill_id": "sql", "level": 2, "source": "confirmed"},
+      {"skill_id": "data-visualisation", "level": 2, "source": "confirmed"},
+      {"skill_id": "ai-ethics", "level": 2, "source": "confirmed"},
+      {"skill_id": "ai-literacy", "level": 2, "source": "confirmed"},
+      {"skill_id": "risk-compliance", "level": 2, "source": "confirmed"}
+    ]
+  },
+  {
+    "user_id": "demo-sofia",
+    "display_name": "Sofia Tan",
+    "current_role_id": "process-automation-analyst",
+    "segment": "working",
+    "interests": ["process improvement", "operations", "automation"],
+    "hours_per_week": 8,
+    "budget_myr": 800,
+    "hrd_eligible": true,
+    "learning_style": "hands-on",
+    "skills": [
+      {"skill_id": "process-mapping", "level": 2, "source": "confirmed"},
+      {"skill_id": "rpa", "level": 2, "source": "confirmed"},
+      {"skill_id": "python", "level": 2, "source": "confirmed"},
+      {"skill_id": "sql", "level": 2, "source": "confirmed"},
+      {"skill_id": "ai-literacy", "level": 2, "source": "confirmed"},
+      {"skill_id": "ai-ethics", "level": 2, "source": "confirmed"}
+    ]
+  },
+  {
+    "user_id": "demo-meera",
+    "display_name": "Meera Anand",
+    "current_role_id": "logistics-supervisor",
+    "segment": "switcher",
+    "interests": ["operations", "analytics", "process improvement"],
+    "hours_per_week": 8,
+    "budget_myr": 800,
+    "hrd_eligible": true,
+    "learning_style": "hands-on",
+    "skills": [
+      {"skill_id": "logistics-planning", "level": 2, "source": "confirmed"},
+      {"skill_id": "excel", "level": 2, "source": "confirmed"},
+      {"skill_id": "process-mapping", "level": 2, "source": "confirmed"},
+      {"skill_id": "customer-service", "level": 2, "source": "confirmed"}
+    ]
+  },
+  {
+    "user_id": "demo-adrian",
+    "display_name": "Adrian Lim",
+    "current_role_id": "data-analyst",
+    "segment": "working",
+    "interests": ["data", "analytics", "software"],
+    "hours_per_week": 10,
+    "budget_myr": 300,
+    "hrd_eligible": false,
+    "learning_style": "mixed",
+    "skills": [
+      {"skill_id": "sql", "level": 2, "source": "confirmed"},
+      {"skill_id": "python", "level": 2, "source": "confirmed"},
+      {"skill_id": "excel", "level": 2, "source": "confirmed"},
+      {"skill_id": "data-visualisation", "level": 2, "source": "confirmed"}
+    ]
+  },
+  {
+    "user_id": "demo-nur-hana",
+    "display_name": "Nur Hana",
+    "current_role_id": "bank-operations-executive",
+    "segment": "working",
+    "interests": ["finance", "operations", "process improvement"],
+    "hours_per_week": 6,
+    "budget_myr": 500,
+    "hrd_eligible": true,
+    "learning_style": "mixed",
+    "skills": [
+      {"skill_id": "excel", "level": 2, "source": "confirmed"},
+      {"skill_id": "customer-service", "level": 2, "source": "confirmed"},
+      {"skill_id": "manual-data-entry", "level": 2, "source": "confirmed"},
+      {"skill_id": "risk-compliance", "level": 2, "source": "confirmed"}
+    ]
+  }
+]

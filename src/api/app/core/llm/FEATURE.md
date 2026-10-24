@@ -11,8 +11,9 @@
 `LLM_PROVIDER=none` is the safe default. The presentation setup uses Runpod `glm-5.3` as the
 primary model at the supplied public OpenAI-compatible endpoint, with separately authenticated
 Google Gemini models only on primary failure. Runpod uses `RUNPOD_API_KEY`, Gemini uses
-`GEMINI_API_KEY`; both stay in root `.env` or deployment secrets and only the API container
-receives them. Requests use low reasoning and capped output, share one request deadline and
+`GEMINI_API_KEY`; both stay in root `.env` or deployment secrets for server-side use.
+The root supervisor runs private FastAPI and public Next.js; local Compose supplies only
+PostgreSQL. Requests use low reasoning and capped output, share one request deadline and
 reserve time for the fallback. `/about`, API replies and logs disclose the actual provider/model.
 The gateway redacts PII and filters prompt injection
 before any prompt, rejects unknown IDs, has a circuit breaker, logs every call, and
@@ -38,9 +39,9 @@ before any prompt, rejects unknown IDs, has a circuit breaker, logs every call, 
 
 | Stage | Choice | Notes |
 |---|---|---|
-| Source | catalogue (id → label) supplied by the calling feature | the model can only answer with those IDs |
-| Preprocessing / cleaning | `clean_extracted_text` (injection patterns → `[filtered]`) then `redact_text` (email, NRIC, passport, phone) | patterns from KerjaCerdas, Malaysian formats |
+| Source | candidate IDs supplied by the calling feature; Adi uses server-authored answer blocks | the model can only select supplied IDs; its prose is not displayed |
+| Preprocessing / cleaning | `clean_extracted_text` (injection patterns → `[filtered]`) then `redact_text` (email, NRIC, passport, phone) | Adept-specific implementation; conceptual references clarified in M3-028 |
 | Features | none | |
-| Model / method | none configured; provider protocol + structured output | name the model here, on `/about` and in the README when enabled |
+| Model / method | built-in guide by default; configurable RunPod `glm-5.3` with Gemini failover selects validated IDs | `/about`, README and response metadata disclose the configured or answering model |
 | Evaluation | tests: unknown IDs rejected, prompts redacted, breaker opens/closes, fallback used; CI sweep: every recommendation endpoint returns dated sources; fairness scan of every API input and DB column | `tests/api/llm`, `tests/api/guardrails` |
 | Serving | `select_ids`, `select_ids_or_fallback`; `/guardrails/*` endpoints | |

@@ -177,29 +177,40 @@ of every deployed database. No model was fine-tuned on these fixtures.
 | 1,210 public job-posting records | [Job pipeline/connectors](../src/pipelines/jobs/), [dated seed](../src/data/seed/jobs/job_postings.csv) | Public facts | No learner profiles; employer contacts may exist in source material | Stored title/location/apply URL, catalogue skills and dates; full ad text is processed in memory. Counts are a dated seed inventory, not a guarantee of currently open vacancies. |
 | 14 certification exams | [Certification catalogue](../src/data/seed/jobs/certifications.csv), cited issuer pages | Curated public facts | No | Official issuer terms/fees and retrieval dates; estimated MYR conversion, no payment processing or certification guarantee. |
 | Exchange rates | [BNM OpenAPI](https://api.bnm.gov.my/) | Public | No | BNM terms and attribution; used for estimated MYR costs. |
-| Synthetic personas, organisation members and CVs | [Fixtures](../tests/api/profile/fixtures/cvs/), [persona seed](../src/data/seed/personas/), [organisation seed](../src/data/seed/org/) | Synthetic | No real identities | Team-created evaluation and test data only. Local sign-up demo must use invented details and synthetic CVs. |
+| Five selected demo CVs and complete intake profiles | [Demo CVs and profile guide](../submission/demo-cvs/) | Synthetic | No real identities | Imran Hakim, Sofia Tan, Meera Anand, Adrian Lim and Nur Hana. Supplied fictional CVs; additional intake values are editable demo assumptions, not extracted or verified qualifications. |
+| Regression personas, organisation members and CV fixtures | [Fixtures](../tests/api/profile/fixtures/cvs/), [persona seed](../src/data/seed/personas/), [organisation seed](../src/data/seed/org/) | Synthetic | No real identities | Automated regression and seed data, distinct from the five selected presentation CVs. Local sign-up must use invented details. |
 
 ### 4.3 AI-assisted development tools
 
-**Yes.** This documentation and implementation work uses OpenAI Codex; GitHub review records also show Greptile. Repository context files for other
-assistants establish support for those tools, not proof that each was used.
+**Yes.** The team defined Adept's problem, product direction and SDG focus, and used AI tools
+for development support, debugging, presentation work and review. The following usage was
+confirmed by the team leader on 25 October 2026. Exact tool/model versions were not recorded;
+do not infer them from installed software or repository context files.
 
 | Tool and version | Extent of use | Used for |
 |---|---|---|
-| OpenAI Codex desktop; exact app/model identifier not recorded in the deliverable | Major for this documentation revision | Repository inspection, code/configuration fixes, Markdown drafting, Mermaid recovery/rendering and verification. Final content requires team review. |
-| Greptile GitHub review | Automated PR review, as evidenced by checks/comments | Identified proxy, secret-ignore, workflow, Docker-context and development-port regressions; fixes were tested. |
-| Replit Agent and other AI tools used by teammates | Team to confirm before signing | Add actual product/model versions and extent; do not infer usage from `CLAUDE.md`, `GEMINI.md` or installed tools. |
+| OpenAI Codex | Major debugging and review support | Repository inspection, debugging, resolving Greptile findings, code/configuration corrections, checks and documentation review. |
+| Anthropic Claude Code | Major demo/presentation support | Demo-video creation and pitch-deck design concepts, layout and presentation material. |
+| Replit Agent | Minor repository exploration | Exploring the repository and understanding its structure. |
+| Google Antigravity agent | Minor repository exploration | Exploring the repository and understanding its structure. |
+| Greptile | Moderate automated review support | Reviewing pull requests and identifying issues for the team to assess and resolve. |
+
+Open-source skills/plugins and connected-app integrations extended the team's authoring and
+inspection workflows. Declare the actual packages/repositories and relevant external services
+used, with their applicable terms; installing a tool does not establish that every capability
+or connected service was used. These extensions are development tools, not additional models
+embedded in Adept. The team retains responsibility for the submitted product and materials.
 
 **Review and responsibility (maximum 100 words):**
 
 <!-- answer:start technical-4.3 limit=100 -->
-Technical claims are checked against current manifests/locks, source, workflows, migrations,
-seed data and observed read-only public responses. Root production build/start and public
-proxy behavior are tested on a disposable database; Mermaid diagrams are regenerated and
-links/template limits checked. Tests and audits support specific implementation claims, not
-legal compliance, security certification or measured employment outcomes. Team members must
-review the final PDF, disclose their actual AI/tool/service usage, complete private identity
-and ownership fields, and confirm deployment and sponsor claims before signing.
+The team chose Adept's problem, product direction and SDG focus. AI tools supported debugging,
+repository exploration, demo-video production, pitch design and automated review. Team members
+assessed suggestions, made corrections and retained final decisions. Technical claims are
+checked against source, dependency records, datasets and test results. AI-generated material
+requires human review; passing tests does not prove universal fairness, legal compliance or
+employment outcomes. The leader reviews the final documents, confirms actual tool and sponsor
+usage, and takes responsibility for the submission.
 
 <!-- answer:end technical-4.3 -->
 

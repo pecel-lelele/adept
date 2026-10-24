@@ -1,4 +1,4 @@
-"""Reject oversized request bodies while they arrive. Adapted from KerjaCerdas.
+"""Reject oversized request bodies while they arrive at Adept's API.
 
 Two checks, both before the route parses anything:
 

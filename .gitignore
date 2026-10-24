@@ -75,3 +75,5 @@ CLAUDE.local.md
 .gemini/settings.json
 .claude/
 submission/demo-video/
+# Local pitch planning documents and rendered presentation decks.
+/submission/pitch/
