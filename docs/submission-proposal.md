@@ -96,7 +96,7 @@ never makes hiring, firing or admission decisions.
 | Interface | Next.js 16.4.2, React 19.2.9, TypeScript 5.9.3 | Personal `/app`, employee `/work`, manager/advisor `/org` and internal `/admin` views; server actions and same-origin API routes. |
 | Presentation | Tailwind CSS 4.1.18, next-intl 4.14.9, Lucide | Responsive interface in English, Bahasa Melayu and Chinese. |
 | API | Python 3.11, FastAPI, Pydantic v2, Uvicorn | Validated feature services and OpenAPI contracts. |
-| Persistence | PostgreSQL 16, pgvector, psycopg 3 | Profiles, catalogue, snapshots, plans, evidence and organisations. |
+| Persistence | PostgreSQL/pgvector, psycopg 3; Replit integrated PostgreSQL for deployment | Profiles, catalogue, snapshots, plans, evidence and organisations; local/CI PostgreSQL 16. |
 | AI / methods | RunPod MiniLM (384 dimensions); optional Gemini skill embeddings (768 dimensions); Adi GLM-5.3/Gemini; deterministic scoring/pathways | Separate model purposes and credentials; no team fine-tuning; validated catalogue/answer-block IDs. |
 | Data | arXiv cs.AI RSS, committed BLS-derived baseline, official UN SDGs, Microsoft Learn, Coursera, cited provider pages, BNM exchange rates | Research signals, updatable public job postings, catalogue facts, certification fees and source attribution. |
 | Deployment | Replit Autoscale; root `.replit` and Python supervisor | Public prototype hosted on Replit with one public Next.js server and private loopback FastAPI. Optional local Compose runs PostgreSQL only. |
@@ -142,12 +142,14 @@ refresh failed on the private development database host `helium`. The latest obs
 refresh run was unsuccessful, so no successful new production snapshot is claimed. Worker
 dependency updates require a separate image rebuild/redeployment.
 
-**Sponsor resources used:** Replit hosts the deployed public prototype. RunPod Serverless
-hosts the MiniLM research encoder, and a separate RunPod inference endpoint supplies Adi's
-configured GLM-5.3 model. These uses are declared in section 5 of the technical declaration.
+**Sponsor resources used:** the team uses the sponsor-provided **Replit Core subscription**
+for the public prototype and Replit's integrated PostgreSQL database, plus **US$25 RunPod
+sponsor credits** for Serverless/inference usage. RunPod Serverless hosts the MiniLM research
+encoder, and a separate RunPod endpoint supplies Adi's configured GLM-5.3 model. Supabase is
+not the deployed database provider. These uses are declared in section 5 of the technical declaration.
 Google Gemini remains a separately declared provider integration; its presence alone is not
 a claim that the team received Google sponsor credits. Aiversecity is the domain alignment,
-not an API/resource usage claim. No credit amounts or mentoring participation are asserted.
+not an API/resource usage claim. No mentoring participation or subscription duration is asserted.
 
 ### 3.2 Design-thinking and deployment strategy
 

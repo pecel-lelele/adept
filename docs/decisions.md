@@ -801,6 +801,17 @@
 - **Replaces**: Earlier table presentation choices in the submission drafts, not the factual corrections
 - **PR / branch**: docs/core-submission-accuracy
 
+### M3-033: Record confirmed sponsor plans and Replit integrated database
+
+- **Date**: 2026-10-25
+- **Feature**: Core (submission/deployment), F8 (disclosure)
+- **Type**: other
+- **Change**: Record the leader-confirmed Replit Core sponsor subscription, US$25 RunPod sponsor credits and Replit integrated PostgreSQL. Replace the unused Supabase service row in place, retaining PDF table order. Remove generic unspecified-plan placeholders; distinguish recommended Replit Asia/RunPod available-data-center scheduling from the unverified active geography.
+- **Why**: The declaration omitted concrete benefits the team used and left an unused database provider in the services table. A known plan satisfies the Plan / Region field without inventing an active deployment location.
+- **Affects**: Submission text only; no account, database, region, billing or infrastructure changes
+- **Replaces**: M3-031's incomplete plan/credit details and the unused Supabase row
+- **PR / branch**: docs/core-submission-accuracy
+
 ---
 
 ## M4: Core & Organisation (Core, F7)

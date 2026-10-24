@@ -129,12 +129,23 @@ include API keys in this document.
 
 | Service & Provider | Purpose in Project | Plan / Region |
 |---|---|---|
-| GitHub repository / Actions | Version control, quality CI, source audit, worker publication and conditional trend refresh. The first real refresh failed saving to private database host `helium`. | Account plan and runner region not specified; workflows use `ubuntu-latest` |
+| GitHub repository / Actions | Version control, quality CI, source audit, worker publication and conditional trend refresh. The first real refresh failed saving to private database host `helium`. | Public repository; GitHub-hosted Linux runners (`ubuntu-latest`) |
 | Local Docker Compose | PostgreSQL/pgvector only; web/API run through root commands | Local Windows Docker Desktop; no cloud region |
-| Replit Autoscale | Hosts the deployed public prototype at `https://adept-my.replit.app`; landing, About and API/database health returned 200 on 25 October. One public Next.js server, private FastAPI; health does not identify the Git revision. | Sponsor deployment platform used by the team; region and credit amount not specified |
-| Supabase PostgreSQL / Auth | Optional JWT-verification integration; not the observed public auth mode. Normal PostgreSQL accounts use the legacy `auth_mode=demo` label. | Optional alternate integration; not the current deployment's declared database/auth provider |
-| RunPod Serverless / hosted inference | Deployed MiniLM worker for offline embeddings and separate GLM-5.3 endpoint for Adi. Successful inference does not establish successful new snapshot publication. | Sponsor resource usage; region and credit amount not specified; no dedicated Pod claimed |
+| Replit Autoscale | Hosts the deployed public prototype at `https://adept-my.replit.app`; landing, About and API/database health returned 200 on 25 October. One public Next.js server, private FastAPI; health does not identify the Git revision. | Sponsor-provided Replit Core subscription; Autoscale publishing |
+| Replit integrated PostgreSQL | Managed application database for profiles, catalogue, snapshots, plans, progress and organisations; development and production databases are separate | Replit's built-in managed PostgreSQL, attached to the Core project |
+| RunPod Serverless / hosted inference | Deployed MiniLM worker for offline embeddings and separate GLM-5.3 endpoint for Adi. Successful inference does not establish successful new snapshot publication. | US$25 sponsor-provided credits; usage-based Serverless/inference |
 | GitHub Container Registry (GHCR) | Stores/distributes the MiniLM worker container image | Public `ghcr.io/pecel-lelele/adept-minilm` image |
+
+The Core subscription, US$25 credit allocation and use of Replit's integrated PostgreSQL were
+confirmed by the team leader on 25 October 2026. Supabase is not used as the deployment's
+database or authentication provider; an optional JWT-verification code path is not service use.
+The Plan / Region column records confirmed plans/resources and does not infer physical
+hosting location from the team's location. For deployment planning, Replit **Asia** is the
+recommended geography for a Malaysian audience; RunPod's available-data-center scheduling
+is recommended for this offline batch encoder. These are recommendations, not verified
+active-region claims. See [Replit geography](https://docs.replit.com/features/publishing/project-geography),
+[Replit database](https://docs.replit.com/features/database), and
+[RunPod data-center settings](https://docs.runpod.io/serverless/endpoints/endpoint-configurations#data-centers).
 
 Publishing needs the production database connection, stable session secret, shared proxy secret,
 verified forwarding-hop count and exact origin. They are supplied in hosting secret/config
@@ -227,14 +238,16 @@ usage, and takes responsibility for the submission.
 ## 5. Sponsor-provided resources
 
 **Yes: Replit deployment and RunPod inference/Serverless compute.** The team confirms using
-Replit as the sponsor deployment resource for the public Adept prototype. RunPod hosts the
-deployed MiniLM Serverless worker and Adi's configured GLM-5.3 inference endpoint. No specific
-credit amount, account tier or mentoring participation is claimed here.
+Replit Core as the sponsor-provided subscription for deployment and the integrated PostgreSQL
+database. The team received US$25 in RunPod sponsor credits and uses RunPod for the deployed
+MiniLM Serverless worker and Adi's configured GLM-5.3 inference endpoint. These benefit details
+are confirmed by the team leader; the [event site](https://sdchack.my/#sponsors) identifies
+Replit and RunPod as supporters. No subscription duration or mentoring participation is inferred.
 
 | Sponsor | Resource (API / credits / platform / data) | How It Was Used in the Project |
 |---|---|---|
-| RunPod | GLM-5.3 inference endpoint and Serverless MiniLM worker | Adi's validated answer-block selection and offline public-research/catalogue embeddings. Worker inference succeeded; successful new trend-snapshot publication is a separate check. |
-| Replit | Cloud deployment platform | Hosts the public Adept prototype, serving the Next.js interface and private FastAPI backend. Replit Agent was also used for repository exploration, as declared in section 4.3. |
+| RunPod | US$25 sponsor credits; GLM-5.3 inference endpoint and Serverless MiniLM worker | Adi's validated answer-block selection and offline public-research/catalogue embeddings. Worker inference succeeded; successful new trend-snapshot publication is a separate check. |
+| Replit | Sponsor-provided Core subscription, cloud deployment and integrated PostgreSQL | Hosts the public Adept web/API and managed application database. Replit Agent was also used for repository exploration, as declared in section 4.3. |
 
 **Essential or replaceable (maximum 100 words):**
 
