@@ -15,9 +15,6 @@ run = ["python3", "src/scripts/replit.py", "start"]
 localPort = 5000
 externalPort = 80
 
-[[ports]]
-localPort = 5517
-externalPort = 3000
 
 [workflows]
 runButton = "Project"
@@ -45,3 +42,8 @@ outputType = "webview"
 
 [postMerge]
 path = "src/scripts/post_merge.sh"
+
+[userenv]
+
+[userenv.production]
+WEB_ORIGIN = "https://adept-corp.replit.app"

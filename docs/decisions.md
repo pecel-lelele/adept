@@ -1545,13 +1545,12 @@
 - **Replaces**: M4-071
 - **PR / branch**: fix/core-replit-publish-live
 
-### M4-075: Start the HTTP server before waiting for API readiness
+### M4-076: Keep Autoscale deployments on one public port
 - **Date**: 2026-10-24
 - **Feature**: Core production launcher
 - **Type**: method
-- **Change**: Launch the web server before waiting for FastAPI and its database health check. Continue to require API/database health before the launcher enters steady-state supervision, and stop both processes if API startup fails.
-- **Why**: Replit Autoscale probes `GET /` soon after launch and its documented health-check timeout is five seconds. The prior sequence could spend up to 45 seconds waiting for API/database readiness before opening the public HTTP port, making a healthy web process unavailable to the startup probe.
-- **Affects**: Production process startup only; the web server remains supervised with the API, and the API health check remains required. The startup order is covered by launcher tests.
+- **Change**: Keep exactly one Replit port mapping for the production web service (`5000` to external `80`). Remove temporary local-test port mappings from `.replit`.
+- **Why**: Replit Autoscale supports a single exposed port; an extra `[[ports]]` entry can prevent the service from passing deployment health checks. A local smoke test had added an extra mapping, which was not appropriate for the published configuration.
+- **Affects**: `.replit` port configuration only; the development preview and production server continue using the existing port 5000.
 - **Replaces**: none
 - **PR / branch**: fix/core-replit-publish-live
-
