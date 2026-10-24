@@ -1,6 +1,6 @@
 * text=auto eol=lf
 *.pdf binary
 # Generated parser stress fixture intentionally contains trailing spaces.
-artifacts/api-server/python/tests/api/profile/fixtures/cvs/cv_long.txt -whitespace
-artifacts/api-server/python/src/api/openapi.json text eol=lf
-artifacts/adept/src/lib/api/types.ts text eol=lf
+tests/api/profile/fixtures/cvs/cv_long.txt -whitespace
+src/api/openapi.json text eol=lf
+src/web/src/lib/api/types.ts text eol=lf

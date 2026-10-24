@@ -1,7 +1,0 @@
-{
-  "title": "情景",
-  "outlook": "前景",
-  "range": "区间 {low}–{high}",
-  "lowEvidence": "证据不足",
-  "insufficientEvidenceTitle": "技能覆盖率低于20%，区间估算可信度较低"
-}

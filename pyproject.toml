@@ -33,7 +33,7 @@ dev = ["pyyaml==6.0.3"]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
-extend-exclude = [".migration-backup", "node_modules", "artifacts/adept", "artifacts/api-server/python/src/data"]
+extend-exclude = ["node_modules", "src/web", "src/data"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "W"]
@@ -42,6 +42,6 @@ select = ["E", "F", "I", "B", "UP", "W"]
 known-first-party = ["app", "pipelines"]
 
 [tool.pytest.ini_options]
-testpaths = ["artifacts/api-server/python/tests", "tests"]
-pythonpath = ["artifacts/api-server/python/src/api", "artifacts/api-server/python/src"]
+testpaths = ["tests"]
+pythonpath = ["src/api", "src"]
 addopts = "-q --import-mode=importlib"

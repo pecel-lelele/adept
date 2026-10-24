@@ -4,7 +4,7 @@ import { once } from "node:events";
 import test, { type TestContext } from "node:test";
 import express, { type Express } from "express";
 import { createAdeptRouter, proxyConfig } from "../src/adept.ts";
-import { proxyConfig as webProxyConfig } from "../../adept/src/lib/api/proxy-config.ts";
+import { proxyConfig as webProxyConfig } from "../../../src/web/src/lib/api/proxy-config.ts";
 import { nativeLibraryEnv, privateApiPort, waitForApi } from "../src/backend.ts";
 
 const secret = "synthetic-test-proxy-secret";

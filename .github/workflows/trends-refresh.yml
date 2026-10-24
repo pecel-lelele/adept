@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: artifacts/api-server/python
+        working-directory: .
     timeout-minutes: 30
     env:
       DATABASE_URL: ${{ secrets.TREND_DATABASE_URL }}

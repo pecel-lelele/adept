@@ -1564,3 +1564,14 @@
 - **Validation**: Verified the installed Next.js 16.4.2 CLI's default(3000).env('PORT') behavior and CLI documentation; startup with an explicit alternate port reaches Ready.
 - **Replaces**: Shell-dependent development port argument only.
 - **PR / branch**: https://github.com/pecel-lelele/adept/pull/20 / security/publish-hardening
+
+### M4-076: Restore the repository root layout inside the workspace deployment
+- **Date**: 2026-10-24
+- **Feature**: Core repository structure, CI and Replit deployment
+- **Type**: architecture
+- **Change**: Move the Next.js app back to `src/web` and the FastAPI app, pipelines, migrations, seed data and tests back to `src/` and `tests/`; restore `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `Makefile`, `docker-compose.yml`, `docs/` and `submission/` at their documented paths and delete the `.migration-backup/` import. Point `pyproject.toml`, `.gitattributes`, `.gitignore`, the CI and scheduled workflows, the MiniLM Docker context, the Express supervisor, the proxy test import and the Replit documents at the restored paths. Keep the Replit artifact settings (`artifacts/*/.replit-artifact`) and the pnpm workspace, now listing `src/web` as the `@workspace/adept` package. Repair UTF-8 text that the migration double-encoded. Add the live demo URL to the README links table.
+- **Why**: The workspace import relocated everything under `artifacts/` and `.migration-backup/`, breaking the layout documented in AGENTS.md, the docs and the feature ownership paths. Keeping the Replit publishing setup while restoring the source layout satisfies both.
+- **Affects**: All members' feature paths (restored to their documented locations); CI, scheduled data/trend workflows and MiniLM publication. No schema, contract, scoring or entity changes.
+- **Validation**: See the pull request for the quality gate, proxy tests, workspace production build and diagram checks.
+- **Replaces**: Layout aspects of M4-073 only.
+- **PR / branch**: fix/core-root-layout-restoration

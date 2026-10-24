@@ -1,7 +1,0 @@
-**
-!src/
-!src/pipelines/
-!src/pipelines/trends/
-!src/pipelines/trends/encoder.py
-!src/pipelines/trends/runpod/
-!src/pipelines/trends/runpod/**

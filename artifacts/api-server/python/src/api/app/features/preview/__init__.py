@@ -1,1 +1,0 @@
-"""Anonymous synthetic CV preview."""
