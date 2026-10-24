@@ -1575,3 +1575,14 @@
 - **Validation**: See the pull request for the quality gate, proxy tests, workspace production build and diagram checks.
 - **Replaces**: Layout aspects of M4-073 only.
 - **PR / branch**: fix/core-root-layout-restoration
+
+### M4-077: Deploy from the root with one public Next.js server
+- **Date**: 2026-10-24
+- **Feature**: Core deployment, repository structure, CI and submission documentation
+- **Type**: architecture | dependency | method
+- **Change**: Replace the artifact application router and Express supervisor with root build/start commands, one public Next.js listener and private FastAPI. Remove unused artifact, mockup, Drizzle and generated-client scaffolding; simplify the pnpm workspace and Python project while retaining PR #23's security hardening. Add streamed API forwarding, database-aware health aliases and a disposable-database CI smoke using the actual launcher. Use webpack for consistent standalone packaging after reproducing a Windows Turbopack tracing race. Disable implicit fetch credentials so streamed 401 responses are preserved without a write retry. Refresh both submission documents and deployment instructions, preserving all README badges, link tables and eleven diagrams.
+- **Why**: The prior setup had multiple routing/startup paths and an unnecessary artifact scaffold. The supplied failed-publish log used `next start` despite standalone output. Root commands make the deployed process and public port explicit; a real startup smoke catches failures that compilation cannot, including the streamed-login 401 regression.
+- **Affects**: All product pages/API routes and deployment CI; M1 background workflows remain separate. No schema, contract, entity, scoring or authentication-mode changes.
+- **Validation**: Full quality gate passed (958 Python tests, 32 environment-dependent skips, 48 subtests); 44 disposable-PostgreSQL integration checks, ten proxy regressions and twelve navigation/read-recovery checks passed. The exact root production build and supervised startup passed landing/About/sign-in, static CSS, health/HEAD, CORS, failed-login 401 and unknown-route 404 checks. All eleven diagrams rendered; submission limits and local links passed. Publishing this source and checking platform forwarding trust remain account-owner operations.
+- **Replaces**: Deployment/scaffold aspects of M4-073 and M4-076; retains production boundaries and native-runtime/readiness behavior from M4-069.
+- **PR / branch**: fix/core-single-public-server

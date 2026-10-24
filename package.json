@@ -1,24 +1,24 @@
 {
-  "name": "workspace",
+  "name": "adept",
   "version": "0.0.0",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "scripts": {
     "preinstall": "node scripts/require-pnpm.mjs",
-    "build": "pnpm run typecheck && pnpm -r --if-present run build",
-    "typecheck:libs": "tsc --build",
-    "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./src/web\" --filter \"./scripts\" --if-present run typecheck",
+    "dev": "python src/scripts/dev.py dev",
+    "build": "pnpm --filter @workspace/adept build",
+    "start": "python src/scripts/replit.py start",
+    "lint": "pnpm --filter @workspace/adept lint",
+    "typecheck": "pnpm --filter @workspace/adept typecheck",
     "check": "python src/scripts/dev.py check",
-    "test:proxy": "node --experimental-strip-types --test artifacts/api-server/tests/adept.test.ts",
+    "test:proxy": "node --experimental-strip-types --test tests/web-proxy.test.ts",
     "contracts": "python src/scripts/dev.py contracts"
   },
   "private": true,
-  "dependencies": {
-    "@replit/connectors-sdk": "^0.4.3"
-  },
   "devDependencies": {
     "prettier": "^3.9.10",
     "typescript": "~5.9.3",
     "openapi-typescript": "7.9.1"
   },
-  "packageManager": "pnpm@10.29.3"
+  "packageManager": "pnpm@10.29.3",
+  "type": "module"
 }

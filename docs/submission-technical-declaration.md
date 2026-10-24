@@ -5,81 +5,89 @@ Declaration Template**. Its deadline field is unspecified; confirm it with the o
 This document records repository evidence and explicit unknowns, not a signed compliance claim.
 Personal contact details belong in the private submission PDF, not in this public repository.
 
-Updated 24 October 2026 for the deployed MiniLM worker, Actions pipeline and database boundaries.
+Updated 24 October 2026 for the root-only, single-public-server source revision, current dependency locks, live-data connectors and separate AI services. A source pin is not a claim about the inventory of an older deployed image.
 
 ## 1. Team and project overview
 
 | Template field | Response |
 |---|---|
-| Team name | Team to confirm the exact registered name. |
+| Team name | Pecel Lele (repository team record; confirm registration spelling). |
 | Project / solution name | Adept. |
 | Name (leader) | Team to complete privately in the submission PDF. |
 | Email and phone (leader) | Team to complete privately in the submission PDF. |
-| University affiliation(s) | Team to confirm. |
-| Live prototype URL | No public deployment verified. Local prototype: `http://localhost:3000`; API docs: `http://localhost:8000/docs`. These localhost addresses are not judge-accessible public URLs. |
-| Code repository URL | [pecel-lelele/adept](https://github.com/pecel-lelele/adept); verify public visibility or grant judges access before submission. |
+| University affiliation(s) | Xiamen University Malaysia, per the project README. |
+| Live prototype URL | [adept-my.replit.app](https://adept-my.replit.app): public pages and API/database health returned 200 on 24 October 2026. The deployed commit and the success of a newer publish attempt remain unverified. Local development uses :3000 and private API docs :8000/docs. |
+| Code repository URL | [pecel-lelele/adept](https://github.com/pecel-lelele/adept); public visibility verified; confirm access again before submission. |
 
 ## 2. Architecture and technology stack
 
 ### 2.1 System architecture overview
 
 <!-- answer:start technical-2.1 limit=200 -->
-Adept uses a Next.js interface for learners and organisation reviewers. Server-side actions and
-a typed API client call FastAPI; signed local-account sessions are held in an httpOnly cookie.
-FastAPI validates requests with Pydantic and reads PostgreSQL for profiles, catalogue records,
-trend snapshots, plans, progress and organisation membership.
+Adept keeps product source under root src/, tests under tests/, and documentation and
+submission material at their required root paths. One public Next.js standalone server
+renders pages, runs server actions and forwards API requests to private FastAPI on loopback.
+The root Python launcher checks configuration and API/database readiness, supervises both
+children, and performs no startup migrations or seeding. HTTP-only signed cookies hold local
+account sessions; PostgreSQL stores profiles, memberships, plans, evidence and catalogue data.
 
-The batch trend pipeline uses a pinned MiniLM encoder on RunPod Serverless to map research text to
-skills, combines it with a committed labour baseline and validates a snapshot before publication.
-Matching and pathway generation use deterministic rules. Adi uses Runpod GLM-5.3 for
-grounded assistance, with separately authenticated Gemini failover. IDs are validated before
-use, and provider failure can fall back to a deterministic guide.
+The batch research pipeline calls a pinned 384-dimensional MiniLM encoder on RunPod and
+validates dated trend snapshots before atomic publication. Optional 768-dimensional Gemini
+embeddings map unfamiliar skill phrases to catalogue suggestions. Matching and pathways use
+deterministic rules. Adi can use GLM-5.3 with Gemini failover to select validated answer-block
+IDs; displayed wording comes from server-authored facts.
 
-Docker Compose runs web, API and PostgreSQL with pgvector under the project name adept. The
-database has a persistent volume. GitHub Actions defines quality checks, a weekly source audit
-and a trend-refresh job with database preflight. MiniLM inference is verified; production
-snapshot publication and public web hosting remain unverified. Recommendations carry dated sources, scenario and estimate metadata.
+Public employer/remote-job feeds, sourced courses, certification fees, official UN SDGs and
+BNM exchange rates complement research signals. GitHub Actions runs quality checks, database
+recovery tests, the actual root deployment smoke, weekly source audits and conditional trend
+refresh. Local Compose provides PostgreSQL only. The public site's reachability and MiniLM
+inference were observed separately; latest-source deployment and successful new snapshot
+publication require their own verification.
+
 <!-- answer:end technical-2.1 -->
 
 **Diagram appendix:** [current system block diagram](submission-proposal.md#31-conceptual-tech-stack),
-[full Mermaid collection](../README.md#3-system-architecture), and the
+[full Mermaid collection](../README.md#diagrams), and the
 [offline pan-and-zoom viewer](diagrams/index.html). Diagram relationships are traced to routers,
-Compose services and migrations. Schema excerpts distinguish enforced foreign keys from logical joins.
+the root launcher, Next.js routes, FastAPI routers and migrations. Schema excerpts distinguish enforced foreign keys from logical joins.
 
 ### 2.2 Languages, frameworks and libraries
 
-Frontend versions below are declared in [`package.json`](../src/web/package.json). Backend
-requirements are ranges in [`requirements.txt`](../requirements.txt), not exact lock versions.
-Keep the resolved environment inventory with the final build if exact versions are requested.
-This is a direct-dependency inventory; transitive packages retain their own upstream notices.
+Versions below describe the reviewed source/lockfiles, not every deployed environment.
+The authoritative inputs are [web package](../src/web/package.json), [pnpm lock](../pnpm-lock.yaml),
+[Python project](../pyproject.toml), [uv lock](../uv.lock), and
+[worker requirements](../src/pipelines/trends/runpod/requirements.txt). Runtime fallback
+requirements remain in [requirements.txt](../requirements.txt). Full transitive notices must
+be retained with distribution.
 
-| Name and version / constraint | Licence | Purpose in project |
+| Name and version / constraint | Licence | Purpose |
 |---|---|---|
-| Python 3.11 | Python Software Foundation License | API, pipelines and tooling. |
-| Node.js 22 in Docker; pnpm 10.29.3 | MIT | Frontend runtime and package management. |
-| Next.js 16.2.12; React and React DOM 19.2.9 | MIT | Server rendering, routing and UI. |
-| TypeScript 5.9.3 | Apache-2.0 | Strict frontend typing. |
-| Tailwind CSS / PostCSS plugin 4.1.18 | MIT | Styling. |
-| next-intl 4.4.0 | MIT | English, Bahasa Melayu and Chinese. |
-| lucide-react ^1.61.0 | ISC | Interface icons. |
-| class-variance-authority 0.7.1 | Apache-2.0 | Component variants. |
-| clsx 2.1.1; tailwind-merge 3.3.1 | MIT | CSS class composition. |
-| @fontsource-variable/inter ^5.3.0 | MIT package; SIL OFL 1.1 font | Installed font dependency; current global UI styling uses Arial. |
-| openapi-fetch 0.14.1; openapi-typescript 7.9.1 | MIT | Typed API client and generated contracts. |
-| @types/node 22.20.5; @types/react 19.2.18; @types/react-dom 19.2.7 | MIT | Development type definitions. |
-| FastAPI >=0.115,<1 | MIT | HTTP API and OpenAPI. |
-| Pydantic >=2.7,<3; pydantic-settings >=2.3 | MIT | Contracts and configuration. |
-| Uvicorn standard >=0.30 | BSD-3-Clause | ASGI service. |
-| psycopg binary and psycopg-pool >=3.2 | LGPL-3.0; bundled binary components have additional notices | PostgreSQL access and pooling. |
-| python-multipart >=0.0.9 | Apache-2.0 | Multipart CV uploads. |
-| PyJWT >=2.8,<3 | MIT | Optional Supabase JWT verification. |
-| PyMuPDF >=1.24,<2 | AGPL-3.0 or commercial | In-memory PDF text extraction; review distribution obligations before release. |
-| PostgreSQL 16; pgvector | PostgreSQL License | Relational storage and 384-dimensional vectors; extension version is not pinned in Compose. |
-| sentence-transformers 3.3.1; torch 2.8.0 | Apache-2.0; BSD-3-Clause | Pinned worker-image dependencies for RunPod embeddings. Actions installs ordinary client dependencies, not model weights. See the worker requirements for the complete worker inventory. |
-| pytest >=8.2; httpx >=0.27; Ruff >=0.6 | MIT; BSD-3-Clause; MIT | Tests, HTTP test client and Python quality checks. |
-| ESLint 9.39.5; eslint-config-next 16.2.12 | MIT | Frontend linting. |
-| uv | MIT or Apache-2.0 | Python environment tooling; tool version is environment-dependent. |
-| Mermaid 11.12.0 | MIT | Documentation-only vector diagram generation; generated viewer requires no runtime download. |
+| Python 3.11; Node.js 24; pnpm 10.29.3 | PSF; MIT; MIT | Root supervisor, API/pipelines, standalone web and package manager. |
+| Next.js / eslint-config-next 16.4.2; React / React DOM 19.2.9 | MIT | Server-rendered product, route handlers, API proxy and UI. |
+| TypeScript 5.9.3 | Apache-2.0 | Strict web typing. |
+| Tailwind CSS / PostCSS plugin 4.1.18; next-intl 4.14.9 | MIT | Styling; English, Bahasa Melayu and Chinese. |
+| Three.js 0.180.0 | MIT | On-demand 3D Adi mascot. |
+| lucide-react ^1.61.0 | ISC | Icons. |
+| class-variance-authority 0.7.1; clsx 2.1.1; tailwind-merge 3.3.1 | Apache-2.0; MIT; MIT | Component variants and class composition. |
+| @fontsource-variable/inter ^5.3.0 | MIT package; SIL OFL 1.1 font | Installed font dependency; current product CSS uses Arial/system fonts. |
+| openapi-fetch 0.14.1; openapi-typescript 7.9.1 | MIT | Typed private API client and generated contracts. |
+| @types/node 22.20.5; @types/react 19.2.18; @types/react-dom 19.2.7; @types/three 0.180.0 | MIT | Development type declarations; not the runtime Node version. |
+| FastAPI 0.161.1; Pydantic 2.14.1; pydantic-settings 2.16.1 | MIT | API, contracts and configuration; resolved uv-lock versions. |
+| Uvicorn 0.54.0, standard extras | BSD-3-Clause | Private ASGI server; loopback binding. |
+| psycopg 3.3.6; psycopg-pool 3.3.3 | LGPL-3.0-only; bundled binaries have additional notices | PostgreSQL access, pooling and stale-session recovery. |
+| python-multipart 0.0.32; PyJWT 2.15.1 | Apache-2.0; MIT | Upload parsing and optional Supabase JWT verification. |
+| PyMuPDF 1.28.2 (source constraint <2) | AGPL-3.0 or commercial | In-memory PDF text extraction; review distribution obligations. DOCX/text handling also uses standard-library parsing. |
+| PostgreSQL 16; pgvector | PostgreSQL License | Durable relational storage and embedding indexes; extension version is deployment-dependent. |
+| sentence-transformers 6.2.0; transformers 5.20.2; torch 2.14.1 | Apache-2.0; Apache-2.0; BSD-3-Clause | Hardened worker source pins; require an image rebuild before they describe the live worker. |
+| runpod 1.12.0; worker httpx 0.28.1 | MIT; BSD-3-Clause | Queue worker SDK and HTTP transport. [SDK licence](https://github.com/runpod/runpod-python/blob/main/LICENSE). |
+| pytest 9.1.1; API httpx 0.28.1; Ruff 0.17.2; ESLint 9.39.5 | MIT; BSD-3-Clause; MIT; MIT | Regression tests, HTTP client and quality gates. |
+| PyYAML 6.0.3; actionlint 1.7.7 | MIT | Workflow parsing and publication-policy validation. |
+| uv; Prettier ^3.9.10 | MIT/Apache-2.0; MIT | Environment/lock tooling and formatting; uv tool version is environment-dependent. |
+| Mermaid 11.12.0; Playwright renderer | MIT; Apache-2.0 | Documentation-only SVG generation; exported diagram viewer works offline. |
+
+The Express/Drizzle/generated-client/mockup artifact scaffold has been removed from this
+source revision. It is not part of Adept's product stack. Framework code remains Next.js;
+this is not a conversion to Vite or a static SPA.
 
 Docker Desktop/Engine and Compose are local development tools under their applicable Docker
 distribution terms; they are not a cloud host. This draft does not assert that every transitive
@@ -99,8 +107,11 @@ licence is [Apache-2.0](../LICENSE); that does not replace dependency licences.
 | [Coursera courses API](https://api.coursera.org/api/courses.v1) | Public endpoint used by code; provider terms and availability apply | Curated slug/workload availability checks; no paid subscription or sponsorship inferred. |
 | [Bank Negara Malaysia OpenAPI](https://api.bnm.gov.my/) | Public/free endpoint | Exchange rates for foreign-currency course price estimates. |
 | Cited course and evidence provider HTTPS pages | Public page access; not a single API | Course facts, link audits and provider certificate-page reachability checks. |
-| Runpod / Gemini | Server API keys; provider terms and usage charges apply | Runpod `glm-5.3` is the local primary for Adi; Gemini is backup on failure. Keys are environment variables, not committed. |
-| RunPod MiniLM | Dedicated server key; per-worker usage charges apply | Queue-based `/runsync` embeddings for public research/catalogue labels; separate from Adi and Gemini credentials. |
+| RunPod / Google Gemini chat | Server keys; provider terms/usage charges | Adi primary: `glm-5.3` at `https://api.runpod.ai/v2/b1dd8hy2hqo1nb/openai/v1`. Gemini failover models configured as `gemini-3.5-flash-lite,gemini-3.6-flash,gemini-3.1-flash-lite`; availability is provider-dependent. |
+| RunPod MiniLM | Dedicated `TRENDS_RUNPOD_API_KEY`; usage charges | `https://api.runpod.ai/v2/ta14jd0by2ijl2`: POST `/runsync`, or POST `/run` then GET `/status/{job_id}`; GET `/health`. Public research/catalogue embeddings, separate from Adi. |
+| Google Gemini embedding API | Optional `GEMINI_API_KEY`; provider terms/charges | `gemini-embedding-001` through batchEmbedContents; 768-dimensional, normalised catalogue/short-phrase embeddings for CV skill suggestions. Enabled only by configuration and an existing catalogue index. |
+| Employer and remote-job feeds | Public connectors; terms, robots rules and availability apply | Greenhouse, Lever, Ashby, Workday and Jibe career feeds; Himalayas, Jobicy, Remote OK and Remotive. Malaysia/eligible-remote filtering, source attribution and unchanged apply links. |
+| Careerjet / Jooble / web3.career | Optional publisher/API keys | Additional job connectors run only when their respective keys are configured; no blanket claim that every connector is active. |
 
 The BLS baseline is committed data, not an external API called by the running recommendation
 service. Pinned MiniLM weights are downloaded from Hugging Face while building the worker
@@ -112,11 +123,19 @@ include API keys in this document.
 | Service and provider | Plan / region | Purpose and verified status |
 |---|---|---|
 | GitHub repository / Actions | Account plan and runner region not verified; workflows use `ubuntu-latest` | Quality CI, source audit, GHCR worker publication and conditional trend refresh. The image publisher succeeded; the first real refresh failed saving to private database host `helium`. |
-| Local Docker Compose | Local Windows Docker Desktop; no cloud region | Current verified prototype: web `:3000`, API `:8000`, PostgreSQL host `:5433`, persistent `adept_pgdata`. |
-| Replit | Partner-managed project; public app deployment not verified | Development database host `helium` is private. Publishing creates a separate production database; Actions requires its reachable connection to the same database used by the published API. |
-| Supabase PostgreSQL / Auth | Optional/planned; plan and region not configured for this local stack | Managed database candidate. API has a JWT-verification path; Compose runs local account authentication. |
-| Runpod | GLM public model endpoint and deployed MiniLM Serverless worker; region/credit entitlement not verified | Adi GLM request checked on 23 October; MiniLM inference passed on 24 October with two 384-dimensional vectors. This does not prove production snapshot publication. |
-| Other cloud storage / hosted inference / analytics | None evidenced in the reviewed runtime configuration | Team must add any services used outside this checkout before submission. |
+| Local Docker Compose | Local development; no cloud region | PostgreSQL/pgvector only; web/API use root commands, not three app containers. |
+| Replit Autoscale | Partner-managed account; plan/region unverified | Selected public host. Pages and API/database health were reachable on 24 October 2026. The proposed root deployment exposes one Next.js port with private FastAPI; verify the published source revision separately. |
+| Supabase PostgreSQL / Auth | Optional alternate integration; not the observed public auth mode | JWT-verification path exists. Observed health reports `auth_mode=demo`, the legacy name for normal local PostgreSQL accounts; production disables fixture/default users. |
+| RunPod | GLM endpoint and deployed MiniLM worker; plan/region/credits unverified | Historical GLM request and MiniLM 384-dimensional inference were verified. Hardened worker source pins still require rebuild/redeploy; no successful new snapshot publication is claimed. |
+| Other storage / analytics / services used by teammates | Team confirmation required | Add actual services used outside the repository before signing. |
+
+Publishing needs the production database connection, stable session secret, shared proxy secret,
+verified forwarding-hop count and exact origin. They are supplied in hosting secret/config
+stores, never in the PDF. GitHub trend refresh separately needs `TREND_DATABASE_URL`,
+`TRENDS_RUNPOD_API_KEY` and `TRENDS_RUNPOD_ENDPOINT_ID`. Its latest observed historical run
+failed reaching the private development host `helium`; database preflight now rejects that
+configuration before inference. A skipped/green job is not evidence of snapshot publication.
+
 
 ## 4. AI tools, models and datasets
 
@@ -126,7 +145,8 @@ include API keys in this document.
 |---|---|---|---|
 | [sentence-transformers/all-MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2) | Sentence Transformers weights hosted in the team's RunPod worker | Apache-2.0 | Pre-trained, no team fine-tuning. Pinned revision `1110a243fdf4706b3f48f1d95db1a4f5529b4d41`; 384-dimensional sentence/skill embeddings, cosine threshold 0.55. |
 | GLM-5.3 | Runpod, model `glm-5.3` | Provider terms; team to review before signing | Grounded Adi assistance through an OpenAI-compatible endpoint; low reasoning and bounded output. Local request verified. |
-| Gemini | Google; configured fallback model list in [README](../README.md) | Provider terms; team to review before signing | Used only after primary failure; separate credentials. Failover covered by tests; this is not a claim of a live Gemini request. |
+| Gemini chat | Google; configured fallback list in section 3.1 | Provider terms | Adi failover, separate credentials; tested fallback behavior is not a claim of a current live request. |
+| Gemini embedding-001 | Google Gemini REST API | Provider terms | Optional catalogue indexing/short skill-phrase suggestions, 768 dimensions. A separate purpose from MiniLM research embeddings; user confirmation required. |
 
 **Six-stage trend pipeline:** arXiv RSS and committed BLS-derived data → strip HTML and split
 abstracts → MiniLM sentence/skill vectors and per-week mention frequencies → log-ratio research
@@ -142,7 +162,7 @@ and [exposure methodology](skill-exposure-methodology.md).
 
 ### 4.2 Datasets
 
-Counts below describe committed seed files as inspected on 23 October 2026, not the contents
+Counts below describe committed seed files inspected on 24 October 2026 (job rows last seen 23 October), not the contents
 of every deployed database. No model was fine-tuned on these fixtures.
 
 | Dataset name | Source / URL | Type | Personal data? | Licence / terms and use |
@@ -154,29 +174,33 @@ of every deployed database. No model was fine-tuned on these fixtures.
 | 17 SDG goals and 169 targets | [UN API](https://unstats.un.org/SDGAPI/v1/sdg/Goal/List), [seed](../src/data/seed/sdg/) | Public | No | UN data terms and attribution; official target wording retained. |
 | 61 role-target and 165 skill-target links | [Mapping seed](../src/data/seed/sdg/), cited evidence per record | Team-curated | No | Draft team interpretations with reasons and evidence; not official UN endorsements. Human review status is explicit. |
 | 98 course records | [Catalogue sources](../src/api/app/features/pathway/catalogue_sources.py), [seed](../src/data/seed/courses/) | Public facts / curated | No | Microsoft, Coursera, local providers and universities retain their respective terms. Prices and HRD Corp notes are dated estimates, not entitlement guarantees. |
+| 1,210 public job-posting records | [Job pipeline/connectors](../src/pipelines/jobs/), [dated seed](../src/data/seed/jobs/job_postings.csv) | Public facts | No learner profiles; employer contacts may exist in source material | Stored title/location/apply URL, catalogue skills and dates; full ad text is processed in memory. Counts are a dated seed inventory, not a guarantee of currently open vacancies. |
+| 14 certification exams | [Certification catalogue](../src/data/seed/jobs/certifications.csv), cited issuer pages | Curated public facts | No | Official issuer terms/fees and retrieval dates; estimated MYR conversion, no payment processing or certification guarantee. |
 | Exchange rates | [BNM OpenAPI](https://api.bnm.gov.my/) | Public | No | BNM terms and attribution; used for estimated MYR costs. |
 | Synthetic personas, organisation members and CVs | [Fixtures](../tests/api/profile/fixtures/cvs/), [persona seed](../src/data/seed/personas/), [organisation seed](../src/data/seed/org/) | Synthetic | No real identities | Team-created evaluation and test data only. Local sign-up demo must use invented details and synthetic CVs. |
 
 ### 4.3 AI-assisted development tools
 
-**Yes.** This documentation session uses OpenAI Codex. Repository context files for other
+**Yes.** This documentation and implementation work uses OpenAI Codex; GitHub review records also show Greptile. Repository context files for other
 assistants establish support for those tools, not proof that each was used.
 
 | Tool and version | Extent of use | Used for |
 |---|---|---|
-| OpenAI Codex desktop; exact app/model identifier not recorded in the deliverable | Major for this documentation revision | Repository inspection, Markdown drafting, recovery of Mermaid sources, interactive viewer implementation and verification. Final content requires team review. |
-| Other AI coding, chat, image or design tools used by teammates | Team to confirm before signing | Add actual product/model versions and extent; do not infer usage from `CLAUDE.md`, `GEMINI.md` or installed tools. |
+| OpenAI Codex desktop; exact app/model identifier not recorded in the deliverable | Major for this documentation revision | Repository inspection, code/configuration fixes, Markdown drafting, Mermaid recovery/rendering and verification. Final content requires team review. |
+| Greptile GitHub review | Automated PR review, as evidenced by checks/comments | Identified proxy, secret-ignore, workflow, Docker-context and development-port regressions; fixes were tested. |
+| Replit Agent and other AI tools used by teammates | Team to confirm before signing | Add actual product/model versions and extent; do not infer usage from `CLAUDE.md`, `GEMINI.md` or installed tools. |
 
 **Review and responsibility (maximum 100 words):**
 
 <!-- answer:start technical-4.3 limit=100 -->
-This revision checks technical claims against dependency manifests, routers, scoring code,
-migrations and seed files. Mermaid diagrams are rendered and viewer interactions checked.
-The project quality gate is run and its actual outcome reported, including existing failures.
-Public claims link to primary sources; unverified team, hosting, sponsor and legal declarations
-remain explicitly pending. Team members must review the diff, confirm ownership and usage,
-and approve the final submission. Automated checks do not establish legal compliance or
-workforce outcomes.
+Technical claims are checked against current manifests/locks, source, workflows, migrations,
+seed data and observed read-only public responses. Root production build/start and public
+proxy behavior are tested on a disposable database; Mermaid diagrams are regenerated and
+links/template limits checked. Tests and audits support specific implementation claims, not
+legal compliance, security certification or measured employment outcomes. Team members must
+review the final PDF, disclose their actual AI/tool/service usage, complete private identity
+and ownership fields, and confirm deployment and sponsor claims before signing.
+
 <!-- answer:end technical-4.3 -->
 
 ## 5. Sponsor-provided resources
@@ -192,12 +216,14 @@ mentoring remain for the team to confirm.
 **Essential or replaceable (maximum 100 words):**
 
 <!-- answer:start technical-5 limit=100 -->
-Runpod supplies GLM-5.3 for Adi and hosts the pinned MiniLM worker for background trend
-embeddings. Gemini and a deterministic guide provide assistant fallback. MiniLM has an
-explicit local CPU development backend. Matching and pathways use deterministic methods.
-Web/API deployment and production database publication require separate verification;
-the first Actions refresh failed on a private development database hostname. Confirm
-sponsor-provided credits and all team usage before signing.
+RunPod supplies Adi's configured GLM-5.3 endpoint and hosts the pinned MiniLM research encoder.
+Gemini and a built-in guide provide assistant fallback; optional Gemini embeddings support
+catalogue skill suggestions. MiniLM also has an explicit local CPU development backend.
+Role scoring, pathway ordering and SDG calculations remain deterministic. Web/database hosting,
+worker inference and validated snapshot publication are separate checks. Historical inference
+passed, but newer worker dependencies require rebuild/redeploy and a successful trend publish
+must be verified. Sponsor credits, mentoring and workshop participation require team confirmation.
+
 <!-- answer:end technical-5 -->
 
 ## 6. Security, privacy and responsible use
@@ -205,38 +231,41 @@ sponsor-provided credits and all team usage before signing.
 ### 6.1 Data handling and privacy
 
 <!-- answer:start technical-6.1 limit=150 -->
-The hackathon demonstration uses synthetic identities, organisations and CVs only. The
-application can store account names and emails, scrypt password hashes, skills, learning
-preferences, memberships, plans, progress and evidence links in PostgreSQL. CV uploads are
-parsed in memory; the original file is not stored. Extracted skills are saved only after
-confirmation. No learner profile is sent to a generative AI service.
+The demonstration uses synthetic identities, organisations and CVs. PostgreSQL can store
+account names/emails, scrypt password hashes, skills, preferences, memberships, learning
+plans, progress and evidence links. CV files are parsed in memory and not retained; confirmed
+skills are saved after review.
 
-Signed sessions use httpOnly cookies; authorisation restricts organisation access. Local ports
-bind to loopback. Upload limits, rate limits and text filtering are implemented. Certificate
-link checks contact provider pages, exposing ordinary request metadata, not a full profile.
+When enabled, Gemini receives short, contact-redacted skill phrases. Adi providers receive
+sanitised conversation/context and candidate answer blocks; do not claim that all personalised
+information stays local. MiniLM receives public research/catalogue text. PII filtering is a
+mitigation, not a guarantee.
 
-Persistent records remain until deliberately removed; no automatic retention/deletion policy
-is implemented. Docker volume retention is not a privacy policy. HTTPS, managed secrets,
-backup access and a documented retention process require deployment review before any
-broader use. Do not use real personal data in the competition demo.
+Signed sessions use HTTP-only cookies. Organisation workspaces constrain sharing. The public
+proxy signs trusted visitor addresses; uploads/body sizes and rates are limited. Account
+export and password-confirmed deletion exist, including a last-manager safeguard. No automatic
+retention schedule or verified backup-erasure policy is implemented. Production requires
+HTTPS, managed secrets and operational review. No real personal data enters the competition demo.
+
 <!-- answer:end technical-6.1 -->
 
 ### 6.2 Known limitations and risks
 
 <!-- answer:start technical-6.2 limit=150 -->
-Research attention is a proxy for skill demand; US labour projections do not establish
-Malaysian vacancies. The small curated catalogue limits coverage. Seed snapshots contain
-historical replay data, so publication date and observed period must both be shown.
-Scenario and exposure scores are heuristic estimates, not probabilities or calibrated confidence
-intervals. SDG links are interpretations pending review, not verified social outcomes.
+Research attention and US labour projections do not establish Malaysian vacancy forecasts.
+Job feeds supply dated openings, not guaranteed availability or employment outcomes. Curated
+catalogue coverage is limited; replay snapshots include historical observation windows.
+Scenario/exposure values are heuristic estimates, not calibrated probabilities. SDG links are
+team interpretations, not verified social impact.
 
-PDF skill extraction can miss aliases and scanned documents; users confirm skills. Provider
-page reachability does not prove certificate ownership. Prices, funding eligibility and API
-availability can change. Mitigations include dated sources, validation before snapshot
-publication, catalogue-ID checks, counterfactual tests, manual evidence review and
-estimate labels. Adi validates selected catalogue IDs and uses a deterministic guide when
-provider output fails validation. Generated text may still be wrong and requires human judgment. Local deployment success does not establish public hosting,
-security certification, fairness across all populations or improved employment outcomes.
+CV parsing can miss aliases or scanned text; optional suggestions require confirmation.
+Provider-page checks do not establish certificate ownership. Fees, eligibility and upstream
+APIs change. Adi selects checked answer blocks, but relevance can still be wrong and human
+judgment remains necessary. Validation, source metadata, deterministic fallbacks, counterfactual
+checks, manual review and bounded network operations mitigate specific risks. Public reachability
+and green CI do not establish a deployed commit, security certification, universal fairness or
+improved employment outcomes.
+
 <!-- answer:end technical-6.2 -->
 
 ## 7. Compliance and readiness

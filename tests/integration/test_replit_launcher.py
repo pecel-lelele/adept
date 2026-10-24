@@ -1,6 +1,7 @@
 """Production startup must fail visibly and never leave a half-running container."""
 
 import json
+import tomllib
 from pathlib import Path
 from unittest.mock import MagicMock
 
@@ -34,6 +35,39 @@ def test_runtime_uses_private_api_and_production_mode(deployment_env: dict[str, 
     assert env["CORS_ORIGINS"] == deployment_env["WEB_ORIGIN"]
     assert env["DATABASE_URL"] == deployment_env["DATABASE_URL"]
     assert "APP_ENV" not in deployment_env
+
+
+def test_custom_private_port_stays_loopback_and_cannot_equal_public_port(
+    deployment_env: dict[str, str],
+) -> None:
+    env = replit.production_env(dict(deployment_env, PORT="13100", API_PORT="18200"))
+    assert env["API_URL"] == "http://127.0.0.1:18200"
+    assert env["API_PORT"] == "18200"
+    with pytest.raises(replit.DeploymentError, match="different"):
+        replit.production_env(dict(deployment_env, PORT="18200", API_PORT="18200"))
+
+
+def test_root_replit_deploys_one_public_server_without_artifact_routing() -> None:
+    config = tomllib.loads((replit.ROOT / ".replit").read_text(encoding="utf-8"))
+    assert config["deployment"]["build"] == ["python3", "src/scripts/replit.py", "build"]
+    assert config["deployment"]["run"] == ["python3", "src/scripts/replit.py", "start"]
+    assert "router" not in config["deployment"]
+    public = [entry for entry in config["ports"] if "externalPort" in entry]
+    assert public == [{"localPort": 3000, "externalPort": 80}]
+
+
+def test_build_installs_frozen_dependencies_and_never_runs_database_writes(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[list[str]] = []
+    monkeypatch.setattr(replit.shutil, "which", lambda command: command)
+    monkeypatch.setattr(replit.subprocess, "run", lambda args, **kwargs: calls.append(args))
+    monkeypatch.setattr(replit, "prepare_standalone", lambda: None)
+    replit.build()
+    assert calls[0] == ["uv", "sync", "--frozen"]
+    assert calls[1][-2:] == ["install", "--frozen-lockfile"]
+    assert calls[2][-1] == "build"
+    assert not any("migrate" in arg or "seed" in arg for call in calls for arg in call)
 
 
 @pytest.mark.parametrize(
@@ -101,7 +135,7 @@ def test_web_failure_terminates_api(
     deployment_env: dict[str, str], monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setattr(replit, "doctor", lambda: {"status": "ready"})
-    monkeypatch.setattr(replit, "wait_for_api", lambda _: None)
+    monkeypatch.setattr(replit, "wait_for_api", lambda *args: None)
     monkeypatch.setattr(replit, "native_library_env", lambda env: dict(env))
     api, web = MagicMock(), MagicMock()
     api.poll.return_value = None

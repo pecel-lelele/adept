@@ -99,15 +99,19 @@ def production_env(source: Mapping[str, str]) -> dict[str, str]:
         )
     try:
         port = int(env["PORT"] if "PORT" in env else configured_port())
+        api_port = int(env.get("API_PORT", "8000"))
     except ValueError:
         raise DeploymentError("PORT must be an integer.") from None
-    if not 1024 <= port <= 65535 or port == 8000:
-        raise DeploymentError("PORT must be 1024..65535 and different from API port 8000.")
+    if not 1024 <= api_port <= 65535:
+        raise DeploymentError("API_PORT must be 1024..65535.")
+    if not 1024 <= port <= 65535 or port == api_port:
+        raise DeploymentError("PORT must be 1024..65535 and different from API_PORT.")
     env.update(
         APP_ENV="production",
         NODE_ENV="production",
         M3_BACKEND="postgres",
-        API_URL="http://127.0.0.1:8000",
+        API_URL=f"http://127.0.0.1:{api_port}",
+        API_PORT=str(api_port),
         PYTHONPATH=os.pathsep.join([str(ROOT / "src" / "api"), str(ROOT / "src")]),
         HOSTNAME="0.0.0.0",
         PORT=str(port),
@@ -131,24 +135,24 @@ def prepare_standalone() -> None:
 
 def build() -> None:
     print("[replit] Installing Python dependencies and building Next.js", flush=True)
-    if not python_path().is_file():
-        subprocess.run([sys.executable, "-m", "venv", str(ROOT / ".venv")], check=True)
     uv = shutil.which("uv")
     if uv:
-        install = [uv, "pip", "install", "--python", str(python_path())]
+        subprocess.run([uv, "sync", "--frozen"], cwd=ROOT, check=True)
     else:
+        if not python_path().is_file():
+            subprocess.run([sys.executable, "-m", "venv", str(ROOT / ".venv")], check=True)
         # uv-created development virtualenvs may not include pip.
         subprocess.run([str(python_path()), "-m", "ensurepip", "--upgrade"], check=True)
         install = [str(python_path()), "-m", "pip", "install"]
-    subprocess.run([*install, "-r", str(ROOT / "requirements.txt")], cwd=ROOT, check=True)
+        subprocess.run([*install, "-r", str(ROOT / "requirements.txt")], cwd=ROOT, check=True)
     npx = shutil.which("npx")
     if not npx:
         raise DeploymentError("Node.js/npx is missing. Enable the nodejs-24 Replit module.")
     version = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))["packageManager"]
     pnpm = [npx, "--yes", version]
     env = dict(os.environ, NEXT_TELEMETRY_DISABLED="1", API_URL="http://127.0.0.1:8000")
-    subprocess.run([*pnpm, "install", "--frozen-lockfile"], cwd=WEB, env=env, check=True)
-    subprocess.run([*pnpm, "build"], cwd=WEB, env=env, check=True)
+    subprocess.run([*pnpm, "install", "--frozen-lockfile"], cwd=ROOT, env=env, check=True)
+    subprocess.run([*pnpm, "build"], cwd=ROOT, env=env, check=True)
     prepare_standalone()
     print("[replit] Build complete. No database writes or model calls performed.", flush=True)
 
@@ -171,15 +175,15 @@ def doctor() -> dict[str, str]:
     return {"status": "blocked" if issues else "ready", "details": " ".join(issues)}
 
 
-def wait_for_api(process: subprocess.Popen[bytes], timeout: float = 45) -> None:
+def wait_for_api(
+    process: subprocess.Popen[bytes], api_url: str = "http://127.0.0.1:8000", timeout: float = 45
+) -> None:
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
         if process.poll() is not None:
             raise DeploymentError("FastAPI exited during startup. Read the preceding API error.")
         try:
-            with urllib.request.urlopen(
-                "http://127.0.0.1:8000/api/v1/health", timeout=3
-            ) as response:
+            with urllib.request.urlopen(api_url + "/api/v1/health", timeout=3) as response:
                 health = json.load(response)
             if health.get("status") == "ok" and health.get("database") == "ok":
                 return
@@ -213,7 +217,7 @@ def start() -> int:
 
     signal.signal(signal.SIGTERM, shutdown)
     try:
-        print("[replit] Starting private API on 127.0.0.1:8000", flush=True)
+        print(f"[replit] Starting private API on 127.0.0.1:{env['API_PORT']}", flush=True)
         processes.append(
             subprocess.Popen(
                 [
@@ -224,13 +228,13 @@ def start() -> int:
                     "--host",
                     "127.0.0.1",
                     "--port",
-                    "8000",
+                    env["API_PORT"],
                 ],
                 cwd=ROOT,
                 env=env,
             )
         )
-        wait_for_api(processes[0])
+        wait_for_api(processes[0], env["API_URL"])
         print(f"[replit] Starting public web on 0.0.0.0:{env['PORT']}", flush=True)
         processes.append(subprocess.Popen(["node", "server.js"], cwd=STANDALONE, env=env))
         while True:

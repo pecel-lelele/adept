@@ -1,23 +1,17 @@
 modules = ["nodejs-24", "postgresql-16", "python-3.11"]
+run = "uv run --frozen python src/scripts/dev.py dev"
 
 [deployment]
-router = "application"
 deploymentTarget = "autoscale"
+build = ["python3", "src/scripts/replit.py", "build"]
+run = ["python3", "src/scripts/replit.py", "start"]
 
-[deployment.postBuild]
-args = ["npx", "--yes", "pnpm@10.29.3", "store", "prune"]
-env = { "CI" = "true" }
-
-[workflows]
-runButton = "Project"
+[[ports]]
+localPort = 3000
+externalPort = 80
 
 [agent]
-stack = "PNPM_WORKSPACE"
 expertMode = true
-
-[postMerge]
-path = "scripts/post-merge.sh"
-timeoutMs = 20000
 
 [nix]
 channel = "stable-25_05"
@@ -45,4 +39,3 @@ WEB_ORIGIN = "https://adept-my.replit.app"
 TRENDS_EMBEDDING_BACKEND = "runpod"
 TRENDS_RUNPOD_ENDPOINT_ID = "ta14jd0by2ijl2"
 TRENDS_RUNPOD_TIMEOUT_SECONDS = "180"
-TRUSTED_PROXY_HOPS = "1"

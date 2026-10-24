@@ -70,7 +70,7 @@ def pnpm() -> list[str]:
     found = shutil.which("pnpm")
     if found:
         return [found]
-    raise TaskError("Neither pnpm nor npx found. Install Node.js 20+ first.")
+    raise TaskError("Neither pnpm nor npx found. Install Node.js 24 first.")
 
 
 def uv() -> list[str]:

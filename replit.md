@@ -1,59 +1,64 @@
-# Adept
+# Adept: root deployment, one public server
 
-Career matching and personalised reskilling, with personal, employee, and organisation workspaces.
+Keep the required root `docs/`, `submission/`, `src/` and `tests/` layout. All product code
+lives in `src/`. Do not recreate an artifact scaffold or move the repository into a backup.
 
-## Framework and scope
+## Run and build
 
-- Keep the original Next.js app. The user explicitly chose Next.js over a Vite conversion.
-- Do not publish this project. The user's friend is preparing publication from their own Replit account.
-- Preserve the existing Python/FastAPI backend and PostgreSQL schema; do not rewrite business logic for the workspace scaffold.
+- Preview: `uv run --frozen python src/scripts/dev.py dev` (root `.replit` run command).
+- Publish build: `python3 src/scripts/replit.py build`.
+- Publish start: `python3 src/scripts/replit.py start`.
+- Local checks: `uv run --frozen python src/scripts/dev.py check` and `pnpm test:proxy`.
 
-## Run
+Build uses frozen uv/pnpm dependencies and generates the standalone web server and assets.
+If uv is unavailable, Python installation uses the constraints in `requirements.txt`.
+The web build uses webpack consistently across Windows and Linux to avoid the observed
+Turbopack standalone-tracing race on Windows.
+Start supervises private FastAPI on `127.0.0.1:8000`, checks API/database readiness, then
+starts one public Next.js server on `0.0.0.0:3000` (mapped to external port 80). `PORT` is the
+public port; `API_PORT` is private and must be different. The root config has no application
+router, artifact metadata, Express process, Drizzle schema push or mockup build.
 
-Use the managed workflows:
+Next.js serves pages, server actions, `/api/v1/*` and health aliases. Use the standalone
+launcher; never replace it with `next start` or a static-file server. `GET /api/healthz` and
+`GET /api/v1` return 200 only when FastAPI reports a healthy database, otherwise 503.
+The public health probes need no forwarded visitor header. Normal proxied requests derive
+trusted visitor identity and ignore supplied internal-secret/IP headers.
 
-- `artifacts/adept: web` — original Next.js app, including server components, server actions, and BFF routes.
-- `artifacts/api-server: API Server` — Express entry point supervising the imported FastAPI process.
+## Production configuration
 
-The web service uses its assigned `PORT` and binds to `0.0.0.0`. Next.js calls FastAPI internally at port 8000. Public `/api/v1` and `/api/healthz` routes belong to the API service; other `/api/*` routes belong to Next.js.
+Replit supplies its managed `DATABASE_URL`. Set a stable random `SESSION_SECRET` of at least
+32 characters, a matching `PROXY_SHARED_SECRET` for web/API and a verified positive
+`TRUSTED_PROXY_HOPS` (the current account screenshot shows 1). Keep `APP_ENV=production`,
+`AUTH_RAW_USER_IDS=false`, an empty `AUTH_DEFAULT_USER`, and `M3_BACKEND=postgres`.
+`AUTH_MODE=demo` means normal local PostgreSQL accounts, not a fixture/demo session.
+Set `WEB_ORIGIN` and `CORS_ORIGINS` to the exact published HTTPS origin without a trailing
+slash. The supervisor sets the private `API_URL` and public bind address itself.
 
-## Files
-
-- `src/web/` — Next.js app (workspace package `@workspace/adept`), translations, Next config.
-- `artifacts/adept/.replit-artifact/` — Replit service settings for the web app; it holds no source.
-- `src/api/`, `src/pipelines/`, `src/db/`, `src/data/` — FastAPI app, pipelines, migrations, reference data.
-- `artifacts/api-server/` — Express public proxy and Python supervisor.
-- `pyproject.toml` / `uv.lock` — Python dependencies.
-
-## Checks
-
-- `pnpm --filter @workspace/adept run build` — production build and TypeScript.
-- `pnpm --filter @workspace/api-server run build` — API supervisor build.
-
-Development database migrations and reference seeding were applied from the imported project. Database contents and secrets do not transfer simply by copying files to a friend's account; that account needs its own configured database, reference data and `SESSION_SECRET`. No production database migration should run automatically at app startup.
-
-## Environment
-
-Required: `DATABASE_URL`, `SESSION_SECRET`, `PROXY_SHARED_SECRET`, and a verified positive `TRUSTED_PROXY_HOPS`. Optional external model credentials remain optional; Adi defaults to the original built-in guide.
-
-`WEB_ORIGIN` may pin the public origin; if unset, web request handlers use proxy-forwarded origin headers. Production must run Next.js as a server, not as static files.
+RunPod/Gemini assistant keys are optional. The MiniLM `TRENDS_RUNPOD_API_KEY` and endpoint
+configuration are separate from Adi's GLM key. Do not print or commit any key or database URL.
 
 ## Publishing handoff
 
-- Keep the existing Autoscale application router and artifact production commands. The sample root commands `src/scripts/replit.py` and `src/scripts/dev.py` are not in this workspace; production configuration belongs in each artifact's `.replit-artifact/artifact.toml`.
-- In the friend's Replit copy, use Replit-managed PostgreSQL. Replit provisions `DATABASE_URL`; do not set that runtime-managed value manually.
-- Before publishing that copy, apply SQL migrations and reference data to its **development** database:
-  `python src/db/migrate.py up && python src/db/seed.py`
-- On the first publish, select **Autoscale** and enable **Set up your production database with your current development data** to copy the migrated schema and reference data. Review development records first because this option copies the development database's data too.
-- Do not run the SQL migration script against the managed production database or from the deployment build/start command. Replit's publish flow handles managed production schema changes.
-- Add a new random `SESSION_SECRET` (32+ characters) and a `PROXY_SHARED_SECRET` to the friend's production Secrets. The same proxy secret must be available to both web and API services. Set `TRUSTED_PROXY_HOPS` only after verifying the actual forwarding chain to each public service; production rejects zero, missing and malformed counts. Do not guess a value. Secrets in this workspace do not transfer to the friend's account.
-- After the published hostname is known, set `CORS_ORIGINS` to that exact HTTPS origin with no trailing slash. `WEB_ORIGIN` can remain unset; the app derives it from forwarded request headers. `API_URL` and service ports are configured by the artifact settings, not by replacing them with `localhost` or port `3000`.
-- The Runpod/Gemini model settings are configured for production. Add `RUNPOD_API_KEY` and `GEMINI_API_KEY` to the friend's production Secrets to enable that optional assistant setup; those credentials are not present in this workspace.
+Pull the reviewed branch/merged source into the target Replit project. In Publishing,
+confirm the root build/start commands above and one public port. Remove saved artifact or
+`next start` command overrides left from the prior deployment setup. GitHub changes do not
+copy a friend's production secrets or database.
 
-## Repository checks and scheduled data
+Prepare schema/reference data in the intended development database explicitly before first
+publish. If needed, use Replit's production-database initialization from reviewed development
+data. Never run migration/seed scripts automatically at production build or start, or point
+local setup at production. Production schema changes follow the database owner's procedure.
 
-Active workflows are restored at `.github/workflows`, with Python commands using
-the repository root and pnpm commands using the workspace root. Run
-`uv run --frozen python src/scripts/dev.py check`, `pnpm test:proxy`, and `pnpm build`.
-The manual MiniLM publisher retains its main/source-repository guard and uses the
-Python artifact as its Docker build context. The Python tree is the repository root `src/`.
+Publish only when the owner is ready. Verify `/`, `/about`, `/auth/login`, a static asset,
+`/api/healthz`, `/api/v1` and `/api/v1/health`, then test signed-in flows with synthetic accounts.
+A live old release can remain healthy while a new publish attempt fails; verify the source
+revision and run command for that specific deployment rather than inferring from the URL.
+
+## CI and background data
+
+CI checks Python lint/tests, web lint/types/translations, contracts, proxy regressions,
+PostgreSQL upgrades/recovery and the actual root production build/start. Its deployment
+smoke uses an explicit disposable loopback database and never calls a model.
+Weekly source/trend jobs and the guarded manual MiniLM publisher stay at `.github/workflows`;
+worker Docker builds use the repository root as context. Public pages read saved snapshots.

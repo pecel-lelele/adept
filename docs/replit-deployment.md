@@ -1,15 +1,12 @@
 # Publish Adept on Replit Autoscale
 
-The repository has two servers. Replit publishes them through the Autoscale
-application router configured in [`.replit`](../.replit) and the per-service
-`artifacts/*/.replit-artifact/artifact.toml` files: the Express proxy
-(`artifacts/api-server`) owns `/api/v1` and `/api/healthz` and supervises FastAPI
-privately at `127.0.0.1:8000`; Next.js (`src/web`) serves every other path. See
-[replit.md](../replit.md) for the current commands. The standalone
-[`src/scripts/replit.py`](../src/scripts/replit.py) launcher remains for a
-single-port Cloud Run style deployment and local production smoke tests; it is not used
-by the artifact-routed deployment. The development runner (`dev.py dev`) is for
-Preview: it must not be the deployment run command.
+The repository uses one public Next.js server from `src/web`, which forwards
+`/api/v1/*` to private FastAPI at `127.0.0.1:8000` and serves the pages, actions
+and health aliases. The root [`.replit`](../.replit) builds and supervises both
+processes through [`src/scripts/replit.py`](../src/scripts/replit.py).
+There is no artifact metadata or separate Express server. See
+[replit.md](../replit.md) for the current commands. The development runner
+(`dev.py dev`) is for Preview; Publishing uses the production launcher.
 
 ## Update an existing workspace safely
 
@@ -22,11 +19,11 @@ Do not use `reset --hard`, `clean`, or a forced checkout to synchronize.
 For a workspace with local Replit configuration, keep its environment settings,
 Nix packages and Preview workflow. Keep `gcc` in `[nix].packages`: the API supervisor
 locates its `libstdc++` runtime for PyMuPDF on Nix without a machine-specific library path.
-When using the single-port launcher instead of the artifact router, set:
+Use the root deployment configuration:
 
 ```toml
 [deployment]
-deploymentTarget = "cloudrun"
+deploymentTarget = "autoscale"
 build = ["python3", "src/scripts/replit.py", "build"]
 run = ["python3", "src/scripts/replit.py", "start"]
 ```
@@ -98,7 +95,7 @@ python3 src/scripts/replit.py build
 python3 src/scripts/replit.py doctor
 ```
 
-`doctor` checks artifact/configuration presence without displaying secret values;
+`doctor` checks the standalone build and configuration without displaying secret values;
 it does not establish database connectivity or validate the Replit account's ability
 to publish. A Shell can have development settings while Publishing has separate
 production settings. A local production smoke test needs the intended values in
@@ -106,7 +103,9 @@ that Shell, including `WEB_ORIGIN`; stop the Preview servers before testing
 `python3 src/scripts/replit.py start` to avoid a port conflict.
 
 Reload Replit after updating `.replit`, then reopen **Publish → Advanced settings**.
-Confirm Autoscale and the public-port mapping. Publish and inspect **Build** and
+Confirm Autoscale, the root build/start commands and the single public-port mapping
+(3000 to external 80). Remove saved artifact or `next start` command overrides.
+Publish and inspect **Build** and
 **Run** logs. Successful runtime logs include `Starting private API`, an HTTP 200
 health request, then `Starting public web` and Next.js's ready message.
 Visit `/`, `/about`, and sign in with a synthetic account; verify a stored trend
@@ -123,7 +122,7 @@ If the build reports `ERR_PNPM_FETCH_403` at `package-firewall.replit.internal`,
 the package download was denied before Next.js compilation. Check the pinned
 package version against vendor advisories and review Replit's rejection details;
 the generic "No authorization header" message does not establish that a public
-package needs a token. Next.js is pinned to the vendor-patched `16.4.1` release,
+package needs a token. Next.js is pinned to `16.4.2`,
 with its matching lint configuration and frozen lockfile. An old workspace still
 requesting `next-16.2.12.tgz` has not loaded that dependency update. Keep the
 platform's package checks enabled; if the patched download is also denied, collect
