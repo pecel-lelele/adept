@@ -144,6 +144,45 @@ class LintRunnerTests(unittest.TestCase):
         )
         self.assertIn("make check failed: lint", err.getvalue())
 
+    def test_make_check_continues_when_python_lint_commands_cannot_be_prepared(self) -> None:
+        self.dev.py.side_effect = self.dev.TaskError("Python environment unavailable")
+        self.commands.return_value = subprocess.CompletedProcess(COMMANDS[2], 0)
+        stage_names = {
+            "i18n": "task_i18n_check",
+            "test": "task_test",
+            "typecheck": "task_typecheck",
+            "contracts": "task_contracts_check",
+        }
+        callbacks = {}
+        with ExitStack() as patches:
+            for stage, callback_name in stage_names.items():
+                callback = Mock(side_effect=self.dev.TaskError(f"{stage} failure"))
+                callbacks[stage] = callback
+                patches.enter_context(patch.object(self.dev, callback_name, callback))
+
+            out, err = io.StringIO(), io.StringIO()
+            with redirect_stdout(out), redirect_stderr(err):
+                self.assertEqual(self.dev.main(["check"]), 1)
+
+        self.assertEqual(self.dev.py.call_count, 2)
+        self.assertEqual(
+            [call.args[0] for call in self.commands.call_args_list], [COMMANDS[2]]
+        )
+        self.assertEqual(
+            [call.kwargs["cwd"] for call in self.commands.call_args_list], [self.dev.WEB]
+        )
+        for callback in callbacks.values():
+            callback.assert_called_once_with()
+        self.assertIn("lint: frontend lint", out.getvalue())
+        self.assertIn(
+            "FAILED lint: make lint failed: ruff lint, ruff format", err.getvalue()
+        )
+        for stage in stage_names:
+            self.assertIn(f"FAILED {stage}: {stage} failure", err.getvalue())
+        self.assertIn(
+            "make check failed: lint, i18n, test, typecheck, contracts", err.getvalue()
+        )
+
     def test_make_check_continues_after_unexpected_stage_error_and_fails(self) -> None:
         self.command_results((0, 0, 0))
         callbacks = {}
