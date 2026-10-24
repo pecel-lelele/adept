@@ -5,6 +5,7 @@ from __future__ import annotations
 import importlib.util
 import io
 import itertools
+import re
 import subprocess
 import unittest
 from contextlib import ExitStack, redirect_stderr, redirect_stdout
@@ -18,6 +19,7 @@ COMMANDS = [
     ["test-python", "-m", "ruff", "format", "--check", "."],
     ["test-pnpm", "lint"],
 ]
+CI_WORKFLOW = Path(__file__).resolve().parents[1] / ".github/workflows/ci.yml"
 
 
 class LintRunnerTests(unittest.TestCase):
@@ -238,6 +240,29 @@ class LintRunnerTests(unittest.TestCase):
                             stage in failures,
                         )
                     self.assertIn(f"make check failed: {', '.join(failures)}", err.getvalue())
+
+
+class RuffCommandAlignmentTests(unittest.TestCase):
+    def test_local_ruff_commands_match_ci_targets_and_options(self) -> None:
+        workflow = CI_WORKFLOW.read_text(encoding="utf-8")
+        ci_commands = []
+        for step_name in ("Ruff lint", "Ruff format"):
+            match = re.search(
+                rf"(?m)^      - name: {re.escape(step_name)}\n"
+                r"        run: (?P<command>.+)$",
+                workflow,
+            )
+            self.assertIsNotNone(match, f"CI step {step_name!r} was not found")
+            assert match is not None
+            command = match.group("command").split()
+            self.assertGreaterEqual(len(command), 4, step_name)
+            self.assertEqual(command[1:3], ["-m", "ruff"], step_name)
+            ci_commands.append(command[3:])
+
+        # LintRunnerTests assert these are the actual commands issued by task_lint.
+        # The Python executable differs between local and CI, so compare Ruff args.
+        local_ruff_commands = [command[3:] for command in COMMANDS[:2]]
+        self.assertEqual(local_ruff_commands, ci_commands)
 
 
 if __name__ == "__main__":
