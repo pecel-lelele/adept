@@ -42,8 +42,7 @@ def targets() -> dict[str, SdgTarget]:
 
 def short_titles() -> dict[int, str]:
     return {
-        int(g["id"]): g["short_title"]
-        for g in refdata.rows(AREA, "sdg_goals", order_by_id=True)
+        int(g["id"]): g["short_title"] for g in refdata.rows(AREA, "sdg_goals", order_by_id=True)
     }
 
 

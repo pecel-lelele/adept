@@ -38,9 +38,7 @@ class Snapshot:
 def catalogue() -> list[Course]:
     out: list[Course] = []
     # Retired courses (no longer listed by their provider) are never recommended.
-    for r in refdata.rows(
-        "courses", "courses", non_retired_only=True, order_by_id=True
-    ):
+    for r in refdata.rows("courses", "courses", non_retired_only=True, order_by_id=True):
         verified = date.fromisoformat(r["verified_at"])
         source_name = r.get("source_name") or r["provider"]
         out.append(

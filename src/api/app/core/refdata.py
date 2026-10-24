@@ -32,9 +32,7 @@ _DB_TABLES_BY_AREA = {
     "courses": frozenset({"courses"}),
     "jobs": frozenset({"certifications", "job_postings"}),
     "pathway": frozenset({"skill_prerequisites"}),
-    "sdg": frozenset(
-        {"org_regions", "role_sdg_map", "sdg_goals", "sdg_targets", "skill_sdg_map"}
-    ),
+    "sdg": frozenset({"org_regions", "role_sdg_map", "sdg_goals", "sdg_targets", "skill_sdg_map"}),
     "taxonomy": frozenset({"roles", "role_skills", "skills"}),
 }
 _DB_TABLES = frozenset().union(*_DB_TABLES_BY_AREA.values())
