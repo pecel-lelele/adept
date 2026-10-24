@@ -22,3 +22,22 @@ timeoutMs = 20000
 [nix]
 channel = "stable-25_05"
 packages = ["freetype", "gumbo", "harfbuzz", "jbig2dec", "libjpeg_turbo", "mupdf", "openjpeg", "postgresql", "swig", "xcbuild"]
+
+[userenv]
+
+[userenv.production]
+API_URL = "http://127.0.0.1:8000"
+APP_ENV = "production"
+AUTH_DEFAULT_USER = ""
+AUTH_MODE = "demo"
+AUTH_RAW_USER_IDS = "false"
+LLM_BASE_URL = "https://api.runpod.ai/v2/b1dd8hy2hqo1nb/openai/v1"
+LLM_FALLBACK_MODEL = "gemini-3.5-flash-lite,gemini-3.6-flash,gemini-3.1-flash-lite"
+LLM_FALLBACK_PROVIDER = "gemini"
+LLM_MODEL = "glm-5.3"
+LLM_PROVIDER = "runpod"
+LLM_TIMEOUT_S = "20"
+M3_BACKEND = "postgres"
+NEXT_TELEMETRY_DISABLED = "1"
+NODE_ENV = "production"
+TRUSTED_PROXY_HOPS = "0"
