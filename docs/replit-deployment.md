@@ -45,7 +45,7 @@ environment values before publishing:
 | `DATABASE_URL` | Replit's attached **production** PostgreSQL connection string; leave the development connection unchanged. |
 | `SESSION_SECRET` | Existing stable random secret, at least 32 characters; keep it across deployments. |
 | `PROXY_SHARED_SECRET` | Existing random secret shared by the co-hosted web and API. |
-| `TRUSTED_PROXY_HOPS` | Set only after verifying the platform's trusted proxy path; see below. Default `0` disables client-IP forwarding. |
+| `TRUSTED_PROXY_HOPS` | Required in production: a positive count, set only after verifying the platform's trusted proxy path (see below). Zero or missing blocks startup; `0` is for local development only. |
 | `WEB_ORIGIN` | Exact published origin, for example `https://adept-corp.replit.app`, without a trailing slash. |
 | `CORS_ORIGINS` | Same exact origin; if unset, the launcher uses `WEB_ORIGIN`. |
 | `APP_ENV`, `NODE_ENV`, `M3_BACKEND` | Launcher enforces `production`, `production`, `postgres`. |
@@ -56,10 +56,11 @@ For per-visitor rate limits, verify how Replit's load balancer sanitizes/appends
 and controlled requests (including a deliberately supplied header). If exactly one
 trusted proxy appends the client address, set `TRUSTED_PROXY_HOPS=1`; use the verified
 count for another topology. Do not infer trust from an arbitrary header or guess a
-larger count: clients can supply the entries to its left. Keep the default `0` until
-verified; with the private API this means visitors share a rate-limit bucket,
-including the login-attempt limit. A shared proxy secret alone does not enable
-per-visitor limits. Recheck the count when adding a proxy or changing domains.
+larger count: clients can supply the entries to its left. Production startup rejects a
+zero, missing or malformed count, so do not publish until the count is verified. Zero is
+valid only for local development, where visitors share one rate-limit bucket, including
+the login-attempt limit. A shared proxy secret alone does not enable per-visitor limits.
+Recheck the count when adding a proxy or changing domains.
 
 Keep the existing `LLM_*`, `RUNPOD_API_KEY` and `GEMINI_API_KEY` configuration to
 enable Adi; keys alone do not select a provider. See [`.env.example`](../.env.example).

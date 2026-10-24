@@ -56,7 +56,7 @@ runner. Moving data or adding another scheduler is separate work. See
 
 ## 2. Build and publish
 
-The [publisher](../../../../../../../.github/workflows/publish-minilm.yml) is manual-dispatch only
+The [publisher](../../../../.github/workflows/publish-minilm.yml) is manual-dispatch only
 from the trusted repository's `main` branch. The guarded job builds `linux/amd64` and
 uses job-scoped `packages: write` with `GITHUB_TOKEN` to publish `latest` and
 `sha-<commit>` tags. PRs, forks and other branches cannot reach publishing credentials.

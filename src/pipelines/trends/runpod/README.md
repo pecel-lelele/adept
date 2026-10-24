@@ -23,7 +23,7 @@ inference. Existing cosine threshold 0.55, trend formulas and publication rules 
 
 ## Execution boundaries
 
-[Publish MiniLM](../../../../../../../.github/workflows/publish-minilm.yml) is manual-dispatch only
+[Publish MiniLM](../../../../.github/workflows/publish-minilm.yml) is manual-dispatch only
 from the trusted `main` branch. It is separate from
 [Trends refresh](../../../../.github/workflows/trends-refresh.yml), which runs the batch
 pipeline on Mondays and manual dispatch. Only the RunPod worker installs PyTorch and model
