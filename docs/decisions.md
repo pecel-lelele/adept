@@ -1520,3 +1520,14 @@
 - **Validation**: Full quality gate passed (932 tests, 27 skipped), including ESLint with the aligned configuration, translations, TypeScript and generated contracts. The exact Replit build passed with the frozen lockfile; a local production smoke test verified landing/About/sign-in pages, static assets and API/database health without model calls. The advisory query returned no published matches for Next.js 16.4.1 at verification time. Replit's own package download remains to be retested by the account owner.
 - **Replaces**: Next.js/eslint-config-next 16.2.12 pins only
 - **PR / branch**: fix/core-replit-next-patch
+
+### M4-072: Recover from terminated pooled database sessions
+- **Date**: 2026-10-24
+- **Feature**: Core deployment, shared database access and rate limiting
+- **Type**: method
+- **Change**: Check both PostgreSQL pools before checkout and sweep remaining idle sessions after a failure so multiple dead connections cannot exhaust checkout time through per-connection retry backoff. Bound rate-limit statements/locks, synchronize its worker-thread fallback and preserve the supplied empty counter. Retry web GET/HEAD once for HTTP 502/503/504 in addition to connection failures; never replay writes or transactions already started.
+- **Why**: Production logs showed administrative session termination followed by stale-connection account 503s and seed/in-memory fallbacks. The initiating database infrastructure event remains unconfirmed. Recovery should not spend a user request discovering each dead idle connection or duplicate a write whose outcome is unknown.
+- **Affects**: All database-backed features and the shared web API client; no schema, contract, dependency or environment changes.
+- **Validation**: Full quality gate passed (949 tests, 32 skipped, 48 subtests); all 18 targeted recovery/rate-limit checks passed against disposable PostgreSQL 16, including real administrative session termination, and 35 existing PostgreSQL integration checks passed after loading CI's synthetic upgrade personas. Seven web retry regressions and the production web build passed. The currently deployed public pages and unsigned app redirect passed read-only smoke checks; the repair still needs publishing and signed-in production verification.
+- **Replaces**: none (extends M4-027 and M4-005)
+- **PR / branch**: fix/core-database-recovery
