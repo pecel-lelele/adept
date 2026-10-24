@@ -56,12 +56,12 @@ runner. Moving data or adding another scheduler is separate work. See
 
 ## 2. Build and publish
 
-The [publisher](../../../../.github/workflows/publish-minilm.yml) builds `linux/amd64`
-for relevant worker, encoder or workflow changes on trusted `main` and
-`feat/minilm-runpod-deploy` pushes, plus manual dispatch on those refs. Job-scoped
-`packages: write` and `GITHUB_TOKEN` publish `latest`, commit-SHA and
-`sha-<commit>` tags. PR events do not publish. The verified first publication ran
-from the deployment branch; merging the workflow enables it on main.
+The [publisher](../../../../.github/workflows/publish-minilm.yml) is manual-dispatch only
+from the trusted repository's `main` branch. The guarded job builds `linux/amd64` and
+uses job-scoped `packages: write` with `GITHUB_TOKEN` to publish `latest` and
+`sha-<commit>` tags. PRs, forks and other branches cannot reach publishing credentials.
+The first verified image was published from the deployment branch; future publications
+require a reviewed manual dispatch from `main`.
 
 PyTorch 2.8 / CUDA 12.8 dependencies and pinned weights are built into the image. The first
 build downloads these; registry push and cache export add time. The verified publication
@@ -101,7 +101,9 @@ after the job; no continuous test or cancellation of a completed request is need
 
 API callers send this body to `POST /runsync` with bearer authentication. The client
 polls `GET /status/<job_id>` if queued and validates model/revision, count, dimensions
-and values. Each request allows 1–64 non-empty texts, at most 4,096 characters each.
+and values. The live base is `https://api.runpod.ai/v2/ta14jd0by2ijl2`; other routes are
+`POST /run` and `GET /health`. Use `TRENDS_RUNPOD_API_KEY`, never the separate GLM chat
+credential. Each request allows 1–64 non-empty texts, at most 4,096 characters each.
 
 ## 4. Automatic refresh and acceptance
 
