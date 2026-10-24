@@ -24,19 +24,21 @@ from app.contracts.trends import (
 )
 from app.features.trends.provenance import observation_window
 
-AVAILABLE_MOCK_DATES: list[date] = [date(2026, 10, 13), date(2026, 10, 20)]
-
 _REPO_ROOT = Path(__file__).resolve().parents[5]
 _SEED_DIR = _REPO_ROOT / "src" / "data" / "seed"
 _MOCK_FILE = _SEED_DIR / "mock_trends.json"
+_MOCK_FILES_BY_DATE: dict[date, Path] = {
+    date(2026, 10, 13): _SEED_DIR / "mock_trends_2026-10-13.json",
+    date(2026, 10, 20): _SEED_DIR / "mock_trends_2026-10-20.json",
+}
+AVAILABLE_MOCK_DATES: list[date] = list(_MOCK_FILES_BY_DATE)
 
 
 def _load_raw(snapshot_date: date | None = None) -> dict:
-    if snapshot_date is not None:
-        dated_file = _SEED_DIR / f"mock_trends_{snapshot_date.isoformat()}.json"
-        if dated_file.exists():
-            with dated_file.open(encoding="utf-8") as fh:
-                return json.load(fh)
+    dated_file = _MOCK_FILES_BY_DATE.get(snapshot_date)
+    if dated_file is not None and dated_file.is_file():
+        with dated_file.open(encoding="utf-8") as fh:
+            return json.load(fh)
     with _MOCK_FILE.open(encoding="utf-8") as fh:
         return json.load(fh)
 

@@ -31,7 +31,7 @@ def test_csv_read_excludes_stale_openings_even_when_refresh_stops(monkeypatch):
         dict(base, id=str(days), last_seen=(TODAY - timedelta(days=days)).isoformat())
         for days in [0, 14, 15]
     ]
-    monkeypatch.setattr(repository.refdata, "rows", lambda *args: rows)
+    monkeypatch.setattr(repository.refdata, "rows", lambda *args, **kwargs: rows)
     assert {p.id for p in repository.openings()} == {"0", "14"}
 
 

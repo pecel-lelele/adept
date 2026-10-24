@@ -5,7 +5,7 @@ router = "application"
 deploymentTarget = "autoscale"
 
 [deployment.postBuild]
-args = ["pnpm", "store", "prune"]
+args = ["npx", "--yes", "pnpm@10.29.3", "store", "prune"]
 env = { "CI" = "true" }
 
 [workflows]
@@ -45,3 +45,4 @@ WEB_ORIGIN = "https://adept-my.replit.app"
 TRENDS_EMBEDDING_BACKEND = "runpod"
 TRENDS_RUNPOD_ENDPOINT_ID = "ta14jd0by2ijl2"
 TRENDS_RUNPOD_TIMEOUT_SECONDS = "180"
+TRUSTED_PROXY_HOPS = "1"

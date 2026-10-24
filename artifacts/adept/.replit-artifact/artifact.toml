@@ -12,13 +12,13 @@ paths = ["/"]
 localPort = 24384
 
 [services.development]
-run = "pnpm --filter @workspace/adept run dev"
+run = "npx --yes pnpm@10.29.3 --filter @workspace/adept run dev"
 
 [services.production.build]
-args = ["pnpm", "--filter", "@workspace/adept", "run", "build"]
+args = ["npx", "--yes", "pnpm@10.29.3", "--filter", "@workspace/adept", "run", "build"]
 
 [services.production.run]
-args = ["pnpm", "--filter", "@workspace/adept", "run", "start"]
+args = ["node", "src/web/scripts/start-standalone.mjs"]
 
 [services.production.run.env]
 NODE_ENV = "production"

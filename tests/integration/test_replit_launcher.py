@@ -86,6 +86,7 @@ def test_api_failure_stops_container_without_starting_web(
     deployment_env: dict[str, str], monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setattr(replit, "doctor", lambda: {"status": "ready"})
+    monkeypatch.setattr(replit, "native_library_env", lambda env: dict(env))
     api = MagicMock()
     api.poll.return_value = 1
     popen = MagicMock(return_value=api)
@@ -101,6 +102,7 @@ def test_web_failure_terminates_api(
 ) -> None:
     monkeypatch.setattr(replit, "doctor", lambda: {"status": "ready"})
     monkeypatch.setattr(replit, "wait_for_api", lambda _: None)
+    monkeypatch.setattr(replit, "native_library_env", lambda env: dict(env))
     api, web = MagicMock(), MagicMock()
     api.poll.return_value = None
     web.poll.return_value = 2

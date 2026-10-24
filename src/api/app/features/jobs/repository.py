@@ -64,7 +64,7 @@ def openings() -> list[Posting]:
     pipeline run closes them."""
     today = date.today()
     out: list[Posting] = []
-    for r in refdata.rows("jobs", "job_postings", " WHERE active"):
+    for r in refdata.rows("jobs", "job_postings", active_only=True):
         if r.get("active", "true") != "true":
             continue
         expires = _day(r.get("expires_at", ""))
