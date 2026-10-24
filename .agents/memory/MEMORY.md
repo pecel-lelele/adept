@@ -1,2 +1,3 @@
 - [Nix subprocess test isolation](nix-subprocess-test-isolation.md) — server-process mocks can also intercept compiler runtime probes on Replit.
+- [Git mutation approval](git-mutation-approval.md) — explicitly authorized Git state changes may require `DANGEROUSLY_ALLOW_GIT=1` in this workspace.
 - [Replit Autoscale startup probes](replit-autoscale-startup.md) — open the HTTP listener promptly while API/database readiness is checked.
