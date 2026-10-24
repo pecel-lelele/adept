@@ -124,7 +124,7 @@ include API keys in this document.
 |---|---|---|
 | GitHub repository / Actions | Account plan and runner region not verified; workflows use `ubuntu-latest` | Quality CI, source audit, GHCR worker publication and conditional trend refresh. The image publisher succeeded; the first real refresh failed saving to private database host `helium`. |
 | Local Docker Compose | Local development; no cloud region | PostgreSQL/pgvector only; web/API use root commands, not three app containers. |
-| Replit Autoscale | Partner-managed account; plan/region unverified | Selected public host. Pages and API/database health were reachable on 24 October 2026. The proposed root deployment exposes one Next.js port with private FastAPI; verify the published source revision separately. |
+| Replit Autoscale | Sponsor deployment platform used by the team; region and credit amount not specified | Hosts the deployed public prototype at `https://adept-my.replit.app`. Landing, About and API/database health returned 200 on 25 October 2026. The repository exposes one public Next.js server with private FastAPI; a health response does not identify the deployed Git revision. |
 | Supabase PostgreSQL / Auth | Optional alternate integration; not the observed public auth mode | JWT-verification path exists. Observed health reports `auth_mode=demo`, the legacy name for normal local PostgreSQL accounts; production disables fixture/default users. |
 | RunPod | GLM endpoint and deployed MiniLM worker; plan/region/credits unverified | Historical GLM request and MiniLM 384-dimensional inference were verified. Hardened worker source pins still require rebuild/redeploy; no successful new snapshot publication is claimed. |
 | Other storage / analytics / services used by teammates | Team confirmation required | Add actual services used outside the repository before signing. |
@@ -219,24 +219,27 @@ usage, and takes responsibility for the submission.
 
 ## 5. Sponsor-provided resources
 
-**API usage: yes, Runpod.** Local configuration and a small verified request establish
-hosted inference usage. Sponsor-provided credit entitlement, workshop attendance and
-mentoring remain for the team to confirm.
+**Yes: Replit deployment and RunPod inference/Serverless compute.** The team confirms using
+Replit as the sponsor deployment resource for the public Adept prototype. RunPod hosts the
+deployed MiniLM Serverless worker and Adi's configured GLM-5.3 inference endpoint. No specific
+credit amount, account tier or mentoring participation is claimed here.
 
 | Sponsor | Resource | How used |
 |---|---|---|
-| Runpod | GLM-5.3 endpoint and MiniLM Serverless worker | Adi primary and public research/catalogue embeddings; live inference verified separately. Credit entitlement remains unverified. |
+| Replit | Cloud deployment platform | Hosts the public Adept prototype, serving the Next.js interface and private FastAPI backend. Replit Agent was also used for repository exploration, as declared in section 4.3. |
+| RunPod | Serverless compute for the deployed MiniLM worker | Runs the pinned all-MiniLM-L6-v2 encoder for offline public-research and catalogue embeddings. Worker inference succeeded; successful production snapshot publication is a separate check. |
+| RunPod | Hosted GLM-5.3 inference endpoint | Configured primary provider for Adi's validated answer-block selection, with separately authenticated Gemini failover and a deterministic guide. |
 
 **Essential or replaceable (maximum 100 words):**
 
 <!-- answer:start technical-5 limit=100 -->
-RunPod supplies Adi's configured GLM-5.3 endpoint and hosts the pinned MiniLM research encoder.
-Gemini and a built-in guide provide assistant fallback; optional Gemini embeddings support
-catalogue skill suggestions. MiniLM also has an explicit local CPU development backend.
-Role scoring, pathway ordering and SDG calculations remain deterministic. Web/database hosting,
-worker inference and validated snapshot publication are separate checks. Historical inference
-passed, but newer worker dependencies require rebuild/redeploy and a successful trend publish
-must be verified. Sponsor credits, mentoring and workshop participation require team confirmation.
+Replit hosts the deployed prototype and makes it accessible to judges. RunPod Serverless runs
+the MiniLM research encoder, while a separate RunPod endpoint supplies Adi's GLM-5.3 inference.
+These resources are important to the current deployment but replaceable: the web/API can move
+to another compatible host, MiniLM has a local CPU backend, and Adi has Gemini failover and a
+deterministic guide. Role matching and pathway generation use deterministic logic and saved
+data rather than requiring generative inference for each recommendation. Successful worker
+inference and successful publication of a new trend snapshot are separate checks.
 
 <!-- answer:end technical-5 -->
 

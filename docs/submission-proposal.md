@@ -99,7 +99,7 @@ never makes hiring, firing or admission decisions.
 | Persistence | PostgreSQL 16, pgvector, psycopg 3 | Profiles, catalogue, snapshots, plans, evidence and organisations. |
 | AI / methods | RunPod MiniLM (384 dimensions); optional Gemini skill embeddings (768 dimensions); Adi GLM-5.3/Gemini; deterministic scoring/pathways | Separate model purposes and credentials; no team fine-tuning; validated catalogue/answer-block IDs. |
 | Data | arXiv cs.AI RSS, committed BLS-derived baseline, official UN SDGs, Microsoft Learn, Coursera, cited provider pages, BNM exchange rates | Research signals, updatable public job postings, catalogue facts, certification fees and source attribution. |
-| Deployment | Root `.replit` and Python supervisor | One public Next.js server; private loopback FastAPI. Optional local Compose runs PostgreSQL only. |
+| Deployment | Replit Autoscale; root `.replit` and Python supervisor | Public prototype hosted on Replit with one public Next.js server and private loopback FastAPI. Optional local Compose runs PostgreSQL only. |
 | Quality / automation | pytest, Ruff, ESLint, TypeScript, contract and locale checks; GitHub Actions | Automated checks; conditional weekly trend refresh and source audit. |
 
 **Architecture appendix A: root deployment with one public server.** The root
@@ -135,13 +135,19 @@ flowchart TB
 ```
 
 **Verification boundaries:** the public URL [adept-my.replit.app](https://adept-my.replit.app)
-returned 200 for landing/About/sign-in and API/database health during read-only checks on
-24 October 2026. This does not prove that the new root deployment revision is published.
+returned 200 for landing, About and API/database health during read-only checks on
+25 October 2026. This confirms public reachability, not a particular deployed Git revision.
 A historical MiniLM test returned two valid 384-dimensional vectors; the first integrated
 refresh failed on the private development database host `helium`. The latest observed
 refresh run was unsuccessful, so no successful new production snapshot is claimed. Worker
-dependency updates require a separate image rebuild/redeployment. Sponsor credit entitlement,
-workshop attendance and mentoring remain team declarations.
+dependency updates require a separate image rebuild/redeployment.
+
+**Sponsor resources used:** Replit hosts the deployed public prototype. RunPod Serverless
+hosts the MiniLM research encoder, and a separate RunPod inference endpoint supplies Adi's
+configured GLM-5.3 model. These uses are declared in section 5 of the technical declaration.
+Google Gemini remains a separately declared provider integration; its presence alone is not
+a claim that the team received Google sponsor credits. Aiversecity is the domain alignment,
+not an API/resource usage claim. No credit amounts or mentoring participation are asserted.
 
 ### 3.2 Design-thinking and deployment strategy
 

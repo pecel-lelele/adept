@@ -779,6 +779,17 @@
 - **Replaces**: M3-028's incomplete Claude Code usage description
 - **PR / branch**: docs/core-submission-accuracy
 
+### M3-031: Declare Replit deployment and RunPod Serverless sponsor usage
+
+- **Date**: 2026-10-25
+- **Feature**: F8 (transparency), Core (deployment/submission)
+- **Type**: other
+- **Change**: Add the leader-confirmed Replit sponsor deployment resource alongside the deployed RunPod MiniLM Serverless worker and separate GLM inference endpoint. Update the proposal and cloud-service inventory with successful read-only landing/About/API database-health checks on 25 October; keep source-revision verification and failed trend publication distinct from resource usage.
+- **Why**: The earlier sponsor section incorrectly reduced disclosure to RunPod API usage and omitted Replit's actual hosting role. A specific credit amount or mentoring claim is not needed to describe confirmed platform use.
+- **Affects**: Submission documentation only; no hosting, model, schema or runtime changes
+- **Replaces**: Earlier sponsor-resource omissions in the submission drafts
+- **PR / branch**: docs/core-submission-accuracy
+
 ---
 
 ## M4: Core & Organisation (Core, F7)
