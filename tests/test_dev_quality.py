@@ -165,6 +165,20 @@ class LintRunnerTests(unittest.TestCase):
         )
         self.assertIn("make lint failed: ruff lint", err.getvalue())
 
+    def test_interrupt_from_lint_command_propagates_without_aggregation(self) -> None:
+        self.commands.side_effect = KeyboardInterrupt
+        out, err = io.StringIO(), io.StringIO()
+
+        with redirect_stdout(out), redirect_stderr(err):
+            with self.assertRaises(KeyboardInterrupt):
+                self.dev.main(["lint"])
+
+        self.assertEqual(self.commands.call_count, 1)
+        self.assertIn("lint: ruff lint", out.getvalue())
+        self.assertNotIn("lint: ruff format", out.getvalue())
+        self.assertNotIn("FAILED", err.getvalue())
+        self.assertNotIn("make lint failed", err.getvalue())
+
     def test_make_check_continues_other_stages_after_aggregated_lint_failure(self) -> None:
         self.command_results((1, 1, 1))
         stages = [
@@ -190,6 +204,33 @@ class LintRunnerTests(unittest.TestCase):
             "FAILED lint: make lint failed: ruff lint, ruff format, frontend lint", err.getvalue()
         )
         self.assertIn("make check failed: lint", err.getvalue())
+
+    def test_interrupt_from_make_check_stage_propagates_without_aggregation(self) -> None:
+        self.command_results((0, 0, 0))
+        i18n = Mock()
+        test = Mock(side_effect=KeyboardInterrupt)
+        typecheck = Mock()
+        contracts = Mock()
+        out, err = io.StringIO(), io.StringIO()
+
+        with ExitStack() as patches:
+            patches.enter_context(patch.object(self.dev, "task_i18n_check", i18n))
+            patches.enter_context(patch.object(self.dev, "task_test", test))
+            patches.enter_context(patch.object(self.dev, "task_typecheck", typecheck))
+            patches.enter_context(patch.object(self.dev, "task_contracts_check", contracts))
+
+            with redirect_stdout(out), redirect_stderr(err):
+                with self.assertRaises(KeyboardInterrupt):
+                    self.dev.main(["check"])
+
+        i18n.assert_called_once_with()
+        test.assert_called_once_with()
+        typecheck.assert_not_called()
+        contracts.assert_not_called()
+        self.assertIn("check: test", out.getvalue())
+        self.assertNotIn("check: typecheck", out.getvalue())
+        self.assertNotIn("All checks passed", out.getvalue())
+        self.assertNotIn("make check failed", err.getvalue())
 
     def test_contracts_check_fails_when_generated_files_have_drifted(self) -> None:
         drifted_files = "\n".join(f" M {path}" for path in self.dev.CONTRACT_FILES) + "\n"

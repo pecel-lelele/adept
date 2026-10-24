@@ -246,6 +246,8 @@ def task_lint() -> None:
         log(f"lint: {name}")
         try:
             fn()
+        except KeyboardInterrupt:
+            raise
         except TaskError as exc:
             print(f"FAILED {name}: {exc}", file=sys.stderr)
             failed.append(name)
@@ -347,6 +349,8 @@ def task_check() -> None:
         log(f"check: {name}")
         try:
             fn()
+        except KeyboardInterrupt:
+            raise
         except TaskError as exc:
             print(f"FAILED {name}: {exc}", file=sys.stderr)
             failed.append(name)
