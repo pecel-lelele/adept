@@ -28,30 +28,30 @@ Adept connects your current skills to future roles, explains the gaps, and build
 
 ## Team
 
-| Field | Details |
-|:---|:---|
-| Team | **Pecel Lele** |
-| University | Xiamen University Malaysia |
-| Team leader | David Kurniawan |
-| Members | 4 |
-| Competition | SDC XMUM Hackathon 2026 |
-| Domain | **Domain 1 — The Aiversecity Future-Ready Workforce** |
-| SDG track | **SDG 4 — Quality Education**; supporting SDGs 5, 8, 9 and 10 |
+| Field       | Details                                                       |
+| :---------- | :------------------------------------------------------------ |
+| Team        | **Pecel Lele**                                                |
+| University  | Xiamen University Malaysia                                    |
+| Team leader | David Kurniawan                                               |
+| Members     | 4                                                             |
+| Competition | SDC XMUM Hackathon 2026                                       |
+| Domain      | **Domain 1 — The Aiversecity Future-Ready Workforce**         |
+| SDG track   | **SDG 4 — Quality Education**; supporting SDGs 5, 8, 9 and 10 |
 
 ## Links
 
-| Resource | Link / status |
-|:---|:---|
-| GitHub repository | https://github.com/pecel-lelele/adept |
-| Replit project | https://replit.com/@darrensuwandi06/adept |
-| Live demo | https://adept-my.replit.app |
-| RunPod · Adi / GLM-5.3 | https://api.runpod.ai/v2/b1dd8hy2hqo1nb/openai/v1 |
-| RunPod · MiniLM-L6-v2 | https://api.runpod.ai/v2/ta14jd0by2ijl2 |
-| Submission proposal | [PDF source](docs/submission-proposal.md) |
-| Technical tools / stack declaration | [PDF source](docs/submission-technical-declaration.md) |
-| Slide deck | Team to add the final deck link |
-| Demo video | Team to add the final recording link |
-| Pitching video | Team to add the final recording link |
+| Resource                            | Link / status                                                                        |
+| :---------------------------------- | :----------------------------------------------------------------------------------- |
+| GitHub repository                   | https://github.com/pecel-lelele/adept                                                |
+| Replit project                      | https://replit.com/@kylomaxcellino/adept                                             |
+| Live demo                           | https://adept-my.replit.app                                                          |
+| RunPod · Adi / GLM-5.3              | https://api.runpod.ai/v2/b1dd8hy2hqo1nb/openai/v1                                    |
+| RunPod · MiniLM-L6-v2               | https://api.runpod.ai/v2/ta14jd0by2ijl2                                              |
+| Submission proposal                 | [PDF source](submission/SDC2026_Pecel-Lele_Preliminary.pdf)                          |
+| Technical tools / stack declaration | [PDF source](submission/SDC2026_Pecel-Lele_Technical-declaration.pdf)                |
+| Slide deck                          | https://drive.google.com/drive/folders/1oNEOcD5OXCK-iAAPoj3aXihO1cW77bTn?usp=sharing |
+| Demo video                          | https://drive.google.com/drive/folders/1tdSaHsHd1towg-bKghHUuSNn7jbI-LfN?usp=sharing |
+| Pitching video                      | https://drive.google.com/drive/folders/1tdSaHsHd1towg-bKghHUuSNn7jbI-LfN?usp=sharing |
 
 The queue-based endpoint ID is `ta14jd0by2ijl2` with base URL
 `https://api.runpod.ai/v2/ta14jd0by2ijl2`. Authenticate with the MiniLM-specific
@@ -75,14 +75,14 @@ still requires a separate successful **Trends refresh** run. Store the key in a 
 
 ## Features
 
-| Step | What you can do |
-|:---|:---|
-| **Understand your skills** | Upload a synthetic CV or complete the questionnaire, then confirm the extracted skills. |
-| **Explore AI signals** | See dated skill trends, compare moderate and fast scenarios, and replay earlier snapshots. |
-| **Find a direction** | Compare roles with a score breakdown, skills gap and SDG links. |
-| **Build a plan** | Choose courses around your hours and budget; track progress and supporting evidence. |
-| **Connect to work** | Explore job openings and relevant certification exams alongside your target role. |
-| **Plan for a team** | Review team gaps, create training programmes, manage funding and review evidence. |
+| Step                       | What you can do                                                                            |
+| :------------------------- | :----------------------------------------------------------------------------------------- |
+| **Understand your skills** | Upload a synthetic CV or complete the questionnaire, then confirm the extracted skills.    |
+| **Explore AI signals**     | See dated skill trends, compare moderate and fast scenarios, and replay earlier snapshots. |
+| **Find a direction**       | Compare roles with a score breakdown, skills gap and SDG links.                            |
+| **Build a plan**           | Choose courses around your hours and budget; track progress and supporting evidence.       |
+| **Connect to work**        | Explore job openings and relevant certification exams alongside your target role.          |
+| **Plan for a team**        | Review team gaps, create training programmes, manage funding and review evidence.          |
 
 English, Bahasa Melayu and Chinese are supported. Adi explains the information in your signed-in workspace.
 
@@ -129,13 +129,13 @@ create an invented `example.test` account, and follow **Radar → Roles → Plan
 Create a team account to try programmes, funding decisions and completion reviews, and join
 with a synthetic learner using its join code. Personal and organisation learning stay separate.
 
-| Synthetic demo profile | CV |
-|:---|:---|
+| Synthetic demo profile                     | CV                                                                                  |
+| :----------------------------------------- | :---------------------------------------------------------------------------------- |
 | Imran Hakim · Compliance Analytics Officer | [Download PDF](submission/demo-cvs/cv_imran_hakim_compliance_analytics_officer.pdf) |
-| Sofia Tan · Process Automation Analyst | [Download PDF](submission/demo-cvs/cv_sofia_tan_process_automation_analyst.pdf) |
-| Meera Anand · Logistics Supervisor | [Download PDF](submission/demo-cvs/cv_meera_anand_logistics_supervisor.pdf) |
-| Adrian Lim · Data Analyst | [Download PDF](submission/demo-cvs/cv_adrian_lim_data_analyst.pdf) |
-| Nur Hana · Bank Operations Executive | [Download PDF](submission/demo-cvs/cv_nur_hana_bank_operations_executive.pdf) |
+| Sofia Tan · Process Automation Analyst     | [Download PDF](submission/demo-cvs/cv_sofia_tan_process_automation_analyst.pdf)     |
+| Meera Anand · Logistics Supervisor         | [Download PDF](submission/demo-cvs/cv_meera_anand_logistics_supervisor.pdf)         |
+| Adrian Lim · Data Analyst                  | [Download PDF](submission/demo-cvs/cv_adrian_lim_data_analyst.pdf)                  |
+| Nur Hana · Bank Operations Executive       | [Download PDF](submission/demo-cvs/cv_nur_hana_bank_operations_executive.pdf)       |
 
 The demo guide supplies editable synthetic intake settings; time, budget and proficiency
 choices are not verified CV facts. Parser regression fixtures remain under `tests/`.
@@ -151,12 +151,12 @@ instance does not prove that a newer attempted release succeeded.
 
 ## AI and data
 
-| Component | Provider / model | Purpose |
-|:---|:---|:---|
-| Adi | Z.ai **GLM-5.3** (`glm-5.3`) through RunPod | Selects validated answer blocks using the user's Adept data. |
-| Adi fallback | Google **Gemini 3.5 Flash Lite**, with Gemini 3.6 Flash / 3.1 Flash Lite backups | Handles provider failure; a built-in guide remains available. |
-| Trend encoder | Sentence Transformers **all-MiniLM-L6-v2** through RunPod | Relates public research sentences to catalogue skills. Deployed worker verified with two 384-dimensional embeddings. |
-| CV skill suggestions | Google **gemini-embedding-001** | Suggests catalogue matches for unfamiliar skill phrases; the user confirms additions. |
+| Component            | Provider / model                                                                 | Purpose                                                                                                              |
+| :------------------- | :------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------- |
+| Adi                  | Z.ai **GLM-5.3** (`glm-5.3`) through RunPod                                      | Selects validated answer blocks using the user's Adept data.                                                         |
+| Adi fallback         | Google **Gemini 3.5 Flash Lite**, with Gemini 3.6 Flash / 3.1 Flash Lite backups | Handles provider failure; a built-in guide remains available.                                                        |
+| Trend encoder        | Sentence Transformers **all-MiniLM-L6-v2** through RunPod                        | Relates public research sentences to catalogue skills. Deployed worker verified with two 384-dimensional embeddings. |
+| CV skill suggestions | Google **gemini-embedding-001**                                                  | Suggests catalogue matches for unfamiliar skill phrases; the user confirms additions.                                |
 
 Model features are configurable; the default assistant uses the built-in guide. Role scores, learning plans and trend calculations use deterministic rules. Model-selected IDs pass through `validate_ids` before display.
 
@@ -164,15 +164,15 @@ Data comes from arXiv, BLS projections, the UN SDG API, Microsoft Learn, verifie
 
 ## Development
 
-| Command (repository root) | Purpose |
-|:---|:---|
-| `uv run --frozen python src/scripts/dev.py check` | Ruff, ESLint, TypeScript, translation parity, pytest and contract drift |
-| `uv run --frozen python src/scripts/dev.py test` | Python regression suite |
-| `uv run --frozen python src/scripts/dev.py contracts` | OpenAPI and typed web client generation |
-| `uv run --frozen python src/scripts/dev.py db-migrate` / `seed` | Explicit local database preparation |
-| `npx --yes pnpm@10.29.3 test:proxy` | Public proxy, CORS and startup regressions |
-| `npx --yes pnpm@10.29.3 typecheck` | Product TypeScript checks |
-| `npx --yes pnpm@10.29.3 build` | Build the Next.js standalone product; no mockup/artifact build |
+| Command (repository root)                                       | Purpose                                                                 |
+| :-------------------------------------------------------------- | :---------------------------------------------------------------------- |
+| `uv run --frozen python src/scripts/dev.py check`               | Ruff, ESLint, TypeScript, translation parity, pytest and contract drift |
+| `uv run --frozen python src/scripts/dev.py test`                | Python regression suite                                                 |
+| `uv run --frozen python src/scripts/dev.py contracts`           | OpenAPI and typed web client generation                                 |
+| `uv run --frozen python src/scripts/dev.py db-migrate` / `seed` | Explicit local database preparation                                     |
+| `npx --yes pnpm@10.29.3 test:proxy`                             | Public proxy, CORS and startup regressions                              |
+| `npx --yes pnpm@10.29.3 typecheck`                              | Product TypeScript checks                                               |
+| `npx --yes pnpm@10.29.3 build`                                  | Build the Next.js standalone product; no mockup/artifact build          |
 
 CI also checks PostgreSQL upgrades/recovery, navigation/read retries and the worker publisher.
 The merged hardening revision passed 940 Python tests (32 environment-dependent skips),
@@ -187,20 +187,20 @@ MiniLM is deployed as a **queue-based RunPod Serverless worker** using the publi
 384-dimensional embeddings. The container includes model weights and PyTorch; GitHub's
 trend runner installs pipeline client dependencies and calls RunPod over HTTPS.
 
-| Workflow | Trigger and responsibility |
-|:---|:---|
-| [CI](.github/workflows/ci.yml) | Pushes to `main`, pull requests and manual runs: lint, tests, real PostgreSQL checks, translations, generated contracts and production web build. |
-| [Data sources](.github/workflows/data-sources.yml) | Mondays 02:17 UTC (10:17 WITA) and manual runs: checks upstream SDG/course data and evidence links; does not publish trend snapshots. |
-| [Trends refresh](.github/workflows/trends-refresh.yml) | Mondays 03:41 UTC (11:41 WITA) and manual runs: ingest public research → RunPod embeddings → score → validate → publish a dated database snapshot. |
+| Workflow                                               | Trigger and responsibility                                                                                                                                     |
+| :----------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [CI](.github/workflows/ci.yml)                         | Pushes to `main`, pull requests and manual runs: lint, tests, real PostgreSQL checks, translations, generated contracts and production web build.              |
+| [Data sources](.github/workflows/data-sources.yml)     | Mondays 02:17 UTC (10:17 WITA) and manual runs: checks upstream SDG/course data and evidence links; does not publish trend snapshots.                          |
+| [Trends refresh](.github/workflows/trends-refresh.yml) | Mondays 03:41 UTC (11:41 WITA) and manual runs: ingest public research → RunPod embeddings → score → validate → publish a dated database snapshot.             |
 | [Publish MiniLM](.github/workflows/publish-minilm.yml) | Manual dispatch on the source repository's `main` only: builds `linux/amd64` and publishes GHCR tags with job-scoped `GITHUB_TOKEN`. PRs/forks do not publish. |
 
 Configure **repository Settings → Secrets and variables → Actions**:
 
-| Kind | Exact name | Value |
-|:---|:---|:---|
-| Secret | `TREND_DATABASE_URL` | The published app's production PostgreSQL connection string, reachable from GitHub Actions. Replit's development `helium` URL cannot be used externally. |
-| Secret | `TRENDS_RUNPOD_API_KEY` | A dedicated MiniLM key permitted to invoke the endpoint. |
-| Variable | `TRENDS_RUNPOD_ENDPOINT_ID` | `ta14jd0by2ijl2` |
+| Kind     | Exact name                  | Value                                                                                                                                                    |
+| :------- | :-------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Secret   | `TREND_DATABASE_URL`        | The published app's production PostgreSQL connection string, reachable from GitHub Actions. Replit's development `helium` URL cannot be used externally. |
+| Secret   | `TRENDS_RUNPOD_API_KEY`     | A dedicated MiniLM key permitted to invoke the endpoint.                                                                                                 |
+| Variable | `TRENDS_RUNPOD_ENDPOINT_ID` | `ta14jd0by2ijl2`                                                                                                                                         |
 
 The workflow maps `TREND_DATABASE_URL` to the process variable `DATABASE_URL`. A repository
 secret named only `DATABASE_URL` does not satisfy that workflow. MiniLM credentials are
@@ -260,8 +260,6 @@ flowchart TB
   job <--> minilm
   job -- "reachable deployment database required" --> db
 ```
-
-
 
 <details>
 <summary><strong>User journeys, sequences and trend pipeline · 4 diagrams</strong></summary>
@@ -617,16 +615,15 @@ Dotted connections are logical joins, not declared foreign keys. Embeddings, raw
 and trend snapshot `skill_id` columns are not constrained to `skills` by the current DDL;
 publish-time validation checks taxonomy membership. `trend_snapshot_meta` is joined by date.
 
-
 The diagram omits some supporting tables:
 
-| Table | Purpose |
-|---|---|
-| `arxiv_fetch_log` | Audit of each arXiv pull |
-| `data_syncs` | Catalogue and SDG sync runs |
-| `fx_rates` | Bank Negara Malaysia rates for converting course prices |
-| `llm_calls` | Log of LLM gateway calls (empty while `LLM_PROVIDER=none`) |
-| `snapshots`, `trend_signals` | Early skeleton tables kept for compatibility |
+| Table                        | Purpose                                                    |
+| ---------------------------- | ---------------------------------------------------------- |
+| `arxiv_fetch_log`            | Audit of each arXiv pull                                   |
+| `data_syncs`                 | Catalogue and SDG sync runs                                |
+| `fx_rates`                   | Bank Negara Malaysia rates for converting course prices    |
+| `llm_calls`                  | Log of LLM gateway calls (empty while `LLM_PROVIDER=none`) |
+| `snapshots`, `trend_signals` | Early skeleton tables kept for compatibility               |
 
 Migrations are in [`src/db/migrations`](src/db/migrations). New changes always go in a new file.
 
@@ -634,19 +631,19 @@ Migrations are in [`src/db/migrations`](src/db/migrations). New changes always g
 
 ## Project structure
 
-| Path | Current contents |
-|:---|:---|
-| `src/web/` | Next.js product, shared UI, translations and standalone scripts |
-| `src/api/` | FastAPI contracts and feature services |
-| `src/pipelines/` | Research, job, course, SDG and validation jobs |
-| `src/data/seed/` | Dated public reference data and synthetic fixtures |
-| `src/db/` | Append-only SQL migrations and explicit seed loader |
-| `tests/` | API, pipeline, public proxy and deployment regression suites |
-| `.github/workflows/` | CI, source audit, trend refresh and guarded MiniLM image publisher |
-| `docs/` | Current submission sources, decisions and diagram explorer |
-| `src/scripts/` | Cross-platform setup/check runner and supervised production build/start |
-| `pyproject.toml`, `uv.lock`, `pnpm-lock.yaml` | Python and JavaScript dependency manifests/locks |
-| `.replit` | Root build/start commands and one public port (3000 → 80) |
+| Path                                          | Current contents                                                        |
+| :-------------------------------------------- | :---------------------------------------------------------------------- |
+| `src/web/`                                    | Next.js product, shared UI, translations and standalone scripts         |
+| `src/api/`                                    | FastAPI contracts and feature services                                  |
+| `src/pipelines/`                              | Research, job, course, SDG and validation jobs                          |
+| `src/data/seed/`                              | Dated public reference data and synthetic fixtures                      |
+| `src/db/`                                     | Append-only SQL migrations and explicit seed loader                     |
+| `tests/`                                      | API, pipeline, public proxy and deployment regression suites            |
+| `.github/workflows/`                          | CI, source audit, trend refresh and guarded MiniLM image publisher      |
+| `docs/`                                       | Current submission sources, decisions and diagram explorer              |
+| `src/scripts/`                                | Cross-platform setup/check runner and supervised production build/start |
+| `pyproject.toml`, `uv.lock`, `pnpm-lock.yaml` | Python and JavaScript dependency manifests/locks                        |
+| `.replit`                                     | Root build/start commands and one public port (3000 → 80)               |
 
 ## Root production deployment
 
@@ -664,9 +661,7 @@ then runs the generated Next.js server on the single public port. Neither operat
 migrations, seeding or model inference. `artifacts/`, the Express proxy, Drizzle scaffold,
 mockup sandbox and generated scaffold clients are not part of this product.
 
-`GET /api/healthz` and `GET /api/v1` are readiness aliases; an unavailable database returns
-503. `/api/v1/health` preserves the FastAPI health response. Unknown API paths still return
-404. CI starts this exact production pair against disposable PostgreSQL and checks pages,
+`GET /api/healthz` and `GET /api/v1` are readiness aliases; an unavailable database returns 503. `/api/v1/health` preserves the FastAPI health response. Unknown API paths still return 404. CI starts this exact production pair against disposable PostgreSQL and checks pages,
 static CSS, health, CORS preflight and a read-only failed login through the public proxy.
 
 ## Production boundaries
