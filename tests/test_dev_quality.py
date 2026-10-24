@@ -144,6 +144,54 @@ class LintRunnerTests(unittest.TestCase):
         )
         self.assertIn("make check failed: lint", err.getvalue())
 
+    def test_contracts_check_fails_when_generated_files_have_drifted(self) -> None:
+        drifted_files = "\n".join(f" M {path}" for path in self.dev.CONTRACT_FILES) + "\n"
+        git_status = subprocess.CompletedProcess(["git", "status"], 0, stdout=drifted_files)
+        self.commands.return_value = git_status
+        with patch.object(self.dev, "task_contracts") as generate_contracts:
+            out = io.StringIO()
+            with redirect_stdout(out):
+                with self.assertRaisesRegex(
+                    self.dev.TaskError,
+                    r"Contract drift: generated files changed\. Run `make contracts`",
+                ):
+                    self.dev.task_contracts_check()
+
+        generate_contracts.assert_called_once_with()
+        self.commands.assert_called_once_with(
+            ["git", "status", "--porcelain", "--", *self.dev.CONTRACT_FILES],
+            cwd=self.dev.ROOT,
+            capture_output=True,
+            text=True,
+        )
+        for path in self.dev.CONTRACT_FILES:
+            self.assertIn(f" M {path}", out.getvalue())
+
+    def test_make_check_reports_generated_contract_drift_as_contracts_failure(self) -> None:
+        drifted_files = "\n".join(f" M {path}" for path in self.dev.CONTRACT_FILES) + "\n"
+        git_status = subprocess.CompletedProcess(["git", "status"], 0, stdout=drifted_files)
+        self.commands.side_effect = [
+            *(subprocess.CompletedProcess(command, 0) for command in COMMANDS),
+            git_status,
+        ]
+        with ExitStack() as patches:
+            patches.enter_context(patch.object(self.dev, "task_contracts"))
+            for callback_name in ("task_i18n_check", "task_test", "task_typecheck"):
+                patches.enter_context(patch.object(self.dev, callback_name))
+
+            out, err = io.StringIO(), io.StringIO()
+            with redirect_stdout(out), redirect_stderr(err):
+                self.assertEqual(self.dev.main(["check"]), 1)
+
+        self.assertEqual(
+            [call.args[0] for call in self.commands.call_args_list],
+            [*COMMANDS, ["git", "status", "--porcelain", "--", *self.dev.CONTRACT_FILES]],
+        )
+        self.assertIn("FAILED contracts: Contract drift: generated files changed.", err.getvalue())
+        self.assertIn("make check failed: contracts", err.getvalue())
+        for path in self.dev.CONTRACT_FILES:
+            self.assertIn(f" M {path}", out.getvalue())
+
     def test_make_check_continues_when_python_lint_commands_cannot_be_prepared(self) -> None:
         self.dev.py.side_effect = self.dev.TaskError("Python environment unavailable")
         self.commands.return_value = subprocess.CompletedProcess(COMMANDS[2], 0)
