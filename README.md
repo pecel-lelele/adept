@@ -155,6 +155,11 @@ Data comes from arXiv, BLS projections, the UN SDG API, Microsoft Learn, verifie
 | `make db-migrate` | Apply pending database migrations |
 | `make seed` | Load committed reference and synthetic datasets |
 
+Quality subprocesses started by `make check` and its component checks time out after
+10 minutes by default. Set `DEV_QUALITY_TIMEOUT_SECONDS` to a positive number of
+seconds to change the limit; a timed-out check is reported as a failure and the
+remaining checks still run.
+
 On Windows, use `uv run --no-project python src/scripts/dev.py <command>` for the same tasks. GitHub Actions runs PR checks and scheduled trend/source refreshes.
 
 ### RunPod Serverless and GitHub Actions

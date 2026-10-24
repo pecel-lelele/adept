@@ -10,6 +10,7 @@ without `make` can call it directly.
 from __future__ import annotations
 
 import json
+import math
 import os
 import shutil
 import subprocess
@@ -25,6 +26,9 @@ DB = ROOT / "src" / "db"
 VENV = ROOT / ".venv"
 PYTHON_VERSION = "3.11"
 CONTRACT_FILES = ["src/api/openapi.json", "src/web/src/lib/api/types.ts"]
+# Quality commands time out after 10 minutes unless this environment variable overrides it.
+QUALITY_TIMEOUT_ENV = "DEV_QUALITY_TIMEOUT_SECONDS"
+DEFAULT_QUALITY_TIMEOUT_SECONDS = 600.0
 
 
 class TaskError(Exception):
@@ -80,16 +84,48 @@ def uv() -> list[str]:
     return [found]
 
 
-def run(cmd: Sequence[str], cwd: Path = ROOT, check: bool = True) -> int:
+def quality_timeout_seconds() -> float:
+    """Return the configured positive, finite timeout for quality subprocesses."""
+    raw = os.environ.get(QUALITY_TIMEOUT_ENV)
+    if raw is None:
+        return DEFAULT_QUALITY_TIMEOUT_SECONDS
+    try:
+        timeout = float(raw)
+    except ValueError as exc:
+        raise TaskError(f"{QUALITY_TIMEOUT_ENV} must be a positive number.") from exc
+    if not math.isfinite(timeout) or timeout <= 0:
+        raise TaskError(f"{QUALITY_TIMEOUT_ENV} must be a positive number.")
+    return timeout
+
+
+def run(
+    cmd: Sequence[str],
+    cwd: Path = ROOT,
+    check: bool = True,
+    timeout: float | None = None,
+) -> int:
     print(f"$ {' '.join(cmd)}", flush=True)
-    code = subprocess.run(list(cmd), cwd=cwd, env=os.environ).returncode
+    try:
+        code = subprocess.run(list(cmd), cwd=cwd, env=os.environ, timeout=timeout).returncode
+    except subprocess.TimeoutExpired as exc:
+        if timeout is None:
+            raise
+        raise TaskError(f"command timed out after {timeout:g} seconds: {' '.join(cmd)}") from exc
     if check and code != 0:
         raise TaskError(f"command failed ({code}): {' '.join(cmd)}")
     return code
 
 
+def quality_run(cmd: Sequence[str], cwd: Path = ROOT) -> int:
+    return run(cmd, cwd=cwd, timeout=quality_timeout_seconds())
+
+
 def web_run(*args: str) -> int:
     return run([*pnpm(), *args], cwd=WEB)
+
+
+def quality_web_run(*args: str) -> int:
+    return quality_run([*pnpm(), *args], cwd=WEB)
 
 
 # --- database ---------------------------------------------------------------
@@ -201,9 +237,9 @@ def supervise(procs: dict[str, subprocess.Popen[bytes]], poll_s: float = 0.5) ->
 
 def task_lint() -> None:
     steps: list[tuple[str, Callable[[], int]]] = [
-        ("ruff lint", lambda: run(py("-m", "ruff", "check", "."))),
-        ("ruff format", lambda: run(py("-m", "ruff", "format", "--check", "."))),
-        ("frontend lint", lambda: web_run("lint")),
+        ("ruff lint", lambda: quality_run(py("-m", "ruff", "check", "."))),
+        ("ruff format", lambda: quality_run(py("-m", "ruff", "format", "--check", "."))),
+        ("frontend lint", lambda: quality_web_run("lint")),
     ]
     failed: list[str] = []
     for name, fn in steps:
@@ -229,27 +265,35 @@ def task_format() -> None:
 
 
 def task_test() -> None:
-    run(py("-m", "pytest"))
+    quality_run(py("-m", "pytest"))
 
 
 def task_typecheck() -> None:
-    web_run("typecheck")
+    quality_web_run("typecheck")
 
 
 def task_contracts() -> None:
     """Regenerate openapi.json from the Pydantic contracts, then the TS types."""
-    run(py("-m", "app.export_openapi", str(API / "openapi.json")), cwd=API)
-    web_run("contracts")
+    quality_run(py("-m", "app.export_openapi", str(API / "openapi.json")), cwd=API)
+    quality_web_run("contracts")
 
 
 def task_contracts_check() -> None:
     task_contracts()
-    result = subprocess.run(
-        ["git", "status", "--porcelain", "--", *CONTRACT_FILES],
-        cwd=ROOT,
-        capture_output=True,
-        text=True,
-    )
+    command = ["git", "status", "--porcelain", "--", *CONTRACT_FILES]
+    timeout = quality_timeout_seconds()
+    try:
+        result = subprocess.run(
+            command,
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise TaskError(
+            f"command timed out after {timeout:g} seconds: {' '.join(command)}"
+        ) from exc
     if result.stdout.strip():
         print(result.stdout)
         raise TaskError(

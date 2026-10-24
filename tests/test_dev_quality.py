@@ -28,6 +28,12 @@ class LintRunnerTests(unittest.TestCase):
         assert spec and spec.loader
         self.dev = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(self.dev)
+        timeout_env = patch.dict(
+            "os.environ",
+            {self.dev.QUALITY_TIMEOUT_ENV: str(self.dev.DEFAULT_QUALITY_TIMEOUT_SECONDS)},
+        )
+        timeout_env.start()
+        self.addCleanup(timeout_env.stop)
         patches = [
             patch.object(self.dev, "load_env"),
             patch.object(self.dev, "py", side_effect=lambda *args: ["test-python", *args]),
@@ -54,12 +60,53 @@ class LintRunnerTests(unittest.TestCase):
             for command, code in zip(COMMANDS, codes, strict=True)
         ]
 
-    def assert_commands_once(self) -> None:
+    def assert_commands_once(self, timeout: float | None = None) -> None:
         self.assertEqual([call.args[0] for call in self.commands.call_args_list], COMMANDS)
         self.assertEqual(
             [call.kwargs["cwd"] for call in self.commands.call_args_list],
             [self.dev.ROOT, self.dev.ROOT, self.dev.WEB],
         )
+        self.assertEqual(
+            [call.kwargs["timeout"] for call in self.commands.call_args_list],
+            [self.dev.DEFAULT_QUALITY_TIMEOUT_SECONDS if timeout is None else timeout] * 3,
+        )
+
+    def test_timed_out_lint_command_is_reported_and_later_checks_still_run(self) -> None:
+        timeout = 2.5
+        self.commands.side_effect = [
+            subprocess.TimeoutExpired(COMMANDS[0], timeout),
+            subprocess.CompletedProcess(COMMANDS[1], 0),
+            subprocess.CompletedProcess(COMMANDS[2], 0),
+        ]
+        stages = [
+            "task_i18n_check",
+            "task_test",
+            "task_typecheck",
+            "task_contracts_check",
+        ]
+        callbacks = [Mock() for _ in stages]
+        out, err = io.StringIO(), io.StringIO()
+        with ExitStack() as patches:
+            for stage, callback in zip(stages, callbacks, strict=True):
+                patches.enter_context(patch.object(self.dev, stage, callback))
+            with patch.dict("os.environ", {self.dev.QUALITY_TIMEOUT_ENV: str(timeout)}):
+                with redirect_stdout(out), redirect_stderr(err):
+                    result = self.dev.main(["check"])
+
+        self.assertEqual(result, 1)
+        self.assert_commands_once(timeout=timeout)
+        for callback in callbacks:
+            callback.assert_called_once_with()
+        for label in LABELS:
+            self.assertIn(f"lint: {label}", out.getvalue())
+        for stage in ("i18n", "test", "typecheck", "contracts"):
+            self.assertIn(f"check: {stage}", out.getvalue())
+        self.assertIn(
+            "FAILED ruff lint: command timed out after 2.5 seconds: test-python -m ruff check .",
+            err.getvalue(),
+        )
+        self.assertIn("FAILED lint: make lint failed: ruff lint", err.getvalue())
+        self.assertIn("make check failed: lint", err.getvalue())
 
     def test_every_failure_combination_runs_each_check_once_and_preserves_exit_status(self) -> None:
         for codes in itertools.product((0, 2), repeat=3):
@@ -163,6 +210,7 @@ class LintRunnerTests(unittest.TestCase):
             cwd=self.dev.ROOT,
             capture_output=True,
             text=True,
+            timeout=self.dev.DEFAULT_QUALITY_TIMEOUT_SECONDS,
         )
         for path in self.dev.CONTRACT_FILES:
             self.assertIn(f" M {path}", out.getvalue())
@@ -213,23 +261,17 @@ class LintRunnerTests(unittest.TestCase):
                 self.assertEqual(self.dev.main(["check"]), 1)
 
         self.assertEqual(self.dev.py.call_count, 2)
-        self.assertEqual(
-            [call.args[0] for call in self.commands.call_args_list], [COMMANDS[2]]
-        )
+        self.assertEqual([call.args[0] for call in self.commands.call_args_list], [COMMANDS[2]])
         self.assertEqual(
             [call.kwargs["cwd"] for call in self.commands.call_args_list], [self.dev.WEB]
         )
         for callback in callbacks.values():
             callback.assert_called_once_with()
         self.assertIn("lint: frontend lint", out.getvalue())
-        self.assertIn(
-            "FAILED lint: make lint failed: ruff lint, ruff format", err.getvalue()
-        )
+        self.assertIn("FAILED lint: make lint failed: ruff lint, ruff format", err.getvalue())
         for stage in stage_names:
             self.assertIn(f"FAILED {stage}: {stage} failure", err.getvalue())
-        self.assertIn(
-            "make check failed: lint, i18n, test, typecheck, contracts", err.getvalue()
-        )
+        self.assertIn("make check failed: lint, i18n, test, typecheck, contracts", err.getvalue())
 
     def test_make_check_continues_after_unexpected_stage_error_and_fails(self) -> None:
         self.command_results((0, 0, 0))
@@ -282,9 +324,7 @@ class LintRunnerTests(unittest.TestCase):
             self.assert_commands_once()
             for callback in callbacks.values():
                 callback.assert_called_once_with()
-            self.assertIn(
-                "make check failed: lint, i18n, typecheck, contracts", err.getvalue()
-            )
+            self.assertIn("make check failed: lint, i18n, typecheck, contracts", err.getvalue())
             self.assertIn("FAILED lint: make lint failed: ruff lint", err.getvalue())
             for stage in failures:
                 self.assertIn(f"FAILED {stage}: {stage} failure", err.getvalue())
