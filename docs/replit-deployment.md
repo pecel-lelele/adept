@@ -131,5 +131,36 @@ GitHub's `TREND_DATABASE_URL` secret and follow the
 [MiniLM deployment handoff](../src/pipelines/trends/runpod/DEPLOYMENT_HANDOFF.md).
 GitHub Actions cannot reach the private development hostname `helium`.
 
+## Recovering from terminated database connections
+
+`terminating connection due to administrator command` means PostgreSQL terminated
+the session. App logs alone do not identify the initiating platform event. Check
+Replit's production database events around the same UTC timestamp; app log times
+may be displayed separately in the browser's local timezone.
+
+Both API pools check connections before use and replace terminated idle sessions.
+Rate-limit queries have a 2-second statement timeout and a 1-second lock timeout;
+when unavailable, the limiter retains its bounded, thread-safe per-process fallback.
+The web API client retries GET/HEAD once for network failures or HTTP 502/503/504.
+Transactions that have already started and HTTP writes are never automatically
+replayed because their commit outcome may be unknown. An ongoing database outage
+can still return 503 for authentication and writes; seed-backed catalogue reads
+are degraded service, not proof that production storage is healthy.
+
+After publishing this repair, verify sign-in, `/app`, and a saved-data workflow,
+then repeat after an idle period. Confirm `/auth/me` succeeds in the API run logs.
+If terminations continue with fresh connections, collect database events and
+sanitized run logs for Replit Support. Do not reset or copy over production data.
+
+The regression test below intentionally terminates only sessions it creates.
+Run it **only on a disposable, migrated and seeded test database**, never production:
+
+```bash
+ADEPT_TEST_DATABASE_URL='<disposable test database URL>' .venv/bin/python -m pytest tests/integration/test_database_recovery.py
+node --test tests/web-api-recovery.test.ts
+```
+
+Pool behavior follows [Psycopg's connection quality documentation](https://www.psycopg.org/psycopg3/docs/advanced/pool.html#connection-quality).
+
 References: [Replit configuration](https://docs.replit.com/pt/references/project-setup/configuration),
 [production database lifecycle](https://docs.replit.com/features/data-and-storage/development-and-production).

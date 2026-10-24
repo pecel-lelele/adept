@@ -1,7 +1,16 @@
+from concurrent.futures import ThreadPoolExecutor
+
+import psycopg
+import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from app.core.security.rate_limit import DEFAULT_BUCKET, RateLimitMiddleware, SlidingWindowCounter
+from app.core.security.rate_limit import (
+    DEFAULT_BUCKET,
+    PostgresCounter,
+    RateLimitMiddleware,
+    SlidingWindowCounter,
+)
 
 LIMITS = {"/api/v1/profile/cv": (2, 60)}
 
@@ -83,3 +92,21 @@ def test_real_ip_is_trusted_with_the_proxy_secret() -> None:
     for ip in ("9.9.9.1", "9.9.9.2"):
         headers = {"X-Real-IP": ip, "X-Internal-Proxy-Secret": "s3cret"}
         assert client.get("/api/v1/a", headers=headers).status_code == 200
+
+
+def test_concurrent_outage_uses_the_supplied_fallback(monkeypatch: pytest.MonkeyPatch) -> None:
+    fallback = SlidingWindowCounter({}, default=(5, 60), max_keys=1)
+    counter = PostgresCounter("", {}, (5, 60), fallback=fallback)
+
+    def unavailable() -> None:
+        raise psycopg.OperationalError("terminating connection due to administrator command")
+
+    monkeypatch.setattr(counter, "_conn_pool", unavailable)
+    try:
+        with ThreadPoolExecutor(max_workers=16) as workers:
+            results = list(workers.map(lambda _: counter.hit("synthetic-client", "/x"), range(64)))
+        assert sum(result[0] for result in results) == 5
+        assert len(fallback) == 1, "the caller's empty counter must not be replaced"
+        assert not counter.hit("new-client", "/x")[0], "retain the supplied max_keys setting"
+    finally:
+        counter.pool.close()
