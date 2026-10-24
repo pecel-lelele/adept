@@ -1,0 +1,16 @@
+entrypoint = "src/scripts/replit.py"
+modules = ["python-3.11", "nodejs-22"]
+run = ["python3", "src/scripts/dev.py", "dev"]
+
+[nix]
+channel = "stable-24_11"
+packages = ["gcc"]
+
+[deployment]
+deploymentTarget = "cloudrun"
+build = ["python3", "src/scripts/replit.py", "build"]
+run = ["python3", "src/scripts/replit.py", "start"]
+
+[[ports]]
+localPort = 3000
+externalPort = 80

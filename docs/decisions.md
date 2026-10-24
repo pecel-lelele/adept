@@ -1499,13 +1499,24 @@
 - **Replaces**: M4-066 (MiniLM pending status); completes deployment integration from M1-011/M4-064.
 - **PR / branch**: feat/minilm-runpod-deploy
 
-### M4-069: Document the verified MiniLM RunPod API contract
+### M4-069: Explicit Replit production build and supervised startup
 - **Date**: 2026-10-24
-- **Feature**: F2 (AI-Trend Signal Layer), Core deployment
+- **Feature**: Core deployment
 - **Type**: other
-- **Change**: Document the deployed RunPod endpoint and authenticated batch, status and health routes in the root README and worker guide. Preserve distinct endpoint configuration and inference credentials for MiniLM and Adi's GLM service.
-- **Why**: Operators need usable endpoint details in the repository, and substituting the GLM chat credential or endpoint can disrupt unrelated model access.
-- **Pipeline**: public research sentences and catalogue labels → existing text validation → pinned all-MiniLM-L6-v2 revision `1110a243fdf4706b3f48f1d95db1a4f5529b4d41` → normalized 384-dimensional embeddings → verified two-text live smoke test → existing trend pipeline.
-- **Affects**: M1 (trend refresh), M4 (deployment/docs); no scoring, schema or GLM chat changes
+- **Change**: Add a versioned Autoscale build/start configuration and stdlib production launcher. Build Next.js standalone assets and Python dependencies; co-host a private FastAPI process with one public web port, honor existing workspace port mappings, resolve Nix's GCC runtime for PyMuPDF and stop both children on failures. Document workspace preservation, production secrets, database preparation and publishing diagnostics.
+- **Why**: GitHub main had no Replit configuration. The partner's unpushed workspace configuration provided only a development Preview workflow, without deployment build/run commands. Explicit production commands close that gap; the generic disabled Publish banner still requires account-side validation after configuration is loaded.
+- **Affects**: M4 (Replit deployment), all features served by the app; no schema, contract, scoring or dependency changes.
+- **Validation**: Full quality gate passed (932 tests, 27 skipped), including 14 launcher regressions. The exact production build passed; a local production smoke test verified the public landing/About/sign-in pages, static assets and API database health using synthetic local data with model providers disabled. Replit account-side publishing remains unverified.
 - **Replaces**: none
-- **PR / branch**: docs/minilm-runpod-endpoint-contract
+- **PR / branch**: fix/core-replit-deployment
+
+### M4-071: Patch Next.js before retrying Replit package installation
+- **Date**: 2026-10-24
+- **Feature**: Core deployment
+- **Type**: dependency
+- **Change**: Pin Next.js and eslint-config-next to 16.4.1 and regenerate the existing pnpm 10.29.3 lockfile. Document diagnosis of Replit package-firewall rejection without disabling platform checks or adding registry credentials.
+- **Why**: The live Replit build successfully installed Python dependencies, then received HTTP 403 downloading Next.js 16.2.12 from its internal package firewall. Vendor advisories identify critical affected-version ranges covering 16.2.12 and prescribe 16.4.1. The firewall's precise rejection reason remains unconfirmed; the dependency update independently addresses the published advisories. The official public tarball for 16.2.12 remains reachable, and the repository contains no internal registry URL.
+- **Affects**: All Next.js pages and production web builds; no API contracts, schema, model or scoring changes.
+- **Validation**: Full quality gate passed (932 tests, 27 skipped), including ESLint with the aligned configuration, translations, TypeScript and generated contracts. The exact Replit build passed with the frozen lockfile; a local production smoke test verified landing/About/sign-in pages, static assets and API/database health without model calls. The advisory query returned no published matches for Next.js 16.4.1 at verification time. Replit's own package download remains to be retested by the account owner.
+- **Replaces**: Next.js/eslint-config-next 16.2.12 pins only
+- **PR / branch**: fix/core-replit-next-patch

@@ -152,8 +152,9 @@ References: [RunPod requests](https://docs.runpod.io/serverless/endpoints/send-r
 
 ## 6. Local pipeline checks
 
-Install ordinary repository requirements. Securely export `DATABASE_URL` and the
-dedicated MiniLM key in the pipeline process; PowerShell:
+Outside Replit, install ordinary repository requirements. Securely export an
+externally reachable `DATABASE_URL` and the dedicated MiniLM key in the pipeline
+process; PowerShell:
 
 ```powershell
 $env:TRENDS_EMBEDDING_BACKEND='runpod'
@@ -163,6 +164,22 @@ python -m pipelines.trends.preflight
 python -m pipelines.trends.embed_taxonomy
 python -m pipelines.trends.run --dry-run
 ```
+
+Inside the owning Replit development workspace, its injected `helium` connection
+is valid there. Skip the external-runner preflight, which deliberately rejects
+that private hostname. After migrating/seeding that development database, run:
+
+```bash
+export PYTHONPATH=src/api:src
+export TRENDS_EMBEDDING_BACKEND=runpod
+export TRENDS_RUNPOD_ENDPOINT_ID=ta14jd0by2ijl2
+.venv/bin/python -m pipelines.trends.embed_taxonomy
+.venv/bin/python -m pipelines.trends.run --dry-run
+```
+
+Keep the dedicated key in workspace Secrets. These commands can write development
+data and spend inference credits; they do not update the published app's separate
+production database. The scheduled Actions workflow always retains its preflight.
 
 Taxonomy embedding writes catalogue vectors. A dry run can fetch/cache research and write
 ingestion signals but never publishes a snapshot. After validation passes, run
