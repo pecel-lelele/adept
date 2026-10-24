@@ -65,3 +65,13 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 /generated-artifacts/
+
+# --- Adept repository additions ---
+src/data/raw/
+next-env.d.ts
+.pnpm-store/
+.ruff_cache/
+CLAUDE.local.md
+.gemini/settings.json
+.claude/
+submission/demo-video/

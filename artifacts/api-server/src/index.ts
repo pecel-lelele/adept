@@ -20,8 +20,8 @@ if (!Number.isInteger(port) || port <= 0 || port > 65535 || port === privateApiP
   throw new Error(`Invalid PORT value: "${rawPort}"`);
 }
 
-const pythonRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../python");
-const venv = path.resolve(pythonRoot, "../../../.venv", process.platform === "win32" ? "Scripts/python.exe" : "bin/python");
+const pythonRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
+const venv = path.resolve(pythonRoot, ".venv", process.platform === "win32" ? "Scripts/python.exe" : "bin/python");
 const executable = existsSync(venv) ? venv : "python";
 const python = spawn(executable, ["-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", String(privateApiPort())], {
   cwd: pythonRoot,

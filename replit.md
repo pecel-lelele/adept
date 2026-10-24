@@ -12,22 +12,23 @@ Career matching and personalised reskilling, with personal, employee, and organi
 
 Use the managed workflows:
 
-- `artifacts/adept: web` â€” original Next.js app, including server components, server actions, and BFF routes.
-- `artifacts/api-server: API Server` â€” Express entry point supervising the imported FastAPI process.
+- `artifacts/adept: web` — original Next.js app, including server components, server actions, and BFF routes.
+- `artifacts/api-server: API Server` — Express entry point supervising the imported FastAPI process.
 
 The web service uses its assigned `PORT` and binds to `0.0.0.0`. Next.js calls FastAPI internally at port 8000. Public `/api/v1` and `/api/healthz` routes belong to the API service; other `/api/*` routes belong to Next.js.
 
 ## Files
 
-- `artifacts/adept/` â€” original web source, translations, Next config.
-- `artifacts/api-server/python/src/` â€” original API, pipelines, database migrations, reference data.
-- `.migration-backup/` â€” preserved import, excluded from deployment.
-- `pyproject.toml` / `uv.lock` â€” Python dependencies.
+- `src/web/` — Next.js app (workspace package `@workspace/adept`), translations, Next config.
+- `artifacts/adept/.replit-artifact/` — Replit service settings for the web app; it holds no source.
+- `src/api/`, `src/pipelines/`, `src/db/`, `src/data/` — FastAPI app, pipelines, migrations, reference data.
+- `artifacts/api-server/` — Express public proxy and Python supervisor.
+- `pyproject.toml` / `uv.lock` — Python dependencies.
 
 ## Checks
 
-- `pnpm --filter @workspace/adept run build` â€” production build and TypeScript.
-- `pnpm --filter @workspace/api-server run build` â€” API supervisor build.
+- `pnpm --filter @workspace/adept run build` — production build and TypeScript.
+- `pnpm --filter @workspace/api-server run build` — API supervisor build.
 
 Development database migrations and reference seeding were applied from the imported project. Database contents and secrets do not transfer simply by copying files to a friend's account; that account needs its own configured database, reference data and `SESSION_SECRET`. No production database migration should run automatically at app startup.
 
@@ -42,7 +43,7 @@ Required: `DATABASE_URL`, `SESSION_SECRET`, `PROXY_SHARED_SECRET`, and a verifie
 - Keep the existing Autoscale application router and artifact production commands. The sample root commands `src/scripts/replit.py` and `src/scripts/dev.py` are not in this workspace; production configuration belongs in each artifact's `.replit-artifact/artifact.toml`.
 - In the friend's Replit copy, use Replit-managed PostgreSQL. Replit provisions `DATABASE_URL`; do not set that runtime-managed value manually.
 - Before publishing that copy, apply SQL migrations and reference data to its **development** database:
-  `cd artifacts/api-server/python && python src/db/migrate.py up && python src/db/seed.py`
+  `python src/db/migrate.py up && python src/db/seed.py`
 - On the first publish, select **Autoscale** and enable **Set up your production database with your current development data** to copy the migrated schema and reference data. Review development records first because this option copies the development database's data too.
 - Do not run the SQL migration script against the managed production database or from the deployment build/start command. Replit's publish flow handles managed production schema changes.
 - Add a new random `SESSION_SECRET` (32+ characters) and a `PROXY_SHARED_SECRET` to the friend's production Secrets. The same proxy secret must be available to both web and API services. Set `TRUSTED_PROXY_HOPS` only after verifying the actual forwarding chain to each public service; production rejects zero, missing and malformed counts. Do not guess a value. Secrets in this workspace do not transfer to the friend's account.
@@ -52,7 +53,7 @@ Required: `DATABASE_URL`, `SESSION_SECRET`, `PROXY_SHARED_SECRET`, and a verifie
 ## Repository checks and scheduled data
 
 Active workflows are restored at `.github/workflows`, with Python commands using
-`artifacts/api-server/python` and pnpm commands using the workspace root. Run
+the repository root and pnpm commands using the workspace root. Run
 `uv run --frozen python src/scripts/dev.py check`, `pnpm test:proxy`, and `pnpm build`.
 The manual MiniLM publisher retains its main/source-repository guard and uses the
-Python artifact as its Docker build context. The archive is not an active application.
+Python artifact as its Docker build context. The Python tree is the repository root `src/`.
