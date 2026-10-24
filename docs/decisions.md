@@ -745,6 +745,73 @@
 - **Replaces**: none
 - **PR / branch**: feat/core-m3-workspace-navigation
 
+### M3-028: Clarify submission provenance and actual AI development tools
+
+- **Date**: 2026-10-25
+- **Feature**: F8 (transparency), Core (submission documentation)
+- **Type**: other
+- **Change**: Record the team leader's clarification that KerjaCerdas belongs to a different team and informed security concepts, rather than supplying a prior-owned implementation. Correct the active solution guide, security docstrings and submission draft; preserve earlier decision entries as history. Declare confirmed Codex debugging, Claude Code video/pitch work, Replit Agent and Antigravity exploration, and Greptile PR review. Ignore local pitch-planning Markdown and PPTX assets under `submission/pitch/`.
+- **Why**: Earlier wording implied shared authorship and code reuse that the leader says did not occur; AI-tool placeholders also omitted confirmed work. Distinguish team product decisions, conceptual references and actual tool contributions without understating AI assistance.
+- **Affects**: Submission reviewers; no runtime behaviour, contracts, dependencies or schema changes
+- **Replaces**: M3-003 provenance wording and M3-001's reuse-map description; implementation decisions remain unchanged
+- **PR / branch**: docs/core-submission-accuracy
+
+### M3-029: Select five complete synthetic CVs for the public demo guide
+
+- **Date**: 2026-10-25
+- **Feature**: Core (README/demo), F1 (synthetic intake references)
+- **Type**: data source | other
+- **Change**: Add the leader-supplied Imran Hakim, Sofia Tan, Meera Anand, Adrian Lim and Nur Hana PDFs unchanged under `submission/demo-cvs/`; point README and submission references to them. Supply complete, editable synthetic intake settings separately from CV facts using existing profile fields and catalogue IDs. Keep older seeded personas and parser edge cases for regression tests.
+- **Why**: The README's test-fixture link did not identify the team's selected presentation CVs. A separate guide makes the demo reproducible without claiming that budgets, HRD eligibility or proficiency are extracted or verified.
+- **Pipeline**: supplied synthetic PDFs → in-memory deterministic CV parsing → known catalogue skill IDs with reviewable omissions → human confirmation with explicit demo assumptions → all five parse without truncation; profile shapes and IDs checked → downloadable demo assets and manual intake guide, no database import
+- **Affects**: Manual demos and submission documentation; no matching/parser behaviour, API schema or existing test fixtures changed
+- **Replaces**: none
+- **PR / branch**: docs/core-submission-accuracy
+
+### M3-030: Credit Claude Code as the primary implementation assistant
+
+- **Date**: 2026-10-25
+- **Feature**: F8 (AI development disclosure), Core (submission)
+- **Type**: other
+- **Change**: Expand the technical declaration to state the leader's clarification that Claude Code produced most of the application code, in addition to demo-video and pitch-design work. Keep Codex's debugging/corrections role and the other confirmed tools distinct, and retain the team's product direction and final responsibility.
+- **Why**: The earlier tool inventory understated Claude Code's implementation contribution by describing only presentation work.
+- **Affects**: Submission disclosures only; no application behaviour, schema, dependency or model configuration changes
+- **Replaces**: M3-028's incomplete Claude Code usage description
+- **PR / branch**: docs/core-submission-accuracy
+
+### M3-031: Declare Replit deployment and RunPod Serverless sponsor usage
+
+- **Date**: 2026-10-25
+- **Feature**: F8 (transparency), Core (deployment/submission)
+- **Type**: other
+- **Change**: Add the leader-confirmed Replit sponsor deployment resource alongside the deployed RunPod MiniLM Serverless worker and separate GLM inference endpoint. Update the proposal and cloud-service inventory with successful read-only landing/About/API database-health checks on 25 October; keep source-revision verification and failed trend publication distinct from resource usage.
+- **Why**: The earlier sponsor section incorrectly reduced disclosure to RunPod API usage and omitted Replit's actual hosting role. A specific credit amount or mentoring claim is not needed to describe confirmed platform use.
+- **Affects**: Submission documentation only; no hosting, model, schema or runtime changes
+- **Replaces**: Earlier sponsor-resource omissions in the submission drafts
+- **PR / branch**: docs/core-submission-accuracy
+
+### M3-032: Keep submission tables aligned with the supplied PDF
+
+- **Date**: 2026-10-25
+- **Feature**: Core (submission), F8 (disclosures)
+- **Type**: other
+- **Change**: Restore the PDF's column order and relative order/grouping of existing rows in the technical declaration and proposal third-party inventory. Keep corrections in their matching rows, remove obsolete entries explicitly and append genuinely new entries after existing ones. Provide a change-only editing guide identified by section and original row name.
+- **Why**: Reordered, merged and split tables caused unnecessary replacement work in the user's Google Docs. Unchanged factual content should require no manual edit.
+- **Affects**: Submission authoring only; no application behaviour or new dependencies
+- **Replaces**: Earlier table presentation choices in the submission drafts, not the factual corrections
+- **PR / branch**: docs/core-submission-accuracy
+
+### M3-033: Record confirmed sponsor plans and Replit integrated database
+
+- **Date**: 2026-10-25
+- **Feature**: Core (submission/deployment), F8 (disclosure)
+- **Type**: other
+- **Change**: Record the leader-confirmed Replit Core sponsor subscription, US$25 RunPod sponsor credits and Replit integrated PostgreSQL. Replace the unused Supabase service row in place, retaining PDF table order. Remove generic unspecified-plan placeholders; distinguish recommended Replit Asia/RunPod available-data-center scheduling from the unverified active geography.
+- **Why**: The declaration omitted concrete benefits the team used and left an unused database provider in the services table. A known plan satisfies the Plan / Region field without inventing an active deployment location.
+- **Affects**: Submission text only; no account, database, region, billing or infrastructure changes
+- **Replaces**: M3-031's incomplete plan/credit details and the unused Supabase row
+- **PR / branch**: docs/core-submission-accuracy
+
 ---
 
 ## M4: Core & Organisation (Core, F7)

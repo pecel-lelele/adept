@@ -1,4 +1,4 @@
-"""Security headers on every API response. Same set as KerjaCerdas `main.py`."""
+"""Security headers on every Adept API response."""
 
 from __future__ import annotations
 

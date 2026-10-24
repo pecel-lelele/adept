@@ -1,4 +1,6 @@
-"""API security layer (F8, owner M3). Patterns adapted from KerjaCerdas; see each module.
+"""API security layer (F8, owner M3), implemented for Adept's routes and deployment.
+
+KerjaCerdas was a conceptual reference, not a prior-owned code import (M3-028).
 
 `install_security(app)` is called once from `app.main.create_app`, before CORS is added,
 so CORS stays outermost and error responses from these middlewares still carry CORS headers.

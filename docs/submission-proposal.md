@@ -11,6 +11,10 @@ than committing them to this public repository. Do not treat an unchecked box as
 
 Updated 24 October 2026 for the root-only, single-public-server deployment, current dependencies, job feeds, certifications and organisation workflows. This source describes the proposed code revision; publishing that revision remains an owner action.
 
+Updated 25 October 2026 with the leader's provenance clarification and selected
+[five synthetic demo CVs and intake profiles](../submission/demo-cvs/). Older persona fixtures
+remain test inputs; they are not the selected presentation CVs.
+
 ## 1. Team and project overview
 
 | Template field | Response |
@@ -92,10 +96,10 @@ never makes hiring, firing or admission decisions.
 | Interface | Next.js 16.4.2, React 19.2.9, TypeScript 5.9.3 | Personal `/app`, employee `/work`, manager/advisor `/org` and internal `/admin` views; server actions and same-origin API routes. |
 | Presentation | Tailwind CSS 4.1.18, next-intl 4.14.9, Lucide | Responsive interface in English, Bahasa Melayu and Chinese. |
 | API | Python 3.11, FastAPI, Pydantic v2, Uvicorn | Validated feature services and OpenAPI contracts. |
-| Persistence | PostgreSQL 16, pgvector, psycopg 3 | Profiles, catalogue, snapshots, plans, evidence and organisations. |
+| Persistence | PostgreSQL/pgvector, psycopg 3; Replit integrated PostgreSQL for deployment | Profiles, catalogue, snapshots, plans, evidence and organisations; local/CI PostgreSQL 16. |
 | AI / methods | RunPod MiniLM (384 dimensions); optional Gemini skill embeddings (768 dimensions); Adi GLM-5.3/Gemini; deterministic scoring/pathways | Separate model purposes and credentials; no team fine-tuning; validated catalogue/answer-block IDs. |
 | Data | arXiv cs.AI RSS, committed BLS-derived baseline, official UN SDGs, Microsoft Learn, Coursera, cited provider pages, BNM exchange rates | Research signals, updatable public job postings, catalogue facts, certification fees and source attribution. |
-| Deployment | Root `.replit` and Python supervisor | One public Next.js server; private loopback FastAPI. Optional local Compose runs PostgreSQL only. |
+| Deployment | Replit Autoscale; root `.replit` and Python supervisor | Public prototype hosted on Replit with one public Next.js server and private loopback FastAPI. Optional local Compose runs PostgreSQL only. |
 | Quality / automation | pytest, Ruff, ESLint, TypeScript, contract and locale checks; GitHub Actions | Automated checks; conditional weekly trend refresh and source audit. |
 
 **Architecture appendix A: root deployment with one public server.** The root
@@ -131,13 +135,21 @@ flowchart TB
 ```
 
 **Verification boundaries:** the public URL [adept-my.replit.app](https://adept-my.replit.app)
-returned 200 for landing/About/sign-in and API/database health during read-only checks on
-24 October 2026. This does not prove that the new root deployment revision is published.
+returned 200 for landing, About and API/database health during read-only checks on
+25 October 2026. This confirms public reachability, not a particular deployed Git revision.
 A historical MiniLM test returned two valid 384-dimensional vectors; the first integrated
 refresh failed on the private development database host `helium`. The latest observed
 refresh run was unsuccessful, so no successful new production snapshot is claimed. Worker
-dependency updates require a separate image rebuild/redeployment. Sponsor credit entitlement,
-workshop attendance and mentoring remain team declarations.
+dependency updates require a separate image rebuild/redeployment.
+
+**Sponsor resources used:** the team uses the sponsor-provided **Replit Core subscription**
+for the public prototype and Replit's integrated PostgreSQL database, plus **US$25 RunPod
+sponsor credits** for Serverless/inference usage. RunPod Serverless hosts the MiniLM research
+encoder, and a separate RunPod endpoint supplies Adi's configured GLM-5.3 model. Supabase is
+not the deployed database provider. These uses are declared in section 5 of the technical declaration.
+Google Gemini remains a separately declared provider integration; its presence alone is not
+a claim that the team received Google sponsor credits. Aiversecity is the domain alignment,
+not an API/resource usage claim. No mentoring participation or subscription duration is asserted.
 
 ### 3.2 Design-thinking and deployment strategy
 
@@ -199,12 +211,14 @@ Sources: [UN Goal 4](https://sdgs.un.org/goals/goal4),
 
 ### 6.1 Pre-existing / prior-owned work
 
-**Yes / No: team to confirm.** Repository history does not establish when the hackathon's
-originality period began or each member's ownership rights. The team must list any reused
-code, designs, research and their owners before selecting an answer. KerjaCerdas and Orion
-were consulted for README presentation; this does not establish reuse of their application code.
-The guardrail feature documentation also mentions patterns from KerjaCerdas: review provenance
-and rights rather than declaring that all work was newly created.
+**No, based on the team leader's provenance clarification on 25 October 2026.** The team
+reports that Adept's implementation was created for this hackathon. KerjaCerdas belongs to
+a different team and was consulted for general security concepts, implemented for Adept's
+own APIs and use cases; the team does not declare a reused prior-owned implementation.
+Earlier repository statements describing KerjaCerdas as work by the same team or as imported
+security code were inaccurate; see decision M3-028. Third-party frameworks, public data,
+pre-trained models and development tools remain disclosed separately in section 6.2 and the
+technical declaration. The leader must confirm the final form reflects the actual work.
 
 ### 6.2 Third-party code, datasets or models
 
@@ -212,20 +226,57 @@ and rights rather than declaring that all work was newly created.
 [technical declaration](submission-technical-declaration.md#22-languages-frameworks-and-libraries)
 provides versions, purposes and a fuller inventory.
 
-| Type | Name | Licence / attribution basis |
+| Name | Type (code / dataset / model) | License |
 |---|---|---|
-| Code | Next.js, React, Three.js, Tailwind CSS, next-intl, FastAPI, Pydantic, OpenAPI tools | MIT; retain upstream notices. |
-| Code | TypeScript; class-variance-authority | Apache-2.0. |
-| Code | PostgreSQL and pgvector | PostgreSQL License. |
-| Code | Uvicorn; psycopg | BSD-3-Clause; LGPL-3.0 respectively. |
-| Code | PyMuPDF | AGPL-3.0 or commercial licensing; compatibility review remains required. |
-| Code | Sentence Transformers / Transformers; PyTorch; RunPod SDK | Apache-2.0; BSD-3-Clause; MIT respectively. |
-| Code / font | Lucide; Inter | ISC; SIL OFL 1.1 for the font. |
-| Code | Mermaid 11.12.0 | MIT; documentation diagram rendering only. |
-| Model | sentence-transformers/all-MiniLM-L6-v2 | Apache-2.0; pre-trained, not fine-tuned by the team. |
-| Data | arXiv feed content; BLS-derived projections | arXiv API/content terms, with article licences varying; BLS public information and source attribution. |
-| Data | UN SDG API; course/certification/provider facts; public job feeds; BNM rates | Respective provider terms and cited URLs; public accessibility does not imply a common open-data licence. |
-| Data | Team-curated taxonomy, mappings and synthetic evaluation fixtures | Team-authored curation with upstream evidence recorded; not a complete imported ESCO or O*NET taxonomy. |
+| Python >=3.11 | code | Python Software Foundation License |
+| Node.js 24, pnpm 10.29.3 | code | MIT |
+| Next.js, React, React DOM | code | MIT |
+| TypeScript | code | Apache-2.0 |
+| Tailwind CSS, @tailwindcss/postcss | code | MIT |
+| next-intl | code | MIT |
+| Three.js (Adi's interactive mascot) | code | MIT |
+| @fontsource-variable/inter | code (font asset) | MIT package; OFL-1.1 for Inter |
+| lucide-react | code | ISC |
+| class-variance-authority | code | Apache-2.0 |
+| clsx, tailwind-merge | code | MIT |
+| openapi-fetch, openapi-typescript | code | MIT |
+| FastAPI, Pydantic, pydantic-settings | code | MIT |
+| Uvicorn | code | BSD-3-Clause |
+| psycopg 3, psycopg-pool | code | LGPL-3.0-only; binary bundle has additional notices |
+| python-multipart | code | Apache-2.0 |
+| PyJWT | code | MIT |
+| PyMuPDF | code | AGPL-3.0 or Artifex commercial licence |
+| HTTPX | code | BSD-3-Clause |
+| PostgreSQL 16, pgvector | code | PostgreSQL License |
+| RunPod Python SDK, sentence-transformers, Hugging Face Transformers | code | MIT for RunPod SDK; Apache-2.0 for Sentence Transformers/Transformers |
+| PyTorch | code | BSD-3-Clause |
+| pytest, Ruff, ESLint, eslint-config-next | code | MIT |
+| uv | code | MIT or Apache-2.0 |
+| Docker Engine and Compose | code / local tools | Apache-2.0 for open-source components; Docker Desktop has separate distribution terms |
+| Playwright | code | Apache-2.0 |
+| Mermaid | code | MIT |
+| @types/node, @types/react, @types/react-dom, @types/three | code | MIT |
+| GitHub Actions | service | GitHub Terms of Service |
+| sentence-transformers/all-MiniLM-L6-v2 (pinned revision) | model | Apache-2.0 |
+| GLM-5.3 (via RunPod) | model | Hosted provider/model terms; no separate licence entitlement inferred |
+| Google Gemini 3.5 Flash Lite, 3.6 Flash, 3.1 Flash Lite (optional fallback) | model | Google Gemini API Terms |
+| Gemini Embedding 001 (optional) | model | Google Gemini API Terms |
+| arXiv cs.AI RSS, query API and cached research windows | dataset / API | arXiv API terms; metadata and paper content have different rights |
+| U.S. BLS Employment Projections 2023–2033 extract | dataset | US government data; cite BLS |
+| O*NET 31.0 occupation crosswalk | dataset | CC BY 4.0 with stated exceptions; credit and modifications required |
+| UN SDG Goal and Target APIs and metadata | dataset / API | UN data terms and attribution |
+| Public job-posting feeds (Greenhouse, Lever, Ashby, Workday, Jibe, Himalayas, Jobicy, Remote OK, Remotive) | dataset / API | Each board's and employer's terms; public access is not an open-data licence |
+| Optional keyed job APIs (Careerjet, Jooble, Web3.career) | dataset / API | Provider API terms and credentials required |
+| Job-opening and certification extracts | dataset | Source sites retain rights |
+| Certification and exam-pricing pages (Microsoft, AWS, Google Cloud, IIBA, IAPP) | dataset | Issuer site terms |
+| Microsoft Learn Catalog API | dataset / API | Microsoft API Terms of Use |
+| Coursera course API and pages | dataset / API | Coursera Terms of Use |
+| Other provider course pages (AITraining2U, UNIMAS PROCEL, FMM, MAICSA, UKM, UTM, IBFIM) | dataset | Respective provider copyright and terms |
+| Bank Negara Malaysia exchange-rate API | dataset / API | BNM terms and attribution |
+| Curated skill, course, prerequisite and SDG-alignment mappings; historical trend snapshots | dataset | Team-created; upstream BLS, provider and research rights retained; no UN endorsement |
+| Synthetic personas, organisations, regions and CV fixtures | dataset | Team-created; [five selected demo CVs](../submission/demo-cvs/) and regression fixtures are declared separately from real identities |
+| PyYAML; actionlint; Prettier | code / development tools | MIT |
+| GitHub Container Registry | service | GitHub Terms of Service |
 
 ### 6.3 Employment-related IP conflicts
 

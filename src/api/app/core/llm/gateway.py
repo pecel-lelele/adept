@@ -1,9 +1,9 @@
 """Single entry point for LLM calls: structured output, ID validation, logging.
 
 Order of defences for every call:
-1. Prompt text is PII-redacted and injection-filtered (`app.core.security`), so personal
-   data never leaves the API and catalogue labels cannot smuggle instructions.
-2. A circuit breaker fails fast after repeated provider failures (KerjaCerdas pattern).
+1. Prompt text is PII-redacted and injection-filtered (`app.core.security`) to reduce
+   contact-data exposure and instructions hidden in catalogue labels.
+2. A circuit breaker fails fast after repeated provider failures.
 3. The model may only return IDs from `candidates`; `validate_ids` raises on anything else.
 4. Every call is recorded (provider, model, task, outcome) in a bounded in-memory log.
 
