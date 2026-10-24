@@ -182,15 +182,17 @@ of every deployed database. No model was fine-tuned on these fixtures.
 
 ### 4.3 AI-assisted development tools
 
-**Yes.** The team defined Adept's problem, product direction and SDG focus, and used AI tools
-for development support, debugging, presentation work and review. The following usage was
+**Yes.** The team defined Adept's problem, product direction and SDG focus. Claude Code was
+the primary coding assistant and produced most of the application code, alongside its
+demo-video and pitch-design work. Other AI tools supported debugging, exploration and review.
+The following usage was
 confirmed by the team leader on 25 October 2026. Exact tool/model versions were not recorded;
 do not infer them from installed software or repository context files.
 
 | Tool and version | Extent of use | Used for |
 |---|---|---|
+| Anthropic Claude Code | Major; primary code implementation and demo/presentation work | Produced most of the application code; also supported demo-video creation and pitch-deck design concepts, layout and presentation material. |
 | OpenAI Codex | Major debugging and review support | Repository inspection, debugging, resolving Greptile findings, code/configuration corrections, checks and documentation review. |
-| Anthropic Claude Code | Major demo/presentation support | Demo-video creation and pitch-deck design concepts, layout and presentation material. |
 | Replit Agent | Minor repository exploration | Exploring the repository and understanding its structure. |
 | Google Antigravity agent | Minor repository exploration | Exploring the repository and understanding its structure. |
 | Greptile | Moderate automated review support | Reviewing pull requests and identifying issues for the team to assess and resolve. |
@@ -204,9 +206,10 @@ embedded in Adept. The team retains responsibility for the submitted product and
 **Review and responsibility (maximum 100 words):**
 
 <!-- answer:start technical-4.3 limit=100 -->
-The team chose Adept's problem, product direction and SDG focus. AI tools supported debugging,
-repository exploration, demo-video production, pitch design and automated review. Team members
-assessed suggestions, made corrections and retained final decisions. Technical claims are
+The team chose Adept's problem, product direction and SDG focus. Claude Code produced most
+of the application code and supported the demo video and pitch design. Codex supported
+debugging and corrections; other tools assisted exploration and PR review. Team members
+assessed outputs and retained final decisions. Technical claims are
 checked against source, dependency records, datasets and test results. AI-generated material
 requires human review; passing tests does not prove universal fairness, legal compliance or
 employment outcomes. The leader reviews the final documents, confirms actual tool and sponsor

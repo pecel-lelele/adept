@@ -768,6 +768,17 @@
 - **Replaces**: none
 - **PR / branch**: docs/core-submission-accuracy
 
+### M3-030: Credit Claude Code as the primary implementation assistant
+
+- **Date**: 2026-10-25
+- **Feature**: F8 (AI development disclosure), Core (submission)
+- **Type**: other
+- **Change**: Expand the technical declaration to state the leader's clarification that Claude Code produced most of the application code, in addition to demo-video and pitch-design work. Keep Codex's debugging/corrections role and the other confirmed tools distinct, and retain the team's product direction and final responsibility.
+- **Why**: The earlier tool inventory understated Claude Code's implementation contribution by describing only presentation work.
+- **Affects**: Submission disclosures only; no application behaviour, schema, dependency or model configuration changes
+- **Replaces**: M3-028's incomplete Claude Code usage description
+- **PR / branch**: docs/core-submission-accuracy
+
 ---
 
 ## M4: Core & Organisation (Core, F7)
