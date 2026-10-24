@@ -50,6 +50,22 @@ flowchart LR
 8. **Guardrails (F8)**: an LLM, if used, only selects IDs already in the database; `validate_ids`
    rejects anything else before it reaches the user.
 
+## Public server and root deployment
+
+The root `.replit` builds and starts through `src/scripts/replit.py`. Next.js is the
+only public HTTP listener (`0.0.0.0:3000`, mapped to external port 80). Its route
+handlers forward `/api/v1/*` to FastAPI bound to `127.0.0.1:8000`; server actions
+use that same private API. `/api/healthz` and `/api/v1` check API/database readiness
+and return 503 while unavailable. The supervisor validates production secrets,
+waits for API readiness and stops both processes if either exits.
+
+Production startup does not migrate, seed or invoke models. CI exercises the exact
+root build and supervised startup against disposable PostgreSQL. Local Compose
+provides only the database. Product code stays under `src/`; artifact metadata,
+the Express supervisor, Drizzle scaffold and mockup app are no longer needed.
+See [Replit operations](../replit.md) for required configuration and saved-command
+overrides to check before publishing.
+
 ## Workspace and assistant boundaries
 
 Every account has a personal workspace. `X-Workspace` selects a membership-checked
@@ -60,7 +76,7 @@ conversations remain separate.
 Adi uses Runpod `glm-5.3` as the configured primary and separately authenticated Gemini
 only on primary failure. Catalogue IDs pass through the validation gateway; provider
 failure can fall back to the deterministic guide. Keys stay in server environment variables.
-See [configuration](../README.md#12-getting-started) and the
+See [configuration](../README.md#getting-started) and the
 [provider guide](../src/api/app/core/llm/FEATURE.md).
 
 ## Hosted trend inference and scheduled publication

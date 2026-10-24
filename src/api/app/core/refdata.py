@@ -28,6 +28,15 @@ log = get_logger("app.refdata")
 
 T = TypeVar("T")
 
+_DB_TABLES_BY_AREA = {
+    "courses": frozenset({"courses"}),
+    "jobs": frozenset({"certifications", "job_postings"}),
+    "pathway": frozenset({"skill_prerequisites"}),
+    "sdg": frozenset({"org_regions", "role_sdg_map", "sdg_goals", "sdg_targets", "skill_sdg_map"}),
+    "taxonomy": frozenset({"roles", "role_skills", "skills"}),
+}
+_DB_TABLES = frozenset().union(*_DB_TABLES_BY_AREA.values())
+
 
 class StorageUnavailableError(AppError):
     def __init__(self, detail: str) -> None:
@@ -70,8 +79,22 @@ def _as_seed_text(value: Any) -> str:
     return str(value)
 
 
-def _db_rows(table: str, where: str) -> tuple[dict[str, str], ...]:
-    query = sql.SQL("SELECT * FROM {}{}").format(sql.Identifier(table), sql.SQL(where))
+def _db_rows(
+    table: str,
+    *,
+    active_only: bool = False,
+    non_retired_only: bool = False,
+    order_by_id: bool = False,
+) -> tuple[dict[str, str], ...]:
+    if table not in _DB_TABLES or (active_only and non_retired_only):
+        raise ValueError("Unsupported reference-data query")
+    query = sql.SQL("SELECT * FROM {}").format(sql.Identifier(table))
+    if active_only:
+        query += sql.SQL(" WHERE active")
+    elif non_retired_only:
+        query += sql.SQL(" WHERE retired_at IS NULL")
+    if order_by_id:
+        query += sql.SQL(" ORDER BY id")
     with connection() as conn:
         rows = conn.execute(query).fetchall()
     return tuple({k: _as_seed_text(v) for k, v in row.items()} for row in rows)
@@ -80,25 +103,39 @@ def _db_rows(table: str, where: str) -> tuple[dict[str, str], ...]:
 # Reference rows change only when a sync runs (which calls `invalidate`), so a short cache
 # keeps one request from opening a connection per lookup.
 CACHE_TTL_S = 30.0
-_cache: dict[tuple[str, str], tuple[float, tuple[dict[str, str], ...]]] = {}
+_cache: dict[tuple[str, str, bool, bool, bool], tuple[float, tuple[dict[str, str], ...]]] = {}
 
 
 def invalidate() -> None:
     _cache.clear()
 
 
-def rows(area: str, table: str, where: str = "") -> tuple[dict[str, str], ...]:
+def rows(
+    area: str,
+    table: str,
+    *,
+    active_only: bool = False,
+    non_retired_only: bool = False,
+    order_by_id: bool = False,
+) -> tuple[dict[str, str], ...]:
     """Seed-shaped rows for an M3 reference table: from PostgreSQL when M3_BACKEND=postgres
-    (with a fixed, code-defined `where` clause), else from src/data/seed/<area>/<table>.csv."""
+    (using fixed query options), else from src/data/seed/<area>/<table>.csv."""
+    if table not in _DB_TABLES_BY_AREA.get(area, frozenset()):
+        raise ValueError("Unsupported reference-data table")
     if not use_postgres():
         return seed.rows(area, table)
-    key = (table, where)
+    key = (area, table, active_only, non_retired_only, order_by_id)
     hit = _cache.get(key)
     now = time.monotonic()
     if hit and now - hit[0] < CACHE_TTL_S:
         return hit[1]
     try:
-        fresh = _db_rows(table, where)
+        fresh = _db_rows(
+            table,
+            active_only=active_only,
+            non_retired_only=non_retired_only,
+            order_by_id=order_by_id,
+        )
     except psycopg.Error as exc:
         log.warning("database read of %s failed, using seed files instead: %s", table, exc)
         return seed.rows(area, table)

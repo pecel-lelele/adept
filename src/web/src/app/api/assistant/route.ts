@@ -1,5 +1,5 @@
 import { API_URL } from "@/lib/api/client";
-import { trustedClientIp } from "@/lib/api/server";
+import { trustedClientIp } from "@/lib/api/proxy";
 import { proxyConfig } from "@/lib/api/proxy-config";
 import { getSessionToken } from "@/lib/auth/session";
 import { selectedOrg, workspaceFor } from "@/lib/auth/workspace";

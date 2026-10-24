@@ -16,7 +16,7 @@ MAPPING_DATE = date(2026, 10, 20)
 
 
 def un_source() -> Source:
-    goals = refdata.rows(AREA, "sdg_goals", " ORDER BY id")
+    goals = refdata.rows(AREA, "sdg_goals", order_by_id=True)
     retrieved = date.fromisoformat(goals[0]["retrieved_at"]) if goals else MAPPING_DATE
     return Source(name="UN Statistics Division SDG API", url=UN_API_URL, retrieved_at=retrieved)
 
@@ -30,7 +30,7 @@ def mapping_source() -> Source:
 
 
 def goals() -> list[dict[str, str]]:
-    return [dict(r) for r in refdata.rows(AREA, "sdg_goals", " ORDER BY id")]
+    return [dict(r) for r in refdata.rows(AREA, "sdg_goals", order_by_id=True)]
 
 
 def targets() -> dict[str, SdgTarget]:
@@ -41,7 +41,9 @@ def targets() -> dict[str, SdgTarget]:
 
 
 def short_titles() -> dict[int, str]:
-    return {int(g["id"]): g["short_title"] for g in refdata.rows(AREA, "sdg_goals", " ORDER BY id")}
+    return {
+        int(g["id"]): g["short_title"] for g in refdata.rows(AREA, "sdg_goals", order_by_id=True)
+    }
 
 
 EVIDENCE_CHECKED = date(2026, 10, 20)

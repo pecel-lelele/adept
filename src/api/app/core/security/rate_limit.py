@@ -283,7 +283,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             "X-RateLimit-Window": str(window),
         }
         if not allowed:
-            log.warning("rate limit exceeded ip=%s path=%s", ip, request.url.path)
+            log.warning("rate limit exceeded path=%s", request.url.path)
             return JSONResponse(
                 status_code=429,
                 content={"error": {"code": "rate_limited", "message": "Too many requests."}},

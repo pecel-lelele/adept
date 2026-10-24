@@ -121,8 +121,7 @@ Next.js defaults to port 3000 and honors `PORT`; FastAPI honors `API_PORT` (defa
 For a custom API port, also point `API_URL` at it. Use the same commands in PowerShell;
 setting an environment variable there uses `$env:NAME='value'`.
 
-The managed Replit Preview instead uses the two artifact workflows in
-[replit.md](replit.md). App containers are not part of the current local Compose file.
+Replit Preview uses the root development command in [replit.md](replit.md). App containers are not part of the current local Compose file.
 Migrations/seeding are explicit setup operations, not production startup actions.
 
 **Try the app:** upload a [synthetic CV](tests/api/profile/fixtures/cvs/),
@@ -130,9 +129,9 @@ create an invented `example.test` account, and follow **Radar → Roles → Plan
 Create a team account to try programmes, funding decisions and completion reviews, and join
 with a synthetic learner using its join code. Personal and organisation learning stay separate.
 
-**Publish on Replit:** use the artifact build/run settings and
+**Publish on Replit:** use the root `.replit` build/start commands and
 [publishing handoff](replit.md#publishing-handoff). The web starts with the monorepo standalone
-launcher, not `next start`; the API supervisor waits for private API/database readiness.
+launcher, not `next start`. One public Next.js server relays `/api/v1/*` to private FastAPI; the root supervisor waits for API/database readiness before opening the web port.
 Provide stable `SESSION_SECRET`, matching `PROXY_SHARED_SECRET`, a verified positive
 `TRUSTED_PROXY_HOPS`, the managed database connection and exact production origin.
 Importing GitHub files copies neither database contents nor secrets. Pull the merged source
@@ -161,8 +160,8 @@ Data comes from arXiv, BLS projections, the UN SDG API, Microsoft Learn, verifie
 | `uv run --frozen python src/scripts/dev.py contracts` | OpenAPI and typed web client generation |
 | `uv run --frozen python src/scripts/dev.py db-migrate` / `seed` | Explicit local database preparation |
 | `npx --yes pnpm@10.29.3 test:proxy` | Public proxy, CORS and startup regressions |
-| `npx --yes pnpm@10.29.3 typecheck` | Full workspace TypeScript checks |
-| `npx --yes pnpm@10.29.3 build` | Production workspace builds; set `PORT=3000`, `BASE_PATH=/` for the mockup sandbox |
+| `npx --yes pnpm@10.29.3 typecheck` | Product TypeScript checks |
+| `npx --yes pnpm@10.29.3 build` | Build the Next.js standalone product; no mockup/artifact build |
 
 CI also checks PostgreSQL upgrades/recovery, navigation/read retries and the worker publisher.
 The merged hardening revision passed 940 Python tests (32 environment-dependent skips),
@@ -230,28 +229,27 @@ The architecture is shown below. Expand the other sections for the user journeys
 ```mermaid
 flowchart TB
   user(["Learner / employee / HR / career advisor<br/>English · Bahasa Melayu · Chinese"])
-  router["Replit Autoscale application router"]
-  web["Next.js 16.4.2 standalone<br/>server components · server actions · signed session cookie"]
-  proxy["Express public API proxy<br/>CORS forwarding · trusted client identity"]
-  api["Private FastAPI / Uvicorn :8000<br/>profiles · trends · matching · pathways<br/>SDGs · jobs · programmes · funding · accounts"]
+  web["ONE public Next.js server<br/>0.0.0.0:3000 → public :80<br/>pages · server actions · API proxy · health checks"]
+  supervisor["Root Python supervisor<br/>build/start · readiness · child cleanup"]
+  api["PRIVATE FastAPI / Uvicorn<br/>127.0.0.1:8000<br/>profiles · trends · matching · pathways<br/>SDGs · jobs · programmes · funding · accounts"]
   db[("PostgreSQL 16 + pgvector")]
   adi["RunPod GLM-5.3 / Gemini fallback<br/>validated answer-block selection"]
-  gemini["Optional Gemini skill embeddings<br/>768 dimensions · user-confirmed suggestions"]
+  gemini["Optional Gemini skill embeddings<br/>768 dimensions · user confirmation"]
   job["GitHub Actions<br/>preflight → ingest → embed → score → validate → publish"]
   minilm["RunPod MiniLM worker<br/>pinned model · 384 dimensions"]
   feeds["Public research, job feeds, courses,<br/>UN SDGs, BLS baseline and BNM rates"]
-  user --> router
-  router -- "web / BFF routes" --> web
-  router -- "/api/v1 · /api/healthz" --> proxy
-  web --> api
-  proxy --> api
+  user --> web
+  supervisor -. "supervises" .-> web
+  supervisor -. "supervises" .-> api
+  web -- "private HTTP /api/v1" --> api
   api <--> db
-  api -. "sanitised context" .-> adi
+  api -. "sanitised answer blocks" .-> adi
   api -. "short skill phrases" .-> gemini
   feeds --> job
   job <--> minilm
   job -- "reachable deployment database required" --> db
 ```
+
 
 
 <details>
@@ -628,31 +626,51 @@ Migrations are in [`src/db/migrations`](src/db/migrations). New changes always g
 | Path | Current contents |
 |:---|:---|
 | `src/web/` | Next.js product, shared UI, translations and standalone scripts |
-| `artifacts/api-server/src/` | Express public API proxy and Python supervisor |
 | `src/api/` | FastAPI contracts and feature services |
 | `src/pipelines/` | Research, job, course, SDG and validation jobs |
 | `src/data/seed/` | Dated public reference data and synthetic fixtures |
 | `src/db/` | Append-only SQL migrations and explicit seed loader |
-| `tests/` / `artifacts/api-server/tests/` | Active regression suites |
+| `tests/` | API, pipeline, public proxy and deployment regression suites |
 | `.github/workflows/` | CI, source audit, trend refresh and guarded MiniLM image publisher |
 | `docs/` | Current submission sources, decisions and diagram explorer |
-| `lib/`, `scripts/`, `artifacts/mockup-sandbox/` | Workspace scaffold, generated clients/database tooling and design sandbox; not a replacement for the FastAPI product engine |
+| `src/scripts/` | Cross-platform setup/check runner and supervised production build/start |
 | `pyproject.toml`, `uv.lock`, `pnpm-lock.yaml` | Python and JavaScript dependency manifests/locks |
-| `.replit`, `artifacts/*/.replit-artifact/` | Application router and per-service deployment settings |
+| `.replit` | Root build/start commands and one public port (3000 → 80) |
+
+## Root production deployment
+
+The root configuration uses exactly these commands:
+
+```bash
+python3 src/scripts/replit.py build
+python3 src/scripts/replit.py start
+```
+
+Build installs frozen uv/pnpm dependencies (Python requirements fallback when uv is absent),
+builds Next.js with webpack and copies standalone
+assets. Start launches FastAPI privately on loopback, waits for API/database readiness,
+then runs the generated Next.js server on the single public port. Neither operation runs
+migrations, seeding or model inference. `artifacts/`, the Express proxy, Drizzle scaffold,
+mockup sandbox and generated scaffold clients are not part of this product.
+
+`GET /api/healthz` and `GET /api/v1` are readiness aliases; an unavailable database returns
+503. `/api/v1/health` preserves the FastAPI health response. Unknown API paths still return
+404. CI starts this exact production pair against disposable PostgreSQL and checks pages,
+static CSS, health, CORS preflight and a read-only failed login through the public proxy.
 
 ## Production boundaries
 
-Web and API must receive the same nonempty proxy secret. Configure the trusted forwarding
-hop count from the real platform chain; do not guess it. The public proxy discards caller
-internal headers, derives an address and signs it. Production rejects missing/zero trust
-configuration. Local direct-socket development may use zero.
+The Next.js/API pair must receive the same nonempty `PROXY_SHARED_SECRET`. Set
+`TRUSTED_PROXY_HOPS` from the real forwarding chain; do not guess it. Your Replit configuration
+currently shows 1: retain it only if that matches the one public server's platform chain.
+Production rejects missing/zero trust configuration. Local direct-socket development may
+use zero. The public API handler strips caller-supplied internal identity headers.
 
-`AUTH_MODE=demo` is the legacy name for normal PostgreSQL-backed local accounts with signed
-sessions, **not** an automatic demo login. Production disables raw fixture IDs and default
-users. Supabase JWT verification is an optional alternate path, not the active public
-health check's authentication mode.
+`AUTH_MODE=demo` is the legacy name for PostgreSQL-backed local accounts with signed sessions,
+not an automatic demo login. Keep `APP_ENV=production`, `AUTH_RAW_USER_IDS=false` and an empty
+`AUTH_DEFAULT_USER`. Supabase JWT verification is an optional alternate path.
 
 The hardened MiniLM dependency pins are source changes. Applying them to the live worker
-requires a new guarded image build and RunPod redeployment; the historical verified image
-is not evidence that those newer dependencies are already deployed. Keep all API keys and
-connection strings in secret stores, never in this README or the submission PDFs.
+requires a guarded image build and RunPod redeployment. The historical verified worker image
+is not evidence that those newer dependencies are already deployed. Keep all keys and
+connection strings in secret stores, never in this README or submission PDFs.
