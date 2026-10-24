@@ -1554,3 +1554,14 @@
 - **Affects**: `.replit` port configuration only; the development preview and production server continue using the existing port 5000.
 - **Replaces**: none
 - **PR / branch**: fix/core-replit-publish-live
+
+### M4-074: Patch vulnerable web, API and MiniLM dependencies
+- **Date**: 2026-10-24
+- **Feature**: Core dependencies / F2 trend worker
+- **Type**: dependency
+- **Change**: Upgrade `next-intl` to 4.14.9; set a patched `python-multipart` minimum; move the RunPod worker to RunPod SDK 1.12.0, sentence-transformers 5.6.0, Transformers 5.10.0 and PyTorch 2.14.1. Add minimum versions for vulnerable transitive transport/security packages.
+- **Why**: The dependency audit identified 228 advisories across stale direct and transitive versions. Patched floors prevent those versions from returning when Python dependencies are resolved for the API or worker image.
+- **Validation**: Replit dependency audit and pnpm audit both report zero vulnerabilities. Python 3.11 worker dependency resolution succeeds; the Python suite passes (949 passed, 27 skipped) with the Nix GCC runtime scoped to Python; the Next.js production build succeeds.
+- **Affects**: Web localization and the MiniLM worker dependency graph; model ID/revision, endpoint protocol, API contracts, database schema and trend scoring are unchanged.
+- **Replaces**: none
+- **PR / branch**: fix/core-replit-publish-live

@@ -23,3 +23,8 @@ Node's ICU libraries. A global override caused Node to fail before executing its
 **How to apply:** Run Python-only verification with the required native path and run
 Node commands with their normal environment. Keep separate child environments in
 multi-process launchers; preserve any inherited library paths.
+
+For this repository, quality checks use the root `.venv`, which may differ from the
+Replit package-tool interpreter. Check that `.venv/bin/python` has declared packages;
+an install outside that environment will not make them available to pytest. If
+PyMuPDF is present but cannot load, scope GCC's library path to the Python process.
