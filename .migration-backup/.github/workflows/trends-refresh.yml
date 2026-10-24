@@ -1,0 +1,54 @@
+# Weekly trend refresh (F2, handoff H01): ingest this week's arXiv cs.AI listing, score it against
+# the previous week, validate, and publish one new snapshot to the deployment database.
+# A failed run publishes nothing, so the last valid snapshot stays live.
+# Needs TREND_DATABASE_URL and TRENDS_RUNPOD_API_KEY secrets, plus the
+# TRENDS_RUNPOD_ENDPOINT_ID repository variable. Missing configuration skips refresh.
+name: Trends refresh
+
+on:
+  schedule:
+    - cron: "41 3 * * 1" # Mondays 03:41 UTC, after the data-source check
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: trends-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DATABASE_URL: ${{ secrets.TREND_DATABASE_URL }}
+      TRENDS_EMBEDDING_BACKEND: runpod
+      TRENDS_RUNPOD_ENDPOINT_ID: ${{ vars.TRENDS_RUNPOD_ENDPOINT_ID }}
+      TRENDS_RUNPOD_API_KEY: ${{ secrets.TRENDS_RUNPOD_API_KEY }}
+    steps:
+      - name: Skip when deployment configuration is incomplete
+        if: env.DATABASE_URL == '' || env.TRENDS_RUNPOD_ENDPOINT_ID == '' || env.TRENDS_RUNPOD_API_KEY == ''
+        run: echo "::notice::Database or RunPod encoder configuration is missing; trend refresh skipped."
+
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        if: env.DATABASE_URL != '' && env.TRENDS_RUNPOD_ENDPOINT_ID != '' && env.TRENDS_RUNPOD_API_KEY != ''
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        if: env.DATABASE_URL != '' && env.TRENDS_RUNPOD_ENDPOINT_ID != '' && env.TRENDS_RUNPOD_API_KEY != ''
+        with:
+          python-version: "3.11"
+
+      - name: Install pipeline client dependencies
+        if: env.DATABASE_URL != '' && env.TRENDS_RUNPOD_ENDPOINT_ID != '' && env.TRENDS_RUNPOD_API_KEY != ''
+        run: |
+          pip install -r requirements.txt
+
+      - name: Verify database access before inference
+        if: env.DATABASE_URL != '' && env.TRENDS_RUNPOD_ENDPOINT_ID != '' && env.TRENDS_RUNPOD_API_KEY != ''
+        timeout-minutes: 1
+        run: PYTHONPATH=src/api:src python -m pipelines.trends.preflight
+
+      - name: Ingest, score, validate and publish
+        if: env.DATABASE_URL != '' && env.TRENDS_RUNPOD_ENDPOINT_ID != '' && env.TRENDS_RUNPOD_API_KEY != ''
+        run: PYTHONPATH=src/api:src python -m pipelines.trends.run

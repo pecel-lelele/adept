@@ -1,0 +1,141 @@
+id,label,taxonomy,aliases,description
+excel,Spreadsheet analysis,custom,excel|spreadsheet|ms excel|microsoft excel|pivot table|pivot tables|vlookup|xlookup|hamparan elektronik|电子表格,Core workplace skill
+sql,SQL,custom,sql|mysql|postgresql|postgres|sql server|t-sql|pl/sql|oracle sql,Core workplace skill
+python,Python programming,custom,python|pandas|numpy|jupyter|bahasa python,Durable human-oversight skill
+data-visualisation,Data visualisation,custom,data visualisation|data visualization|power bi|powerbi|tableau|looker studio|dashboards|dashboard|visualisasi data|数据可视化,Durable human-oversight skill
+process-mapping,Business process mapping,custom,business process mapping|process mapping|process improvement|workflow mapping|pemetaan proses|流程梳理,Durable human-oversight skill
+rpa,Robotic process automation,custom,rpa|robotic process automation|uipath|automation anywhere|blue prism|power automate desktop,Core workplace skill
+prompt-engineering,Prompt engineering,custom,prompt engineering|chatgpt|prompting|prompt design|copilot prompts,Emerging AI-native skill
+ai-literacy,AI literacy & responsible AI,custom,ai literacy|generative ai|genai|artificial intelligence|kecerdasan buatan|literasi ai|人工智能,Emerging AI-native skill
+risk-compliance,Risk & compliance,custom,risk compliance|risk & compliance|aml|anti-money laundering|kyc|regulatory compliance|pematuhan|pengurusan risiko|合规|风险管理,Durable human-oversight skill
+customer-service,Customer service,custom,customer service|customer support|call centre|call center|helpdesk|khidmat pelanggan|perkhidmatan pelanggan|客户服务,Durable human-oversight skill
+logistics-planning,Logistics planning,custom,logistics planning|logistics|route planning|freight|perancangan logistik|物流,Durable human-oversight skill
+manual-data-entry,Manual data entry,custom,manual data entry,Routine skill at risk of automation
+llm-fine-tuning,LLM fine-tuning & adaptation,adept-canonical,llm fine-tuning & adaptation|llm fine tuning,Emerging AI-native skill
+rag-systems,Retrieval-augmented generation (RAG),adept-canonical,retrieval-augmented generation|rag systems,Emerging AI-native skill
+mlops,MLOps & model deployment,adept-canonical,mlops & model deployment|mlops|model deployment|ml pipelines,Emerging AI-native skill
+vector-databases,Vector database design,adept-canonical,vector database design|vector databases,Emerging AI-native skill
+ai-agents,Autonomous AI agent design,adept-canonical,autonomous ai agent design|ai agents,Emerging AI-native skill
+multimodal-ai,Multimodal AI (vision + language),adept-canonical,multimodal ai,Emerging AI-native skill
+ai-safety,AI safety & alignment evaluation,adept-canonical,ai safety & alignment evaluation|ai safety,Emerging AI-native skill
+explainable-ai,Explainable AI (XAI) methods,adept-canonical,explainable ai methods|explainable ai,Emerging AI-native skill
+ai-ethics,AI ethics & governance,adept-canonical,ai ethics & governance|ai ethics|responsible ai|etika ai|人工智能伦理,Emerging AI-native skill
+llm-evaluation,LLM evaluation & red-teaming,adept-canonical,llm evaluation & red-teaming|llm evaluation,Emerging AI-native skill
+data-pipelines,Data pipeline engineering,adept-canonical,data pipeline engineering|data pipelines|etl|elt|data engineering|airflow|dbt|kejuruteraan data|数据工程,Emerging AI-native skill
+synthetic-data-gen,Artificial data generation,adept-canonical,synthetic data generation|synthetic data gen,Emerging AI-native skill
+feature-engineering,Feature engineering for ML,adept-canonical,feature engineering for ml|feature engineering,Emerging AI-native skill
+model-monitoring,ML model monitoring & drift detection,adept-canonical,ml model monitoring & drift detection|model monitoring,Emerging AI-native skill
+federated-learning,Federated & privacy-preserving ML,adept-canonical,federated & privacy-preserving ml|federated learning,Emerging AI-native skill
+ai-product-management,AI product management,adept-canonical,ai product management,Emerging AI-native skill
+cloud-ai-services,Cloud AI services (AWS/Azure/GCP),adept-canonical,cloud ai services,Emerging AI-native skill
+low-code-ai,Low-code / no-code AI tooling,adept-canonical,low-code / no-code ai tooling|low code ai,Emerging AI-native skill
+nlp-engineering,NLP engineering & text processing,adept-canonical,nlp engineering & text processing|nlp engineering,Emerging AI-native skill
+computer-vision,Computer vision engineering,adept-canonical,computer vision engineering|computer vision,Emerging AI-native skill
+time-series-forecasting,Time-series forecasting,adept-canonical,time-series forecasting|time series forecasting,Emerging AI-native skill
+causal-inference,Causal inference & A/B testing,adept-canonical,causal inference & a/b testing|causal inference,Emerging AI-native skill
+graph-ml,Graph ML & knowledge graphs,adept-canonical,graph ml & knowledge graphs|graph ml,Emerging AI-native skill
+recommendation-systems,Recommendation system design,adept-canonical,recommendation system design|recommendation systems,Emerging AI-native skill
+robotic-process-automation,Robotic process automation (RPA),adept-canonical,robotic process automation,Emerging AI-native skill
+ai-assisted-coding,AI-assisted software development,adept-canonical,ai-assisted software development|ai assisted coding|github copilot|cursor ai|ai pair programming,Emerging AI-native skill
+generative-design,Generative design & creative AI,adept-canonical,generative design & creative ai|generative design,Emerging AI-native skill
+security-ai,AI-powered cybersecurity,adept-canonical,ai-powered cybersecurity|security ai,Emerging AI-native skill
+climate-ai,Climate & sustainability AI modelling,adept-canonical,climate & sustainability ai modelling|climate ai,Emerging AI-native skill
+healthcare-ai,Healthcare AI & clinical NLP,adept-canonical,healthcare ai & clinical nlp|healthcare ai,Emerging AI-native skill
+fintech-ai,FinTech AI & algorithmic trading,adept-canonical,fintech ai & algorithmic trading|fintech ai,Emerging AI-native skill
+digital-twin,Digital twin simulation,adept-canonical,digital twin simulation|digital twin,Emerging AI-native skill
+edge-ai,Edge AI & on-device inference,adept-canonical,edge ai & on-device inference|edge ai,Emerging AI-native skill
+quantum-ml,Quantum ML (nascent),adept-canonical,quantum ml,Emerging AI-native skill
+data-governance-ai,Data governance for AI systems,adept-canonical,data governance for ai systems|data governance ai,Emerging AI-native skill
+bias-auditing,Bias auditing & fairness testing,adept-canonical,bias auditing & fairness testing|bias auditing,Emerging AI-native skill
+human-ai-collaboration,Human–AI collaboration design,adept-canonical,human–ai collaboration design|human ai collaboration,Emerging AI-native skill
+conversational-ai,Conversational AI & chatbot design,adept-canonical,conversational ai & chatbot design|conversational ai|chatbot|chatbots|chatbot design|聊天机器人,Emerging AI-native skill
+bookkeeping,Bookkeeping & accounts payable/receivable,adept-canonical,bookkeeping & accounts payable/receivable|bookkeeping|accounts payable|accounts receivable|simpan kira|penyimpanan akaun|记账,Routine skill at risk of automation
+payroll-processing,Payroll processing,adept-canonical,payroll processing|payroll|penggajian|pemprosesan gaji|薪资,Routine skill at risk of automation
+document-filing,Document filing & records management,adept-canonical,document filing & records management|document filing|records management|pemfailan|pengurusan rekod|档案管理,Routine skill at risk of automation
+invoice-processing,Invoice processing & verification,adept-canonical,invoice processing & verification|invoice processing|invoicing|pemprosesan invois|发票处理,Routine skill at risk of automation
+report-generation,Standard report generation & formatting,adept-canonical,standard report generation & formatting|report generation,Routine skill at risk of automation
+scheduling-admin,Meeting scheduling & calendar management,adept-canonical,meeting scheduling & calendar management|scheduling admin,Routine skill at risk of automation
+data-entry-forms,Form-based data entry & validation,adept-canonical,form-based data entry & validation|data entry forms,Routine skill at risk of automation
+bank-reconciliation,Bank reconciliation,adept-canonical,bank reconciliation|reconciliation|penyesuaian bank|银行对账,Routine skill at risk of automation
+excel-basic,Basic spreadsheet (Excel) data manipulation,adept-canonical,basic spreadsheet data manipulation|excel basic,Routine skill at risk of automation
+copy-editing-routine,Routine copy-editing & proofreading,adept-canonical,routine copy-editing & proofreading|copy editing routine,Routine skill at risk of automation
+claims-processing,Insurance claims processing,adept-canonical,insurance claims processing|claims processing|pemprosesan tuntutan|理赔,Routine skill at risk of automation
+ticket-routing,IT helpdesk ticket routing & triage,adept-canonical,it helpdesk ticket routing & triage|ticket routing,Routine skill at risk of automation
+order-entry,Order entry & purchase order management,adept-canonical,order entry & purchase order management|order entry,Routine skill at risk of automation
+inventory-counting,Physical inventory counting & cycle checks,adept-canonical,physical inventory counting & cycle checks|inventory counting|stock take|stocktake|kiraan stok|盘点,Routine skill at risk of automation
+loan-application-processing,Loan application processing (routine),adept-canonical,loan application processing,Routine skill at risk of automation
+hr-admin-routine,"HR administrative processing (leave, attendance)",adept-canonical,hr administrative processing|hr admin routine|hr administration|pentadbiran sumber manusia|人事行政,Routine skill at risk of automation
+customer-id-verification,Customer identity verification (KYC routine),adept-canonical,customer identity verification|customer id verification|kenali pelanggan anda|customer due diligence,Routine skill at risk of automation
+tax-form-filing,Standard tax form preparation & filing,adept-canonical,standard tax form preparation & filing|tax form filing,Routine skill at risk of automation
+contract-template-drafting,Boilerplate contract template drafting,adept-canonical,boilerplate contract template drafting|contract template drafting,Routine skill at risk of automation
+supply-chain-tracking,Supply chain shipment tracking & status updates,adept-canonical,supply chain shipment tracking & status updates|supply chain tracking,Routine skill at risk of automation
+call-centre-scripted,Scripted call-centre customer queries,adept-canonical,scripted call-centre customer queries|call centre scripted,Routine skill at risk of automation
+email-triage,Email triage & routing,adept-canonical,email triage & routing|email triage,Routine skill at risk of automation
+expense-reporting,Expense report processing & reimbursement,adept-canonical,expense report processing & reimbursement|expense reporting,Routine skill at risk of automation
+procurement-admin,Routine procurement administration,adept-canonical,routine procurement administration|procurement admin|purchasing|perolehan|采购,Routine skill at risk of automation
+data-cleaning-manual,Manual data cleaning & deduplication,adept-canonical,manual data cleaning & deduplication|data cleaning manual,Routine skill at risk of automation
+translation-routine,Routine language translation (structured text),adept-canonical,routine language translation|translation routine|translation|terjemahan|翻译,Routine skill at risk of automation
+report-distribution,Report distribution & stakeholder emailing,adept-canonical,report distribution & stakeholder emailing|report distribution,Routine skill at risk of automation
+basic-sql-queries,Basic SQL query writing (templated),adept-canonical,basic sql query writing|basic sql queries,Routine skill at risk of automation
+spreadsheet-macros,Spreadsheet macro recording,adept-canonical,spreadsheet macro recording|spreadsheet macros,Routine skill at risk of automation
+logistics-dispatch,Logistics dispatch coordination (scripted),adept-canonical,logistics dispatch coordination|logistics dispatch,Routine skill at risk of automation
+sla-monitoring,SLA / KPI monitoring & alerting (rule-based),adept-canonical,sla / kpi monitoring & alerting|sla monitoring,Routine skill at risk of automation
+label-annotation,Data labelling & annotation (image/text),adept-canonical,data labelling & annotation|label annotation,Routine skill at risk of automation
+churn-flag-alerts,Rule-based churn / anomaly flagging,adept-canonical,rule-based churn / anomaly flagging|churn flag alerts,Routine skill at risk of automation
+vendor-master-data,Vendor master-data maintenance,adept-canonical,vendor master-data maintenance|vendor master data,Routine skill at risk of automation
+technical-writing-routine,Routine technical documentation update,adept-canonical,routine technical documentation update|technical writing routine,Routine skill at risk of automation
+asset-tracking,IT / physical asset tracking,adept-canonical,it / physical asset tracking|asset tracking,Routine skill at risk of automation
+meeting-minutes,Meeting minutes transcription & distribution,adept-canonical,meeting minutes transcription & distribution|meeting minutes|minit mesyuarat|会议记录,Routine skill at risk of automation
+trade-confirmation,Trade confirmation & settlement (back-office),adept-canonical,trade confirmation & settlement|trade confirmation,Routine skill at risk of automation
+audit-internal,Internal audit & control testing,adept-canonical,internal audit & control testing|audit internal|internal audit|internal control|audit dalaman|内部审计,Durable human-oversight skill
+sql-advanced,Advanced SQL & query optimisation,adept-canonical,advanced sql & query optimisation|sql advanced,Durable human-oversight skill
+stakeholder-management,Stakeholder management & communication,adept-canonical,stakeholder management & communication|stakeholder management|stakeholder engagement|pengurusan pihak berkepentingan|利益相关者管理,Durable human-oversight skill
+project-management,Project management (Agile / PMI),adept-canonical,project management|pmp|prince2|scrum|agile|kanban|scrum master|pengurusan projek|项目管理,Durable human-oversight skill
+change-management,Organisational change management,adept-canonical,organisational change management|change management|pengurusan perubahan|变革管理,Durable human-oversight skill
+critical-thinking,Critical thinking & problem framing,adept-canonical,critical thinking & problem framing|critical thinking|problem solving|problem-solving|pemikiran kritis|批判性思维,Durable human-oversight skill
+negotiation,Negotiation & conflict resolution,adept-canonical,negotiation & conflict resolution|negotiation|rundingan|谈判,Durable human-oversight skill
+coaching-mentoring,Coaching & mentoring,adept-canonical,coaching & mentoring|coaching mentoring|mentoring|coaching|bimbingan|辅导,Durable human-oversight skill
+regulatory-affairs,Regulatory affairs & policy interpretation,adept-canonical,regulatory affairs & policy interpretation|regulatory affairs,Durable human-oversight skill
+cybersecurity-governance,Cybersecurity governance & policy,adept-canonical,cybersecurity governance & policy|cybersecurity governance|cybersecurity|cyber security|information security|iso 27001|keselamatan siber|信息安全,Durable human-oversight skill
+data-privacy,Data privacy & PDPA / GDPR compliance,adept-canonical,data privacy & pdpa / gdpr compliance|data privacy|pdpa|personal data protection|gdpr|perlindungan data peribadi|数据隐私,Durable human-oversight skill
+financial-analysis,Financial analysis & modelling,adept-canonical,financial analysis & modelling|financial analysis|financial modelling|financial modeling|budgeting|analisis kewangan|财务分析,Durable human-oversight skill
+ux-research,UX research & usability testing,adept-canonical,ux research & usability testing|ux research|user research|usability testing|penyelidikan pengguna|用户研究,Durable human-oversight skill
+supply-chain-strategy,Supply chain strategy & resilience,adept-canonical,supply chain strategy & resilience|supply chain strategy|supply chain|procurement strategy|rantaian bekalan|供应链,Durable human-oversight skill
+enterprise-architecture,Enterprise architecture & systems design,adept-canonical,enterprise architecture & systems design|enterprise architecture,Durable human-oversight skill
+learning-development,Learning & development programme design,adept-canonical,learning & development programme design|learning development|learning and development|l&d|training and development|latihan dan pembangunan|培训与发展,Durable human-oversight skill
+workforce-planning,Workforce planning & talent strategy,adept-canonical,workforce planning & talent strategy|workforce planning|talent planning|perancangan tenaga kerja|人力规划,Durable human-oversight skill
+esg-reporting,ESG & sustainability reporting,adept-canonical,esg & sustainability reporting|esg reporting|esg|sustainability reporting|bursa sustainability|laporan kemampanan|esg报告|可持续发展报告,Durable human-oversight skill
+cross-cultural-communication,Cross-cultural communication,adept-canonical,cross-cultural communication|cross cultural communication|intercultural communication|komunikasi silang budaya|跨文化沟通,Durable human-oversight skill
+public-speaking,Public speaking & executive communication,adept-canonical,public speaking & executive communication|public speaking|presentation skills|presenting|pengucapan awam|演讲,Durable human-oversight skill
+strategic-planning,Strategic planning & competitive analysis,adept-canonical,strategic planning & competitive analysis|strategic planning|perancangan strategik|战略规划,Durable human-oversight skill
+knowledge-management,Knowledge management & documentation strategy,adept-canonical,knowledge management & documentation strategy|knowledge management|pengurusan pengetahuan|知识管理,Durable human-oversight skill
+vendor-management,Vendor management & contract governance,adept-canonical,vendor management & contract governance|vendor management|supplier management|pengurusan pembekal|pengurusan vendor|供应商管理,Durable human-oversight skill
+clinical-judgement,Clinical judgement & patient assessment,adept-canonical,clinical judgement & patient assessment|clinical judgement|clinical assessment|penilaian klinikal|临床判断,Durable human-oversight skill
+legal-research,Legal research & case analysis,adept-canonical,legal research & case analysis|legal research|penyelidikan undang-undang|法律研究,Durable human-oversight skill
+machine-learning,Machine learning,custom,machine learning|ml models|scikit-learn|sklearn|supervised learning|predictive modelling|predictive modeling|pembelajaran mesin|机器学习,Emerging AI-native skill
+statistics,Statistics & data analysis,custom,statistics|statistical analysis|regression analysis|hypothesis testing|descriptive statistics|spss|statistik|统计分析|统计,Core workplace skill
+cloud-computing,Cloud computing,custom,cloud computing|amazon web services|aws|microsoft azure|azure|google cloud|gcp|cloud infrastructure|pengkomputeran awan|云计算,Core workplace skill
+cybersecurity-operations,Cybersecurity operations,custom,cybersecurity operations|security operations|soc analyst|incident response|threat detection|siem|penetration testing|operasi keselamatan siber|网络安全运营,Durable human-oversight skill
+software-development,Software development,custom,software development|software engineering|javascript|typescript|java|c#|web development|full stack|pembangunan perisian|软件开发|编程,Core workplace skill
+ux-design,UX / UI design,custom,ux design|ui design|user interface design|user experience design|figma|wireframing|prototyping|reka bentuk ux|用户体验设计|界面设计,Durable human-oversight skill
+digital-marketing,Digital marketing,custom,digital marketing|seo|search engine optimisation|search engine optimization|social media marketing|google ads|meta ads|performance marketing|pemasaran digital|数字营销,Core workplace skill
+business-analysis,Business analysis & requirements,custom,business analysis|business analyst|requirements gathering|requirements analysis|user stories|bpmn|analisis perniagaan|业务分析|需求分析,Durable human-oversight skill
+renewable-energy-systems,Renewable energy systems,custom,renewable energy|solar pv|photovoltaic|solar installation|energy storage|battery storage|wind energy|tenaga boleh baharu|solar fotovolta|可再生能源|光伏,Durable human-oversight skill
+energy-efficiency,Energy efficiency & management,custom,energy efficiency|energy management|energy audit|energy auditor|iso 50001|registered energy manager|kecekapan tenaga|pengurusan tenaga|能源管理|节能,Durable human-oversight skill
+carbon-accounting,Carbon accounting & GHG reporting,custom,carbon accounting|ghg protocol|greenhouse gas accounting|carbon footprint|scope 1|scope 2|scope 3|emissions reporting|perakaunan karbon|碳核算|温室气体,Durable human-oversight skill
+industrial-automation,Industrial automation (PLC / SCADA),custom,plc programming|programmable logic controller|scada|industrial automation|mechatronics|hmi|automasi industri|工业自动化,Durable human-oversight skill
+iot-systems,IoT & smart sensors,custom,internet of things|iot|smart sensors|embedded systems|arduino|raspberry pi|industrial iot|iiot|internet benda|物联网,Emerging AI-native skill
+quality-management,Quality management (Lean / Six Sigma),custom,lean six sigma|six sigma|lean manufacturing|quality management|quality assurance|iso 9001|kaizen|total quality management|pengurusan kualiti|质量管理|精益生产,Durable human-oversight skill
+semiconductor-process,Semiconductor process & test,custom,semiconductor|wafer fabrication|wafer fab|ic packaging|test engineering|failure analysis|cleanroom|semikonduktor|半导体|晶圆,Durable human-oversight skill
+precision-agriculture,Precision & smart agriculture,custom,precision agriculture|smart farming|agritech|agri-tech|farm sensors|drone spraying|fertigation|pertanian pintar|pertanian jitu|智慧农业|精准农业,Durable human-oversight skill
+healthcare-informatics,Health informatics & digital health,custom,health informatics|digital health|electronic medical records|electronic health records|emr|ehr|telehealth|telemedicine|informatik kesihatan|医疗信息学|数字医疗,Durable human-oversight skill
+patient-care,Patient care & nursing practice,custom,patient care|nursing|registered nurse|bedside care|clinical nursing|jururawat|kejururawatan|penjagaan pesakit|护理|病人护理,Durable human-oversight skill
+instructional-design,Instructional design & e-learning,custom,instructional design|e-learning development|elearning|curriculum design|learning design|articulate storyline|reka bentuk instruksi|reka bentuk kurikulum|教学设计|课程设计,Durable human-oversight skill
+teaching-facilitation,Teaching & training facilitation,custom,teaching|lecturing|training delivery|facilitation|train the trainer|classroom management|pengajaran|pensyarah|教学|培训讲师,Durable human-oversight skill
+sales-account-management,Sales & account management,custom,business development|account management|key account management|b2b sales|sales pipeline|pengurusan akaun|jualan|销售|客户经理,Durable human-oversight skill
+crm-systems,"CRM systems (Salesforce, HubSpot)",custom,crm|salesforce|hubspot|customer relationship management|zoho crm|dynamics 365 sales|sistem crm|客户关系管理,Core workplace skill
+content-creation,Content creation & copywriting,custom,copywriting|content creation|content writing|video editing|canva|social media content|penulisan kandungan|内容创作|文案,Core workplace skill
+islamic-finance,Islamic finance & Shariah compliance,custom,islamic finance|islamic banking|shariah compliance|syariah|takaful|sukuk|muamalat|kewangan islam|perbankan islam|伊斯兰金融,Durable human-oversight skill
+accounting-reporting,Financial reporting & MFRS,custom,financial reporting|mfrs|ifrs|management accounts|financial statements|chartered accountant|acca|laporan kewangan|财务报告|会计,Durable human-oversight skill
+warehouse-management,Warehouse & inventory management,custom,warehouse management|wms|inventory management|stock control|inventory control|pengurusan gudang|kawalan stok|仓库管理|库存管理,Durable human-oversight skill
+tourism-hospitality,Hospitality & tourism service,custom,hospitality|hotel operations|front office|tourism|guest relations|revenue management|hospitaliti|pelancongan|酒店管理|旅游,Durable human-oversight skill

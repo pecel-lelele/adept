@@ -1531,3 +1531,36 @@
 - **Validation**: Full quality gate passed (949 tests, 32 skipped, 48 subtests); all 18 targeted recovery/rate-limit checks passed against disposable PostgreSQL 16, including real administrative session termination, and 35 existing PostgreSQL integration checks passed after loading CI's synthetic upgrade personas. Seven web retry regressions and the production web build passed. The currently deployed public pages and unsigned app redirect passed read-only smoke checks; the repair still needs publishing and signed-in production verification.
 - **Replaces**: none (extends M4-027 and M4-005)
 - **PR / branch**: fix/core-database-recovery
+
+### M4-073: Preserve production boundaries and CI after the workspace migration
+- **Date**: 2026-10-24
+- **Feature**: Core deployment and dependency hardening
+- **Type**: architecture | dependency | method
+- **Change**: Resolve main's deployment/preflight changes into the Replit artifact layout. Restore active CI and scheduled data/trend workflows, the regression suite and contract generation; correct the worker Docker context and instructions. Preserve FastAPI CORS headers, discard forged proxy identity headers, derive visitor addresses from an explicitly configured trusted proxy chain and require shared-secret/hop configuration at production startup. Preserve Nix native-library discovery, supervise API/database readiness, copy standalone assets safely and restore secret-file ignores. Pin fast-uri 3.1.9 and align React types; allow the Windows build binaries alongside Linux.
+- **Why**: Greptile identified five migration regressions: CORS loss, spoofable/shared visitor buckets, missing secret ignores, broken worker build instructions and inactive workflows. Main also added preflight and deployment fixes that would otherwise remain only in the historical backup. Production trust counts must be verified by the operator rather than guessed.
+- **Affects**: All served features; M1 scheduled trend refresh and MiniLM publication. No database schema, API contract, scoring or entity changes. Existing authentication modes are preserved.
+- **Validation**: Initial quality gate passed (939 Python tests, 27 environment-dependent skips, 48 subtests). After integrating main's M4-072 recovery changes into active paths, the full quality gate passed (940 tests, 32 environment-dependent skips, 48 subtests); 44 PostgreSQL integration tests and twelve navigation/read-retry regressions passed. Eleven proxy/startup regressions, Ruff, ESLint, translation parity, workspace TypeScript, generated contract checks, all workspace production builds, actionlint and worker publication policy checks passed. The pinned worker requirements resolve for Linux/Python 3.11. npm and installed Python audits report no known vulnerabilities. A local production smoke test returned 200 for landing/About/sign-in/static CSS and CORS preflight, and confirmed healthy API/database and catalogue reads. No live database changes, model calls, image publication or RunPod deployment.
+- **Replaces**: M4-069 launcher layout only; keeps its startup/readiness and native-runtime guarantees in the migrated services.
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/20 / security/publish-hardening
+
+### M4-074: Keep the relocated development Compose file database-only
+- **Date**: 2026-10-24
+- **Feature**: Core local deployment
+- **Type**: architecture
+- **Change**: Remove the obsolete API/web Compose services, whose old Dockerfiles no longer exist in the active build context. Keep the loopback-bound pgvector database, required password, persistent volume and readiness check.
+- **Why**: Greptile's follow-up identified the broken container build paths. The migrated web/API already run through workspace artifact commands; restoring a second app packaging path would duplicate that setup.
+- **Affects**: Local development only; no production service, schema or dependency changes.
+- **Validation**: Docker Compose config resolves successfully and lists only db. The preceding source revision passed the complete quality gate (940 tests, 32 skips), 44 database tests, twelve navigation/retry checks and the clean workspace production build.
+- **Replaces**: Historical API/web Compose services only.
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/20 / security/publish-hardening
+
+### M4-075: Use Next.js native development port defaults
+- **Date**: 2026-10-24
+- **Feature**: Core local development
+- **Type**: other
+- **Change**: Remove shell interpolation of PORT from the web dev command. Next.js reads an explicitly supplied PORT itself and defaults to 3000 when absent. Show the configured web port in the relocated task runner's startup message.
+- **Why**: Greptile's follow-up found that the old command passed an empty --port argument outside Replit. Native CLI configuration also works across Windows and POSIX shells.
+- **Affects**: Local/Replit Preview startup only; production build/start is unchanged.
+- **Validation**: Verified the installed Next.js 16.4.2 CLI's default(3000).env('PORT') behavior and CLI documentation; startup with an explicit alternate port reaches Ready.
+- **Replaces**: Shell-dependent development port argument only.
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/20 / security/publish-hardening

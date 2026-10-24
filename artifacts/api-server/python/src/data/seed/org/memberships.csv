@@ -1,0 +1,9 @@
+user_id,org_id,role,intake_status
+demo-company,org-demo-bank,manager,complete
+aisyah,org-demo-bank,member,complete
+emp-002,org-demo-bank,member,complete
+emp-003,org-demo-bank,member,in_progress
+emp-004,org-demo-bank,member,invited
+demo-institution,org-demo-poly,advisor,complete
+weijie,org-demo-poly,member,complete
+stu-002,org-demo-poly,member,invited

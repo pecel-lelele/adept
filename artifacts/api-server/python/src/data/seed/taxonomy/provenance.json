@@ -1,0 +1,286 @@
+{
+  "source": "O*NET 31.0 occupation_data.json",
+  "source_url": "https://www.onetcenter.org/database.html",
+  "license_url": "https://www.onetcenter.org/license_db.html",
+  "roles": [
+    {
+      "role_id": "bank-operations-executive",
+      "label": "Bank Operations Executive",
+      "occupation_code": "43-3099.00",
+      "occupation_title": "Financial Clerks, All Other",
+      "source_url": "https://www.onetonline.org/link/summary/43-3099.00",
+      "retrieved_at": "2026-10-23",
+      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+    },
+    {
+      "role_id": "data-entry-clerk",
+      "label": "Data Entry Clerk",
+      "occupation_code": "43-9021.00",
+      "occupation_title": "Data Entry Keyers",
+      "source_url": "https://www.onetonline.org/link/summary/43-9021.00",
+      "retrieved_at": "2026-10-23",
+      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+    },
+    {
+      "role_id": "logistics-supervisor",
+      "label": "Logistics Supervisor",
+      "occupation_code": "11-3071.04",
+      "occupation_title": "Supply Chain Managers",
+      "source_url": "https://www.onetonline.org/link/summary/11-3071.04",
+      "retrieved_at": "2026-10-23",
+      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+    },
+    {
+      "role_id": "data-analyst",
+      "label": "Data Analyst",
+      "occupation_code": "15-2051.00",
+      "occupation_title": "Data Scientists",
+      "source_url": "https://www.onetonline.org/link/summary/15-2051.00",
+      "retrieved_at": "2026-10-23",
+      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+    },
+    {
+      "role_id": "ai-operations-specialist",
+      "label": "AI Operations Specialist",
+      "occupation_code": "15-1299.08",
+      "occupation_title": "Computer Systems Engineers/Architects",
+      "source_url": "https://www.onetonline.org/link/summary/15-1299.08",
+      "retrieved_at": "2026-10-23",
+      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+    },
+    {
+      "role_id": "process-automation-analyst",
+      "label": "Process Automation Analyst",
+      "occupation_code": "13-1111.00",
+      "occupation_title": "Management Analysts",
+      "source_url": "https://www.onetonline.org/link/summary/13-1111.00",
+      "retrieved_at": "2026-10-23",
+      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+    },
+    {
+      "role_id": "compliance-analytics-officer",
+      "label": "Compliance Analytics Officer",
+      "occupation_code": "13-1041.00",
+      "occupation_title": "Compliance Officers",
+      "source_url": "https://www.onetonline.org/link/summary/13-1041.00",
+      "retrieved_at": "2026-10-23",
+      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+    },
+    {
+      "role_id": "machine-learning-engineer",
+      "label": "Machine Learning Engineer",
+      "occupation_code": "15-2051.00",
+      "occupation_title": "Data Scientists",
+      "source_url": "https://www.onetonline.org/link/summary/15-2051.00",
+      "retrieved_at": "2026-10-23",
+      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+    },
+    {
+      "role_id": "data-engineer",
+      "label": "Data Engineer",
+      "occupation_code": "15-1243.00",
+      "occupation_title": "Database Architects",
+      "source_url": "https://www.onetonline.org/link/summary/15-1243.00",
+      "retrieved_at": "2026-10-23",
+      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+    },
+    {
+      "role_id": "cloud-solutions-architect",
+      "label": "Cloud Solutions Architect",
+      "occupation_code": "15-1299.08",
+      "occupation_title": "Computer Systems Engineers/Architects",
+      "source_url": "https://www.onetonline.org/link/summary/15-1299.08",
+      "retrieved_at": "2026-10-23",
+      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+    },
+    {
+      "role_id": "cybersecurity-analyst",
+      "label": "Cybersecurity Analyst",
+      "occupation_code": "15-1212.00",
+      "occupation_title": "Information Security Analysts",
+      "source_url": "https://www.onetonline.org/link/summary/15-1212.00",
+      "retrieved_at": "2026-10-23",
+      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+    },
+    {
+      "role_id": "ai-product-manager",
+      "label": "AI Product Manager",
+      "occupation_code": "11-3021.00",
+      "occupation_title": "Computer and Information Systems Managers",
+      "source_url": "https://www.onetonline.org/link/summary/11-3021.00",
+      "retrieved_at": "2026-10-23",
+      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+    },
+    {
+      "role_id": "ux-designer",
+      "label": "UX / UI Designer",
+      "occupation_code": "15-1255.00",
+      "occupation_title": "Web and Digital Interface Designers",
+      "source_url": "https://www.onetonline.org/link/summary/15-1255.00",
+      "retrieved_at": "2026-10-23",
+      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+    },
+    {
+      "role_id": "digital-marketing-specialist",
+      "label": "Digital Marketing Specialist",
+      "occupation_code": "13-1161.01",
+      "occupation_title": "Search Marketing Strategists",
+      "source_url": "https://www.onetonline.org/link/summary/13-1161.01",
+      "retrieved_at": "2026-10-23",
+      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+    },
+    {
+      "role_id": "business-analyst",
+      "label": "Business Analyst",
+      "occupation_code": "13-1111.00",
+      "occupation_title": "Management Analysts",
+      "source_url": "https://www.onetonline.org/link/summary/13-1111.00",
+      "retrieved_at": "2026-10-23",
+      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+    },
+    {
+      "role_id": "solar-pv-engineer",
+      "label": "Solar PV & Renewable Energy Engineer",
+      "occupation_code": "17-2199.11",
+      "occupation_title": "Solar Energy Systems Engineers",
+      "source_url": "https://www.onetonline.org/link/summary/17-2199.11",
+      "retrieved_at": "2026-10-23",
+      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+    },
+    {
+      "role_id": "energy-manager",
+      "label": "Energy Manager",
+      "occupation_code": "17-2199.03",
+      "occupation_title": "Energy Engineers, Except Wind and Solar",
+      "source_url": "https://www.onetonline.org/link/summary/17-2199.03",
+      "retrieved_at": "2026-10-23",
+      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+    },
+    {
+      "role_id": "esg-sustainability-analyst",
+      "label": "ESG & Sustainability Analyst",
+      "occupation_code": "13-1199.05",
+      "occupation_title": "Sustainability Specialists",
+      "source_url": "https://www.onetonline.org/link/summary/13-1199.05",
+      "retrieved_at": "2026-10-23",
+      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+    },
+    {
+      "role_id": "smart-manufacturing-engineer",
+      "label": "Smart Manufacturing Engineer",
+      "occupation_code": "17-2112.00",
+      "occupation_title": "Industrial Engineers",
+      "source_url": "https://www.onetonline.org/link/summary/17-2112.00",
+      "retrieved_at": "2026-10-23",
+      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+    },
+    {
+      "role_id": "semiconductor-process-engineer",
+      "label": "Semiconductor Process Engineer",
+      "occupation_code": "17-2112.00",
+      "occupation_title": "Industrial Engineers",
+      "source_url": "https://www.onetonline.org/link/summary/17-2112.00",
+      "retrieved_at": "2026-10-23",
+      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+    },
+    {
+      "role_id": "supply-chain-analyst",
+      "label": "Supply Chain Analyst",
+      "occupation_code": "13-1081.00",
+      "occupation_title": "Logisticians",
+      "source_url": "https://www.onetonline.org/link/summary/13-1081.00",
+      "retrieved_at": "2026-10-23",
+      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+    },
+    {
+      "role_id": "precision-agriculture-specialist",
+      "label": "Precision Agriculture Specialist",
+      "occupation_code": "19-4012.01",
+      "occupation_title": "Precision Agriculture Technicians",
+      "source_url": "https://www.onetonline.org/link/summary/19-4012.01",
+      "retrieved_at": "2026-10-23",
+      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+    },
+    {
+      "role_id": "health-informatics-specialist",
+      "label": "Health Informatics Specialist",
+      "occupation_code": "15-1211.01",
+      "occupation_title": "Health Informatics Specialists",
+      "source_url": "https://www.onetonline.org/link/summary/15-1211.01",
+      "retrieved_at": "2026-10-23",
+      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+    },
+    {
+      "role_id": "digital-health-nurse",
+      "label": "Digital Health Nurse",
+      "occupation_code": "29-1141.00",
+      "occupation_title": "Registered Nurses",
+      "source_url": "https://www.onetonline.org/link/summary/29-1141.00",
+      "retrieved_at": "2026-10-23",
+      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+    },
+    {
+      "role_id": "learning-experience-designer",
+      "label": "Learning Experience Designer",
+      "occupation_code": "25-9031.00",
+      "occupation_title": "Instructional Coordinators",
+      "source_url": "https://www.onetonline.org/link/summary/25-9031.00",
+      "retrieved_at": "2026-10-23",
+      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+    },
+    {
+      "role_id": "tvet-digital-skills-trainer",
+      "label": "TVET & Digital Skills Trainer",
+      "occupation_code": "25-1194.00",
+      "occupation_title": "Career/Technical Education Teachers, Postsecondary",
+      "source_url": "https://www.onetonline.org/link/summary/25-1194.00",
+      "retrieved_at": "2026-10-23",
+      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+    },
+    {
+      "role_id": "customer-success-specialist",
+      "label": "Customer Success Specialist",
+      "occupation_code": "43-4051.00",
+      "occupation_title": "Customer Service Representatives",
+      "source_url": "https://www.onetonline.org/link/summary/43-4051.00",
+      "retrieved_at": "2026-10-23",
+      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+    },
+    {
+      "role_id": "islamic-finance-analyst",
+      "label": "Islamic Finance Analyst",
+      "occupation_code": "13-2051.00",
+      "occupation_title": "Financial and Investment Analysts",
+      "source_url": "https://www.onetonline.org/link/summary/13-2051.00",
+      "retrieved_at": "2026-10-23",
+      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+    },
+    {
+      "role_id": "people-analytics-specialist",
+      "label": "People Analytics Specialist",
+      "occupation_code": "13-1071.00",
+      "occupation_title": "Human Resources Specialists",
+      "source_url": "https://www.onetonline.org/link/summary/13-1071.00",
+      "retrieved_at": "2026-10-23",
+      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+    },
+    {
+      "role_id": "hospitality-experience-manager",
+      "label": "Hospitality Experience Manager",
+      "occupation_code": "11-9081.00",
+      "occupation_title": "Lodging Managers",
+      "source_url": "https://www.onetonline.org/link/summary/11-9081.00",
+      "retrieved_at": "2026-10-23",
+      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+    },
+    {
+      "role_id": "responsible-ai-officer",
+      "label": "Responsible AI & Governance Officer",
+      "occupation_code": "13-1041.00",
+      "occupation_title": "Compliance Officers",
+      "source_url": "https://www.onetonline.org/link/summary/13-1041.00",
+      "retrieved_at": "2026-10-23",
+      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+    }
+  ]
+}

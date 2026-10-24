@@ -1,0 +1,24 @@
+{
+  "name": "workspace",
+  "version": "0.0.0",
+  "license": "MIT",
+  "scripts": {
+    "preinstall": "node scripts/require-pnpm.mjs",
+    "build": "pnpm run typecheck && pnpm -r --if-present run build",
+    "typecheck:libs": "tsc --build",
+    "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck",
+    "check": "python src/scripts/dev.py check",
+    "test:proxy": "node --experimental-strip-types --test artifacts/api-server/tests/adept.test.ts",
+    "contracts": "python src/scripts/dev.py contracts"
+  },
+  "private": true,
+  "dependencies": {
+    "@replit/connectors-sdk": "^0.4.3"
+  },
+  "devDependencies": {
+    "prettier": "^3.9.10",
+    "typescript": "~5.9.3",
+    "openapi-typescript": "7.9.1"
+  },
+  "packageManager": "pnpm@10.29.3"
+}

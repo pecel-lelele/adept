@@ -1,0 +1,4 @@
+user_id,segment,interests,hours_per_week,budget_myr,hrd_eligible,current_role_id
+aisyah,working,"{data,finance,process improvement}",6,500,true,bank-operations-executive
+weijie,graduate,"{software,AI}",15,200,false,
+ravi,switcher,"{operations,analytics}",8,800,true,logistics-supervisor

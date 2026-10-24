@@ -20,6 +20,9 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: artifacts/api-server/python
     timeout-minutes: 30
     env:
       DATABASE_URL: ${{ secrets.TREND_DATABASE_URL }}
@@ -29,6 +32,7 @@ jobs:
     steps:
       - name: Skip when deployment configuration is incomplete
         if: env.DATABASE_URL == '' || env.TRENDS_RUNPOD_ENDPOINT_ID == '' || env.TRENDS_RUNPOD_API_KEY == ''
+        working-directory: ${{ github.workspace }}
         run: echo "::notice::Database or RunPod encoder configuration is missing; trend refresh skipped."
 
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4

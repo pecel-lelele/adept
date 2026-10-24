@@ -1,0 +1,26 @@
+{
+  "title": "About Adept",
+  "llmTitle": "AI disclosure",
+  "llmNone": "No language model is used in this version. Plans, scores and SDG links are computed by deterministic, explainable rules.",
+  "llmProvider": "Provider: {provider} · model: {model}",
+  "llmCalls": "{calls} model calls logged; {rejected} invented IDs rejected.",
+  "methodTitle": "Methodology",
+  "methodBody": "Trend snapshots feed role outlooks under a moderate and a fast AI-disruption scenario. Matches combine skill overlap, trend outlook and interest fit. Pathways close your skills gap with courses from our catalogue only, ordered by prerequisites and trend-weighted priority, and timed from your hours per week. Every role and skill links to official SDG targets with a reason.",
+  "rulesTitle": "Guardrails",
+  "sourcesTitle": "Data sources",
+  "sourceKind": {
+    "live_api": "live data feed",
+    "verified_page": "verified page",
+    "curated": "curated",
+    "synthetic": "sample data",
+    "mock": "placeholder"
+  },
+  "records": "{count} records",
+  "fairnessTitle": "Fairness checks",
+  "fairnessPassed": "All fairness checks pass",
+  "fairnessFailed": "A fairness check failed",
+  "protectedTitle": "Never accepted as input",
+  "limitsTitle": "Limitations",
+  "limitsBody": "All predictions are estimates from public data. Your CV is read in memory and never stored. SDG links are drafts until a reviewer signs them off. Course levels are our estimate. Adept supports your decisions and never makes hiring decisions.",
+  "lastSynced": "last synced {date} UTC"
+}

@@ -20,7 +20,7 @@ permissions:
 
 env:
   PYTHON_VERSION: "3.11"
-  NODE_VERSION: "22"
+  NODE_VERSION: "24"
   PNPM_VERSION: "10.29.3"
 
 jobs:
@@ -42,13 +42,13 @@ jobs:
         env:
           GOTOOLCHAIN: auto
           GOSUMDB: sum.golang.org
-        run: go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7 -shellcheck= -pyflakes= .github/workflows/ci.yml .github/workflows/publish-minilm.yml
+        run: go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7 -shellcheck= -pyflakes= .github/workflows/ci.yml .github/workflows/publish-minilm.yml .github/workflows/data-sources.yml .github/workflows/trends-refresh.yml
 
       - name: Test unsafe workflow fixtures (offline)
-        run: uv run --no-project --python "$PYTHON_VERSION" --with PyYAML==6.0.3 python -m unittest discover -s tests/pipelines/trends -p test_minilm_publish_workflow.py -v
+        run: uv run --no-project --python "$PYTHON_VERSION" --with PyYAML==6.0.3 python -m unittest discover -s artifacts/api-server/python/tests/pipelines/trends -p test_minilm_publish_workflow.py -v
 
       - name: Check publication policy and public pinned action manifests
-        run: uv run --no-project --python "$PYTHON_VERSION" --with PyYAML==6.0.3 python src/scripts/check_minilm_workflow.py --check-actions
+        run: uv run --no-project --python "$PYTHON_VERSION" --with PyYAML==6.0.3 python artifacts/api-server/python/src/scripts/check_minilm_workflow.py --check-actions
 
   backend:
     name: Backend (ruff, pytest)
@@ -60,12 +60,11 @@ jobs:
       - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
         with:
           enable-cache: true
-          cache-dependency-glob: requirements.txt
+          cache-dependency-glob: uv.lock
 
       - name: Install Python dependencies into .venv
         run: |
-          uv venv --python "$PYTHON_VERSION" .venv
-          uv pip install --python .venv/bin/python -r requirements.txt
+          uv sync --frozen --python "$PYTHON_VERSION"
 
       - name: Ruff lint
         run: .venv/bin/python -m ruff check .
@@ -91,27 +90,31 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
-          cache-dependency-path: src/web/pnpm-lock.yaml
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Install web dependencies
-        working-directory: src/web
         run: pnpm install --frozen-lockfile
 
       - name: ESLint
-        working-directory: src/web
-        run: pnpm lint
+        run: pnpm --filter @workspace/adept lint
 
       - name: TypeScript
-        working-directory: src/web
         run: pnpm typecheck
+
+      - name: Public proxy regressions
+        run: pnpm test:proxy
+
+      - name: Navigation regressions
+        run: node --experimental-strip-types --test artifacts/api-server/python/tests/web-navigation.test.ts artifacts/api-server/python/tests/web-api-recovery.test.ts
 
       # Stdlib-only script: no virtualenv needed.
       - name: Translation keys match English
         run: python3 src/scripts/dev.py i18n-check
 
       - name: Next.js production build
-        working-directory: src/web
         env:
+          PORT: "3000"
+          BASE_PATH: "/"
           API_URL: http://localhost:8000
           NEXT_TELEMETRY_DISABLED: "1"
         run: pnpm build
@@ -126,7 +129,7 @@ jobs:
       - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
         with:
           enable-cache: true
-          cache-dependency-glob: requirements.txt
+          cache-dependency-glob: uv.lock
 
       - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
         with:
@@ -136,15 +139,13 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
-          cache-dependency-path: src/web/pnpm-lock.yaml
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Install Python dependencies into .venv
         run: |
-          uv venv --python "$PYTHON_VERSION" .venv
-          uv pip install --python .venv/bin/python -r requirements.txt
+          uv sync --frozen --python "$PYTHON_VERSION"
 
       - name: Install web dependencies
-        working-directory: src/web
         run: pnpm install --frozen-lockfile
 
       - name: Regenerate contracts and fail on drift
@@ -180,8 +181,7 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          uv venv --python "$PYTHON_VERSION" .venv
-          uv pip install --python .venv/bin/python -r requirements.txt
+          uv sync --frozen --python "$PYTHON_VERSION"
 
       # Upgrade path: build the database exactly as the merged skeleton did (its own
       # migrations and mock seeds), then apply today's migrations and seeds on top.
@@ -195,20 +195,20 @@ jobs:
           SKELETON_SHA: 010f048e0bafc81d7734061939dc366f9ccaf3f8
 
       - name: Apply migrations
-        run: .venv/bin/python src/db/migrate.py up
+        run: .venv/bin/python artifacts/api-server/python/src/db/migrate.py up
 
       - name: Load seeds
-        run: .venv/bin/python src/db/seed.py
+        run: .venv/bin/python artifacts/api-server/python/src/db/seed.py
 
       - name: Trend preflight accepts the migrated writable database
-        run: PYTHONPATH=src/api:src .venv/bin/python -m pipelines.trends.preflight
+        run: PYTHONPATH=artifacts/api-server/python/src/api:artifacts/api-server/python/src .venv/bin/python -m pipelines.trends.preflight
 
       # Re-running must be a no-op: migrations are recorded, seeds use ON CONFLICT DO NOTHING.
       - name: Migrations and seeds are idempotent
         run: |
-          .venv/bin/python src/db/migrate.py up | tee migrate.out
+          .venv/bin/python artifacts/api-server/python/src/db/migrate.py up | tee migrate.out
           grep -q "0 migration(s) applied" migrate.out
-          .venv/bin/python src/db/seed.py
+          .venv/bin/python artifacts/api-server/python/src/db/seed.py
 
       - name: Seeded data matches the catalogue and SDG rules
         run: |
@@ -239,6 +239,6 @@ jobs:
       # limits against the real database.
       - name: PostgreSQL integration tests
         run: |
-          .venv/bin/python -m pytest -q tests/api/pathway/test_postgres_store.py tests/api/pathway/test_postgres_refdata.py tests/api/pathway/test_postgres_sync.py tests/api/pathway/test_earned_levels.py tests/api/guardrails/test_rate_limit_postgres.py tests/pipelines/jobs/test_postgres_refresh.py
+          .venv/bin/python -m pytest -q artifacts/api-server/python/tests/api/pathway/test_postgres_store.py artifacts/api-server/python/tests/api/pathway/test_postgres_refdata.py artifacts/api-server/python/tests/api/pathway/test_postgres_sync.py artifacts/api-server/python/tests/api/pathway/test_earned_levels.py artifacts/api-server/python/tests/api/guardrails/test_rate_limit_postgres.py artifacts/api-server/python/tests/pipelines/jobs/test_postgres_refresh.py artifacts/api-server/python/tests/integration/test_database_recovery.py
         env:
           ADEPT_TEST_DATABASE_URL: ${{ env.DATABASE_URL }}

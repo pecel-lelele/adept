@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: src/docker/api.Dockerfile
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-adept}:${POSTGRES_PASSWORD:-adept}@db:5432/${POSTGRES_DB:-adept}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-adept}:${POSTGRES_PASSWORD:?Set a strong POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-adept}
       AUTH_MODE: demo
       M3_BACKEND: postgres
       LLM_PROVIDER: ${LLM_PROVIDER:-none}
@@ -50,11 +50,10 @@ services:
     image: pgvector/pgvector:pg16
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-adept}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-adept}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set a strong POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB:-adept}
     ports:
-      # Localhost only: the default credentials are public. To expose the database to
-      # other machines, set POSTGRES_BIND=0.0.0.0 deliberately (and change the password).
+      # Keep the database bound to localhost unless remote access is explicitly required.
       - "${POSTGRES_BIND:-127.0.0.1}:${POSTGRES_PORT:-5433}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
