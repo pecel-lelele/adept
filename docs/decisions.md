@@ -1553,3 +1553,14 @@
 - **Validation**: Docker Compose config resolves successfully and lists only db. The preceding source revision passed the complete quality gate (940 tests, 32 skips), 44 database tests, twelve navigation/retry checks and the clean workspace production build.
 - **Replaces**: Historical API/web Compose services only.
 - **PR / branch**: https://github.com/pecel-lelele/adept/pull/20 / security/publish-hardening
+
+### M4-075: Use Next.js native development port defaults
+- **Date**: 2026-10-24
+- **Feature**: Core local development
+- **Type**: other
+- **Change**: Remove shell interpolation of PORT from the web dev command. Next.js reads an explicitly supplied PORT itself and defaults to 3000 when absent. Show the configured web port in the relocated task runner's startup message.
+- **Why**: Greptile's follow-up found that the old command passed an empty --port argument outside Replit. Native CLI configuration also works across Windows and POSIX shells.
+- **Affects**: Local/Replit Preview startup only; production build/start is unchanged.
+- **Validation**: Verified the installed Next.js 16.4.2 CLI's default(3000).env('PORT') behavior and CLI documentation; startup with an explicit alternate port reaches Ready.
+- **Replaces**: Shell-dependent development port argument only.
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/20 / security/publish-hardening

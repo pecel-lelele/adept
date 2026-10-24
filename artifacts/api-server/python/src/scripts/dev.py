@@ -152,7 +152,8 @@ def task_setup() -> None:
 def task_dev() -> None:
     db_up(required=False)
     api_port = os.environ.get("API_PORT", "8000")
-    log(f"API on http://localhost:{api_port}/docs  |  web on http://localhost:3000")
+    web_port = os.environ.get("PORT", "3000")
+    log(f"API on http://localhost:{api_port}/docs  |  web on http://localhost:{web_port}")
     procs = {
         "API": subprocess.Popen(
             py("-m", "uvicorn", "app.main:app", "--reload", "--port", api_port),
