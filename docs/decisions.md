@@ -790,6 +790,17 @@
 - **Replaces**: Earlier sponsor-resource omissions in the submission drafts
 - **PR / branch**: docs/core-submission-accuracy
 
+### M3-032: Keep submission tables aligned with the supplied PDF
+
+- **Date**: 2026-10-25
+- **Feature**: Core (submission), F8 (disclosures)
+- **Type**: other
+- **Change**: Restore the PDF's column order and relative order/grouping of existing rows in the technical declaration and proposal third-party inventory. Keep corrections in their matching rows, remove obsolete entries explicitly and append genuinely new entries after existing ones. Provide a change-only editing guide identified by section and original row name.
+- **Why**: Reordered, merged and split tables caused unnecessary replacement work in the user's Google Docs. Unchanged factual content should require no manual edit.
+- **Affects**: Submission authoring only; no application behaviour or new dependencies
+- **Replaces**: Earlier table presentation choices in the submission drafts, not the factual corrections
+- **PR / branch**: docs/core-submission-accuracy
+
 ---
 
 ## M4: Core & Organisation (Core, F7)
