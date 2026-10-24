@@ -129,13 +129,13 @@ create an invented `example.test` account, and follow **Radar → Roles → Plan
 Create a team account to try programmes, funding decisions and completion reviews, and join
 with a synthetic learner using its join code. Personal and organisation learning stay separate.
 
-| Synthetic demo profile                     | CV                                                                                  |
-| :----------------------------------------- | :---------------------------------------------------------------------------------- |
-| Imran Hakim · Compliance Analytics Officer | [Download PDF](submission/demo-cvs/cv_imran_hakim_compliance_analytics_officer.pdf) |
-| Sofia Tan · Process Automation Analyst     | [Download PDF](submission/demo-cvs/cv_sofia_tan_process_automation_analyst.pdf)     |
-| Meera Anand · Logistics Supervisor         | [Download PDF](submission/demo-cvs/cv_meera_anand_logistics_supervisor.pdf)         |
-| Adrian Lim · Data Analyst                  | [Download PDF](submission/demo-cvs/cv_adrian_lim_data_analyst.pdf)                  |
-| Nur Hana · Bank Operations Executive       | [Download PDF](submission/demo-cvs/cv_nur_hana_bank_operations_executive.pdf)       |
+| Synthetic demo profile                     | CV                                                                            |
+| :----------------------------------------- | :---------------------------------------------------------------------------- |
+| Imran Hakim · Compliance Analytics Officer | [Download PDF](docs/demo-cvs/cv_imran_hakim_compliance_analytics_officer.pdf) |
+| Sofia Tan · Process Automation Analyst     | [Download PDF](docs/demo-cvs/cv_sofia_tan_process_automation_analyst.pdf)     |
+| Meera Anand · Logistics Supervisor         | [Download PDF](docs/demo-cvs/cv_meera_anand_logistics_supervisor.pdf)         |
+| Adrian Lim · Data Analyst                  | [Download PDF](docs/demo-cvs/cv_adrian_lim_data_analyst.pdf)                  |
+| Nur Hana · Bank Operations Executive       | [Download PDF](docs/demo-cvs/cv_nur_hana_bank_operations_executive.pdf)       |
 
 The demo guide supplies editable synthetic intake settings; time, budget and proficiency
 choices are not verified CV facts. Parser regression fixtures remain under `tests/`.
