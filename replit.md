@@ -36,3 +36,15 @@ Development database migrations and reference seeding were applied from the impo
 Required: `DATABASE_URL`, `SESSION_SECRET`. Optional external model credentials remain optional; Adi defaults to the original built-in guide.
 
 `WEB_ORIGIN` may pin the public origin; if unset, web request handlers use proxy-forwarded origin headers. Production must run Next.js as a server, not as static files.
+
+## Publishing handoff
+
+- Keep the existing Autoscale application router and artifact production commands. The sample root commands `src/scripts/replit.py` and `src/scripts/dev.py` are not in this workspace; production configuration belongs in each artifact's `.replit-artifact/artifact.toml`.
+- In the friend's Replit copy, use Replit-managed PostgreSQL. Replit provisions `DATABASE_URL`; do not set that runtime-managed value manually.
+- Before publishing that copy, apply SQL migrations and reference data to its **development** database:
+  `cd artifacts/api-server/python && python src/db/migrate.py up && python src/db/seed.py`
+- On the first publish, select **Autoscale** and enable **Set up your production database with your current development data** to copy the migrated schema and reference data. Review development records first because this option copies the development database's data too.
+- Do not run the SQL migration script against the managed production database or from the deployment build/start command. Replit's publish flow handles managed production schema changes.
+- Add a new random `SESSION_SECRET` (32+ characters) and a `PROXY_SHARED_SECRET` to the friend's production Secrets. The proxy secret must be available to both web and API services. Secrets in this workspace do not transfer to the friend's account.
+- After the published hostname is known, set `CORS_ORIGINS` to that exact HTTPS origin with no trailing slash. `WEB_ORIGIN` can remain unset; the app derives it from forwarded request headers. `API_URL` and service ports are configured by the artifact settings, not by replacing them with `localhost` or port `3000`.
+- The Runpod/Gemini model settings are configured for production. Add `RUNPOD_API_KEY` and `GEMINI_API_KEY` to the friend's production Secrets to enable that optional assistant setup; those credentials are not present in this workspace.

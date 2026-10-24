@@ -23,6 +23,8 @@ args = ["pnpm", "--filter", "@workspace/adept", "run", "start"]
 [services.production.run.env]
 NODE_ENV = "production"
 PORT = "24384"
+API_URL = "http://127.0.0.1:8000"
+NEXT_TELEMETRY_DISABLED = "1"
 
 [services.env]
 PORT = "24384"
