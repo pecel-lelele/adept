@@ -1542,3 +1542,14 @@
 - **Validation**: Initial quality gate passed (939 Python tests, 27 environment-dependent skips, 48 subtests). After integrating main's M4-072 recovery changes into active paths, the full quality gate passed (940 tests, 32 environment-dependent skips, 48 subtests); 44 PostgreSQL integration tests and twelve navigation/read-retry regressions passed. Eleven proxy/startup regressions, Ruff, ESLint, translation parity, workspace TypeScript, generated contract checks, all workspace production builds, actionlint and worker publication policy checks passed. The pinned worker requirements resolve for Linux/Python 3.11. npm and installed Python audits report no known vulnerabilities. A local production smoke test returned 200 for landing/About/sign-in/static CSS and CORS preflight, and confirmed healthy API/database and catalogue reads. No live database changes, model calls, image publication or RunPod deployment.
 - **Replaces**: M4-069 launcher layout only; keeps its startup/readiness and native-runtime guarantees in the migrated services.
 - **PR / branch**: https://github.com/pecel-lelele/adept/pull/20 / security/publish-hardening
+
+### M4-074: Keep the relocated development Compose file database-only
+- **Date**: 2026-10-24
+- **Feature**: Core local deployment
+- **Type**: architecture
+- **Change**: Remove the obsolete API/web Compose services, whose old Dockerfiles no longer exist in the active build context. Keep the loopback-bound pgvector database, required password, persistent volume and readiness check.
+- **Why**: Greptile's follow-up identified the broken container build paths. The migrated web/API already run through workspace artifact commands; restoring a second app packaging path would duplicate that setup.
+- **Affects**: Local development only; no production service, schema or dependency changes.
+- **Validation**: Docker Compose config resolves successfully and lists only db. The preceding source revision passed the complete quality gate (940 tests, 32 skips), 44 database tests, twelve navigation/retry checks and the clean workspace production build.
+- **Replaces**: Historical API/web Compose services only.
+- **PR / branch**: https://github.com/pecel-lelele/adept/pull/20 / security/publish-hardening
