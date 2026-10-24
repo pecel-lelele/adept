@@ -1565,3 +1565,14 @@
 - **Affects**: Web localization and the MiniLM worker dependency graph; model ID/revision, endpoint protocol, API contracts, database schema and trend scoring are unchanged.
 - **Replaces**: none
 - **PR / branch**: fix/core-replit-publish-live
+
+### M4-075: Stop timed-out quality command process trees
+- **Date**: 2026-10-24
+- **Feature**: Core quality runner
+- **Type**: reliability
+- **Change**: Run timed commands in a dedicated POSIX session or Windows process group. On timeout, terminate the POSIX process group or use Windows `taskkill /T`, then reap the command process. Preserve ordinary no-timeout command behavior.
+- **Why**: A quality command can start child processes that survive when only its parent is killed, consuming resources and interfering with later checks.
+- **Validation**: Timeout cleanup tests verify the current POSIX process tree exits and exercise the Windows taskkill path; full Python suite passes (955 passed, 27 skipped) with the Nix GCC library path scoped to Python. In the default environment, `make check` passes lint, i18n, typecheck and contracts but three PDF tests cannot load PyMuPDF because `.venv` lacks the Nix `libstdc++` runtime path.
+- **Affects**: Timed quality subprocesses and the contract-drift status check; no API, database or app runtime behavior changes.
+- **Replaces**: none
+- **PR / branch**: fix/core-replit-publish-live

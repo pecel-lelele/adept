@@ -5,12 +5,18 @@ from __future__ import annotations
 import importlib.util
 import io
 import itertools
+import os
 import re
+import signal
 import subprocess
+import sys
+import tempfile
+import time
 import unittest
 from contextlib import ExitStack, redirect_stderr, redirect_stdout
 from pathlib import Path
-from unittest.mock import Mock, patch
+from types import SimpleNamespace
+from unittest.mock import Mock, call, patch
 
 DEV_PY = Path(__file__).resolve().parents[1] / "src/scripts/dev.py"
 LABELS = ("ruff lint", "ruff format", "frontend lint")
@@ -38,6 +44,7 @@ class LintRunnerTests(unittest.TestCase):
             patch.object(self.dev, "load_env"),
             patch.object(self.dev, "py", side_effect=lambda *args: ["test-python", *args]),
             patch.object(self.dev, "pnpm", return_value=["test-pnpm"]),
+            patch.object(self.dev, "_run_with_timeout"),
             patch.object(self.dev.subprocess, "run"),
             patch.object(
                 self.dev.subprocess, "Popen", side_effect=AssertionError("unexpected server")
@@ -408,6 +415,98 @@ class LintRunnerTests(unittest.TestCase):
                             stage in failures,
                         )
                     self.assertIn(f"make check failed: {', '.join(failures)}", err.getvalue())
+
+
+class TimedOutProcessTreeTests(unittest.TestCase):
+    def setUp(self) -> None:
+        spec = importlib.util.spec_from_file_location("dev_timeout", DEV_PY)
+        assert spec and spec.loader
+        self.dev = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(self.dev)
+
+    def test_timed_commands_use_platform_process_isolation(self) -> None:
+        with patch.object(self.dev, "os", SimpleNamespace(name="posix")):
+            self.assertEqual(self.dev._timeout_popen_options(), {"start_new_session": True})
+
+        with patch.object(self.dev, "os", SimpleNamespace(name="nt")):
+            expected_flag = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0x00000200)
+            self.assertEqual(self.dev._timeout_popen_options(), {"creationflags": expected_flag})
+
+    def test_posix_timeout_sends_termination_and_kill_to_process_group(self) -> None:
+        process = Mock(pid=456)
+        process.poll.return_value = 0
+        killpg = Mock()
+        posix = SimpleNamespace(name="posix", killpg=killpg)
+        signals = SimpleNamespace(SIGTERM=signal.SIGTERM, SIGKILL=getattr(signal, "SIGKILL", 9))
+
+        with (
+            patch.object(self.dev, "os", posix),
+            patch.object(self.dev, "signal", signals),
+        ):
+            self.dev._terminate_timed_out_process(process)
+
+        self.assertEqual(
+            killpg.call_args_list,
+            [call(456, signals.SIGTERM), call(456, signals.SIGKILL)],
+        )
+        process.wait.assert_has_calls(
+            [
+                call(timeout=self.dev.PROCESS_TERMINATE_GRACE_SECONDS),
+                call(timeout=self.dev.PROCESS_TREE_KILL_TIMEOUT_SECONDS),
+            ]
+        )
+
+    def test_windows_timeout_uses_taskkill_tree_mode(self) -> None:
+        process = Mock(pid=789)
+        process.poll.return_value = 0
+        taskkill = Mock(return_value=subprocess.CompletedProcess([], 0))
+
+        with (
+            patch.object(self.dev, "os", SimpleNamespace(name="nt")),
+            patch.object(self.dev.subprocess, "run", taskkill),
+        ):
+            self.dev._terminate_timed_out_process(process)
+
+        command = taskkill.call_args.args[0]
+        self.assertEqual(command, ["taskkill", "/F", "/T", "/PID", "789"])
+        self.assertFalse(taskkill.call_args.kwargs["check"])
+        self.assertEqual(
+            taskkill.call_args.kwargs["timeout"], self.dev.PROCESS_TREE_KILL_TIMEOUT_SECONDS
+        )
+        process.wait.assert_called_once_with(timeout=self.dev.PROCESS_TREE_KILL_TIMEOUT_SECONDS)
+
+    def test_timed_out_command_does_not_leave_a_child_running(self) -> None:
+        if os.name not in {"posix", "nt"}:
+            self.skipTest("process-tree cleanup is implemented for POSIX and Windows")
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            directory = Path(temp_dir)
+            ready_file = directory / "child-started"
+            marker_file = directory / "child-survived"
+            child_script = (
+                "import pathlib, time; "
+                "time.sleep(2.5); "
+                f"pathlib.Path({str(marker_file)!r}).write_text('alive')"
+            )
+            parent_script = (
+                "import pathlib, subprocess, sys, time; "
+                f"child = subprocess.Popen([sys.executable, '-c', {child_script!r}]); "
+                f"pathlib.Path({str(ready_file)!r}).write_text(str(child.pid)); "
+                "time.sleep(30)"
+            )
+
+            with self.assertRaisesRegex(self.dev.TaskError, "command timed out"):
+                self.dev.run(
+                    [sys.executable, "-c", parent_script],
+                    cwd=directory,
+                    timeout=1.5,
+                )
+
+            self.assertTrue(ready_file.exists(), "the child should have started before timeout")
+            deadline = time.monotonic() + 3
+            while time.monotonic() < deadline and not marker_file.exists():
+                time.sleep(0.05)
+            self.assertFalse(marker_file.exists(), "timed-out command left its child running")
 
 
 class RuffCommandAlignmentTests(unittest.TestCase):

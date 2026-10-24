@@ -13,6 +13,7 @@ import json
 import math
 import os
 import shutil
+import signal
 import subprocess
 import sys
 import time
@@ -29,6 +30,8 @@ CONTRACT_FILES = ["src/api/openapi.json", "src/web/src/lib/api/types.ts"]
 # Quality commands time out after 10 minutes unless this environment variable overrides it.
 QUALITY_TIMEOUT_ENV = "DEV_QUALITY_TIMEOUT_SECONDS"
 DEFAULT_QUALITY_TIMEOUT_SECONDS = 600.0
+PROCESS_TERMINATE_GRACE_SECONDS = 0.5
+PROCESS_TREE_KILL_TIMEOUT_SECONDS = 5.0
 
 
 class TaskError(Exception):
@@ -98,6 +101,88 @@ def quality_timeout_seconds() -> float:
     return timeout
 
 
+def _timeout_popen_options() -> dict[str, object]:
+    """Isolate timed commands so a timeout can stop their descendants too."""
+    if os.name == "nt":
+        return {"creationflags": getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0x00000200)}
+    if os.name == "posix":
+        return {"start_new_session": True}
+    return {}
+
+
+def _terminate_timed_out_process(process: subprocess.Popen[bytes]) -> None:
+    """Stop a timed-out command and its process tree where the OS supports it."""
+    if os.name == "nt":
+        try:
+            subprocess.run(
+                ["taskkill", "/F", "/T", "/PID", str(process.pid)],
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=PROCESS_TREE_KILL_TIMEOUT_SECONDS,
+                check=False,
+            )
+        except (OSError, subprocess.SubprocessError):
+            pass
+    elif os.name == "posix":
+        try:
+            os.killpg(process.pid, signal.SIGTERM)
+        except OSError:
+            pass
+        try:
+            process.wait(timeout=PROCESS_TERMINATE_GRACE_SECONDS)
+        except subprocess.TimeoutExpired:
+            pass
+        try:
+            os.killpg(process.pid, signal.SIGKILL)
+        except OSError:
+            pass
+
+    if process.poll() is None:
+        try:
+            process.kill()
+        except OSError:
+            pass
+    try:
+        process.wait(timeout=PROCESS_TREE_KILL_TIMEOUT_SECONDS)
+    except subprocess.TimeoutExpired:
+        process.kill()
+        process.wait()
+
+
+def _run_with_timeout(
+    cmd: Sequence[str],
+    *,
+    cwd: Path,
+    timeout: float,
+    capture_output: bool = False,
+    text: bool = False,
+) -> subprocess.CompletedProcess:
+    """Run a timed command in an isolated process group and reap it on timeout."""
+    command = list(cmd)
+    process = subprocess.Popen(
+        command,
+        cwd=cwd,
+        env=os.environ,
+        stdout=subprocess.PIPE if capture_output else None,
+        stderr=subprocess.PIPE if capture_output else None,
+        text=text,
+        **_timeout_popen_options(),
+    )
+    try:
+        stdout, stderr = process.communicate(timeout=timeout)
+    except subprocess.TimeoutExpired as exc:
+        _terminate_timed_out_process(process)
+        stdout, stderr = process.communicate()
+        raise subprocess.TimeoutExpired(command, timeout, output=stdout, stderr=stderr) from exc
+    except KeyboardInterrupt:
+        if process.poll() is None:
+            process.kill()
+            process.wait()
+        raise
+    return subprocess.CompletedProcess(command, process.returncode, stdout, stderr)
+
+
 def run(
     cmd: Sequence[str],
     cwd: Path = ROOT,
@@ -106,7 +191,10 @@ def run(
 ) -> int:
     print(f"$ {' '.join(cmd)}", flush=True)
     try:
-        code = subprocess.run(list(cmd), cwd=cwd, env=os.environ, timeout=timeout).returncode
+        if timeout is None:
+            code = subprocess.run(list(cmd), cwd=cwd, env=os.environ, timeout=None).returncode
+        else:
+            code = _run_with_timeout(list(cmd), cwd=cwd, timeout=timeout).returncode
     except subprocess.TimeoutExpired as exc:
         if timeout is None:
             raise
@@ -285,7 +373,7 @@ def task_contracts_check() -> None:
     command = ["git", "status", "--porcelain", "--", *CONTRACT_FILES]
     timeout = quality_timeout_seconds()
     try:
-        result = subprocess.run(
+        result = _run_with_timeout(
             command,
             cwd=ROOT,
             capture_output=True,
