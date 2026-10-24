@@ -1,10 +1,10 @@
 import { API_URL } from "@/lib/api/client";
 import { trustedClientIp } from "@/lib/api/server";
+import { proxyConfig } from "@/lib/api/proxy-config";
 import { getSessionToken } from "@/lib/auth/session";
 import { selectedOrg, workspaceFor } from "@/lib/auth/workspace";
 
-const PROXY_SECRET = process.env.PROXY_SHARED_SECRET ?? "";
-const TRUSTED_PROXY_HOPS = Number.parseInt(process.env.TRUSTED_PROXY_HOPS ?? "0", 10) || 0;
+const { secret: PROXY_SECRET, trustedHops: TRUSTED_PROXY_HOPS } = proxyConfig();
 const MAX_BYTES = 32 * 1024;
 
 const tooLarge = () =>

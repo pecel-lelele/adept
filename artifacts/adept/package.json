@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "next dev --hostname 0.0.0.0 --port ${PORT}",
     "build": "next build && node scripts/prepare-standalone.mjs",
-    "start": "cd .next/standalone && node artifacts/adept/server.js",
+    "start": "node scripts/start-standalone.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "eslint ."
   },

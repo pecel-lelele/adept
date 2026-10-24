@@ -26,3 +26,22 @@ repl-nix-workspace = "repl_nix_workspace:main"
 [build-system]
 requires = ["uv_build>=0.13.4,<0.14.0"]
 build-backend = "uv_build"
+
+[dependency-groups]
+dev = ["pyyaml==6.0.3"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = [".migration-backup", "node_modules", "artifacts/adept", "artifacts/api-server/python/src/data"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "W"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app", "pipelines"]
+
+[tool.pytest.ini_options]
+testpaths = ["artifacts/api-server/python/tests", "tests"]
+pythonpath = ["artifacts/api-server/python/src/api", "artifacts/api-server/python/src"]
+addopts = "-q --import-mode=importlib"

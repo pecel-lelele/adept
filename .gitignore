@@ -17,6 +17,13 @@ out-tsc
 # dependencies
 node_modules
 
+# Local credentials at any depth; only example templates may be committed.
+.env
+.env.*
+!.env.example
+.session-secret
+.venv/
+
 # IDEs and editors
 /.idea
 .project

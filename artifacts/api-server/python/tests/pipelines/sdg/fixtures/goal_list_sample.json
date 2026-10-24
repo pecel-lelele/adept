@@ -1,0 +1,240 @@
+[
+ {
+  "code": "1",
+  "title": "End poverty in all its forms everywhere",
+  "targets": [
+   {
+    "code": "1.1",
+    "title": "By 2030, eradicate extreme poverty for all people everywhere, currently measured as people living on less than $1.25 a day"
+   },
+   {
+    "code": "1.2",
+    "title": "By 2030, reduce at least by half the proportion of men, women and children of all ages living in poverty in all its dimensions according to national definitions"
+   }
+  ]
+ },
+ {
+  "code": "2",
+  "title": "End hunger, achieve food security and improved nutrition and promote sustainable agriculture",
+  "targets": [
+   {
+    "code": "2.1",
+    "title": "By 2030, end hunger and ensure access by all people, in particular the poor and people in vulnerable situations, including infants, to safe, nutritious and sufficient food all year round"
+   },
+   {
+    "code": "2.2",
+    "title": "By 2030, end all forms of malnutrition, including achieving, by 2025, the internationally agreed targets on stunting and wasting in children under 5 years of age, and address the nutritional needs of adolescent girls, pregnant and lactating women and older persons"
+   }
+  ]
+ },
+ {
+  "code": "3",
+  "title": "Ensure healthy lives and promote well-being for all at all ages",
+  "targets": [
+   {
+    "code": "3.1",
+    "title": "By 2030, reduce the global maternal mortality ratio to less than 70 per 100,000 live births"
+   },
+   {
+    "code": "3.2",
+    "title": "By 2030, end preventable deaths of newborns and children under 5 years of age, with all countries aiming to reduce neonatal mortality to at least as low as 12 per 1,000 live births and under-5 mortality to at least as low as 25 per 1,000 live births"
+   }
+  ]
+ },
+ {
+  "code": "4",
+  "title": "Ensure inclusive and equitable quality education and promote lifelong learning opportunities for all",
+  "targets": [
+   {
+    "code": "4.1",
+    "title": "By 2030, ensure that all girls and boys complete free, equitable and quality primary and secondary education leading to relevant and effective learning outcomes"
+   },
+   {
+    "code": "4.2",
+    "title": "By 2030, ensure that all girls and boys have access to quality early childhood development, care and pre-primary education so that they are ready for primary education"
+   }
+  ]
+ },
+ {
+  "code": "5",
+  "title": "Achieve gender equality and empower all women and girls",
+  "targets": [
+   {
+    "code": "5.1",
+    "title": "End all forms of discrimination against all women and girls everywhere"
+   },
+   {
+    "code": "5.2",
+    "title": "Eliminate all forms of violence against all women and girls in the public and private spheres, including trafficking and sexual and other types of exploitation"
+   }
+  ]
+ },
+ {
+  "code": "6",
+  "title": "Ensure availability and sustainable management of water and sanitation for all",
+  "targets": [
+   {
+    "code": "6.1",
+    "title": "By 2030, achieve universal and equitable access to safe and affordable drinking water for all"
+   },
+   {
+    "code": "6.2",
+    "title": "By 2030, achieve access to adequate and equitable sanitation and hygiene for all and end open defecation, paying special attention to the needs of women and girls and those in vulnerable situations"
+   }
+  ]
+ },
+ {
+  "code": "7",
+  "title": "Ensure access to affordable, reliable, sustainable and modern energy for all",
+  "targets": [
+   {
+    "code": "7.1",
+    "title": "By 2030, ensure universal access to affordable, reliable and modern energy services"
+   },
+   {
+    "code": "7.2",
+    "title": "By 2030, increase substantially the share of renewable energy in the global energy mix"
+   }
+  ]
+ },
+ {
+  "code": "8",
+  "title": "Promote sustained, inclusive and sustainable economic growth, full and productive employment and decent work for all",
+  "targets": [
+   {
+    "code": "8.2",
+    "title": "Achieve higher levels of economic productivity through diversification, technological upgrading and innovation, including through a focus on high-value added and labour-intensive sectors"
+   },
+   {
+    "code": "8.3",
+    "title": "Promote development-oriented policies that support productive activities, decent job creation, entrepreneurship, creativity and innovation, and encourage the formalization and growth of micro-, small- and medium-sized enterprises, including through access to financial services"
+   }
+  ]
+ },
+ {
+  "code": "9",
+  "title": "Build resilient infrastructure, promote inclusive and sustainable industrialization and foster innovation",
+  "targets": [
+   {
+    "code": "9.1",
+    "title": "Develop quality, reliable, sustainable and resilient infrastructure, including regional and trans-border infrastructure, to support economic development and human well-being, with a focus on affordable and equitable access for all"
+   },
+   {
+    "code": "9.2",
+    "title": "Promote inclusive and sustainable industrialization and, by 2030, significantly raise industry's share of employment and gross domestic product, in line with national circumstances, and double its share in least developed countries"
+   }
+  ]
+ },
+ {
+  "code": "10",
+  "title": "Reduce inequality within and among countries",
+  "targets": [
+   {
+    "code": "10.1",
+    "title": "By 2030, progressively achieve and sustain income growth of the bottom 40 per cent of the population at a rate higher than the national average"
+   },
+   {
+    "code": "10.2",
+    "title": "By 2030, empower and promote the social, economic and political inclusion of all, irrespective of age, sex, disability, race, ethnicity, origin, religion or economic or other status"
+   }
+  ]
+ },
+ {
+  "code": "11",
+  "title": "Make cities and human settlements inclusive, safe, resilient and sustainable",
+  "targets": [
+   {
+    "code": "11.1",
+    "title": "By 2030, ensure access for all to adequate, safe and affordable housing and basic services and upgrade slums"
+   },
+   {
+    "code": "11.2",
+    "title": "By 2030, provide access to safe, affordable, accessible and sustainable transport systems for all, improving road safety, notably by expanding public transport, with special attention to the needs of those in vulnerable situations, women, children, persons with disabilities and older persons"
+   }
+  ]
+ },
+ {
+  "code": "12",
+  "title": "Ensure sustainable consumption and production patterns",
+  "targets": [
+   {
+    "code": "12.1",
+    "title": "Implement the 10-Year Framework of Programmes on Sustainable Consumption and Production Patterns, all countries taking action, with developed countries taking the lead, taking into account the development and capabilities of developing countries"
+   },
+   {
+    "code": "12.2",
+    "title": "By 2030, achieve the sustainable management and efficient use of natural resources"
+   }
+  ]
+ },
+ {
+  "code": "13",
+  "title": "Take urgent action to combat climate change and its impacts",
+  "targets": [
+   {
+    "code": "13.1",
+    "title": "Strengthen resilience and adaptive capacity to climate-related hazards and natural disasters in all countries"
+   },
+   {
+    "code": "13.2",
+    "title": "Integrate climate change measures into national policies, strategies and planning"
+   }
+  ]
+ },
+ {
+  "code": "14",
+  "title": "Conserve and sustainably use the oceans, seas and marine resources for sustainable development",
+  "targets": [
+   {
+    "code": "14.1",
+    "title": "By 2025, prevent and significantly reduce marine pollution of all kinds, in particular from land-based activities, including marine debris and nutrient pollution"
+   },
+   {
+    "code": "14.6",
+    "title": "By 2020, prohibit certain forms of fisheries subsidies which contribute to overcapacity and overfishing, eliminate subsidies that contribute to illegal, unreported and unregulated fishing and refrain from introducing new such subsidies, recognizing that appropriate and effective special and differential treatment for developing and least developed countries should be an integral part of the World Trade Organization fisheries subsidies negotiation [c]"
+   }
+  ]
+ },
+ {
+  "code": "15",
+  "title": "Protect, restore and promote sustainable use of terrestrial ecosystems, sustainably manage forests, combat desertification, and halt and reverse land degradation and halt biodiversity loss",
+  "targets": [
+   {
+    "code": "15.1",
+    "title": "By 2020, ensure the conservation, restoration and sustainable use of terrestrial and inland freshwater ecosystems and their services, in particular forests, wetlands, mountains and drylands, in line with obligations under international agreements"
+   },
+   {
+    "code": "15.2",
+    "title": "By 2020, promote the implementation of sustainable management of all types of forests, halt deforestation, restore degraded forests and substantially increase afforestation and reforestation globally"
+   }
+  ]
+ },
+ {
+  "code": "16",
+  "title": "Promote peaceful and inclusive societies for sustainable development, provide access to justice for all and build effective, accountable and inclusive institutions at all levels",
+  "targets": [
+   {
+    "code": "16.1",
+    "title": "Significantly reduce all forms of violence and related death rates everywhere"
+   },
+   {
+    "code": "16.2",
+    "title": "End abuse, exploitation, trafficking and all forms of violence against and torture of children"
+   }
+  ]
+ },
+ {
+  "code": "17",
+  "title": "Strengthen the means of implementation and revitalize the Global Partnership for Sustainable Development",
+  "targets": [
+   {
+    "code": "17.1",
+    "title": "Strengthen domestic resource mobilization, including through international support to developing countries, to improve domestic capacity for tax and other revenue collection"
+   },
+   {
+    "code": "17.2",
+    "title": "Developed countries to implement fully their official development assistance commitments, including the commitment by many developed countries to achieve the target of 0.7 per cent of gross national income for official development assistance (ODA/GNI) to developing countries and 0.15 to 0.20 per cent of ODA/GNI to least developed countries; ODA providers are encouraged to consider setting a target to provide at least 0.20 per cent of ODA/GNI to least developed countries"
+   }
+  ]
+ }
+]

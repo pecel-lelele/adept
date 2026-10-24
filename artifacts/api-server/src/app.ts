@@ -1,9 +1,8 @@
 import express, { type Express } from "express";
-import cors from "cors";
 import pinoHttp from "pino-http";
 import router from "./routes";
 import { logger } from "./lib/logger";
-import { adept } from "./adept";
+import { createAdeptRouter, proxyConfig } from "./adept";
 
 const app: Express = express();
 
@@ -26,7 +25,7 @@ app.use(
     },
   }),
 );
-app.use(adept);
+app.use(createAdeptRouter(proxyConfig()));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

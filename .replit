@@ -21,7 +21,7 @@ timeoutMs = 20000
 
 [nix]
 channel = "stable-25_05"
-packages = ["freetype", "gumbo", "harfbuzz", "jbig2dec", "libjpeg_turbo", "mupdf", "openjpeg", "postgresql", "swig", "xcbuild"]
+packages = ["gcc", "freetype", "gumbo", "harfbuzz", "jbig2dec", "libjpeg_turbo", "mupdf", "openjpeg", "postgresql", "swig", "xcbuild"]
 
 [userenv]
 
@@ -40,7 +40,6 @@ LLM_TIMEOUT_S = "20"
 M3_BACKEND = "postgres"
 NEXT_TELEMETRY_DISABLED = "1"
 NODE_ENV = "production"
-TRUSTED_PROXY_HOPS = "0"
 CORS_ORIGINS = "https://adept-my.replit.app"
 WEB_ORIGIN = "https://adept-my.replit.app"
 TRENDS_EMBEDDING_BACKEND = "runpod"

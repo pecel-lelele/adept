@@ -46,10 +46,30 @@ Adept connects your current skills to future roles, explains the gaps, and build
 | Replit project | https://replit.com/@darrensuwandi06/adept |
 | Live demo | Pending |
 | RunPod · Adi / GLM-5.3 | https://api.runpod.ai/v2/b1dd8hy2hqo1nb/openai/v1 |
-| RunPod · MiniLM-L6-v2 | Pending deployment |
+| RunPod · MiniLM-L6-v2 | https://api.runpod.ai/v2/ta14jd0by2ijl2 |
 | Slide deck | Pending |
 | Demo video | Pending |
 | Pitching video | Pending |
+
+The queue-based endpoint ID is `ta14jd0by2ijl2` with base URL
+`https://api.runpod.ai/v2/ta14jd0by2ijl2`. Authenticate with the MiniLM-specific
+`TRENDS_RUNPOD_API_KEY` bearer token; do not substitute Adi's GLM `RUNPOD_API_KEY`.
+
+- `POST /runsync` submits a batch and waits for its embeddings.
+- `POST /run` queues a batch; poll `GET /status/{job_id}`.
+- `GET /health` reports endpoint and worker health.
+
+```bash
+curl --fail-with-body --silent --show-error \
+  --request POST 'https://api.runpod.ai/v2/ta14jd0by2ijl2/runsync' \
+  --header "Authorization: Bearer ${TRENDS_RUNPOD_API_KEY}" \
+  --header 'Content-Type: application/json' \
+  --data '{"input":{"texts":["Human-AI collaboration design"]}}'
+```
+
+A completed response contains the pinned model/revision and one finite 384-dimensional
+vector per input. The inference smoke test passed on 24 October 2026; publishing a snapshot
+still requires a separate successful **Trends refresh** run. Store the key in a secret manager.
 
 ## Features
 
@@ -106,13 +126,19 @@ This builds web and API containers, starts PostgreSQL, applies migrations and se
 
 **Configuration:** [`.env.example`](.env.example) lists the application, database and model settings. Keep secrets in `.env` locally or in the hosting platform's Secrets. When using Replit Database, keep its supplied `DATABASE_URL`; importing GitHub files does not copy the local database.
 
+**Publish on Replit:** [`.replit`](.replit) supplies Autoscale build/start commands for
+the production Next.js and FastAPI servers. Follow the [Replit deployment guide](docs/replit-deployment.md)
+to preserve local workspace changes, configure the published origin and secrets,
+initialize the production database and inspect build/run logs. The Preview runner
+is for development. Pull merged GitHub changes into Replit before publishing.
+
 ## AI and data
 
 | Component | Provider / model | Purpose |
 |:---|:---|:---|
 | Adi | Z.ai **GLM-5.3** (`glm-5.3`) through RunPod | Selects validated answer blocks using the user's Adept data. |
 | Adi fallback | Google **Gemini 3.5 Flash Lite**, with Gemini 3.6 Flash / 3.1 Flash Lite backups | Handles provider failure; a built-in guide remains available. |
-| Trend encoder | Sentence Transformers **all-MiniLM-L6-v2** | Relates public research sentences to catalogue skills. RunPod worker prepared; deployment pending. |
+| Trend encoder | Sentence Transformers **all-MiniLM-L6-v2** through RunPod | Relates public research sentences to catalogue skills. Deployed worker verified with two 384-dimensional embeddings. |
 | CV skill suggestions | Google **gemini-embedding-001** | Suggests catalogue matches for unfamiliar skill phrases; the user confirms additions. |
 
 Model features are configurable; the default assistant uses the built-in guide. Role scores, learning plans and trend calculations use deterministic rules. Model-selected IDs pass through `validate_ids` before display.
@@ -130,6 +156,52 @@ Data comes from arXiv, BLS projections, the UN SDG API, Microsoft Learn, verifie
 | `make seed` | Load committed reference and synthetic datasets |
 
 On Windows, use `uv run --no-project python src/scripts/dev.py <command>` for the same tasks. GitHub Actions runs PR checks and scheduled trend/source refreshes.
+
+### RunPod Serverless and GitHub Actions
+
+MiniLM is deployed as a **queue-based RunPod Serverless worker** using the public image
+`ghcr.io/pecel-lelele/adept-minilm:latest`. Its pinned model revision is
+`1110a243fdf4706b3f48f1d95db1a4f5529b4d41`. A completed live test returned two
+384-dimensional embeddings. The container includes model weights and PyTorch; GitHub's
+trend runner installs pipeline client dependencies and calls RunPod over HTTPS.
+
+| Workflow | Trigger and responsibility |
+|:---|:---|
+| [CI](.github/workflows/ci.yml) | Pushes to `main`, pull requests and manual runs: lint, tests, real PostgreSQL checks, translations, generated contracts and production web build. |
+| [Data sources](.github/workflows/data-sources.yml) | Mondays 02:17 UTC (10:17 WITA) and manual runs: checks upstream SDG/course data and evidence links; does not publish trend snapshots. |
+| [Trends refresh](.github/workflows/trends-refresh.yml) | Mondays 03:41 UTC (11:41 WITA) and manual runs: ingest public research → RunPod embeddings → score → validate → publish a dated database snapshot. |
+| [Publish MiniLM](.github/workflows/publish-minilm.yml) | Trusted `main` or `feat/minilm-runpod-deploy` pushes affecting the worker, encoder or workflow, plus manual runs on those refs: builds `linux/amd64` and publishes GHCR tags using `GITHUB_TOKEN`. PR events do not publish. |
+
+Configure **repository Settings → Secrets and variables → Actions**:
+
+| Kind | Exact name | Value |
+|:---|:---|:---|
+| Secret | `TREND_DATABASE_URL` | The published app's production PostgreSQL connection string, reachable from GitHub Actions. Replit's development `helium` URL cannot be used externally. |
+| Secret | `TRENDS_RUNPOD_API_KEY` | A dedicated MiniLM key permitted to invoke the endpoint. |
+| Variable | `TRENDS_RUNPOD_ENDPOINT_ID` | `ta14jd0by2ijl2` |
+
+The workflow maps `TREND_DATABASE_URL` to the process variable `DATABASE_URL`. A repository
+secret named only `DATABASE_URL` does not satisfy that workflow. MiniLM credentials are
+separate from Adi's `RUNPOD_API_KEY` and Gemini settings.
+
+Run **Actions → Trends refresh → Run workflow → main**, then open the `refresh` job.
+The database preflight must pass, then `Ingest, score, validate and publish` must report
+`Published snapshot YYYY-MM-DD.` A green run that skipped missing configuration is not a
+publication. Inference success alone does not establish sufficient research history or a
+successful database write; failures preserve the previous published snapshot.
+
+The first integrated refresh fetched 366 papers and counted mentions, then failed saving to
+Replit's private development host `helium`. To use Replit's production database, publish the
+app, then open **Database → Production → Settings / Connection details** and update the
+GitHub secret. Development and production are separate databases. Preflight now rejects
+this configuration before fetching papers or invoking paid inference.
+
+Keep **Active workers = 0** and **Max workers = 1** for this batch workload. A request starts
+the worker when needed; no manually running test is required to keep the integration alive.
+Replit serves saved database snapshots, so app page loads do not call MiniLM directly.
+Keeping the same database does not require a Replit redeployment for each trend refresh.
+See the [operations and recovery guide](src/pipelines/trends/runpod/DEPLOYMENT_HANDOFF.md)
+for image access, worker recovery, first-run validation and deployment evidence.
 
 **Technical guides:** [Architecture](docs/architecture.md) · [Solution design](docs/solution-design.md) · [Diagrams](docs/diagrams/index.html) · [Decisions](docs/decisions.md) · [MiniLM RunPod setup](src/pipelines/trends/runpod/DEPLOYMENT_HANDOFF.md)
 
@@ -571,6 +643,7 @@ adept/
 │   └── workflows/
 │       ├── ci.yml
 │       ├── data-sources.yml
+│       ├── publish-minilm.yml
 │       └── trends-refresh.yml
 ├── docs/
 │   ├── diagrams/
@@ -884,6 +957,7 @@ adept/
 │   │   │   ├── generate_mock_fixtures.py
 │   │   │   ├── labor_baseline.py
 │   │   │   ├── populate_dual_snapshot.py
+│   │   │   ├── preflight.py
 │   │   │   ├── README.md
 │   │   │   ├── run.py
 │   │   │   └── score.py
@@ -1377,6 +1451,7 @@ adept/
 │   │   └── trends/
 │   │       ├── test_labor_baseline.py
 │   │       ├── test_mock_fixture_consistency.py
+│   │       ├── test_preflight.py
 │   │       ├── test_run.py
 │   │       ├── test_runpod_encoder.py
 │   │       └── test_score.py

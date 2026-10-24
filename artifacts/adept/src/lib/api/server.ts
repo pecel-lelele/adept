@@ -4,16 +4,16 @@ import { getSessionToken } from "@/lib/auth/session";
 import { currentWorkspace } from "@/lib/auth/workspace";
 
 import { createApiClient, type ApiClient } from "./client";
+import { proxyConfig } from "./proxy-config";
 
 /** Shared with the API (PROXY_SHARED_SECRET) so it trusts the X-Real-IP we forward. */
-const PROXY_SECRET = process.env.PROXY_SHARED_SECRET ?? "";
+const { secret: PROXY_SECRET, trustedHops: TRUSTED_PROXY_HOPS } = proxyConfig();
 /**
  * Number of trusted proxies in front of this server that *append* to X-Forwarded-For
  * (e.g. 1 for a single platform load balancer). The client controls everything to the left
  * of what those proxies append, so only the entry they added can be trusted.
  * 0 (default) = no trusted proxy: never forward an address.
  */
-const TRUSTED_PROXY_HOPS = Number.parseInt(process.env.TRUSTED_PROXY_HOPS ?? "0", 10) || 0;
 
 /** The client address as recorded by our nearest trusted proxy, or undefined. */
 export function trustedClientIp(forwardedFor: string | null, hops: number): string | undefined {

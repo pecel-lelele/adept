@@ -1,9 +1,9 @@
 import { API_URL } from "@/lib/api/client";
 import { trustedClientIp } from "@/lib/api/server";
+import { proxyConfig } from "@/lib/api/proxy-config";
 
 const MAX_BYTES = 5 * 1024 * 1024;
-const PROXY_SECRET = process.env.PROXY_SHARED_SECRET ?? "";
-const TRUSTED_PROXY_HOPS = Number.parseInt(process.env.TRUSTED_PROXY_HOPS ?? "0", 10) || 0;
+const { secret: PROXY_SECRET, trustedHops: TRUSTED_PROXY_HOPS } = proxyConfig();
 
 /** Anonymous CV preview from the landing page, relayed to the API from this origin only. */
 export async function POST(request: Request) {

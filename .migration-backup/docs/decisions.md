@@ -189,6 +189,17 @@
 - **Replaces**: none
 - **PR / branch**: `feat/m1-trends-contract`
 
+### M1-011: Automated MiniLM worker publishing to GHCR and Replit-RunPod integration architecture
+- **Date**: 2026-10-24
+- **Feature**: F2 (AI-Trend Signal Layer) / Core deployment
+- **Type**: model | dependency | architectural decision
+- **Change**: Added `.github/workflows/publish-minilm.yml` to automatically build and publish the MiniLM RunPod worker image to GitHub Container Registry (`ghcr.io/pecel-lelele/adept-minilm:latest`) on changes to the worker or manual trigger. Added `TRENDS_*` variables to `.env.example` and root `.env`. Updated `DEPLOYMENT_HANDOFF.md` and `README.md` documenting the Replit + RunPod architecture.
+- **Why**: Facilitates deploying the pinned sentence-transformers `all-MiniLM-L6-v2` worker to RunPod Serverless without local Docker setup. When the web app is hosted on Replit, it serves pre-computed PostgreSQL `trend_snapshots` with zero GPU cold-start delay, while the batch trend pipeline runs on GitHub Actions or locally, making authenticated calls to the RunPod Serverless worker endpoint.
+- **Pipeline** (data/ML only): arXiv cs.AI + BLS 2023-2033 -> clean HTML, sentence chunk -> 384-d MiniLM vectors via RunPod Serverless (`ghcr.io/pecel-lelele/adept-minilm:latest`) -> cosine similarity (threshold >= 0.55) -> composite velocity -> PostgreSQL `trend_snapshots` served on Replit.
+- **Affects**: M1 (trend pipeline execution), M4 (Replit deployment / RunPod setup)
+- **Replaces**: none
+- **PR / branch**: `feat/minilm-runpod-deploy`
+
 ---
 
 ## M2: Profile Intake & Matching (F1, F4)
@@ -1475,3 +1486,37 @@
 - **Validation**: Full quality gate passed (904 tests passed, 27 skipped). All 11 product diagram sources match the originals; GitHub Markdown exposes all 11 Mermaid containers, with nine badges, valid local links and full resource URLs.
 - **Replaces**: M4-066 (diagram placement and link presentation only)
 - **PR / branch**: docs/core-restore-readme-diagrams
+
+### M4-068: Integrate MiniLM deployment and verify database access before inference
+- **Date**: 2026-10-24
+- **Feature**: Core deployment / F2 (AI-Trend Signal Layer)
+- **Type**: method | other
+- **Change**: Integrate the existing trusted GHCR publisher and worker configuration with current main. Refresh the README, operations, architecture, feature and submission docs with the deployed endpoint, pinned model, separate credentials and observed results. Add a bounded database preflight before scheduled ingestion or inference, including read-write transaction status, table privileges and ID sequence access; exercise it against PostgreSQL in CI.
+- **Why**: The worker returns the pinned revision and two 384-dimensional vectors, but the first real refresh spent about seven minutes fetching and embedding 366 papers before failing on Replit's private development host `helium`. Preflight rejects that configuration early and sanitizes failures; production publishing and connection setup remain account-owner operations.
+- **Pipeline**: public arXiv/catalogue → existing cleaning → pinned 384-dimensional MiniLM via RunPod → unchanged cosine/scoring → database preflight, vector and snapshot checks → atomic PostgreSQL publication read by Replit.
+- **Affects**: M1 (scheduled refresh), M4 (deployment/docs); no contract, schema, dependency or scoring changes beyond the existing deployment branch.
+- **Validation**: Full quality gate passed: 918 tests passed, 27 skipped; Ruff, ESLint, translations, TypeScript and generated contracts passed. Fourteen preflight regressions cover private-host rejection, bounded queries, read-only connections, table/sequence privileges, preserved connection options and sanitized failures. CI additionally exercises the preflight against migrated PostgreSQL. Documentation links and submission answer limits passed.
+- **Replaces**: M4-066 (MiniLM pending status); completes deployment integration from M1-011/M4-064.
+- **PR / branch**: feat/minilm-runpod-deploy
+
+### M4-069: Explicit Replit production build and supervised startup
+- **Date**: 2026-10-24
+- **Feature**: Core deployment
+- **Type**: other
+- **Change**: Add a versioned Autoscale build/start configuration and stdlib production launcher. Build Next.js standalone assets and Python dependencies; co-host a private FastAPI process with one public web port, honor existing workspace port mappings, resolve Nix's GCC runtime for PyMuPDF and stop both children on failures. Document workspace preservation, production secrets, database preparation and publishing diagnostics.
+- **Why**: GitHub main had no Replit configuration. The partner's unpushed workspace configuration provided only a development Preview workflow, without deployment build/run commands. Explicit production commands close that gap; the generic disabled Publish banner still requires account-side validation after configuration is loaded.
+- **Affects**: M4 (Replit deployment), all features served by the app; no schema, contract, scoring or dependency changes.
+- **Validation**: Full quality gate passed (932 tests, 27 skipped), including 14 launcher regressions. The exact production build passed; a local production smoke test verified the public landing/About/sign-in pages, static assets and API database health using synthetic local data with model providers disabled. Replit account-side publishing remains unverified.
+- **Replaces**: none
+- **PR / branch**: fix/core-replit-deployment
+
+### M4-071: Patch Next.js before retrying Replit package installation
+- **Date**: 2026-10-24
+- **Feature**: Core deployment
+- **Type**: dependency
+- **Change**: Pin Next.js and eslint-config-next to 16.4.1 and regenerate the existing pnpm 10.29.3 lockfile. Document diagnosis of Replit package-firewall rejection without disabling platform checks or adding registry credentials.
+- **Why**: The live Replit build successfully installed Python dependencies, then received HTTP 403 downloading Next.js 16.2.12 from its internal package firewall. Vendor advisories identify critical affected-version ranges covering 16.2.12 and prescribe 16.4.1. The firewall's precise rejection reason remains unconfirmed; the dependency update independently addresses the published advisories. The official public tarball for 16.2.12 remains reachable, and the repository contains no internal registry URL.
+- **Affects**: All Next.js pages and production web builds; no API contracts, schema, model or scoring changes.
+- **Validation**: Full quality gate passed (932 tests, 27 skipped), including ESLint with the aligned configuration, translations, TypeScript and generated contracts. The exact Replit build passed with the frozen lockfile; a local production smoke test verified landing/About/sign-in pages, static assets and API/database health without model calls. The advisory query returned no published matches for Next.js 16.4.1 at verification time. Replit's own package download remains to be retested by the account owner.
+- **Replaces**: Next.js/eslint-config-next 16.2.12 pins only
+- **PR / branch**: fix/core-replit-next-patch

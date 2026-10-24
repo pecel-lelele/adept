@@ -57,6 +57,7 @@ class Settings(BaseSettings):
     rate_limit_window_s: int = 60
     # Shared secret the web server sends with X-Real-IP so the API can trust it.
     proxy_shared_secret: str = ""
+    trusted_proxy_hops: int = Field(default=0, ge=0, le=32)
     # --- storage ---
     # postgres (default): every account, profile, organisation, plan, progress record and
     # rate-limit counter lives in DATABASE_URL, so nothing a user enters is kept only in one
@@ -93,11 +94,10 @@ class Settings(BaseSettings):
                 errors.append("CORS_ORIGINS must list exact origins, not '*'.")
             if self.auth_raw_user_ids or self.auth_default_user:
                 errors.append("AUTH_RAW_USER_IDS / AUTH_DEFAULT_USER are test-only settings.")
-            if not self.proxy_shared_secret:
-                warnings.append(
-                    "PROXY_SHARED_SECRET is empty: every visitor shares the web server's "
-                    "rate-limit bucket. Set it on both the web and API services."
-                )
+            if not self.proxy_shared_secret.strip():
+                errors.append("PROXY_SHARED_SECRET is required on both web and API services.")
+            if self.trusted_proxy_hops == 0:
+                errors.append("TRUSTED_PROXY_HOPS must be a verified positive proxy count.")
         return errors, warnings
 
     @property
