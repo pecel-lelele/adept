@@ -48,7 +48,7 @@ Adept connects your current skills to future roles, explains the gaps, and build
 | RunPod · Adi / GLM-5.3              | https://api.runpod.ai/v2/b1dd8hy2hqo1nb/openai/v1                                    |
 | RunPod · MiniLM-L6-v2               | https://api.runpod.ai/v2/ta14jd0by2ijl2                                              |
 | Submission proposal                 | [PDF source](submission/SDC2026_Pecel-Lele_Preliminary.pdf)                          |
-| Technical tools / stack declaration | [PDF source](submission/SDC2026_Pecel-Lele_TechnicalDeclaration.pdf)                 |
+| Technical tools / stack declaration | [PDF source](submission/SDC2026_Pecel-Lele_TechDeclaration.pdf)                      |
 | Slide deck                          | https://drive.google.com/drive/folders/1oNEOcD5OXCK-iAAPoj3aXihO1cW77bTn?usp=sharing |
 | Demo video                          | https://drive.google.com/drive/folders/1tdSaHsHd1towg-bKghHUuSNn7jbI-LfN?usp=sharing |
 | Pitching video                      | https://drive.google.com/drive/folders/1tdSaHsHd1towg-bKghHUuSNn7jbI-LfN?usp=sharing |
