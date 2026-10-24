@@ -17,17 +17,21 @@ export function createApiClient(headers: Record<string, string> = {}): ApiClient
   });
 }
 
-/** Retry idempotent reads once when the connection drops (API restarting, cold start). */
+/** Retry reads once on a dropped connection or a transient gateway/database outage. */
 async function fetchWithRetry(request: Request): Promise<Response> {
   const retryable = request.method === "GET" || request.method === "HEAD";
   const attempt = () => fetch(request.clone(), { signal: AbortSignal.timeout(TIMEOUT_MS) });
   try {
-    return await attempt();
+    const response = await attempt();
+    if (!retryable || ![502, 503, 504].includes(response.status)) return response;
+    // Release the failed response before retrying. Writes are never replayed: a lost
+    // acknowledgement does not tell us whether a transaction committed.
+    await response.body?.cancel();
   } catch (error) {
     if (!retryable) throw error;
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    return attempt();
   }
+  await new Promise((resolve) => setTimeout(resolve, 300));
+  return attempt();
 }
 
 /** Machine-readable reason a call failed; pages use it to offer the right next step. */

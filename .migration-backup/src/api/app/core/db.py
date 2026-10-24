@@ -31,6 +31,21 @@ DOWN_RETRY_S = 5.0
 _down_until: dict[str, float] = {}
 
 
+def check_pool_connection(pool: ConnectionPool, conn: psycopg.Connection) -> None:
+    """Check checkout and clear other stale idle sessions after a connection failure.
+
+    A database restart can invalidate the whole pool. Checking only one connection
+    per retry lets psycopg's backoff exhaust our short checkout timeout while it
+    walks the remaining dead sessions. Sweep idle connections once on failure so
+    the retry can acquire a healthy replacement. In-flight transactions are untouched.
+    """
+    try:
+        ConnectionPool.check_connection(conn)
+    except psycopg.OperationalError:
+        pool.check()
+        raise
+
+
 def _reset(conn: psycopg.Connection[dict[str, object]]) -> None:
     """Undo per-request client settings before a connection is reused by another request."""
     conn.row_factory = dict_row  # type: ignore[assignment]
@@ -79,6 +94,9 @@ def _pool(url: str) -> ConnectionPool:
                     "options": f"-c statement_timeout={STATEMENT_TIMEOUT_MS}",
                 },
                 open=False,
+                # Hosted PostgreSQL can terminate idle sessions. Replace those connections
+                # before yielding to callers; never replay a transaction after it has begun.
+                check=lambda conn: check_pool_connection(pool, conn),
                 reset=_reset,
                 name="adept",
             )

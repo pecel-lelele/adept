@@ -105,7 +105,7 @@ jobs:
         run: pnpm test:proxy
 
       - name: Navigation regressions
-        run: node --experimental-strip-types --test artifacts/api-server/python/tests/web-navigation.test.ts
+        run: node --experimental-strip-types --test artifacts/api-server/python/tests/web-navigation.test.ts artifacts/api-server/python/tests/web-api-recovery.test.ts
 
       # Stdlib-only script: no virtualenv needed.
       - name: Translation keys match English
@@ -239,6 +239,6 @@ jobs:
       # limits against the real database.
       - name: PostgreSQL integration tests
         run: |
-          .venv/bin/python -m pytest -q artifacts/api-server/python/tests/api/pathway/test_postgres_store.py artifacts/api-server/python/tests/api/pathway/test_postgres_refdata.py artifacts/api-server/python/tests/api/pathway/test_postgres_sync.py artifacts/api-server/python/tests/api/pathway/test_earned_levels.py artifacts/api-server/python/tests/api/guardrails/test_rate_limit_postgres.py artifacts/api-server/python/tests/pipelines/jobs/test_postgres_refresh.py
+          .venv/bin/python -m pytest -q artifacts/api-server/python/tests/api/pathway/test_postgres_store.py artifacts/api-server/python/tests/api/pathway/test_postgres_refdata.py artifacts/api-server/python/tests/api/pathway/test_postgres_sync.py artifacts/api-server/python/tests/api/pathway/test_earned_levels.py artifacts/api-server/python/tests/api/guardrails/test_rate_limit_postgres.py artifacts/api-server/python/tests/pipelines/jobs/test_postgres_refresh.py artifacts/api-server/python/tests/integration/test_database_recovery.py
         env:
           ADEPT_TEST_DATABASE_URL: ${{ env.DATABASE_URL }}

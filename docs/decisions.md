@@ -1521,13 +1521,24 @@
 - **Replaces**: Next.js/eslint-config-next 16.2.12 pins only
 - **PR / branch**: fix/core-replit-next-patch
 
-### M4-072: Preserve production boundaries and CI after the workspace migration
+### M4-072: Recover from terminated pooled database sessions
+- **Date**: 2026-10-24
+- **Feature**: Core deployment, shared database access and rate limiting
+- **Type**: method
+- **Change**: Check both PostgreSQL pools before checkout and sweep remaining idle sessions after a failure so multiple dead connections cannot exhaust checkout time through per-connection retry backoff. Bound rate-limit statements/locks, synchronize its worker-thread fallback and preserve the supplied empty counter. Retry web GET/HEAD once for HTTP 502/503/504 in addition to connection failures; never replay writes or transactions already started.
+- **Why**: Production logs showed administrative session termination followed by stale-connection account 503s and seed/in-memory fallbacks. The initiating database infrastructure event remains unconfirmed. Recovery should not spend a user request discovering each dead idle connection or duplicate a write whose outcome is unknown.
+- **Affects**: All database-backed features and the shared web API client; no schema, contract, dependency or environment changes.
+- **Validation**: Full quality gate passed (949 tests, 32 skipped, 48 subtests); all 18 targeted recovery/rate-limit checks passed against disposable PostgreSQL 16, including real administrative session termination, and 35 existing PostgreSQL integration checks passed after loading CI's synthetic upgrade personas. Seven web retry regressions and the production web build passed. The currently deployed public pages and unsigned app redirect passed read-only smoke checks; the repair still needs publishing and signed-in production verification.
+- **Replaces**: none (extends M4-027 and M4-005)
+- **PR / branch**: fix/core-database-recovery
+
+### M4-073: Preserve production boundaries and CI after the workspace migration
 - **Date**: 2026-10-24
 - **Feature**: Core deployment and dependency hardening
 - **Type**: architecture | dependency | method
 - **Change**: Resolve main's deployment/preflight changes into the Replit artifact layout. Restore active CI and scheduled data/trend workflows, the regression suite and contract generation; correct the worker Docker context and instructions. Preserve FastAPI CORS headers, discard forged proxy identity headers, derive visitor addresses from an explicitly configured trusted proxy chain and require shared-secret/hop configuration at production startup. Preserve Nix native-library discovery, supervise API/database readiness, copy standalone assets safely and restore secret-file ignores. Pin fast-uri 3.1.9 and align React types; allow the Windows build binaries alongside Linux.
 - **Why**: Greptile identified five migration regressions: CORS loss, spoofable/shared visitor buckets, missing secret ignores, broken worker build instructions and inactive workflows. Main also added preflight and deployment fixes that would otherwise remain only in the historical backup. Production trust counts must be verified by the operator rather than guessed.
 - **Affects**: All served features; M1 scheduled trend refresh and MiniLM publication. No database schema, API contract, scoring or entity changes. Existing authentication modes are preserved.
-- **Validation**: 939 Python tests passed (27 environment-dependent skips; 48 subtests); 39 selected PostgreSQL integration tests passed on a disposable PostgreSQL 16/pgvector database. Eleven proxy/startup regressions and five navigation regressions passed, as did Ruff, ESLint, translation parity, workspace TypeScript, generated contract checks, all workspace production builds, actionlint and worker publication policy checks. The pinned worker requirements resolve for Linux/Python 3.11. pnpm audit reports zero known vulnerabilities. A local production smoke test returned 200 for landing/About/sign-in/static CSS and CORS preflight, and confirmed healthy API/database and catalogue reads. No live database changes, model calls, image publication or RunPod deployment.
+- **Validation**: Initial quality gate passed (939 Python tests, 27 environment-dependent skips, 48 subtests). After integrating main's M4-072 recovery changes into active paths, the full quality gate passed (940 tests, 32 environment-dependent skips, 48 subtests); 44 PostgreSQL integration tests and twelve navigation/read-retry regressions passed. Eleven proxy/startup regressions, Ruff, ESLint, translation parity, workspace TypeScript, generated contract checks, all workspace production builds, actionlint and worker publication policy checks passed. The pinned worker requirements resolve for Linux/Python 3.11. npm and installed Python audits report no known vulnerabilities. A local production smoke test returned 200 for landing/About/sign-in/static CSS and CORS preflight, and confirmed healthy API/database and catalogue reads. No live database changes, model calls, image publication or RunPod deployment.
 - **Replaces**: M4-069 launcher layout only; keeps its startup/readiness and native-runtime guarantees in the migrated services.
 - **PR / branch**: https://github.com/pecel-lelele/adept/pull/20 / security/publish-hardening

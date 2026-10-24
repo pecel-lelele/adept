@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import asyncio
 import hmac
+import threading
 import time
 from collections import OrderedDict, deque
 from collections.abc import Callable, Mapping
@@ -40,6 +41,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 from starlette.types import ASGIApp
 
+from app.core.db import check_pool_connection
 from app.core.logging import get_logger
 
 log = get_logger("app.security.rate_limit")
@@ -187,7 +189,11 @@ class PostgresCounter:
     ) -> None:
         self.route_limits = dict(route_limits)
         self.default = default
-        self.fallback = fallback or SlidingWindowCounter(route_limits, default)
+        self.fallback = (
+            fallback if fallback is not None else SlidingWindowCounter(route_limits, default)
+        )
+        # hit() runs in worker threads, including its in-memory outage fallback.
+        self._lock = threading.Lock()
         self.clock = clock
         self._hits = 0
         # The estimate reads the previous window too, so pruning keeps two of the longest windows.
@@ -199,14 +205,20 @@ class PostgresCounter:
             max_size=4,
             timeout=2.0,
             open=False,
-            kwargs={"autocommit": True, "connect_timeout": 2},
+            check=lambda conn: check_pool_connection(self.pool, conn),
+            kwargs={
+                "autocommit": True,
+                "connect_timeout": 2,
+                "options": "-c statement_timeout=2000 -c lock_timeout=1000",
+            },
         )
         self._opened = False
 
     def _conn_pool(self) -> ConnectionPool:
-        if not self._opened:
-            self.pool.open(wait=False)
-            self._opened = True
+        with self._lock:
+            if not self._opened:
+                self.pool.open(wait=False)
+                self._opened = True
         return self.pool
 
     def hit(self, ip: str, path: str) -> Hit:
@@ -219,12 +231,15 @@ class PostgresCounter:
         try:
             with self._conn_pool().connection() as conn:
                 row = conn.execute(_UPSERT, params).fetchone()
-                self._hits += 1
-                if self._hits % _PRUNE_EVERY == 0:
+                with self._lock:
+                    self._hits += 1
+                    prune = self._hits % _PRUNE_EVERY == 0
+                if prune:
                     conn.execute(_PRUNE, (int(now) - self._keep_s,))
         except (psycopg.Error, PoolTimeout) as exc:
             log.warning("shared rate limiter unavailable, using in-memory counter: %s", exc)
-            return self.fallback.hit(ip, path)
+            with self._lock:
+                return self.fallback.hit(ip, path)
         assert row is not None
         hits, previous = int(row[0]), int(row[1])
         estimate = previous * (1 - elapsed / window) + hits
