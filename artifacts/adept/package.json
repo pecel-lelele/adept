@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "next dev --hostname 0.0.0.0 --port ${PORT}",
-    "build": "next build",
-    "start": "next start --hostname 0.0.0.0 --port ${PORT}",
+    "build": "next build && node scripts/prepare-standalone.mjs",
+    "start": "cd .next/standalone && node artifacts/adept/server.js",
     "typecheck": "tsc --noEmit",
     "lint": "eslint ."
   },
@@ -16,7 +16,7 @@
     "clsx": "2.1.1",
     "lucide-react": "^1.61.0",
     "next": "16.4.2",
-    "next-intl": "4.4.0",
+    "next-intl": "4.14.9",
     "openapi-fetch": "0.14.1",
     "react": "19.2.9",
     "react-dom": "19.2.9",

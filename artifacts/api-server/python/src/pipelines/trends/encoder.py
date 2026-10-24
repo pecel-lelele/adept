@@ -45,7 +45,12 @@ class LocalEncoder:
     def __init__(self) -> None:
         from sentence_transformers import SentenceTransformer
 
-        self.model = SentenceTransformer(MODEL_ID, revision=MODEL_REVISION, device="cpu")
+        self.model = SentenceTransformer(
+            MODEL_ID,
+            revision=MODEL_REVISION,
+            device="cpu",
+            trust_remote_code=False,
+        )
 
     def encode(
         self, texts: Sequence[str], *, batch_size: int = 32, show_progress_bar: bool = False

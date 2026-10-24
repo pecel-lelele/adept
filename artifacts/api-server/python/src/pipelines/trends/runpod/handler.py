@@ -38,6 +38,7 @@ def load_model() -> SentenceTransformer:
         os.environ.get("MINILM_MODEL_PATH", "/opt/minilm"),
         device=device,
         local_files_only=True,
+        trust_remote_code=False,
     )
 
 
