@@ -217,6 +217,16 @@
 - **Replaces**: none
 - **PR / branch**: `fix/core-review-upgrades`
 
+### TEAM-019: Apply security headers to Next.js responses (review 3.4)
+- **Date**: 2026-10-29
+- **Feature**: Core / F8
+- **Type**: method
+- **Change**: Add a global Next.js header rule for CSP with frame-ancestors none, frame denial, nosniff and one-year HSTS. Restrict script and connection origins to self in production; retain inline hydration scripts and existing inline styles. Permit eval and WebSocket connections only in development.
+- **Why**: FastAPI headers do not protect HTML served by Next.js. The existing static pages and inline JSX styles require inline allowances; nonce enforcement would require a separate rendering change. Bundled three.js needs no remote script origin or production eval.
+- **Affects**: Page, static and API response headers; Next.js configuration-response regression
+- **Replaces**: none
+- **PR / branch**: `fix/core-review-upgrades`
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)
