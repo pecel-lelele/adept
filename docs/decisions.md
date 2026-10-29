@@ -64,6 +64,17 @@
 - **Replaces**: none
 - **PR / branch**: `main`
 
+### TEAM-004: Autonomous agent workflow with explicit trust and execution boundaries
+- **Date**: 2026-10-29
+- **Feature**: Core / all
+- **Type**: other
+- **Change**: Keep `AGENTS.md` as shared policy with thin Claude/Gemini import entry points and explicit fallback reads. Replace blanket shared-file/feature approval stops with task-scoped autonomy; add untrusted-content handling, workspace preservation, secret/environment isolation, server-side privacy checks, and truthful verification requirements. Correct stale upload/auth/dependency guidance and align decision IDs with the existing log.
+- **Why**: Preserve tool/model capabilities and avoid repetitive permission prompts while preventing data loss, credential leakage, prompt-injection authority escalation, accidental live writes, and conflicting instructions. Instruction text complements code/CI/service enforcement; it cannot guarantee perfect security.
+- **Affects**: All coding agents using root instructions; no application runtime changes
+- **Validation**: Local instruction links, balanced code fences, Claude/Gemini entry-point parity, unique TEAM-004 ID, and `git diff --check` passed. `python src/scripts/dev.py check` passed translation parity but could not complete lint/tests/contracts without `.venv` or TypeScript checks without installed web dependencies. The retry outside the sandbox resolved npm access; remaining failures are missing local dependencies. No live database/model operations were used.
+- **Replaces**: TEAM-003 operating guidance where superseded; preserves its single-manual architecture
+- **PR / branch**: `docs/core-agent-guardrails`
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)
