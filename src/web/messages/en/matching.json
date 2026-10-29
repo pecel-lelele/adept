@@ -41,5 +41,7 @@
   "readyNow": "Ready now",
   "readyNowHint": "You already hold at least {share}% of these roles' required skill levels: a short plan can get you there.",
   "worthExploring": "Worth exploring",
-  "worthExploringHint": "You hold less than {share}% of the required skill levels today: a longer pathway, worth it if the role excites you."
+  "worthExploringHint": "You hold less than {share}% of the required skill levels today: a longer pathway, worth it if the role excites you.",
+  "emptyTitle": "No matches to show yet",
+  "emptyHint": "Review your skills and interests, then try matching again."
 }

@@ -1,7 +1,7 @@
 // Shared UI (owner M4). Feature code imports from "@/components".
-export { ApiError } from "./ApiError";
 export { DataFreshnessBadge } from "./DataFreshnessBadge";
 export { EmptyState } from "./EmptyState";
+export { ErrorState } from "./ErrorState";
 export { EstimateLabel } from "./EstimateLabel";
 export { Kpis, type Kpi } from "./Kpis";
 export { LocaleSwitcher } from "./LocaleSwitcher";

@@ -2,7 +2,7 @@ import { ClipboardList, Plus } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
-import { ApiError, EmptyState, Kpis, PageHeader } from "@/components";
+import { EmptyState, ErrorState, Kpis, PageHeader } from "@/components";
 
 import { fetchMembers } from "../../api";
 import { fetchProgrammes } from "../api";
@@ -12,7 +12,7 @@ export async function ProgrammesView() {
   const t = await getTranslations("org.programmes");
   const tw = await getTranslations("org.work");
   const [result, members] = await Promise.all([fetchProgrammes(), fetchMembers()]);
-  if (!result.ok) return <ApiError message={result.message} />;
+  if (!result.ok) return <ErrorState failure={result} />;
   const names = new Map(members.ok ? members.data.members.map((m) => [m.id, m.display_name]) : []);
   const list = result.data.programmes;
   const sum = (key: "accepted" | "pending" | "declined" | "change_requested") => list.reduce((n, p) => n + p[key], 0);

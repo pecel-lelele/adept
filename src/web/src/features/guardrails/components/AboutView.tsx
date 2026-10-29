@@ -1,7 +1,7 @@
 import { Check, ShieldCheck, X } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
-import { ApiError, Badge } from "@/components";
+import { Badge, ErrorState } from "@/components";
 import { SiteFooter, SiteHeader } from "@/components/shell/Site";
 import { call, getApi } from "@/lib/api";
 
@@ -28,7 +28,7 @@ export async function AboutView() {
           <section className="a-card">
             <h2>{t("llmTitle")}</h2>
             {!disclosure.ok ? (
-              <ApiError message={disclosure.message} />
+              <ErrorState failure={disclosure} />
             ) : (
               <>
                 <p>{t("llmSummary")}</p>
@@ -83,7 +83,7 @@ export async function AboutView() {
           <section className="a-card is-wide">
             <h2>{t("sourcesTitle")}</h2>
             {!sources.ok ? (
-              <ApiError message={sources.message} />
+              <ErrorState failure={sources} />
             ) : (
               <div className="a-source-rows">
                 {sources.data.sources.map((s) => (
@@ -111,7 +111,7 @@ export async function AboutView() {
           <section className="a-card">
             <h2>{t("fairnessTitle")}</h2>
             {!fairness.ok ? (
-              <ApiError message={fairness.message} />
+              <ErrorState failure={fairness} />
             ) : (
               <>
                 <Badge variant={fairness.data.passed ? "success" : "danger"}>

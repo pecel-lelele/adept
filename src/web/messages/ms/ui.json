@@ -364,7 +364,8 @@
       "alias": "Alias katalog",
       "fuzzy": "Ejaan serupa",
       "semantic": "Makna serupa"
-    }
+    },
+    "saving": "Menyimpan…"
   },
   "home": {
     "hello": "Hai {name}",
@@ -471,7 +472,7 @@
     "network": "Kami tidak dapat menghubungi Adept sekarang."
   },
   "page": {
-    "stepOf": "Langkah {step} daripada 4",
+    "stepOf": "Langkah {step} daripada {total}",
     "skillsDesc": "Kemahiran yang anda sahkan, tahap anda bagi setiap satu, dan sama ada permintaannya meningkat atau menurun.",
     "kSkills": "Kemahiran disahkan",
     "kRising": "Permintaan meningkat",
@@ -625,7 +626,9 @@
     "kPending": "Menunggu semakan",
     "kReviewedDone": "Disemak",
     "kSubmitted": "Dihantar",
-    "exposureScoreHint": "Skor relatif 0–1 oleh penyemak, bukan bahagian tugas"
+    "exposureScoreHint": "Skor relatif 0–1 oleh penyemak, bukan bahagian tugas",
+    "jProgress": "Jejaki kemajuan pembelajaran anda",
+    "jImpact": "Semak pautan pembelajaran SDG anda"
   },
   "account": {
     "title": "Data anda",

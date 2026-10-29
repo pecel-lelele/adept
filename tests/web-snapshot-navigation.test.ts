@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { journeyHref } from "../src/web/src/lib/navigation.ts";
+import * as navigation from "../src/web/src/config/navigation.ts";
 import { loadComponent, React, renderToStaticMarkup, resolveTree, translations } from "./harness/web-components.ts";
 
 function find(node, predicate) {
@@ -48,9 +49,10 @@ test("historical pathway Back to latest restores the visible Save plan action", 
     within_budget: true, warnings: [], unmet: [], meta: {},
   };
   const { PathwayView } = loadComponent("src/features/pathway/components/PathwayView.tsx", {
+    "@/config/navigation": navigation,
     "next-intl/server": { getTranslations: async (ns) => intl.useTranslations(ns) },
     "next/link": link,
-    "@/components": { ApiError: nothing, MetaBar: nothing, Kpis: nothing,
+    "@/components": { ErrorState: nothing, MetaBar: nothing, Kpis: nothing,
       PageHeader: ({ actions, children }) => React.createElement("header", {}, actions, children) },
     "@/components/Fold": { Fold: passthrough },
     "@/components/HistoricalSnapshotBanner": { HistoricalSnapshotBanner },

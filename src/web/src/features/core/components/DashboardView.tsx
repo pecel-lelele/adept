@@ -73,15 +73,17 @@ export async function DashboardView({ scenario, query }: { scenario: ScenarioId;
     };
   }
 
-  // The four journey steps, done in order.
+  // Six journey stages. Reviewing impact has no stored completion event.
   const complete = p ? p.percent_complete >= 1 : false;
-  const journeyDone = [Boolean(profile.ok && profile.data.skills.length), Boolean(saved), Boolean(saved), complete];
+  const journeyDone = [Boolean(profile.ok && profile.data.skills.length), Boolean(saved), Boolean(saved), complete, complete, false];
   const firstOpen = journeyDone.findIndex((d) => !d);
   const journey = [
     { key: "jSkills", to: "/app/profile" },
     { key: "jRadar", to: href("/app/radar") },
     { key: "jRoles", to: href("/app/matches") },
     { key: "jPlan", to: saved ? `/app/pathway${planQuery}` : href("/app/matches") },
+    { key: "jProgress", to: href("/app/progress") },
+    { key: "jImpact", to: href("/app/sdg") },
   ] as const;
 
   // The learner's own skills on the radar: rising right, declining left.

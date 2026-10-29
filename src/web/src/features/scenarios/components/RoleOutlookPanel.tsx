@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
 
-import { ApiError, EstimateLabel, SourceBadge } from "@/components";
+import { ErrorState, EstimateLabel, SourceBadge } from "@/components";
 import type { ScenarioId } from "@/lib/api";
 
 import { fetchOutlook } from "../api";
@@ -21,7 +21,7 @@ export async function RoleOutlookPanel({
   const t = await getTranslations("scenarios");
   const tc = await getTranslations("common.scenario");
   const result = await fetchOutlook(roleId, snapshotDate);
-  if (!result.ok) return <ApiError message={result.message} />;
+  if (!result.ok) return <ErrorState failure={result} />;
   const all = result.data.outlooks;
   const top = Math.max(1.5, ...all.map((o) => o.high));
   const pos = (v: number) => `${Math.max(0, Math.min(100, (v / top) * 100))}%`;

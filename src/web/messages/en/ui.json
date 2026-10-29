@@ -364,7 +364,8 @@
       "alias": "Catalogue alias",
       "fuzzy": "Similar spelling",
       "semantic": "Similar meaning"
-    }
+    },
+    "saving": "Saving…"
   },
   "home": {
     "hello": "Hi {name}",
@@ -471,7 +472,7 @@
     "network": "We can’t reach Adept right now."
   },
   "page": {
-    "stepOf": "Step {step} of 4",
+    "stepOf": "Step {step} of {total}",
     "skillsDesc": "The skills you confirmed, your level in each, and whether demand for it is rising or falling.",
     "kSkills": "Skills confirmed",
     "kRising": "Rising in demand",
@@ -625,7 +626,9 @@
     "kPending": "Waiting for review",
     "kReviewedDone": "Reviewed",
     "kSubmitted": "Submitted",
-    "exposureScoreHint": "Relative score 0–1 assigned by reviewers, not a share of tasks"
+    "exposureScoreHint": "Relative score 0–1 assigned by reviewers, not a share of tasks",
+    "jProgress": "Track your learning progress",
+    "jImpact": "Review your SDG learning links"
   },
   "account": {
     "title": "Your data",

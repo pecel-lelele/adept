@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
 import { Kpis, PageHeader, TrendPill } from "@/components";
+import { journeyStepCount } from "@/config/navigation";
 import { ErrorState } from "@/components/ErrorState";
 import { AccountDataCard } from "@/features/core/components/AccountDataCard";
 import { LevelPips } from "@/components/viz";
@@ -38,7 +39,7 @@ export async function ProfileView({ scenario = "moderate" }: { scenario?: Scenar
   return (
     <div className="a-view">
       <PageHeader
-        eyebrow={tp("stepOf", { step: 1 })}
+        eyebrow={tp("stepOf", { step: 1, total: journeyStepCount() })}
         title={t("title")}
         description={tp("skillsDesc")}
         actions={

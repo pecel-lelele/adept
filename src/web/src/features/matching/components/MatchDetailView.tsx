@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
 import { EstimateLabel, MetaBar, PageHeader, ScoreBreakdown } from "@/components";
+import { journeyStepCount } from "@/config/navigation";
 import { ErrorState } from "@/components/ErrorState";
 import { HistoricalSnapshotBanner } from "@/components/HistoricalSnapshotBanner";
 import { scoreColour } from "@/components/viz";
@@ -47,7 +48,7 @@ export async function MatchDetailView({
   return (
     <div className="a-view">
       <PageHeader
-        eyebrow={tp("stepOf", { step: 3 })}
+        eyebrow={tp("stepOf", { step: 3, total: journeyStepCount() })}
         title={m.label}
         actions={
           <>

@@ -364,7 +364,8 @@
       "alias": "目录别名",
       "fuzzy": "相近拼写",
       "semantic": "相近含义"
-    }
+    },
+    "saving": "正在保存…"
   },
   "home": {
     "hello": "你好，{name}",
@@ -471,7 +472,7 @@
     "network": "目前无法连接 Adept。"
   },
   "page": {
-    "stepOf": "第 {step} 步，共 4 步",
+    "stepOf": "第 {step} 步，共 {total} 步",
     "skillsDesc": "你确认的技能、每项技能的水平，以及市场需求是在上升还是下降。",
     "kSkills": "已确认技能",
     "kRising": "需求上升",
@@ -625,7 +626,9 @@
     "kPending": "待审核",
     "kReviewedDone": "已审核",
     "kSubmitted": "已提交",
-    "exposureScoreHint": "审核人员给出的 0–1 相对评分，并非任务比例"
+    "exposureScoreHint": "审核人员给出的 0–1 相对评分，并非任务比例",
+    "jProgress": "跟踪您的学习进度",
+    "jImpact": "查看您的 SDG 学习关联"
   },
   "account": {
     "title": "你的数据",

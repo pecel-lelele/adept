@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
 
-import { ApiError, Card, CardContent, PageHeader, SourceBadge } from "@/components";
+import { Card, CardContent, ErrorState, PageHeader, SourceBadge } from "@/components";
 
 import { fetchDataFreshness } from "../api";
 
@@ -13,7 +13,7 @@ export async function AdminDataView({ view }: { view: "sources" | "snapshots" })
     <section>
       <PageHeader title={view === "sources" ? t("sourcesTitle") : t("snapshotsTitle")} />
       {!result.ok ? (
-        <ApiError message={result.message} />
+        <ErrorState failure={result} />
       ) : (
         <Card>
           <CardContent className="space-y-2 pt-4">

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
-import { ApiError, EmptyState, PageHeader } from "@/components";
+import { EmptyState, ErrorState, PageHeader } from "@/components";
 import { byStatus, fetchMyProgrammes } from "@/features/org/work/api";
 import { workOrg } from "@/features/org/work/org";
 import { ProgressView } from "@/features/pathway";
@@ -11,7 +11,7 @@ import { firstParam, parseScenario, type SearchParams } from "@/lib/scenario";
 export default async function Page({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const params = await searchParams;
   const [org, mine, t] = await Promise.all([workOrg(), fetchMyProgrammes(), getTranslations("org.work")]);
-  if (!mine.ok) return <ApiError message={mine.message} />;
+  if (!mine.ok) return <ErrorState failure={mine} />;
   const accepted = mine.ok ? byStatus(mine.data.assignments).accepted : [];
   const roles = [...new Map(accepted.map((a) => [a.agreement.role_id, a])).values()];
   const wanted = firstParam(params.role);

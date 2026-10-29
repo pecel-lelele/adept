@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowUpRight, BadgeCheck, BookOpen, Clock3, Gift, SlidersHorizontal } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
-import { ApiError, Kpis, MetaBar, PageHeader } from "@/components";
+import { ErrorState, Kpis, MetaBar, PageHeader } from "@/components";
 import { call, getApi, type Schemas } from "@/lib/api";
 import { journeyHref } from "@/lib/navigation";
 
@@ -203,7 +203,7 @@ export async function CatalogueView({
         </Form>
       </section>
       {!result.ok ? (
-        <ApiError message={result.message} />
+        <ErrorState failure={result} />
       ) : (
         <>
           <p className="a-results-count">{t("catalogue.count", { count: shown })}</p>

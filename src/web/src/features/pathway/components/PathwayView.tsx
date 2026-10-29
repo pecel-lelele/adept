@@ -14,7 +14,8 @@ import {
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
-import { ApiError, Kpis, MetaBar, PageHeader } from "@/components";
+import { ErrorState, Kpis, MetaBar, PageHeader } from "@/components";
+import { journeyStepCount } from "@/config/navigation";
 import { Fold } from "@/components/Fold";
 import { HistoricalSnapshotBanner } from "@/components/HistoricalSnapshotBanner";
 import { CareerRoadmap, CertificationsCard, RoleOpeningsCard } from "@/features/jobs";
@@ -136,7 +137,7 @@ export async function PathwayView({
   const tp = await getTranslations("ui.page");
   const [result, status] = await Promise.all([fetchPathway(roleId, scenario, snapshotDate), fetchPlanStatus()]);
   const tm = await getTranslations("matching");
-  if (!result.ok) return <ApiError message={result.message} />;
+  if (!result.ok) return <ErrorState failure={result} />;
   const saved = status.ok ? status.data.saved : null;
   // The saved plan is the one progress is tracked against; show it (not a fresh rebuild)
   // whenever it is for this role and scenario. Changes are offered by the re-plan banner.
@@ -160,7 +161,7 @@ export async function PathwayView({
   return (
     <div className="a-view">
       <PageHeader
-        eyebrow={tp("stepOf", { step: 4 })}
+        eyebrow={tp("stepOf", { step: 4, total: journeyStepCount() })}
         title={plan.role_label || plan.role_id}
         description={`${t("totalWeeks", { weeks: plan.total_weeks })} · ${d("pathBody")}`}
         actions={action}

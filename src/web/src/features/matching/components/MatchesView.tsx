@@ -2,7 +2,8 @@ import { ArrowRight, CircleDashed, Circle } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
-import { EstimateLabel, MetaBar, PageHeader } from "@/components";
+import { EmptyState, EstimateLabel, MetaBar, PageHeader } from "@/components";
+import { journeyStepCount } from "@/config/navigation";
 import { ErrorState } from "@/components/ErrorState";
 import { HistoricalSnapshotBanner } from "@/components/HistoricalSnapshotBanner";
 import { scoreColour } from "@/components/viz";
@@ -81,7 +82,7 @@ export async function MatchesView({
 
   return (
     <div className="a-view">
-      <PageHeader eyebrow={tp("stepOf", { step: 3 })} title={t("title")} description={t("description")}>
+      <PageHeader eyebrow={tp("stepOf", { step: 3, total: journeyStepCount() })} title={t("title")} description={t("description")}>
         {result.ok ? <MetaBar meta={result.data.meta} /> : null}
       </PageHeader>
       <HistoricalSnapshotBanner date={snapshotDate} latestHref={`/app/matches?scenario=${scenario}${sdgWeight > 0 ? `&sdg=${sdgWeight.toFixed(2)}` : ""}`} />
@@ -104,6 +105,11 @@ export async function MatchesView({
       ) : (
         <>
           <ProfileNote note={result.data.matches[0]?.profile_note} />
+          {result.data.matches.length === 0 ? (
+            <EmptyState title={t("emptyTitle")} description={t("emptyHint")} action={
+              <Link className="a-btn is-small" href="/app/profile">{tp("jSkills")}</Link>
+            } />
+          ) : null}
           {(
             [
               ["ready", result.data.matches.filter((m) => overlapOf(m) >= READY_OVERLAP)],

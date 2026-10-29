@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
 
-import { ApiError, PageHeader } from "@/components";
+import { ErrorState, PageHeader } from "@/components";
 import { fetchProgrammeOptions } from "@/features/org/programmes/api";
 import { ProgrammeWizard } from "@/features/org/programmes/components/ProgrammeWizard";
 import { currentWorkspace } from "@/lib/auth/workspace";
@@ -12,7 +12,7 @@ export default async function Page() {
   return (
     <div className="a-view">
       <PageHeader eyebrow={t("eyebrow")} title={t("newTitle")} description={t("newDesc")} />
-      {options.ok ? <ProgrammeWizard options={options.data} orgId={workspace ?? undefined} /> : <ApiError message={options.message} />}
+      {options.ok ? <ProgrammeWizard options={options.data} orgId={workspace ?? undefined} /> : <ErrorState failure={options} />}
     </div>
   );
 }

@@ -19,7 +19,7 @@ test("About renders every model and data register entry, with translated purpose
       };
       const { AboutView } = loadComponent("src/features/guardrails/components/AboutView.tsx", {
         "next-intl/server": { getTranslations: async (ns) => intl.useTranslations(ns) },
-        "@/components": { ApiError: nothing, Badge: ({ children }) => React.createElement("span", {}, children) },
+        "@/components": { ErrorState: nothing, Badge: ({ children }) => React.createElement("span", {}, children) },
         "@/components/shell/Site": { SiteHeader: nothing, SiteFooter: nothing },
         "@/lib/api": { call: async (data) => ({ ok: true, data }), getApi: async () => ({ GET: (path) => payloads[path.split("/").at(-1)] }) },
       });

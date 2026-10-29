@@ -41,5 +41,7 @@
   "readyNow": "现在即可准备",
   "readyNowHint": "你已具备这些职位至少 {share}% 的所需技能水平：较短的计划即可达成。",
   "worthExploring": "值得探索",
-  "worthExploringHint": "你目前具备的所需技能水平不足 {share}%：路径更长，如果你对该职位感兴趣就值得投入。"
+  "worthExploringHint": "你目前具备的所需技能水平不足 {share}%：路径更长，如果你对该职位感兴趣就值得投入。",
+  "emptyTitle": "目前没有可显示的匹配",
+  "emptyHint": "检查您的技能与兴趣，然后重新尝试匹配。"
 }

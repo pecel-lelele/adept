@@ -2,7 +2,7 @@ import { ArrowUpRight, Building2, CalendarDays, Clock3, Wallet } from "lucide-re
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 
-import { ApiError, EmptyState, MetaBar, PageHeader } from "@/components";
+import { EmptyState, ErrorState, MetaBar, PageHeader } from "@/components";
 import { AssignedPackageView } from "@/features/org/components/AssignedPackageView";
 import { ActionForm } from "@/features/pathway/components/ActionForm";
 import type { WorkspaceOption } from "@/lib/auth/workspaces";
@@ -145,7 +145,7 @@ async function AgreementCard({ a, org, orgId, shared }: { a: Assignment; org: st
 export async function WorkPlanView({ org }: { org: WorkspaceOption }) {
   const t = await getTranslations("org.work");
   const result = await fetchMyProgrammes();
-  if (!result.ok) return <ApiError message={result.message} />;
+  if (!result.ok) return <ErrorState failure={result} />;
   const { pending, accepted, closed } = byStatus(result.data.assignments);
   const all = [...pending, ...accepted, ...closed];
   return (

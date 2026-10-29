@@ -2,6 +2,7 @@ import { Bot, Minus, Radar, TrendingDown, TrendingUp } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
 import { Kpis, MetaBar, PageHeader, TrendPill } from "@/components";
+import { journeyStepCount } from "@/config/navigation";
 import { ErrorState } from "@/components/ErrorState";
 import { TrendBars } from "@/components/viz";
 import { fetchMyProfile } from "@/features/profile/api";
@@ -54,7 +55,7 @@ export async function RadarView({
   return (
     <div className="a-view">
       <PageHeader
-        eyebrow={context === "organisation" ? tp("radarEyebrowOrg") : tp("stepOf", { step: 2 })}
+        eyebrow={context === "organisation" ? tp("radarEyebrowOrg") : tp("stepOf", { step: 2, total: journeyStepCount() })}
         title={context === "organisation" ? t("orgTitle") : t("title")}
         description={tp("radarDesc")}
       >

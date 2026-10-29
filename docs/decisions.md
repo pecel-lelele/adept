@@ -247,6 +247,16 @@
 - **Replaces**: none
 - **PR / branch**: `fix/core-review-upgrades`
 
+### TEAM-022: Actionable empty states, saving feedback and consistent journey totals (review 3.7)
+- **Date**: 2026-10-30
+- **Feature**: Core / F1 / F4 / F5
+- **Type**: UI
+- **Change**: Render existing EmptyState components for empty matches and comparisons, show a busy Saving label during intake submission, and derive page totals from navigation. Personal navigation and its home journey include skills, radar, roles, plan, progress and SDG links; the organisation journey retains four stages. Show the existing scenario hint visibly. Replace all raw ApiError call sites with ErrorState using the full failure object and remove the unused renderer.
+- **Why**: Empty or failed results need a next action; disabled submission needs visible feedback. Navigation and page counts must agree. Existing retry, sign-in and missing-profile actions remain the shared recovery path; impact review has no fabricated completion event.
+- **Affects**: Shared error rendering, learner navigation and affected page headings, intake feedback, EN/MS/ZH copy and DOM regressions
+- **Replaces**: none
+- **PR / branch**: `fix/core-review-upgrades`
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)

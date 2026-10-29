@@ -380,8 +380,8 @@ export function IntakeWizard({
             {t("next")}
           </button>
         ) : (
-          <button type="button" className="a-btn" disabled={saving || cvBusy} onClick={finish}>
-            {t("finish")}
+          <button type="button" className="a-btn" disabled={saving || cvBusy} aria-busy={saving} onClick={finish}>
+            {saving ? t("saving") : t("finish")}
           </button>
         )}
       </div>
