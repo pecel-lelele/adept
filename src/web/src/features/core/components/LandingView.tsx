@@ -172,6 +172,9 @@ export async function LandingView({ audience }: { audience: Audience }) {
     getApi().then((api) => call(api.GET("/api/v1/meta/overview"))),
   ]);
   const home = account ? (account.kind === "org_admin" ? "/org" : "/app") : null;
+  // For logged-in individual users the team CTAs go to "Join an organisation" instead of the
+  // default dashboard; org_admin users already have a team workspace so send them straight there.
+  const teamHome = account ? (account.kind === "org_admin" ? "/org" : "/app/join") : null;
   const o = overview.ok ? overview.data : null;
 
   const meData = visuals(t, o, false);
@@ -279,10 +282,10 @@ export async function LandingView({ audience }: { audience: Audience }) {
               </h1>
               <p className="a-hero2-lead">{t("tSub")}</p>
               <div className="a-hero2-ctas">
-                <Link className="a-btn" href={home ?? "/auth/signup?mode=organisation"}>
+                <Link className="a-btn" href={teamHome ?? "/auth/signup?mode=organisation"}>
                   {t("tCta")} <ArrowRight size={17} aria-hidden />
                 </Link>
-                <Link className="a-link" href="/auth/login?mode=organisation">
+                <Link className="a-link" href={teamHome ?? "/auth/login?mode=organisation"}>
                   {t("tSignIn")} <ArrowUpRight size={16} aria-hidden />
                 </Link>
               </div>
@@ -469,7 +472,7 @@ export async function LandingView({ audience }: { audience: Audience }) {
         <a className="a-btn a-for-me" href="#start">
           {t("closeCta")} <ArrowRight size={17} aria-hidden />
         </a>
-        <Link className="a-btn a-for-team" href={home ?? "/auth/signup?mode=organisation"}>
+        <Link className="a-btn a-for-team" href={teamHome ?? "/auth/signup?mode=organisation"}>
           {t("tCta")} <ArrowRight size={17} aria-hidden />
         </Link>
       </section>
