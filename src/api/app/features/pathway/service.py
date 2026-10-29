@@ -124,7 +124,7 @@ def _meta(
             retrieved_at=oldest,
         )
     if snapshot:
-        snapshot_date = snapshot.source.retrieved_at
+        snapshot_date = snapshot.snapshot_date or snapshot.source.retrieved_at
     else:
         snapshot_date = min(s.retrieved_at for s in sources.values())
     return RecommendationMeta(
@@ -132,6 +132,8 @@ def _meta(
         snapshot_date=snapshot_date,
         scenario=scenario,
         is_estimate=True,
+        served_from=snapshot.served_from if snapshot else None,
+        is_fallback=snapshot.is_fallback if snapshot else False,
     )
 
 

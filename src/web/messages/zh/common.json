@@ -24,6 +24,7 @@
     "asOf": "数据截至 {date}"
   },
   "freshness": {
+    "fallback": "正在显示 {date} 的最近可用快照",
     "label": "趋势数据截至 {date}",
     "unavailable": "趋势数据不可用"
   },

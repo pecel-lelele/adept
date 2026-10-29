@@ -295,6 +295,7 @@ function AdiConversation({
 
 function Answer({ reply, scenario }: { reply: Reply; scenario: "moderate" | "fast" }) {
   const t = useTranslations("ui.adi");
+  const tf = useTranslations("common.freshness");
   const meta = reply.meta;
   const unchecked = reply.unchecked_figures ?? [];
   const grounded = reply.grounded_on ?? [];
@@ -313,6 +314,7 @@ function Answer({ reply, scenario }: { reply: Reply; scenario: "moderate" | "fas
         {grounded.length ? ` · ${t("basedOn", { what: grounded.join(", ") })}` : ""}
         {meta ? ` · ${t("snapshot", { date: meta.snapshot_date })}` : ""}
       </small>
+      {meta?.is_fallback ? <small className="adi-warn" role="status">{tf("fallback", { date: meta.snapshot_date })}</small> : null}
     </div>
   );
 }

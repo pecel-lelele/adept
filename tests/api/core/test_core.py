@@ -29,8 +29,8 @@ def test_data_freshness(client: TestClient) -> None:
     resp = client.get("/api/v1/meta/data-freshness")
     assert resp.status_code == 200
     body = DataFreshness.model_validate(resp.json())
-    # Real snapshot sources, never the old placeholder.
-    assert body.is_mock is False
+    assert body.is_mock == (body.served_from == "fixture")
+    assert body.is_fallback == (body.served_from == "fixture")
     assert body.sources and all(s.name != "MOCK DATA" and s.url for s in body.sources)
 
 

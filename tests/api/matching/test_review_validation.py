@@ -114,6 +114,8 @@ def test_snapshot_meta_with_frozen_today(
         "snapshot_date": "2026-10-20",
         "scenario": "fast",
         "is_estimate": False,
+        "served_from": "db",
+        "is_fallback": False,
         "sources": [source.model_dump(mode="json") for source in snap.sources],
         # H09: observation window (none recorded on this stub snapshot).
         "observed_from": None,

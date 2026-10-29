@@ -21,6 +21,8 @@ class RecommendationMeta(BaseModel):
     snapshot_date: date
     scenario: ScenarioId
     is_estimate: bool = True
+    served_from: Literal["db", "fixture"] | None = None
+    is_fallback: bool = False
     observed_from: date | None = Field(
         default=None,
         description="Start of the period the source data measures; may predate snapshot_date.",
@@ -41,6 +43,8 @@ class DataFreshness(BaseModel):
     snapshot_date: date
     sources: list[Source]
     is_mock: bool
+    served_from: Literal["db", "fixture"]
+    is_fallback: bool
 
 
 class ErrorBody(BaseModel):

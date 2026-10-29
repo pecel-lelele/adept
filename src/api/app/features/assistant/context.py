@@ -149,6 +149,8 @@ def _trends(ctx: Context, scenario: ScenarioId, own: set[str]) -> None:
         is_estimate=True,
         observed_from=m.observed_from,
         observed_to=m.observed_to,
+        served_from=m.served_from,
+        is_fallback=m.is_fallback,
     )
 
 

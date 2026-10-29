@@ -89,6 +89,8 @@ def build() -> PlatformOverview:
             snapshot_date=snap.meta.snapshot_date,
             scenario="moderate",
             is_estimate=True,
+            served_from=snap.meta.served_from,
+            is_fallback=snap.meta.is_fallback,
         ),
     )
 

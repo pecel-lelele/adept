@@ -105,6 +105,9 @@ def _from_m1(scenario: ScenarioId, snapshot_date: date | None) -> TrendView | No
             version=f"{M1_PREFIX}{day.isoformat()}",
             source=sources[0],
             sources=sources,
+            snapshot_date=day,
+            served_from=snap.meta.served_from,
+            is_fallback=snap.meta.is_fallback,
         ),
         growth={item.skill_id: float(getattr(item, key)) for item in snap.items},
         scenario_weighted=True,
@@ -140,6 +143,9 @@ def _from_seed() -> TrendView | None:
     snapshot = data.latest_snapshot()
     if snapshot is None:
         return None
+    from dataclasses import replace
+
+    snapshot = replace(snapshot, served_from="fixture", is_fallback=True)
     return TrendView(
         snapshot=snapshot,
         growth=data.skill_growth(snapshot.id),

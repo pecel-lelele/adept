@@ -2017,6 +2017,13 @@ export interface components {
             sources: components["schemas"]["Source"][];
             /** Is Mock */
             is_mock: boolean;
+            /**
+             * Served From
+             * @enum {string}
+             */
+            served_from: "db" | "fixture";
+            /** Is Fallback */
+            is_fallback: boolean;
         };
         /** DataSourceInfo */
         DataSourceInfo: {
@@ -3325,6 +3332,13 @@ export interface components {
              * @default true
              */
             is_estimate: boolean;
+            /** Served From */
+            served_from?: ("db" | "fixture") | null;
+            /**
+             * Is Fallback
+             * @default false
+             */
+            is_fallback: boolean;
             /**
              * Observed From
              * @description Start of the period the source data measures; may predate snapshot_date.
@@ -4371,6 +4385,17 @@ export interface components {
              * @default true
              */
             is_estimate: boolean;
+            /**
+             * Served From
+             * @default db
+             * @enum {string}
+             */
+            served_from: "db" | "fixture";
+            /**
+             * Is Fallback
+             * @default false
+             */
+            is_fallback: boolean;
             /** Weights */
             weights: {
                 [key: string]: number;

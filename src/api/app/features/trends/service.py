@@ -102,6 +102,10 @@ def _meta(snap: TrendSnapshotResponse, scenario: ScenarioId) -> RecommendationMe
         snapshot_date=snap.meta.snapshot_date,
         scenario=scenario,
         is_estimate=True,
+        served_from=snap.meta.served_from,
+        is_fallback=snap.meta.is_fallback,
+        observed_from=snap.meta.observed_from,
+        observed_to=snap.meta.observed_to,
     )
 
 

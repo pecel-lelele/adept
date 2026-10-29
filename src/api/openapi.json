@@ -6952,13 +6952,27 @@
           "is_mock": {
             "type": "boolean",
             "title": "Is Mock"
+          },
+          "served_from": {
+            "type": "string",
+            "enum": [
+              "db",
+              "fixture"
+            ],
+            "title": "Served From"
+          },
+          "is_fallback": {
+            "type": "boolean",
+            "title": "Is Fallback"
           }
         },
         "type": "object",
         "required": [
           "snapshot_date",
           "sources",
-          "is_mock"
+          "is_mock",
+          "served_from",
+          "is_fallback"
         ],
         "title": "DataFreshness"
       },
@@ -9953,6 +9967,26 @@
             "title": "Is Estimate",
             "default": true
           },
+          "served_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "db",
+                  "fixture"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Served From"
+          },
+          "is_fallback": {
+            "type": "boolean",
+            "title": "Is Fallback",
+            "default": false
+          },
           "observed_from": {
             "anyOf": [
               {
@@ -12243,6 +12277,20 @@
             "type": "boolean",
             "title": "Is Estimate",
             "default": true
+          },
+          "served_from": {
+            "type": "string",
+            "enum": [
+              "db",
+              "fixture"
+            ],
+            "title": "Served From",
+            "default": "db"
+          },
+          "is_fallback": {
+            "type": "boolean",
+            "title": "Is Fallback",
+            "default": false
           },
           "weights": {
             "additionalProperties": {

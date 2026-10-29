@@ -86,6 +86,16 @@
 - **Replaces**: TEAM-002's alternate auth stub, M3-003's external JWT integration and stale provider guidance in the project context
 - **PR / branch**: `chore/core-replit-database-cleanup`
 
+### TEAM-006: Disclose trend fallback throughout recommendations (review 1.1)
+- **Date**: 2026-10-29
+- **Feature**: F2/F3/F4/F5/F8 and Core
+- **Type**: contract
+- **Change**: Snapshot and freshness responses identify database versus fixture serving and fallback status. Trend-derived recommendation metadata preserves these fields; the shared metadata bar shows a translated, visible last-good-snapshot notice. Pathways retain the snapshot date separately from source retrieval dates.
+- **Why**: Database failure or an empty snapshot table must not appear to be fresh live data. Existing strict reads still reject unavailable authoritative data.
+- **Affects**: Trend, scenario, match, pathway, overview and assistant metadata; generated API client
+- **Replaces**: none
+- **PR / branch**: `fix/core-review-upgrades`
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)

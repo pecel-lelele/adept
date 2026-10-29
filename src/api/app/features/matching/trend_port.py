@@ -27,6 +27,7 @@ from app.contracts.common import ScenarioId, Source
 from app.contracts.trends import TrendSnapshotResponse
 from app.core.config import get_settings
 from app.core.errors import NotFoundError, TrendUnavailableError
+from app.features.trends.repository import SourceType
 
 # Public alias so tests import from one place.
 TrendUnavailable = TrendUnavailableError
@@ -59,6 +60,8 @@ class TrendSnapshot:
     data_provenance_note: str | None = None  # preserve M1's historical/fixture disclosure
     observed_from: date | None = None  # period the source data measures (H09)
     observed_to: date | None = None
+    served_from: SourceType = "db"
+    is_fallback: bool = False
 
 
 def fetch_snapshot(scenario: ScenarioId, snapshot_date: date | None = None) -> TrendSnapshot:
@@ -103,6 +106,8 @@ def fetch_snapshot(scenario: ScenarioId, snapshot_date: date | None = None) -> T
         data_provenance_note=snap.meta.data_provenance_note,
         observed_from=snap.meta.observed_from,
         observed_to=snap.meta.observed_to,
+        served_from=snap.meta.served_from,
+        is_fallback=snap.meta.is_fallback,
     )
 
 

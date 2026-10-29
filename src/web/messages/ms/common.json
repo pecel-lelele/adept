@@ -24,6 +24,7 @@
     "asOf": "data setakat {date}"
   },
   "freshness": {
+    "fallback": "Memaparkan petikan terakhir yang tersedia dari {date}",
     "label": "Data trend setakat {date}",
     "unavailable": "Data trend tidak tersedia"
   },

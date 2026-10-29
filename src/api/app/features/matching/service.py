@@ -36,6 +36,8 @@ def _build_meta(snap, scenario: ScenarioId) -> RecommendationMeta:
         is_estimate=snap.is_estimate,  # bool from snapshot meta
         observed_from=snap.observed_from,
         observed_to=snap.observed_to,
+        served_from=snap.served_from,
+        is_fallback=snap.is_fallback,
     )
 
 
