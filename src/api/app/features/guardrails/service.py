@@ -6,7 +6,9 @@ drift from what the system actually does.
 
 from __future__ import annotations
 
+import json
 from datetime import date
+from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI
@@ -16,6 +18,7 @@ from app.contracts.guardrails import (
     DataSourceInfo,
     Disclosure,
     FairnessReport,
+    RegisterEntry,
     SourcesResponse,
 )
 from app.core import embeddings, seed
@@ -41,6 +44,12 @@ RULES = [
     "Age, gender, ethnicity, religion and similar attributes are never accepted as input.",
 ]
 
+# Public reference register only: dates and record counts remain in get_sources().
+REGISTRY = tuple(
+    RegisterEntry.model_validate(entry)
+    for entry in json.loads(Path(__file__).with_name("registry.json").read_text(encoding="utf-8"))
+)
+
 
 def get_disclosure() -> Disclosure:
     provider, model = disclosure()
@@ -54,7 +63,7 @@ def get_disclosure() -> Disclosure:
         ]
         if enabled
         else [
-            "No language model is used. Adi answers with a built-in guide, and all plans, "
+            "Adi currently answers with a built-in guide. All plans, "
             "scores and SDG links are deterministic."
         ]
     )
@@ -71,6 +80,7 @@ def get_disclosure() -> Disclosure:
         provider=provider,
         model=model if enabled else "",
         purpose=purpose,
+        registry=list(REGISTRY),
         rules=RULES,
         calls_logged=len(CALL_LOG),
         rejected_ids=sum(len(rec.rejected) for rec in CALL_LOG),

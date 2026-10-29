@@ -31,6 +31,7 @@ export async function AboutView() {
               <ApiError message={disclosure.message} />
             ) : (
               <>
+                <p>{t("llmSummary")}</p>
                 <p>
                   {disclosure.data.llm_enabled
                     ? t("llmProvider", { provider: disclosure.data.provider, model: disclosure.data.model })
@@ -60,6 +61,22 @@ export async function AboutView() {
                   </li>
                 ))}
               </ul>
+            </section>
+          ) : null}
+
+          {disclosure.ok ? (
+            <section className="a-card is-wide">
+              <h2>{t("registryTitle")}</h2>
+              <div className="a-source-rows">
+                {disclosure.data.registry.map((entry) => (
+                  <div key={entry.id}>
+                    <a href={entry.url} className="a-link" target="_blank" rel="noreferrer">
+                      {entry.name}
+                    </a>
+                    <small>{t(`registryPurpose.${entry.id}`)}</small>
+                  </div>
+                ))}
+              </div>
             </section>
           ) : null}
 

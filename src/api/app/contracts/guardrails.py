@@ -8,11 +8,33 @@ from pydantic import BaseModel, Field
 SourceKind = Literal["live_api", "verified_page", "curated", "synthetic", "mock"]
 
 
+class RegisterEntry(BaseModel):
+    id: Literal[
+        "minilm",
+        "glm",
+        "gemini",
+        "embeddings",
+        "arxiv",
+        "bls",
+        "onet",
+        "jobs",
+        "mscert",
+        "awscert",
+        "googlecert",
+        "iibacert",
+        "iappcert",
+        "bnm",
+    ]
+    name: str
+    url: str
+
+
 class Disclosure(BaseModel):
     llm_enabled: bool
-    provider: str = Field(description="Configured LLM provider ('none' = no model is used).")
+    provider: str = Field(description="Configured Adi provider ('none' = built-in Adi guide).")
     model: str
     purpose: list[str]
+    registry: list[RegisterEntry]
     rules: list[str]
     calls_logged: int = Field(ge=0)
     rejected_ids: int = Field(ge=0, description="IDs the model returned that we rejected.")

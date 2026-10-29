@@ -2065,13 +2065,15 @@ export interface components {
             llm_enabled: boolean;
             /**
              * Provider
-             * @description Configured LLM provider ('none' = no model is used).
+             * @description Configured Adi provider ('none' = built-in Adi guide).
              */
             provider: string;
             /** Model */
             model: string;
             /** Purpose */
             purpose: string[];
+            /** Registry */
+            registry: components["schemas"]["RegisterEntry"][];
             /** Rules */
             rules: string[];
             /** Calls Logged */
@@ -3363,6 +3365,18 @@ export interface components {
         RegionListResponse: {
             /** Regions */
             regions: string[];
+        };
+        /** RegisterEntry */
+        RegisterEntry: {
+            /**
+             * Id
+             * @enum {string}
+             */
+            id: "minilm" | "glm" | "gemini" | "embeddings" | "arxiv" | "bls" | "onet" | "jobs" | "mscert" | "awscert" | "googlecert" | "iibacert" | "iappcert" | "bnm";
+            /** Name */
+            name: string;
+            /** Url */
+            url: string;
         };
         /** ReplanStatus */
         ReplanStatus: {

@@ -177,6 +177,16 @@
 - **Replaces**: none
 - **PR / branch**: `fix/core-review-upgrades`
 
+### TEAM-015: Complete model and data disclosure register (review 2.7)
+- **Date**: 2026-10-29
+- **Feature**: F8 / Core
+- **Type**: contract, UI
+- **Change**: Serve one versioned public register of trend and Adi models, job feeds, certification sources, BNM rates and O*NET 31.0 through the disclosure contract and render every entry on About with EN/MS/ZH purposes. Disclose MiniLM's background research encoding and GLM-5.3's validated block selection even when this instance uses the built-in Adi guide; keep active provider disclosure separate.
+- **Why**: Disabling Adi does not erase models used to prepare trend snapshots. The register describes system roles without fabricating retrieval dates or claiming a live provider check. Existing dated source and sync records remain separate.
+- **Affects**: Guardrails disclosure, generated API contracts, About page and registry completeness tests
+- **Replaces**: none
+- **PR / branch**: `fix/core-review-upgrades`
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)

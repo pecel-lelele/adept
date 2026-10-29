@@ -7061,7 +7061,7 @@
           "provider": {
             "type": "string",
             "title": "Provider",
-            "description": "Configured LLM provider ('none' = no model is used)."
+            "description": "Configured Adi provider ('none' = built-in Adi guide)."
           },
           "model": {
             "type": "string",
@@ -7073,6 +7073,13 @@
             },
             "type": "array",
             "title": "Purpose"
+          },
+          "registry": {
+            "items": {
+              "$ref": "#/components/schemas/RegisterEntry"
+            },
+            "type": "array",
+            "title": "Registry"
           },
           "rules": {
             "items": {
@@ -7099,6 +7106,7 @@
           "provider",
           "model",
           "purpose",
+          "registry",
           "rules",
           "calls_logged",
           "rejected_ids"
@@ -10051,6 +10059,45 @@
           "regions"
         ],
         "title": "RegionListResponse"
+      },
+      "RegisterEntry": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "enum": [
+              "minilm",
+              "glm",
+              "gemini",
+              "embeddings",
+              "arxiv",
+              "bls",
+              "onet",
+              "jobs",
+              "mscert",
+              "awscert",
+              "googlecert",
+              "iibacert",
+              "iappcert",
+              "bnm"
+            ],
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "url"
+        ],
+        "title": "RegisterEntry"
       },
       "ReplanStatus": {
         "properties": {

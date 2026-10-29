@@ -1,0 +1,16 @@
+[
+  {"id": "minilm", "name": "Sentence Transformers all-MiniLM-L6-v2", "url": "https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2"},
+  {"id": "glm", "name": "Z.ai GLM-5.3 via RunPod", "url": "https://github.com/pecel-lelele/adept/blob/main/README.md"},
+  {"id": "gemini", "name": "Google Gemini (Adi fallback)", "url": "https://github.com/pecel-lelele/adept/blob/main/src/api/app/core/llm/FEATURE.md"},
+  {"id": "embeddings", "name": "Google Gemini embeddings", "url": "https://github.com/pecel-lelele/adept/blob/main/src/api/app/core/embeddings.py"},
+  {"id": "arxiv", "name": "arXiv cs.AI RSS", "url": "https://rss.arxiv.org/rss/cs.AI"},
+  {"id": "bls", "name": "US Bureau of Labor Statistics projections", "url": "https://www.bls.gov/emp/tables/occupational-projections-and-characteristics.htm"},
+  {"id": "onet", "name": "O*NET 31.0", "url": "https://www.onetcenter.org/database.html"},
+  {"id": "jobs", "name": "Public job feeds", "url": "https://github.com/pecel-lelele/adept/blob/main/src/pipelines/jobs/boards.py"},
+  {"id": "mscert", "name": "Microsoft certification pages and exam pricing", "url": "https://learn.microsoft.com/en-us/credentials/exam-pricing.json"},
+  {"id": "awscert", "name": "AWS certification pages", "url": "https://aws.amazon.com/certification/certified-cloud-practitioner/"},
+  {"id": "googlecert", "name": "Google Cloud certification pages", "url": "https://cloud.google.com/learn/certification/cloud-digital-leader"},
+  {"id": "iibacert", "name": "IIBA certification pages", "url": "https://www.iiba.org/business-analysis-certifications/ecba/"},
+  {"id": "iappcert", "name": "IAPP certification pages", "url": "https://iapp.org/certify/aigp/"},
+  {"id": "bnm", "name": "Bank Negara Malaysia exchange rates", "url": "https://api.bnm.gov.my/public/exchange-rate/USD"}
+]
