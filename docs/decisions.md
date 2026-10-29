@@ -267,6 +267,16 @@
 - **Replaces**: none
 - **PR / branch**: `fix/core-review-upgrades`
 
+### TEAM-024: Reserve mobile clearance for the Adi launcher (review 3.9)
+- **Date**: 2026-10-30
+- **Feature**: Core
+- **Type**: UI
+- **Change**: Give mobile main content and the final disclaimer bottom padding equal to tab-bar height plus 80px and the device safe-area inset. Keep the existing 52px launcher and its position.
+- **Why**: The final content must scroll above both fixed controls, including on devices with a bottom safe area. Padding the disclaimer too prevents it remaining covered at the end of the page.
+- **Affects**: Workspace mobile spacing; clearance regression reads actual CSS dimensions
+- **Replaces**: none
+- **PR / branch**: `fix/core-review-upgrades`
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)

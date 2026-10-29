@@ -129,8 +129,8 @@
   .a-shell { grid-template-columns: minmax(0, 1fr); background: var(--a-paper); }
   .a-side { display: none; }
   .a-mobile-scenario { display: flex; justify-content: flex-end; padding: 12px 16px 0; }
-  .a-main { padding: 18px 16px calc(var(--a-tab-h) + 32px + env(safe-area-inset-bottom)); }
-  .a-foot { padding: 0 16px calc(var(--a-tab-h) + 24px); }
+  .a-main { padding: 18px 16px calc(var(--a-tab-h) + 80px + env(safe-area-inset-bottom)); }
+  .a-foot { padding: 0 16px calc(var(--a-tab-h) + 80px + env(safe-area-inset-bottom)); }
   .a-tabs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; height: calc(var(--a-tab-h) + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom); background: color-mix(in srgb, var(--a-surface) 94%, transparent); backdrop-filter: blur(12px); border-top: 1px solid var(--a-line); }
   .a-tab { display: grid; justify-items: center; align-content: center; gap: 4px; font-size: 10.5px; color: var(--a-muted); border: 0; background: transparent; min-width: 0; cursor: pointer; }
   .a-tab span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
