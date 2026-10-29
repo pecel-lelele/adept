@@ -20,6 +20,12 @@ export type IntakeInput = {
 export type IntakeResult = { error?: string };
 export type CvResult = { error?: string } & Partial<Pick<Schemas["CvExtractionResult"], "skills" | "unmatched_terms" | "suggestions" | "truncated">>;
 
+/** Only invoked by an explicit search submission; API authentication remains authoritative. */
+export async function resolveSkillAction(query: string) {
+  const api = await getApi();
+  return call(api.POST("/api/v1/profile/skills/resolve", { body: { query } }));
+}
+
 const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, Math.round(n || 0)));
 
 /** Save the questionnaire, then the confirmed skills. Both land in PostgreSQL. */

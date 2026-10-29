@@ -352,6 +352,16 @@
       "hands-on": "Hands-on practice",
       "classroom": "Classroom",
       "mixed": "A mix"
+    },
+    "resolve": "Find suggestions",
+    "resolving": "Finding suggestions…",
+    "suggestionHint": "Estimated catalogue suggestions. Add a skill only if it describes what you can do.",
+    "noSuggestions": "No confident suggestion. Try another term or choose from the skill bank.",
+    "addSuggestion": "Add {label}",
+    "resolverMethod": {
+      "alias": "Catalogue alias",
+      "fuzzy": "Similar spelling",
+      "semantic": "Similar meaning"
     }
   },
   "home": {

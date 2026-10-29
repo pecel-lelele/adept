@@ -22,12 +22,14 @@ from app.contracts.profile import (
     Profile,
     ProfileIn,
     SkillCatalogueResponse,
+    SkillResolutionRequest,
+    SkillResolutionResponse,
     SkillsUpdate,
 )
 from app.core.auth import CurrentUserDep
 from app.core.config import get_settings
 from app.core.errors import AppError
-from app.features.profile import service
+from app.features.profile import service, skill_resolver
 from app.features.profile.cv_parser import DOCX_MIME
 from app.features.profile.schemas import (
     QuestionnaireIn,
@@ -87,6 +89,11 @@ def upsert_profile(data: ProfileIn, user: CurrentUserDep) -> Profile:
 @router.get("/skills/catalogue", summary="Skill bank for the skill picker")
 def skill_catalogue() -> SkillCatalogueResponse:
     return service.skill_catalogue()
+
+
+@router.post("/skills/resolve", summary="Suggest catalogue skills for a submitted search")
+def resolve_skill(data: SkillResolutionRequest, user: CurrentUserDep) -> SkillResolutionResponse:
+    return skill_resolver.resolve(data.query)
 
 
 @router.get("/me", summary="Get current user profile")

@@ -7,7 +7,6 @@ import { useRef, useState, type DragEvent, type FormEvent } from "react";
 
 import { Ring, scoreColour } from "@/components/viz/Ring";
 import type { Schemas } from "@/lib/api";
-import { CvReview } from "@/features/profile/components/CvReview";
 
 type Preview = Schemas["GuestPreview"];
 
@@ -184,8 +183,6 @@ export function CvPreview() {
               </div>
             ) : null}
           </div>
-
-          <CvReview terms={result.unmatched_terms ?? []} truncated={result.truncated} matchedCount={result.skills.length} suggestions={result.suggestions ?? []} />
           {result.top_role ? <div className="a-locked">
             <div className="a-locked-content" aria-hidden="true">
               {[t("lockedRoles"), t("lockedGap"), t("lockedPlan"), t("lockedImpact")].map((label, i) => (

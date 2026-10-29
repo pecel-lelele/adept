@@ -4,11 +4,12 @@ import { Briefcase, FileUp, GraduationCap, Repeat, Search, X } from "lucide-reac
 import { useTranslations } from "next-intl";
 import { useMemo, useRef, useState, useTransition } from "react";
 
+import { SourceBadge } from "@/components/SourceBadge";
 import { CV_SKILLS_KEY } from "@/features/core/components/CvPreview";
-import type { Schemas } from "@/lib/api";
+import type { ApiResult, Schemas } from "@/lib/api";
 
-import { saveIntakeAction, uploadCvAction, type IntakeInput } from "../actions";
-import { CvReview } from "./CvReview";
+import { resolveSkillAction, saveIntakeAction, uploadCvAction, type IntakeInput } from "../actions";
+import { canResolveSkill, createSessionResolver, filterCatalogueSkills, normaliseSkillQuery } from "../skill-search";
 
 type Option = Schemas["SkillOption"];
 type Picked = { skill_id: string; level: number; fromCv?: boolean };
@@ -44,12 +45,11 @@ export function IntakeWizard({
     (initial?.skills ?? []).map((s) => ({ skill_id: s.skill_id, level: s.level })),
   );
   const [query, setQuery] = useState("");
-  const [cvReview, setCvReview] = useState<{
-    terms: string[];
-    truncated: boolean;
-    count: number;
-    suggestions: Schemas["SkillSuggestion"][];
+  const [resolution, setResolution] = useState<{
+    key: string; result: ApiResult<Schemas["SkillResolutionResponse"]>;
   } | null>(null);
+  const [resolving, startResolve] = useTransition();
+  const resolverRef = useRef<ReturnType<typeof createSessionResolver<ApiResult<Schemas["SkillResolutionResponse"]>>> | null>(null);
   const [error, setError] = useState("");
   const [cvBusy, startCv] = useTransition();
   const [saving, startSave] = useTransition();
@@ -80,13 +80,25 @@ export function IntakeWizard({
 
   const labels = useMemo(() => new Map(catalogue.map((o) => [o.id, o.label])), [catalogue]);
   const results = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return [];
     const chosen = new Set(skills.map((s) => s.skill_id));
-    return catalogue
-      .filter((o) => !chosen.has(o.id) && (o.label.toLowerCase().includes(q) || o.id.includes(q)))
-      .slice(0, 12);
+    return filterCatalogueSkills(catalogue, query, chosen);
   }, [query, catalogue, skills]);
+  const resolved = resolution?.key === normaliseSkillQuery(query) ? resolution.result : null;
+  const suggestions = resolved?.ok ? resolved.data.candidates.filter(
+    (candidate) => labels.has(candidate.skill_id) && !skills.some((s) => s.skill_id === candidate.skill_id),
+  ) : [];
+
+  function resolveSearch() {
+    const key = normaliseSkillQuery(query);
+    if (!canResolveSkill(key)) return;
+    resolverRef.current ??= createSessionResolver(resolveSkillAction);
+    startResolve(async () => {
+      const request = resolverRef.current?.(key);
+      if (!request) return;
+      const result = await request;
+      setResolution({ key, result });
+    });
+  }
 
   function addSkill(id: string, level = 3, fromCv = false) {
     setSkills((prev) => (prev.some((s) => s.skill_id === id) ? prev : [...prev, { skill_id: id, level, fromCv }]));
@@ -99,11 +111,9 @@ export function IntakeWizard({
     const form = new FormData();
     form.set("file", file);
     setError("");
-    setCvReview(null);
     startCv(async () => {
       const result = await uploadCvAction(form);
       if (result.error) setError(result.error);
-      else setCvReview({ terms: result.unmatched_terms ?? [], truncated: result.truncated ?? false, count: result.skills?.length ?? 0, suggestions: result.suggestions ?? [] });
       for (const s of result.skills ?? []) addSkill(s.skill_id, s.level, true);
     });
   }
@@ -245,12 +255,6 @@ export function IntakeWizard({
               hidden
               onChange={(e) => onFile(e.target.files?.[0])}
             />
-            {cvReview ? (
-              <CvReview terms={cvReview.terms} truncated={cvReview.truncated} matchedCount={cvReview.count}
-                suggestions={cvReview.suggestions} onAdd={(id) => addSkill(id)}
-                added={new Set(skills.map((s) => s.skill_id))}
-                onSearch={(term) => { setQuery(term); searchRef.current?.focus(); }} />
-            ) : null}
             <label className="a-field" style={{ position: "relative" }}>
               <span className="a-sr">{t("search")}</span>
               <Search size={16} aria-hidden style={{ position: "absolute", left: 14, top: 15, color: "var(--a-muted)" }} />
@@ -260,6 +264,7 @@ export function IntakeWizard({
                 style={{ paddingLeft: 38 }}
                 placeholder={t("search")}
                 value={query}
+                maxLength={80}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && results[0]) {
@@ -283,6 +288,27 @@ export function IntakeWizard({
                     {t("noResults")}
                   </p>
                 )}
+              </div>
+            ) : null}
+            {canResolveSkill(query) ? (
+              <button type="button" className="a-btn is-ghost" disabled={resolving} onClick={resolveSearch}>
+                {resolving ? t("resolving") : t("resolve")}
+              </button>
+            ) : null}
+            {resolved ? (
+              <div className="a-stack" aria-live="polite">
+                {resolved.ok ? (
+                  <>
+                    <p className="a-small a-muted">{t("suggestionHint")}</p>
+                    {suggestions.length ? suggestions.map((candidate) => (
+                      <button type="button" className="a-btn is-ghost" key={candidate.skill_id}
+                        onClick={() => addSkill(candidate.skill_id)}>
+                        {t("addSuggestion", { label: candidate.label })} · {t(`resolverMethod.${candidate.method}`)}
+                      </button>
+                    )) : <p className="a-small a-muted">{t("noSuggestions")}</p>}
+                    <SourceBadge sources={resolved.data.meta.sources} snapshotDate={resolved.data.meta.snapshot_date} />
+                  </>
+                ) : <p className="a-notice" role="alert">{resolved.message}</p>}
               </div>
             ) : null}
             {skills.length ? (

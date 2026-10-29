@@ -467,6 +467,17 @@
 - **Replaces**: M2-017's fast-fail policy for a busy worker
 - **PR / branch**: `feat/matching-scoring-engine`
 
+### M2-023: Alias-aware skill bank and abstaining search resolver
+- **Date**: 2026-10-29
+- **Feature**: F1 (Skills Profile Intake)
+- **Type**: method | contract | UI
+- **Change**: Return approved aliases from the skill catalogue and include them directly in the existing local manual-search filter. Add an authenticated, rate-limited POST resolver whose deduplicated union contains at most one alias, one fuzzy and one semantic candidate. Fuzzy uses each canonical skill's best label/alias `SequenceMatcher` score with `top_score >= 0.83` and `top_score - runner_up_score >= 0.05`; above-threshold ties/close scores abstain before embedding. Semantic remains the existing top-1 cosine rule, `>= 0.80` and lead `>= 0.015`, using only a ready index.
+- **Why**: The picker omitted approved aliases such as Microsoft Excel. Explicit query submission, a four-letter/digit minimum before semantic lookup, and a bounded in-memory wizard-session cache (including pending and empty results) prevent embedding requests per keystroke. Catalogue IDs/labels, dated attribution and human confirmation remain mandatory; provider failure retains deterministic candidates. No new dependency, migration or model default.
+- **Pipeline**: existing public taxonomy labels/aliases → NFKC/case/whitespace normalization and bounded query → per-skill string scores / existing optional embeddings → tier-specific top-1 gates and ID validation → nine-case production-function regression (three positives, two out-of-catalogue negatives, three short tokens, one close-score ambiguity; all pass at 0.83/0.05) → attributed proposals and explicit Add/confirmation.
+- **Affects**: F1 API contracts and generated client, manual intake picker and EN/MS/ZH copy, resolver rate bucket, README and F8 About-page embedding-purpose disclosure. Existing CV semantic suggestion path unchanged.
+- **Replaces**: none; preserves M4-061 semantic thresholds and top-1 output
+- **PR / branch**: `fix/profile-alias-resolver`
+
 ---
 
 ## M3: Pathway, SDG & Guardrails (F5, F6, F8)

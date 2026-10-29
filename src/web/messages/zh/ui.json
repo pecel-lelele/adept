@@ -352,6 +352,16 @@
       "hands-on": "动手实践",
       "classroom": "课堂",
       "mixed": "混合"
+    },
+    "resolve": "查找建议",
+    "resolving": "正在查找建议…",
+    "suggestionHint": "基于目录的估计建议。仅在技能符合您的实际能力时添加。",
+    "noSuggestions": "没有足够明确的建议。请尝试其他词语或从技能库中选择。",
+    "addSuggestion": "添加{label}",
+    "resolverMethod": {
+      "alias": "目录别名",
+      "fuzzy": "相近拼写",
+      "semantic": "相近含义"
     }
   },
   "home": {

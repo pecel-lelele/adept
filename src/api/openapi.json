@@ -5271,6 +5271,98 @@
         }
       }
     },
+    "/api/v1/profile/skills/resolve": {
+      "post": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Suggest catalogue skills for a submitted search",
+        "operationId": "profile_resolve_skill",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SkillResolutionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkillResolutionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/profile/me": {
       "get": {
         "tags": [
@@ -12364,6 +12456,14 @@
             "type": "string",
             "title": "Group",
             "description": "e.g. 'Emerging AI-native skill'; empty if ungrouped."
+          },
+          "aliases": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Aliases",
+            "description": "Approved catalogue search aliases."
           }
         },
         "type": "object",
@@ -12418,6 +12518,83 @@
           "closed"
         ],
         "title": "SkillProgress"
+      },
+      "SkillResolutionCandidate": {
+        "properties": {
+          "skill_id": {
+            "type": "string",
+            "title": "Skill Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "alias",
+              "fuzzy",
+              "semantic"
+            ],
+            "title": "Method"
+          },
+          "score": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": -1.0,
+            "title": "Score",
+            "description": "Tier-specific similarity; not a probability."
+          }
+        },
+        "type": "object",
+        "required": [
+          "skill_id",
+          "label",
+          "method",
+          "score"
+        ],
+        "title": "SkillResolutionCandidate"
+      },
+      "SkillResolutionRequest": {
+        "properties": {
+          "query": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Query"
+          }
+        },
+        "type": "object",
+        "required": [
+          "query"
+        ],
+        "title": "SkillResolutionRequest"
+      },
+      "SkillResolutionResponse": {
+        "properties": {
+          "query": {
+            "type": "string",
+            "title": "Query"
+          },
+          "candidates": {
+            "items": {
+              "$ref": "#/components/schemas/SkillResolutionCandidate"
+            },
+            "type": "array",
+            "maxItems": 3,
+            "title": "Candidates"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RecommendationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "query",
+          "candidates",
+          "meta"
+        ],
+        "title": "SkillResolutionResponse"
       },
       "SkillSuggestion": {
         "properties": {

@@ -98,7 +98,13 @@ def skill_catalogue() -> SkillCatalogueResponse:
     """Every taxonomy skill, sorted by label, for the skill picker."""
     rows = refdata.rows("taxonomy", "skills")
     options = [
-        SkillOption(id=r["id"], label=r["label"], group=r.get("description") or "") for r in rows
+        SkillOption(
+            id=r["id"],
+            label=r["label"],
+            group=r.get("description") or "",
+            aliases=[a.strip() for a in (r.get("aliases") or "").split("|") if a.strip()],
+        )
+        for r in rows
     ]
     tags = {
         tag.strip()
