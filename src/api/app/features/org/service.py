@@ -33,6 +33,7 @@ from app.core.errors import AppError, NotFoundError
 from app.features.org import repository
 from app.features.pathway import data as pathway_data
 from app.features.pathway import engine
+from app.features.pathway import repository as pathway_repository
 from app.features.pathway import service as pathway_service
 from app.features.profile import service as profile_service
 
@@ -219,7 +220,10 @@ def member_learners(org_id: str, only: str | None = None) -> dict[str, engine.Le
         for m in repository.list_members(org_id)
         if m.intake_status == "complete" and (m.id == only if only else m.skills_shared)
     ]
-    earned = pathway_service.evidenced_levels_many([m.id for m in members])
+    scopes = [pathway_repository.org_scope(org_id)]
+    if all(m.skills_shared for m in members):
+        scopes.append(pathway_repository.PERSONAL)
+    earned = pathway_service.evidenced_levels_many([m.id for m in members], scopes)
     for m in members:
         profile = profile_service.get_my_profile(m.id)
         out[m.id] = engine.Learner(

@@ -187,6 +187,16 @@
 - **Replaces**: none
 - **PR / branch**: `fix/core-review-upgrades`
 
+### TEAM-016: Scope team learning credit to the current organisation (review 3.1)
+- **Date**: 2026-10-29
+- **Feature**: F5 / F7
+- **Type**: method
+- **Change**: Filter team earned-learning reads to the current organisation's scope and, only for consenting members, personal learning. Preserve the learner's own cross-workspace credit and the existing single batch query.
+- **Why**: A member's work in another organisation must not affect the current team's gaps or plans. Shared profile skills do not authorize disclosure of another organisation's learning records.
+- **Affects**: Team skill inputs, memory and PostgreSQL learning reads
+- **Replaces**: none
+- **PR / branch**: `fix/core-review-upgrades`
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)

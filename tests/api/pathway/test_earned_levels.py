@@ -400,9 +400,12 @@ def test_team_earned_learning_is_one_batch_read_and_members_are_loaded_once(
     read_learning = repository.learning_records
     load_members = org_service.repository.list_members
 
-    def learning(user_ids: list[str]) -> list[repository.LearningRecord]:
+    def learning(
+        user_ids: list[str], scopes: list[str] | None = None
+    ) -> list[repository.LearningRecord]:
         calls.append(user_ids)
-        return read_learning(user_ids)
+        assert scopes == [repository.org_scope(BANK), repository.PERSONAL]
+        return read_learning(user_ids, scopes)
 
     def members(org_id: str) -> list[Member]:
         loads.append(org_id)
@@ -443,7 +446,63 @@ def test_postgres_learning_read_joins_all_targets_in_one_query(
     levels = pathway_service.evidenced_levels_many(user_ids)
     assert levels == {uid: {"sql": 3} for uid in user_ids}
     assert len(calls) == 1
-    assert calls[0][1] == (user_ids,)
+    assert calls[0][1] == (user_ids, None, None)
     assert "LEFT JOIN course_evidence" in calls[0][0]
     calls.clear()
     assert store.learning_records([]) == [] and calls == []
+
+
+@pytest.mark.parametrize("shared", [True, False])
+def test_team_learning_excludes_other_organisations_and_unshared_personal_credit(
+    shared: bool, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from types import SimpleNamespace
+
+    monkeypatch.setattr(
+        org_repository,
+        "list_members",
+        lambda _: [
+            Member(
+                id="aisyah",
+                display_name="Synthetic learner",
+                current_role_id=None,
+                intake_status="complete",
+                skills_shared=shared,
+            )
+        ],
+    )
+    monkeypatch.setattr(
+        org_service.profile_service,
+        "get_my_profile",
+        lambda _: SimpleNamespace(skills=[], hours_per_week=4, budget_myr=100, hrd_eligible=False),
+    )
+    for scope, skill in [
+        (repository.org_scope(BANK), "sql"),
+        ("org:other", "excel"),
+        (repository.PERSONAL, "python"),
+    ]:
+        course = _course(f"synthetic-{skill}", [skill], 3)
+        repository.set_course_status("aisyah", "r", course.id, "completed", course, scope)
+        repository.save_evidence(
+            "aisyah", _evidence(course.id, "org_confirmed").model_copy(update={"scope": scope})
+        )
+    levels = org_service.member_learners(BANK, only="aisyah")["aisyah"].skill_levels
+    assert levels == ({"sql": 3, "python": 3} if shared else {"sql": 3})
+    assert pathway_service.evidenced_levels("aisyah") == {"sql": 3, "excel": 3, "python": 3}
+
+
+def test_postgres_learning_read_filters_scopes_at_the_query(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    store = repository.PostgresStore()
+    calls: list[tuple[str, tuple[object, ...]]] = []
+
+    def query(sql: str, params: tuple[object, ...]) -> list[tuple[object, ...]]:
+        calls.append((sql, params))
+        return []
+
+    monkeypatch.setattr(store, "_run", query)
+    scopes = [repository.org_scope(BANK), repository.PERSONAL]
+    assert store.learning_records(["aisyah"], scopes) == []
+    assert calls[0][1] == (["aisyah"], scopes, scopes)
+    assert "p.scope = ANY(%s)" in calls[0][0]
