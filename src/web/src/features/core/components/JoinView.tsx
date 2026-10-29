@@ -101,6 +101,17 @@ export function JoinView({ code = "" }: { code?: string }) {
           </ul>
         </aside>
       </div>
+      {!joined ? (
+        <p className="a-small a-muted" style={{ marginTop: "1.5rem", textAlign: "center" }}>
+          {t("teamAccountPrompt")}{" "}
+          <Link
+            className="a-link"
+            href="/auth/logout?next=/auth/signup?mode=organisation%26role=team"
+          >
+            {t("teamAccountCta")}
+          </Link>
+        </p>
+      ) : null}
     </div>
   );
 }

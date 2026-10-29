@@ -1698,3 +1698,47 @@
 - **Validation**: Full quality gate passed (958 Python tests, 32 environment-dependent skips, 48 subtests); 44 disposable-PostgreSQL integration checks, ten proxy regressions and twelve navigation/read-recovery checks passed. The exact root production build and supervised startup passed landing/About/sign-in, static CSS, health/HEAD, CORS, failed-login 401 and unknown-route 404 checks. All eleven diagrams rendered; submission limits and local links passed. Publishing this source and checking platform forwarding trust remain account-owner operations.
 - **Replaces**: Deployment/scaffold aspects of M4-073 and M4-076; retains production boundaries and native-runtime/readiness behavior from M4-069.
 - **PR / branch**: fix/core-single-public-server
+
+
+### M4-078: Reject the published session key and keep logout redirects same-origin
+- **Date**: 2026-10-30
+- **Feature**: Core authentication
+- **Type**: method
+- **Change**: Leave SESSION_SECRET empty in the example so local development generates a private random key and Compose requires an explicitly generated value. Reject the previously published placeholder in settings for both environments. Revalidate the serialized redirect path before returning it from the shared logout helper.
+- **Why**: A public HMAC key permits forged sessions. A validated same-origin URL can still yield a protocol-relative Location when its pathname begins with two slashes.
+- **Affects**: API configuration/startup and web logout; no API contract or database changes. Existing deployments using the published key must replace it, invalidating their sessions.
+- **Replaces**: none
+- **PR / branch**: feat/core-sidebar-home-button
+
+
+### M4-079: Restore verification and preserve full Back navigation
+- **Date**: 2026-10-30
+- **Feature**: Core authentication and CI
+- **Type**: method | UI
+- **Change**: Use Next.js Link with onNavigate to perform the auth Back link's intended full navigation, remove an unused landing variable, and include the logout helper regression suite in frontend CI. Add a regression rejecting a token forged with the published session key.
+- **Why**: Restoring the pinned test environments revealed an ESLint error in the existing Back link. Preserve cookie-aware full reload behavior while satisfying the framework rule and keeping security regressions in CI.
+- **Affects**: Auth Back navigation, landing lint, and frontend CI. No dependency, database, or API contract changes.
+- **Replaces**: none
+- **PR / branch**: feat/core-sidebar-home-button
+
+
+### M4-080: Isolate database-only Compose from API secret interpolation
+- **Date**: 2026-10-30
+- **Feature**: Core local development
+- **Type**: method
+- **Change**: Move the local database definition to `docker-compose.db.yml`, reused through `extends` by the full stack. Route database startup and shutdown through the database-only file, preserving the project volume and the full-stack API's required private SESSION_SECRET.
+- **Why**: Compose interpolates every service before selecting db, so the blank example secret prevented setup, dev and db-up from starting PostgreSQL. A separate database file avoids supplying a dummy signing key or weakening API validation.
+- **Affects**: Local setup/dev/db-up/db-down, full-stack Compose database definition and onboarding documentation. No database contents, schema, provider or production changes.
+- **Replaces**: M4-078's assumption that the full-stack Compose file can start db with an empty API secret.
+- **PR / branch**: feat/core-sidebar-home-button
+
+
+### M4-081: Cover database-dependent checks with explicit disposable test state
+- **Date**: 2026-10-30
+- **Feature**: Core verification and F2 trend fixture validation
+- **Type**: method
+- **Change**: Include trend fixture/database export comparisons in the existing PostgreSQL CI job and document ADEPT_TEST_DATABASE_URL as the explicit opt-in for local database coverage. Keep default tests isolated from developer databases.
+- **Why**: The isolated run skipped 30 PostgreSQL tests and two export comparisons; the CI database job already enabled the former but omitted the latter. Passed workflow-security subtests are successful coverage and need no removal.
+- **Affects**: Database CI and local verification documentation; no runtime, schema, dependencies or fixture changes.
+- **Replaces**: none
+- **PR / branch**: feat/core-sidebar-home-button

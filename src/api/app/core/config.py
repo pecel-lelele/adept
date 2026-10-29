@@ -73,6 +73,13 @@ class Settings(BaseSettings):
     # Secret for POST .../sync endpoints that refresh live data; empty = sync disabled.
     sync_token: str = ""
 
+    @field_validator("session_secret")
+    @classmethod
+    def _reject_public_session_secret(cls, value: str) -> str:
+        if value.strip() == "change-me-to-a-long-random-string-of-32-plus-chars":
+            raise ValueError("Generate a private SESSION_SECRET; the public example key is unsafe.")
+        return value
+
     @field_validator("database_url")
     @classmethod
     def _prefer_ipv4_loopback(cls, value: str) -> str:

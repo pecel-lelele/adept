@@ -81,7 +81,9 @@
     "eyebrowMe": "For you",
     "eyebrowTeam": "For your team",
     "shareSkills": "Share my skill levels with that organisation",
-    "shareSkillsHint": "Managers use shared levels to plan team training. Your personal plans and matches stay private."
+    "shareSkillsHint": "Managers use shared levels to plan team training. Your personal plans and matches stay private.",
+    "back": "Back",
+    "backHome": "Back to home"
   },
   "landing": {
     "eyebrow": "Future-ready careers",
@@ -455,7 +457,9 @@
     "consentHint": "Organisation managers will see your skill levels and learning progress to coordinate training.",
     "shareSkills": "Share my skill levels with this organisation",
     "shareSkillsHint": "Managers use shared levels to plan team training. Your personal plans and matches stay private. You can change this later.",
-    "openWorkspace": "Open {org}"
+    "openWorkspace": "Open {org}",
+    "teamAccountPrompt": "Do you want to create an account for your team?",
+    "teamAccountCta": "Create team account"
   },
   "error": {
     "title": "Something didn’t load",

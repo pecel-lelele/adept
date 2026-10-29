@@ -81,7 +81,9 @@
     "eyebrowMe": "Untuk anda",
     "eyebrowTeam": "Untuk pasukan anda",
     "shareSkills": "Kongsi tahap kemahiran saya dengan organisasi itu",
-    "shareSkillsHint": "Pengurus menggunakan tahap yang dikongsi untuk merancang latihan pasukan. Pelan peribadi dan padanan anda kekal peribadi."
+    "shareSkillsHint": "Pengurus menggunakan tahap yang dikongsi untuk merancang latihan pasukan. Pelan peribadi dan padanan anda kekal peribadi.",
+    "back": "Kembali",
+    "backHome": "Kembali ke laman utama"
   },
   "landing": {
     "eyebrow": "Kerjaya bersedia masa depan",
@@ -455,7 +457,9 @@
     "consentHint": "Pengurus organisasi akan melihat tahap kemahiran dan kemajuan pembelajaran anda untuk menyelaraskan latihan.",
     "shareSkills": "Kongsi tahap kemahiran saya dengan organisasi ini",
     "shareSkillsHint": "Pengurus menggunakan tahap yang dikongsi untuk merancang latihan. Pelan peribadi dan padanan anda kekal peribadi. Boleh diubah kemudian.",
-    "openWorkspace": "Buka {org}"
+    "openWorkspace": "Buka {org}",
+    "teamAccountPrompt": "Adakah anda ingin membuat akaun untuk pasukan anda?",
+    "teamAccountCta": "Buat akaun pasukan"
   },
   "error": {
     "title": "Ada yang tidak dapat dimuatkan",

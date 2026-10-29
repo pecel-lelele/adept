@@ -19,7 +19,9 @@ export async function WorkspaceSwitcher({
 }) {
   const t = await getTranslations("ui.workspace");
   const active = workspaces.find((w) => w.id === current) ?? workspaces[0];
-  if (workspaces.length < 2 || !active) return null;
+  // Always render the switcher when there is at least one workspace — personal-only users see
+  // "Personal (current) + Join another organisation" so the entry point is always visible.
+  if (!active) return null;
   const name = (w: WorkspaceOption) => (w.kind === "personal" ? t("personal") : w.name);
   const role = (w: WorkspaceOption) =>
     w.kind === "personal" ? t("personalHint") : w.role === "member" ? t("member") : t("manager");

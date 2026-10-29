@@ -1,12 +1,12 @@
 "use client";
 
-import { Building2, LineChart, Lock, ShieldCheck, UserRound, Users } from "lucide-react";
+import { ArrowLeft, Building2, LineChart, Lock, ShieldCheck, UserRound, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useActionState, useState } from "react";
 
-import { BrandLogo } from "@/components/shell/Brand";
+import { BrandMark } from "@/components/shell/Brand";
 import { FeatureArt } from "@/components/viz/FeatureArt";
 import { OrgScene } from "@/components/viz/OrgScene";
 import { PathScene } from "@/components/viz/PathScene";
@@ -24,6 +24,9 @@ export function AuthView() {
   // /auth/signup: the route only picks the tab; the pill slides and the form cross-fades.
   const page: Page = usePathname().endsWith("/signup") ? "signup" : "login";
   const tabHref = (p: Page) => `/auth/${p}${params.toString() ? `?${params.toString()}` : ""}`;
+  // When the user arrives from the "Join an organisation" page via the team-account link,
+  // role=team locks the signup form to "For my team" and hides the individual option.
+  const roleTeam = page === "signup" && params.get("role") === "team";
   const [state, action, pending] = useActionState<AuthState, FormData>(
     (prev, form) => (form.get("_page") === "signup" ? signupAction(prev, form) : loginAction(prev, form)),
     {},
@@ -33,7 +36,7 @@ export function AuthView() {
   // each tab starts from the link that opened it (?mode=), exactly like arriving from the
   // landing page. A choice made on Create account lasts only while that tab is open.
   type Workspace = "individual" | "organisation";
-  const fromUrl: Workspace = params.get("mode") === "organisation" ? "organisation" : "individual";
+  const fromUrl: Workspace = (params.get("mode") === "organisation" || roleTeam) ? "organisation" : "individual";
   const [choice, setChoice] = useState<Workspace | null>(null);
   const [choicePage, setChoicePage] = useState<Page>(page);
   if (choicePage !== page) {
@@ -48,7 +51,7 @@ export function AuthView() {
   const team = workspace === "organisation";
 
   return (
-    <main className="a-page a-authpage" data-mode={team ? "organisation" : "individual"}>
+    <main className="a-page a-authpage" data-mode={team ? "organisation" : "individual"} data-role-team={roleTeam || undefined}>
       {/* Soft moving colour behind the panel, so the page never reads as empty white. */}
       <div className="a-auth-bg" aria-hidden="true">
         <span className="a-auth-blob is-1" />
@@ -57,22 +60,50 @@ export function AuthView() {
         <span className="a-auth-grid" />
       </div>
       <header className="a-page-top">
-        <BrandLogo href="/" />
+        {/* Static brand — not a link, so clicking it here never navigates away or clears the session. */}
+        <span className="a-brand" aria-label="Adept">
+          <BrandMark />
+          <span>adept<span className="a-brand-dot">.</span></span>
+        </span>
       </header>
       <div className="a-auth">
         <section className="a-auth-card" aria-labelledby="auth-title" data-page={page}>
-          <div className="a-tabswitch" role="tablist" data-active={page}>
-            {(["login", "signup"] as const).map((p) => (
-              <Link key={p} href={tabHref(p)} replace scroll={false} role="tab" aria-selected={page === p}>
-                {p === "login" ? t("signIn") : t("signUp")}
-              </Link>
-            ))}
+          {/* Back arrow + tab switcher share one grid row so the card layout isn't disrupted.
+              A full navigation refreshes the landing page with the current session cookie. */}
+          <div>
+            <Link
+              href="/"
+              prefetch={false}
+              className="a-auth-back"
+              aria-label={t("backHome")}
+              onNavigate={(event) => {
+                event.preventDefault();
+                window.location.assign(new URL("/", window.location.origin).href);
+              }}
+            >
+              <ArrowLeft size={16} aria-hidden />
+              <span>{t("back")}</span>
+            </Link>
+            <div className="a-tabswitch" role="tablist" data-active={page}>
+              {(["login", "signup"] as const).map((p) => (
+                <Link key={p} href={tabHref(p)} replace scroll={false} role="tab" aria-selected={page === p}>
+                  {p === "login" ? t("signIn") : t("signUp")}
+                </Link>
+              ))}
+            </div>
           </div>
           <div className="a-auth-body" key={page}>
-          <div className="a-auth-head">
-            <h1 id="auth-title">{page === "signup" ? t("createTitle") : t("welcomeBack")}</h1>
-            <p>{page === "signup" ? t(team ? "createTeamSub" : "createSub") : t(team ? "signInTeamSub" : "signInSub")}</p>
-          </div>
+          {/* Show title only on Sign in — signup form is compact enough without it.
+              A visually-hidden heading is kept on signup so aria-labelledby="auth-title"
+              always resolves to an accessible name for screen readers. */}
+          {page === "login" ? (
+            <div className="a-auth-head">
+              <h1 id="auth-title">{t("welcomeBack")}</h1>
+              <p>{t(team ? "signInTeamSub" : "signInSub")}</p>
+            </div>
+          ) : (
+            <h1 id="auth-title" className="sr-only">{t("createTitle")}</h1>
+          )}
           <form action={action} className="a-auth-form">
             <input type="hidden" name="next" value={next} />
             <input type="hidden" name="_page" value={page} />
@@ -81,20 +112,22 @@ export function AuthView() {
                 <fieldset className="a-field" style={{ border: 0, padding: 0, margin: 0 }}>
                   <legend style={{ marginBottom: 8 }}>{t("forWho")}</legend>
                   <div className="a-choice-grid">
-                    <label className="a-choice">
-                      <input
-                        type="radio"
-                        name="workspace"
-                        value="individual"
-                        checked={!team}
-                        onChange={() => setWorkspace("individual")}
-                      />
-                      <span className="a-choice-icon">
-                        <UserRound size={18} aria-hidden />
-                      </span>
-                      <strong>{t("forMe")}</strong>
-                      <span>{t("forMeBody")}</span>
-                    </label>
+                    {!roleTeam ? (
+                      <label className="a-choice">
+                        <input
+                          type="radio"
+                          name="workspace"
+                          value="individual"
+                          checked={!team}
+                          onChange={() => setWorkspace("individual")}
+                        />
+                        <span className="a-choice-icon">
+                          <UserRound size={18} aria-hidden />
+                        </span>
+                        <strong>{t("forMe")}</strong>
+                        <span>{t("forMeBody")}</span>
+                      </label>
+                    ) : null}
                     <label className="a-choice">
                       <input
                         type="radio"

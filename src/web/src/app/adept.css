@@ -1803,6 +1803,9 @@ html { scrollbar-gutter: stable; }
 
 /* ---------- smooth auth switching ---------- */
 /* tab pill slides between Sign in and Create account */
+/* Back-to-home link inside the auth card (auth pages only). */
+.a-auth-back { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 500; color: var(--a-muted); text-decoration: none; padding: 2px 0; margin-bottom: 12px; width: fit-content; transition: color var(--a-fast); }
+.a-auth-back:hover { color: var(--a-ink); }
 .a-tabswitch { position: relative; isolation: isolate; }
 .a-tabswitch::before { content: ""; position: absolute; z-index: -1; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 4px); border-radius: 11px; background: var(--a-surface); box-shadow: 0 1px 4px #0000001a; transition: transform 360ms var(--a-ease); }
 .a-tabswitch[data-active="signup"]::before { transform: translateX(100%); }
@@ -1911,6 +1914,20 @@ html[data-busy] .a-main::after { content: ""; }
   .a-authpage .a-auth { --auth-h: clamp(620px, calc(100dvh - 110px), 800px); }
   .a-authpage .a-auth > .a-auth-card, .a-authpage .a-auth-art { height: var(--auth-h); min-height: 0; }
   .a-authpage .a-auth-body { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; padding-right: 2px; }
+}
+/* Team-only signup flow (role=team) has no title so content fits naturally — no scroll needed.
+   Using overflow: visible also un-clips the box-shadow on the selected choice button. */
+@media (min-width: 861px) {
+  .a-authpage[data-role-team] .a-auth > .a-auth-card { height: auto; }
+  .a-authpage[data-role-team] .a-auth-body { overflow: visible; scrollbar-width: auto; padding-right: 0; }
+  /* Single choice in the grid — span both columns so the button isn't marooned at half-width. */
+  .a-authpage[data-role-team] .a-auth-form .a-choice-grid { grid-template-columns: minmax(0, 1fr); }
+}
+/* All signup pages now remove the title, so the form fits without scroll.
+   overflow: visible also un-clips the box-shadow border on the selected choice button. */
+@media (min-width: 861px) {
+  .a-authpage .a-auth-card[data-page="signup"] { height: auto; }
+  .a-authpage .a-auth-card[data-page="signup"] .a-auth-body { overflow: visible; scrollbar-width: auto; padding-right: 0; }
 }
 
 /* Grouped sections inside a page (e.g. Ready now / Worth exploring). */
