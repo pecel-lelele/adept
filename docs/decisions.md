@@ -227,6 +227,16 @@
 - **Replaces**: none
 - **PR / branch**: `fix/core-review-upgrades`
 
+### TEAM-020: Share the last good trend serving fallback (review 3.5)
+- **Date**: 2026-10-29
+- **Feature**: F2 / F4 / F5
+- **Type**: contract, method
+- **Change**: Keep a bounded store of successfully read public database snapshots in the trend service. One non-I/O fallback returns the requested cached date or the newest cached database snapshot, otherwise the committed date-aware fixture, always marked is_fallback. Radar, matching read failures/timeouts and pathway outages use it. Remove the pathway-only legacy CSV fallback and its separate scenario weighting; retry fallback reads on the shared short TTL.
+- **Why**: Serving callers must agree on dates, velocities and provenance during outages. Both scenario velocities are already present in each saved snapshot, so Fast fallback must not be weighted again. Unknown replay dates remain 404 and available dates list only servable snapshots. Strict database-only diagnostics still raise; production matching explicitly uses disclosed serving fallback after strict-read failure.
+- **Affects**: Trend serving and adapter fallback metadata, cache bounds, timeout and replay regressions
+- **Replaces**: M2-020 (production matching outage behavior only; bounded strict reads remain)
+- **PR / branch**: `fix/core-review-upgrades`
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)

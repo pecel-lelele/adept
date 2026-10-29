@@ -42,7 +42,7 @@ def get_snapshot(
 
     Published snapshots never change, so results are cached in process: a dated snapshot for
     DATED_TTL_S, "latest" for LATEST_TTL_S (a new weekly snapshot shows up within a minute),
-    and anything served from the frozen fixture (database down) for FALLBACK_TTL_S so recovery
+    and any disclosed fallback for FALLBACK_TTL_S so recovery
     is quick. Without this every radar, matches, plan and outlook view re-read ~110 rows.
     """
     key = (snapshot_date, scenario, strict)
@@ -53,15 +53,29 @@ def get_snapshot(
         return hit[1]
     ctx = repository.resolve_context(strict=strict)
     try:
-        snap = repository.get_snapshot(ctx, snapshot_date, scenario, strict=strict)
-        from_db = ctx.source == "db"
+        if ctx.source == "fixture" and not strict:
+            snap = last_good_snapshot(snapshot_date, scenario)
+        else:
+            try:
+                snap = repository.get_snapshot(ctx, snapshot_date, scenario, strict=strict)
+            except NotFoundError:
+                if strict or (
+                    snapshot_date is not None and snapshot_date not in ctx.available_dates
+                ):
+                    raise
+                snap = last_good_snapshot(snapshot_date, scenario)
     finally:
         ctx.close()
+    from_db = snap.meta.served_from == "db" and not snap.meta.is_fallback
     ttl = FALLBACK_TTL_S if not from_db else LATEST_TTL_S if snapshot_date is None else DATED_TTL_S
     with _cache_lock:
         if len(_cache) >= _CACHE_MAX:
             _cache.clear()
         _cache[key] = (now + ttl, snap)
+        if from_db:
+            _last_good[snap.meta.snapshot_date] = snap
+            if len(_last_good) > _CACHE_MAX:
+                del _last_good[min(_last_good)]
     return snap
 
 
@@ -71,12 +85,43 @@ FALLBACK_TTL_S = 5.0
 _CACHE_MAX = 64
 _cache_lock = threading.Lock()
 _cache: dict[tuple[date | None, str, bool], tuple[float, TrendSnapshotResponse]] = {}
+_last_good: dict[date, TrendSnapshotResponse] = {}
+
+
+def last_good_snapshot(snapshot_date: date | None, scenario: ScenarioId) -> TrendSnapshotResponse:
+    """One non-I/O serving fallback; never substitute another date for a replay request."""
+    from app.features.trends import mocks
+
+    with _cache_lock:
+        available = sorted(set(_last_good) | set(mocks.AVAILABLE_MOCK_DATES))
+        snap = (
+            _last_good.get(snapshot_date)
+            if snapshot_date is not None
+            else max(
+                _last_good.values(),
+                key=lambda value: value.meta.snapshot_date,
+                default=None,
+            )
+        )
+    if snap is None:
+        if snapshot_date is not None and snapshot_date not in mocks.AVAILABLE_MOCK_DATES:
+            raise NotFoundError(f"Snapshot for date {snapshot_date.isoformat()} not found")
+        snap = mocks.snapshot(scenario, snapshot_date)
+    return snap.model_copy(
+        update={
+            "meta": snap.meta.model_copy(
+                update={"scenario": scenario, "is_fallback": True, "available_snapshots": available}
+            )
+        },
+        deep=True,
+    )
 
 
 def clear_cache() -> None:
     """Forget cached snapshots (after a pipeline publish, and between tests)."""
     with _cache_lock:
         _cache.clear()
+        _last_good.clear()
 
 
 # ---------------------------------------------------------------------------

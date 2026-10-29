@@ -35,7 +35,7 @@ def test_uses_m1_snapshot_when_it_has_data() -> None:
     assert view.growth and view.available_dates
 
 
-def test_falls_back_to_seed_snapshot_when_m1_is_down(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_uses_shared_weighted_snapshot_when_m1_is_down(monkeypatch: pytest.MonkeyPatch) -> None:
     from app.features.trends import service as trends_service
 
     def boom(*_a: object, **_k: object) -> None:
@@ -43,7 +43,10 @@ def test_falls_back_to_seed_snapshot_when_m1_is_down(monkeypatch: pytest.MonkeyP
 
     monkeypatch.setattr(trends_service, "get_snapshot", boom)
     view = trend_port.current("fast")
-    assert view is not None and not view.is_m1 and not view.scenario_weighted
+    assert view is not None and view.is_m1 and view.scenario_weighted
+    fallback = trends_service.last_good_snapshot(None, "fast")
+    assert view.snapshot.is_fallback and view.snapshot.served_from == fallback.meta.served_from
+    assert view.growth == {item.skill_id: item.velocity_fast for item in fallback.items}
 
 
 def test_m1_velocity_is_not_weighted_twice() -> None:
