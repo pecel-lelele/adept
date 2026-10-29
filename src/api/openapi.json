@@ -178,22 +178,6 @@
             }
           },
           {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          },
-          {
             "name": "x-workspace",
             "in": "header",
             "required": false,
@@ -258,22 +242,6 @@
                 }
               ],
               "title": "X-Demo-User"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
             }
           },
           {
@@ -344,22 +312,6 @@
             }
           },
           {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          },
-          {
             "name": "x-workspace",
             "in": "header",
             "required": false,
@@ -427,22 +379,6 @@
                 }
               ],
               "title": "X-Demo-User"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
             }
           },
           {
@@ -603,22 +539,6 @@
             }
           },
           {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          },
-          {
             "name": "x-workspace",
             "in": "header",
             "required": false,
@@ -761,22 +681,6 @@
             }
           },
           {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          },
-          {
             "name": "x-workspace",
             "in": "header",
             "required": false,
@@ -876,22 +780,6 @@
                 }
               ],
               "title": "X-Demo-User"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
             }
           },
           {
@@ -997,22 +885,6 @@
                 }
               ],
               "title": "X-Demo-User"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
             }
           },
           {
@@ -1126,22 +998,6 @@
                 }
               ],
               "title": "X-Demo-User"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
             }
           },
           {
@@ -1271,22 +1127,6 @@
             }
           },
           {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          },
-          {
             "name": "x-workspace",
             "in": "header",
             "required": false,
@@ -1409,22 +1249,6 @@
             }
           },
           {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          },
-          {
             "name": "x-workspace",
             "in": "header",
             "required": false,
@@ -1541,22 +1365,6 @@
             }
           },
           {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          },
-          {
             "name": "x-workspace",
             "in": "header",
             "required": false,
@@ -1640,22 +1448,6 @@
             }
           },
           {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          },
-          {
             "name": "x-workspace",
             "in": "header",
             "required": false,
@@ -1729,22 +1521,6 @@
                 }
               ],
               "title": "X-Demo-User"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
             }
           },
           {
@@ -1840,22 +1616,6 @@
             }
           },
           {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          },
-          {
             "name": "x-workspace",
             "in": "header",
             "required": false,
@@ -1930,22 +1690,6 @@
                 }
               ],
               "title": "X-Demo-User"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
             }
           },
           {
@@ -2030,22 +1774,6 @@
                 }
               ],
               "title": "X-Demo-User"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
             }
           },
           {
@@ -2143,22 +1871,6 @@
             }
           },
           {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          },
-          {
             "name": "x-workspace",
             "in": "header",
             "required": false,
@@ -2234,22 +1946,6 @@
             }
           },
           {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          },
-          {
             "name": "x-workspace",
             "in": "header",
             "required": false,
@@ -2314,22 +2010,6 @@
                 }
               ],
               "title": "X-Demo-User"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
             }
           },
           {
@@ -2427,22 +2107,6 @@
             }
           },
           {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          },
-          {
             "name": "x-workspace",
             "in": "header",
             "required": false,
@@ -2527,22 +2191,6 @@
                 }
               ],
               "title": "X-Demo-User"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
             }
           },
           {
@@ -2640,22 +2288,6 @@
             }
           },
           {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          },
-          {
             "name": "x-workspace",
             "in": "header",
             "required": false,
@@ -2729,22 +2361,6 @@
                 }
               ],
               "title": "X-Demo-User"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
             }
           },
           {
@@ -2827,22 +2443,6 @@
                 }
               ],
               "title": "X-Demo-User"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
             }
           },
           {
@@ -2940,22 +2540,6 @@
             }
           },
           {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          },
-          {
             "name": "x-workspace",
             "in": "header",
             "required": false,
@@ -3020,22 +2604,6 @@
                 }
               ],
               "title": "X-Demo-User"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
             }
           },
           {
@@ -3113,22 +2681,6 @@
                 }
               ],
               "title": "X-Demo-User"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
             }
           },
           {
@@ -3216,22 +2768,6 @@
             }
           },
           {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          },
-          {
             "name": "x-workspace",
             "in": "header",
             "required": false,
@@ -3305,22 +2841,6 @@
                 }
               ],
               "title": "X-Demo-User"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
             }
           },
           {
@@ -3416,22 +2936,6 @@
             }
           },
           {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          },
-          {
             "name": "x-workspace",
             "in": "header",
             "required": false,
@@ -3502,22 +3006,6 @@
                 }
               ],
               "title": "X-Demo-User"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
             }
           },
           {
@@ -3615,22 +3103,6 @@
                 }
               ],
               "title": "X-Demo-User"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
             }
           },
           {
@@ -3747,22 +3219,6 @@
                 }
               ],
               "title": "X-Demo-User"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
             }
           },
           {
@@ -3883,22 +3339,6 @@
                 }
               ],
               "title": "X-Demo-User"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
             }
           },
           {
@@ -4170,22 +3610,6 @@
             }
           },
           {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          },
-          {
             "name": "x-workspace",
             "in": "header",
             "required": false,
@@ -4263,22 +3687,6 @@
             }
           },
           {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          },
-          {
             "name": "x-workspace",
             "in": "header",
             "required": false,
@@ -4342,22 +3750,6 @@
                 }
               ],
               "title": "X-Demo-User"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
             }
           },
           {
@@ -4458,22 +3850,6 @@
             }
           },
           {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          },
-          {
             "name": "x-workspace",
             "in": "header",
             "required": false,
@@ -4549,22 +3925,6 @@
                 }
               ],
               "title": "X-Demo-User"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
             }
           },
           {
@@ -4659,22 +4019,6 @@
             }
           },
           {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          },
-          {
             "name": "x-workspace",
             "in": "header",
             "required": false,
@@ -4766,22 +4110,6 @@
             }
           },
           {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          },
-          {
             "name": "x-workspace",
             "in": "header",
             "required": false,
@@ -4859,22 +4187,6 @@
             }
           },
           {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          },
-          {
             "name": "x-workspace",
             "in": "header",
             "required": false,
@@ -4937,22 +4249,6 @@
                 }
               ],
               "title": "X-Demo-User"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
             }
           },
           {
@@ -5028,6 +4324,16 @@
               "default": "moderate",
               "title": "Scenario"
             }
+          },
+          {
+            "name": "include_suggestions",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "title": "Include Suggestions"
+            }
           }
         ],
         "requestBody": {
@@ -5087,22 +4393,6 @@
                 }
               ],
               "title": "X-Demo-User"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
             }
           },
           {
@@ -5180,22 +4470,6 @@
                 }
               ],
               "title": "X-Demo-User"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
             }
           },
           {
@@ -5296,22 +4570,6 @@
             }
           },
           {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          },
-          {
             "name": "x-workspace",
             "in": "header",
             "required": false,
@@ -5388,22 +4646,6 @@
             }
           },
           {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          },
-          {
             "name": "x-workspace",
             "in": "header",
             "required": false,
@@ -5455,6 +4697,16 @@
         "operationId": "profile_upload_cv",
         "parameters": [
           {
+            "name": "include_suggestions",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "title": "Include Suggestions"
+            }
+          },
+          {
             "name": "x-demo-user",
             "in": "header",
             "required": false,
@@ -5468,22 +4720,6 @@
                 }
               ],
               "title": "X-Demo-User"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
             }
           },
           {
@@ -5564,22 +4800,6 @@
             }
           },
           {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          },
-          {
             "name": "x-workspace",
             "in": "header",
             "required": false,
@@ -5655,22 +4875,6 @@
                 }
               ],
               "title": "X-Demo-User"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
             }
           },
           {
@@ -6089,22 +5293,6 @@
             }
           },
           {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          },
-          {
             "name": "x-workspace",
             "in": "header",
             "required": false,
@@ -6199,22 +5387,6 @@
                 }
               ],
               "title": "X-Demo-User"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
             }
           },
           {
@@ -6342,22 +5514,6 @@
                 }
               ],
               "title": "X-Demo-User"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
             }
           },
           {

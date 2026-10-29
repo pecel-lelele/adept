@@ -73,7 +73,7 @@ export async function uploadCvAction(form: FormData): Promise<CvResult> {
   const body = new FormData();
   body.set("file", file, file.name);
   try {
-    const response = await fetch(`${API_URL}/api/v1/profile/cv`, {
+    const response = await fetch(`${API_URL}/api/v1/profile/cv?include_suggestions=false`, {
       method: "POST",
       body,
       headers: token ? { "X-Demo-User": token } : {},

@@ -34,6 +34,7 @@ export function IntakeWizard({
   initial: Schemas["Profile"] | null;
 }) {
   const t = useTranslations("ui.intake");
+  const cvText = useTranslations("ui.cvReview");
   const [step, setStep] = useState(1);
   const [segment, setSegment] = useState<Segment>(initial?.segment ?? "working");
   const [picked, setPicked] = useState<string[]>(initial?.interests ?? []);
@@ -52,6 +53,7 @@ export function IntakeWizard({
   const resolverRef = useRef<ReturnType<typeof createSessionResolver<ApiResult<Schemas["SkillResolutionResponse"]>>> | null>(null);
   const [error, setError] = useState("");
   const [cvBusy, startCv] = useTransition();
+  const [cvStatus, setCvStatus] = useState<{ empty: boolean; truncated: boolean } | null>(null);
   const [saving, startSave] = useTransition();
   const fileRef = useRef<HTMLInputElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -111,9 +113,14 @@ export function IntakeWizard({
     const form = new FormData();
     form.set("file", file);
     setError("");
+    setCvStatus(null);
     startCv(async () => {
       const result = await uploadCvAction(form);
-      if (result.error) setError(result.error);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      setCvStatus({ empty: !result.skills?.length, truncated: result.truncated ?? false });
       for (const s of result.skills ?? []) addSkill(s.skill_id, s.level, true);
     });
   }
@@ -255,6 +262,12 @@ export function IntakeWizard({
               hidden
               onChange={(e) => onFile(e.target.files?.[0])}
             />
+            {cvStatus && (cvStatus.empty || cvStatus.truncated) ? (
+              <div className="a-notice" role="status">
+                {cvStatus.empty ? <p>{cvText("none")}</p> : null}
+                {cvStatus.truncated ? <p>{cvText("truncated")}</p> : null}
+              </div>
+            ) : null}
             <label className="a-field" style={{ position: "relative" }}>
               <span className="a-sr">{t("search")}</span>
               <Search size={16} aria-hidden style={{ position: "absolute", left: 14, top: 15, color: "var(--a-muted)" }} />

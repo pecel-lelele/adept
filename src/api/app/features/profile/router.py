@@ -8,8 +8,8 @@ Endpoints:
   PUT    /profile/skills         → M2-03 legacy skill replacement
   PUT    /profile/skills/confirm → M2-03 skill confirmation screen
 
-All endpoints require authentication via the X-Demo-User header (demo mode)
-or a Bearer token (Supabase mode). See app/core/auth.py.
+Account endpoints require a signed local session via X-Demo-User.
+The skill catalogue is public. See app/core/auth.py.
 """
 
 import asyncio
@@ -131,7 +131,9 @@ def check_cv_type(content_type: str | None, filename: str | None = None) -> str:
 
 
 @router.post("/cv", summary="Upload CV for skill extraction (M2-01)")
-async def upload_cv(file: UploadFile, user: CurrentUserDep) -> CvExtractionResult:
+async def upload_cv(
+    file: UploadFile, user: CurrentUserDep, include_suggestions: bool = True
+) -> CvExtractionResult:
     """Accept a PDF, Word (.docx) or plain-text CV, extract skills against the taxonomy.
 
     Safety rules:
@@ -144,7 +146,13 @@ async def upload_cv(file: UploadFile, user: CurrentUserDep) -> CvExtractionResul
     """
     ct = check_cv_type(file.content_type, file.filename)
     content = await read_capped(file, get_settings().max_upload_bytes)
-    return await asyncio.to_thread(service.extract_cv, file.filename or "cv", content, ct)
+    return await asyncio.to_thread(
+        service.extract_cv,
+        file.filename or "cv",
+        content,
+        ct,
+        include_suggestions=include_suggestions,
+    )
 
 
 # ---------------------------------------------------------------------------

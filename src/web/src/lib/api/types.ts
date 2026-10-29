@@ -4651,7 +4651,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -4684,7 +4683,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -4717,7 +4715,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -4752,7 +4749,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -4851,7 +4847,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -4890,7 +4885,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -4926,7 +4920,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path: {
@@ -4965,7 +4958,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5004,7 +4996,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5045,7 +5036,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5084,7 +5074,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path: {
@@ -5123,7 +5112,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5158,7 +5146,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5195,7 +5182,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5230,7 +5216,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5267,7 +5252,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5302,7 +5286,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5339,7 +5322,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5374,7 +5356,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5411,7 +5392,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5446,7 +5426,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path: {
@@ -5485,7 +5464,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path: {
@@ -5522,7 +5500,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path: {
@@ -5561,7 +5538,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5596,7 +5572,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5635,7 +5610,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5668,7 +5642,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5705,7 +5678,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5740,7 +5712,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5777,7 +5748,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5812,7 +5782,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path: {
@@ -5847,7 +5816,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5883,7 +5851,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5921,7 +5888,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5959,7 +5925,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -6059,7 +6024,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -6096,7 +6060,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -6129,7 +6092,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -6165,7 +6127,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -6200,7 +6161,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -6239,7 +6199,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -6278,7 +6237,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -6315,7 +6273,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -6348,7 +6305,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -6384,6 +6340,7 @@ export interface operations {
         parameters: {
             query?: {
                 scenario?: "moderate" | "fast";
+                include_suggestions?: boolean;
             };
             header?: never;
             path?: never;
@@ -6420,7 +6377,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -6457,7 +6413,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -6514,7 +6469,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -6551,7 +6505,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -6581,10 +6534,11 @@ export interface operations {
     };
     profile_upload_cv: {
         parameters: {
-            query?: never;
+            query?: {
+                include_suggestions?: boolean;
+            };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -6621,7 +6575,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -6658,7 +6611,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -6896,7 +6848,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -6932,7 +6883,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -6988,7 +6938,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path: {

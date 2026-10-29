@@ -2,11 +2,20 @@
 
 from __future__ import annotations
 
+from unittest.mock import patch
+
 import pytest
 from fastapi.testclient import TestClient
 
 from app.contracts.common import RecommendationMeta
 from app.features.profile import cv_parser, skill_match, skill_resolver
+
+
+def test_resolver_scores_catalogue_once() -> None:
+    with patch.object(skill_resolver, "fuzzy_scores", wraps=skill_resolver.fuzzy_scores) as score:
+        result = skill_resolver.resolve("Pyhton")
+    assert result.candidates[0].skill_id == "python"
+    assert score.call_count == 1
 
 
 @pytest.mark.parametrize(

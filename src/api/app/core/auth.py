@@ -4,12 +4,10 @@ AUTH_MODE=demo (local accounts): people sign up and sign in through `/api/v1/aut
 server keeps the signed session token in an httpOnly cookie and forwards it as `X-Demo-User`.
 The API accepts only tokens it signed (`app.core.security.session`) for accounts stored in the
 database; there are no built-in personas.
-AUTH_MODE=supabase: `Authorization: Bearer <Supabase access token>`, verified with the
-project JWT secret (`app.core.security.tokens`). Fails closed if no secret is configured.
 """
 
 from dataclasses import dataclass
-from typing import Annotated, Any, Literal
+from typing import Annotated, Literal
 
 from fastapi import Depends, Header
 
@@ -17,10 +15,8 @@ from app.core import accounts
 from app.core.config import get_settings
 from app.core.errors import ForbiddenError, UnauthorizedError
 from app.core.security import session
-from app.core.security.tokens import bearer_token, decode_token
 
 UserKind = Literal["learner", "org_admin"]
-_KINDS: tuple[UserKind, ...] = ("learner", "org_admin")
 WorkspaceKind = Literal["personal", "org"]
 PERSONAL_WORKSPACE = "personal"
 
@@ -46,23 +42,6 @@ class CurrentUser:
     def scope(self) -> str:
         """Owner of learning records written in this workspace."""
         return f"org:{self.org_id}" if self.workspace == "org" and self.org_id else "personal"
-
-
-def user_from_claims(claims: dict[str, Any]) -> CurrentUser:
-    """Map verified Supabase claims to a user. Only `app_metadata` may grant privilege."""
-    app_meta = claims.get("app_metadata") or {}
-    user_meta = claims.get("user_metadata") or {}
-    raw_kind = app_meta.get("kind")
-    kind: UserKind = raw_kind if raw_kind in _KINDS else "learner"
-    org_id = app_meta.get("org_id")
-    name = user_meta.get("display_name")
-    return CurrentUser(
-        id=str(claims["sub"]),
-        display_name=str(name)[:80] if name else "Learner",
-        kind=kind,
-        org_id=str(org_id) if org_id else None,
-        workspace="org" if kind == "org_admin" else "personal",
-    )
 
 
 def user_from_account(account: accounts.Account) -> CurrentUser:
@@ -109,16 +88,9 @@ def _local_user(header: str | None) -> CurrentUser:
 
 def get_current_user(
     x_demo_user: Annotated[str | None, Header()] = None,
-    authorization: Annotated[str | None, Header()] = None,
     x_workspace: Annotated[str | None, Header(max_length=100)] = None,
 ) -> CurrentUser:
-    settings = get_settings()
-    if settings.auth_mode == "demo":
-        return in_workspace(_local_user(x_demo_user), x_workspace)
-    claims = decode_token(
-        bearer_token(authorization), settings.supabase_jwt_secret, settings.supabase_jwt_audience
-    )
-    return in_workspace(user_from_claims(claims), x_workspace)
+    return in_workspace(_local_user(x_demo_user), x_workspace)
 
 
 CurrentUserDep = Annotated[CurrentUser, Depends(get_current_user)]

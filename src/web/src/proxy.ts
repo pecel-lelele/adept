@@ -13,7 +13,7 @@ export function proxy(request: NextRequest) {
   headers.set("x-adept-path", pathname);
   const workspace = /^\/(app|work|org|admin)(\/|$)/.test(pathname);
   const token = request.cookies.get(SESSION_COOKIE)?.value ?? "";
-  if (workspace && process.env.AUTH_MODE !== "supabase" && !token.startsWith("v1.")) {
+  if (workspace && !token.startsWith("v1.")) {
     const query = new URLSearchParams({
       mode: pathname.startsWith("/org") ? "organisation" : "individual",
       next: pathname + search,

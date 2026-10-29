@@ -144,7 +144,7 @@ choices are not verified CV facts. Parser regression fixtures remain under `test
 [publishing handoff](replit.md#publishing-handoff). The web starts with the monorepo standalone
 launcher, not `next start`. One public Next.js server relays `/api/v1/*` to private FastAPI; the root supervisor waits for API/database readiness before opening the web port.
 Provide stable `SESSION_SECRET`, matching `PROXY_SHARED_SECRET`, a verified positive
-`TRUSTED_PROXY_HOPS`, the managed database connection and exact production origin.
+`TRUSTED_PROXY_HOPS`, Replit's managed PostgreSQL `DATABASE_URL` and exact production origin.
 Importing GitHub files copies neither database contents nor secrets. Pull the merged source
 into the correct Replit project before making a fresh publish attempt. A working public
 instance does not prove that a newer attempted release succeeded.
@@ -674,7 +674,7 @@ use zero. The public API handler strips caller-supplied internal identity header
 
 `AUTH_MODE=demo` is the legacy name for PostgreSQL-backed local accounts with signed sessions,
 not an automatic demo login. Keep `APP_ENV=production`, `AUTH_RAW_USER_IDS=false` and an empty
-`AUTH_DEFAULT_USER`. Supabase JWT verification is an optional alternate path.
+`AUTH_DEFAULT_USER`. Authentication uses Adept's signed local accounts stored in Replit PostgreSQL.
 
 The hardened MiniLM dependency pins are source changes. Applying them to the live worker
 requires a guarded image build and RunPod redeployment. The historical verified worker image

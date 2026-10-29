@@ -9,7 +9,6 @@ dependencies = [
     "psycopg-pool>=3.3.3",
     "psycopg[binary]>=3.3.6",
     "pydantic-settings>=2.16.1",
-    "pyjwt>=2.15.1",
     "pymupdf<2",
     "pytest>=9.1.1",
     "python-multipart>=0.0.32",

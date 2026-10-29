@@ -17,7 +17,7 @@ or stale index falls back to exact catalogue matches without optional suggestion
 
 Implemented: in-memory PDF/DOCX/text parsing, catalogue aliases and user-confirmed skill
 levels, questionnaire intake and PostgreSQL profiles. The web provides a four-step intake.
-Unmatched wording and truncation are reviewable; uploads never mutate saved skills before
+Empty extraction and truncation remain visible in both upload screens; uploads never mutate saved skills before
 confirmation. See `cv_parser.py`, `service.py` and `tests/api/profile/`.
 
 ## Goal and tasks (from docs/tasks.md)
@@ -95,7 +95,7 @@ fuzzy score with a smaller lead abstains before reaching the semantic tier.
 
 Semantic matching still delegates to `skill_match.suggest`: **top-1 only**, cosine
 `>= 0.80` and `top_score - runner_up_score >= 0.015`, using a ready index only.
-Neither those constants nor the existing CV suggestion path change. Provider absence,
+Neither those constants nor the default API CV suggestion path change. Provider absence,
 missing/stale index or failure retains deterministic candidates. Labels and IDs come
 from the catalogue; each response includes the existing taxonomy attribution and date.
 Suggestions never save skills; the person clicks Add and confirms their levels.
@@ -122,3 +122,9 @@ benchmark; scores below are rounded, while the gate uses unrounded values):
 
 Production-function regressions: `tests/api/profile/test_skill_resolver.py`.
 Client filtering/caching checks: `node --experimental-strip-types --test tests/profile-skill-search.test.ts`.
+
+Both upload screens request `include_suggestions=false`, bypassing optional semantic work
+whose results they do not display. The authenticated and preview CV APIs default to `true`
+for callers that use suggestions. Empty and truncated responses retain small status messages
+without restoring the wording list. The explicit search resolver computes its fuzzy ranking
+once and reuses it for candidate selection and ambiguity checks.

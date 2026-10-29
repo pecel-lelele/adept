@@ -137,6 +137,8 @@ def extract_cv(
     filename: str,
     content: bytes,
     content_type: str = "text/plain",
+    *,
+    include_suggestions: bool = True,
 ) -> CvExtractionResult:
     """Run the real CV parsing pipeline and return structured results.
 
@@ -166,7 +168,7 @@ def extract_cv(
             similarity=s.similarity,
             runner_up=s.runner_up,
         )
-        for s in skill_match.suggest(unmatched, exclude=found)
+        for s in (skill_match.suggest(unmatched, exclude=found) if include_suggestions else [])
     ]
     return CvExtractionResult(
         skills=skills,

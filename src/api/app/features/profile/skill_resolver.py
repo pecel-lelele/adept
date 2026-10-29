@@ -44,11 +44,15 @@ def fuzzy_scores(
 
 
 def fuzzy_candidate(
-    query: str, taxonomy: dict[str, cv_parser.TaxonomySkill]
+    query: str,
+    taxonomy: dict[str, cv_parser.TaxonomySkill],
+    *,
+    ranked: list[tuple[str, float]] | None = None,
 ) -> SkillResolutionCandidate | None:
     if sum(c.isalnum() for c in normalise(query)) < MIN_QUERY_ALNUM:
         return None
-    ranked = fuzzy_scores(query, taxonomy)
+    if ranked is None:
+        ranked = fuzzy_scores(query, taxonomy)
     if not ranked:
         return None
     sid, score = ranked[0]
@@ -74,10 +78,11 @@ def resolve(query: str) -> SkillResolutionResponse:
         candidates[sid] = SkillResolutionCandidate(
             skill_id=sid, label=taxonomy[sid].label, method="alias", score=1.0
         )
-    fuzzy = fuzzy_candidate(query, taxonomy)
+    eligible = sum(c.isalnum() for c in query) >= MIN_QUERY_ALNUM
+    ranked = fuzzy_scores(query, taxonomy) if eligible else []
+    fuzzy = fuzzy_candidate(query, taxonomy, ranked=ranked)
     if fuzzy:
         candidates.setdefault(fuzzy.skill_id, fuzzy)
-    ranked = fuzzy_scores(query, taxonomy)
     fuzzy_too_close = (
         len(ranked) > 1
         and ranked[0][1] >= FUZZY_MIN_SIMILARITY
@@ -85,7 +90,7 @@ def resolve(query: str) -> SkillResolutionResponse:
     )
     # An exact catalogue alias needs no model call. Short/ambiguous exact searches never
     # leave the API. suggest() uses only an already prepared index and returns top-1.
-    if not exact and not fuzzy_too_close and sum(c.isalnum() for c in query) >= MIN_QUERY_ALNUM:
+    if not exact and not fuzzy_too_close and eligible:
         for suggestion in skill_match.suggest([query])[:1]:
             if suggestion.skill_id not in taxonomy:
                 continue

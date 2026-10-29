@@ -25,6 +25,7 @@ const EXTENSIONS = /\.(pdf|docx|txt)$/i;
  */
 export function CvPreview() {
   const t = useTranslations("ui.landing");
+  const cvText = useTranslations("ui.cvReview");
   const [file, setFile] = useState<File | null>(null);
   const [consent, setConsent] = useState(false);
   const [drag, setDrag] = useState(false);
@@ -150,6 +151,7 @@ export function CvPreview() {
         </form>
       ) : (
         <div className="a-upload-result" aria-live="polite">
+          {result.truncated ? <p className="a-notice" role="status">{cvText("truncated")}</p> : null}
           <div className="a-free">
             <div className="a-free-role">
               {result.top_role ? (

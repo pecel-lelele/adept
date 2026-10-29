@@ -56,9 +56,16 @@ def _direction(v: float) -> Literal["rising", "stable", "declining"]:
 
 
 def build_preview(
-    filename: str, content: bytes, content_type: str, scenario: ScenarioId
+    filename: str,
+    content: bytes,
+    content_type: str,
+    scenario: ScenarioId,
+    *,
+    include_suggestions: bool = True,
 ) -> GuestPreview:
-    extraction = extract_cv(filename, content, content_type)
+    extraction = extract_cv(
+        filename, content, content_type, include_suggestions=include_suggestions
+    )
     if not extraction.skills:
         return GuestPreview(
             skills=[],
@@ -112,6 +119,7 @@ async def preview_cv(
     file: UploadFile,
     synthetic_consent: Annotated[bool, Form()],
     scenario: ScenarioId = "moderate",
+    include_suggestions: bool = True,
 ) -> GuestPreview:
     if not synthetic_consent:
         raise AppError(
@@ -127,4 +135,5 @@ async def preview_cv(
         content,
         content_type,
         scenario,
+        include_suggestions=include_suggestions,
     )

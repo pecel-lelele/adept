@@ -52,8 +52,8 @@ def test_progress_and_badges_persist(client: TestClient) -> None:
 
 def test_new_authenticated_user_gets_a_user_row(client: TestClient) -> None:
     store = repository.PostgresStore()
-    store.set_course_status("supabase-user-xyz", ROLE, "mslearn-pad-start", "in_progress")
-    assert store.course_status("supabase-user-xyz", ROLE) == {"mslearn-pad-start": "in_progress"}
+    store.set_course_status("synthetic-user-xyz", ROLE, "mslearn-pad-start", "in_progress")
+    assert store.course_status("synthetic-user-xyz", ROLE) == {"mslearn-pad-start": "in_progress"}
 
 
 def test_unreachable_database_fails_loudly_on_write(

@@ -5,12 +5,6 @@ export const SESSION_COOKIE = "adept_session";
 const TOKEN_PREFIX = "v1.";
 const MAX_AGE_S = 14 * 24 * 3600; // matches the API token lifetime
 
-export type AuthMode = "demo" | "supabase";
-
-export function getAuthMode(): AuthMode {
-  return process.env.AUTH_MODE === "supabase" ? "supabase" : "demo";
-}
-
 export async function getSessionToken(): Promise<string | undefined> {
   const value = (await cookies()).get(SESSION_COOKIE)?.value;
   return value?.startsWith(TOKEN_PREFIX) ? value : undefined;

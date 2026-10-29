@@ -66,7 +66,7 @@ def _db_get(user_id: str) -> Profile | None:
 
 def _db_save(profile: Profile) -> None:
     with connection() as conn, conn.transaction():
-        # A Supabase user has no seeded `users` row yet; create it on first save.
+        # Ensure the account row exists for the profile's foreign key.
         conn.execute(
             """
             INSERT INTO users (id, display_name, kind, is_synthetic)

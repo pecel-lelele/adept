@@ -20,7 +20,8 @@ class Settings(BaseSettings):
     app_env: Literal["development", "production"] = "development"
     version: str = "0.1.0"
     api_prefix: str = "/api/v1"
-    auth_mode: Literal["demo", "supabase"] = "demo"
+    # Retain the deployed configuration name; authentication always uses signed local accounts.
+    auth_mode: Literal["demo"] = "demo"
     database_url: str = "postgresql://adept:adept@127.0.0.1:5433/adept"
     # Largest number of pooled database connections per API process (app.core.db).
     db_pool_max: int = 10
@@ -71,9 +72,6 @@ class Settings(BaseSettings):
     auth_default_user: str = ""
     # Secret for POST .../sync endpoints that refresh live data; empty = sync disabled.
     sync_token: str = ""
-    # AUTH_MODE=supabase: project JWT secret (HS256) and expected audience.
-    supabase_jwt_secret: str = ""
-    supabase_jwt_audience: str = "authenticated"
 
     @field_validator("database_url")
     @classmethod
