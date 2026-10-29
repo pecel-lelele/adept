@@ -96,6 +96,16 @@
 - **Replaces**: none
 - **PR / branch**: `fix/core-review-upgrades`
 
+### TEAM-007: Keep historical replay explicit in navigation (review 1.2)
+- **Date**: 2026-10-29
+- **Feature**: F2/F4/F5 and Core
+- **Type**: UI
+- **Change**: Radar offers Latest by removing the snapshot query parameter. Journey links carry only scenario and role; explicit historical match/detail/pathway views display a translated banner returning to latest while preserving their role, scenario and SDG weight.
+- **Why**: Exploring an old radar snapshot must not silently disable saving a current learning plan.
+- **Affects**: Journey navigation, radar picker, matches and pathway UI
+- **Replaces**: none
+- **PR / branch**: `fix/core-review-upgrades`
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)

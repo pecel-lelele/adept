@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 
 import { MetaBar, PageHeader } from "@/components";
 import { ErrorState } from "@/components/ErrorState";
+import { HistoricalSnapshotBanner } from "@/components/HistoricalSnapshotBanner";
 import { scoreColour, SdgTiles } from "@/components/viz";
 import { fetchJobsSummary } from "@/features/jobs";
 import { fetchRadar } from "@/features/trends/api";
@@ -74,6 +75,7 @@ export async function MatchesView({
       <PageHeader eyebrow={tp("stepOf", { step: 3 })} title={t("title")} description={t("description")}>
         {result.ok ? <MetaBar meta={result.data.meta} /> : null}
       </PageHeader>
+      <HistoricalSnapshotBanner date={snapshotDate} latestHref={`/app/matches?scenario=${scenario}${sdgWeight > 0 ? `&sdg=${sdgWeight.toFixed(2)}` : ""}`} />
 
       <section className="a-card a-controls" aria-label={tp("rankingOptions")}>
         {radar.ok ? (

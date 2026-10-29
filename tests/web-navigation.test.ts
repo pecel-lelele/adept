@@ -2,13 +2,13 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { journeyHref, safeReturn } from "../src/web/src/lib/navigation.ts";
 
-test("preserves role, scenario and date without leaking local filters", () => {
+test("preserves role and scenario without leaking snapshot replay or local filters", () => {
   const params = new URLSearchParams(
     "role=data-analyst&scenario=fast&snapshot_date=2026-10-13&max_cost_myr=0",
   );
   assert.equal(
     journeyHref("/app/progress", params),
-    "/app/progress?scenario=fast&role=data-analyst&snapshot_date=2026-10-13",
+    "/app/progress?scenario=fast&role=data-analyst",
   );
 });
 test("an explicit target role wins over previous context", () => {

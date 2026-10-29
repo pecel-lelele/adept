@@ -1,10 +1,10 @@
-/** Carry the same plan context between workspace routes. */
+/** Carry scenario and target role between routes; snapshot replay is opt-in per link. */
 export function journeyHref(
   path: string,
   params: Pick<URLSearchParams, "get">,
 ): string {
   const url = new URL(path, "https://adept.invalid");
-  for (const key of ["scenario", "role", "snapshot_date"]) {
+  for (const key of ["scenario", "role"]) {
     const value = params.get(key);
     if (value && !url.searchParams.has(key)) url.searchParams.set(key, value);
   }

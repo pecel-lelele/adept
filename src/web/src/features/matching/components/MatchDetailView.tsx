@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 
 import { MetaBar, PageHeader, ScoreBreakdown } from "@/components";
 import { ErrorState } from "@/components/ErrorState";
+import { HistoricalSnapshotBanner } from "@/components/HistoricalSnapshotBanner";
 import { scoreColour, SdgTiles } from "@/components/viz";
 import { RoleOpeningsCard } from "@/features/jobs";
 import { RoleOutlookPanel } from "@/features/scenarios/components/RoleOutlookPanel";
@@ -70,6 +71,7 @@ export async function MatchDetailView({
           <MetaBar meta={m.meta} />
         </div>
       </PageHeader>
+      <HistoricalSnapshotBanner date={snapshotDate} latestHref={`/app/matches/${encodeURIComponent(roleId)}?scenario=${scenario}${sdgWeight > 0 ? `&sdg=${sdgWeight.toFixed(2)}` : ""}`} />
 
       <div className="a-split">
         <section className="a-card" aria-labelledby="h-breakdown">

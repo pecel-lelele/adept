@@ -24,6 +24,8 @@
     "asOf": "data as of {date}"
   },
   "freshness": {
+    "historical": "Viewing snapshot {date}.",
+    "backToLatest": "Back to latest",
     "fallback": "Showing last good snapshot from {date}",
     "label": "Trend data as of {date}",
     "unavailable": "Trend data unavailable"

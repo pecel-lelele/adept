@@ -16,7 +16,7 @@ export function loadComponent(path: string, overrides: Record<string, unknown> =
     compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX },
   }).outputText;
   runInNewContext(code, {
-    module, exports: module.exports,
+    module, exports: module.exports, URLSearchParams, URL,
     require: (id: string) => {
       if (id in overrides) return overrides[id];
       if (id.startsWith("./")) {
@@ -32,12 +32,21 @@ export const React = webRequire("react");
 export const { renderToStaticMarkup } = webRequire("react-dom/server");
 
 export function translations(locale = "en") {
-  const common = JSON.parse(readFileSync(resolve(web, `messages/${locale}/common.json`), "utf8"));
   return {
     useTranslations: (namespace: string) => (key: string, values: Record<string, string> = {}) => {
-      let value = { common };
-      for (const part of `${namespace}.${key}`.split(".")) value = value[part];
+      const [file, ...parts] = `${namespace}.${key}`.split(".");
+      let value = JSON.parse(readFileSync(resolve(web, `messages/${locale}/${file}.json`), "utf8"));
+      for (const part of parts) value = value[part];
       return String(value).replace(/\{(\w+)\}/g, (_, name: string) => values[name] ?? name);
     },
   };
+}
+
+/** Resolve async server children before rendering their actual HTML with React DOM. */
+export async function resolveTree(node: unknown): Promise<unknown> {
+  if (Array.isArray(node)) return Promise.all(node.map(resolveTree));
+  if (!React.isValidElement(node)) return node;
+  if (typeof node.type === "function") return resolveTree(await node.type(node.props));
+  const children = await resolveTree(node.props.children);
+  return Array.isArray(children) ? React.cloneElement(node, {}, ...children) : React.cloneElement(node, {}, children);
 }
