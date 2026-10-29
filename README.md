@@ -156,8 +156,12 @@ choices are not verified CV facts. Parser regression fixtures remain under `test
 **Publish on Replit:** use the root `.replit` build/start commands and
 [publishing handoff](replit.md#publishing-handoff). The web starts with the monorepo standalone
 launcher, not `next start`. One public Next.js server relays `/api/v1/*` to private FastAPI; the root supervisor waits for API/database readiness before opening the web port.
-Provide stable `SESSION_SECRET`, matching `PROXY_SHARED_SECRET`, a verified positive
-`TRUSTED_PROXY_HOPS`, Replit's managed PostgreSQL `DATABASE_URL` and exact production origin.
+Provide stable `SESSION_SECRET`, matching `PROXY_SHARED_SECRET`, Replit's managed
+PostgreSQL `DATABASE_URL` and exact production origin. `PROXY_CLIENT_IP_MODE=best-effort`
+allows `TRUSTED_PROXY_HOPS=0`: the web forwards only the right-most valid forwarded address,
+or warns and omits `X-Real-IP` when absent. `trusted` mode requires a verified positive hop
+count. Authenticated rate limits use verified session IDs; anonymous requests without a
+forwarded address share their direct peer's allowance. Both modes require the shared secret.
 Importing GitHub files copies neither database contents nor secrets. Pull the merged source
 into the correct Replit project before making a fresh publish attempt. A working public
 instance does not prove that a newer attempted release succeeded.

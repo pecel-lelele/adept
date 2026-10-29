@@ -106,6 +106,16 @@
 - **Replaces**: none
 - **PR / branch**: `fix/core-review-upgrades`
 
+### TEAM-008: Explicit best-effort proxy identity and per-session limits (review 1.3)
+- **Date**: 2026-10-29
+- **Feature**: Core/F8
+- **Type**: method
+- **Change**: Add `PROXY_CLIENT_IP_MODE=trusted|best-effort`; best-effort permits zero hops in production while preserving the shared proxy secret. All forwarding paths select only the right-most valid address. Missing addresses warn and forward without X-Real-IP. Protected-route rate limits use session-verified user IDs; anonymous login/signup/preview retain IP buckets.
+- **Why**: Zero-hop deployments must start deliberately without making every authenticated user share the loopback allowance or rejecting requests lacking forwarded headers. Missing anonymous addresses necessarily share the direct-peer bucket; this limitation is documented.
+- **Affects**: Configuration validation, private proxy, server clients, rate limits and startup regressions; no infrastructure settings changed
+- **Replaces**: none
+- **PR / branch**: `fix/core-review-upgrades`
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)

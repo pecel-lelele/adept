@@ -4,7 +4,7 @@ import { proxyConfig } from "@/lib/api/proxy-config";
 import { getSessionToken } from "@/lib/auth/session";
 import { selectedOrg, workspaceFor } from "@/lib/auth/workspace";
 
-const { secret: PROXY_SECRET, trustedHops: TRUSTED_PROXY_HOPS } = proxyConfig();
+const { secret: PROXY_SECRET, trustedHops: TRUSTED_PROXY_HOPS, clientIpMode } = proxyConfig();
 const MAX_BYTES = 32 * 1024;
 
 const tooLarge = () =>
@@ -62,7 +62,7 @@ export async function POST(request: Request) {
   // Adi answers inside the workspace of the page the question was asked on.
   const workspace = workspaceFor(pageOf(text), await selectedOrg());
   if (workspace) headers["X-Workspace"] = workspace;
-  const ip = trustedClientIp(request.headers.get("x-forwarded-for"), TRUSTED_PROXY_HOPS);
+  const ip = trustedClientIp(request.headers.get("x-forwarded-for"), TRUSTED_PROXY_HOPS, clientIpMode);
   if (PROXY_SECRET && ip) {
     headers["X-Real-IP"] = ip;
     headers["X-Internal-Proxy-Secret"] = PROXY_SECRET;

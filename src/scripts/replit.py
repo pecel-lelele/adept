@@ -79,9 +79,15 @@ def production_env(source: Mapping[str, str]) -> dict[str, str]:
         raise DeploymentError("SESSION_SECRET must contain at least 32 characters.")
     if not env.get("PROXY_SHARED_SECRET", "").strip():
         raise DeploymentError("PROXY_SHARED_SECRET is required on both web and API services.")
-    hops = env.get("TRUSTED_PROXY_HOPS", "")
-    if not hops.isascii() or not hops.isdecimal() or not 1 <= int(hops) <= 32:
-        raise DeploymentError("TRUSTED_PROXY_HOPS must be a verified positive proxy count.")
+    hops = env.get("TRUSTED_PROXY_HOPS", "0")
+    mode = env.get("PROXY_CLIENT_IP_MODE", "best-effort")
+    if mode not in {"trusted", "best-effort"}:
+        raise DeploymentError("PROXY_CLIENT_IP_MODE must be trusted or best-effort.")
+    if not hops.isascii() or not hops.isdecimal() or not 0 <= int(hops) <= 32:
+        raise DeploymentError("TRUSTED_PROXY_HOPS must be an integer between 0 and 32.")
+    if mode == "trusted" and int(hops) == 0:
+        raise DeploymentError("Trusted client IP mode requires a positive TRUSTED_PROXY_HOPS.")
+    env["PROXY_CLIENT_IP_MODE"] = mode
     try:
         origin = urlsplit(env.get("WEB_ORIGIN", ""))
     except ValueError:
