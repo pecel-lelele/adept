@@ -43,6 +43,7 @@ from starlette.types import ASGIApp
 
 from app.core.db import check_pool_connection
 from app.core.logging import get_logger
+from app.core.refdata import StorageUnavailableError
 from app.core.security import session
 
 log = get_logger("app.security.rate_limit")
@@ -281,7 +282,17 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         public = request.url.path.startswith(
             ("/api/v1/auth/login", "/api/v1/auth/signup", "/api/v1/preview/")
         )
-        user_id = None if public else session.verify(request.headers.get("x-demo-user", ""))
+        try:
+            user_id = (
+                None
+                if public
+                else await asyncio.to_thread(session.verify, request.headers.get("x-demo-user", ""))
+            )
+        except StorageUnavailableError as exc:
+            return JSONResponse(
+                status_code=exc.status_code,
+                content={"error": {"code": exc.code, "message": exc.message}},
+            )
         ip = f"user:{user_id}" if user_id else client_ip(request, self.proxy_secret)
         allowed, (max_req, window), remaining, retry_after = await self._hit(ip, request.url.path)
         headers = {

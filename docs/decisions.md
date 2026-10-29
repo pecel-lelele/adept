@@ -207,6 +207,16 @@
 - **Replaces**: none
 - **PR / branch**: `fix/core-review-upgrades`
 
+### TEAM-018: Revoke signed sessions with an uncached account version (review 3.3)
+- **Date**: 2026-10-29
+- **Feature**: Core / F8
+- **Type**: schema, contract, method
+- **Change**: Append a users.session_version migration, sign the current version into v2 session tokens, and check it without the account cache on every verification. POST logout increments the version for all sessions of that account. Next.js requires a same-origin POST, revokes through FastAPI before clearing cookies, and rejects GET with 405; sign-out controls submit forms. Rate-limit identity checks move blocking verification to a worker and fail closed on storage outages.
+- **Why**: Cookie deletion alone cannot invalidate a copied token, and GET links allow cross-site logout. Existing v1 sessions intentionally require a fresh sign-in after this upgrade. Revocation storage is shared across instances.
+- **Affects**: Local-account sessions, auth/logout, sign-out controls, rate-limit verification and generated contracts. Apply the migration before deploying code; rollback drops revocation state and requires coordinated code rollback and fresh sign-in.
+- **Replaces**: none
+- **PR / branch**: `fix/core-review-upgrades`
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)

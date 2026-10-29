@@ -24,9 +24,9 @@ export async function ErrorState({ failure, compact = false }: { failure: ApiFai
           {t("profile")}
         </Link>
       ) : needsLogin ? (
-        <a className="a-btn is-small" href="/auth/logout">
-          {t("signIn")}
-        </a>
+        <form method="post" action="/auth/logout">
+          <button type="submit" className="a-btn is-small">{t("signIn")}</button>
+        </form>
       ) : (
         <RetryButton label={t("retry")} />
       )}

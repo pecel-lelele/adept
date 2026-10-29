@@ -17,11 +17,12 @@ import secrets
 import threading
 import time
 
+from app.core import accounts
 from app.core.config import REPO_ROOT, get_settings
 
 logger = logging.getLogger(__name__)
 
-TOKEN_PREFIX = "v1"
+TOKEN_PREFIX = "v2"
 SESSION_TTL_S = 14 * 24 * 3600
 _SCRYPT = {"n": 2**14, "r": 8, "p": 1, "dklen": 32}
 
@@ -95,30 +96,34 @@ def _sign(payload: str) -> str:
 
 def issue(user_id: str, now: float | None = None) -> str:
     expires = int((now if now is not None else time.time()) + SESSION_TTL_S)
-    payload = f"{TOKEN_PREFIX}.{_b64(user_id.encode())}.{expires}"
+    version = accounts.session_version(user_id) or 0
+    payload = f"{TOKEN_PREFIX}.{_b64(user_id.encode())}.{expires}.{version}"
     return f"{payload}.{_sign(payload)}"
 
 
 def verify(token: str, now: float | None = None) -> str | None:
     """Return the user id of a valid, unexpired token, else None."""
     parts = token.split(".")
-    if len(parts) != 4 or parts[0] != TOKEN_PREFIX:
+    if len(parts) != 5 or parts[0] != TOKEN_PREFIX:
         return None
-    payload = ".".join(parts[:3])
-    if not hmac.compare_digest(_sign(payload), parts[3]):
+    payload = ".".join(parts[:4])
+    if not hmac.compare_digest(_sign(payload), parts[4]):
         return None
     try:
         expires = int(parts[2])
         user_id = _unb64(parts[1]).decode()
+        version = int(parts[3])
     except (ValueError, UnicodeDecodeError):
         return None
     if expires < (now if now is not None else time.time()):
         return None
-    return user_id or None
+    if not user_id or version < 0 or accounts.session_version(user_id) != version:
+        return None
+    return user_id
 
 
 def looks_like_token(value: str) -> bool:
-    return value.startswith(TOKEN_PREFIX + ".")
+    return value.startswith(("v1.", TOKEN_PREFIX + "."))
 
 
 def hash_password(password: str) -> str:

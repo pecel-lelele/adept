@@ -23,8 +23,8 @@ def test_fallback_key_is_random_and_kept(no_secret: Path) -> None:
     key = session._secret()
     assert len(key) == 32
     assert no_secret.read_text(encoding="ascii") == key.hex()
-    token = session.issue("someone")
-    assert session.verify(token) == "someone"
+    token = session.issue("aisyah")
+    assert session.verify(token) == "aisyah"
 
 
 def test_fallback_key_is_not_derived_from_database_url(no_secret: Path) -> None:

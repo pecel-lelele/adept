@@ -1,5 +1,6 @@
 """Local accounts: sign-up, sign-in, signed sessions, organisation join codes."""
 
+import time
 import uuid
 
 import pytest
@@ -36,6 +37,42 @@ def test_signup_then_login_returns_a_working_session(client: TestClient) -> None
     assert login.status_code == 200
     me = client.get("/api/v1/auth/me", headers={"X-Demo-User": login.json()["token"]})
     assert me.json()["id"] == created["account"]["id"]
+
+
+def test_post_logout_revokes_existing_sessions_and_allows_a_fresh_login(client: TestClient) -> None:
+    created = _signup(client)
+    other = _signup(client)
+    earlier = session.issue(created["account"]["id"], now=time.time() - 10)
+    token = created["token"]
+    assert session.verify(earlier) == created["account"]["id"]
+    assert client.get("/api/v1/auth/logout").status_code == 405
+    assert client.post("/api/v1/auth/logout", headers={"X-Demo-User": token}).status_code == 204
+    for old in (token, earlier):
+        assert session.verify(old) is None
+        assert client.get("/api/v1/auth/me", headers={"X-Demo-User": old}).status_code == 401
+    assert session.verify(other["token"]) == other["account"]["id"]
+    login = client.post(
+        "/api/v1/auth/login", json={"email": created["email"], "password": created["password"]}
+    )
+    assert login.status_code == 200
+    assert session.verify(login.json()["token"]) == created["account"]["id"]
+
+
+def test_session_check_outage_fails_closed_in_the_rate_limiter(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from app.core import accounts
+    from app.core.refdata import StorageUnavailableError
+
+    token = _signup(client)["token"]
+
+    def unavailable(_: str) -> None:
+        raise StorageUnavailableError("could not check your session")
+
+    monkeypatch.setattr(accounts, "session_version", unavailable)
+    response = client.get("/api/v1/auth/me", headers={"X-Demo-User": token})
+    assert response.status_code == 503
+    assert response.json()["error"]["code"] == "storage_unavailable"
 
 
 def test_wrong_password_and_duplicate_email_are_rejected(client: TestClient) -> None:

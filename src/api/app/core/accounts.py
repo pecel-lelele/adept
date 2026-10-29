@@ -34,6 +34,7 @@ class Account:
 
 _lock = threading.Lock()
 _memory: dict[str, tuple[Account, str | None]] = {}
+_session_versions: dict[str, int] = {}
 _cache: dict[str, tuple[float, Account | None]] = {}
 CACHE_TTL_S = 30.0
 
@@ -41,12 +42,46 @@ CACHE_TTL_S = 30.0
 def reset() -> None:
     with _lock:
         _memory.clear()
+        _session_versions.clear()
         _cache.clear()
 
 
 def forget(user_id: str) -> None:
     """Drop a cached account (after its membership or organisation changed)."""
     _cache.pop(user_id, None)
+
+
+def session_version(user_id: str) -> int | None:
+    """Read revocation state without the account cache on every token verification."""
+    if not use_postgres():
+        with _lock:
+            return _session_versions.get(user_id, 0) if user_id in _memory else None
+    try:
+        with connection() as conn:
+            row = conn.execute(
+                "SELECT session_version FROM users WHERE id = %s", (user_id,)
+            ).fetchone()
+        return int(row["session_version"]) if row else None
+    except psycopg.Error as exc:
+        raise StorageUnavailableError("could not check your session") from exc
+
+
+def revoke_sessions(user_id: str) -> None:
+    """Invalidate all previously issued sessions for this account, across API processes."""
+    if use_postgres():
+        try:
+            with connection() as conn:
+                conn.execute(
+                    "UPDATE users SET session_version = session_version + 1 WHERE id = %s",
+                    (user_id,),
+                )
+        except psycopg.Error as exc:
+            raise StorageUnavailableError("could not check your session") from exc
+    else:
+        with _lock:
+            if user_id in _memory:
+                _session_versions[user_id] = _session_versions.get(user_id, 0) + 1
+    forget(user_id)
 
 
 _SELECT = """
@@ -166,6 +201,7 @@ def delete(user_id: str, *, strict: bool = False) -> None:
         funding_store.forget_user(user_id)
     with _lock:
         _memory.pop(user_id, None)
+        _session_versions.pop(user_id, None)
     forget(user_id)
 
 

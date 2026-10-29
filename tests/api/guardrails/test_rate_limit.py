@@ -97,8 +97,8 @@ def test_real_ip_is_trusted_with_the_proxy_secret() -> None:
 
 def test_verified_users_have_independent_limits_at_the_same_address() -> None:
     client = _app(default=(1, 60), route_limits={})
-    first = {"X-Demo-User": session.issue("synthetic-first")}
-    second = {"X-Demo-User": session.issue("synthetic-second")}
+    first = {"X-Demo-User": session.issue("aisyah")}
+    second = {"X-Demo-User": session.issue("weijie")}
     assert client.get("/api/v1/profile", headers=first).status_code == 200
     assert client.get("/api/v1/profile", headers=first).status_code == 429
     assert client.get("/api/v1/profile", headers=second).status_code == 200

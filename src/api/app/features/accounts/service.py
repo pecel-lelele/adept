@@ -24,6 +24,10 @@ from app.features.org import service as org_service
 from app.features.profile import service as profile_service
 
 
+def logout(user: CurrentUser) -> None:
+    accounts.revoke_sessions(user.id)
+
+
 def _new_user_id(name: str) -> str:
     slug = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")[:24] or "user"
     return f"u-{slug}-{secrets.token_hex(4)}"
