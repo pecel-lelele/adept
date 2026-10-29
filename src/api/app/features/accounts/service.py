@@ -125,7 +125,7 @@ def login(body: LoginIn) -> SessionResponse:
     # Same message and same work for unknown email and wrong password: no account enumeration.
     stored = found[1] if found is not None else _DUMMY_HASH
     if not session.check_password(body.password, stored) or found is None:
-        raise UnauthorizedError("Email or password is incorrect.")
+        raise UnauthorizedError("Email or password is incorrect.", code="invalid_credentials")
     return _session(found[0])
 
 
@@ -196,7 +196,7 @@ def delete_account(user: CurrentUser, body: DeleteAccountIn) -> None:
     account = accounts.find_by_id(user.id)
     found = accounts.find_for_login(account.email or "") if account else None
     if found is None or not session.check_password(body.password, found[1]):
-        raise UnauthorizedError("Password is incorrect.")
+        raise UnauthorizedError("Password is incorrect.", code="incorrect_password")
     _refuse_orphaning(user.id)
     accounts.delete(user.id, strict=True)
     if not use_postgres():

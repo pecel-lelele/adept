@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useActionState } from "react";
 
+import { errorMessage } from "@/lib/api/error-message";
+
 import { joinOrgAction, type AuthState } from "../auth-actions";
 
 /**
@@ -13,6 +15,7 @@ import { joinOrgAction, type AuthState } from "../auth-actions";
  */
 export function JoinView({ code = "" }: { code?: string }) {
   const t = useTranslations("ui.join");
+  const te = useTranslations("ui.apiErrors");
   const tp = useTranslations("ui.page");
   const [state, action, pending] = useActionState<AuthState, FormData>(joinOrgAction, {});
   const joined = state.values?.joined;
@@ -82,7 +85,7 @@ export function JoinView({ code = "" }: { code?: string }) {
               </label>
               {state.error ? (
                 <p className="a-notice" data-tone="error" role="alert">
-                  {state.error}
+                  {errorMessage(te, state.error)}
                 </p>
               ) : null}
               <button className="a-btn is-block" disabled={pending}>

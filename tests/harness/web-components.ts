@@ -16,7 +16,7 @@ export function loadComponent(path: string, overrides: Record<string, unknown> =
     compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022 },
   }).outputText;
   runInNewContext(code, {
-    module, exports: module.exports, URLSearchParams, URL,
+    module, exports: module.exports, URLSearchParams, URL, File, FormData, AbortSignal, fetch,
     require: (id: string) => {
       if (id in overrides) return overrides[id];
       if (id.startsWith("./")) {

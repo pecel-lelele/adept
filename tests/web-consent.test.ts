@@ -1,11 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import * as errorMessages from "../src/web/src/lib/api/error-message.ts";
 
 import { loadComponent, React, renderToStaticMarkup, translations } from "./harness/web-components.ts";
 
 test("join has separate, initially unticked membership and skill-sharing checkboxes", () => {
   for (const locale of ["en", "ms", "zh"]) {
     const { JoinView } = loadComponent("src/features/core/components/JoinView.tsx", {
+      "@/lib/api/error-message": errorMessages,
       "next-intl": translations(locale),
       react: { useActionState: () => [{}, undefined, false] },
       "next/link": { default: ({ children, ...props }) => React.createElement("a", props, children) },

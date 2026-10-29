@@ -37,7 +37,6 @@ async function fetchWithRetry(request: Request): Promise<Response> {
 /** Machine-readable reason a call failed; pages use it to offer the right next step. */
 export type ApiFailure = {
   ok: false;
-  message: string;
   status: number;
   /** API error code, e.g. "profile_required", "unauthorized", or "network". */
   code: string;
@@ -58,20 +57,20 @@ export async function call<T>(
       ok: false,
       status: 0,
       code: "network",
-      message: "We couldn’t reach Adept right now. Please try again in a moment.",
     };
   }
 }
 
 /** The API always answers errors as {"error": {"code", "message"}}. */
-export function errorBody(error: unknown, status: number): { code: string; message: string } {
+export function errorBody(error: unknown, status: number): { code: string } {
   if (error && typeof error === "object" && "error" in error) {
-    const body = (error as { error?: { code?: string; message?: string } }).error;
-    if (body?.message) return { code: body.code ?? "error", message: body.message };
+    const body: unknown = error.error;
+    if (body && typeof body === "object" && "code" in body && typeof body.code === "string"
+      && /^[a-z][a-z0-9_]{0,63}$/.test(body.code)) return { code: body.code };
   }
-  if (status === 401) return { code: "unauthorized", message: "Please sign in again." };
-  if (status >= 500) {
-    return { code: "server_error", message: "Something went wrong on our side. Please try again." };
-  }
-  return { code: "error", message: `Request failed (${status}).` };
+  const codes: Record<number, string> = {
+    401: "unauthorized", 403: "forbidden", 404: "not_found", 405: "method_not_allowed",
+    409: "conflict", 413: "payload_too_large", 422: "validation_error", 429: "rate_limited",
+  };
+  return { code: codes[status] ?? (status >= 500 ? "server_error" : "error") };
 }

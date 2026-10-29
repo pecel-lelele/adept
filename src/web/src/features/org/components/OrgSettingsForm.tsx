@@ -3,12 +3,15 @@
 import { useTranslations } from "next-intl";
 import { useActionState } from "react";
 
+import { errorMessage } from "@/lib/api/error-message";
+
 import type { Schemas } from "@/lib/api";
 
 import { updateOrgAction, type OrgActionState } from "../actions";
 
 export function OrgSettingsForm({ org }: { org: Schemas["Organization"] }) {
   const t = useTranslations("ui.auth");
+  const te = useTranslations("ui.apiErrors");
   const to = useTranslations("ui.org");
   const [state, action, pending] = useActionState<OrgActionState, FormData>(updateOrgAction, {});
   return (
@@ -37,7 +40,7 @@ export function OrgSettingsForm({ org }: { org: Schemas["Organization"] }) {
       </div>
       {state.error ? (
         <p className="a-notice" data-tone="error" role="alert">
-          {state.error}
+          {errorMessage(te, state.error)}
         </p>
       ) : state.done ? (
         <p className="a-notice" data-tone="info" role="status">

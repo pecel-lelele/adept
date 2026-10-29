@@ -277,6 +277,16 @@
 - **Replaces**: none
 - **PR / branch**: `fix/core-review-upgrades`
 
+### TEAM-025: Translate error codes at the rendering boundary (review 3.10)
+- **Date**: 2026-10-30
+- **Feature**: Core / F1 / F5 / F7
+- **Type**: contract, UI
+- **Change**: API failures carry status and validated machine codes without raw backend prose. Profile/auth actions return codes for local validation and request failures; auth preserves non-password form values. One typed EN/MS/ZH lookup renders codes in ErrorState and affected client forms, with a translated fallback for unfamiliar codes. Existing pathway action adapters reuse the common parser, and organisation adapters forward codes.
+- **Why**: English fallback text and backend messages bypassed locale selection. Updating the consuming forms together avoids exposing codes to users. Distinct server password-failure codes preserve the difference between wrong credentials and an expired session while retaining HTTP 401 and the existing exception type. Preserve specific file, consent, stale programme, evidence and budget recovery instructions without passing backend details into the UI.
+- **Affects**: ApiFailure internal TypeScript shape, auth/profile actions, shared action errors, organisation forms, localization and parser/action/DOM regressions
+- **Replaces**: none
+- **PR / branch**: `fix/core-review-upgrades`
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)

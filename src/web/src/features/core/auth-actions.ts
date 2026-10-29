@@ -2,7 +2,6 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { getTranslations } from "next-intl/server";
 
 import { call, getApi } from "@/lib/api";
 import { clearSession, setSessionToken } from "@/lib/auth/session";
@@ -39,9 +38,8 @@ export async function signupAction(_: AuthState, form: FormData): Promise<AuthSt
   const joinCode = workspace === "individual" ? text(form, "join_code", 16) || null : null;
   const shareSkills = workspace === "individual" && Boolean(joinCode) && form.get("share_skills") === "on";
   if (joinCode && !shareSkills) {
-    const t = await getTranslations("ui.join");
     return {
-      error: t("sharingRequired"),
+      error: "sharing_consent_required",
       values: keep(form),
     };
   }
@@ -68,7 +66,7 @@ export async function signupAction(_: AuthState, form: FormData): Promise<AuthSt
       },
     }),
   );
-  if (!result.ok) return { error: result.message, values: keep(form) };
+  if (!result.ok) return { error: result.code, values: keep(form) };
   await setSessionToken(result.data.token);
   redirect(destination(text(form, "next", 300), result.data.next_path));
 }
@@ -83,7 +81,7 @@ export async function loginAction(_: AuthState, form: FormData): Promise<AuthSta
       },
     }),
   );
-  if (!result.ok) return { error: result.message, values: keep(form) };
+  if (!result.ok) return { error: result.code, values: keep(form) };
   await setSessionToken(result.data.token);
   redirect(destination(text(form, "next", 300), result.data.next_path));
 }
@@ -92,8 +90,7 @@ export async function joinOrgAction(_: AuthState, form: FormData): Promise<AuthS
   const consent = form.get("consent") === "on";
   const shareSkills = form.get("share_skills") === "on";
   if (!consent || !shareSkills) {
-    const t = await getTranslations("ui.join");
-    return { error: t(!consent ? "consentRequired" : "sharingRequired"), values: keep(form) };
+    return { error: !consent ? "consent_required" : "sharing_consent_required", values: keep(form) };
   }
   const api = await getApi();
   const result = await call(
@@ -101,7 +98,7 @@ export async function joinOrgAction(_: AuthState, form: FormData): Promise<AuthS
       body: { code: text(form, "code", 16), share_skills: shareSkills, consent },
     }),
   );
-  if (!result.ok) return { error: result.message, values: keep(form) };
+  if (!result.ok) return { error: result.code, values: keep(form) };
   revalidatePath("/app", "layout");
   return { values: { joined: result.data.name, org_id: result.data.id } };
 }
@@ -114,10 +111,10 @@ export async function signOutAction(): Promise<void> {
 /** Permanently delete the signed-in account after the API re-checks the password. */
 export async function deleteAccountAction(_: AuthState, form: FormData): Promise<AuthState> {
   const password = typeof form.get("password") === "string" ? String(form.get("password")).slice(0, 128) : "";
-  if (form.get("confirm") !== "on") return { error: "Tick the box to confirm." };
+  if (form.get("confirm") !== "on") return { error: "confirmation_required" };
   const api = await getApi();
   const result = await call(api.POST("/api/v1/auth/me/delete", { body: { password } }));
-  if (!result.ok) return { error: result.message };
+  if (!result.ok) return { error: result.code };
   await clearSession();
   redirect("/?deleted=1");
 }

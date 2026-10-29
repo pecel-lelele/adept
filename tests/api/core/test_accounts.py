@@ -92,6 +92,30 @@ def test_wrong_password_and_duplicate_email_are_rejected(client: TestClient) -> 
     assert dup.status_code == 409
 
 
+def test_password_failure_codes_do_not_misclassify_expired_sessions(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from app.core.config import get_settings
+
+    created = _signup(client)
+    monkeypatch.setattr(get_settings(), "auth_default_user", "")
+    monkeypatch.setattr(get_settings(), "auth_raw_user_ids", False)
+    login = client.post("/api/v1/auth/login", json={"email": created["email"], "password": "wrong"})
+    assert login.status_code == 401 and login.json()["error"]["code"] == "invalid_credentials"
+    deleted = client.post(
+        "/api/v1/auth/me/delete",
+        json={"password": "wrong"},
+        headers={"X-Demo-User": created["token"]},
+    )
+    assert deleted.status_code == 401 and deleted.json()["error"]["code"] == "incorrect_password"
+    expired = client.post(
+        "/api/v1/auth/me/delete",
+        json={"password": "wrong"},
+        headers={"X-Demo-User": session.issue(created["account"]["id"], now=0)},
+    )
+    assert expired.status_code == 401 and expired.json()["error"]["code"] == "unauthorized"
+
+
 def test_tampered_or_expired_tokens_are_refused(client: TestClient) -> None:
     created = _signup(client)
     token = created["token"]

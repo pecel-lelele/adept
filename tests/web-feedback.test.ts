@@ -5,6 +5,7 @@ import test from "node:test";
 import * as navigation from "../src/web/src/config/navigation.ts";
 import * as scenario from "../src/web/src/lib/scenario.ts";
 import * as skillSearch from "../src/web/src/features/profile/skill-search.ts";
+import * as errorMessages from "../src/web/src/lib/api/error-message.ts";
 import { loadComponent, React, renderToStaticMarkup, resolveTree, translations } from "./harness/web-components.ts";
 
 const nothing = () => null;
@@ -17,6 +18,7 @@ test("zero matches and zero compare options render actionable empty states in ev
     const { EmptyState } = loadComponent("src/components/EmptyState.tsx");
     const { PageHeader } = loadComponent("src/components/PageHeader.tsx");
     const { ErrorState } = loadComponent("src/components/ErrorState.tsx", {
+      "@/lib/api/error-message": errorMessages,
       "next-intl/server": server, "next/link": link,
       "./RetryButton": { RetryButton: ({ label }) => React.createElement("button", {}, label) },
     });
@@ -53,7 +55,7 @@ test("zero matches and zero compare options render actionable empty states in ev
     result = { ok: false, status: 0, code: "network", message: "synthetic failure" };
     const failed = renderToStaticMarkup(await resolveTree(await MatchesView({ scenario: "fast" })));
     assert.ok(failed.includes(intl.useTranslations("ui.error")("retry")));
-    assert.ok(failed.includes(intl.useTranslations("ui.error")("network")));
+    assert.ok(failed.includes(intl.useTranslations("ui.apiErrors")("network")));
     assert.ok(!failed.includes(intl.useTranslations("matching")("emptyTitle")));
   }
 });
@@ -63,6 +65,7 @@ test("intake Finish shows a disabled Saving state while the save transition is p
     let states = 0;
     let transitions = 0;
     const { IntakeWizard } = loadComponent("src/features/profile/components/IntakeWizard.tsx", {
+      "@/lib/api/error-message": errorMessages,
       "next-intl": translations(locale),
       react: { useState: (value) => [states++ === 0 ? 4 : value, nothing], useMemo: (fn) => fn(), useRef: (current) => ({ current }), useTransition: () => [++transitions === 3, nothing] },
       "@/components/SourceBadge": { SourceBadge: nothing },

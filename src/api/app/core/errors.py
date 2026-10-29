@@ -25,8 +25,8 @@ class NotFoundError(AppError):
 
 
 class UnauthorizedError(AppError):
-    def __init__(self, message: str) -> None:
-        super().__init__(message, status_code=401, code="unauthorized")
+    def __init__(self, message: str, code: str = "unauthorized") -> None:
+        super().__init__(message, status_code=401, code=code)
 
 
 class ForbiddenError(AppError):

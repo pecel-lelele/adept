@@ -3,12 +3,14 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
 import type { ApiFailure } from "@/lib/api/client";
+import { errorMessage } from "@/lib/api/error-message";
 
 import { RetryButton } from "./RetryButton";
 
 /** A failed API call with the one action that fixes it: sign in, finish the profile, retry. */
 export async function ErrorState({ failure, compact = false }: { failure: ApiFailure; compact?: boolean }) {
   const t = await getTranslations("ui.error");
+  const te = await getTranslations("ui.apiErrors");
   const needsProfile = failure.code === "profile_required";
   const needsLogin = failure.status === 401;
   const Icon = needsProfile ? UserRoundPen : failure.code === "network" ? WifiOff : CircleAlert;
@@ -18,7 +20,7 @@ export async function ErrorState({ failure, compact = false }: { failure: ApiFai
         <Icon size={24} aria-hidden />
       </span>
       <strong style={{ color: "var(--a-ink)" }}>{needsProfile ? t("profile") : t("title")}</strong>
-      <span>{failure.code === "network" ? t("network") : failure.message}</span>
+      <span>{errorMessage(te, failure.code)}</span>
       {needsProfile ? (
         <Link className="a-btn is-small" href="/app/onboarding">
           {t("profile")}

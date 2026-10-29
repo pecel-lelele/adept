@@ -4,6 +4,8 @@ import { Briefcase, FileUp, GraduationCap, Repeat, Search, X } from "lucide-reac
 import { useTranslations } from "next-intl";
 import { useMemo, useRef, useState, useTransition } from "react";
 
+import { errorMessage } from "@/lib/api/error-message";
+
 import { SourceBadge } from "@/components/SourceBadge";
 import { CV_SKILLS_KEY } from "@/features/core/components/CvPreview";
 import type { ApiResult, Schemas } from "@/lib/api";
@@ -34,6 +36,7 @@ export function IntakeWizard({
   initial: Schemas["Profile"] | null;
 }) {
   const t = useTranslations("ui.intake");
+  const te = useTranslations("ui.apiErrors");
   const cvText = useTranslations("ui.cvReview");
   const [step, setStep] = useState(1);
   const [segment, setSegment] = useState<Segment>(initial?.segment ?? "working");
@@ -117,7 +120,7 @@ export function IntakeWizard({
     startCv(async () => {
       const result = await uploadCvAction(form);
       if (result.error) {
-        setError(result.error);
+        setError(errorMessage(te, result.error));
         return;
       }
       setCvStatus({ empty: !result.skills?.length, truncated: result.truncated ?? false });
@@ -140,7 +143,7 @@ export function IntakeWizard({
         learning_style: style,
         skills: skills.map(({ skill_id, level }) => ({ skill_id, level })),
       });
-      if (result?.error) setError(result.error);
+      if (result?.error) setError(errorMessage(te, result.error));
       else {
         try {
           window.localStorage.removeItem(CV_SKILLS_KEY);
@@ -321,7 +324,7 @@ export function IntakeWizard({
                     )) : <p className="a-small a-muted">{t("noSuggestions")}</p>}
                     <SourceBadge sources={resolved.data.meta.sources} snapshotDate={resolved.data.meta.snapshot_date} />
                   </>
-                ) : <p className="a-notice" role="alert">{resolved.message}</p>}
+                ) : <p className="a-notice" role="alert">{errorMessage(te, resolved.code)}</p>}
               </div>
             ) : null}
             {skills.length ? (

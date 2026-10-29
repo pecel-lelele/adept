@@ -18,7 +18,7 @@ export async function generateProgrammeAction(brief: ProgrammeBrief, expectedOrg
       body: brief,
     }),
   );
-  return result.ok ? { plan: result.data } : { error: result.message };
+  return result.ok ? { plan: result.data } : { error: result.code };
 }
 
 /** Send the reviewed plan. The API refuses it if members, prices or budgets changed since. */
@@ -30,7 +30,7 @@ export async function sendProgrammeAction(brief: ProgrammeBrief, token: string, 
       body: { brief, token },
     }),
   );
-  if (!result.ok) return { error: result.message, stale: result.status === 409 };
+  if (!result.ok) return { error: result.code, stale: result.status === 409 };
   revalidatePath("/org", "layout");
   return { sent: true };
 }

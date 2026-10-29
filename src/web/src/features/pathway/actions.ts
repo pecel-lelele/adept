@@ -40,7 +40,7 @@ async function settle(
     if (error !== undefined || !response.ok)
       return { error: actionError(error, response.status) };
   } catch {
-    return { error: "Your change couldn’t be saved. Please try again." };
+    return { error: "network" };
   }
   revalidatePath(path, type);
   revalidatePath("/app", "layout");

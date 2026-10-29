@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useMemo, useState, useTransition } from "react";
 
+import { errorMessage } from "@/lib/api/error-message";
+
 import { Kpis } from "@/components/Kpis";
 import { MetaBar } from "@/components/MetaBar";
 
@@ -30,6 +32,7 @@ function money(n: number): string {
  */
 export function ProgrammeWizard({ options, orgId }: { options: ProgrammeOptions; orgId?: string }) {
   const t = useTranslations("org.programmes");
+  const te = useTranslations("ui.apiErrors");
   const [step, setStep] = useState(0);
   const [title, setTitle] = useState("");
   const [objectives, setObjectives] = useState<Objective[]>([]);
@@ -90,7 +93,7 @@ export function ProgrammeWizard({ options, orgId }: { options: ProgrammeOptions;
     start(async () => {
       try {
         const result = await generateProgrammeAction(brief, orgId);
-        if (result.error !== undefined) setError(result.error);
+        if (result.error !== undefined) setError(errorMessage(te, result.error));
         else setPlan(result.plan);
       } catch {
         setError(t("generationFailed"));
@@ -107,7 +110,7 @@ export function ProgrammeWizard({ options, orgId }: { options: ProgrammeOptions;
       try {
         const result = await sendProgrammeAction(brief, plan.token, orgId);
         if (result.sent) setSent(true);
-        else setError(result.stale ? t("stale") : result.error);
+        else setError(result.stale ? t("stale") : errorMessage(te, result.error));
       } catch {
         setError(t("sendFailed"));
       }
