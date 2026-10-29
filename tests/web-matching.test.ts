@@ -23,6 +23,25 @@ test("match cards show only the top three improvements with grounded course link
   }
 });
 
+test("every SDG tile on a match card has its mapping reason in the tooltip", () => {
+  const { SdgTiles } = loadComponent("src/components/viz/SdgTiles.tsx");
+  const { MatchSdgTargets } = loadComponent("src/features/matching/components/MatchSdgTargets.tsx", {
+    "next-intl": translations(), "@/components/viz": { SdgTiles },
+  });
+  const targets = [
+    { goal: 4, target: "4.4", label: "Synthetic target label", reason: "Synthetic reason one", strength: "direct" },
+    { goal: 4, target: "4.3", label: "Synthetic target label two", reason: "Synthetic reason two", strength: "enabling" },
+    { goal: 8, target: "8.2", label: "Synthetic target label three", reason: "Synthetic reason three", strength: "enabling" },
+  ];
+  const html = renderToStaticMarkup(React.createElement(MatchSdgTargets, { targets }));
+  const chips = html.match(/<li[^>]*>/g) ?? [];
+  assert.equal(chips.length, 2);
+  for (const chip of chips) assert.match(chip, /data-sdg-reason="[^"]+"/);
+  for (const target of targets) assert.ok(html.includes(target.reason));
+  assert.match(html, /direct/);
+  assert.match(html, /enabling/);
+});
+
 test("scenario delta uses API score differences and never invents an unavailable comparison", () => {
   for (const locale of ["en", "ms", "zh"]) {
     const { ScenarioDelta } = loadComponent("src/features/matching/components/ScenarioDelta.tsx", {

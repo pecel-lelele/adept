@@ -30,6 +30,7 @@ from app.features.matching.scoring import (
 from app.features.matching.sdg_port import fetch_role_badges
 from app.features.pathway import data as pathway_data
 from app.features.profile import service as profile_service
+from app.features.sdg import repository as sdg_repository
 
 # Default weights — the canonical values live in scoring.Weights (M2-001, retuned in M2-011)
 _W = Weights()
@@ -177,7 +178,16 @@ def _score_to_contract(
 
     role_id = role_score.role_id
     source = pathway_data.taxonomy_source()
-    meta = meta.model_copy(update={"sources": [*meta.sources, source]})
+    meta = meta.model_copy(
+        update={
+            "sources": [
+                *meta.sources,
+                source,
+                sdg_repository.un_source(),
+                sdg_repository.mapping_source(),
+            ]
+        }
+    )
     bd = role_score.breakdown
     skill_value = bd["skill"]
     trend_value = bd["trend"]

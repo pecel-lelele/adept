@@ -1,4 +1,5 @@
 import type { Schemas } from "@/lib/api";
+import { useTranslations } from "next-intl";
 
 // Official UN SDG icon colours, goals 1-17.
 const SDG_COLOURS = [
@@ -8,11 +9,13 @@ const SDG_COLOURS = [
 ];
 
 export function SdgBadge({ target }: { target: Schemas["SdgTarget"] }) {
+  const t = useTranslations("sdg");
   return (
     <span
       className="a-sdg-chip"
       style={{ backgroundColor: SDG_COLOURS[target.goal - 1] ?? "#555" }}
-      title={target.label}
+      title={[target.label, target.reason, target.strength ? t(target.strength) : null].filter(Boolean).join(" · ")}
+      data-sdg-reason={target.reason}
     >
       SDG {target.target}
     </span>

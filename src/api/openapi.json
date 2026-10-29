@@ -7668,6 +7668,19 @@
             "title": "Contributors",
             "description": "People whose plan links to this goal.",
             "default": 0
+          },
+          "planned_hours": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Planned Hours",
+            "default": 0
+          },
+          "hours_share": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Hours Share",
+            "default": 0
           }
         },
         "type": "object",
@@ -11137,6 +11150,13 @@
             },
             "type": "array",
             "title": "Role Ids"
+          },
+          "target_contributions": {
+            "items": {
+              "$ref": "#/components/schemas/TargetContribution"
+            },
+            "type": "array",
+            "title": "Target Contributions"
           }
         },
         "type": "object",
@@ -11303,6 +11323,33 @@
           "label": {
             "type": "string",
             "title": "Label"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "strength": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "direct",
+                  "enabling"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Strength"
           }
         },
         "type": "object",
@@ -12132,6 +12179,32 @@
         ],
         "title": "SyncReport",
         "description": "Result of refreshing reference data from its live source."
+      },
+      "TargetContribution": {
+        "properties": {
+          "target": {
+            "$ref": "#/components/schemas/SdgTarget"
+          },
+          "planned_hours": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Planned Hours"
+          },
+          "hours_share": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Hours Share",
+            "description": "Share of planned learning hours linked to this target; not measured SDG impact. Targets may overlap."
+          }
+        },
+        "type": "object",
+        "required": [
+          "target",
+          "planned_hours",
+          "hours_share"
+        ],
+        "title": "TargetContribution"
       },
       "TeamPackage": {
         "properties": {

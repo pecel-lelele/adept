@@ -5,7 +5,7 @@ export const SDG_COLOURS: Record<number, string> = {
   13: "#3f7e44", 14: "#0a97d9", 15: "#56c02b", 16: "#00689d", 17: "#19486a",
 };
 
-export type SdgTile = { goal: number; title: string; count?: number };
+export type SdgTile = { goal: number; title: string; count?: number; reason?: string };
 
 /** Coloured goal tiles; the title is the accessible name and tooltip. */
 export function SdgTiles({ goals, large = false }: { goals: SdgTile[]; large?: boolean }) {
@@ -17,6 +17,7 @@ export function SdgTiles({ goals, large = false }: { goals: SdgTile[]; large?: b
           className={`a-sdg${large ? " is-large" : ""}`}
           style={{ background: SDG_COLOURS[g.goal] ?? "#555" }}
           title={g.title}
+          data-sdg-reason={g.reason}
           aria-label={`SDG ${g.goal}: ${g.title}${g.count ? ` (${g.count})` : ""}`}
         >
           <strong>{g.goal}</strong>

@@ -2,10 +2,10 @@ import { ArrowRight, Circle, CircleCheck, CircleDashed, Leaf } from "lucide-reac
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
-import { MetaBar, PageHeader, ScoreBreakdown } from "@/components";
+import { EstimateLabel, MetaBar, PageHeader, ScoreBreakdown } from "@/components";
 import { ErrorState } from "@/components/ErrorState";
 import { HistoricalSnapshotBanner } from "@/components/HistoricalSnapshotBanner";
-import { scoreColour, SdgTiles } from "@/components/viz";
+import { scoreColour } from "@/components/viz";
 import { RoleOpeningsCard } from "@/features/jobs";
 import { RoleOutlookPanel } from "@/features/scenarios/components/RoleOutlookPanel";
 import type { ScenarioId } from "@/lib/api";
@@ -13,6 +13,7 @@ import type { ScenarioId } from "@/lib/api";
 import { fetchMatch } from "../api";
 import { componentLabels } from "./labels";
 import { MatchImprovements } from "./MatchImprovements";
+import { MatchSdgTargets } from "./MatchSdgTargets";
 
 /**
  * One role, in the same context as the list it was opened from (scenario, snapshot date and
@@ -36,7 +37,6 @@ export async function MatchDetailView({
   const result = await fetchMatch(roleId, scenario, snapshotDate, sdgWeight);
   if (!result.ok) return <ErrorState failure={result} />;
   const m = result.data;
-  const goals = [...new Map(m.sdg_targets.map((s) => [s.goal, { goal: s.goal, title: `${s.target} ${s.label}` }])).values()];
   const pct = (m.score * 100).toFixed(1);
   const back =
     `/app/matches?scenario=${scenario}` +
@@ -81,6 +81,7 @@ export async function MatchDetailView({
             <span className="a-fit is-inline" style={{ color: scoreColour(m.score) }}>
               <strong>{pct}%</strong>
               <small>{tp("fit")}</small>
+              <EstimateLabel scenario={scenario} />
             </span>
           </div>
           <ScoreBreakdown score={m.score} components={m.components} labels={await componentLabels()} />
@@ -113,12 +114,12 @@ export async function MatchDetailView({
               </p>
             )}
           </section>
-          {goals.length ? (
+          {m.sdg_targets.length ? (
             <section className="a-card" aria-labelledby="h-goals">
               <div className="a-card-head">
                 <h2 id="h-goals">{tp("goals")}</h2>
               </div>
-              <SdgTiles goals={goals} />
+              <MatchSdgTargets targets={m.sdg_targets} />
             </section>
           ) : null}
         </aside>

@@ -13,7 +13,7 @@ export function loadComponent(path: string, overrides: Record<string, unknown> =
   const filename = resolve(web, path);
   const module = { exports: {} };
   const code = ts.transpileModule(readFileSync(filename, "utf8"), {
-    compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX },
+    compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022 },
   }).outputText;
   runInNewContext(code, {
     module, exports: module.exports, URLSearchParams, URL,

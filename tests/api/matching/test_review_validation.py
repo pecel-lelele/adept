@@ -123,10 +123,16 @@ def test_snapshot_meta_with_frozen_today(
     }
     assert response.json()["meta"] == expected
     from app.features.pathway import data
+    from app.features.sdg import repository as sdg_repository
 
     card_meta = {
         **expected,
-        "sources": [*expected["sources"], data.taxonomy_source().model_dump(mode="json")],
+        "sources": [
+            *expected["sources"],
+            data.taxonomy_source().model_dump(mode="json"),
+            sdg_repository.un_source().model_dump(mode="json"),
+            sdg_repository.mapping_source().model_dump(mode="json"),
+        ],
     }
     courses = {course.id: course for course in data.catalogue()}
     for match in response.json()["matches"]:

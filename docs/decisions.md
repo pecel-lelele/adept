@@ -147,6 +147,16 @@
 - **Replaces**: M4-055 bundled join disclosure and default sharing only
 - **PR / branch**: `fix/core-review-upgrades`
 
+### TEAM-012: Visible attribution and hour-weighted SDG learning links (review 2.4)
+- **Date**: 2026-10-29
+- **Feature**: F4/F5/F6 and Core
+- **Type**: formula
+- **Change**: Show source names inline, place estimate labels beside fit percentages, and preserve catalogue mapping reasons/strengths on SDG badges and match-card tooltips. SDG contribution sums each step's planned hours once per distinct mapped target/goal, including its course skills, divided by all planned hours across people. Role-wide and plan-wide links remain available as supporting explanations. Source metadata includes SDG references and preserves pathway fallback status.
+- **Why**: Unequal learning plans should not contribute as equal-sized sets. The UI labels these as estimated learning-hour shares, allows overlapping targets and explicitly distinguishes them from measured progress toward UN targets.
+- **Affects**: Recommendation metadata UI, match/preview/dashboard fit labels, SDG contracts and aggregation, generated client
+- **Replaces**: M3-006 unweighted contribution display only
+- **PR / branch**: `fix/core-review-upgrades`
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)

@@ -2309,6 +2309,16 @@ export interface components {
              * @default 0
              */
             contributors: number;
+            /**
+             * Planned Hours
+             * @default 0
+             */
+            planned_hours: number;
+            /**
+             * Hours Share
+             * @default 0
+             */
+            hours_share: number;
         };
         /** GroupPlan */
         GroupPlan: {
@@ -3832,6 +3842,8 @@ export interface components {
             scope_id: string;
             /** Role Ids */
             role_ids?: string[];
+            /** Target Contributions */
+            target_contributions?: components["schemas"]["TargetContribution"][];
         };
         /**
          * SdgEvidence
@@ -3902,6 +3914,10 @@ export interface components {
             target: string;
             /** Label */
             label: string;
+            /** Reason */
+            reason?: string | null;
+            /** Strength */
+            strength?: ("direct" | "enabling") | null;
         };
         /** SessionResponse */
         SessionResponse: {
@@ -4313,6 +4329,17 @@ export interface components {
              * @default
              */
             detail: string;
+        };
+        /** TargetContribution */
+        TargetContribution: {
+            target: components["schemas"]["SdgTarget"];
+            /** Planned Hours */
+            planned_hours: number;
+            /**
+             * Hours Share
+             * @description Share of planned learning hours linked to this target; not measured SDG impact. Targets may overlap.
+             */
+            hours_share: number;
         };
         /** TeamPackage */
         TeamPackage: {

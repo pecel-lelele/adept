@@ -2,10 +2,10 @@ import { ArrowRight, CircleDashed, Circle } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
-import { MetaBar, PageHeader } from "@/components";
+import { EstimateLabel, MetaBar, PageHeader } from "@/components";
 import { ErrorState } from "@/components/ErrorState";
 import { HistoricalSnapshotBanner } from "@/components/HistoricalSnapshotBanner";
-import { scoreColour, SdgTiles } from "@/components/viz";
+import { scoreColour } from "@/components/viz";
 import { fetchJobsSummary } from "@/features/jobs";
 import { fetchRadar } from "@/features/trends/api";
 import type { ScenarioId, Schemas } from "@/lib/api";
@@ -17,6 +17,7 @@ import { componentLabels } from "./labels";
 import { SnapshotPicker } from "./SnapshotPicker";
 import { MatchImprovements } from "./MatchImprovements";
 import { ScenarioDelta } from "./ScenarioDelta";
+import { MatchSdgTargets } from "./MatchSdgTargets";
 
 /** One horizontal bar per score part: how much each part contributed to the fit. */
 function ScoreParts({ parts, labels, score }: { parts: Schemas["ScoreComponent"][]; labels: Record<string, string>; score: number }) {
@@ -120,7 +121,6 @@ export async function MatchesView({
           <ol className="a-rolecards">
             {matches.map((m) => {
               const i = result.data.matches.indexOf(m);
-              const goals = [...new Map(m.sdg_targets.map((s) => [s.goal, { goal: s.goal, title: s.label }])).values()];
               const pct = (m.score * 100).toFixed(1);
               const detail = `/app/matches/${encodeURIComponent(m.role_id)}?scenario=${scenario}${replay}`;
               return (
@@ -151,6 +151,7 @@ export async function MatchesView({
                       <div className="a-fit" style={{ color: scoreColour(m.score) }}>
                         <strong>{pct}%</strong>
                         <small>{tp("fit")}</small>
+                        <EstimateLabel scenario={scenario} />
                         <span className="a-fit-track" aria-hidden>
                           <i style={{ width: `${pct}%`, background: scoreColour(m.score) }} />
                         </span>
@@ -182,7 +183,7 @@ export async function MatchesView({
                       </div>
                       <div>
                         <h3>{tp("goals")}</h3>
-                        {goals.length ? <SdgTiles goals={goals.slice(0, 4)} /> : <p className="a-muted a-small">—</p>}
+                        {m.sdg_targets.length ? <MatchSdgTargets targets={m.sdg_targets} /> : <p className="a-muted a-small">—</p>}
                       </div>
                     </div>
                     <MatchImprovements items={m.improvements ?? []} />

@@ -1,5 +1,8 @@
 {
   "title": "How your path contributes to the SDGs",
+  "weightedTitle": "Planned learning hours linked to SDG targets",
+  "weightedHint": "Estimates weighted by planned study hours and skill mappings, not measured progress toward UN targets. Targets may overlap; shares need not add to 100%.",
+  "hoursShare": "{share}% of planned hours ({hours} h)",
   "orgTitle": "Your organisation's SDG contribution",
   "regionTitle": "SDG contribution in {region}",
   "description": "All 17 Sustainable Development Goals are shown; this domain focuses on goals 4, 5, 8, 9 and 10. Goals your path does not touch stay visible.",

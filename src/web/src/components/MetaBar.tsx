@@ -13,6 +13,7 @@ export function MetaBar({ meta }: { meta: RecommendationMeta }) {
   const tf = useTranslations("common.freshness");
   const parts = [
     meta.snapshot_date,
+    meta.sources.map((source) => source.name).join(", "),
     meta.observed_from && meta.observed_to ? t("observed", { from: meta.observed_from, to: meta.observed_to }) : null,
     t("evidence"),
   ].filter(Boolean);
