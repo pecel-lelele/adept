@@ -73,9 +73,9 @@ export function AuthView() {
               this bypasses the Next.js router cache and ensures the landing page is freshly
               server-rendered with the current session cookie, keeping the user logged in. */}
           <div>
-            <a href="/" className="a-auth-back" aria-label="Back to home">
+            <a href="/" className="a-auth-back" aria-label={t("backHome")}>
               <ArrowLeft size={16} aria-hidden />
-              <span>Back</span>
+              <span>{t("back")}</span>
             </a>
             <div className="a-tabswitch" role="tablist" data-active={page}>
               {(["login", "signup"] as const).map((p) => (
@@ -86,13 +86,17 @@ export function AuthView() {
             </div>
           </div>
           <div className="a-auth-body" key={page}>
-          {/* Show title only on Sign in — signup form is compact enough without it. */}
+          {/* Show title only on Sign in — signup form is compact enough without it.
+              A visually-hidden heading is kept on signup so aria-labelledby="auth-title"
+              always resolves to an accessible name for screen readers. */}
           {page === "login" ? (
             <div className="a-auth-head">
               <h1 id="auth-title">{t("welcomeBack")}</h1>
               <p>{t(team ? "signInTeamSub" : "signInSub")}</p>
             </div>
-          ) : null}
+          ) : (
+            <h1 id="auth-title" className="sr-only">{t("createTitle")}</h1>
+          )}
           <form action={action} className="a-auth-form">
             <input type="hidden" name="next" value={next} />
             <input type="hidden" name="_page" value={page} />
