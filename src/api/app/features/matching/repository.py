@@ -11,7 +11,8 @@ from __future__ import annotations
 from dataclasses import replace
 
 from app.contracts.common import RecommendationMeta, ScenarioId
-from app.contracts.matching import RoleMatch, ScoreComponent
+from app.contracts.matching import RoleMatch, ScoreComponent, ScoreImprovement
+from app.contracts.pathway import Course
 from app.contracts.profile import Skill
 from app.core import refdata, seed
 from app.core.errors import ProfileRequiredError
@@ -24,6 +25,7 @@ from app.features.matching.scoring import (
     Weights,
     _RoleScore,
     rank_roles,
+    skill_credit,
 )
 from app.features.matching.sdg_port import fetch_role_badges
 from app.features.pathway import data as pathway_data
@@ -167,6 +169,7 @@ def _score_to_contract(
     scenario: ScenarioId,
     meta: RecommendationMeta,
     user_levels: dict[str, int],
+    catalogue: list[Course],
 ) -> RoleMatch:
     """Map a scoring._RoleScore to the API contract RoleMatch."""
     # Ensure labels are populated
@@ -216,6 +219,35 @@ def _score_to_contract(
         ),
     ]
 
+    reqs = pathway_data.requirements(role_id)
+    total = sum(r.importance for r in reqs)
+    improvements: list[ScoreImprovement] = []
+    for req in reqs:
+        credit = skill_credit(user_levels.get(req.skill_id, 0), req.required_level)
+        if credit >= 1 or total <= 0:
+            continue
+        courses = [
+            c
+            for c in catalogue
+            if req.skill_id in c.skill_ids
+            and c.level >= req.required_level
+            and c.format != "subscription"
+        ]
+        course = min(courses, key=lambda c: (c.cost_myr, c.hours, c.id), default=None)
+        improvements.append(
+            ScoreImprovement(
+                skill=req.skill_id,
+                label=_SKILL_LABELS.get(req.skill_id, req.skill_id),
+                score_gain=_W.skill * req.importance / total * (1 - credit),
+                course_id=course.id if course else None,
+                course_title=course.title if course else None,
+                course_url=course.url if course else None,
+            )
+        )
+        if course and course.source and course.source not in meta.sources:
+            meta = meta.model_copy(update={"sources": [*meta.sources, course.source]})
+    improvements.sort(key=lambda item: (-item.score_gain, item.skill))
+
     return RoleMatch(
         role_id=role_id,
         label=_ROLE_LABELS.get(role_id, role_id),
@@ -224,6 +256,7 @@ def _score_to_contract(
         missing_skills=[_skill_obj(s) for s in gap.get("missing", [])],
         partial_skills=[_skill_obj(s) for s in gap.get("partial", [])],
         sdg_targets=fetch_role_badges(role_id),
+        improvements=improvements,
         trend_coverage=round(role_score.trend_coverage, 4),
         meta=meta,
     )
@@ -240,7 +273,8 @@ def list_matches(
     roles = _load_roles()
     ranked = rank_roles(profile, roles, velocities, _W)
     user_levels = {k: int(round(v)) for k, v in profile.skills.items()}
-    return [_score_to_contract(r, scenario, meta, user_levels) for r in ranked]
+    catalogue = pathway_data.catalogue()
+    return [_score_to_contract(r, scenario, meta, user_levels, catalogue) for r in ranked]
 
 
 def get_match(
@@ -257,5 +291,5 @@ def get_match(
     user_levels = {k: int(round(v)) for k, v in profile.skills.items()}
     for r in ranked:
         if r.role_id == role_id:
-            return _score_to_contract(r, scenario, meta, user_levels)
+            return _score_to_contract(r, scenario, meta, user_levels, pathway_data.catalogue())
     return None

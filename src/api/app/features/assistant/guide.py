@@ -14,6 +14,14 @@ from app.features.assistant.context import Context
 
 # Keywords per intent in English, Malay and Chinese (lower-case; Chinese matched as substrings).
 INTENTS: dict[str, tuple[str, ...]] = {
+    "score_improvement": (
+        "improve my match",
+        "raise my score",
+        "improve my score",
+        "tingkatkan skor",
+        "提高匹配分数",
+    ),
+    "score_breakdown": ("why is my score", "why did i get this score", "kenapa skor"),
     "privacy": (
         "privacy",
         "employer see",
@@ -206,6 +214,9 @@ PLAN_WORDS = ("plan", "plans", "pelan", "rancangan", "计划")
 
 T: dict[str, dict[str, str]] = {
     "en": {
+        "score_math": "Estimated fit for [[role:{role}]]: {parts}. Total = {total} points out of 100. Weights are skill overlap, trend outlook and interest fit, in that order.",
+        "improvement": "Close [[skill:{skill}]] for an estimated +{gain} score points. {course}.",
+        "no_closing_course": "No catalogue course closes this gap yet",
         "hello": "Hi, I'm Adi! I can explain your matched roles, what to learn next, how skills "
         "are trending, course costs and HRD Corp claims, and how your path links to the UN SDGs.",
         "no_profile": "First, tell me your skills: it takes two minutes on [[page:/app/onboarding]]. "
@@ -263,6 +274,9 @@ T: dict[str, dict[str, str]] = {
         "team_shared": " {shared} of them share their skill levels.",
     },
     "ms": {
+        "score_math": "Anggaran padanan untuk [[role:{role}]]: {parts}. Jumlah = {total} mata daripada 100. Wajaran mengikut susunan pertindihan kemahiran, prospek trend dan kesesuaian minat.",
+        "improvement": "Tutup jurang [[skill:{skill}]] untuk anggaran +{gain} mata skor. {course}.",
+        "no_closing_course": "Belum ada kursus katalog yang menutup jurang ini",
         "hello": "Hai, saya Adi! Saya boleh terangkan peranan padanan anda, apa perlu dipelajari, "
         "tren kemahiran, kos kursus dan tuntutan HRD Corp, serta kaitan laluan anda dengan SDG PBB.",
         "no_profile": "Mula-mula, beritahu kemahiran anda: dua minit di [[page:/app/onboarding]]. "
@@ -319,6 +333,9 @@ T: dict[str, dict[str, str]] = {
         "team_shared": " {shared} daripadanya berkongsi tahap kemahiran.",
     },
     "zh": {
+        "score_math": "[[role:{role}]] 的估计匹配度：{parts}。总计 = {total} 分，满分 100。权重依次对应技能重合、趋势前景和兴趣契合。",
+        "improvement": "弥补 [[skill:{skill}]] 差距，预计提高 {gain} 分。{course}。",
+        "no_closing_course": "目录中暂时没有能完全弥补此差距的课程",
         "hello": "你好，我是 Adi！我可以解释你的匹配职位、下一步该学什么、技能趋势、课程费用与 HRD Corp "
         "补贴，以及你的路径如何关联联合国可持续发展目标。",
         "no_profile": "先告诉我你的技能：在 [[page:/app/onboarding]] 只需两分钟。之后我就能为你排序未来职位并显示差距。",
@@ -453,6 +470,40 @@ def reply_for_intent(kind: str, ctx: Context, locale: Locale) -> str:
     """Render one server-authored answer from checked application facts."""
     t = T[locale]
     f = ctx.facts
+    if kind in ("score_improvement", "score_breakdown") and ctx.audience == "learner":
+        matches = f.get("matches") or []
+        if not matches:
+            return t["no_profile"]
+        top = matches[0]
+        from app.features.matching.scoring import Weights
+
+        weights = Weights()
+        components = top.get("components") or [
+            {"value": top["parts"].get(name, 0), "weight": weight}
+            for name, weight in (
+                ("skill_overlap", weights.skill),
+                ("trend_outlook", weights.trend),
+                ("interest_fit", weights.interest),
+            )
+        ]
+        arithmetic = " + ".join(
+            f"{c['weight'] * 100:g}% × {c['value'] * 100:.1f}% = {c['weight'] * c['value'] * 100:.1f}"
+            for c in components
+        )
+        body = t["score_math"].format(
+            role=top["role_id"], parts=arithmetic, total=f"{top['score'] * 100:.1f}"
+        )
+        if kind == "score_improvement":
+            for item in top.get("improvements", [])[:3]:
+                course = (
+                    f"[[course:{item['course_id']}]]"
+                    if item.get("course_id")
+                    else t["no_closing_course"]
+                )
+                body += "\n" + t["improvement"].format(
+                    skill=item["skill"], gain=f"{item['score_gain'] * 100:.1f}", course=course
+                )
+        return body
     if ctx.audience == "employee":
         return _employee_reply(kind, ctx, t)
     if kind == "privacy":

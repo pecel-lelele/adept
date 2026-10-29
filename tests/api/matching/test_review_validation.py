@@ -128,7 +128,17 @@ def test_snapshot_meta_with_frozen_today(
         **expected,
         "sources": [*expected["sources"], data.taxonomy_source().model_dump(mode="json")],
     }
-    assert all(match["meta"] == card_meta for match in response.json()["matches"])
+    courses = {course.id: course for course in data.catalogue()}
+    for match in response.json()["matches"]:
+        assert {**match["meta"], "sources": card_meta["sources"]} == card_meta
+        expected_sources = [*card_meta["sources"]]
+        for item in match["improvements"]:
+            course = courses.get(item["course_id"])
+            if course and course.source:
+                expected_sources.append(course.source.model_dump(mode="json"))
+        assert {tuple(s.items()) for s in match["meta"]["sources"]} == {
+            tuple(s.items()) for s in expected_sources
+        }
 
 
 @pytest.mark.parametrize("user_id", ["aisyah", "weijie", "ravi"])

@@ -1,4 +1,7 @@
 {
+  "improvementsTitle": "Cara meningkatkan skor anda",
+  "scoreGain": "Anggaran +{gain} mata skor apabila jurang ini ditutup",
+  "noClosingCourse": "Belum ada kursus katalog yang menutup jurang ini",
   "title": "Padanan peranan masa depan anda",
   "description": "Disusun mengikut skor yang boleh dijelaskan. Anda memilih peranan sasaran.",
   "score": "Padanan {score}",

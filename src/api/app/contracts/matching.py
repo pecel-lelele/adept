@@ -28,6 +28,15 @@ class ScoreComponent(BaseModel):
     explanation: str
 
 
+class ScoreImprovement(BaseModel):
+    skill: str
+    label: str
+    score_gain: float = Field(ge=0, le=1)
+    course_id: str | None = None
+    course_title: str | None = None
+    course_url: str | None = None
+
+
 class RoleMatch(BaseModel):
     role_id: str
     label: str
@@ -36,6 +45,7 @@ class RoleMatch(BaseModel):
     missing_skills: list[Skill]
     partial_skills: list[Skill]
     sdg_targets: list[SdgTarget]
+    improvements: list[ScoreImprovement] = Field(default_factory=list)
     trend_coverage: float | None = Field(
         default=None,
         ge=0,

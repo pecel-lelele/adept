@@ -15,9 +15,10 @@ import { ReplayChanges } from "./ReplayChanges";
 import { SdgWeightSlider } from "./SdgWeightSlider";
 import { componentLabels } from "./labels";
 import { SnapshotPicker } from "./SnapshotPicker";
+import { MatchImprovements } from "./MatchImprovements";
 
 /** One horizontal bar per score part: how much each part contributed to the fit. */
-function ScoreParts({ parts, labels }: { parts: Schemas["ScoreComponent"][]; labels: Record<string, string> }) {
+function ScoreParts({ parts, labels, score }: { parts: Schemas["ScoreComponent"][]; labels: Record<string, string>; score: number }) {
   return (
     <div className="a-bars">
       {parts.map((c) => (
@@ -26,9 +27,11 @@ function ScoreParts({ parts, labels }: { parts: Schemas["ScoreComponent"][]; lab
           <span className="a-bar-track">
             <span className="a-bar-fill" style={{ width: `${Math.round(c.value * 100)}%`, opacity: c.provided ? 1 : 0.35 }} />
           </span>
-          <span className="a-bar-value">{Math.round(c.value * 100)}%</span>
+          <span className="a-bar-value">{(c.weight * c.value * 100).toFixed(1)}</span>
+          <span className="a-small a-muted" style={{ gridColumn: "1 / -1" }}>{Math.round(c.weight * 100)}% × {(c.value * 100).toFixed(1)}% = {(c.weight * c.value * 100).toFixed(1)}</span>
         </div>
       ))}
+      <div className="a-breakdown-total"><span>=</span><strong>{(score * 100).toFixed(1)}</strong></div>
     </div>
   );
 }
@@ -114,7 +117,7 @@ export async function MatchesView({
             {matches.map((m) => {
               const i = result.data.matches.indexOf(m);
               const goals = [...new Map(m.sdg_targets.map((s) => [s.goal, { goal: s.goal, title: s.label }])).values()];
-              const pct = Math.round(m.score * 100);
+              const pct = (m.score * 100).toFixed(1);
               const detail = `/app/matches/${encodeURIComponent(m.role_id)}?scenario=${scenario}${replay}`;
               return (
                 <li key={m.role_id}>
@@ -151,7 +154,7 @@ export async function MatchesView({
                     <div className="a-rolecard-body">
                       <div>
                         <h3>{tp("drivers")}</h3>
-                        <ScoreParts parts={m.components} labels={labels} />
+                        <ScoreParts parts={m.components} labels={labels} score={m.score} />
                       </div>
                       <div>
                         <h3>{tp("gapTitle")}</h3>
@@ -177,6 +180,7 @@ export async function MatchesView({
                         {goals.length ? <SdgTiles goals={goals.slice(0, 4)} /> : <p className="a-muted a-small">—</p>}
                       </div>
                     </div>
+                    <MatchImprovements items={m.improvements ?? []} />
                     <footer className="a-rolecard-foot">
                       <Link className="a-btn is-ghost is-small" href={detail}>
                         {t("viewDetail")}

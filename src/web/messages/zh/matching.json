@@ -1,4 +1,7 @@
 {
+  "improvementsTitle": "如何提高匹配分数",
+  "scoreGain": "弥补此差距后，预计提高 {gain} 分",
+  "noClosingCourse": "目录中暂时没有能完全弥补此差距的课程",
   "title": "您的未来职位匹配",
   "description": "按可解释的分数排序。目标职位由您选择。",
   "score": "匹配度 {score}",

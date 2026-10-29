@@ -192,6 +192,8 @@ def _learner(ctx: Context, user: CurrentUser, scenario: ScenarioId) -> None:
                     "missing": [s.id for s in m.missing_skills],
                     "partial": [s.id for s in m.partial_skills],
                     "parts": {c.name: c.value for c in m.components},
+                    "components": [c.model_dump() for c in m.components],
+                    "improvements": [item.model_dump() for item in m.improvements],
                 }
                 for m in top
             ]

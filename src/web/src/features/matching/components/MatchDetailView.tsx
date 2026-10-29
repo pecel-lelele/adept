@@ -12,6 +12,7 @@ import type { ScenarioId } from "@/lib/api";
 
 import { fetchMatch } from "../api";
 import { componentLabels } from "./labels";
+import { MatchImprovements } from "./MatchImprovements";
 
 /**
  * One role, in the same context as the list it was opened from (scenario, snapshot date and
@@ -36,7 +37,7 @@ export async function MatchDetailView({
   if (!result.ok) return <ErrorState failure={result} />;
   const m = result.data;
   const goals = [...new Map(m.sdg_targets.map((s) => [s.goal, { goal: s.goal, title: `${s.target} ${s.label}` }])).values()];
-  const pct = Math.round(m.score * 100);
+  const pct = (m.score * 100).toFixed(1);
   const back =
     `/app/matches?scenario=${scenario}` +
     (snapshotDate ? `&snapshot_date=${encodeURIComponent(snapshotDate)}` : "") +
@@ -83,6 +84,7 @@ export async function MatchDetailView({
             </span>
           </div>
           <ScoreBreakdown score={m.score} components={m.components} labels={await componentLabels()} />
+          <MatchImprovements items={m.improvements ?? []} />
         </section>
 
         <aside className="a-aside">

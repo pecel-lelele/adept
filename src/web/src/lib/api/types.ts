@@ -3486,6 +3486,8 @@ export interface components {
             partial_skills: components["schemas"]["Skill"][];
             /** Sdg Targets */
             sdg_targets: components["schemas"]["SdgTarget"][];
+            /** Improvements */
+            improvements?: components["schemas"]["ScoreImprovement"][];
             /**
              * Trend Coverage
              * @description Share of the role's skill importance that had a trend value in the snapshot; None for mock responses. Low coverage means many skills fell back to neutral.
@@ -3778,6 +3780,21 @@ export interface components {
             provided: boolean;
             /** Explanation */
             explanation: string;
+        };
+        /** ScoreImprovement */
+        ScoreImprovement: {
+            /** Skill */
+            skill: string;
+            /** Label */
+            label: string;
+            /** Score Gain */
+            score_gain: number;
+            /** Course Id */
+            course_id?: string | null;
+            /** Course Title */
+            course_title?: string | null;
+            /** Course Url */
+            course_url?: string | null;
         };
         /** SdgAlignment */
         SdgAlignment: {

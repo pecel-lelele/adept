@@ -79,7 +79,27 @@ def apply(
             )
         )
         score = min(1.0, sum(c.weight * c.value for c in parts))
-        out.append(m.model_copy(update={"components": parts, "score": round(score, 6)}))
+        skill_weight = next((c.weight for c in parts if c.name == "skill_overlap"), 0.0)
+        old_skill_weight = next((c.weight for c in m.components if c.name == "skill_overlap"), 0.0)
+        improvements = (
+            [
+                item.model_copy(
+                    update={"score_gain": item.score_gain * skill_weight / old_skill_weight}
+                )
+                for item in m.improvements
+            ]
+            if old_skill_weight
+            else []
+        )
+        out.append(
+            m.model_copy(
+                update={
+                    "components": parts,
+                    "score": round(score, 6),
+                    "improvements": improvements,
+                }
+            )
+        )
     return sorted(out, key=lambda m: (-m.score, m.role_id))
 
 

@@ -10357,6 +10357,13 @@
             "type": "array",
             "title": "Sdg Targets"
           },
+          "improvements": {
+            "items": {
+              "$ref": "#/components/schemas/ScoreImprovement"
+            },
+            "type": "array",
+            "title": "Improvements"
+          },
           "trend_coverage": {
             "anyOf": [
               {
@@ -10985,6 +10992,64 @@
           "explanation"
         ],
         "title": "ScoreComponent"
+      },
+      "ScoreImprovement": {
+        "properties": {
+          "skill": {
+            "type": "string",
+            "title": "Skill"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "score_gain": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Score Gain"
+          },
+          "course_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Course Id"
+          },
+          "course_title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Course Title"
+          },
+          "course_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Course Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "skill",
+          "label",
+          "score_gain"
+        ],
+        "title": "ScoreImprovement"
       },
       "SdgAlignment": {
         "properties": {

@@ -23,6 +23,8 @@ from app.features.assistant import guide
 log = get_logger("app.assistant")
 _TAG = re.compile(r"\[\[(role|skill|course|sdg|page):([^\]\s]{1,100})\]\]")
 _INTENTS = (
+    "score_improvement",
+    "score_breakdown",
     "privacy",
     "how",
     "trend",
@@ -147,7 +149,10 @@ def answer(
                     selected = select_ids(task, candidates, provider).ids
                 if not 1 <= len(selected) <= 2:
                     raise LLMUnavailableError("Select one or two answer blocks")
-                if answer_kind in guide.PERSONAL_PLAN_INTENTS:
+                if answer_kind in guide.PERSONAL_PLAN_INTENTS or answer_kind in {
+                    "score_improvement",
+                    "score_breakdown",
+                }:
                     if answer_kind not in selected:
                         raise LLMUnavailableError("Selection omitted the requested plan facts")
                     selected = [answer_kind]

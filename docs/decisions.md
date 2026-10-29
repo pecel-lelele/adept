@@ -116,6 +116,16 @@
 - **Replaces**: none
 - **PR / branch**: `fix/core-review-upgrades`
 
+### TEAM-009: Catalogue-grounded score improvements (review 2.1)
+- **Date**: 2026-10-29
+- **Feature**: F4/F5/F8
+- **Type**: formula
+- **Change**: Return each open skill's score gain from closing its remaining importance-weighted overlap, using the existing 0.45 skill weight, plus the cheapest catalogue course reaching the required level (otherwise null). SDG-weighted scores scale those gains too. Cards show the top three; Adi and cards expose weighted arithmetic and actual catalogue links.
+- **Why**: Learners need concrete, traceable changes that would improve fit without inventing a course or promising a partial course closes a full gap.
+- **Affects**: Matching contracts/client, card/detail UI, Adi context and score answer blocks
+- **Replaces**: none
+- **PR / branch**: `fix/core-review-upgrades`
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)
