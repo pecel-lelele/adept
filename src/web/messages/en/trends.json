@@ -1,5 +1,9 @@
 {
   "title": "Future Skills Radar",
+  "roleDirections": "Rising and declining roles",
+  "risingRoles": "Rising roles",
+  "decliningRoles": "Declining roles",
+  "noDirectionalRoles": "No roles with this direction in the selected snapshot.",
   "description": "Which roles and skills are rising, stable or declining.",
   "orgTitle": "Future Skills Radar for your industry",
   "direction": {

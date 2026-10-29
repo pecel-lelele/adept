@@ -14,6 +14,14 @@ from app.features.assistant.context import Context
 
 # Keywords per intent in English, Malay and Chinese (lower-case; Chinese matched as substrings).
 INTENTS: dict[str, tuple[str, ...]] = {
+    "trend_declining": (
+        "declining",
+        "losing demand",
+        "kurang diperlukan",
+        "menurun",
+        "消失",
+        "下降",
+    ),
     "score_improvement": (
         "improve my match",
         "raise my score",
@@ -214,6 +222,7 @@ PLAN_WORDS = ("plan", "plans", "pelan", "rancangan", "计划")
 
 T: dict[str, dict[str, str]] = {
     "en": {
+        "trend_declining": "Declining skills in this snapshot: {skills}. Declining roles: {roles}. These are estimates from research attention and labour projections, not a prediction that a job will disappear. See [[page:/app/radar]].",
         "score_math": "Estimated fit for [[role:{role}]]: {parts}. Total = {total} points out of 100. Weights are skill overlap, trend outlook and interest fit, in that order.",
         "improvement": "Close [[skill:{skill}]] for an estimated +{gain} score points. {course}.",
         "no_closing_course": "No catalogue course closes this gap yet",
@@ -274,6 +283,7 @@ T: dict[str, dict[str, str]] = {
         "team_shared": " {shared} of them share their skill levels.",
     },
     "ms": {
+        "trend_declining": "Kemahiran yang menurun dalam petikan ini: {skills}. Peranan yang menurun: {roles}. Ini anggaran berdasarkan perhatian penyelidikan dan unjuran tenaga kerja, bukan ramalan bahawa kerja akan hilang. Lihat [[page:/app/radar]].",
         "score_math": "Anggaran padanan untuk [[role:{role}]]: {parts}. Jumlah = {total} mata daripada 100. Wajaran mengikut susunan pertindihan kemahiran, prospek trend dan kesesuaian minat.",
         "improvement": "Tutup jurang [[skill:{skill}]] untuk anggaran +{gain} mata skor. {course}.",
         "no_closing_course": "Belum ada kursus katalog yang menutup jurang ini",
@@ -333,6 +343,7 @@ T: dict[str, dict[str, str]] = {
         "team_shared": " {shared} daripadanya berkongsi tahap kemahiran.",
     },
     "zh": {
+        "trend_declining": "此快照中需求下降的技能：{skills}。需求下降的职位：{roles}。这些是基于研究关注度和劳动力预测的估计，并不表示某个工作一定会消失。请查看 [[page:/app/radar]]。",
         "score_math": "[[role:{role}]] 的估计匹配度：{parts}。总计 = {total} 分，满分 100。权重依次对应技能重合、趋势前景和兴趣契合。",
         "improvement": "弥补 [[skill:{skill}]] 差距，预计提高 {gain} 分。{course}。",
         "no_closing_course": "目录中暂时没有能完全弥补此差距的课程",
@@ -470,6 +481,11 @@ def reply_for_intent(kind: str, ctx: Context, locale: Locale) -> str:
     """Render one server-authored answer from checked application facts."""
     t = T[locale]
     f = ctx.facts
+    if kind == "trend_declining":
+        return t[kind].format(
+            skills=_tags("skill", f.get("declining", [])[:5]) or "—",
+            roles=_tags("role", f.get("declining_roles", [])[:5]) or "—",
+        )
     if kind in ("score_improvement", "score_breakdown") and ctx.audience == "learner":
         matches = f.get("matches") or []
         if not matches:

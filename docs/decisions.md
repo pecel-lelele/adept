@@ -157,6 +157,16 @@
 - **Replaces**: M3-006 unweighted contribution display only
 - **PR / branch**: `fix/core-review-upgrades`
 
+### TEAM-013: Show role directions and ground declining answers separately (review 2.5)
+- **Date**: 2026-10-29
+- **Feature**: F2/F5/F8
+- **Type**: UI
+- **Change**: Radar shows rising and declining roles from the existing RoleOption comparison for the selected scenario/date. Adi stores separate declining skill/role facts from the snapshot and routes declining questions to a grounded multilingual block. A model selection cannot replace that requested block with rising advice.
+- **Why**: Skill trends alone hid role directions, and declining questions previously reused the rising list. Directions remain estimates, not claims that jobs will disappear.
+- **Affects**: Radar role card, Adi context/routing, translated headings and regression cases
+- **Replaces**: none
+- **PR / branch**: `fix/core-review-upgrades`
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)

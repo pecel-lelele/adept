@@ -1,4 +1,8 @@
 {
+  "roleDirections": "Peranan yang meningkat dan menurun",
+  "risingRoles": "Peranan yang meningkat",
+  "decliningRoles": "Peranan yang menurun",
+  "noDirectionalRoles": "Tiada peranan dengan arah ini dalam petikan yang dipilih.",
   "title": "Radar Kemahiran Masa Depan",
   "description": "Peranan dan kemahiran yang meningkat, stabil atau menurun.",
   "orgTitle": "Radar Kemahiran Masa Depan untuk industri anda",

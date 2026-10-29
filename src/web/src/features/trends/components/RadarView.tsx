@@ -5,10 +5,12 @@ import { Kpis, MetaBar, PageHeader, TrendPill } from "@/components";
 import { ErrorState } from "@/components/ErrorState";
 import { TrendBars } from "@/components/viz";
 import { fetchMyProfile } from "@/features/profile/api";
+import { fetchCompare } from "@/features/pathway/api";
 import type { ScenarioId } from "@/lib/api";
 
 import { fetchRadar } from "../api";
 import { SignalExplorer } from "./SignalExplorer";
+import { RoleDirectionsCard } from "./RoleDirectionsCard";
 
 /**
  * Step 2, the Future Skills Radar. Hierarchy: how many skills rise / hold / decline → the
@@ -27,9 +29,10 @@ export async function RadarView({
   const t = await getTranslations("trends");
   const d = await getTranslations("common.design");
   const tp = await getTranslations("ui.page");
-  const [result, profile] = await Promise.all([
+  const [result, profile, comparison] = await Promise.all([
     fetchRadar(scenario, snapshotDate),
     context === "individual" ? fetchMyProfile() : Promise.resolve(null),
+    fetchCompare(scenario, [], snapshotDate),
   ]);
   if (!result.ok) return <ErrorState failure={result} />;
   const { items, meta } = result.data;
@@ -128,6 +131,7 @@ export async function RadarView({
         )}
       </div>
 
+      {comparison.ok ? <RoleDirectionsCard options={comparison.data.options} meta={comparison.data.meta} organisation={context === "organisation"} snapshotDate={snapshotDate} /> : <ErrorState failure={comparison} />}
       <section className="a-card" aria-labelledby="h-all">
         <div className="a-card-head">
           <h2 id="h-all">{tp("allSkills")}</h2>
