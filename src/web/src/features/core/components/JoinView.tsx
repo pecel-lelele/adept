@@ -73,6 +73,13 @@ export function JoinView({ code = "" }: { code?: string }) {
                   <small>{t("consentHint")}</small>
                 </span>
               </label>
+              <label className="a-check">
+                <input type="checkbox" name="share_skills" required defaultChecked={state.values?.share_skills === "on"} />
+                <span>
+                  <strong>{t("shareSkills")}</strong>
+                  <small>{t("shareSkillsHint")}</small>
+                </span>
+              </label>
               {state.error ? (
                 <p className="a-notice" data-tone="error" role="alert">
                   {state.error}

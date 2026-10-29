@@ -144,7 +144,7 @@ def test_signup_with_join_code_requires_sharing_consent(client: TestClient) -> N
             "share_skills": False,
         },
     )
-    assert bad.status_code == 400
+    assert bad.status_code == 422
     assert bad.json()["error"]["code"] == "sharing_consent_required"
 
     good = client.post(
@@ -176,9 +176,17 @@ def test_one_account_can_belong_to_several_organisations(client: TestClient) -> 
     _, second_code = _org(client, "Second Co")
     learner = _signup(client, join_code=first_code)
     lh = {"X-Demo-User": learner["token"]}
-    again = client.post("/api/v1/org/join", json={"code": first_code, "consent": True}, headers=lh)
+    again = client.post(
+        "/api/v1/org/join",
+        json={"code": first_code, "consent": True, "share_skills": True},
+        headers=lh,
+    )
     assert again.status_code == 200  # rejoining the same organisation is harmless
-    other = client.post("/api/v1/org/join", json={"code": second_code, "consent": True}, headers=lh)
+    other = client.post(
+        "/api/v1/org/join",
+        json={"code": second_code, "consent": True, "share_skills": True},
+        headers=lh,
+    )
     assert other.status_code == 200, other.text
     assert other.json()["join_code"] is None
 

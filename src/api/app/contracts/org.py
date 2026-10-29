@@ -54,11 +54,12 @@ class JoinOrgIn(BaseModel):
     code: str = Field(min_length=4, max_length=16)
     consent: bool = Field(
         default=False,
-        description="Explicit consent to join and share the skills profile with managers. "
+        description="Explicit consent to join this organisation. "
         "Required: a join without it is refused (M4-055).",
     )
     share_skills: bool = Field(
-        default=True, description="Share skill levels with this organisation's managers."
+        strict=True,
+        description="Explicit consent to share skill levels with this organisation's managers.",
     )
 
 

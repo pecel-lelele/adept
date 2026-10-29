@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 
 import { call, getApi } from "@/lib/api";
 import { clearSession, setSessionToken } from "@/lib/auth/session";
@@ -38,8 +39,9 @@ export async function signupAction(_: AuthState, form: FormData): Promise<AuthSt
   const joinCode = workspace === "individual" ? text(form, "join_code", 16) || null : null;
   const shareSkills = workspace === "individual" && Boolean(joinCode) && form.get("share_skills") === "on";
   if (joinCode && !shareSkills) {
+    const t = await getTranslations("ui.join");
     return {
-      error: "Consent to share your skill profile with the organisation is required when signing up with a join code.",
+      error: t("sharingRequired"),
       values: keep(form),
     };
   }
@@ -88,13 +90,15 @@ export async function loginAction(_: AuthState, form: FormData): Promise<AuthSta
 
 export async function joinOrgAction(_: AuthState, form: FormData): Promise<AuthState> {
   const consent = form.get("consent") === "on";
-  if (!consent) {
-    return { error: "Please consent to join the organisation and share your profile.", values: keep(form) };
+  const shareSkills = form.get("share_skills") === "on";
+  if (!consent || !shareSkills) {
+    const t = await getTranslations("ui.join");
+    return { error: t(!consent ? "consentRequired" : "sharingRequired"), values: keep(form) };
   }
   const api = await getApi();
   const result = await call(
     api.POST("/api/v1/org/join", {
-      body: { code: text(form, "code", 16), share_skills: true, consent: true },
+      body: { code: text(form, "code", 16), share_skills: shareSkills, consent },
     }),
   );
   if (!result.ok) return { error: result.message, values: keep(form) };

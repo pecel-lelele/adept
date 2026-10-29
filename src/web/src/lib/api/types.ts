@@ -2484,14 +2484,13 @@ export interface components {
             code: string;
             /**
              * Consent
-             * @description Explicit consent to join and share the skills profile with managers. Required: a join without it is refused (M4-055).
+             * @description Explicit consent to join this organisation. Required: a join without it is refused (M4-055).
              * @default false
              */
             consent: boolean;
             /**
              * Share Skills
-             * @description Share skill levels with this organisation's managers.
-             * @default true
+             * @description Explicit consent to share skill levels with this organisation's managers.
              */
             share_skills: boolean;
         };

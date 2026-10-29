@@ -137,6 +137,16 @@
 - **Replaces**: M2-001 percentile normalization only
 - **PR / branch**: `fix/core-review-upgrades`
 
+### TEAM-011: Require a separate explicit sharing choice on join (review 2.3)
+- **Date**: 2026-10-29
+- **Feature**: Core/F7
+- **Type**: contract
+- **Change**: Remove the join payload's true sharing default; require a strict boolean and reject missing or false sharing consent with 422 before joining. Join UI has separate, initially unticked membership and skill-sharing checkboxes. Actions submit the actual checkbox value, and signup checks sharing before creating an account. Existing per-organisation sharing revocation remains available.
+- **Why**: General membership consent must never silently authorize manager access to skill levels, study hours or budgets. A revoked member remains excluded from manager learning inputs.
+- **Affects**: Join/signup validation and actions, translated join flow, generated client and privacy regressions
+- **Replaces**: M4-055 bundled join disclosure and default sharing only
+- **PR / branch**: `fix/core-review-upgrades`
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)

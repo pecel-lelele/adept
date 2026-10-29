@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import pytest
 from fastapi.testclient import TestClient
 from harness.workspaces import BANK, work_headers
 
@@ -108,7 +109,7 @@ def test_joining_org_without_consent_fails(client: TestClient) -> None:
     res = client.post(
         "/api/v1/org/join",
         headers={"X-Demo-User": token},
-        json={"code": "BANKDEMO", "consent": False},
+        json={"code": "BANKDEMO", "consent": False, "share_skills": True},
     )
     assert res.status_code == 400
     assert res.json()["error"]["code"] == "consent_required"
@@ -116,4 +117,34 @@ def test_joining_org_without_consent_fails(client: TestClient) -> None:
     silent = client.post(
         "/api/v1/org/join", headers={"X-Demo-User": token}, json={"code": "BANKDEMO"}
     )
-    assert silent.status_code == 400 and silent.json()["error"]["code"] == "consent_required"
+    assert silent.status_code == 422
+
+
+@pytest.mark.parametrize("choice", [{}, {"share_skills": False}, {"share_skills": "true"}])
+def test_join_requires_explicit_sharing_without_assuming_missing_consent(
+    client: TestClient, choice: dict[str, object]
+) -> None:
+    from app.features.org import repository
+
+    before = repository.memberships_of("ravi")
+    response = client.post(
+        "/api/v1/org/join",
+        headers={"X-Demo-User": "ravi"},
+        json={"code": "BANKDEMO", "consent": True, **choice},
+    )
+    assert response.status_code == 422
+    assert repository.memberships_of("ravi") == before
+
+
+def test_nonconsenting_members_skill_time_and_budget_are_unavailable_to_managers(
+    client: TestClient,
+) -> None:
+    from app.features.org import service
+
+    try:
+        response = client.put("/api/v1/org/me/sharing", headers=WORK, json={"share_skills": False})
+        assert response.status_code == 200
+        assert "aisyah" not in service.member_learners(BANK)
+        assert "aisyah" not in _option_members(client)
+    finally:
+        client.put("/api/v1/org/me/sharing", headers=WORK, json={"share_skills": True})

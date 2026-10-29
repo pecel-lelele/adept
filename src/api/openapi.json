@@ -8061,19 +8061,19 @@
           "consent": {
             "type": "boolean",
             "title": "Consent",
-            "description": "Explicit consent to join and share the skills profile with managers. Required: a join without it is refused (M4-055).",
+            "description": "Explicit consent to join this organisation. Required: a join without it is refused (M4-055).",
             "default": false
           },
           "share_skills": {
             "type": "boolean",
             "title": "Share Skills",
-            "description": "Share skill levels with this organisation's managers.",
-            "default": true
+            "description": "Explicit consent to share skill levels with this organisation's managers."
           }
         },
         "type": "object",
         "required": [
-          "code"
+          "code",
+          "share_skills"
         ],
         "title": "JoinOrgIn",
         "description": "A signed-in learner joins an organisation with the code their manager shared."

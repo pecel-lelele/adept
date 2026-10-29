@@ -124,6 +124,12 @@ def join_org(user: CurrentUser, body: JoinOrgIn) -> Organization:
             status_code=400,
             code="consent_required",
         )
+    if not body.share_skills:
+        raise AppError(
+            "Explicit consent to share skill levels is required when joining.",
+            status_code=422,
+            code="sharing_consent_required",
+        )
     org = repository.find_org_by_code(body.code)
     if org is None:
         raise NotFoundError("That join code does not match any organisation.")
