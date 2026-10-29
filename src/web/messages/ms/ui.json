@@ -352,6 +352,16 @@
       "hands-on": "Latihan amali",
       "classroom": "Bilik darjah",
       "mixed": "Campuran"
+    },
+    "resolve": "Cari cadangan",
+    "resolving": "Mencari cadangan…",
+    "suggestionHint": "Cadangan anggaran daripada katalog. Tambah kemahiran hanya jika ia menggambarkan kebolehan anda.",
+    "noSuggestions": "Tiada cadangan yang meyakinkan. Cuba istilah lain atau pilih daripada bank kemahiran.",
+    "addSuggestion": "Tambah {label}",
+    "resolverMethod": {
+      "alias": "Alias katalog",
+      "fuzzy": "Ejaan serupa",
+      "semantic": "Makna serupa"
     }
   },
   "home": {

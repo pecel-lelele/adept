@@ -22,7 +22,7 @@ def client(monkeypatch):
     monkeypatch.setattr(
         preview,
         "extract_cv",
-        lambda *args: CvExtractionResult(
+        lambda *args, **kwargs: CvExtractionResult(
             skills=[ExtractedSkill(skill_id="python", label="Python", level=2, confidence=0.8)],
             meta=RecommendationMeta(
                 sources=[SOURCE],
@@ -92,7 +92,7 @@ def test_no_skill_extraction_does_not_rank(client, monkeypatch):
     monkeypatch.setattr(
         preview,
         "extract_cv",
-        lambda *args: CvExtractionResult(
+        lambda *args, **kwargs: CvExtractionResult(
             skills=[],
             meta=RecommendationMeta(
                 sources=[SOURCE],

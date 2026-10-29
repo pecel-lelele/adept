@@ -144,7 +144,7 @@ choices are not verified CV facts. Parser regression fixtures remain under `test
 [publishing handoff](replit.md#publishing-handoff). The web starts with the monorepo standalone
 launcher, not `next start`. One public Next.js server relays `/api/v1/*` to private FastAPI; the root supervisor waits for API/database readiness before opening the web port.
 Provide stable `SESSION_SECRET`, matching `PROXY_SHARED_SECRET`, a verified positive
-`TRUSTED_PROXY_HOPS`, the managed database connection and exact production origin.
+`TRUSTED_PROXY_HOPS`, Replit's managed PostgreSQL `DATABASE_URL` and exact production origin.
 Importing GitHub files copies neither database contents nor secrets. Pull the merged source
 into the correct Replit project before making a fresh publish attempt. A working public
 instance does not prove that a newer attempted release succeeded.
@@ -156,7 +156,7 @@ instance does not prove that a newer attempted release succeeded.
 | Adi                  | Z.ai **GLM-5.3** (`glm-5.3`) through RunPod                                      | Selects validated answer blocks using the user's Adept data.                                                         |
 | Adi fallback         | Google **Gemini 3.5 Flash Lite**, with Gemini 3.6 Flash / 3.1 Flash Lite backups | Handles provider failure; a built-in guide remains available.                                                        |
 | Trend encoder        | Sentence Transformers **all-MiniLM-L6-v2** through RunPod                        | Relates public research sentences to catalogue skills. Deployed worker verified with two 384-dimensional embeddings. |
-| CV skill suggestions | Google **gemini-embedding-001**                                                  | Suggests catalogue matches for unfamiliar skill phrases; the user confirms additions.                                |
+| CV / skill-search suggestions | Google **gemini-embedding-001**                                          | Suggests one catalogue match for unfamiliar skill phrases or an explicitly submitted search; the user confirms additions. Manual search uses approved aliases locally. |
 
 Model features are configurable; the default assistant uses the built-in guide. Role scores, learning plans and trend calculations use deterministic rules. Model-selected IDs pass through `validate_ids` before display.
 
@@ -674,7 +674,7 @@ use zero. The public API handler strips caller-supplied internal identity header
 
 `AUTH_MODE=demo` is the legacy name for PostgreSQL-backed local accounts with signed sessions,
 not an automatic demo login. Keep `APP_ENV=production`, `AUTH_RAW_USER_IDS=false` and an empty
-`AUTH_DEFAULT_USER`. Supabase JWT verification is an optional alternate path.
+`AUTH_DEFAULT_USER`. Authentication uses Adept's signed local accounts stored in Replit PostgreSQL.
 
 The hardened MiniLM dependency pins are source changes. Applying them to the live worker
 requires a guarded image build and RunPod redeployment. The historical verified worker image

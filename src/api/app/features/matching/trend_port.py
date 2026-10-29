@@ -143,7 +143,7 @@ def _call_with_timeout(
     A caller that times out stops sharing that read, so the next caller starts a fresh one; the
     slow read still holds its slot until it ends (bounded by MAX_OUTSTANDING).
     """
-    strict = get_settings().auth_mode != "demo"
+    strict = get_settings().app_env == "production"
     key = (snapshot_date, scenario, strict)
     future = _start_read(key, scenario, snapshot_date)
     try:

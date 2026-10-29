@@ -18,7 +18,7 @@ reserve time for the fallback. `/about`, API replies and logs disclose the actua
 The gateway redacts PII and filters prompt injection
 before any prompt, rejects unknown IDs, has a circuit breaker, logs every call, and
 `select_ids_or_fallback` degrades to deterministic logic. Related F8 code:
-`app/core/security/` (rate limit, body limit, headers, sanitiser, PII, Supabase JWT),
+`app/core/security/` (rate limit, body limit, headers, sanitiser, PII, signed local sessions),
 `app/core/fairness.py`, and `app/features/guardrails/` (`/guardrails/disclosure`, `/sources`,
 `/fairness`, rendered on `/about`).
 

@@ -17,7 +17,7 @@ or stale index falls back to exact catalogue matches without optional suggestion
 
 Implemented: in-memory PDF/DOCX/text parsing, catalogue aliases and user-confirmed skill
 levels, questionnaire intake and PostgreSQL profiles. The web provides a four-step intake.
-Unmatched wording and truncation are reviewable; uploads never mutate saved skills before
+Empty extraction and truncation remain visible in both upload screens; uploads never mutate saved skills before
 confirmation. See `cv_parser.py`, `service.py` and `tests/api/profile/`.
 
 ## Goal and tasks (from docs/tasks.md)
@@ -78,3 +78,53 @@ the short skills-list entries leave the API (PII-redacted), never the CV. With
 `EMBEDDINGS_PROVIDER=none`, no key, or a provider failure, suggestions are empty and exact
 matching is unchanged. This supersedes the "never sent to an LLM" note above for these short
 entries only (decision M4-061).
+
+## Alias-aware manual search and explicit resolver (2026-10-29)
+
+`GET /api/v1/profile/skills/catalogue` now includes each skill's approved `aliases`.
+The existing manual picker filters labels, IDs **and aliases** locally; for example,
+"Microsoft Excel" finds Spreadsheet analysis without invoking the resolver or a model.
+
+`POST /api/v1/profile/skills/resolve` is authenticated and accepts one query of at most
+80 characters. Each tier contributes **at most one** catalogue candidate, deduplicated
+by canonical skill ID (at most three overall). Exact labels/aliases need no model call.
+Fuzzy matching uses NFKC/case/whitespace normalization and Python `SequenceMatcher`
+(`autojunk=False`), taking each distinct skill's best label/alias score. Its gate is
+`top_score >= 0.83` **and** `top_score - runner_up_score >= 0.05`. An above-threshold
+fuzzy score with a smaller lead abstains before reaching the semantic tier.
+
+Semantic matching still delegates to `skill_match.suggest`: **top-1 only**, cosine
+`>= 0.80` and `top_score - runner_up_score >= 0.015`, using a ready index only.
+Neither those constants nor the default API CV suggestion path change. Provider absence,
+missing/stale index or failure retains deterministic candidates. Labels and IDs come
+from the catalogue; each response includes the existing taxonomy attribution and date.
+Suggestions never save skills; the person clicks Add and confirms their levels.
+
+Typing only filters the local catalogue. "Find suggestions" explicitly submits a query
+with at least **four letters/digits**. The server checks this minimum before semantic
+matching too. A bounded, memory-only cache lives for one wizard session and keys normalized
+queries, sharing pending requests and caching successful empty results; it is discarded
+when the wizard unmounts. Errors can be retried. Changed queries hide stale responses.
+The endpoint has a 10/minute rate bucket. No raw query is persisted or logged.
+
+Small regression table at fuzzy threshold **0.83**, lead **0.05** (not a broad accuracy
+benchmark; scores below are rounded, while the gate uses unrounded values):
+
+| Input | Top score | Runner-up | Lead | Expected/result |
+|---|---:|---:|---:|---|
+| Pyhton | 0.833333 | 0.470588 | 0.362745 | Python programming — pass |
+| Postgre SQL | 0.952381 | 0.476190 | 0.476190 | SQL — pass |
+| Exel | 0.888889 | 0.571429 | 0.317460 | Spreadsheet analysis — pass |
+| Kubernetes | 0.545455 | 0.500000 | 0.045455 | Abstain — pass |
+| Blender | 0.555556 | 0.526316 | 0.029240 | Abstain — pass |
+| r / c / go | — | — | — | Abstain (minimum length) — pass |
+| project change management | 0.837209 | 0.809524 | 0.027685 | Abstain (lead < 0.05) — pass |
+
+Production-function regressions: `tests/api/profile/test_skill_resolver.py`.
+Client filtering/caching checks: `node --experimental-strip-types --test tests/profile-skill-search.test.ts`.
+
+Both upload screens request `include_suggestions=false`, bypassing optional semantic work
+whose results they do not display. The authenticated and preview CV APIs default to `true`
+for callers that use suggestions. Empty and truncated responses retain small status messages
+without restoring the wording list. The explicit search resolver computes its fuzzy ranking
+once and reuses it for candidate selection and ambiguity checks.

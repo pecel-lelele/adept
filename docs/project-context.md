@@ -189,13 +189,13 @@ matching evaluation benchmark (`src/data/seed/personas/`).
 | Monorepo tooling | `Makefile` at root, `pnpm` for JS, `uv` for Python |
 | Frontend | Next.js (App Router, TypeScript) + Tailwind CSS + shadcn/ui; `next-intl` for EN/BM/ZH |
 | Backend | FastAPI + Pydantic v2 (Python 3.11) |
-| Database | PostgreSQL 16 + `pgvector` (local via Docker; hosted via Supabase) |
-| Migrations | `dbmate` (timestamped SQL files) |
-| Auth | Supabase Auth in deployed env; `AUTH_MODE=demo` bypass for local dev and judge demo |
+| Database | Replit integrated PostgreSQL for deployment; PostgreSQL 16 + `pgvector` via Docker for local development and CI |
+| Migrations | `src/db/migrate.py` with timestamped, dbmate-compatible SQL files |
+| Auth | `AUTH_MODE=demo` uses signed local accounts stored in PostgreSQL, including on Replit; test-only raw-user switches are never production settings |
 | Contracts | Pydantic models → OpenAPI → generated TypeScript types |
 | Testing | `pytest`, `ruff`, ESLint, TypeScript `tsc --noEmit` |
 | Quality gate | `make check` run locally before every PR |
-| Deploy | Replit (sponsor) or Vercel (web) + Render (API); LLM optionally on Runpod (sponsor) |
+| Deploy | Replit (sponsor): public Next.js and private FastAPI; optional model inference on RunPod (sponsor) |
 
 ### 11.7 Open decisions (owned per feature, recorded in `docs/decisions.md`)
 

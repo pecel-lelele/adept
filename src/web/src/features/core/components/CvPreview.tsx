@@ -7,7 +7,6 @@ import { useRef, useState, type DragEvent, type FormEvent } from "react";
 
 import { Ring, scoreColour } from "@/components/viz/Ring";
 import type { Schemas } from "@/lib/api";
-import { CvReview } from "@/features/profile/components/CvReview";
 
 type Preview = Schemas["GuestPreview"];
 
@@ -26,6 +25,7 @@ const EXTENSIONS = /\.(pdf|docx|txt)$/i;
  */
 export function CvPreview() {
   const t = useTranslations("ui.landing");
+  const cvText = useTranslations("ui.cvReview");
   const [file, setFile] = useState<File | null>(null);
   const [consent, setConsent] = useState(false);
   const [drag, setDrag] = useState(false);
@@ -151,6 +151,7 @@ export function CvPreview() {
         </form>
       ) : (
         <div className="a-upload-result" aria-live="polite">
+          {result.truncated ? <p className="a-notice" role="status">{cvText("truncated")}</p> : null}
           <div className="a-free">
             <div className="a-free-role">
               {result.top_role ? (
@@ -184,8 +185,6 @@ export function CvPreview() {
               </div>
             ) : null}
           </div>
-
-          <CvReview terms={result.unmatched_terms ?? []} truncated={result.truncated} matchedCount={result.skills.length} suggestions={result.suggestions ?? []} />
           {result.top_role ? <div className="a-locked">
             <div className="a-locked-content" aria-hidden="true">
               {[t("lockedRoles"), t("lockedGap"), t("lockedPlan"), t("lockedImpact")].map((label, i) => (

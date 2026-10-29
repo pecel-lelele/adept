@@ -80,7 +80,7 @@ be retained with distribution.
 | Uvicorn >=0.54.0 | Private ASGI service | BSD-3-Clause |
 | psycopg[binary] >=3.3.6; psycopg-pool >=3.3.3 | PostgreSQL access and pooling | LGPL-3.0-only; bundled binary components have additional notices |
 | python-multipart >=0.0.32 | Multipart CV uploads | Apache-2.0 |
-| PyJWT >=2.15.1 | Token handling; optional Supabase JWT verification | MIT |
+| Python standard library | Signed local sessions and scrypt password hashing | PSF-2.0 |
 | PyMuPDF >=1.24.0,<2 | In-memory PDF text extraction; review distribution obligations before release | AGPL-3.0 or Artifex commercial licence |
 | HTTPX >=0.28.1 | External API and model-provider requests; worker pins 0.28.1 | BSD-3-Clause |
 | PostgreSQL 16; pgvector (pgvector/pgvector:pg16; extension version not pinned) | Relational storage; separate 384-dimensional MiniLM and 768-dimensional Gemini indexes | PostgreSQL License |
@@ -137,8 +137,8 @@ include API keys in this document.
 | GitHub Container Registry (GHCR) | Stores/distributes the MiniLM worker container image | Public `ghcr.io/pecel-lelele/adept-minilm` image |
 
 The Core subscription, US$25 credit allocation and use of Replit's integrated PostgreSQL were
-confirmed by the team leader on 25 October 2026. Supabase is not used as the deployment's
-database or authentication provider; an optional JWT-verification code path is not service use.
+confirmed by the team leader on 25 October 2026. Deployed authentication uses Adept's signed
+local accounts stored in the same Replit database.
 The Plan / Region column records confirmed plans/resources and does not infer physical
 hosting location from the team's location. For deployment planning, Replit **Asia** is the
 recommended geography for a Malaysian audience; RunPod's available-data-center scheduling

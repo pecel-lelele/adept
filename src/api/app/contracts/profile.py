@@ -88,6 +88,9 @@ class SkillOption(BaseModel):
     id: str
     label: str
     group: str = Field(description="e.g. 'Emerging AI-native skill'; empty if ungrouped.")
+    aliases: list[str] = Field(
+        default_factory=list, description="Approved catalogue search aliases."
+    )
 
 
 class SkillCatalogueResponse(BaseModel):
@@ -95,3 +98,20 @@ class SkillCatalogueResponse(BaseModel):
     interests: list[str] = Field(
         default_factory=list, description="Interest tags used by role matching (roles.csv)."
     )
+
+
+class SkillResolutionRequest(BaseModel):
+    query: str = Field(min_length=1, max_length=80, strict=True)
+
+
+class SkillResolutionCandidate(BaseModel):
+    skill_id: str
+    label: str
+    method: Literal["alias", "fuzzy", "semantic"]
+    score: float = Field(ge=-1, le=1, description="Tier-specific similarity; not a probability.")
+
+
+class SkillResolutionResponse(BaseModel):
+    query: str
+    candidates: list[SkillResolutionCandidate] = Field(max_length=3)
+    meta: RecommendationMeta

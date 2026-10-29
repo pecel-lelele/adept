@@ -57,5 +57,5 @@ def strict_matching(monkeypatch: pytest.MonkeyPatch) -> None:
     """Exercise live matching reads without changing the API's demo identity."""
     from app.features.matching import trend_port
 
-    settings = trend_port.get_settings().model_copy(update={"auth_mode": "supabase"})
+    settings = trend_port.get_settings().model_copy(update={"app_env": "production"})
     monkeypatch.setattr(trend_port, "get_settings", lambda: settings)

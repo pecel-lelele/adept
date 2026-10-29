@@ -12,8 +12,8 @@
 
 Endpoints read saved profiles, the taxonomy catalogue and M1's in-process trend service.
 Missing profiles return 400; unavailable trends return 503. Snapshot metadata comes from M1.
-In explicit demo auth mode, matching uses M1's own documented fixture fallback and
-shows its data provenance note. Other auth modes require M1's strict database snapshot.
+In development, matching uses M1's own documented fixture fallback and
+shows its data provenance note. `APP_ENV=production` requires M1's strict database snapshot.
 Gap responses and SDG badges use M3's service ports. Persona CSVs are harness-only.
 
 ## Goal and tasks (from docs/tasks.md)

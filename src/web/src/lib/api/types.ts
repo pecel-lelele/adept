@@ -1059,6 +1059,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/profile/skills/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Suggest catalogue skills for a submitted search */
+        post: operations["profile_resolve_skill"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/profile/me": {
         parameters: {
             query?: never;
@@ -4054,6 +4071,11 @@ export interface components {
              * @description e.g. 'Emerging AI-native skill'; empty if ungrouped.
              */
             group: string;
+            /**
+             * Aliases
+             * @description Approved catalogue search aliases.
+             */
+            aliases?: string[];
         };
         /** SkillProgress */
         SkillProgress: {
@@ -4069,6 +4091,36 @@ export interface components {
             target_level: number;
             /** Closed */
             closed: boolean;
+        };
+        /** SkillResolutionCandidate */
+        SkillResolutionCandidate: {
+            /** Skill Id */
+            skill_id: string;
+            /** Label */
+            label: string;
+            /**
+             * Method
+             * @enum {string}
+             */
+            method: "alias" | "fuzzy" | "semantic";
+            /**
+             * Score
+             * @description Tier-specific similarity; not a probability.
+             */
+            score: number;
+        };
+        /** SkillResolutionRequest */
+        SkillResolutionRequest: {
+            /** Query */
+            query: string;
+        };
+        /** SkillResolutionResponse */
+        SkillResolutionResponse: {
+            /** Query */
+            query: string;
+            /** Candidates */
+            candidates: components["schemas"]["SkillResolutionCandidate"][];
+            meta: components["schemas"]["RecommendationMeta"];
         };
         /**
          * SkillSuggestion
@@ -4599,7 +4651,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -4632,7 +4683,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -4665,7 +4715,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -4700,7 +4749,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -4799,7 +4847,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -4838,7 +4885,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -4874,7 +4920,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path: {
@@ -4913,7 +4958,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -4952,7 +4996,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -4993,7 +5036,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5032,7 +5074,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path: {
@@ -5071,7 +5112,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5106,7 +5146,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5143,7 +5182,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5178,7 +5216,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5215,7 +5252,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5250,7 +5286,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5287,7 +5322,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5322,7 +5356,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5359,7 +5392,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5394,7 +5426,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path: {
@@ -5433,7 +5464,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path: {
@@ -5470,7 +5500,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path: {
@@ -5509,7 +5538,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5544,7 +5572,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5583,7 +5610,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5616,7 +5642,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5653,7 +5678,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5688,7 +5712,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5725,7 +5748,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5760,7 +5782,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path: {
@@ -5795,7 +5816,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5831,7 +5851,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5869,7 +5888,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -5907,7 +5925,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -6007,7 +6024,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -6044,7 +6060,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -6077,7 +6092,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -6113,7 +6127,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -6148,7 +6161,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -6187,7 +6199,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -6226,7 +6237,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -6263,7 +6273,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -6296,7 +6305,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -6332,6 +6340,7 @@ export interface operations {
         parameters: {
             query?: {
                 scenario?: "moderate" | "fast";
+                include_suggestions?: boolean;
             };
             header?: never;
             path?: never;
@@ -6368,7 +6377,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -6405,7 +6413,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -6457,12 +6464,47 @@ export interface operations {
             };
         };
     };
+    profile_resolve_skill: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                "x-workspace"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SkillResolutionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SkillResolutionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     profile_get_my_profile: {
         parameters: {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -6492,10 +6534,11 @@ export interface operations {
     };
     profile_upload_cv: {
         parameters: {
-            query?: never;
+            query?: {
+                include_suggestions?: boolean;
+            };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -6532,7 +6575,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -6569,7 +6611,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -6807,7 +6848,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -6843,7 +6883,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path?: never;
@@ -6899,7 +6938,6 @@ export interface operations {
             };
             header?: {
                 "x-demo-user"?: string | null;
-                authorization?: string | null;
                 "x-workspace"?: string | null;
             };
             path: {

@@ -52,6 +52,10 @@ flowchart LR
 
 ## Public server and root deployment
 
+Replit's integrated PostgreSQL stores application data through `DATABASE_URL`.
+Repositories use psycopg directly; local development and CI use PostgreSQL 16 with
+`pgvector`. The same SQL migrations and seed loader serve both environments.
+
 The root `.replit` builds and starts through `src/scripts/replit.py`. Next.js is the
 only public HTTP listener (`0.0.0.0:3000`, mapped to external port 80). Its route
 handlers forward `/api/v1/*` to FastAPI bound to `127.0.0.1:8000`; server actions
@@ -131,8 +135,9 @@ regenerates both files and fails if they differ from what is committed.
 
 `AUTH_MODE=demo` (local accounts): `POST /auth/signup` and `/auth/login` return a signed session
 token (scrypt password hashes in `users`); the web keeps it in the httpOnly `adept_session` cookie
-and forwards it to the API as `X-Demo-User`. `AUTH_MODE=supabase` verifies bearer tokens with the configured JWT verifier;
-the local Compose environment uses local accounts.
+and forwards it to the API as `X-Demo-User`. Accounts live in Replit PostgreSQL for deployment
+and the local Compose database for development. `demo` is the retained configuration name
+for this signed-account flow, not an authentication bypass.
 
 ## Scenario and locale state
 

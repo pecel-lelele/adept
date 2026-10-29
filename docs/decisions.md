@@ -49,7 +49,7 @@
 - **Tooling choices**: `make` targets delegate to stdlib-only `src/scripts/dev.py` so Windows users without make can run `uv run --no-project python src/scripts/dev.py <target>`. Python deps installed with `uv pip install -r requirements.txt` into a root `.venv` (no `uv.lock`). `src/web` is a standalone pnpm project (`packageManager: pnpm@10.29.3`, run through `npx` if pnpm is missing). Added deps: `openapi-typescript` + `openapi-fetch` (typed client), `class-variance-authority`/`clsx`/`tailwind-merge` (shadcn/ui), `psycopg` (db + runner), `python-multipart` (CV upload). next-intl pinned to 4.4.0 because 4.5+ pulls in `@swc/core`, whose native binary failed to load on Windows here.
 - **Deviations from PROJECT_CONTEXT §11.6**: migrations use a ~60-line runner (`src/db/migrate.py`) instead of the dbmate binary, but the files use dbmate's `-- migrate:up` / `-- migrate:down` format and the same `schema_migrations` table, so switching to dbmate later needs no re-run. Docker maps Postgres to host port **5433** (5432 was already in use on the dev machine; override with `POSTGRES_PORT`).
 - **Project context path**: `PROJECT_CONTEXT.md` stays at `docs/PROJECT_CONTEXT.md` (no `docs/ai/` folder); the imports in `CLAUDE.md`/`GEMINI.md` and the references in `TEAM_RULES.md` and TEAM-001 were updated to match (path-only fix, agreed with the team lead).
-- **Unfinished / for owners**: no real ingestion, matching, pathway logic or LLM calls (all mocks); `AUTH_MODE=supabase` raises 501; repositories read mocks, not the database yet; courses are example.org placeholders (F5 must verify a real catalogue); SDG reasons are mock text pending review (F6); only 5 SDG targets seeded (F6 loads all 17 goals); ms/zh translations are first drafts to be reviewed by native speakers; web has no unit tests yet (only tsc + eslint); `.env.example` documents all variables.
+- **Unfinished / for owners**: no real ingestion, matching, pathway logic or LLM calls (all mocks); repositories read mocks, not the database yet; courses are example.org placeholders (F5 must verify a real catalogue); SDG reasons are mock text pending review (F6); only 5 SDG targets seeded (F6 loads all 17 goals); ms/zh translations are first drafts to be reviewed by native speakers; web has no unit tests yet (only tsc + eslint); `.env.example` documents all variables.
 - **Affects**: everyone
 - **Replaces**: none
 - **PR / branch**: `chore/skeleton`
@@ -74,6 +74,17 @@
 - **Validation**: Local instruction links, balanced code fences, Claude/Gemini entry-point parity, unique TEAM-004 ID, and `git diff --check` passed. `python src/scripts/dev.py check` passed translation parity but could not complete lint/tests/contracts without `.venv` or TypeScript checks without installed web dependencies. The retry outside the sandbox resolved npm access; remaining failures are missing local dependencies. No live database/model operations were used.
 - **Replaces**: TEAM-003 operating guidance where superseded; preserves its single-manual architecture
 - **PR / branch**: `docs/core-agent-guardrails`
+
+### TEAM-005: Replit PostgreSQL and signed local accounts only
+- **Date**: 2026-10-29
+- **Feature**: Core / all
+- **Type**: dependency | method | other
+- **Change**: Remove the unused external JWT authentication provider, verifier, claim mapping, web bypass, environment settings and sole-purpose PyJWT dependency. Keep the deployed `AUTH_MODE=demo` name for signed local accounts and use Replit's managed PostgreSQL through `DATABASE_URL`; local development/CI retain PostgreSQL 16 with pgvector. Production matching now requests strict trend snapshots using `APP_ENV=production` instead of an alternate auth mode.
+- **Why**: The user confirmed that the retired provider is not used for either storage or authentication and requested removal across code and documentation. Existing migrations, PostgreSQL access, password hashing, signed sessions and membership checks remain. At the user's explicit request to remove provider references everywhere, historical entries retain their original events but replace provider-specific setup details with a retirement note; public job-posting employer names remain source data, not integrations.
+- **Affects**: Core/F8 authentication, F4 trend reads, dependency manifests/lock, setup and architecture docs, agent stack guidance, submission source and PDFs
+- **Validation**: Full quality gate passed (980 tests, 32 opt-in/environment skips, 48 subtests), plus 26 client regressions and the production web build. The lockfile removes only the unused JWT package; other package versions are unchanged. Edited PDF pages were rendered and visually checked. Docker is unavailable, so no disposable PostgreSQL integration or live Replit database verification was performed.
+- **Replaces**: TEAM-002's alternate auth stub, M3-003's external JWT integration and stale provider guidance in the project context
+- **PR / branch**: `chore/core-replit-database-cleanup`
 
 ---
 
@@ -467,6 +478,29 @@
 - **Replaces**: M2-017's fast-fail policy for a busy worker
 - **PR / branch**: `feat/matching-scoring-engine`
 
+### M2-023: Alias-aware skill bank and abstaining search resolver
+- **Date**: 2026-10-29
+- **Feature**: F1 (Skills Profile Intake)
+- **Type**: method | contract | UI
+- **Change**: Return approved aliases from the skill catalogue and include them directly in the existing local manual-search filter. Add an authenticated, rate-limited POST resolver whose deduplicated union contains at most one alias, one fuzzy and one semantic candidate. Fuzzy uses each canonical skill's best label/alias `SequenceMatcher` score with `top_score >= 0.83` and `top_score - runner_up_score >= 0.05`; above-threshold ties/close scores abstain before embedding. Semantic remains the existing top-1 cosine rule, `>= 0.80` and lead `>= 0.015`, using only a ready index.
+- **Why**: The picker omitted approved aliases such as Microsoft Excel. Explicit query submission, a four-letter/digit minimum before semantic lookup, and a bounded in-memory wizard-session cache (including pending and empty results) prevent embedding requests per keystroke. Catalogue IDs/labels, dated attribution and human confirmation remain mandatory; provider failure retains deterministic candidates. No new dependency, migration or model default.
+- **Pipeline**: existing public taxonomy labels/aliases → NFKC/case/whitespace normalization and bounded query → per-skill string scores / existing optional embeddings → tier-specific top-1 gates and ID validation → nine-case production-function regression (three positives, two out-of-catalogue negatives, three short tokens, one close-score ambiguity; all pass at 0.83/0.05) → attributed proposals and explicit Add/confirmation.
+- **Affects**: F1 API contracts and generated client, manual intake picker and EN/MS/ZH copy, resolver rate bucket, README and F8 About-page embedding-purpose disclosure. Existing CV semantic suggestion path unchanged.
+- **Replaces**: none; preserves M4-061 semantic thresholds and top-1 output
+- **PR / branch**: `fix/profile-alias-resolver`
+
+### M2-024: Preserve CV status and avoid unused extraction/search work
+- **Date**: 2026-10-29
+- **Feature**: F1 (Skills Profile Intake)
+- **Type**: method | contract | UI
+- **Change**: Show empty-result feedback in intake and truncation warnings in both CV screens without restoring the wording list. Add `include_suggestions` to authenticated and preview CV extraction, defaulting to true for API compatibility; both web upload paths explicitly disable semantic suggestions. Reuse one fuzzy ranking for resolver candidates and ambiguity checks.
+- **Why**: Address three PR review findings: silent empty/truncated uploads, paid provider work for discarded suggestions, and duplicate catalogue comparisons. Preserve attribution, user confirmation, parsing limits and existing matching thresholds.
+- **Pipeline**: synthetic CV or submitted search → existing bounded parsing/normalization → catalogue matches and one fuzzy ranking → optional semantic suggestions only when requested → API opt-out/default and ranking-count regressions → extraction feedback and confirmed skill selection.
+- **Affects**: F1 service/router, guest preview, web upload screens, generated contracts and resolver
+- **Validation**: All 215 profile/preview tests and four skill-search client tests passed. Regressions verify that both CV APIs skip suggestion calls when disabled, preserve their default behaviour and return truncation/empty extraction metadata; the resolver scores the catalogue once. The complete quality gate and production web build also passed.
+- **Replaces**: M2-023's unchanged CV UI behaviour; preserves its resolver gates
+- **PR / branch**: `chore/core-replit-database-cleanup`
+
 ---
 
 ## M3: Pathway, SDG & Guardrails (F5, F6, F8)
@@ -497,7 +531,7 @@
 - **Date**: 2026-10-20
 - **Feature**: F8 (shared core)
 - **Type**: method | dependency
-- **Change**: `app/core/security/`: per (IP, route bucket) sliding-window rate limiter (LRU-capped, never evicts a throttled key, `X-Real-IP` trusted only with `PROXY_SHARED_SECRET`), Content-Length body limits (1 MB JSON, upload cap + slack), security headers (CSP `default-src 'none'` except `/docs`), prompt-injection sanitiser, filename sanitiser, regex PII redaction adapted to Malaysia (MyKad NRIC, passport, +60/0 phones; specific phone patterns so date ranges like 2019-2024 survive). Installed once from `create_app` before CORS. The web server forwards the client IP with the secret (`src/web/src/lib/api/server.ts`). `AUTH_MODE=supabase` now verifies Supabase HS256 JWTs (`aud=authenticated`, `exp`/`sub` required), fails closed (503) without `SUPABASE_JWT_SECRET`, and takes privilege only from `app_metadata`. New dependency: `pyjwt>=2.8,<3`. New env vars documented in `.env.example`.
+- **Change**: `app/core/security/`: per (IP, route bucket) sliding-window rate limiter (LRU-capped, never evicts a throttled key, `X-Real-IP` trusted only with `PROXY_SHARED_SECRET`), Content-Length body limits (1 MB JSON, upload cap + slack), security headers (CSP `default-src 'none'` except `/docs`), prompt-injection sanitiser, filename sanitiser, regex PII redaction adapted to Malaysia (MyKad NRIC, passport, +60/0 phones; specific phone patterns so date ranges like 2019-2024 survive). Installed once from `create_app` before CORS. The web server forwards the client IP with the secret (`src/web/src/lib/api/server.ts`). A former external JWT integration was added at this stage and later retired; see TEAM-005.
 - **Why**: The demo API needs no credentials, so abuse limits matter; KerjaCerdas already solved these with tests and a threat model. Simplified the limiter (no per-key locks: the critical section has no `await`).
 - **Affects**: everyone (middleware on every route; `main.py`, `auth.py`, `config.py`, `requirements.txt` touched)
 - **Replaces**: none
@@ -817,10 +851,10 @@
 - **Date**: 2026-10-25
 - **Feature**: Core (submission/deployment), F8 (disclosure)
 - **Type**: other
-- **Change**: Record the leader-confirmed Replit Core sponsor subscription, US$25 RunPod sponsor credits and Replit integrated PostgreSQL. Replace the unused Supabase service row in place, retaining PDF table order. Remove generic unspecified-plan placeholders; distinguish recommended Replit Asia/RunPod available-data-center scheduling from the unverified active geography.
+- **Change**: Record the leader-confirmed Replit Core sponsor subscription, US$25 RunPod sponsor credits and Replit integrated PostgreSQL. Replace the unused external-service row in place, retaining PDF table order. Remove generic unspecified-plan placeholders; distinguish recommended Replit Asia/RunPod available-data-center scheduling from the unverified active geography.
 - **Why**: The declaration omitted concrete benefits the team used and left an unused database provider in the services table. A known plan satisfies the Plan / Region field without inventing an active deployment location.
 - **Affects**: Submission text only; no account, database, region, billing or infrastructure changes
-- **Replaces**: M3-031's incomplete plan/credit details and the unused Supabase row
+- **Replaces**: M3-031's incomplete plan/credit details and the unused external-service row
 - **PR / branch**: docs/core-submission-accuracy
 
 ---

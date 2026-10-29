@@ -224,7 +224,7 @@ class PostgresStore:
             raise StorageUnavailableError(type(exc).__name__) from exc
 
     def _ensure_user(self, user_id: str) -> None:
-        # Supabase users have no row yet; demo personas are seeded. Never mark as synthetic.
+        # Ensure the account row exists for progress foreign keys. Never mark as synthetic.
         self._run(
             "INSERT INTO users (id, display_name, kind, is_synthetic) "
             "VALUES (%s, %s, 'learner', false) ON CONFLICT (id) DO NOTHING",

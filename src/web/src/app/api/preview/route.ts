@@ -31,7 +31,7 @@ export async function POST(request: Request) {
       headers["X-Real-IP"] = ip;
       headers["X-Internal-Proxy-Secret"] = PROXY_SECRET;
     }
-    const result = await fetch(API_URL + "/api/v1/preview/cv", {
+    const result = await fetch(API_URL + "/api/v1/preview/cv?include_suggestions=false", {
       method: "POST",
       body: form,
       headers,

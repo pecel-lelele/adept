@@ -145,8 +145,8 @@ dependency updates require a separate image rebuild/redeployment.
 **Sponsor resources used:** the team uses the sponsor-provided **Replit Core subscription**
 for the public prototype and Replit's integrated PostgreSQL database, plus **US$25 RunPod
 sponsor credits** for Serverless/inference usage. RunPod Serverless hosts the MiniLM research
-encoder, and a separate RunPod endpoint supplies Adi's configured GLM-5.3 model. Supabase is
-not the deployed database provider. These uses are declared in section 5 of the technical declaration.
+encoder, and a separate RunPod endpoint supplies Adi's configured GLM-5.3 model.
+These uses are declared in section 5 of the technical declaration.
 Google Gemini remains a separately declared provider integration; its presence alone is not
 a claim that the team received Google sponsor credits. Aiversecity is the domain alignment,
 not an API/resource usage claim. No mentoring participation or subscription duration is asserted.
@@ -242,9 +242,9 @@ provides versions, purposes and a fuller inventory.
 | openapi-fetch, openapi-typescript | code | MIT |
 | FastAPI, Pydantic, pydantic-settings | code | MIT |
 | Uvicorn | code | BSD-3-Clause |
+| Python standard library (signed sessions and password hashing) | code | PSF-2.0 |
 | psycopg 3, psycopg-pool | code | LGPL-3.0-only; binary bundle has additional notices |
 | python-multipart | code | Apache-2.0 |
-| PyJWT | code | MIT |
 | PyMuPDF | code | AGPL-3.0 or Artifex commercial licence |
 | HTTPX | code | BSD-3-Clause |
 | PostgreSQL 16, pgvector | code | PostgreSQL License |

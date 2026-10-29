@@ -61,8 +61,9 @@ def get_disclosure() -> Disclosure:
     if embeddings.enabled():
         purpose.append(
             f"Google {embeddings.model_name().split('@')[0]} embeddings (768 dimensions, stored "
-            "with pgvector) suggest the closest catalogue skill for CV skills-list phrases "
-            "Adept does not recognise. Only those short phrases are sent, after contact details "
+            "with pgvector) suggest the closest catalogue skill for unrecognised CV skills-list "
+            "phrases or an explicitly submitted skill-bank search. Only short phrases are sent, "
+            "after contact details "
             "are removed; suggestions are added only if you choose them."
         )
     return Disclosure(

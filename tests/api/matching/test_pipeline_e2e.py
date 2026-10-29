@@ -103,7 +103,7 @@ def test_saved_profile_to_ranked_match_http_pipeline(client: TestClient) -> None
             raise error_type("test database unavailable")
 
         started = time.monotonic()
-        live_settings = trend_port.get_settings().model_copy(update={"auth_mode": "supabase"})
+        live_settings = trend_port.get_settings().model_copy(update={"app_env": "production"})
         with (
             patch("app.features.matching.trend_port.get_settings", return_value=live_settings),
             patch("app.features.trends.service.get_snapshot", side_effect=database_failure),

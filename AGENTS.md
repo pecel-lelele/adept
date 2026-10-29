@@ -238,9 +238,9 @@ Use repository manifests, lockfiles, and current runtime configuration for exact
 |---|---|
 | **Backend** | Python 3.11, FastAPI, Pydantic v2 (strict validation) |
 | **Frontend** | Next.js 16 App Router, TypeScript (`strict: true`), Tailwind CSS v4, shadcn/ui |
-| **Database** | PostgreSQL 16 + `pgvector` extension |
+| **Database** | Replit integrated PostgreSQL for deployment; PostgreSQL 16 + `pgvector` for local development and CI |
 | **Migrations** | `dbmate`-compatible runner (`src/db/migrate.py`); timestamped SQL files |
-| **Auth** | `AUTH_MODE=demo` uses local signed accounts; `supabase` uses verified JWTs; deployment configuration decides |
+| **Auth** | `AUTH_MODE=demo` uses signed local accounts stored in PostgreSQL, including on Replit |
 | **Client Generation** | `openapi-typescript` + `openapi-fetch` → typed `types.ts` |
 | **Internationalisation** | `next-intl` (en, ms, zh); version in `src/web/package.json`, key parity enforced by `make check` |
 | **LLM (optional)** | Provider-agnostic gateway in `core/llm/`; default `LLM_PROVIDER=none` |

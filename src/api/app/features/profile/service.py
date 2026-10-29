@@ -98,7 +98,13 @@ def skill_catalogue() -> SkillCatalogueResponse:
     """Every taxonomy skill, sorted by label, for the skill picker."""
     rows = refdata.rows("taxonomy", "skills")
     options = [
-        SkillOption(id=r["id"], label=r["label"], group=r.get("description") or "") for r in rows
+        SkillOption(
+            id=r["id"],
+            label=r["label"],
+            group=r.get("description") or "",
+            aliases=[a.strip() for a in (r.get("aliases") or "").split("|") if a.strip()],
+        )
+        for r in rows
     ]
     tags = {
         tag.strip()
@@ -131,6 +137,8 @@ def extract_cv(
     filename: str,
     content: bytes,
     content_type: str = "text/plain",
+    *,
+    include_suggestions: bool = True,
 ) -> CvExtractionResult:
     """Run the real CV parsing pipeline and return structured results.
 
@@ -160,7 +168,7 @@ def extract_cv(
             similarity=s.similarity,
             runner_up=s.runner_up,
         )
-        for s in skill_match.suggest(unmatched, exclude=found)
+        for s in (skill_match.suggest(unmatched, exclude=found) if include_suggestions else [])
     ]
     return CvExtractionResult(
         skills=skills,

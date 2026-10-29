@@ -153,7 +153,7 @@ statistics; and an open demo API is easy to abuse.
   every input model); counterfactual tests check that identical skills, hours and budget give
   identical pathways regardless of identity.
 - **API security**: per-IP sliding-window rate limiting, request-size limits, capped upload reads,
-  security headers, JWT verification for the Supabase auth mode, Postgres bound to localhost.
+  security headers, signed local session verification, local Postgres bound to localhost.
 
 ## 5. Security design references and provenance
 
@@ -169,7 +169,7 @@ source-code comparison. Historical decisions remain intact; M3-028 records the c
 | Sliding-window limits and bounded counters | `core/security/rate_limit.py` | Per-IP/route buckets, capped state and trusted-proxy checks |
 | Input filtering and request-size limits | `core/security/sanitize.py`, `body_limit.py` | CV uploads, JSON bodies and LLM-bound text |
 | Contact-data redaction | `core/security/pii.py` | Malaysian identity/phone formats and CV date-range preservation |
-| Fail-closed JWT verification | `core/security/tokens.py` | Optional Supabase HS256 verification and trusted privilege fields |
+| Signed session verification | `core/security/session.py`, `core/auth.py` | Signed account identity and server-checked organisation membership |
 | Circuit breaker and structured selection | `core/llm/gateway.py` | Provider failures and validated candidate IDs |
 | Response security headers | `core/security/headers.py` | API response headers |
 | Distinguishable evidence levels | Pathway progress and verification | Self-reported completion remains distinct from reviewed evidence |
