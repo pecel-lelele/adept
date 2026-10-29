@@ -105,7 +105,7 @@ jobs:
         run: pnpm test:proxy
 
       - name: Navigation regressions
-        run: node --experimental-strip-types --test tests/web-navigation.test.ts tests/web-api-recovery.test.ts
+        run: node --experimental-strip-types --test tests/web-navigation.test.ts tests/web-api-recovery.test.ts tests/web-safe-redirect.test.ts
 
       # Stdlib-only script: no virtualenv needed.
       - name: Translation keys match English

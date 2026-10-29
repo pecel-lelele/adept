@@ -29,7 +29,11 @@ export function getSafeRedirectPath(
     const appOrigin = new URL(origin).origin;
     if (resolved.origin !== appOrigin) return fallback;
     // Return only the path portion — never the raw user input string.
-    return resolved.pathname + resolved.search + resolved.hash;
+    const path = resolved.pathname + resolved.search + resolved.hash;
+    // A same-origin absolute URL can have a // pathname. Emitting that pathname
+    // as Location would make the browser interpret it as an external authority.
+    if (new URL(path, origin).origin !== appOrigin) return fallback;
+    return path;
   } catch {
     return fallback;
   }

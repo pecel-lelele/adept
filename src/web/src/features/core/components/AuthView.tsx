@@ -69,14 +69,21 @@ export function AuthView() {
       <div className="a-auth">
         <section className="a-auth-card" aria-labelledby="auth-title" data-page={page}>
           {/* Back arrow + tab switcher share one grid row so the card layout isn't disrupted.
-              Uses a plain <a> (not <Link>) so clicking Back always does a full page load —
-              this bypasses the Next.js router cache and ensures the landing page is freshly
-              server-rendered with the current session cookie, keeping the user logged in. */}
+              A full navigation refreshes the landing page with the current session cookie. */}
           <div>
-            <a href="/" className="a-auth-back" aria-label={t("backHome")}>
+            <Link
+              href="/"
+              prefetch={false}
+              className="a-auth-back"
+              aria-label={t("backHome")}
+              onNavigate={(event) => {
+                event.preventDefault();
+                window.location.assign(new URL("/", window.location.origin).href);
+              }}
+            >
               <ArrowLeft size={16} aria-hidden />
               <span>{t("back")}</span>
-            </a>
+            </Link>
             <div className="a-tabswitch" role="tablist" data-active={page}>
               {(["login", "signup"] as const).map((p) => (
                 <Link key={p} href={tabHref(p)} replace scroll={false} role="tab" aria-selected={page === p}>

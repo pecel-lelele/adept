@@ -171,7 +171,6 @@ export async function LandingView({ audience }: { audience: Audience }) {
     getAccount(),
     getApi().then((api) => call(api.GET("/api/v1/meta/overview"))),
   ]);
-  const home = account ? (account.kind === "org_admin" ? "/org" : "/app") : null;
   // For logged-in individual users the team CTAs go to "Join an organisation" instead of the
   // default dashboard; org_admin users already have a team workspace so send them straight there.
   const teamHome = account ? (account.kind === "org_admin" ? "/org" : "/app/join") : null;
