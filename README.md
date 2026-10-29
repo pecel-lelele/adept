@@ -110,7 +110,7 @@ For the optional **database-only** local Compose service:
 
 ```bash
 # Export POSTGRES_PASSWORD in your shell first; never commit it.
-docker compose -f docker-compose.yml up -d --wait db
+docker compose -f docker-compose.db.yml up -d --wait db
 uv run --frozen python src/scripts/dev.py db-migrate
 uv run --frozen python src/scripts/dev.py seed
 uv run --frozen python src/scripts/dev.py dev
@@ -121,8 +121,21 @@ Next.js defaults to port 3000 and honors `PORT`; FastAPI honors `API_PORT` (defa
 For a custom API port, also point `API_URL` at it. Use the same commands in PowerShell;
 setting an environment variable there uses `$env:NAME='value'`.
 
-Replit Preview uses the root development command in [replit.md](replit.md). App containers are not part of the current local Compose file.
+Database-only commands (`make setup`, `make dev`, `make db-up`, and `make db-down`) use
+`docker-compose.db.yml` and do not require `SESSION_SECRET`. The full local stack in
+`docker-compose.yml` reuses that database definition and requires a private, generated
+`SESSION_SECRET` for its API container. Both files use the same project database volume.
+
+Replit Preview uses the root development command in [replit.md](replit.md).
 Migrations/seeding are explicit setup operations, not production startup actions.
+
+Run `make check` (or `.venv/Scripts/python.exe src/scripts/dev.py check` on Windows)
+for the quality gate. Tests isolate the database by default, so PostgreSQL checks skip.
+To include them, set `ADEPT_TEST_DATABASE_URL` to an explicitly selected disposable
+PostgreSQL database after applying migrations and seeds to that same database. Tests
+write data and terminate their own pooled sessions; use neither a shared nor a production
+database. The CI database job runs these integration checks and trend export comparisons.
+Passed subtests are successful cases inside workflow-security tests, not skipped checks.
 
 **Try the app:** choose one of the [five complete synthetic demo CVs and intake profiles](submission/demo-cvs/),
 create an invented `example.test` account, and follow **Radar → Roles → Plan → Progress → Jobs**.

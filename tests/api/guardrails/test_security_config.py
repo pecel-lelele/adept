@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[3]
 
 
 def test_postgres_port_is_bound_to_localhost_by_default() -> None:
-    compose = (ROOT / "docker-compose.yml").read_text(encoding="utf-8")
+    compose = (ROOT / "docker-compose.db.yml").read_text(encoding="utf-8")
     ports = re.findall(r'-\s*"([^"]+):5432"', compose)
     assert ports, "db service must publish 5432"
     for mapping in ports:

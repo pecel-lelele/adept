@@ -1720,3 +1720,25 @@
 - **Affects**: Auth Back navigation, landing lint, and frontend CI. No dependency, database, or API contract changes.
 - **Replaces**: none
 - **PR / branch**: feat/core-sidebar-home-button
+
+
+### M4-080: Isolate database-only Compose from API secret interpolation
+- **Date**: 2026-10-30
+- **Feature**: Core local development
+- **Type**: method
+- **Change**: Move the local database definition to `docker-compose.db.yml`, reused through `extends` by the full stack. Route database startup and shutdown through the database-only file, preserving the project volume and the full-stack API's required private SESSION_SECRET.
+- **Why**: Compose interpolates every service before selecting db, so the blank example secret prevented setup, dev and db-up from starting PostgreSQL. A separate database file avoids supplying a dummy signing key or weakening API validation.
+- **Affects**: Local setup/dev/db-up/db-down, full-stack Compose database definition and onboarding documentation. No database contents, schema, provider or production changes.
+- **Replaces**: M4-078's assumption that the full-stack Compose file can start db with an empty API secret.
+- **PR / branch**: feat/core-sidebar-home-button
+
+
+### M4-081: Cover database-dependent checks with explicit disposable test state
+- **Date**: 2026-10-30
+- **Feature**: Core verification and F2 trend fixture validation
+- **Type**: method
+- **Change**: Include trend fixture/database export comparisons in the existing PostgreSQL CI job and document ADEPT_TEST_DATABASE_URL as the explicit opt-in for local database coverage. Keep default tests isolated from developer databases.
+- **Why**: The isolated run skipped 30 PostgreSQL tests and two export comparisons; the CI database job already enabled the former but omitted the latter. Passed workflow-security subtests are successful coverage and need no removal.
+- **Affects**: Database CI and local verification documentation; no runtime, schema, dependencies or fixture changes.
+- **Replaces**: none
+- **PR / branch**: feat/core-sidebar-home-button

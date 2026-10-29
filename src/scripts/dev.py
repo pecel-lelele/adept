@@ -109,7 +109,7 @@ def db_up(required: bool = True) -> bool:
             raise TaskError(msg)
         log(msg)
         return False
-    run(["docker", "compose", "up", "-d", "--wait", "db"])
+    run(["docker", "compose", "-f", "docker-compose.db.yml", "up", "-d", "--wait", "db"])
     return True
 
 
@@ -118,7 +118,7 @@ def task_db_up() -> None:
 
 
 def task_db_down() -> None:
-    run(["docker", "compose", "down"])
+    run(["docker", "compose", "-f", "docker-compose.db.yml", "down"])
 
 
 def task_db_migrate() -> None:
