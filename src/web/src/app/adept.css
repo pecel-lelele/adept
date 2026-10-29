@@ -6,7 +6,7 @@
 :root {
   --a-ink: #18231c;
   --a-ink-2: #33443a;
-  --a-muted: #758078;
+  --a-muted: #5b685f;
   --a-paper: #ffffff;
   --a-surface: #ffffff;
   --a-sunken: #f7f9f6;
@@ -103,7 +103,7 @@
 .a-col { min-width: 0; display: flex; flex-direction: column; }
 .a-mobile-scenario { display: none; }
 .a-main { flex: 1; width: 100%; max-width: 1320px; padding: 40px clamp(24px, 3.4vw, 48px) 32px; min-width: 0; }
-.a-foot { max-width: 1320px; padding: 18px clamp(24px, 3.4vw, 48px) 30px; font-size: 11px; color: #8f9a91; }
+.a-foot { max-width: 1320px; padding: 18px clamp(24px, 3.4vw, 48px) 30px; font-size: 11px; color: var(--a-muted); }
 .a-locale button { height: 30px; min-width: 34px; padding: 0 10px; font-size: 11px; white-space: nowrap; line-height: 1; }
 .a-locale-select { background: var(--a-surface); color: var(--a-ink-2); border: 1px solid var(--a-line); border-radius: 8px; font: inherit; font-size: 12px; padding: 6px 8px; }
 
@@ -279,6 +279,7 @@
 .a-choice { position: relative; display: grid; gap: 7px; padding: 18px 16px; border-radius: 10px; border: 1px solid var(--a-line); background: var(--a-surface); cursor: pointer; }
 .a-choice input { position: absolute; opacity: 0; pointer-events: none; }
 .a-choice:has(input:checked) { border-color: #84c88d; background: #f3faf0; box-shadow: 0 0 0 1px #84c88d; }
+.a-choice:has(input:focus-visible) { outline: 3px solid var(--a-deep); outline-offset: 3px; }
 .a-choice strong { font-size: 13.5px; font-weight: 500; }
 .a-choice span { font-size: 12px; color: var(--a-muted); font-weight: 400; }
 .a-choice-icon { width: 36px; height: 36px; border-radius: 9px; display: grid; place-items: center; background: #f4f7f1; border: 1px solid #e4ebe1; color: #648065; }
@@ -476,14 +477,14 @@ a.a-chip:hover { transform: translateY(-1px); }
 @property --a-soft { syntax: "<color>"; inherits: true; initial-value: #f0f6eb; }
 @property --a-ink { syntax: "<color>"; inherits: true; initial-value: #18231c; }
 @property --a-ink-2 { syntax: "<color>"; inherits: true; initial-value: #33443a; }
-@property --a-muted { syntax: "<color>"; inherits: true; initial-value: #758078; }
+@property --a-muted { syntax: "<color>"; inherits: true; initial-value: #5b685f; }
 @property --a-accent { syntax: "<color>"; inherits: true; initial-value: #22c55e; }
 .a-audience { background: var(--a-paper); color: var(--a-ink); }
 /* Team = the partner's organisation palette: light sage pages, deep forest-green brand blocks
    and actions, mint highlights. Individuals stay white with bright green. */
 .a-audience[data-audience="team"] {
   --a-paper: #f3f6f1; --a-surface: #ffffff; --a-sunken: #eaf1e7; --a-line: #dbe5d8; --a-soft: #e4eedf;
-  --a-ink: #16261c; --a-ink-2: #2e4535; --a-muted: #62766a;
+  --a-ink: #16261c; --a-ink-2: #2e4535; --a-muted: #5b685f;
   --a-accent: #294e37; --a-accent-hover: #336145; --a-accent-edge: #17301f; --a-accent-ink: #ffffff;
   --a-forest: #234430;
 }

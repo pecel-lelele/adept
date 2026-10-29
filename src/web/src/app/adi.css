@@ -85,7 +85,7 @@
 .adi-form textarea:focus { outline: none; border-color: #84c88d; box-shadow: 0 0 0 3px #22c55e26; }
 .adi-send { width: 44px; height: 44px; border-radius: 14px; border: 0; background: var(--a-accent, #22c55e); color: var(--a-accent-ink, #092d14); display: grid; place-items: center; cursor: pointer; box-shadow: 0 3px 0 var(--a-accent-edge, #18a849); }
 .adi-send:disabled { opacity: .45; cursor: not-allowed; }
-.adi-foot { margin: 0; padding: 0 14px 10px; font-size: 11px; color: #758078; display: flex; gap: 5px; align-items: center; }
+.adi-foot { margin: 0; padding: 0 14px 10px; font-size: 11px; color: var(--a-muted, #5b685f); display: flex; gap: 5px; align-items: center; }
 
 /* phones: above the workspace tab bar; the panel fills the width */
 @media (max-width: 900px) {

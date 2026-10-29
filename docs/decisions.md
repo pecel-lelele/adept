@@ -257,6 +257,16 @@
 - **Replaces**: none
 - **PR / branch**: `fix/core-review-upgrades`
 
+### TEAM-023: Contrast-safe muted text and heatmap labels (review 3.8)
+- **Date**: 2026-10-30
+- **Feature**: Core / F1 / F7
+- **Type**: UI
+- **Change**: Darken the existing muted green-grey token, including its registered default and team override; use it for disclaimer text. Keep heatmap background hues and calculate the higher-contrast black/white label from relative luminance. Add a visible deep-green focus outline around intake radio cards.
+- **Why**: Small text must reach 4.5:1 on white and sage surfaces. A fixed heatmap value threshold selected white text before the background was dark enough. Regression checks measure the actual rendered cell styles over the entire clamped range.
+- **Affects**: Muted copy, disclaimer, team heatmap labels and keyboard intake focus
+- **Replaces**: none
+- **PR / branch**: `fix/core-review-upgrades`
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)
