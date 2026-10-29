@@ -197,6 +197,16 @@
 - **Replaces**: none
 - **PR / branch**: `fix/core-review-upgrades`
 
+### TEAM-017: Protect current role with membership sharing consent (review 3.2)
+- **Date**: 2026-10-29
+- **Feature**: F7
+- **Type**: method
+- **Change**: Return null for a member's current role unless that organisation's skill-sharing consent is active, in both PostgreSQL and the fixture store. Keep the stored profile unchanged when consent is revoked.
+- **Why**: A role is profile data and must follow the same explicit consent boundary as skill levels.
+- **Affects**: Organisation member responses
+- **Replaces**: none
+- **PR / branch**: `fix/core-review-upgrades`
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)
