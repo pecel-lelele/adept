@@ -3,6 +3,16 @@ import test from "node:test";
 
 import { loadComponent, React, renderToStaticMarkup, translations } from "./harness/web-components.ts";
 
+test("zero-skill matches show the translated add-skills notice in list and detail views", () => {
+  for (const locale of ["en", "ms", "zh"]) {
+    const { ProfileNote } = loadComponent("src/features/matching/components/ProfileNote.tsx", { "next-intl": translations(locale) });
+    const html = renderToStaticMarkup(React.createElement(ProfileNote, { note: "add_skills" }));
+    assert.ok(html.includes(translations(locale).useTranslations("matching")("addSkillsNote")));
+    assert.match(html, /role="status"/);
+    assert.equal(renderToStaticMarkup(React.createElement(ProfileNote, {})), "");
+  }
+});
+
 test("match cards show only the top three improvements with grounded course links or an honest gap", () => {
   for (const locale of ["en", "ms", "zh"]) {
     const { MatchImprovements } = loadComponent("src/features/matching/components/MatchImprovements.tsx", {

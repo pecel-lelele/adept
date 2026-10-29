@@ -1,4 +1,5 @@
 {
+  "addSkillsNote": "添加技能以获得更准确的匹配。目前的估计使用您的兴趣和趋势信号，尚未计入技能重合分数。",
   "improvementsTitle": "如何提高匹配分数",
   "scenarioDelta": "相比{scenario}情景：{delta}分",
   "scoreGain": "弥补此差距后，预计提高 {gain} 分",

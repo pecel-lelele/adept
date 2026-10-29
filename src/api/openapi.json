@@ -10483,6 +10483,19 @@
             "type": "array",
             "title": "Improvements"
           },
+          "profile_note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "add_skills"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Note",
+            "description": "A sparse-profile notice; translate the code for display."
+          },
           "trend_coverage": {
             "anyOf": [
               {

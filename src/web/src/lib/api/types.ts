@@ -3529,6 +3529,11 @@ export interface components {
             /** Improvements */
             improvements?: components["schemas"]["ScoreImprovement"][];
             /**
+             * Profile Note
+             * @description A sparse-profile notice; translate the code for display.
+             */
+            profile_note?: "add_skills" | null;
+            /**
              * Trend Coverage
              * @description Share of the role's skill importance that had a trend value in the snapshot; None for mock responses. Low coverage means many skills fell back to neutral.
              */

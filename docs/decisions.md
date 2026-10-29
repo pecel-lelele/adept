@@ -237,6 +237,16 @@
 - **Replaces**: M2-020 (production matching outage behavior only; bounded strict reads remain)
 - **PR / branch**: `fix/core-review-upgrades`
 
+### TEAM-021: Return preliminary matches for saved zero-skill profiles (review 3.6)
+- **Date**: 2026-10-29
+- **Feature**: F4
+- **Type**: contract, UI
+- **Change**: Allow a saved profile without confirmed or earned skills through the existing scorer. Skill overlap contributes zero; trend and interest determine ranking under the unchanged 0.45/0.25/0.30 weights. Return an add_skills notice code and render its EN/MS/ZH explanation on match list and detail views.
+- **Why**: An empty skill list should offer a usable first ranking and a clear next step. Keeping the existing score scale preserves explainability and improvement deltas rather than fabricating skill credit. Profiles with no saved intake still receive profile_required.
+- **Affects**: Matching profile loader and role response, generated contracts, match notices
+- **Replaces**: none
+- **PR / branch**: `fix/core-review-upgrades`
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)

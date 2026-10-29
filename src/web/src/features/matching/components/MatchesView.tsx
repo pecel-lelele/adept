@@ -18,6 +18,7 @@ import { SnapshotPicker } from "./SnapshotPicker";
 import { MatchImprovements } from "./MatchImprovements";
 import { ScenarioDelta } from "./ScenarioDelta";
 import { MatchSdgTargets } from "./MatchSdgTargets";
+import { ProfileNote } from "./ProfileNote";
 
 /** One horizontal bar per score part: how much each part contributed to the fit. */
 function ScoreParts({ parts, labels, score }: { parts: Schemas["ScoreComponent"][]; labels: Record<string, string>; score: number }) {
@@ -102,6 +103,7 @@ export async function MatchesView({
         <ErrorState failure={result} />
       ) : (
         <>
+          <ProfileNote note={result.data.matches[0]?.profile_note} />
           {(
             [
               ["ready", result.data.matches.filter((m) => overlapOf(m) >= READY_OVERLAP)],

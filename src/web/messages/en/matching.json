@@ -1,5 +1,6 @@
 {
   "title": "Your future-role matches",
+  "addSkillsNote": "Add skills for a sharper match. This estimate currently uses your interests and trend signals; no skill overlap is credited yet.",
   "improvementsTitle": "What would raise your score",
   "scenarioDelta": "{delta} points vs {scenario}",
   "scoreGain": "Estimated +{gain} score points when this gap is closed",

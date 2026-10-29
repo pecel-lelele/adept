@@ -143,11 +143,6 @@ def _load_profile(user_id: str) -> MatchProfile:
             "Please complete your profile intake first."
         )
     profile = profile_service.get_my_profile(user_id)
-    if not profile.skills:
-        raise ProfileRequiredError(
-            f"Profile required: user '{user_id}' has no saved skills. "
-            "Please confirm your skills before matching roles."
-        )
 
     # Use user's skill level (1-5 scale) directly for required_level comparison
     # Completed learning with accepted evidence (reviewer-confirmed, or a certificate on the
@@ -267,6 +262,7 @@ def _score_to_contract(
         partial_skills=[_skill_obj(s) for s in gap.get("partial", [])],
         sdg_targets=fetch_role_badges(role_id),
         improvements=improvements,
+        profile_note="add_skills" if not user_levels else None,
         trend_coverage=round(role_score.trend_coverage, 4),
         meta=meta,
     )

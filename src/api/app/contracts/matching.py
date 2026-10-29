@@ -1,5 +1,7 @@
 """F4 Future-role matching (owner M2)."""
 
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 from app.contracts.common import RecommendationMeta
@@ -46,6 +48,9 @@ class RoleMatch(BaseModel):
     partial_skills: list[Skill]
     sdg_targets: list[SdgTarget]
     improvements: list[ScoreImprovement] = Field(default_factory=list)
+    profile_note: Literal["add_skills"] | None = Field(
+        default=None, description="A sparse-profile notice; translate the code for display."
+    )
     trend_coverage: float | None = Field(
         default=None,
         ge=0,

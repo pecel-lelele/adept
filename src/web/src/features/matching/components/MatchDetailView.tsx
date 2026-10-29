@@ -14,6 +14,7 @@ import { fetchMatch } from "../api";
 import { componentLabels } from "./labels";
 import { MatchImprovements } from "./MatchImprovements";
 import { MatchSdgTargets } from "./MatchSdgTargets";
+import { ProfileNote } from "./ProfileNote";
 
 /**
  * One role, in the same context as the list it was opened from (scenario, snapshot date and
@@ -74,6 +75,7 @@ export async function MatchDetailView({
       </PageHeader>
       <HistoricalSnapshotBanner date={snapshotDate} latestHref={`/app/matches/${encodeURIComponent(roleId)}?scenario=${scenario}${sdgWeight > 0 ? `&sdg=${sdgWeight.toFixed(2)}` : ""}`} />
 
+      <ProfileNote note={m.profile_note} />
       <div className="a-split">
         <section className="a-card" aria-labelledby="h-breakdown">
           <div className="a-card-head">
