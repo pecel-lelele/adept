@@ -22,23 +22,7 @@ from app.features.assistant import guide
 
 log = get_logger("app.assistant")
 _TAG = re.compile(r"\[\[(role|skill|course|sdg|page):([^\]\s]{1,100})\]\]")
-_INTENTS = (
-    "trend_declining",
-    "score_improvement",
-    "score_breakdown",
-    "privacy",
-    "how",
-    "trend",
-    "cost",
-    "sdg",
-    "learn",
-    "roles",
-    "next",
-    "team",
-    "plan_progress",
-    "plan_duration",
-    "plan_cost",
-)
+_INTENTS = tuple(guide.INTENTS)
 
 
 def _clean_question(text: str) -> str:
@@ -104,6 +88,8 @@ def to_parts(text: str, ctx: ctx_mod.Context) -> tuple[list[AnswerPart], list[st
 def _candidates(ctx: ctx_mod.Context, body: AssistantIn) -> dict[str, str]:
     candidates: dict[str, str] = {}
     for kind in _INTENTS:
+        if kind in guide.SAFETY_INTENTS:
+            continue
         if kind in guide.PERSONAL_PLAN_INTENTS and ctx.audience not in ("learner", "employee"):
             continue
         if kind == "team" and ctx.audience != "manager":
@@ -118,15 +104,28 @@ def _candidates(ctx: ctx_mod.Context, body: AssistantIn) -> dict[str, str]:
 def answer(
     user: CurrentUser | None, body: AssistantIn, deadline: float | None = None
 ) -> AssistantReply:
-    ctx = ctx_mod.build(user, body.scenario)
+    answer_kind = guide.intent(body.messages[-1].content, ctx_mod.audience_of(user))
+    if answer_kind in guide.SAFETY_INTENTS:
+        ctx = ctx_mod.Context(
+            audience=ctx_mod.audience_of(user),
+            workspace=user.org_id
+            if user and user.workspace == "org" and user.org_id
+            else "personal",
+        )
+    else:
+        ctx = ctx_mod.build(user, body.scenario)
     question = _clean_question(body.messages[-1].content)
-    answer_kind = guide.intent(question, ctx.audience)
-    text = guide.reply(question, ctx, body.locale)
+    ctx = guide.focus_context(question, ctx)
+    if answer_kind == "scenario":
+        ctx_mod.add_scenario_comparison(ctx, user, body.scenario)
+    text = guide.reply_for_intent(answer_kind, ctx, body.locale)
     meta = ctx.plan_meta if answer_kind in guide.PERSONAL_PLAN_INTENTS else ctx.meta
     used_llm = False
     model, name = "", "none"
     # Context can exhaust the request budget. Never start paid work for an expired request.
-    if deadline is None or time.monotonic() < deadline:
+    if answer_kind not in guide.SAFETY_INTENTS and (
+        deadline is None or time.monotonic() < deadline
+    ):
         try:
             provider = get_provider()
             if provider.name != "none":
@@ -150,11 +149,7 @@ def answer(
                     selected = select_ids(task, candidates, provider).ids
                 if not 1 <= len(selected) <= 2:
                     raise LLMUnavailableError("Select one or two answer blocks")
-                if answer_kind in guide.PERSONAL_PLAN_INTENTS or answer_kind in {
-                    "trend_declining",
-                    "score_improvement",
-                    "score_breakdown",
-                }:
+                if answer_kind not in {"next", "how"}:
                     if answer_kind not in selected:
                         raise LLMUnavailableError("Selection omitted the requested grounded facts")
                     selected = [answer_kind]

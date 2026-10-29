@@ -29,6 +29,7 @@ PAGES: dict[str, str] = {
     "/app/pathway/compare": "Compare roles",
     "/app/progress": "Progress and badges",
     "/app/courses": "Course catalogue",
+    "/app/jobs": "Job openings",
     "/app/sdg": "SDG impact",
     "/app/join": "Join an organisation",
     "/work": "Organisation home",
@@ -226,6 +227,12 @@ def _learner(ctx: Context, user: CurrentUser, scenario: ScenarioId) -> None:
         p = plan.pathway
         ctx.plan_meta = getattr(p, "meta", None)
         ctx.facts["plan_role"] = plan.role_id
+        ctx.facts["plan_sdg_targets"] = list(
+            dict.fromkeys(
+                link.target.target
+                for link in (_try("plan SDG links", lambda: sdg_service.links_for_plan(p)) or [])
+            )
+        )
         ctx.facts["plan_totals"] = {
             "weeks": p.total_weeks,
             "hours_per_week": p.hours_per_week,
@@ -275,6 +282,37 @@ def _learner(ctx: Context, user: CurrentUser, scenario: ScenarioId) -> None:
             )
         ctx.grounded_on.append("your plan")
     _trends(ctx, scenario, own)
+
+
+def add_scenario_comparison(ctx: Context, user: CurrentUser | None, scenario: ScenarioId) -> None:
+    """Compare the same person's profile on both stored scenarios at one snapshot date."""
+    if user is None or ctx.audience != "learner" or ctx.meta is None:
+        return
+    from app.features.matching import service as matching_service
+
+    other: ScenarioId = "fast" if scenario == "moderate" else "moderate"
+    alternative = _try(
+        "other scenario", lambda: matching_service.list_matches(user, other, ctx.meta.snapshot_date)
+    )
+    if alternative is None or alternative.meta.snapshot_date != ctx.meta.snapshot_date:
+        return
+    after = {
+        match.role_id: (rank, match.score)
+        for rank, match in enumerate(alternative.matches, start=1)
+    }
+    rows = [
+        {
+            "role_id": match["role_id"],
+            "before": match["score"],
+            "after": after[match["role_id"]][1],
+            "rank_before": rank,
+            "rank_after": after[match["role_id"]][0],
+        }
+        for rank, match in enumerate(ctx.facts.get("matches", []), start=1)
+        if match["role_id"] in after
+    ]
+    if rows:
+        ctx.facts["scenario_comparison"] = {"before": scenario, "after": other, "roles": rows}
 
 
 def _org_name(ctx: Context, user: CurrentUser) -> bool:

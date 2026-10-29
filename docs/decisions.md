@@ -167,6 +167,16 @@
 - **Replaces**: none
 - **PR / branch**: `fix/core-review-upgrades`
 
+### TEAM-014: Scored, grounded Adi intent routing and the review matrix (review 2.6)
+- **Date**: 2026-10-29
+- **Feature**: Core/F8
+- **Type**: method
+- **Change**: Score keyword hits across intents with conservative difflib typo tolerance and low generic weights, while keeping people decisions, injection refusal and other-person privacy ahead of scoring. Safety replies load no private context and invoke no provider. Add grounded source, scenario, SDG-definition, forecast-limit, unsupported-action and missing-data answers; resolve ordinal roles against current rankings. Specific intents cannot be replaced by generic model selections.
+- **Why**: First-match overlap sent realistic questions to unrelated blocks. Facts come from the catalogue, current user's plans/matches and source metadata; scenario comparison calls the production matcher at the same snapshot. Missing facts are stated rather than guessed.
+- **Affects**: Adi guide, context and answer selection; the user's verbatim 40-row EN/MS/ZH matrix, guard precedence, typo and missing-context regressions
+- **Replaces**: none
+- **PR / branch**: `fix/core-review-upgrades`
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)
