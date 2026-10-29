@@ -40,7 +40,7 @@ Gap responses and SDG badges use M3's service ports. Persona CSVs are harness-on
 |---|---|---|
 | Source | Seed taxonomy (`roles.csv`, `role_skills.csv`), user profiles (`user_skills.csv`, `profiles.csv`), trend snapshots | Canonical skills (110) & roles (4 future target roles) |
 | Preprocessing / cleaning | Preserve proficiency levels 1–5 in production and evaluation; parse interest tags | Absent skill = 0; credit = `min(user_level / required_level, 1)` |
-| Features | Skill overlap (`w=0.45`), percentile-ranked trend velocity (`w=0.25`), interest Jaccard fit (`w=0.3`) | Robust to outlier velocities; deterministic weights |
+| Features | Skill overlap (`w=0.45`), trend velocity normalized over the union of both scenarios (`w=0.25`), interest Jaccard fit (`w=0.3`) | Shared min-max bounds per dated snapshot; deterministic weights |
 | Model / method | Linear composite scoring with tie-breaking on `(-score, role_id)`, gap bucketing | Pure scoring functions; `MatchProfile` fairness whitelist |
 | Evaluation | Precision@k, Recall@k, MRR, nDCG@k on synthetic personas | Mean MRR=1.0, Mean P@3>=0.85, Mean nDCG@3>=0.90 |
 | Serving | `/api/v1/matches` (`list_matches`, `get_match`) | Explainable `ScoreComponent` breakdown, missing/partial skills and trend coverage |

@@ -62,6 +62,7 @@ class TrendSnapshot:
     observed_to: date | None = None
     served_from: SourceType = "db"
     is_fallback: bool = False
+    reference_velocities: dict[str, float] | None = None
 
 
 def fetch_snapshot(scenario: ScenarioId, snapshot_date: date | None = None) -> TrendSnapshot:
@@ -108,6 +109,12 @@ def fetch_snapshot(scenario: ScenarioId, snapshot_date: date | None = None) -> T
         observed_to=snap.meta.observed_to,
         served_from=snap.meta.served_from,
         is_fallback=snap.meta.is_fallback,
+        reference_velocities={
+            item.skill_id: float(
+                getattr(item, "velocity_fast" if scenario == "moderate" else "velocity_moderate")
+            )
+            for item in snap.items
+        },
     )
 
 

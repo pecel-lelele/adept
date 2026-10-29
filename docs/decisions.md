@@ -126,6 +126,17 @@
 - **Replaces**: none
 - **PR / branch**: `fix/core-review-upgrades`
 
+### TEAM-010: Share the scenario reference range without forcing rank changes (review 2.2)
+- **Date**: 2026-10-29
+- **Feature**: F2/F4 and Core
+- **Type**: formula
+- **Change**: Normalize skill velocity with min-max bounds over both stored scenarios in each snapshot; matching, detail and replay use those same bounds. Preserve full score-component precision so API ordering matches its scores. Show each card's score difference from the other scenario's API response. Weights remain 0.45/0.25/0.30.
+- **Why**: Independent percentiles erased magnitude changes. Existing Fast velocities already encode scenario effects, so applying another multiplier would double-count them. Following the user's delegated choice, real-profile regressions require a change above 0.005: the observed maximum is 0.0084866, below the initially requested 0.01. A separate synthetic near-tie applies k=1.5 before the same shared normalization and proves a rank flip. No profiles, reference data or weights were changed to force results.
+- **Pipeline**: stored scenario snapshots → preserve raw velocities → shared union bounds → min-max/weighted score → all four fixture profiles plus synthetic rank-flip and old-normalizer failure checks → match/detail/replay API and score delta chip
+- **Affects**: F4 score and replay adapters/contracts, match UI, synthetic regressions
+- **Replaces**: M2-001 percentile normalization only
+- **PR / branch**: `fix/core-review-upgrades`
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)

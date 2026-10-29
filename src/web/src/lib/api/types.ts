@@ -3381,19 +3381,19 @@ export interface components {
             velocity_after: number;
             /**
              * Position Before
-             * @description Percentile of the skill's velocity among all skills, earlier snapshot.
+             * @description Skill velocity on the shared min-max scale, earlier snapshot.
              * @default 0
              */
             position_before: number;
             /**
              * Position After
-             * @description Percentile of the skill's velocity among all skills, later snapshot.
+             * @description Skill velocity on the shared min-max scale, later snapshot.
              * @default 0
              */
             position_after: number;
             /**
              * Effect
-             * @description Score points this skill moved the role: change in its percentile position times its share of the role's importance times the trend weight; > 0 pushed up.
+             * @description Score points this skill moved the role: change on the shared min-max scale times its share of the role's importance times the trend weight; > 0 pushed up.
              */
             effect: number;
         };

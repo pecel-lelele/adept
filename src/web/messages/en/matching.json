@@ -1,6 +1,7 @@
 {
   "title": "Your future-role matches",
   "improvementsTitle": "What would raise your score",
+  "scenarioDelta": "{delta} points vs {scenario}",
   "scoreGain": "Estimated +{gain} score points when this gap is closed",
   "noClosingCourse": "No catalogue course closes this gap yet",
   "description": "Ranked by an explainable score. You choose the target role.",

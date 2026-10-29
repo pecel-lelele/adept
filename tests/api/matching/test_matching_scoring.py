@@ -128,6 +128,8 @@ def test_trend_scores_ties_averaged() -> None:
 def test_trend_scores_single_item() -> None:
     scores = trend_scores({"only": 0.99})
     assert scores["only"] == NEUTRAL
+    assert trend_scores({"only": 0.99}, {"other": -0.5})["only"] == 1.0
+    assert trend_scores({"still": 0})["still"] == NEUTRAL
 
 
 # ---------------------------------------------------------------------------
