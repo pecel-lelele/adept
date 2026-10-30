@@ -40,7 +40,7 @@ export async function SiteHeader({
   return (
     <header className="a-site-head">
       <div className="a-wrap a-site-head-in">
-        <BrandLogo href="/" />
+        <BrandLogo href="/" label={t("shell.brandHome")} />
         <nav className="a-site-nav" aria-label={t("landing.navHow")}>
           {links}
         </nav>
@@ -91,13 +91,14 @@ export async function SiteHeader({
 export async function SiteFooter({ note }: { note?: ReactNode }) {
   const t = await getTranslations("ui.landing");
   const tn = await getTranslations("ui.nav");
+  const tu = await getTranslations("ui");
   const privacy = await getTranslations("privacy");
   return (
     <footer className="a-site-foot">
       <div className="a-wrap">
         <div className="a-site-foot-top">
           <div>
-            <BrandLogo href="/" />
+            <BrandLogo href="/" label={tu("shell.brandHome")} />
             <p>{t("footTag")}</p>
           </div>
           <div>

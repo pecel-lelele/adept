@@ -8,11 +8,11 @@
   },
   "scenario": {
     "label": "Senario",
-    "moderate": "Gangguan AI sederhana",
-    "fast": "Gangguan AI pantas",
+    "moderate": "Perubahan AI yang stabil",
+    "fast": "Perubahan AI yang pesat",
     "pace": "Kadar AI",
-    "moderateShort": "Sederhana",
-    "fastShort": "Pantas",
+    "moderateShort": "Stabil",
+    "fastShort": "Pesat",
     "hint": "Seberapa pantas AI mengubah kerja. Kedudukan dan unjuran ialah anggaran bagi setiap kadar."
   },
   "estimate": {

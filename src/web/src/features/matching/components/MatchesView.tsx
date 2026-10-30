@@ -21,15 +21,20 @@ import { ScenarioDelta } from "./ScenarioDelta";
 import { MatchSdgTargets } from "./MatchSdgTargets";
 import { ProfileNote } from "./ProfileNote";
 
-/** One horizontal bar per score part: how much each part contributed to the fit. */
+/**
+ * One horizontal bar per score part: how much each part contributed to the fit. The bar and the
+ * number both show weighted points (weight × value), on a common scale where a full bar is the
+ * largest weight any part carries, so bars compare the same thing as the numbers beside them.
+ */
 function ScoreParts({ parts, labels, score }: { parts: Schemas["ScoreComponent"][]; labels: Record<string, string>; score: number }) {
+  const maxWeight = Math.max(...parts.map((c) => c.weight), 0) || 1;
   return (
     <div className="a-bars">
       {parts.map((c) => (
         <div className="a-bar a-bar-plain" key={c.name} title={c.explanation}>
           <span className="a-bar-label">{labels[c.name] ?? c.name.replaceAll("_", " ")}</span>
           <span className="a-bar-track">
-            <span className="a-bar-fill" style={{ width: `${Math.round(c.value * 100)}%`, opacity: c.provided ? 1 : 0.35 }} />
+            <span className="a-bar-fill" style={{ width: `${Math.round(((c.weight * c.value) / maxWeight) * 100)}%`, opacity: c.provided ? 1 : 0.35 }} />
           </span>
           <span className="a-bar-value">{(c.weight * c.value * 100).toFixed(1)}</span>
           <span className="a-small a-muted" style={{ gridColumn: "1 / -1" }}>{Math.round(c.weight * 100)}% × {(c.value * 100).toFixed(1)}% = {(c.weight * c.value * 100).toFixed(1)}</span>

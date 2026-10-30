@@ -32,10 +32,10 @@ def test_cancel_unfinished_jobs_only(monkeypatch: pytest.MonkeyPatch, outcome: s
             if outcome == "cancel-failure":
                 return httpx.Response(503)
             return httpx.Response(200, json={"status": "CANCELLED"})
-        if request.url.path.endswith("runsync"):
+        if request.url.path.endswith("/run"):
             return httpx.Response(200, json={"id": "job-test", "status": "IN_PROGRESS"})
         if outcome in {"exception", "cancel-failure"}:
-            return httpx.Response(503)
+            return httpx.Response(400)  # non-transient: fails at once
         return httpx.Response(
             200, json=_completed() if outcome == "success" else {"status": "IN_PROGRESS"}
         )

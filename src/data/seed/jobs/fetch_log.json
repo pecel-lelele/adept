@@ -2,43 +2,43 @@
   "fetched_on": "2026-10-23",
   "fx": "Bank Negara Malaysia OpenAPI (exchange rates), selling rate 4.0925 on 2026-10-23",
   "evaluation": {
-    "openings": 1210,
+    "openings": 1175,
     "employers": 127,
     "by_source": {
       "remoteok": 54,
       "remotive": 7,
       "jobicy": 39,
-      "greenhouse": 155,
-      "workday": 768,
-      "lever": 97,
+      "greenhouse": 143,
+      "workday": 749,
+      "lever": 95,
       "jibe": 54,
       "himalayas": 17,
-      "ashby": 19
+      "ashby": 17
     },
-    "assigned_share": 0.38,
+    "assigned_share": 0.382,
     "method": {
-      "title": 460,
-      "unassigned": 750
+      "title": 449,
+      "unassigned": 726
     },
     "by_role": {
-      "semiconductor-process-engineer": 102,
+      "semiconductor-process-engineer": 100,
       "smart-manufacturing-engineer": 83,
       "compliance-analytics-officer": 39,
-      "cybersecurity-analyst": 33,
       "digital-marketing-specialist": 33,
       "supply-chain-analyst": 31,
-      "customer-success-specialist": 29,
-      "cloud-solutions-architect": 18,
+      "cybersecurity-analyst": 28,
+      "customer-success-specialist": 27,
+      "cloud-solutions-architect": 17,
       "data-analyst": 17,
       "logistics-supervisor": 13,
       "machine-learning-engineer": 12,
-      "ai-product-manager": 10,
       "business-analyst": 10,
+      "ai-product-manager": 9,
+      "bank-operations-executive": 5,
       "tvet-digital-skills-trainer": 5,
-      "bank-operations-executive": 4,
-      "data-engineer": 4,
       "ux-designer": 4,
       "ai-operations-specialist": 3,
+      "data-engineer": 3,
       "solar-pv-engineer": 3,
       "esg-sustainability-analyst": 2,
       "process-automation-analyst": 2,
@@ -46,16 +46,16 @@
       "islamic-finance-analyst": 1,
       "learning-experience-designer": 1
     },
-    "with_skills_share": 0.887,
-    "median_skills_per_ad": 3,
-    "with_cert_share": 0.002,
+    "with_skills_share": 0.885,
+    "median_skills_per_ad": 3.0,
+    "with_cert_share": 0.0,
     "unassigned_families": {
-      "other": 314,
-      "finance & accounting": 115,
-      "engineering & technicians": 99,
-      "sales & business development": 74,
-      "operations & admin": 69,
-      "software engineering": 60,
+      "other": 300,
+      "finance & accounting": 113,
+      "engineering & technicians": 97,
+      "sales & business development": 70,
+      "operations & admin": 68,
+      "software engineering": 59,
       "people & HR": 19
     }
   },
@@ -65,7 +65,7 @@
       "board": "agoda",
       "employer": "Agoda",
       "status": "ok",
-      "kept": 16
+      "kept": 15
     },
     {
       "source": "greenhouse",
@@ -79,21 +79,21 @@
       "board": "okx",
       "employer": "OKX",
       "status": "ok",
-      "kept": 11
+      "kept": 9
     },
     {
       "source": "greenhouse",
       "board": "bybit",
       "employer": "Bybit",
       "status": "ok",
-      "kept": 74
+      "kept": 66
     },
     {
       "source": "greenhouse",
       "board": "binance",
       "employer": "Binance",
       "status": "ok",
-      "kept": 43
+      "kept": 42
     },
     {
       "source": "greenhouse",
@@ -128,14 +128,14 @@
       "board": "dlocal",
       "employer": "dLocal",
       "status": "ok",
-      "kept": 5
+      "kept": 3
     },
     {
       "source": "ashby",
       "board": "airwallex",
       "employer": "Airwallex",
       "status": "ok",
-      "kept": 10
+      "kept": 8
     },
     {
       "source": "ashby",
@@ -233,7 +233,7 @@
       "board": "hp",
       "employer": "HP",
       "status": "ok",
-      "kept": 36
+      "kept": 35
     },
     {
       "source": "workday",
@@ -268,7 +268,7 @@
       "board": "bakerhughes",
       "employer": "Baker Hughes",
       "status": "ok",
-      "kept": 12
+      "kept": 9
     },
     {
       "source": "workday",
@@ -282,42 +282,42 @@
       "board": "spgi",
       "employer": "S&P Global",
       "status": "ok",
-      "kept": 14
+      "kept": 12
     },
     {
       "source": "workday",
       "board": "lseg",
       "employer": "LSEG",
       "status": "ok",
-      "kept": 10
+      "kept": 9
     },
     {
       "source": "workday",
       "board": "abbott",
       "employer": "Abbott",
       "status": "ok",
-      "kept": 34
+      "kept": 33
     },
     {
       "source": "workday",
       "board": "agilent",
       "employer": "Agilent",
       "status": "ok",
-      "kept": 21
+      "kept": 16
     },
     {
       "source": "workday",
       "board": "amat",
       "employer": "Applied Materials",
       "status": "ok",
-      "kept": 18
+      "kept": 16
     },
     {
       "source": "workday",
       "board": "mastercard",
       "employer": "Mastercard",
       "status": "ok",
-      "kept": 12
+      "kept": 10
     },
     {
       "source": "workday",
@@ -345,7 +345,7 @@
       "board": "3m",
       "employer": "3M",
       "status": "ok",
-      "kept": 5
+      "kept": 4
     },
     {
       "source": "workday",
@@ -366,7 +366,7 @@
       "board": "workday",
       "employer": "Workday",
       "status": "ok",
-      "kept": 2
+      "kept": 1
     },
     {
       "source": "workday",
@@ -427,5 +427,17 @@
       "kept": 0,
       "detail": "set WEB3_CAREER_TOKEN to enable"
     }
-  ]
+  ],
+  "location_refilter": {
+    "applied_on": "2026-10-30",
+    "rule": "primary location in Malaysia (a bare Remote/Anywhere counts as missing), or a remote opening with a Malaysia-eligible scope",
+    "dropped": 35,
+    "dropped_by_source": {
+      "workday": 19,
+      "greenhouse": 12,
+      "ashby": 2,
+      "lever": 2
+    },
+    "network": false
+  }
 }

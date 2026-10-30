@@ -10,7 +10,8 @@ Replit production setup and publication acceptance.
 
 - Model: `sentence-transformers/all-MiniLM-L6-v2`.
 - Pinned revision: `1110a243fdf4706b3f48f1d95db1a4f5529b4d41`.
-- Protocol: authenticated RunPod `POST /runsync`, polling `GET /status/<job_id>`.
+- Protocol: authenticated RunPod `POST /run` (async), polling `GET /status/<job_id>` with
+  15 s requests; `TRENDS_RUNPOD_TIMEOUT_SECONDS` (default 600, max 900) bounds a whole encode.
 - API routes: `POST /run`, `POST /runsync`, `GET /status/<job_id>` and `GET /health` at
   the endpoint URL above.
 - Input: `input.texts`, 1–64 non-empty strings of at most 4,096 characters each.

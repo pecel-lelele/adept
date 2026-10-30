@@ -5,7 +5,10 @@ import { useTranslations } from "next-intl";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 
+import { onRadioKeyDown, radioTabIndex } from "@/components/radioGroup";
+
 export type Audience = "me" | "team";
+const AUDIENCES = ["me", "team"] as const satisfies readonly Audience[];
 
 const AudienceContext = createContext<{ audience: Audience; set: (a: Audience) => void }>({
   audience: "me",
@@ -88,8 +91,10 @@ export function AudienceToggle() {
           type="button"
           role="radio"
           aria-checked={audience === id}
+          tabIndex={radioTabIndex(audience === id)}
           title={label}
           onClick={() => set(id)}
+          onKeyDown={(e) => onRadioKeyDown(e, AUDIENCES, audience, set)}
         >
           <Icon size={15} strokeWidth={1.8} aria-hidden />
           <span>{label}</span>

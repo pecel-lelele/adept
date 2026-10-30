@@ -33,7 +33,7 @@ test("match cards show only the top three improvements with grounded course link
   }
 });
 
-test("every SDG tile on a match card has its mapping reason in the tooltip", () => {
+test("every SDG tile on a match card has its mapping reason as a tooltip and as visible text", () => {
   const { SdgTiles } = loadComponent("src/components/viz/SdgTiles.tsx");
   const { MatchSdgTargets } = loadComponent("src/features/matching/components/MatchSdgTargets.tsx", {
     "next-intl": translations(), "@/components/viz": { SdgTiles },
@@ -44,10 +44,16 @@ test("every SDG tile on a match card has its mapping reason in the tooltip", () 
     { goal: 8, target: "8.2", label: "Synthetic target label three", reason: "Synthetic reason three", strength: "enabling" },
   ];
   const html = renderToStaticMarkup(React.createElement(MatchSdgTargets, { targets }));
-  const chips = html.match(/<li[^>]*>/g) ?? [];
+  const chips = html.match(/<li[^>]*data-sdg-reason[^>]*>/g) ?? [];
   assert.equal(chips.length, 2);
   for (const chip of chips) assert.match(chip, /data-sdg-reason="[^"]+"/);
-  for (const target of targets) assert.ok(html.includes(target.reason));
+  // Reasons are also visible text in a keyboard/touch-operable disclosure, not only a title.
+  const why = html.match(/<details[^>]*>[\s\S]*<\/details>/)?.[0] ?? "";
+  assert.match(why, /<summary/);
+  for (const target of targets) {
+    assert.ok(why.includes(`>${target.reason}<`) || why.includes(` · ${target.reason}`), target.reason);
+    assert.ok(why.includes(target.target));
+  }
   assert.match(html, /direct/);
   assert.match(html, /enabling/);
 });

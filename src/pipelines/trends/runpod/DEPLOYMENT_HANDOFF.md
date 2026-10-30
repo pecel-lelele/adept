@@ -99,7 +99,8 @@ Let the request complete. Expect `status: COMPLETED`, the pinned model/revision,
 alone does not establish inference success. Zero active workers allows automatic scale-down
 after the job; no continuous test or cancellation of a completed request is needed.
 
-API callers send this body to `POST /runsync` with bearer authentication. The client
+API callers send this body to `POST /run` (async, returns the job id at once) with bearer
+authentication; `/runsync` held the connection through a ~80 s cold start and timed out. The client
 polls `GET /status/<job_id>` if queued and validates model/revision, count, dimensions
 and values. The live base is `https://api.runpod.ai/v2/ta14jd0by2ijl2`; other routes are
 `POST /run` and `GET /health`. Use `TRENDS_RUNPOD_API_KEY`, never the separate GLM chat

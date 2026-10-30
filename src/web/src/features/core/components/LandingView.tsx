@@ -24,6 +24,7 @@ import { PathScene } from "@/components/viz/PathScene";
 import { call, getApi, type Schemas } from "@/lib/api";
 import { getAccount } from "@/lib/auth/account";
 
+import { teamCtaFor, type TeamCtaLink } from "../team-cta";
 import { AudienceRoot, AudienceToggle, type Audience } from "./AudienceSwitch";
 import { CvPreview } from "./CvPreview";
 import { LandingMotion } from "./LandingMotion";
@@ -171,9 +172,24 @@ export async function LandingView({ audience }: { audience: Audience }) {
     getAccount(),
     getApi().then((api) => call(api.GET("/api/v1/meta/overview"))),
   ]);
-  // For logged-in individual users the team CTAs go to "Join an organisation" instead of the
-  // default dashboard; org_admin users already have a team workspace so send them straight there.
-  const teamHome = account ? (account.kind === "org_admin" ? "/org" : "/app/join") : null;
+  const tj = await getTranslations("ui.join");
+  // Team CTAs name their destination for each session state (see teamCtaFor).
+  const teamCta = teamCtaFor(account);
+  const teamLink = (link: TeamCtaLink, className: string, icon: ReactNode) =>
+    link.signOutFirst ? (
+      <form method="post" action={link.href} className="a-stack" style={{ gap: 4 }}>
+        <small className="a-small a-muted">{tj("teamAccountSignOut")}</small>
+        <button type="submit" className={className}>
+          {t(link.label)} {icon}
+        </button>
+      </form>
+    ) : (
+      <Link className={className} href={link.href}>
+        {t(link.label)} {icon}
+      </Link>
+    );
+  const teamPrimary = (className: string) => teamLink(teamCta.primary, className, <ArrowRight size={17} aria-hidden />);
+  const teamSecondary = teamCta.secondary ? teamLink(teamCta.secondary, "a-link", <ArrowUpRight size={16} aria-hidden />) : null;
   const o = overview.ok ? overview.data : null;
 
   const meData = visuals(t, o, false);
@@ -281,12 +297,8 @@ export async function LandingView({ audience }: { audience: Audience }) {
               </h1>
               <p className="a-hero2-lead">{t("tSub")}</p>
               <div className="a-hero2-ctas">
-                <Link className="a-btn" href={teamHome ?? "/auth/signup?mode=organisation"}>
-                  {t("tCta")} <ArrowRight size={17} aria-hidden />
-                </Link>
-                <Link className="a-link" href={teamHome ?? "/auth/login?mode=organisation"}>
-                  {t("tSignIn")} <ArrowUpRight size={16} aria-hidden />
-                </Link>
+                {teamPrimary("a-btn")}
+                {teamSecondary}
               </div>
             </div>
             <div className="a-teamhero-art a-tilt">
@@ -471,9 +483,7 @@ export async function LandingView({ audience }: { audience: Audience }) {
         <a className="a-btn a-for-me" href="#start">
           {t("closeCta")} <ArrowRight size={17} aria-hidden />
         </a>
-        <Link className="a-btn a-for-team" href={teamHome ?? "/auth/signup?mode=organisation"}>
-          {t("tCta")} <ArrowRight size={17} aria-hidden />
-        </Link>
+        <span className="a-for-team">{teamPrimary("a-btn")}</span>
       </section>
 
       </main>

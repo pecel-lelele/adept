@@ -125,12 +125,9 @@ def join_org(user: CurrentUser, body: JoinOrgIn) -> Organization:
             status_code=400,
             code="consent_required",
         )
-    if not body.share_skills:
-        raise AppError(
-            "Explicit consent to share skill levels is required when joining.",
-            status_code=422,
-            code="sharing_consent_required",
-        )
+    # Sharing skill levels is a separate, optional choice (AGENTS.md §3.9): a member may join
+    # without sharing and opt in later at /work/skills. The contract still requires an explicit
+    # boolean, so a missing field is never read as consent.
     org = repository.find_org_by_code(body.code)
     if org is None:
         raise NotFoundError("That join code does not match any organisation.")

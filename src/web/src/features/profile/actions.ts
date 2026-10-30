@@ -61,7 +61,8 @@ export async function saveIntakeAction(input: IntakeInput): Promise<IntakeResult
   if (!skills.ok) return { error: skills.code };
   revalidatePath("/app", "layout");
   revalidatePath("/org", "layout");
-  redirect("/app/matches");
+  // Intake leads to the Radar first (which skills are rising), then on to matches.
+  redirect("/app/radar");
 }
 
 /** Forward a CV to the parser. The file is processed in memory by the API and never stored. */

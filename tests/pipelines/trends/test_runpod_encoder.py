@@ -36,55 +36,135 @@ def transport(monkeypatch: pytest.MonkeyPatch, fn) -> None:
     monkeypatch.setattr(encoder.time, "sleep", lambda _: None)
 
 
-def test_sync_batches_preserve_input_order(monkeypatch: pytest.MonkeyPatch) -> None:
-    import json
+class FakeRunPod:
+    """In-memory RunPod: /run queues a job; /status answers from a scripted list."""
 
-    sent = []
+    def __init__(self, statuses: list[dict[str, object]] | None = None) -> None:
+        self.paths: list[str] = []
+        self.submitted: list[list[str]] = []
+        self.statuses = statuses
+        self.jobs: dict[str, int] = {}
 
-    def response(request: httpx.Request) -> httpx.Response:
+    def __call__(self, request: httpx.Request) -> httpx.Response:
+        import json
+
+        self.paths.append(request.url.path)
         assert request.url.host == "api.runpod.ai"
         assert request.headers["Authorization"] == "Bearer test-key"
-        texts = json.loads(request.content)["input"]["texts"]
-        sent.extend(texts)
-        assert len(texts) <= 64
-        return httpx.Response(200, json=completed(len(texts)))
+        if request.url.path.endswith("/run"):
+            texts = json.loads(request.content)["input"]["texts"]
+            self.submitted.append(texts)
+            job = f"job-{len(self.submitted)}"
+            self.jobs[job] = len(texts)
+            return httpx.Response(200, json={"id": job, "status": "IN_QUEUE"})
+        if "/cancel/" in request.url.path:
+            return httpx.Response(200, json={"status": "CANCELLED"})
+        job = request.url.path.rsplit("/", 1)[-1]
+        if self.statuses:
+            return httpx.Response(200, json=self.statuses.pop(0))
+        return httpx.Response(200, json=completed(self.jobs[job]))
 
-    transport(monkeypatch, response)
+
+def test_batches_preserve_input_order(monkeypatch: pytest.MonkeyPatch) -> None:
+    fake = FakeRunPod()
+    transport(monkeypatch, fake)
     texts = [f"public sentence {i}" for i in range(70)]
     values = encoder.RunPodEncoder("endpoint-test", "test-key").encode(texts, batch_size=200)
-    assert sent == texts and values == [VECTOR] * 70
+    assert [t for batch in fake.submitted for t in batch] == texts
+    assert all(len(batch) <= 64 for batch in fake.submitted)
+    assert values == [VECTOR] * 70
 
 
-def test_queued_cold_start_is_polled(monkeypatch: pytest.MonkeyPatch) -> None:
-    paths = []
+def test_cold_start_is_submitted_async_and_polled(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A cold worker keeps the job IN_QUEUE for many polls; no request waits for the boot."""
+    queued = [{"id": "job-1", "status": "IN_QUEUE"}] * 6 + [{"status": "IN_PROGRESS"}]
+    fake = FakeRunPod(statuses=[*queued, completed()])
+    transport(monkeypatch, fake)
+    assert encoder.RunPodEncoder("endpoint", "test-key").encode(["public research"]) == [VECTOR]
+    assert fake.paths[0] == "/v2/endpoint/run"
+    assert fake.paths[1:] == ["/v2/endpoint/status/job-1"] * 8
+    assert "/v2/endpoint/runsync" not in fake.paths
 
-    def response(request: httpx.Request) -> httpx.Response:
-        paths.append(request.url.path)
-        return httpx.Response(
-            200,
-            json=(
-                {"id": "job-1", "status": "IN_QUEUE"} if request.method == "POST" else completed()
-            ),
-        )
 
-    transport(monkeypatch, response)
-    assert encoder.RunPodEncoder("endpoint", "key").encode(["public research"]) == [VECTOR]
-    assert paths == ["/v2/endpoint/runsync", "/v2/endpoint/status/job-1"]
+def test_submit_read_timeout_is_retried_without_a_duplicate_job(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fake = FakeRunPod()
+    attempts = []
+
+    def flaky(request: httpx.Request) -> httpx.Response:
+        if request.url.path.endswith("/run"):
+            attempts.append(request.url.path)
+            if len(attempts) == 1:
+                raise httpx.ReadTimeout("cold worker", request=request)
+            if len(attempts) == 2:
+                return httpx.Response(503)
+        return fake(request)
+
+    transport(monkeypatch, flaky)
+    assert encoder.RunPodEncoder("endpoint", "test-key").encode(["public text"]) == [VECTOR]
+    assert len(attempts) == 3 and len(fake.submitted) == 1
+
+
+def test_submit_gives_up_after_bounded_attempts(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls = []
+
+    def down(request: httpx.Request) -> httpx.Response:
+        calls.append(request.url.path)
+        raise httpx.ReadTimeout("still cold", request=request)
+
+    transport(monkeypatch, down)
+    with pytest.raises(httpx.ReadTimeout):
+        encoder.RunPodEncoder("endpoint", "test-key").encode(["public text"])
+    assert calls == ["/v2/endpoint/run"] * encoder.SUBMIT_ATTEMPTS  # never cancels: no job id
 
 
 @pytest.mark.parametrize("status", ["FAILED", "CANCELLED", "TIMED_OUT"])
 def test_failed_job_is_not_a_valid_snapshot_input(monkeypatch, status: str) -> None:
-    transport(monkeypatch, lambda _: httpx.Response(200, json={"status": status}))
+    fake = FakeRunPod(statuses=[{"status": status}])
+    transport(monkeypatch, fake)
     with pytest.raises(RuntimeError):
-        encoder.RunPodEncoder("endpoint", "key").encode(["public sentence"])
+        encoder.RunPodEncoder("endpoint", "test-key").encode(["public sentence"])
+    assert fake.paths[-1] == "/v2/endpoint/cancel/job-1"
+
+
+def test_deadline_exceeded_cancels_the_known_job(monkeypatch: pytest.MonkeyPatch) -> None:
+    clock = [0.0]
+    fake = FakeRunPod(statuses=[{"status": "IN_QUEUE"}] * 1000)
+    transport(monkeypatch, fake)
+    monkeypatch.setattr(encoder.time, "monotonic", lambda: clock[0])
+    monkeypatch.setattr(encoder.time, "sleep", lambda s: clock.__setitem__(0, clock[0] + s))
+    with pytest.raises(TimeoutError):
+        encoder.RunPodEncoder("endpoint", "test-key", timeout=30).encode(["public text"])
+    assert fake.paths[-1] == "/v2/endpoint/cancel/job-1"
+    assert clock[0] <= 30
 
 
 def test_unknown_model_revision_is_rejected(monkeypatch) -> None:
     value = completed()
     value["output"]["revision"] = "different-weights"
-    transport(monkeypatch, lambda _: httpx.Response(200, json=value))
+    fake = FakeRunPod(statuses=[value])
+    transport(monkeypatch, fake)
     with pytest.raises(ValueError, match="incompatible"):
-        encoder.RunPodEncoder("endpoint", "key").encode(["public sentence"])
+        encoder.RunPodEncoder("endpoint", "test-key").encode(["public sentence"])
+
+
+def test_wrong_vector_count_is_rejected(monkeypatch) -> None:
+    fake = FakeRunPod(statuses=[completed(2)])
+    transport(monkeypatch, fake)
+    with pytest.raises(ValueError, match="wrong number"):
+        encoder.RunPodEncoder("endpoint", "test-key").encode(["public sentence"])
+
+
+def test_timeout_comes_from_the_environment(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("TRENDS_RUNPOD_TIMEOUT_SECONDS", raising=False)
+    assert encoder.configured_timeout() == 600
+    monkeypatch.setenv("TRENDS_RUNPOD_TIMEOUT_SECONDS", "240")
+    assert encoder.configured_timeout() == 240
+    for bad in ("0", "901", "nan"):
+        monkeypatch.setenv("TRENDS_RUNPOD_TIMEOUT_SECONDS", bad)
+        with pytest.raises(ValueError):
+            encoder.configured_timeout()
 
 
 @pytest.mark.parametrize("values", [[], [[0.0] * 384], [[float("nan")] * 384], [[1.0] * 768]])
