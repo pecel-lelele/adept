@@ -841,6 +841,17 @@
 - **Replaces**: M2-023's unchanged CV UI behaviour; preserves its resolver gates
 - **PR / branch**: `chore/core-replit-database-cleanup`
 
+### M2-025: Index frozen MyCOL reference assets once per worker
+- **Date**: 2026-10-30
+- **Feature**: F4 (Future-Role Matching & Gap)
+- **Type**: method
+- **Change**: Read the frozen crosswalk, occupation CSV and provenance JSON through a cached zero-argument loader and index them by stored role ID and MASCO code. Badge lookups no longer reopen or rescan files, including for unsupported roles; construct fresh scenario-specific response models and source metadata on every call.
+- **Why**: PR #69 review identified repeated reference reads across every ranked role. These are versioned release assets, so a worker restart loads a new reference release; user profiles, role catalogue reads, scores and request metadata are not cached.
+- **Pipeline**: frozen verified MyCOL assets -> parse once per worker -> role-ID and MASCO indexes -> exact ID lookup with unchanged badge attribution -> file-open-count, metadata-isolation and existing badge/source regressions -> matching list/detail responses
+- **Affects**: F4 historical MyCOL badge reads only; no contract, dependency, scoring or source-date change
+- **Replaces**: TEAM-037's per-lookup reference-file loading; preserves M2-015's fresh role catalogue and saved-profile behaviour
+- **PR / branch**: PR #69 / `fix/core-final-round-integration`
+
 ---
 
 ## M3: Pathway, SDG & Guardrails (F5, F6, F8)

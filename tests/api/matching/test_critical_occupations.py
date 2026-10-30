@@ -1,10 +1,61 @@
+from collections.abc import Iterator
 from datetime import date
+from pathlib import Path
+from typing import TextIO
 
 import pytest
 from fastapi.testclient import TestClient
 
 from app.core import refdata
+from app.features.matching import critical_occupations
 from app.features.matching.critical_occupations import badge_for_role
+
+
+@pytest.fixture(autouse=True)
+def _fresh_reference_index() -> Iterator[None]:
+    critical_occupations._reference_index.cache_clear()
+    yield
+    critical_occupations._reference_index.cache_clear()
+
+
+def test_repeated_role_lookups_read_each_reference_file_once(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    original_open = Path.open
+    opened: list[str] = []
+
+    def count_open(path: Path, *args: object, **kwargs: object) -> TextIO:
+        if path.parent == critical_occupations.REFERENCE:
+            opened.append(path.name)
+        return original_open(path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "open", count_open)
+    # Unreviewed roles also use the index, without repeatedly opening the crosswalk.
+    for scenario in ("moderate", "fast"):
+        for _ in range(10):
+            assert badge_for_role("unknown", scenario) is None
+            assert badge_for_role("data-engineer", scenario) is None
+            assert badge_for_role("data-analyst", scenario) is not None
+    assert sorted(opened) == [
+        "critical-occupation-roles.csv",
+        "critical-occupations.csv",
+        "critical-occupations.provenance.json",
+    ]
+
+
+def test_cached_reference_keeps_response_metadata_independent() -> None:
+    moderate = badge_for_role("data-analyst", "moderate")
+    fast = badge_for_role("data-analyst", "fast")
+    assert moderate is not None and fast is not None
+    assert moderate.meta.scenario == "moderate"
+    assert fast.meta.scenario == "fast"
+    assert moderate.meta.snapshot_date == fast.meta.snapshot_date == date(2026, 10, 29)
+    expected_sources = fast.meta.model_dump()["sources"]
+    moderate.meta.sources[0].name = "Mutated response"
+    fast.meta.sources.clear()
+    subsequent = badge_for_role("data-analyst", "moderate")
+    assert subsequent is not None
+    assert subsequent.meta.model_dump()["sources"] == expected_sources
 
 
 @pytest.mark.parametrize("scenario", ["moderate", "fast"])

@@ -69,6 +69,10 @@ Its snapshot date is the frozen reference's UTC retrieval date, 2026-10-29, not
 the request date or the separate trend snapshot date. `is_estimate=false` describes
 historical list inclusion, not a forecast. This is not evidence of a current vacancy.
 Deployment must include `docs/reference/critical-occupation*.csv` and the provenance JSON.
+The frozen reference files are loaded and indexed once per worker process. Restart
+workers after publishing a new reference release. Each lookup still creates its own
+scenario-specific badge and source metadata; profiles, scores and the live role
+catalogue are not part of this cache.
 
 Badge pipeline: official PDF -> reviewed restricted title and Table 7 group -> exact
 existing role-ID crosswalk -> metadata-only badge -> positive/negative API and source
