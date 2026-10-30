@@ -7170,6 +7170,26 @@
             "title": "Price Status",
             "default": "listed"
           },
+          "certificate_status": {
+            "type": "string",
+            "enum": [
+              "unknown",
+              "included"
+            ],
+            "title": "Certificate Status",
+            "description": "Completion certificate verified as included in the listed learning price.",
+            "default": "unknown"
+          },
+          "certificate_source": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Source"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "certificate_note": {
             "type": "string",
             "title": "Certificate Note",

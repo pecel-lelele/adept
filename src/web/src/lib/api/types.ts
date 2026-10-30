@@ -2082,6 +2082,14 @@ export interface components {
              */
             price_status: "listed" | "certificate_price_unknown";
             /**
+             * Certificate Status
+             * @description Completion certificate verified as included in the listed learning price.
+             * @default unknown
+             * @enum {string}
+             */
+            certificate_status: "unknown" | "included";
+            certificate_source?: components["schemas"]["Source"] | null;
+            /**
              * Certificate Note
              * @default
              */

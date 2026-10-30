@@ -1,10 +1,10 @@
 user_id,rank,role_id,relevance
 aisyah,1,compliance-analytics-officer,3.0
-aisyah,2,business-analyst,2.0
-aisyah,3,process-automation-analyst,2.0
+aisyah,2,business-intelligence-analysts,2.0
+aisyah,3,business-analyst,2.0
 weijie,1,ai-operations-specialist,3.0
 weijie,2,machine-learning-engineer,2.0
 weijie,3,data-analyst,2.0
 ravi,1,supply-chain-analyst,3.0
 ravi,2,data-analyst,2.0
-ravi,3,business-analyst,1.0
+ravi,3,business-intelligence-analysts,2.0

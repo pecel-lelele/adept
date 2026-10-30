@@ -77,7 +77,17 @@ def test_main_writes_the_seed(tmp_path: Path) -> None:
     run.main(["--from-file", str(FIXTURE), "--out", str(out), "--retrieved", "2026-10-20"])
     with out.open(encoding="utf-8") as fh:
         rows = list(csv.DictReader(fh))
-    assert len(rows) == len(src.CURATED) + len(src.COURSERA) + len(src.MANUAL) + len(src.BUNDLES)
+    assert len(rows) == sum(
+        len(group)
+        for group in (
+            src.CURATED,
+            src.COURSERA,
+            src.MANUAL,
+            src.FREE_DIGITAL,
+            src.FREE_MS,
+            src.BUNDLES,
+        )
+    )
     assert {"provider_ref", "hrd_note", "duration_note"} <= set(rows[0])
 
 
@@ -85,7 +95,51 @@ def test_committed_catalogue_matches_the_sources() -> None:
     with (SEED / "courses" / "courses.csv").open(encoding="utf-8") as fh:
         ids = [row["id"] for row in csv.DictReader(fh)]
     expected = [c.id for c in src.CURATED] + [c.id for c in src.COURSERA]
-    assert ids == expected + [m.id for m in src.MANUAL] + [b.id for b in src.BUNDLES]
+    assert ids == expected + [
+        row.id
+        for group in (src.MANUAL, src.FREE_DIGITAL, src.FREE_MS, src.BUNDLES)
+        for row in group
+    ]
+
+
+def test_committed_provider_facts_match_shared_sync_definitions(tmp_path: Path) -> None:
+    """Catch stale or partially regenerated CSV rows, beyond merely matching their IDs."""
+    out = tmp_path / "providers.csv"
+    src.write_csv([*src.COURSERA, *src.MANUAL, *src.FREE_DIGITAL, *src.FREE_MS, *src.BUNDLES], out)
+    with out.open(encoding="utf-8") as fh:
+        expected = {row["id"]: row for row in csv.DictReader(fh)}
+    with (SEED / "courses/courses.csv").open(encoding="utf-8") as fh:
+        actual = {row["id"]: row for row in csv.DictReader(fh)}
+    assert {key: actual[key] for key in expected} == expected
+
+
+def test_malay_courses_retain_verified_language_price_and_source_dates() -> None:
+    rows = [r for r in src.all_rows(_payload(), date(2026, 11, 1)) if r.language == "ms"]
+    assert len(rows) >= 5
+    assert {r.provider for r in rows} == {"ModernLMS", "Pepper Labs (AVPN AI Opportunity Fund)"}
+    for row in rows:
+        assert row.verified_at == date(2026, 10, 30)  # a sync date cannot refresh manual facts
+        assert row.source_url == row.url and row.provider_ref
+        assert row.hours > 0 and row.cost_myr >= 0 and row.duration_note
+        assert "Bahasa Melayu" in row.duration_note
+    assert sum(r.cost_myr == 0 and not r.hrd_claimable for r in rows) >= 4
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "message"),
+    [
+        ("provider", "", "identity or provider"),
+        ("cost_myr", -1, "invalid cost"),
+        ("cost_myr", float("nan"), "invalid cost"),
+        ("hours", float("inf"), "invalid level, hours or url"),
+        ("source_url", "", "source attribution"),
+        ("verified_at", None, "verification date"),
+    ],
+)
+def test_incomplete_course_facts_are_rejected(field: str, value: Any, message: str) -> None:
+    bad = replace(src.FREE_MS[0], **{field: value})
+    with pytest.raises(ValueError, match=message):
+        src.validate([bad], run.known_skills())
 
 
 def test_catalogue_covers_more_skills_than_the_skeleton() -> None:
