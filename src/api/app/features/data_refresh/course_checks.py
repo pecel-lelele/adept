@@ -68,4 +68,6 @@ def checked_rows(rows: list[CourseRow], client: httpx.Client, deadline: float) -
             accepted.append(row)
         except (httpx.HTTPError, TimeoutError, ValueError):
             continue  # unavailable source: preserve its existing record and verification date
+    if time.monotonic() >= deadline:
+        raise TimeoutError("Course verification incomplete; previous catalogue retained")
     return accepted

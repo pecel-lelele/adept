@@ -8,10 +8,10 @@ from dataclasses import dataclass
 from datetime import date, timedelta
 
 from app.core import refdata, seed
+from app.core.config import get_settings
 from app.core.seed import pg_array
 
 FETCH_LOG = seed.SEED_DIR / "jobs" / "fetch_log.json"
-FRESH_DAYS = 14  # an ad not re-seen within this many days may have closed (M4-087)
 
 
 @dataclass(frozen=True)
@@ -36,7 +36,7 @@ class Posting:
     role_method: str
     skill_ids: tuple[str, ...]
     cert_ids: tuple[str, ...]
-    # Not re-seen by a source read within FRESH_DAYS: shown only with a staleness label.
+    # Outside the configured observation window: shown only with a staleness label.
     stale: bool = False
 
 
@@ -64,7 +64,7 @@ def _day(value: str) -> date | None:
 
 def openings(*, include_stale: bool = False) -> list[Posting]:
     """Active openings, newest listing first. Expired ones are excluded even before the next
-    pipeline run closes them. Ads not re-seen within FRESH_DAYS are excluded from counts and
+    pipeline run closes them. Ads outside JOBS_STALE_DAYS are excluded from counts and
     matching; ``include_stale`` returns them too, flagged ``stale`` so listings can label
     them instead of letting them silently vanish."""
     from pipelines.jobs.sources import in_malaysia
@@ -82,7 +82,7 @@ def openings(*, include_stale: bool = False) -> list[Posting]:
             continue
         first = _day(r["first_seen"]) or today
         last = _day(r["last_seen"]) or first
-        stale = last < today - timedelta(days=FRESH_DAYS)
+        stale = last < today - timedelta(days=get_settings().jobs_stale_days)
         if stale and not include_stale:
             continue
         out.append(

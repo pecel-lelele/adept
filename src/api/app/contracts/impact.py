@@ -111,8 +111,8 @@ class EvidenceItem(BaseModel):
         figure = numbers(self.figure)
         if len(figure) != 1 or Decimal(str(self.value)) not in figure:
             raise ValueError("Evidence value must match its displayed figure")
-        if not figure <= numbers(self.quote + " " + self.claim):
-            raise ValueError("Evidence figure must occur in its quotation or claim")
+        if not figure <= numbers(self.quote):
+            raise ValueError("Evidence figure must occur in its verbatim quotation")
         if self.published_at and self.published_at > self.retrieved_at:
             raise ValueError("Publication cannot follow retrieval")
         return self

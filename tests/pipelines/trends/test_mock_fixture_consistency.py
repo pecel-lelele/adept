@@ -475,6 +475,20 @@ FIXTURE_FILES = [
 ]
 
 
+def test_fixture_proof_rejects_changed_scores_or_source_notes_without_database() -> None:
+    from db.seed import _matches_trend_export
+
+    items = json.loads(FIXTURE_FILES[-1].read_text(encoding="utf-8"))["items"]
+    original = {**items[0], "is_replay": None}
+    assert _matches_trend_export([original], items)
+    assert not _matches_trend_export(
+        [{**original, "research_velocity": original["research_velocity"] + 0.25}], items
+    )
+    assert not _matches_trend_export(
+        [{**original, "labor_decay_source_note": "Synthetic different source evidence"}], items
+    )
+
+
 @pytest.mark.parametrize("fixture_path", FIXTURE_FILES, ids=lambda p: p.name)
 def test_mock_fixture_derived_fields_match_scoring_formula(fixture_path: Path) -> None:
     assert fixture_path.exists(), f"Fixture file missing: {fixture_path}"

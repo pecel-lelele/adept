@@ -18,3 +18,9 @@ Publication stays on the lock-owning session, with a heartbeat and a conservativ
 fence after session loss. Stored measured inputs support inference-free reconstruction.
 Incomplete course checks and scheduler cooldown are reported as unfinished work, not success.
 See the operating guide for the 2026-10-31 review corrections and real PostgreSQL regressions.
+
+Job freshness exposes the actual maximum posting `last_seen` as `data_as_of`, separately from
+the most recent successful feed read. `JOBS_STALE_DAYS` controls labelled stale ads and fresh
+counts consistently; daily automatic work includes jobs. Static trend runtime evidence comes
+only from committed/fetched byte-bound sidecars. A course deadline reached on the final page
+also reports incomplete checks and retains the previous catalogue.

@@ -18,6 +18,23 @@ NOW = datetime(2026, 10, 30, 8, tzinfo=UTC)
 TOKEN = "synthetic-refresh-token-for-tests-only"
 
 
+def test_daily_cadence_refreshes_jobs_even_when_weekly_trends_are_current(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    sunday = NOW.date() - timedelta(days=NOW.weekday() + 1)
+    monkeypatch.setattr(
+        service,
+        "_trends",
+        lambda: SimpleNamespace(data_as_of=sunday, is_historical_replay=False),
+    )
+    monkeypatch.setattr(
+        repository,
+        "last_successes",
+        lambda: {"jobs": NOW - timedelta(days=1), "courses": NOW, "labour": NOW},
+    )
+    assert jobs.due_sources(NOW) == ["jobs"]
+
+
 @pytest.fixture
 def state(monkeypatch: pytest.MonkeyPatch) -> dict[str, Any]:
     db = {"held": None, "row": None, "launches": 0}

@@ -78,6 +78,14 @@ def test_fetch_evidence_is_bound_to_the_cached_bytes(tmp_path: Path) -> None:
         provenance.cached_retrieval(cache)
 
 
+def test_runtime_without_sidecar_never_invokes_git(monkeypatch: pytest.MonkeyPatch) -> None:
+    cache = provenance.ROOT / "src/data/seed/labor_decay.csv"
+    monkeypatch.setattr(Path, "is_file", lambda self: False)
+    monkeypatch.setattr(subprocess, "run", lambda *a, **kw: pytest.fail("runtime invoked git"))
+    with pytest.raises(ValueError, match="provenance"):
+        provenance.cached_retrieval(cache)
+
+
 @pytest.mark.parametrize(
     "missing", ["observation_window_start", "retrieved_at", "retrieval_evidence"]
 )

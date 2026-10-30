@@ -583,3 +583,29 @@ def test_freshness_falls_back_to_the_dated_seed(client: TestClient, store: FakeS
     labour = json.loads((SEED_DIR / "trends" / "malaysia_labour.json").read_text(encoding="utf-8"))
     assert items["labour"]["last_fetched_at"] == labour["meta"]["sources"][0]["retrieved_at"]
     assert items["labour"]["data_as_of"] == labour["observed_month"]
+
+
+def test_recent_fetch_cannot_rejuvenate_stale_postings(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch, store: FakeStore
+) -> None:
+    from datetime import timedelta
+
+    observed = STORED_ON - timedelta(days=8)
+    monkeypatch.setattr(get_settings(), "jobs_stale_days", 7)
+    monkeypatch.setenv("JOBS_STALE_DAYS", "7")
+    original = repository.stored_freshness
+    monkeypatch.setattr(
+        repository,
+        "stored_freshness",
+        lambda source: (
+            repository.StoredFreshness(2, STORED_ON, observed)
+            if source == "jobs"
+            else original(source)
+        ),
+    )
+    item = next(
+        s for s in client.get("/api/v1/data/freshness").json()["sources"] if s["source"] == "jobs"
+    )
+    assert item["last_fetched_at"] == STORED_ON.isoformat()
+    assert item["data_as_of"] == observed.isoformat()
+    assert item["rows"] == 2 and item["is_stale"] and item["age_days"] == 8

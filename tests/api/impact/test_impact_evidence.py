@@ -2,6 +2,7 @@
 
 import ast
 import json
+import re
 from datetime import date
 from pathlib import Path
 
@@ -114,6 +115,10 @@ def test_public_evidence_items_are_complete_and_sourced(client: TestClient) -> N
         assert e["url"].startswith("https://") and e["publisher"] and e["quote"].strip()
         assert date.fromisoformat(e["retrieved_at"])
         assert len(e["quote"].split()) <= 15
+        figure = e["figure"].rstrip("+%").replace(",", "")
+        assert re.search(rf"(?<![\d.]){re.escape(figure)}(?![\d.])", e["quote"].replace(",", "")), (
+            f"{e['id']}: displayed figure missing from verbatim quotation"
+        )
         EvidenceItem.model_validate(e)  # numeric support/value/publication-date gate
     ids = [e["id"] for e in items]
     assert len(ids) == len(set(ids))
@@ -125,7 +130,18 @@ def test_public_evidence_items_are_complete_and_sourced(client: TestClient) -> N
 def test_unrelated_figure_is_rejected_even_with_a_nonempty_claim() -> None:
     record = service.public_evidence()[0].model_dump()
     record.update(figure="123,456", value=123456)
-    with pytest.raises(ValueError, match="quotation or claim"):
+    with pytest.raises(ValueError, match="quotation"):
+        EvidenceItem.model_validate(record)
+
+
+def test_figure_in_claim_alone_is_not_quotation_evidence() -> None:
+    record = service.public_evidence()[0].model_dump()
+    record.update(
+        figure="123,456",
+        value=123456,
+        claim="Synthetic claim mentions 123,456 but its quotation does not.",
+    )
+    with pytest.raises(ValueError, match="quotation"):
         EvidenceItem.model_validate(record)
 
 

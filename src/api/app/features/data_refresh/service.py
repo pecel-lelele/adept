@@ -615,7 +615,11 @@ def _seed_jobs() -> _Seeded:
     except (OSError, ValueError, AttributeError):
         logged = None
     seen = max((d for r in rows if (d := _day(r.get("last_seen")))), default=None)
-    return len(rows), logged or seen, None
+    return (
+        sum(bool(p.role_id) for p in jobs_repository.openings(include_stale=True)),
+        logged or seen,
+        seen,
+    )
 
 
 def _seed_labour() -> _Seeded:
@@ -735,7 +739,10 @@ def freshness() -> DataFreshnessResponse:
                         )
                     )
                     # Job ads not re-read within the serving window are labelled, not hidden.
-                    or (source == "jobs" and (age is None or age > jobs_repository.FRESH_DAYS)),
+                    or (
+                        source == "jobs"
+                        and (age is None or age > RefreshSettings().jobs_stale_days)
+                    ),
                 }
             )
         )

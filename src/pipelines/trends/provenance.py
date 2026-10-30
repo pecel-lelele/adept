@@ -69,15 +69,17 @@ def record_fetch(path: Path, url: str) -> None:
 
 
 def cached_retrieval(path: Path, fallback: Path | None = None) -> dict[str, str]:
+    """Read frozen, byte-bound evidence at runtime; never require repository history.
+
+    Generate committed sidecars with the dev-time ``git_commit_retrieval`` helper.
+    A missing sidecar is unverified data, including in images without Git installed.
+    """
     sidecar = path.with_suffix(".provenance.json")
     if sidecar.is_file():
         evidence = json.loads(sidecar.read_text(encoding="utf-8"))
         if evidence.get("sha256") != hashlib.sha256(path.read_bytes()).hexdigest():
             raise ValueError("Fetch evidence does not match cached research")
         return evidence
-    try:
-        return git_commit_retrieval(path)
-    except ValueError:
-        if fallback is None:
-            raise
-        return git_commit_retrieval(fallback)
+    if fallback is not None:
+        return cached_retrieval(fallback)
+    raise ValueError(f"Missing committed or fetched provenance for {path.name}")

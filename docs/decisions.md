@@ -1416,6 +1416,27 @@
 - **Replaces**: none (M3-035/M3-036 are reserved by PR #76)
 - **PR / branch**: feat/pathway-real-roles-courses / PR #74
 
+### M3-038: Conversational Adi: warm server-authored blocks, friendly refusals, at most three chips
+
+- **Date**: 2026-10-31
+- **Feature**: F8 (guardrails), Core (Adi assistant)
+- **Type**: method | contract | UI
+- **Change**: Adi's answer blocks in en/ms/zh are rewritten in a short, second-person, plain-language tone (facts, attribution and estimate labels unchanged; the roles answer no longer lists runner-up roles). New server-authored blocks: `off_topic` and `invent` (refused before context or model, like the people-decision refusal), `unknown` (nothing matched; replaces the old silent fallback to "next"), `greeting` and `thanks`. The people-decision refusal now states that hiring, firing, promotion and admission decisions belong to people and that Adept never makes them. Routing adds phrase rules for "boost/raise/better match or score", "what if AI slows down / adoption is slower", "moderate vs fast", "trust this data", and shrinking/falling/going-away work. Follow-up chips are catalogue IDs (`AssistantReply.suggestion_ids`, new) with their question text in `suggestions`; both are capped at three in the contract. Chips never repeat the question just asked or ask for the answer just shown, and after refusals/small talk they follow the page (matches → "Why is this my top match?", pathway → "Which course should I start with?"). The web starter chips are page-aware (at most three), the log is an ARIA live region with a status typing indicator, and the chip row has a reserved height. The model selection prompt names the specific blocks per intent and tells the model to choose `unknown` rather than a loosely related block; for an `unknown` question the model may still pick any checked block.
+- **Why**: Product owner: answers felt stiff, and unanswerable questions got unrelated plan advice. Free-form model text was rejected (AGENTS §3.3); variable server-authored phrasing variants were considered but not needed, since one warm block per intent keeps answers predictable and testable with `LLM_PROVIDER=none`.
+- **Pipeline**: n/a (rule-based routing plus F8 `select_ids_or_fallback`/`validate_ids` selection of server-authored blocks). Evaluation: `tests/api/assistant/test_conversational.py` (routing in en/ms/zh, refusals with 1–3 valid chips, page-aware chips, decision refusal wording, arbitrary model text never shown, contract cap) plus the existing assistant/guardrail suites.
+- **Affects**: `POST /api/v1/assistant/chat` response gains `suggestion_ids` (additive; `openapi.json` and `types.ts` regenerated); web `ui.adi` messages gain `conversation`, `suggested` and page starter keys
+- **Replaces**: none (refines the Adi routing and chip behaviour; earlier entries unchanged)
+- **PR / branch**: feat/core-adi-conversational
+
+### M3-041: Require displayed evidence figures in verbatim quotations
+- **Date**: 2026-10-31
+- **Feature**: F8 (Impact evidence)
+- **Type**: method
+- **Change**: Require the displayed figure and stored value to match a number in the verbatim quotation; a number in Adept's claim alone is insufficient. Add a direct quote assertion and a claim-only negative regression.
+- **Why**: The existing check could accept a figure introduced by the claim without quoted source support. Preserve number formatting normalization, dated provenance and the publication/retrieval ordering check.
+- **Affects**: public impact evidence validation; no schema, source or provider change
+- **Replaces**: M3-036 numeric support rule only
+- **PR / branch**: fix/core-greptile-followups / Fixes #86
 ---
 
 ## M4: Core & Organisation (Core, F7)
@@ -1864,7 +1885,7 @@
 - **Replaces**: none
 - **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses
 
-### M4-031: Free-to-learn courses in plans, 27 more verified courses, honest "tops out" gaps
+### M4-090: Free-to-learn courses in plans, 27 more verified courses, honest "tops out" gaps
 - **Date**: 2026-10-23
 - **Feature**: F5, F4 (Core integration)
 - **Type**: data source | method
@@ -2378,8 +2399,18 @@
 - **Date**: 2026-10-31
 - **Feature**: Core (jobs board), F4 role openings
 - **Type**: contract
-- **Change**: Job ads not re-seen by a source read within 14 days are no longer dropped silently from listings: the board and role openings list them last with `is_stale` and `last_seen`, and a translated "may have closed" note. Open counts, readiness and matching still use only fresh ads. Data freshness flags jobs as stale when the last read is older than the serving window.
+- **Change**: Job ads not re-seen within `JOBS_STALE_DAYS` (default 14) remain last in board and role listings with `is_stale`, `last_seen` and a translated "may have closed" note; counts/readiness use fresh ads. The daily automatic job includes job feeds. Freshness exposes actual posting `last_seen` as `data_as_of`, independently of the latest fetch log, counts the served labelled ads, and retains empty database results and frozen labour dates. Runtime trend provenance requires a byte-bound committed/fetched sidecar instead of invoking Git; the dev-only toolbox generator follows content history. Final-page course deadlines fail as incomplete before any catalogue publication.
 - **Why**: When automatic reads stop, the board would otherwise empty without explanation; showing an old ad as current would be fake freshness. Labelled, uncounted ads are honest about both.
-- **Affects**: jobs contract (`JobOpening.last_seen`, `is_stale`), jobs service/repository, OpeningItem and en/ms/zh messages, data freshness
+- **Affects**: jobs contract (`JobOpening.last_seen`, `is_stale`), jobs service/repository, OpeningItem and en/ms/zh messages, freshness/settings/env example, trend provenance and course-check regressions. The pre-existing duplicate free-course M4-031 heading is uniquely identified as M4-090; its recorded decision text is preserved.
 - **Replaces**: none (keeps M4-087's 14-day rule for counts)
 - **PR / branch**: integ/refresh-provenance
+
+### M4-092: Connect the technical-declaration export
+- **Date**: 2026-10-31
+- **Feature**: Core (Deployment and submission)
+- **Type**: other
+- **Change**: Link the existing technical-declaration PDF exporter and document its output/review step. Keep scripts/post-merge.sh: it is not referenced by .replit, but it came from Replit's pnpm workspace scaffold and Replit's agent runs it after merges. The deployment guide is already linked in docs/README.md.
+- **Why**: Keep maintained tools discoverable without changing Replit build, start or merge hooks.
+- **Affects**: submission documentation only
+- **Replaces**: none
+- **PR / branch**: fix/core-greptile-followups / Fixes #86

@@ -103,6 +103,13 @@ a refreshing tag. Polling backs off 1/2/5 seconds and stops when hidden/unmounte
 Completion uses `router.refresh()`; errors retain the last good snapshot. Status is polite
 live text, words accompany colours, and reduced-motion users see no rotating spinner.
 
+The daily job also refreshes job feeds. Ads older than `JOBS_STALE_DAYS` (default 14)
+remain visible with their last observation date and a "may have closed" label, after fresh
+ads; they do not inflate open counts or readiness totals. Jobs freshness separates the last
+successful fetch from the actual posting `last_seen` (`data_as_of`), so a newer fetch log
+cannot make retained old postings appear current. Runtime BLS evidence comes from its
+committed, byte-bound provenance sidecar; missing evidence fails without invoking Git.
+
 ## Job-source assessment (opened 2026-10-30)
 
 Public availability is not a blanket licence. Use only published board metadata/apply links,

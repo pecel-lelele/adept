@@ -103,7 +103,7 @@ separate evidence before the checklist is signed.
 | Template category | Evidence and current limit |
 |---|---|
 | Target SDG metric achievement | The Phase 1 target is at least 20% less planning time. Matched manual/Adept human trials remain **not run**. No achieved reduction is claimed. |
-| Verification evidence method | `src/scripts/kpi_time_to_plan.py` calculates paired measurements using `docs/kpi-trials-template.json`; invalid or missing trials are not converted to results. Browser/HTTP tests verify functionality, not human planning speed. |
+| Verification evidence method | `src/scripts/kpi_time_to_plan.py` calculates paired measurements using `docs/evidence/kpi-trials-template.json`; invalid or missing trials are not converted to results. Browser/HTTP tests verify functionality, not human planning speed. |
 | Socio-economic and civic value | Initial channels are career centres, TVET providers and HR/L&D teams. Reach and willingness to pay require a measured pilot; no user count or commercial conversion is asserted. |
 | Deployment and commercial feasibility | One web/API deployment plus scheduled batch jobs. Course budgets are planning inputs; employers buy training directly. Production hosting/model cost per run/user must be taken from actual usage and bills. |
 | Learning cost | Free/paid/HRD labels derive from dated provider records. Report free-step share and plan cost from the exact five saved demo plans; do not reuse obsolete global counts. |
@@ -118,8 +118,9 @@ baseline is not valid evidence. Do not substitute account age for a stopwatch me
 
 The score remains a documented weighted sum of skill fit, dated trend evidence and interest
 fit, optionally blended with SDG alignment. Scenario velocities share the same robust scale.
-The production implementation and synthetic checks are linked in
-[final-round status](final-round-status.md). Synthetic invariance tests are proof only for the
+The production implementation is in
+[`matching/scoring.py`](../../src/api/app/features/matching/scoring.py) with tests in
+[`tests/api/matching/`](../../tests/api/matching/). Synthetic invariance tests are proof only for the
 listed fixtures and variants. These are functional/code proofs, not a measured social-impact KPI.
 
 ## 5. Market viability and future scalability
@@ -218,7 +219,7 @@ provides versions, purposes and a fuller inventory.
 | Other provider course pages (AITraining2U, UNIMAS PROCEL, FMM, MAICSA, UKM, UTM, IBFIM) | dataset | Respective provider copyright and terms |
 | Bank Negara Malaysia exchange-rate API | dataset / API | BNM terms and attribution |
 | Curated skill, course, prerequisite and SDG-alignment mappings; historical trend snapshots | dataset | Team-created; upstream BLS, provider and research rights retained; no UN endorsement |
-| Synthetic personas, organisations, regions and CV fixtures | dataset | Team-created; [five selected demo CVs](demo-cvs/) and regression fixtures are declared separately from real identities |
+| Synthetic personas, organisations, regions and CV fixtures | dataset | Team-created; [five selected demo CVs](../demo-cvs/) and regression fixtures are declared separately from real identities |
 | PyYAML; actionlint; Prettier | code / development tools | MIT |
 | GitHub Container Registry | service | GitHub Terms of Service |
 
@@ -238,11 +239,11 @@ and sign/date the final supplied form. Do not infer consent or attestations from
 
 [Technical tools declaration](submission-technical-declaration.md) ·
 [Official criterion mapping](rubric-check.md) · [Deliverables](submission-deliverables.md) ·
-[Demo source register](demo-script.md#evidence-register) · [KPI protocol](kpi-time-to-plan.md)
+[Demo source register](../demo-script.md#evidence-register) · [KPI protocol](../evidence/kpi-time-to-plan.md)
 
 Final-round measurement status, **30 October 2026**: **0 human testers and 0 human
 trials**; no measured manual baseline or achieved planning-time reduction. The
-20% figure is a proposed target only. See the [calculator output](kpi-human-summary.json)
-and [separate automated synthetic API measurements](kpi-automated-journeys.md)
+20% figure is a proposed target only. See the [calculator output](../evidence/kpi-human-summary.json)
+and [separate automated synthetic API measurements](../evidence/kpi-automated-journeys.md)
 for dated sample sizes, completion/failure counts and methodological limits.
 Automated response timings do not establish human planning speed or impact.

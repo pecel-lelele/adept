@@ -1902,9 +1902,14 @@ export interface components {
             parts: components["schemas"]["AnswerPart"][];
             /**
              * Suggestions
-             * @description Follow-up questions.
+             * @description Up to three server-authored follow-up questions; tapping one asks it.
              */
             suggestions?: string[];
+            /**
+             * Suggestion Ids
+             * @description Catalogue IDs of the follow-up questions, in the same order.
+             */
+            suggestion_ids?: string[];
             /**
              * Used Llm
              * @description False when the deterministic guide answered.

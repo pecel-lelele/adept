@@ -77,7 +77,10 @@
 .adi-msg.is-typing span:nth-child(2) { animation-delay: .15s; }
 .adi-msg.is-typing span:nth-child(3) { animation-delay: .3s; }
 @keyframes adi-dot { 0%, 100% { opacity: .3; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-4px); } }
-.adi-suggest { display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 8px 14px 0; max-height: 108px; overflow-y: auto; }
+.adi-suggest { display: flex; flex-wrap: wrap; align-content: flex-start; gap: 6px 14px; padding: 8px 14px 0; min-height: 44px; max-height: 108px; overflow-y: auto; }
+.adi-suggest button:focus-visible { outline: 2px solid var(--a-up, #16863e); outline-offset: 2px; border-radius: 4px; }
+.adi-suggest button:disabled { opacity: .55; cursor: default; }
+.adi-log:focus-visible { outline: 2px solid var(--a-up, #16863e); outline-offset: -2px; }
 .adi-suggest button { min-height: 36px; max-width: 100%; border: 0; border-bottom: 1px solid #d6eadb; background: transparent; color: #14532d; padding: 5px 0; font: inherit; font-size: 12.5px; text-align: left; cursor: pointer; overflow-wrap: anywhere; }
 .adi-suggest button:hover:not(:disabled) { background: #e3f5e9; }
 .adi-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: end; padding: 10px 12px; }
@@ -101,6 +104,7 @@
 @media (max-width: 520px) {
   .adi-dock[data-open="true"] { left: 8px; right: 8px; bottom: 8px; }
   .adi-panel { width: 100%; height: min(78dvh, 640px); }
+  .adi-suggest { max-height: 88px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .adi-panel, .adi-msg.is-typing span, .adi-launch { animation: none !important; transition: none !important; }

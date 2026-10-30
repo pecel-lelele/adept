@@ -14,7 +14,13 @@ from app.features.jobs.repository import CertRow, Posting
 TODAY = date.today()
 
 
-def test_csv_read_excludes_stale_openings_even_when_refresh_stops(monkeypatch):
+@pytest.mark.parametrize("stale_days", [7, 14, 30])
+def test_csv_read_excludes_stale_openings_even_when_refresh_stops(
+    monkeypatch: pytest.MonkeyPatch, stale_days: int
+) -> None:
+    from app.core.config import get_settings
+
+    monkeypatch.setattr(get_settings(), "jobs_stale_days", stale_days)
     base = {
         "id": "public-job",
         "source": "greenhouse",
@@ -30,17 +36,17 @@ def test_csv_read_excludes_stale_openings_even_when_refresh_stops(monkeypatch):
     }
     rows = [
         dict(base, id=str(days), last_seen=(TODAY - timedelta(days=days)).isoformat())
-        for days in [0, 14, 15]
+        for days in [0, stale_days, stale_days + 1]
     ]
     rows += [
         dict(base, id="worldwide", location="Worldwide", last_seen=TODAY.isoformat()),
         dict(base, id="singapore", location="Singapore", last_seen=TODAY.isoformat()),
     ]
     monkeypatch.setattr(repository.refdata, "rows", lambda *args, **kwargs: rows)
-    assert {p.id for p in repository.openings()} == {"0", "14"}
+    assert {p.id for p in repository.openings()} == {"0", str(stale_days)}
     # Possibly closed ads are not dropped silently: listings receive them flagged stale.
     labelled = {p.id: p.stale for p in repository.openings(include_stale=True)}
-    assert labelled == {"0": False, "14": False, "15": True}
+    assert labelled == {"0": False, str(stale_days): False, str(stale_days + 1): True}
 
 
 def _posting(pid: str, role: str, skills: tuple[str, ...], **kw: object) -> Posting:

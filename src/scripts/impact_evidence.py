@@ -1,4 +1,4 @@
-"""Write docs/impact-evidence.md from the same service the /impact page uses.
+"""Write docs/evidence/impact-evidence.md from the same service the /impact page uses.
 
 Every figure is computed now from the live catalogue, the trend snapshot and the production
 matching and pathway engines on synthetic personas. Nothing is typed in by hand.
@@ -16,7 +16,7 @@ sys.path.insert(0, str(ROOT / "src" / "api"))
 from app.contracts.impact import ImpactSummary  # noqa: E402
 from app.features.impact import service  # noqa: E402
 
-OUT = ROOT / "docs" / "impact-evidence.md"
+OUT = ROOT / "docs" / "evidence" / "impact-evidence.md"
 
 
 def pct(x: float) -> str:

@@ -27,8 +27,15 @@
    answered in that request.
 5. Replies follow the question's language when it is clearly Chinese or Malay; otherwise the
    UI locale. Follow-up chips depend on the answer just given, and every chip routes back to
-   its own grounded block.
-6. Adi appears only in signed-in workspaces. Account changes remount the conversation, abort
+   its own grounded block. At most three chips are returned (`suggestion_ids` are catalogue
+   chip IDs, `suggestions` their question text); a chip never repeats the question just asked
+   or the answer just shown.
+6. Tone: blocks are short, warm and second person. Off-topic questions and requests to make
+   up jobs, courses or figures get a friendly refusal (no context, no model); unmatched
+   questions get an "unknown" reply that a configured model may replace with a better checked
+   block; greetings and thanks get small-talk blocks. After refusals and small talk the chips
+   follow the page the person is on.
+7. Adi appears only in signed-in workspaces. Account changes remount the conversation, abort
    in-flight browser requests and remove other accounts' stored chats.
 
 ## Saved-plan answers and intent coverage

@@ -109,13 +109,6 @@ def mapped_skill_ids() -> set[str]:
     return {r["skill_id"] for r in refdata.rows(AREA, "skill_sdg_map")}
 
 
-def org_state(org_id: str) -> str | None:
-    for r in refdata.rows(AREA, "org_regions"):
-        if r["org_id"] == org_id:
-            return r["state"]
-    return None
-
-
 def orgs_in_state(state: str) -> list[str]:
     return [r["org_id"] for r in refdata.rows(AREA, "org_regions") if r["state"] == state]
 

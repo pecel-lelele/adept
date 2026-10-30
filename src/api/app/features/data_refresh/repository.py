@@ -134,10 +134,10 @@ _FRESHNESS_SQL = {
     ),
     "jobs": (
         "SELECT (SELECT count(*) FROM job_postings WHERE active "
-        "AND last_seen >= current_date - 14 "
         "AND (expires_at IS NULL OR expires_at >= current_date)) AS n, "
         "coalesce((SELECT max(fetched_on) FROM job_fetch_log WHERE status = 'ok'), "
-        "(SELECT max(last_seen) FROM job_postings)) AS fetched, NULL::date AS as_of"
+        "(SELECT max(last_seen) FROM job_postings)) AS fetched, "
+        "(SELECT max(last_seen) FROM job_postings) AS as_of"
     ),
     "labour": (
         "SELECT count(*) AS n, "
@@ -161,7 +161,14 @@ def stored_freshness(source: str) -> StoredFreshness | None:
         # Labour.current serves the frozen export when this table is empty. Jobs/courses
         # serve a valid empty database result instead, so preserve their zero counts.
         return None
-    return StoredFreshness(int(row["n"]), row["fetched"], row["as_of"])
+    count = int(row["n"])
+    if source == "jobs" and count:
+        from app.features.jobs.repository import openings
+
+        # Use the same location, active and expiration filters as the visible board.
+        # Stale labelled ads are served too; only counts/readiness exclude them.
+        count = sum(bool(p.role_id) for p in openings(include_stale=True))
+    return StoredFreshness(count, row["fetched"], row["as_of"])
 
 
 def last_runs() -> dict[str, RefreshRunSummary]:

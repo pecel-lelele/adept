@@ -82,6 +82,7 @@ class Settings(BaseSettings):
     # Scheduler-only credential; never accepted as a user session or returned to browsers.
     data_refresh_token: str = Field(default="", repr=False)
     trends_stale_days: int = Field(default=10, ge=1, le=365)
+    jobs_stale_days: int = Field(default=14, ge=1, le=365)
     trends_refresh_cooldown_minutes: int = Field(default=10, ge=1, le=1440)
     # After a failed trends step, non-admin refresh checks skip the paid MiniLM step this long.
     trends_failure_backoff_minutes: int = Field(default=60, ge=1, le=10080)

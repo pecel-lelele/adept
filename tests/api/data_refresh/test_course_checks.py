@@ -52,3 +52,19 @@ def test_exhausted_budget_is_incomplete_not_a_successful_partial_catalogue() -> 
     ) as client:
         with pytest.raises(TimeoutError, match="incomplete"):
             checked_rows([MANUAL[0]], client, time.monotonic() - 1)
+
+
+def test_deadline_during_final_page_cannot_return_partial_success(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    clock = iter([0, 0, 2, 2])
+    monkeypatch.setattr(time, "monotonic", lambda: next(clock, 2))
+    with httpx.Client(
+        transport=httpx.MockTransport(
+            lambda request: httpx.Response(
+                200, text="course", headers={"content-type": "text/html"}
+            )
+        )
+    ) as client:
+        with pytest.raises(TimeoutError):
+            checked_rows([MANUAL[0]], client, 1)
