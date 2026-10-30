@@ -9,12 +9,293 @@ Enforces:
 from __future__ import annotations
 
 import json
+import os
+import re
 from datetime import date
 from pathlib import Path
+from uuid import uuid4
 
 import pytest
 
 from pipelines.trends.score import direction, scenario_fast
+
+
+@pytest.fixture
+def provenance_db(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, request: pytest.FixtureRequest):  # type: ignore[no-untyped-def]
+    """An explicit disposable database, with a separate migrated schema for each test.
+
+    The normal suite never borrows DATABASE_URL/.env. CI's existing database job
+    already runs this module with ADEPT_TEST_DATABASE_URL against its pgvector service.
+    """
+    import psycopg
+    from psycopg import sql
+    from psycopg.conninfo import make_conninfo
+    from psycopg.rows import dict_row
+
+    from app.features.trends import repository, service
+    from db import migrate, seed
+
+    url = os.environ.get("ADEPT_TREND_TEST_DATABASE_URL") or os.environ.get(
+        "ADEPT_TEST_DATABASE_URL"
+    )
+    if not url:
+        pytest.skip("Explicit disposable trend provenance database not configured")
+    schema = "trend_provenance_" + uuid4().hex
+    isolated_url = make_conninfo(url, options=f"-c search_path={schema},public")
+    with psycopg.connect(url, autocommit=True) as control:
+        control.execute(sql.SQL("CREATE SCHEMA {}").format(sql.Identifier(schema)))
+        try:
+            with psycopg.connect(isolated_url, autocommit=True) as conn:
+                # Apply the actual trend migrations, excluding only the unrelated
+                # embedding table: these persistence tests require PostgreSQL, not
+                # model embeddings or pgvector. No trend DDL is copied or mocked.
+                for name in (
+                    "20261020160000_m1_trends_signal_tables.sql",
+                    "20261021140000_m1_signal_aggregation_by_fetch_date.sql",
+                    "20261022120000_core_trend_snapshot_meta.sql",
+                    "20261030120000_trend_replay_provenance.sql",
+                ):
+                    if (
+                        name == "20261030120000_trend_replay_provenance.sql"
+                        and getattr(request, "param", None) == "legacy"
+                    ):
+                        continue
+                    body = migrate.up_section(
+                        (migrate.MIGRATIONS / name).read_text(encoding="utf-8")
+                    )
+                    body = re.sub(
+                        r"CREATE TABLE IF NOT EXISTS skill_embeddings \(.*?\);",
+                        "",
+                        body,
+                        flags=re.S,
+                    )
+                    conn.execute(body)
+            monkeypatch.setattr(seed, "SEED", tmp_path)
+            monkeypatch.setattr(
+                repository,
+                "_get_connection",
+                lambda **_: psycopg.connect(isolated_url, row_factory=dict_row, autocommit=True),
+            )
+            repository._reset_db_cache()
+            service.clear_cache()
+            yield isolated_url, tmp_path
+        finally:
+            service.clear_cache()
+            repository._reset_db_cache()
+            control.execute(sql.SQL("DROP SCHEMA {} CASCADE").format(sql.Identifier(schema)))
+
+
+def _replay_export(path: Path) -> dict:
+    """Use actual catalogue rows; change only explicit provenance for this fixture."""
+    export = json.loads((SEED_DIR / "mock_trends_2026-10-20.json").read_text(encoding="utf-8"))
+    export["meta"].update(
+        is_replay=True,
+        observation_window_start="2024-10-13",
+        observation_window_end="2024-10-19",
+        retrieved_at="2026-10-24",
+        retrieved_at_basis="git_commit_date",
+        retrieval_evidence="git:8a5a4608c0a5907d85e5acf1b8fc246661bbfd2a",
+    )
+    path.write_text(json.dumps(export), encoding="utf-8")
+    return export
+
+
+def test_replay_fixture_survives_seed_postgres_repository_round_trip(provenance_db) -> None:  # type: ignore[no-untyped-def]
+    import psycopg
+
+    from app.features.trends import repository
+    from db import seed
+    from pipelines.trends.export_fixtures_from_db import export_snapshot
+
+    url, directory = provenance_db
+    _replay_export(directory / "mock_trends_2026-10-20.json")
+    with psycopg.connect(url) as conn:
+        seed.load_trend_exports(conn)
+        seed.load_trend_exports(conn)  # provenance import must also be idempotent
+        row = conn.execute(
+            "SELECT is_replay, observation_window_start, observation_window_end, "
+            "retrieved_at, retrieved_at_basis FROM trend_snapshots LIMIT 1"
+        ).fetchone()
+        assert row == (
+            True,
+            date(2024, 10, 13),
+            date(2024, 10, 19),
+            date(2026, 10, 24),
+            "git_commit_date",
+        )
+    snapshot = repository.get_snapshot(date(2026, 10, 20), "moderate", strict=True)
+    assert snapshot.meta.served_from == "db"
+    assert snapshot.meta.is_fallback is False
+    assert snapshot.meta.is_replay is True
+    assert snapshot.meta.observation_window_start == date(2024, 10, 13)
+    assert snapshot.meta.observation_window_end == date(2024, 10, 19)
+    assert snapshot.meta.retrieved_at == date(2026, 10, 24)
+    with repository._get_connection() as conn:
+        exported = export_snapshot(conn, "2026-10-20", {})
+    assert exported["meta"]["is_replay"] is True
+    assert exported["meta"]["retrieved_at"] == "2026-10-24"
+    assert exported["meta"]["observation_window_end"] == "2024-10-19"
+
+
+def test_freshness_exposes_same_replay_provenance_from_fixture_and_database(
+    provenance_db,
+    client,
+    monkeypatch: pytest.MonkeyPatch,  # type: ignore[no-untyped-def]
+) -> None:
+    import psycopg
+
+    from app.features.trends import repository, service
+    from db import seed
+
+    url, directory = provenance_db
+    _replay_export(directory / "mock_trends_2026-10-20.json")
+    with psycopg.connect(url) as conn:
+        seed.load_trend_exports(conn)
+    database = client.get("/api/v1/meta/data-freshness").json()
+    assert database["served_from"] == "db" and database["is_fallback"] is False
+    with monkeypatch.context() as patch:
+        patch.setattr(repository, "_get_connection", lambda **_: (_ for _ in ()).throw(OSError()))
+        service.clear_cache()
+        fixture = client.get("/api/v1/meta/data-freshness").json()
+    assert fixture["served_from"] == "fixture" and fixture["is_fallback"] is True
+    for payload in (database, fixture):
+        assert payload["is_replay"] is True
+        assert payload["observation_window_start"] == "2024-10-13"
+        assert payload["observation_window_end"] == "2024-10-19"
+        assert payload["retrieved_at"] == "2026-10-24"
+        assert payload["retrieved_at_basis"] == "git_commit_date"
+        assert all(
+            source["retrieved_at_basis"] == "git_commit_date" for source in payload["sources"]
+        )
+
+
+def test_live_period_selection_excludes_replay_and_unclassified_rows(provenance_db) -> None:  # type: ignore[no-untyped-def]
+    import psycopg
+
+    from pipelines.trends import score
+
+    url, _ = provenance_db
+    with psycopg.connect(url) as conn:
+        for period, replay in (("2026-W41", False), ("2026-W42", True), ("2026-W43", None)):
+            conn.execute(
+                "INSERT INTO skill_signal_raw (skill_id, source, metric, value, period, "
+                "retrieved_at, is_replay, observation_window_start, observation_window_end, "
+                "retrieved_at_basis, retrieval_evidence, total_papers) "
+                "VALUES ('python', 'arxiv', 'mention_count', 1, %s, '2026-10-24', %s, "
+                "'2024-10-13', '2024-10-19', 'fetch_log', 'synthetic test evidence', 1)",
+                (period, replay),
+            )
+    assert score.list_available_periods(url) == ["2026-W41"]
+    # One genuine period cannot borrow the replay as its previous week.
+    assert score.load_signal_raw(url, "2026-W42")[0] == {}
+    assert score.load_signal_raw(url, "2026-W43")[0] == {}
+
+
+@pytest.mark.parametrize("provenance_db", ["legacy"], indirect=True)
+def test_migration_repairs_identifiable_legacy_replay_rows(provenance_db) -> None:  # type: ignore[no-untyped-def]
+    import psycopg
+    from psycopg import sql
+    from psycopg.types.json import Jsonb
+
+    from db import migrate, seed
+
+    url, directory = provenance_db
+    export = _replay_export(directory / "mock_trends_2026-10-20.json")
+    item = export["items"][0]
+    with psycopg.connect(url) as conn:
+        conn.execute(
+            sql.SQL("INSERT INTO trend_snapshots ({}) VALUES ({})").format(
+                sql.SQL(", ").join(map(sql.Identifier, seed.TREND_FIELDS)),
+                sql.SQL(", ").join(sql.Placeholder() * len(seed.TREND_FIELDS)),
+            ),
+            tuple(item.get(key, "2026-10-20") for key in seed.TREND_FIELDS),
+        )
+        conn.execute(
+            "INSERT INTO trend_snapshot_meta (snapshot_date, sources, provenance_note) "
+            "VALUES (%s, %s, %s)",
+            (
+                "2026-10-20",
+                Jsonb(export["meta"]["sources"]),
+                export["meta"]["data_provenance_note"],
+            ),
+        )
+        conn.execute(
+            "INSERT INTO skill_signal_raw (skill_id, source, metric, value, total_papers, "
+            "period, retrieved_at) "
+            "VALUES ('python', 'arxiv', 'mention_count', 1, 10, '2026-W43', '2026-10-20')"
+        )
+        conn.execute(
+            migrate.up_section(
+                (migrate.MIGRATIONS / "20261030120000_trend_replay_provenance.sql").read_text(
+                    encoding="utf-8"
+                )
+            )
+        )
+        for table in ("trend_snapshots", "trend_snapshot_meta", "skill_signal_raw"):
+            row = conn.execute(
+                sql.SQL(
+                    "SELECT is_replay, observation_window_start, observation_window_end, "
+                    "retrieved_at_basis FROM {}"
+                ).format(sql.Identifier(table))
+            ).fetchone()
+            assert row == (True, date(2024, 10, 13), date(2024, 10, 19), "git_commit_date")
+
+
+def test_raw_origins_do_not_mix_and_live_publish_preserves_retrieval(provenance_db) -> None:  # type: ignore[no-untyped-def]
+    import psycopg
+
+    from app.features.trends import repository
+    from pipelines.trends import arxiv_ingest, run, score
+
+    url, directory = provenance_db
+    export = _replay_export(directory / "mock_trends_2026-10-20.json")
+    replay = export["meta"]
+    live = {
+        **replay,
+        "is_replay": False,
+        "observation_window_start": "2026-10-19",
+        "observation_window_end": "2026-10-24",
+        "retrieved_at_basis": "fetch_log",
+        "retrieval_evidence": "synthetic live fetch evidence",
+    }
+    for facts, count, total in ((replay, 50, 50), (live, 3, 100)):
+        arxiv_ingest.write_signal_rows(
+            {"python": count},
+            total,
+            date(2026, 10, 20),
+            url,
+            period="2026-W43",
+            provenance=facts,
+        )
+    assert score.list_available_periods(url) == ["2026-W43"]
+    assert score.load_signal_raw(url, "2026-W43") == ({"python": 3.0}, 100)
+    assert score.load_signal_raw(url, "2026-W43", is_replay=True) == ({"python": 50.0}, 50)
+    facts = run.live_provenance(url, "2026-W43")
+    slot = date(2026, 10, 30)
+    sources = [
+        {
+            "name": "Synthetic test source",
+            "url": "https://example.test",
+            "retrieved_at": "2026-10-24",
+        }
+    ]
+    run.publish(
+        export["items"][:1], slot, sources, "Synthetic publication test", url, provenance=facts
+    )
+    snapshot = repository.get_snapshot(slot, "moderate", strict=True)
+    assert snapshot.meta.is_replay is False
+    assert snapshot.meta.retrieved_at == date(2026, 10, 24)
+    assert snapshot.meta.observation_window_start == date(2026, 10, 19)
+    with pytest.raises(ValueError, match="cannot change origin"):
+        run.publish(export["items"][:1], slot, sources, "Synthetic replay", url, provenance=replay)
+    # The older scoring entrypoint must not erase the origin by bypassing publish.
+    with pytest.raises(ValueError, match="cannot change origin"):
+        score.write_snapshots(export["items"][:1], slot, url)
+    with psycopg.connect(url) as conn:
+        assert conn.execute(
+            "SELECT is_replay FROM trend_snapshot_meta WHERE snapshot_date = %s", (slot,)
+        ).fetchone() == (False,)
+
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SEED_DIR = REPO_ROOT / "src" / "data" / "seed"

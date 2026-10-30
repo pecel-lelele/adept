@@ -3,12 +3,13 @@ import { useTranslations } from "next-intl";
 
 import { EstimateLabel } from "./EstimateLabel";
 import { SourceBadge } from "./SourceBadge";
+import { TrendProvenanceNotice } from "./TrendProvenanceNotice";
 
 /**
  * The output contract of a response (estimate label, snapshot date, measured period, sources),
  * collapsed to one line that opens to the full citation.
  */
-export function MetaBar({ meta }: { meta: RecommendationMeta }) {
+export function MetaBar({ meta }: { meta: RecommendationMeta & Parameters<typeof TrendProvenanceNotice>[0]["meta"] }) {
   const t = useTranslations("common.design");
   const tf = useTranslations("common.freshness");
   const parts = [
@@ -19,6 +20,7 @@ export function MetaBar({ meta }: { meta: RecommendationMeta }) {
   ].filter(Boolean);
   return (
     <>
+      <TrendProvenanceNotice meta={meta} />
       {meta.is_fallback ? <p className="a-notice" role="status">{tf("fallback", { date: meta.snapshot_date })}</p> : null}
       <details className="a-metabar">
         <summary>

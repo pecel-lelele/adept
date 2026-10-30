@@ -72,7 +72,12 @@ DateRange = tuple[date, date]
 
 
 def provenance(
-    t0: str, t1: str, t0_dates: DateRange, t1_dates: DateRange
+    t0: str,
+    t1: str,
+    t0_dates: DateRange,
+    t1_dates: DateRange,
+    *,
+    retrieval: dict[str, object],
 ) -> tuple[list[dict], str]:
     """Sources and a note naming the days actually collected first (read back as
     observed_from/to). Dates come from the stored signals, never the calendar week, so a run
@@ -85,13 +90,21 @@ def provenance(
         f"{base_start.isoformat()}..{base_end.isoformat()} ({t0}), blended with the BLS "
         "2023-2033 projections as the labour baseline."
     )
-    retrieved = end.isoformat()
+    from pipelines.trends.provenance import git_commit_retrieval
+
     sources = [
-        {"name": "arXiv cs.AI listing", "url": ARXIV_RSS_URL, "retrieved_at": retrieved},
+        {
+            "name": "arXiv cs.AI listing",
+            "url": ARXIV_RSS_URL,
+            **{
+                key: retrieval[key]
+                for key in ("retrieved_at", "retrieved_at_basis", "retrieval_evidence")
+            },
+        },
         {
             "name": "BLS Occupational Projections 2023-2033",
             "url": BLS_URL,
-            "retrieved_at": retrieved,
+            **git_commit_retrieval(REPO_ROOT / "src/data/seed/labor_decay.csv"),
         },
     ]
     return sources, note
@@ -101,10 +114,16 @@ def collected_dates(db_url: str, period: str | None = None) -> DateRange | None:
     """First and last day arXiv signals were collected (for one ISO week, or overall)."""
     import psycopg  # type: ignore[import]
 
-    where = "source = 'arxiv' AND metric = 'mention_count'" + (" AND period = %s" if period else "")
+    # Replay provenance fix: only proven live observations may form a refresh baseline.
+    where = (
+        "source = 'arxiv' AND metric = 'mention_count' AND is_replay IS FALSE "
+        "AND retrieved_at_basis IN ('pipeline_fetch', 'fetch_log')"
+        + (" AND period = %s" if period else "")
+    )
     with psycopg.connect(db_url) as conn, conn.cursor() as cur:
         cur.execute(
-            f"SELECT min(retrieved_at), max(retrieved_at) FROM skill_signal_raw WHERE {where}",
+            f"SELECT min(observation_window_start), max(observation_window_end) "
+            f"FROM skill_signal_raw WHERE {where}",
             (period,) if period else (),
         )
         row = cur.fetchone()
@@ -112,7 +131,13 @@ def collected_dates(db_url: str, period: str | None = None) -> DateRange | None:
 
 
 def publish(
-    rows: list[dict], snapshot_date: date, sources: list[dict], note: str, db_url: str
+    rows: list[dict],
+    snapshot_date: date,
+    sources: list[dict],
+    note: str,
+    db_url: str,
+    *,
+    provenance: dict[str, object] | None = None,
 ) -> None:
     """Write the snapshot and its provenance in one transaction.
 
@@ -122,7 +147,18 @@ def publish(
     """
     import psycopg  # type: ignore[import]
 
+    from app.features.trends.provenance import PROVENANCE_FIELDS, provenance_values
+
+    facts = provenance_values(provenance or {}, note)
+
     with psycopg.connect(db_url) as conn, conn.transaction(), conn.cursor() as cur:
+        cur.execute(
+            "SELECT is_replay FROM trend_snapshot_meta WHERE snapshot_date = %s FOR UPDATE",
+            (snapshot_date,),
+        )
+        previous = cur.fetchone()
+        if previous and previous[0] is not None and previous[0] != facts["is_replay"]:
+            raise ValueError("A published live/replay slot cannot change origin")
         # Snapshot cleanup: remove any stale rows from a previous run on this date.
         cur.execute(
             "DELETE FROM trend_snapshots WHERE snapshot_date = %s",
@@ -134,8 +170,10 @@ def publish(
                 INSERT INTO trend_snapshots
                     (skill_id, snapshot_date, research_velocity, labor_decay,
                      labor_decay_source_note, automation_exposure, velocity_moderate,
-                     velocity_fast, direction_moderate, direction_fast)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                     velocity_fast, direction_moderate, direction_fast,
+                     is_replay, observation_window_start, observation_window_end,
+                     retrieved_at, retrieved_at_basis, retrieval_evidence)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (skill_id, snapshot_date) DO UPDATE SET
                     research_velocity = EXCLUDED.research_velocity,
                     labor_decay = EXCLUDED.labor_decay,
@@ -157,18 +195,57 @@ def publish(
                     r["velocity_fast"],
                     r["direction_moderate"],
                     r["direction_fast"],
+                    *(facts[field] for field in PROVENANCE_FIELDS),
                 ),
             )
         cur.execute(
             """
-            INSERT INTO trend_snapshot_meta (snapshot_date, sources, provenance_note)
-            VALUES (%s, %s, %s)
+            INSERT INTO trend_snapshot_meta (snapshot_date, sources, provenance_note,
+                is_replay, observation_window_start, observation_window_end,
+                retrieved_at, retrieved_at_basis, retrieval_evidence)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (snapshot_date) DO UPDATE
                 SET sources = EXCLUDED.sources, provenance_note = EXCLUDED.provenance_note,
-                    loaded_at = now()
+                    loaded_at = now(), is_replay = EXCLUDED.is_replay,
+                    observation_window_start = EXCLUDED.observation_window_start,
+                    observation_window_end = EXCLUDED.observation_window_end,
+                    retrieved_at = EXCLUDED.retrieved_at,
+                    retrieved_at_basis = EXCLUDED.retrieved_at_basis,
+                    retrieval_evidence = EXCLUDED.retrieval_evidence
             """,
-            (snapshot_date, json.dumps(sources), note),
+            (
+                snapshot_date,
+                json.dumps(sources, default=str),
+                note,
+                *(facts[field] for field in PROVENANCE_FIELDS),
+            ),
         )
+
+
+def live_provenance(db_url: str, period: str) -> dict[str, object]:
+    """Read the live source's stored evidence, independently of its publication date."""
+    import psycopg
+
+    with psycopg.connect(db_url) as conn:
+        row = conn.execute(
+            "SELECT min(observation_window_start), max(observation_window_end), "
+            "max(retrieved_at), string_agg(DISTINCT retrieval_evidence, '; '), "
+            "(array_agg(retrieved_at_basis ORDER BY retrieved_at DESC))[1] "
+            "FROM skill_signal_raw WHERE source = 'arxiv' AND metric = 'mention_count' "
+            "AND period = %s AND is_replay IS FALSE "
+            "AND retrieved_at_basis IN ('pipeline_fetch', 'fetch_log')",
+            (period,),
+        ).fetchone()
+    if not row or any(value is None for value in row):
+        raise ValueError("Live refresh lacks verified source provenance")
+    return {
+        "is_replay": False,
+        "observation_window_start": row[0],
+        "observation_window_end": row[1],
+        "retrieved_at": row[2],
+        "retrieved_at_basis": row[4],
+        "retrieval_evidence": row[3],
+    }
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -234,13 +311,14 @@ def main(argv: list[str] | None = None) -> int:
     if t0_dates is None or t1_dates is None:
         print("ERROR: signal collection dates missing; nothing published.", file=sys.stderr)
         return 1
-    sources, note = provenance(t0, t1, t0_dates, t1_dates)
+    facts = live_provenance(db_url, t1)
+    sources, note = provenance(t0, t1, t0_dates, t1_dates, retrieval=facts)
     rising = sum(1 for r in evidenced if r["direction_moderate"] == "rising")
     print(f"Valid snapshot {snapshot_date}: {len(evidenced)} skills, {rising} rising. {note}")
     if args.dry_run:
         print("Dry run: nothing published.")
         return 0
-    publish(evidenced, snapshot_date, sources, note, db_url)
+    publish(evidenced, snapshot_date, sources, note, db_url, provenance=facts)
     print(f"Published snapshot {snapshot_date}.")
     return 0
 

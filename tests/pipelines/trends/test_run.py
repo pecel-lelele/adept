@@ -43,9 +43,18 @@ def test_provenance_names_only_the_days_actually_collected() -> None:
         "2026-W42",
         (date(2026, 10, 5), date(2026, 10, 5)),
         (date(2026, 10, 12), date(2026, 10, 12)),
+        retrieval={
+            "retrieved_at": "2026-10-14",
+            "retrieved_at_basis": "fetch_log",
+            "retrieval_evidence": "synthetic arxiv_fetch_log evidence",
+        },
     )
     assert window_from_note(note) == (date(2026, 10, 12), date(2026, 10, 12))
-    assert {s["retrieved_at"] for s in sources} == {"2026-10-12"}
+    # Observation and retrieval are separate: do not infer either source's fetch
+    # day from the week/snapshot label (the provenance mislabeling regression).
+    assert sources[0]["retrieved_at"] == "2026-10-14"
+    assert sources[0]["retrieved_at_basis"] == "fetch_log"
+    assert sources[1]["retrieved_at_basis"] == "git_commit_date"
 
 
 def test_refresh_refuses_when_the_ingest_stored_nothing_new(monkeypatch) -> None:  # type: ignore[no-untyped-def]

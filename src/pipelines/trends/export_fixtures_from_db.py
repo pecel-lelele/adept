@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import csv
 import json
+import math
 import sys
 from datetime import date
 from pathlib import Path
@@ -25,7 +26,10 @@ from psycopg.rows import dict_row
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT / "src" / "api"))
+sys.path.insert(0, str(REPO_ROOT / "src"))
 from app.core.config import get_settings  # noqa: E402
+from app.features.trends.provenance import provenance_values  # noqa: E402
+from pipelines.trends.provenance import git_commit_retrieval  # noqa: E402
 
 SEED_DIR = REPO_ROOT / "src" / "data" / "seed"
 CANONICAL_CSV = SEED_DIR / "canonical_skills.csv"
@@ -69,9 +73,7 @@ def export_snapshot(
     with conn.cursor() as cur:
         cur.execute(
             """
-            SELECT skill_id, research_velocity, labor_decay, labor_decay_source_note,
-                   automation_exposure, velocity_moderate, velocity_fast,
-                   direction_moderate, direction_fast
+            SELECT *
             FROM trend_snapshots
             WHERE snapshot_date = %s
             ORDER BY skill_id
@@ -79,6 +81,8 @@ def export_snapshot(
             (sd,),
         )
         rows = cur.fetchall()
+        cur.execute("SELECT * FROM trend_snapshot_meta WHERE snapshot_date = %s", (sd,))
+        stored_meta = cur.fetchone() or {}
 
     if not rows:
         raise RuntimeError(
@@ -105,33 +109,84 @@ def export_snapshot(
             }
         )
 
+    note = stored_meta.get("provenance_note") or PROVENANCE_NOTES.get(snapshot_date_str)
+    stored = stored_meta if stored_meta.get("is_replay") is not None else rows[0]
+    if stored.get("retrieved_at") is None or stored.get("retrieved_at_basis") in (None, "unknown"):
+        # No verified fetch timestamp survives for these legacy replay exports. Use
+        # the source fixture's evidenced commit day, never its assigned slot date.
+        fixture = SEED_DIR / f"mock_trends_{snapshot_date_str}.json"
+        if snapshot_date_str not in PROVENANCE_NOTES or not fixture.is_file():
+            raise ValueError("Cannot export unclassified trend data without observation evidence")
+        # A slot label alone cannot establish an observation window. The fallback
+        # is allowed only for the same committed replay data, not arbitrary rows
+        # that happen to occupy a familiar date.
+        frozen = json.loads(fixture.read_text(encoding="utf-8"))
+        expected = {item["skill_id"]: item for item in frozen["items"]}
+        if len(expected) != len(rows) or any(
+            row["skill_id"] not in expected
+            or any(
+                not math.isclose(
+                    float(row[field]),
+                    float(expected[row["skill_id"]][field]),
+                    rel_tol=1e-5,
+                    abs_tol=1e-5,
+                )
+                for field in (
+                    "research_velocity",
+                    "labor_decay",
+                    "automation_exposure",
+                    "velocity_moderate",
+                    "velocity_fast",
+                )
+            )
+            for row in rows
+        ):
+            raise ValueError("Legacy snapshot does not match its cited replay fixture")
+        stored = {
+            **stored,
+            **git_commit_retrieval(fixture),
+            "is_replay": True,
+        }
+    validated = provenance_values(stored, note)
+    for row in rows:
+        if row.get("is_replay") is not None and provenance_values(row) != validated:
+            raise ValueError("Conflicting stored trend provenance cannot be exported")
+        if row.get("is_replay") is None and validated["is_replay"] is False:
+            raise ValueError("Unclassified snapshot rows cannot be exported as live")
+    provenance = {
+        key: value.isoformat() if isinstance(value, date) else value
+        for key, value in validated.items()
+    }
+    sources = stored_meta.get("sources") or [
+        {"name": "arXiv cs.AI Query API", "url": "http://export.arxiv.org/api/query"},
+        {
+            "name": "BLS Occupational Projections 2023-2033",
+            "url": "https://www.bls.gov/emp/tables/occupational-projections-and-characteristics.htm",
+        },
+    ]
+    sources = [
+        source
+        if source.get("retrieved_at_basis") not in (None, "unknown")
+        else {
+            **source,
+            **{
+                key: provenance[key]
+                for key in ("retrieved_at", "retrieved_at_basis", "retrieval_evidence")
+            },
+        }
+        for source in sources
+    ]
     return {
         "meta": {
-            "sources": [
-                {
-                    "name": "arXiv cs.AI Query API",
-                    "url": "http://export.arxiv.org/api/query",
-                    "retrieved_at": snapshot_date_str,
-                },
-                {
-                    "name": "BLS Occupational Projections 2023-2033",
-                    "url": (
-                        "https://www.bls.gov/emp/tables/"
-                        "occupational-projections-and-characteristics.htm"
-                    ),
-                    "retrieved_at": snapshot_date_str,
-                },
-            ],
+            "sources": sources,
             "snapshot_date": snapshot_date_str,
             "scenario": "moderate",
             "is_estimate": True,
             "weights": {"research_velocity": 0.6, "labor_decay": 0.4},
             "labor_decay_is_static": True,
             "available_snapshots": AVAILABLE_SNAPSHOTS,
-            "data_provenance_note": PROVENANCE_NOTES.get(
-                snapshot_date_str,
-                "Frozen offline snapshot exported from PostgreSQL trend_snapshots.",
-            ),
+            "data_provenance_note": note,
+            **provenance,
         },
         "items": items,
     }
@@ -146,13 +201,13 @@ def main() -> None:
             data = export_snapshot(conn, snap_date, labels)
             target = SEED_DIR / f"mock_trends_{snap_date}.json"
             with target.open("w", encoding="utf-8") as fh:
-                json.dump(data, fh, indent=2, ensure_ascii=False)
+                json.dump(data, fh, indent=2, ensure_ascii=False, default=str)
             print(f"Exported {len(data['items'])} rows -> {target}")
 
             if snap_date == "2026-10-20":
                 default_target = SEED_DIR / "mock_trends.json"
                 with default_target.open("w", encoding="utf-8") as fh:
-                    json.dump(data, fh, indent=2, ensure_ascii=False)
+                    json.dump(data, fh, indent=2, ensure_ascii=False, default=str)
                 print(f"Exported {len(data['items'])} rows -> {default_target}")
 
     print("DB fixture export complete.")

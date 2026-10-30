@@ -2025,13 +2025,34 @@ export interface components {
         };
         /** DataFreshness */
         DataFreshness: {
+            /** Observation Window Start */
+            observation_window_start?: string | null;
+            /** Observation Window End */
+            observation_window_end?: string | null;
+            /** Retrieved At */
+            retrieved_at?: string | null;
+            /**
+             * Retrieved At Basis
+             * @default unknown
+             * @enum {string}
+             */
+            retrieved_at_basis: "pipeline_fetch" | "fetch_log" | "git_commit_date" | "unknown";
+            /** Retrieval Evidence */
+            retrieval_evidence?: string | null;
+            /** Is Replay */
+            is_replay?: boolean | null;
+            /** Observed From */
+            observed_from?: string | null;
+            /** Observed To */
+            observed_to?: string | null;
             /**
              * Snapshot Date
              * Format: date
+             * @description Snapshot version/slot label; see observation_window_* for the measured period.
              */
             snapshot_date: string;
             /** Sources */
-            sources: components["schemas"]["Source"][];
+            sources: components["schemas"]["TrendSource"][];
             /** Is Mock */
             is_mock: boolean;
             /**
@@ -3336,7 +3357,7 @@ export interface components {
         RadarResponse: {
             /** Items */
             items: components["schemas"]["TrendSignal"][];
-            meta: components["schemas"]["RecommendationMeta"];
+            meta: components["schemas"]["TrendRecommendationMeta"];
         };
         /**
          * RecommendationMeta
@@ -3747,7 +3768,7 @@ export interface components {
         /** RoleTrendResponse */
         RoleTrendResponse: {
             signal: components["schemas"]["TrendSignal"];
-            meta: components["schemas"]["RecommendationMeta"];
+            meta: components["schemas"]["TrendRecommendationMeta"];
         };
         /** SavePlanIn */
         SavePlanIn: {
@@ -4311,17 +4332,34 @@ export interface components {
              */
             retrieved_at: string;
         };
-        /** SourceRef */
+        /**
+         * SourceRef
+         * @description Source retrieval basis is part of the trend response, not just its export.
+         */
         SourceRef: {
-            /** Name */
+            /**
+             * Name
+             * @example MOCK DATA
+             */
             name: string;
-            /** Url */
+            /**
+             * Url
+             * @description Empty only for mock data.
+             */
             url: string;
             /**
              * Retrieved At
              * Format: date
              */
             retrieved_at: string;
+            /**
+             * Retrieved At Basis
+             * @default unknown
+             * @enum {string}
+             */
+            retrieved_at_basis: "pipeline_fetch" | "fetch_log" | "git_commit_date" | "unknown";
+            /** Retrieval Evidence */
+            retrieval_evidence?: string | null;
         };
         /** SourcesResponse */
         SourcesResponse: {
@@ -4417,6 +4455,62 @@ export interface components {
             /** Trend Coverage */
             trend_coverage: number;
         };
+        /**
+         * TrendRecommendationMeta
+         * @description Legacy trend endpoints retain the same explicit origin as snapshot/freshness.
+         */
+        TrendRecommendationMeta: {
+            /** Observation Window Start */
+            observation_window_start?: string | null;
+            /** Observation Window End */
+            observation_window_end?: string | null;
+            /** Retrieved At */
+            retrieved_at?: string | null;
+            /**
+             * Retrieved At Basis
+             * @default unknown
+             * @enum {string}
+             */
+            retrieved_at_basis: "pipeline_fetch" | "fetch_log" | "git_commit_date" | "unknown";
+            /** Retrieval Evidence */
+            retrieval_evidence?: string | null;
+            /** Is Replay */
+            is_replay?: boolean | null;
+            /**
+             * Observed From
+             * @description Start of the period the source data measures; may predate snapshot_date.
+             */
+            observed_from?: string | null;
+            /**
+             * Observed To
+             * @description End of the period the source data measures.
+             */
+            observed_to?: string | null;
+            /** Sources */
+            sources: components["schemas"]["TrendSource"][];
+            /**
+             * Snapshot Date
+             * Format: date
+             */
+            snapshot_date: string;
+            /**
+             * Scenario
+             * @enum {string}
+             */
+            scenario: "moderate" | "fast";
+            /**
+             * Is Estimate
+             * @default true
+             */
+            is_estimate: boolean;
+            /** Served From */
+            served_from?: ("db" | "fixture") | null;
+            /**
+             * Is Fallback
+             * @default false
+             */
+            is_fallback: boolean;
+        };
         /** TrendSignal */
         TrendSignal: {
             /**
@@ -4447,11 +4541,32 @@ export interface components {
         };
         /** TrendSnapshotMeta */
         TrendSnapshotMeta: {
+            /** Observation Window Start */
+            observation_window_start?: string | null;
+            /** Observation Window End */
+            observation_window_end?: string | null;
+            /** Retrieved At */
+            retrieved_at?: string | null;
+            /**
+             * Retrieved At Basis
+             * @default unknown
+             * @enum {string}
+             */
+            retrieved_at_basis: "pipeline_fetch" | "fetch_log" | "git_commit_date" | "unknown";
+            /** Retrieval Evidence */
+            retrieval_evidence?: string | null;
+            /** Is Replay */
+            is_replay?: boolean | null;
+            /** Observed From */
+            observed_from?: string | null;
+            /** Observed To */
+            observed_to?: string | null;
             /** Sources */
             sources: components["schemas"]["SourceRef"][];
             /**
              * Snapshot Date
              * Format: date
+             * @description Snapshot version/slot label, not its observation or retrieval date.
              */
             snapshot_date: string;
             /**
@@ -4492,22 +4607,38 @@ export interface components {
              * @description Optional explanation of data provenance, e.g. for historical arXiv date-window pulls or demo calibration.
              */
             data_provenance_note?: string | null;
-            /**
-             * Observed From
-             * @description Start of the period the source data measures; may predate snapshot_date.
-             */
-            observed_from?: string | null;
-            /**
-             * Observed To
-             * @description End of the period the source data measures.
-             */
-            observed_to?: string | null;
         };
         /** TrendSnapshotResponse */
         TrendSnapshotResponse: {
             meta: components["schemas"]["TrendSnapshotMeta"];
             /** Items */
             items: components["schemas"]["SkillVelocity"][];
+        };
+        /** TrendSource */
+        TrendSource: {
+            /**
+             * Name
+             * @example MOCK DATA
+             */
+            name: string;
+            /**
+             * Url
+             * @description Empty only for mock data.
+             */
+            url: string;
+            /**
+             * Retrieved At
+             * Format: date
+             */
+            retrieved_at: string;
+            /**
+             * Retrieved At Basis
+             * @default unknown
+             * @enum {string}
+             */
+            retrieved_at_basis: "pipeline_fetch" | "fetch_log" | "git_commit_date" | "unknown";
+            /** Retrieval Evidence */
+            retrieval_evidence?: string | null;
         };
         /** UnmetSkill */
         UnmetSkill: {

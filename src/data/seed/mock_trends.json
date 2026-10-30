@@ -4,12 +4,16 @@
       {
         "name": "arXiv cs.AI Query API",
         "url": "http://export.arxiv.org/api/query",
-        "retrieved_at": "2026-10-20"
+        "retrieved_at": "2026-10-24",
+        "retrieved_at_basis": "git_commit_date",
+        "retrieval_evidence": "git:8a5a4608c0a5907d85e5acf1b8fc246661bbfd2a:src/data/seed/mock_trends.json (UTC commit date; fetch time unverified)"
       },
       {
         "name": "BLS Occupational Projections 2023-2033",
         "url": "https://www.bls.gov/emp/tables/occupational-projections-and-characteristics.htm",
-        "retrieved_at": "2026-10-20"
+        "retrieved_at": "2026-10-24",
+        "retrieved_at_basis": "git_commit_date",
+        "retrieval_evidence": "git:8a5a4608c0a5907d85e5acf1b8fc246661bbfd2a:src/data/seed/mock_trends.json (UTC commit date; fetch time unverified)"
       }
     ],
     "snapshot_date": "2026-10-20",
@@ -24,7 +28,13 @@
       "2026-10-13",
       "2026-10-20"
     ],
-    "data_provenance_note": "Frozen offline snapshot exported from PostgreSQL trend_snapshots (measured from arXiv cs.AI query API submission windows 2024-10-13..2024-10-19 vs 2024-10-06..2024-10-12 calibrated to 2026-W42/W43; static copy that does not update unless export_fixtures_from_db.py is re-run against a fresh pipeline run)."
+    "data_provenance_note": "Frozen offline snapshot exported from PostgreSQL trend_snapshots (measured from arXiv cs.AI query API submission windows 2024-10-13..2024-10-19 vs 2024-10-06..2024-10-12 calibrated to 2026-W42/W43; static copy that does not update unless export_fixtures_from_db.py is re-run against a fresh pipeline run). Snapshot dates are replay slot labels, not observation dates. Retrieval date is a source-fixture commit-date fallback, not a verified fetch date.",
+    "is_replay": true,
+    "observation_window_start": "2024-10-13",
+    "observation_window_end": "2024-10-19",
+    "retrieved_at": "2026-10-24",
+    "retrieved_at_basis": "git_commit_date",
+    "retrieval_evidence": "git:8a5a4608c0a5907d85e5acf1b8fc246661bbfd2a:src/data/seed/mock_trends.json (UTC commit date; fetch time unverified)"
   },
   "items": [
     {

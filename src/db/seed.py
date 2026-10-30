@@ -21,6 +21,9 @@ import psycopg
 from psycopg import sql
 from psycopg.types.json import Jsonb
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "api"))
+from app.features.trends.provenance import PROVENANCE_FIELDS, provenance_values  # noqa: E402
+
 SEED = Path(__file__).resolve().parent.parent / "data" / "seed"
 DEFAULT_URL = "postgresql://adept:adept@127.0.0.1:5433/adept"
 
@@ -102,24 +105,56 @@ TREND_FIELDS = (
 def load_trend_exports(conn: psycopg.Connection) -> None:
     """Load the dated, scored trend snapshots exported by the M1 pipeline
     (`src/data/seed/mock_trends_<date>.json`, written by export_fixtures_from_db.py) into
-    `trend_snapshots`, with their sources in `trend_snapshot_meta`, so a fresh database serves
-    the same real snapshots the pipeline produced. Existing rows are never overwritten."""
+    `trend_snapshots`, preserving replay/observation/retrieval provenance as columns.
+    Existing scores are never overwritten; unknown legacy provenance is repaired."""
     for path in sorted(SEED.glob("mock_trends_????-??-??.json")):
         export = json.loads(path.read_text(encoding="utf-8"))
         meta = export["meta"]
         day = meta["snapshot_date"]
-        rows = [tuple(item.get(f, day) for f in TREND_FIELDS) for item in export["items"]]
-        cols = sql.SQL(", ").join(map(sql.Identifier, TREND_FIELDS))
+        provenance = provenance_values(meta, meta.get("data_provenance_note"))
+        previous = conn.execute(
+            "SELECT is_replay FROM trend_snapshot_meta WHERE snapshot_date = %s FOR UPDATE",
+            (day,),
+        ).fetchone()
+        if previous and previous[0] is not None and previous[0] != provenance["is_replay"]:
+            raise ValueError("Cannot import replay data into a published live snapshot slot")
+        fields = (*TREND_FIELDS, *PROVENANCE_FIELDS)
+        rows = [
+            tuple(item.get(f, day) for f in TREND_FIELDS)
+            + tuple(provenance[f] for f in PROVENANCE_FIELDS)
+            for item in export["items"]
+        ]
+        cols = sql.SQL(", ").join(map(sql.Identifier, fields))
+        assignments = sql.SQL(", ").join(
+            sql.SQL("{} = EXCLUDED.{}").format(sql.Identifier(f), sql.Identifier(f))
+            for f in PROVENANCE_FIELDS
+        )
         query = sql.SQL(
             "INSERT INTO trend_snapshots ({}) VALUES ({}) ON CONFLICT (skill_id, snapshot_date) "
-            "DO NOTHING"
-        ).format(cols, sql.SQL(", ").join(sql.Placeholder() * len(TREND_FIELDS)))
+            "DO UPDATE SET {} WHERE trend_snapshots.is_replay IS NULL"
+        ).format(cols, sql.SQL(", ").join(sql.Placeholder() * len(fields)), assignments)
         with conn.cursor() as cur:
             cur.executemany(query, rows)
+        metadata_fields = ("snapshot_date", "sources", "provenance_note", *PROVENANCE_FIELDS)
         conn.execute(
-            "INSERT INTO trend_snapshot_meta (snapshot_date, sources, provenance_note) "
-            "VALUES (%s, %s, %s) ON CONFLICT (snapshot_date) DO NOTHING",
-            (day, Jsonb(meta["sources"]), meta.get("data_provenance_note") or ""),
+            sql.SQL(
+                "INSERT INTO trend_snapshot_meta ({}) VALUES ({}) "
+                "ON CONFLICT (snapshot_date) DO UPDATE SET {} "
+                "WHERE trend_snapshot_meta.is_replay IS NULL"
+            ).format(
+                sql.SQL(", ").join(map(sql.Identifier, metadata_fields)),
+                sql.SQL(", ").join(sql.Placeholder() * len(metadata_fields)),
+                sql.SQL(", ").join(
+                    sql.SQL("{} = EXCLUDED.{}").format(sql.Identifier(f), sql.Identifier(f))
+                    for f in metadata_fields[1:]
+                ),
+            ),
+            (
+                day,
+                Jsonb(meta["sources"]),
+                meta.get("data_provenance_note") or "",
+                *(provenance[f] for f in PROVENANCE_FIELDS),
+            ),
         )
         print(f"{path.name}: {len(rows)} trend row(s) for {day}")
 
