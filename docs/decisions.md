@@ -330,7 +330,29 @@
 - **Replaces**: none
 - **PR / branch**: `feat/core-hardening-and-submission-evidence` / PR #30
 
-### TEAM-030: Integrate reviewed trend scoring and on-demand refresh
+### TEAM-030: Require verified proxy hops and prepare count-only Replit evidence
+- **Date**: 2026-10-30
+- **Feature**: Core / F8
+- **Type**: method
+- **Change**: Zero hops no longer signs XFF as client identity, including in best-effort production mode. Positive counts validate and select a suffix from the right (one = last entry, two = second-last); all web relays use one helper. Add opt-in `PROXY_LOG_XFF_COUNT` diagnostics containing only entry counts, plus an owner-run verification procedure.
+- **Why**: #55 cannot assume a platform sanitises caller headers. A shared secret authenticates our relay but does not make its input trustworthy. The maintainer lacks access to the friend's Replit workspace, so live verification remains pending; synthetic edge tests are not deployment evidence. Unverified best-effort mode keeps serving with a shared anonymous direct-peer bucket; verified session limits remain unchanged. Counts alone cannot establish spoof resistance or the correct hop setting.
+- **Affects**: Server component/action API clients, API proxy, preview and Adi forwarding; production warnings and configuration documentation. No new migration or deployment is performed. Tests cover forged-prefix bucket continuity, zero-hop rejection, malformed/short suffixes and count-only logging.
+- **Validation**: After integrating latest main (`95a2505`) while preserving the PM regression branch (`8cc9ed0`), the full isolated quality gate passed: 1317 pytest tests, 54 subtests, 32 environment/opt-in skips; lint, TypeScript, translations, source attribution and contract drift passed. All 74 web regressions passed again; the Next.js production build passed before the upstream-only configuration/documentation integration. Sandbox-denied npm/module/subprocess operations were rerun through approved escalation. Remote CI, Greptile and the live Replit chain were not verified.
+- **Replaces**: TEAM-008's zero-hop XFF trust; positive counts now have explicit suffix semantics rather than always selecting the last entry.
+- **PR / branch**: `fix/core-proxy-scenario-loading`
+
+### TEAM-031: Submit scenario changes through native GET navigation
+- **Date**: 2026-10-30
+- **Feature**: Core / F3
+- **Type**: UI, method
+- **Change**: Replace ScenarioToggle's router transition and global busy state with a normal GET form. Submit exactly one selected scenario and preserve other query entries, including repeated filters, role, snapshot and SDG weight. Retain roving radio focus and arrow-key submission.
+- **Why**: The user still reports indefinite loading after TEAM-027's hydration fix. The control previously stayed unavailable for as long as an RSC transition remained pending. A native document navigation removes that dependency and works before hydration; it deliberately incurs a full page load and resets transient client state. This addresses the control's indefinite transition state without claiming that the inaccessible production root cause has been reproduced or that network/backend outages cannot delay navigation.
+- **Affects**: Scenario control in learner and organisation shells; no API, formula, scoring, attribution or provider changes. Production-component tests cover both directions, filters, keyboard submission and EN/MS/ZH server markup.
+- **Validation**: The built standalone web server and unmodified API passed an isolated loopback HTTP smoke with a synthetic signed-in account: moderate → fast → moderate → fast, completed streamed pages, matching selected controls/estimate labels and preserved repeated filters. This exercised native GET form serialization over HTTP, not a browser click or production deployment. Providers were disabled, storage was disposable in-memory state, and both child processes were stopped.
+- **Replaces**: ScenarioToggle's transition-only navigation; TEAM-027's React ownership fix remains in place.
+- **PR / branch**: `fix/core-proxy-scenario-loading`
+
+### TEAM-032: Integrate reviewed trend scoring and on-demand refresh
 - **Date**: 2026-10-30
 - **Feature**: F2, F3, F4, F5 and Core
 - **Type**: method
@@ -341,7 +363,7 @@
 - **Replaces**: scenario scaling/fallback implementation portions of TEAM-010 and TEAM-020
 - **PR / branch**: fix/core-review-regressions
 
-### TEAM-031: Stable admin identities and scoped learning records
+### TEAM-033: Stable admin identities and scoped learning records
 - **Date**: 2026-10-30
 - **Feature**: Core and F7
 - **Type**: schema
@@ -351,7 +373,7 @@
 - **Replaces**: email-based admin authorization in M4-027
 - **PR / branch**: fix/core-review-regressions
 
-### TEAM-032: Observation dates, regional privacy and explicit workspace navigation
+### TEAM-034: Observation dates, regional privacy and explicit workspace navigation
 - **Date**: 2026-10-30
 - **Feature**: F1, F5, F6, F7 and Core
 - **Type**: contract
@@ -361,7 +383,7 @@
 - **Replaces**: none
 - **PR / branch**: fix/core-review-regressions
 
-### TEAM-033: Dated Malaysian context and verified current occupations
+### TEAM-035: Dated Malaysian context and verified current occupations
 - **Date**: 2026-10-30
 - **Feature**: F2, F5 and Core
 - **Type**: data source
@@ -372,7 +394,7 @@
 - **Replaces**: none
 - **PR / branch**: fix/core-review-regressions
 
-### TEAM-034: Final-round operations, infrastructure and browser verification
+### TEAM-036: Final-round operations, infrastructure and browser verification
 - **Date**: 2026-10-30
 - **Feature**: all
 - **Type**: dependency
@@ -382,7 +404,7 @@
 - **Replaces**: abandoned timeout-worker implementation in refactor/pathway-trend-and-match-ports
 - **PR / branch**: fix/core-review-regressions
 
-### TEAM-035: Record the frontend and Adi worktree handover
+### TEAM-037: Record the frontend and Adi worktree handover
 - **Date**: 2026-10-30
 - **Feature**: F1, F4, F7, F8 and Core
 - **Type**: UI
@@ -392,17 +414,17 @@
 - **Replaces**: mandatory sharing condition on joining; preserves explicit programme acceptance requirements
 - **PR / branch**: fix/core-review-regressions
 
-### TEAM-036: Keep refresh workflow configuration distinct from CI metadata
+### TEAM-038: Keep refresh workflow configuration distinct from CI metadata
 - **Date**: 2026-10-30
 - **Feature**: F2 and Core
 - **Type**: contract
 - **Change**: Rename the app-only workflow setting to TRENDS_REFRESH_WORKFLOW. Regenerate source branch contracts and add a regression with the real GitHub runner variable present.
 - **Why**: GITHUB_WORKFLOW is reserved runner metadata and caused refresh configuration tests to reject CI as a filename; validation remains strict.
 - **Affects**: app environment configuration and review-branch CI
-- **Replaces**: workflow environment setting in TEAM-030
+- **Replaces**: workflow environment setting in TEAM-032
 - **PR / branch**: fix/core-review-regressions
 
-### TEAM-037: Ground historical MyCOL badges and separate measured API timings from human KPIs
+### TEAM-039: Ground historical MyCOL badges and separate measured API timings from human KPIs
 - **Date**: 2026-10-30
 - **Feature**: F1 / F4 / F8 / Core submission evidence
 - **Type**: contract | method | UI | other
@@ -849,7 +871,7 @@
 - **Why**: PR #69 review identified repeated reference reads across every ranked role. These are versioned release assets, so a worker restart loads a new reference release; user profiles, role catalogue reads, scores and request metadata are not cached.
 - **Pipeline**: frozen verified MyCOL assets -> parse once per worker -> role-ID and MASCO indexes -> exact ID lookup with unchanged badge attribution -> file-open-count, metadata-isolation and existing badge/source regressions -> matching list/detail responses
 - **Affects**: F4 historical MyCOL badge reads only; no contract, dependency, scoring or source-date change
-- **Replaces**: TEAM-037's per-lookup reference-file loading; preserves M2-015's fresh role catalogue and saved-profile behaviour
+- **Replaces**: TEAM-039's per-lookup reference-file loading; preserves M2-015's fresh role catalogue and saved-profile behaviour
 - **PR / branch**: PR #69 / `fix/core-final-round-integration`
 
 ---
@@ -2104,7 +2126,17 @@
 - **Replaces**: none
 - **PR / branch**: chore/core-dependabot-grouping
 
-### M4-083: Ground Adi routing and multilingual explanations
+### M4-083: Keep grounded chat fallbacks and refuse lowercase decision questions
+- **Date**: 2026-10-30
+- **Feature**: Core / F8 (Adi)
+- **Type**: method
+- **Change**: Keep the already-checked deterministic answer if routing restores any model-selected answer ID absent from the grounded candidate set. Recognize explicit English people-decision questions without requiring capitalized names.
+- **Why**: Greptile identified a catalogue-outage `KeyError` when a rejected learn runner-up was restored, and lowercase-name questions bypassing the decision refusal. Both failures were reproduced before fixing them; changes are limited to these two review findings and their regressions.
+- **Affects**: Adi answer selection and decision refusals; EN/MS/ZH catalogue-outage HTTP tests and learner/manager lowercase-name safety coverage. No contracts, dependencies, scoring, catalogue data or other product flows change.
+- **Replaces**: none
+- **PR / branch**: fix/core-proxy-scenario-loading
+
+### M4-084: Ground Adi routing and multilingual explanations
 - **Date**: 2026-10-30
 - **Feature**: Core and F8
 - **Type**: method
@@ -2114,7 +2146,7 @@
 - **Replaces**: none
 - **PR / branch**: worktree-agent-ae781c8985e0fb4d3
 
-### M4-084: Separate joining consent and clarify the individual journey
+### M4-085: Separate joining consent and clarify the individual journey
 - **Date**: 2026-10-30
 - **Feature**: F1, F4, F7 and Core
 - **Type**: UI
@@ -2124,7 +2156,7 @@
 - **Replaces**: none
 - **PR / branch**: worktree-agent-ab3aa728dfca284ec
 
-### M4-085: Harden production setup and broaden the regression gate
+### M4-086: Harden production setup and broaden the regression gate
 - **Date**: 2026-10-30
 - **Feature**: Core, F7 and F8
 - **Type**: method

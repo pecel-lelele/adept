@@ -1,10 +1,10 @@
 import { API_URL } from "@/lib/api/client";
-import { trustedClientIp } from "@/lib/api/proxy";
+import { clientIpHeaders } from "@/lib/api/proxy";
 import { proxyConfig } from "@/lib/api/proxy-config";
 import { getSessionToken } from "@/lib/auth/session";
 import { selectedOrg, workspaceFor } from "@/lib/auth/workspace";
 
-const { secret: PROXY_SECRET, trustedHops: TRUSTED_PROXY_HOPS, clientIpMode } = proxyConfig();
+const proxy = proxyConfig();
 const MAX_BYTES = 32 * 1024;
 
 const tooLarge = () =>
@@ -62,11 +62,7 @@ export async function POST(request: Request) {
   // Adi answers inside the workspace of the page the question was asked on.
   const workspace = workspaceFor(pageOf(text), await selectedOrg());
   if (workspace) headers["X-Workspace"] = workspace;
-  const ip = trustedClientIp(request.headers.get("x-forwarded-for"), TRUSTED_PROXY_HOPS, clientIpMode);
-  if (PROXY_SECRET && ip) {
-    headers["X-Real-IP"] = ip;
-    headers["X-Internal-Proxy-Secret"] = PROXY_SECRET;
-  }
+  Object.assign(headers, clientIpHeaders(request.headers.get("x-forwarded-for"), proxy));
   try {
     const result = await fetch(`${API_URL}/api/v1/assistant/chat`, {
       method: "POST",

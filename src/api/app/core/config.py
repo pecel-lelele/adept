@@ -127,8 +127,9 @@ class Settings(BaseSettings):
                 errors.append("TRUSTED_PROXY_HOPS must be a verified positive proxy count.")
             if self.proxy_client_ip_mode == "best-effort":
                 warnings.append(
-                    "PROXY_CLIENT_IP_MODE=best-effort: anonymous limits use the right-most "
-                    "forwarded address when available, otherwise the direct peer. "
+                    "PROXY_CLIENT_IP_MODE=best-effort: anonymous limits use a verified "
+                    "forwarded suffix only with positive TRUSTED_PROXY_HOPS, otherwise "
+                    "the direct peer (which may share an anonymous rate bucket). "
                     "Authenticated limits use verified session IDs."
                 )
         return errors, warnings

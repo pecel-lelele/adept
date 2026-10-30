@@ -1,6 +1,6 @@
 /** Deployment-only validation; never infer trust from a caller's forwarded headers. */
 export function proxyConfig(env: NodeJS.ProcessEnv = process.env): {
-  secret: string; trustedHops: number; clientIpMode: "trusted" | "best-effort";
+  secret: string; trustedHops: number; clientIpMode: "trusted" | "best-effort"; logXffCount?: boolean;
 } {
   const raw = env.TRUSTED_PROXY_HOPS ?? "0";
   const trustedHops = Number(raw);
@@ -9,6 +9,10 @@ export function proxyConfig(env: NodeJS.ProcessEnv = process.env): {
   }
   const secret = env.PROXY_SHARED_SECRET ?? "";
   const clientIpMode = env.PROXY_CLIENT_IP_MODE ?? "best-effort";
+  const logXffCount = env.PROXY_LOG_XFF_COUNT ?? "false";
+  if (logXffCount !== "true" && logXffCount !== "false") {
+    throw new Error("PROXY_LOG_XFF_COUNT must be true or false.");
+  }
   if (clientIpMode !== "trusted" && clientIpMode !== "best-effort") {
     throw new Error("PROXY_CLIENT_IP_MODE must be trusted or best-effort.");
   }
@@ -20,7 +24,7 @@ export function proxyConfig(env: NodeJS.ProcessEnv = process.env): {
   }
   // Development callers cannot establish a forwarding boundary without configured hops.
   const mode = env.APP_ENV === "production" ? clientIpMode : "trusted";
-  return { secret, trustedHops, clientIpMode: mode };
+  return { secret, trustedHops, clientIpMode: mode, logXffCount: logXffCount === "true" };
 }
 
 /**

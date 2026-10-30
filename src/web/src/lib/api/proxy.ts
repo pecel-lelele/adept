@@ -14,25 +14,25 @@ const HOP_HEADERS = new Set([
   "proxy-authenticate", "proxy-authorization", "te", "trailer", "upgrade",
 ]);
 
-/**
- * The client address from X-Forwarded-For, never a caller-prepended left-most identity.
- *
- * trusted: each of the `hops` verified proxies appends the address it received the request
- * from, so the client is the entry `hops` places from the right. A shorter chain means the
- * request did not pass through every configured proxy: no address is returned.
- * best-effort: the right-most entry (written by the nearest proxy), whatever `hops` says.
- */
+/** Only a deployment-verified suffix can supply identity, including in best-effort mode. */
 export function trustedClientIp(forwardedFor: string | null, hops: number, mode: "trusted" | "best-effort" = "trusted"): string | undefined {
-  if (!forwardedFor) return undefined;
+  if (!forwardedFor || !["trusted", "best-effort"].includes(mode) || !Number.isInteger(hops) || hops <= 0 || hops > 32) return undefined;
   const chain = forwardedFor.split(",").map((part) => part.trim());
-  let address: string | undefined;
-  if (mode === "trusted") {
-    if (hops <= 0) return undefined;
-    address = chain.length >= hops ? chain[chain.length - hops] : undefined;
-  } else {
-    address = chain.at(-1);
+  if (chain.length < hops) return undefined;
+  const trusted = chain.slice(-hops);
+  return trusted.every((address) => isIP(address)) ? trusted[0] : undefined;
+}
+
+/** One boundary for pages and API relays. Diagnostics never include header values. */
+export function clientIpHeaders(forwardedFor: string | null, config: ReturnType<typeof proxyConfig>): Record<string, string> {
+  if (config.logXffCount) {
+    const count = forwardedFor === null || forwardedFor.trim() === "" ? 0 : forwardedFor.split(",").length;
+    console.info("proxy_xff_entry_count=%d", count);
   }
-  return address && isIP(address) ? address : undefined;
+  const address = trustedClientIp(forwardedFor, config.trustedHops, config.clientIpMode);
+  return config.secret && address
+    ? { "X-Real-IP": address, "X-Internal-Proxy-Secret": config.secret }
+    : {};
 }
 
 /** Next.js is the only public HTTP server; FastAPI remains bound to loopback. */
@@ -46,15 +46,12 @@ export async function proxyRequest(request: Request, options?: ProxyOptions): Pr
     const value = request.headers.get(key);
     if (value) headers.set(key, value);
   }
-  const address = trustedClientIp(request.headers.get("x-forwarded-for"), config.trustedHops, config.clientIpMode);
+  const identity = clientIpHeaders(request.headers.get("x-forwarded-for"), { ...config, clientIpMode: config.clientIpMode ?? "trusted" });
   // Platform health probes need no client identity and must not share auth rate buckets.
-  if (!health && !address) {
+  if (!health && !identity["X-Real-IP"]) {
     console.warn("Client address unavailable; forwarding without X-Real-IP.");
   }
-  if (config.secret && address) {
-    headers.set("x-real-ip", address);
-    headers.set("x-internal-proxy-secret", config.secret);
-  }
+  for (const [key, value] of Object.entries(identity)) headers.set(key, value);
   const init: RequestInit & { duplex?: "half" } = {
     method: health ? "GET" : request.method,
     headers,

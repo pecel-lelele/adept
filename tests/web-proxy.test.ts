@@ -3,7 +3,7 @@ import { once } from "node:events";
 import { createServer, type RequestListener } from "node:http";
 import test, { type TestContext } from "node:test";
 
-import { proxyRequest, trustedClientIp } from "../src/web/src/lib/api/proxy.ts";
+import { clientIpHeaders, proxyRequest, trustedClientIp } from "../src/web/src/lib/api/proxy.ts";
 import { proxyConfig } from "../src/web/src/lib/api/proxy-config.ts";
 
 const secret = "synthetic-proxy-test-secret";
@@ -55,7 +55,6 @@ test("forged internal headers are discarded; only the trusted chain is signed", 
     "x-real-ip": "192.0.2.123", "x-internal-proxy-secret": "forged",
   } }), { apiUrl, secret, trustedHops: 2 });
   const headers = await response.json();
-  // Two trusted hops: the client is the entry the outer proxy appended, not the forged left one.
   assert.equal(headers["x-real-ip"], "203.0.113.7");
   assert.equal(headers["x-internal-proxy-secret"], secret);
   assert.equal(headers["x-forwarded-for"], undefined);
@@ -125,11 +124,12 @@ test("trusted mode selects the entry exactly TRUSTED_PROXY_HOPS from the right",
   assert.equal(trustedClientIp("forged, 2001:db8::1", 1), "2001:db8::1");
 });
 
-test("best-effort mode uses the right-most entry regardless of hops", () => {
+test("best-effort mode still needs a deployment-verified hop count", () => {
   const chain = "192.0.2.66, 203.0.113.7, 198.51.100.5";
-  for (const hops of [0, 1, 2, 5]) assert.equal(trustedClientIp(chain, hops, "best-effort"), "198.51.100.5");
-  assert.equal(trustedClientIp("192.0.2.66, not-an-ip", 0, "best-effort"), undefined);
-  assert.equal(trustedClientIp(null, 0, "best-effort"), undefined);
+  assert.equal(trustedClientIp(chain, 0, "best-effort"), undefined);
+  assert.equal(trustedClientIp(chain, 1, "best-effort"), "198.51.100.5");
+  assert.equal(trustedClientIp("192.0.2.66, not-an-ip", 1, "best-effort"), undefined);
+  assert.equal(trustedClientIp(null, 1, "best-effort"), undefined);
 });
 
 test("a chain shorter than the trusted hops forwards no X-Real-IP and logs once", async (t) => {
@@ -219,17 +219,70 @@ test("production requires the shared secret and validates the explicit client IP
     { APP_ENV: "production", PROXY_SHARED_SECRET: "   ", TRUSTED_PROXY_HOPS: "1" },
     { TRUSTED_PROXY_HOPS: "-1" },
     { PROXY_CLIENT_IP_MODE: "unknown" },
+    { PROXY_LOG_XFF_COUNT: "yes" },
   ]) assert.throws(() => proxyConfig(env));
   assert.equal(proxyConfig({ APP_ENV: "production", PROXY_SHARED_SECRET: secret, TRUSTED_PROXY_HOPS: "1" }).trustedHops, 1);
 });
 
-test("production best-effort mode serves requests with zero trusted proxy hops", async (t) => {
+test("production zero-hop best-effort mode serves without signing caller-controlled identity", async (t) => {
   const apiUrl = await serve(t, (req, res) => res.end(JSON.stringify(req.headers)));
   const config = proxyConfig({ APP_ENV: "production", PROXY_SHARED_SECRET: secret, TRUSTED_PROXY_HOPS: "0", PROXY_CLIENT_IP_MODE: "best-effort" });
   assert.equal(config.clientIpMode, "best-effort");
-  const response = await proxyRequest(request(undefined, { headers: { "x-forwarded-for": "192.0.2.123, 203.0.113.7" } }), { ...config, apiUrl });
-  assert.equal(response.status, 200);
-  const headers = await response.json();
-  assert.equal(headers["x-real-ip"], "203.0.113.7");
-  assert.equal(headers["x-internal-proxy-secret"], secret);
+  t.mock.method(console, "warn", () => {});
+  for (const address of ["192.0.2.123", "192.0.2.123, 203.0.113.7", "2001:db8::1"]) {
+    const response = await proxyRequest(request(undefined, { headers: {
+      "x-forwarded-for": address, "x-real-ip": address, "x-internal-proxy-secret": "forged",
+    } }), { ...config, apiUrl });
+    assert.equal(response.status, 200);
+    const headers = await response.json();
+    assert.equal(headers["x-real-ip"], undefined);
+    assert.equal(headers["x-internal-proxy-secret"], undefined);
+  }
+});
+
+test("a verified append-only edge prevents forged XFF prefixes from changing the rate bucket", async (t) => {
+  // Models an edge which appends its TCP peer, not a claim about an unobserved Replit release.
+  const hits = new Map<string, number>();
+  const apiUrl = await serve(t, (req, res) => {
+    const ip = String(req.headers["x-real-ip"]);
+    const count = (hits.get(ip) ?? 0) + 1;
+    hits.set(ip, count);
+    res.statusCode = count > 2 ? 429 : 200;
+    res.end();
+  });
+  for (const hops of [1, 2]) {
+    hits.clear();
+    for (const [index, prefix] of ["192.0.2.1", "192.0.2.2, 2001:db8::99", "arbitrary, 192.0.2.3"].entries()) {
+      const chain = [prefix, "203.0.113.10", ...(hops === 2 ? ["198.51.100.5"] : [])].join(", ");
+      const response = await proxyRequest(request(undefined, { headers: { "x-forwarded-for": chain } }), { apiUrl, secret, trustedHops: hops });
+      assert.equal(response.status, index < 2 ? 200 : 429);
+      await response.arrayBuffer();
+    }
+    assert.deepEqual([...hits.keys()], ["203.0.113.10"]);
+  }
+});
+
+test("unverified, short or malformed trusted suffixes cannot supply an identity", () => {
+  for (const mode of ["trusted", "best-effort"] as const) {
+    for (const hops of [0, -1, 1.5, NaN, Infinity, 33]) {
+      assert.equal(trustedClientIp("203.0.113.10", hops, mode), undefined);
+    }
+    for (const chain of [null, "", "203.0.113.10", "203.0.113.10,", "203.0.113.10, invalid"]) {
+      assert.equal(trustedClientIp(chain, 2, mode), undefined);
+    }
+    assert.equal(trustedClientIp("untrusted, 2001:db8::1, 198.51.100.5", 2, mode), "2001:db8::1");
+  }
+});
+
+test("opt-in forwarding diagnostics emit only an entry count, never values or secrets", (t) => {
+  const info = t.mock.method(console, "info", () => {});
+  const config = proxyConfig({ APP_ENV: "production", PROXY_SHARED_SECRET: secret, PROXY_LOG_XFF_COUNT: "true" });
+  for (const [header, count] of [[null, 0], ["", 0], ["203.0.113.1", 1], ["private-header-value,2001:db8::1", 2]] as const) {
+    assert.deepEqual(clientIpHeaders(header, config), {});
+    assert.deepEqual(info.mock.calls.at(-1)?.arguments, ["proxy_xff_entry_count=%d", count]);
+  }
+  assert.doesNotMatch(JSON.stringify(info.mock.calls.map((call) => call.arguments)), /private-header-value|203\.0\.113|2001:db8|synthetic-proxy/);
+  info.mock.resetCalls();
+  clientIpHeaders("203.0.113.1", { ...config, logXffCount: false });
+  assert.equal(info.mock.callCount(), 0);
 });

@@ -465,9 +465,10 @@ _DECISION_EN = (
         r"\b.*\b(?:should|to|must|will)\s+(?:be|get)\s+" + _EN_DECIDED + r"\b"
     ),
     re.compile(
+        # Explicit decision questions must not depend on a person's name being capitalised.
         r"\b(?:should|shall|must|can|could|would)\s+(?:i|we|you|adi|adept)\s+(?:\w+\s+)?"
         + _EN_DECIDE
-        + r"\b(?=\s*(?:[?.!]|$|or\b|now\b|them\b|him\b|her\b))"
+        + r"\b"
     ),
     re.compile(
         r"\b(?:i|we|you|me|us|adi|adept)\b.*\b"
