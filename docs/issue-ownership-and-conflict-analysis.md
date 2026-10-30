@@ -18,7 +18,10 @@ this analysis does not implement, close, claim ownership of, or authorize live
 execution for any issue.
 
 “Your work” here means the package delivered in [PR #30](https://github.com/pecel-lelele/adept/pull/30),
-cross-checked against its file diff and the [safe-fix tracker](daftar-perbaikan-aman.md).
+cross-checked against its file diff and the
+[archived safe-fix tracker](reference/safe-fix-tracker-2026-10-30.md).
+The original tracker was a gitignored local file. This published copy preserves its
+historical findings and links to immutable PR #30 files where those files were published.
 It does not mean that you originally authored every underlying subsystem. Issue
 assignment identifies the current coordinator, not who caused a defect.
 
@@ -352,16 +355,22 @@ the safe-fix tracker and manifests, selected production files, local worktree in
 and the fetched review-branch diff. Remote branch tips above were refreshed; this
 review did not switch, merge or reset branches.
 
-Only this handoff file is intentionally added. Existing React/package-lock edits
-are preserved. No application code, catalogue, migration, workflow, submission
+The original analysis added only this handoff file and preserved the existing
+React/package-lock edits. The PR #68 review correction also adds the archived
+safe-fix tracker so readers can inspect that evidence. No application code, catalogue, migration, workflow, submission
 document or decisions entry is changed by this analysis. No live inference,
 workflow dispatch, database migration/seed or deployment is performed.
 
 ### Verification performed for this file
 
+Review correction: the original link check counted an ignored local tracker as
+available. That established local file existence, not repository accessibility.
+The tracker is now included as an archive with its source checksum, and its
+unpublished draft targets are labelled rather than linked to missing worktrees.
+
 | Check | Observed outcome |
 |---|---|
-| Local Markdown links | PASS: all 18 local targets exist. |
+| Repository-local Markdown links | PASS after the review fix: all 18 handoff targets are tracked files or unignored files supplied by this patch. The earlier local-filesystem-only PASS did not establish this. |
 | Issue coverage and formatting | PASS: links to all 13 issues, balanced code fences and no trailing whitespace. |
 | Existing React edits | PASS: SHA-256 hashes for the package manifest and root lockfile match the values recorded before this work. |
 | Ruff lint/format and ESLint | PASS on the approved quality-gate run. |
