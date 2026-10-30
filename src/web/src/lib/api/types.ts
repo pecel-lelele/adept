@@ -2101,6 +2101,22 @@ export interface components {
             status: "not_started" | "in_progress" | "completed";
             evidence?: components["schemas"]["CompletionEvidence"] | null;
         };
+        /** CriticalOccupationBadge */
+        CriticalOccupationBadge: {
+            /** Edition */
+            edition: string;
+            /** Masco4D */
+            masco4d: string;
+            /** Occupation Label */
+            occupation_label: string;
+            /** Matched Title */
+            matched_title: string;
+            /** Source Page */
+            source_page: number;
+            /** Pdf Page */
+            pdf_page: number;
+            meta: components["schemas"]["RecommendationMeta"];
+        };
         /** CvExtractionResult */
         CvExtractionResult: {
             /** Skills */
@@ -3503,7 +3519,7 @@ export interface components {
              * Id
              * @enum {string}
              */
-            id: "minilm" | "glm" | "gemini" | "embeddings" | "arxiv" | "bls" | "onet" | "jobs" | "mscert" | "awscert" | "googlecert" | "iibacert" | "iappcert" | "bnm";
+            id: "minilm" | "glm" | "gemini" | "embeddings" | "arxiv" | "bls" | "onet" | "jobs" | "mscert" | "awscert" | "googlecert" | "iibacert" | "iappcert" | "bnm" | "replit" | "fonts";
             /** Name */
             name: string;
             /** Url */
@@ -3640,6 +3656,7 @@ export interface components {
             partial_skills: components["schemas"]["Skill"][];
             /** Sdg Targets */
             sdg_targets: components["schemas"]["SdgTarget"][];
+            critical_occupation?: components["schemas"]["CriticalOccupationBadge"] | null;
             /** Improvements */
             improvements?: components["schemas"]["ScoreImprovement"][];
             /**
