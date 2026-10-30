@@ -24,6 +24,10 @@
     "asOf": "数据截至 {date}"
   },
   "freshness": {
+    "replay": "历史回放：观测期间为 {from} 至 {to}。快照标签：{date}。",
+    "observed": "观测期间为 {from} 至 {to}。",
+    "commitDerived": "获取日期 {date} 来自源文件的提交日期；实际抓取时间未经验证。",
+    "unverified": "趋势数据来源尚未验证。快照 {date} 是标签，不代表当前观测数据。",
     "historical": "正在查看 {date} 的快照。",
     "backToLatest": "返回最新数据",
     "fallback": "正在显示 {date} 的最近可用快照",

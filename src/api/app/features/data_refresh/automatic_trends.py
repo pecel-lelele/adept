@@ -21,7 +21,7 @@ from pipelines.trends import arxiv_ingest, score
 from pipelines.trends import run as pipeline
 from pipelines.trends.encoder import RunPodEncoder
 
-ARXIV_API = "https://export.arxiv.org/api/query"
+ARXIV_API = measurements.ARXIV_API
 MAX_PAPERS = 350
 MAX_BYTES = 8_000_000
 NS = {"a": "http://www.w3.org/2005/Atom"}
@@ -62,7 +62,7 @@ def parse_window(xml: bytes, start: date, end: date) -> list[dict[str, str]]:
 
 
 def fetch_window(start: date, end: date, deadline: float) -> list[dict[str, str]]:
-    query = f"cat:cs.AI AND submittedDate:[{start:%Y%m%d}0000 TO {end:%Y%m%d}2359]"
+    query = measurements.arxiv_query(start, end)
     url = (
         ARXIV_API
         + "?"
@@ -155,19 +155,27 @@ def run(started: float, budget: float, stop: threading.Event) -> service.Outcome
             "Trend evidence failed validation; the last good snapshot is retained.",
             rows_fetched=len(first) + len(second),
         )
+    bls = pipeline.bls_retrieval()
     sources = [
-        dict(name="arXiv cs.AI submission API", url=ARXIV_API, retrieved_at=today.isoformat()),
+        dict(
+            name="arXiv cs.AI submission API",
+            url=ARXIV_API,
+            retrieved_at=today.isoformat(),
+            retrieved_at_basis="pipeline_fetch",
+        ),
         dict(
             name="BLS Occupational Projections 2023-2033 (static baseline)",
             url=pipeline.BLS_URL,
-            retrieved_at=pipeline.BLS_RETRIEVED_AT,
+            retrieved_at=bls["retrieved_at"],
+            retrieved_at_basis=bls["retrieved_at_basis"],
+            retrieval_evidence=bls["retrieval_evidence"],
         ),
     ]
     note = (
         f"Observed arXiv submissions {current[0]}..{current[1]} against "
         f"{previous[0]}..{previous[1]}; fetched {today}. "
         f"Bounded sample up to {MAX_PAPERS} papers per week; MiniLM cosine method. "
-        "BLS 2023-2033 remains a static baseline retrieved 2026-10-20."
+        f"BLS 2023-2033 remains a static baseline retrieved {bls['retrieved_at']}."
     )
     with repository.write_connection(started + budget) as conn:
         inputs = measurements.MeasuredInputs(

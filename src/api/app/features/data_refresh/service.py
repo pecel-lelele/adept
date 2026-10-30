@@ -654,19 +654,30 @@ def _trends() -> DataSourceFreshness:
     if snap.meta.sources:
         name, url = snap.meta.sources[0].name, snap.meta.sources[0].url or url
     from_db = snap.meta.served_from == "db"
+    # Only a verified fetch counts as "last fetched"; a git-commit fallback dates an
+    # artifact, not a retrieval (TEAM provenance + refresh entry).
+    fetched = [
+        s.retrieved_at
+        for s in snap.meta.sources
+        if getattr(s, "retrieved_at_basis", "unknown") in ("pipeline_fetch", "fetch_log")
+    ]
+    if snap.meta.is_replay is not None:
+        replay = snap.meta.is_replay
+    else:  # unclassified legacy snapshot: fall back to the observation-age heuristic
+        replay = bool(
+            snap.meta.observed_to
+            and snap.meta.observed_to < snap.meta.snapshot_date - timedelta(days=60)
+        )
     return DataSourceFreshness(
         source="trends",
         source_name=name,
         source_url=url,
-        last_fetched_at=max((s.retrieved_at for s in snap.meta.sources), default=None),
+        last_fetched_at=max(fetched, default=None),
         data_as_of=snap.meta.observed_to,
         snapshot_date=snap.meta.snapshot_date,
         observed_from=snap.meta.observed_from,
         observed_to=snap.meta.observed_to,
-        is_historical_replay=bool(
-            snap.meta.observed_to
-            and snap.meta.observed_to < snap.meta.snapshot_date - timedelta(days=60)
-        ),
+        is_historical_replay=replay,
         rows=len(snap.items),
         served_from="database" if from_db else "seed",
         is_fallback=snap.meta.is_fallback or not from_db,

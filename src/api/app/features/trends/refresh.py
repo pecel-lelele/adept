@@ -428,7 +428,8 @@ def _rescore(
                     observed_from=historical[0],
                     observed_to=historical[1],
                 )
-    sources, note = pipeline.provenance(t0, t1, t0_dates, t1_dates)
+    facts = pipeline.live_provenance(db_url, t1)
+    sources, note = pipeline.provenance(t0, t1, t0_dates, t1_dates, retrieval=facts)
     observed = window_from_note(note)
     if latest is not None and latest[1] == note:
         return TrendRescoreResult(
@@ -486,9 +487,11 @@ def _rescore(
         from app.features.data_refresh.repository import write_connection
 
         with write_connection(deadline) as conn:
-            pipeline.publish(evidenced, measured_day, sources, note, db_url, conn=conn)
+            pipeline.publish(
+                evidenced, measured_day, sources, note, db_url, provenance=facts, conn=conn
+            )
     else:
-        pipeline.publish(evidenced, measured_day, sources, note, db_url)
+        pipeline.publish(evidenced, measured_day, sources, note, db_url, provenance=facts)
     clear_trend_caches()
     return TrendRescoreResult(
         status="published",

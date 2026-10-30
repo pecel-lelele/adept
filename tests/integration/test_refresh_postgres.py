@@ -48,11 +48,13 @@ def pg(monkeypatch: pytest.MonkeyPatch) -> Iterator[Any]:
             with connect(scoped, autocommit=True) as setup:
                 for filename in (
                     "20261020160000_m1_trends_signal_tables.sql",
+                    "20261021140000_m1_signal_aggregation_by_fetch_date.sql",
                     "20261022120000_core_trend_snapshot_meta.sql",
                     "20261030160000_data_refresh_runs.sql",
                     "20261030220000_data_refresh_trends.sql",
                     "20261030221000_background_data_refresh.sql",
                     "20261031010000_measured_trend_inputs.sql",
+                    "20261031120000_trend_replay_provenance.sql",
                 ):
                     setup.execute((MIGRATIONS / filename).read_text().split("-- migrate:down")[0])
 

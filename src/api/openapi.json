@@ -7974,14 +7974,108 @@
       },
       "DataFreshness": {
         "properties": {
+          "observation_window_start": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observation Window Start"
+          },
+          "observation_window_end": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observation Window End"
+          },
+          "retrieved_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieved At"
+          },
+          "retrieved_at_basis": {
+            "type": "string",
+            "enum": [
+              "pipeline_fetch",
+              "fetch_log",
+              "git_commit_date",
+              "unknown"
+            ],
+            "title": "Retrieved At Basis",
+            "default": "unknown"
+          },
+          "retrieval_evidence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieval Evidence"
+          },
+          "is_replay": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Replay"
+          },
+          "observed_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed From"
+          },
+          "observed_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed To"
+          },
           "snapshot_date": {
             "type": "string",
             "format": "date",
-            "title": "Snapshot Date"
+            "title": "Snapshot Date",
+            "description": "Snapshot version/slot label; see observation_window_* for the measured period."
           },
           "sources": {
             "items": {
-              "$ref": "#/components/schemas/Source"
+              "$ref": "#/components/schemas/TrendSource"
             },
             "type": "array",
             "title": "Sources"
@@ -11763,7 +11857,7 @@
             "title": "Items"
           },
           "meta": {
-            "$ref": "#/components/schemas/RecommendationMeta"
+            "$ref": "#/components/schemas/TrendRecommendationMeta"
           }
         },
         "type": "object",
@@ -12908,7 +13002,7 @@
             "$ref": "#/components/schemas/TrendSignal"
           },
           "meta": {
-            "$ref": "#/components/schemas/RecommendationMeta"
+            "$ref": "#/components/schemas/TrendRecommendationMeta"
           }
         },
         "type": "object",
@@ -14195,16 +14289,42 @@
         "properties": {
           "name": {
             "type": "string",
-            "title": "Name"
+            "title": "Name",
+            "examples": [
+              "MOCK DATA"
+            ]
           },
           "url": {
             "type": "string",
-            "title": "Url"
+            "title": "Url",
+            "description": "Empty only for mock data."
           },
           "retrieved_at": {
             "type": "string",
             "format": "date",
             "title": "Retrieved At"
+          },
+          "retrieved_at_basis": {
+            "type": "string",
+            "enum": [
+              "pipeline_fetch",
+              "fetch_log",
+              "git_commit_date",
+              "unknown"
+            ],
+            "title": "Retrieved At Basis",
+            "default": "unknown"
+          },
+          "retrieval_evidence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieval Evidence"
           }
         },
         "type": "object",
@@ -14213,7 +14333,8 @@
           "url",
           "retrieved_at"
         ],
-        "title": "SourceRef"
+        "title": "SourceRef",
+        "description": "Source retrieval basis is part of the trend response, not just its export."
       },
       "SourcesResponse": {
         "properties": {
@@ -14429,6 +14550,159 @@
           "trend_coverage"
         ],
         "title": "TopRole"
+      },
+      "TrendRecommendationMeta": {
+        "properties": {
+          "observation_window_start": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observation Window Start"
+          },
+          "observation_window_end": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observation Window End"
+          },
+          "retrieved_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieved At"
+          },
+          "retrieved_at_basis": {
+            "type": "string",
+            "enum": [
+              "pipeline_fetch",
+              "fetch_log",
+              "git_commit_date",
+              "unknown"
+            ],
+            "title": "Retrieved At Basis",
+            "default": "unknown"
+          },
+          "retrieval_evidence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieval Evidence"
+          },
+          "is_replay": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Replay"
+          },
+          "observed_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed From",
+            "description": "Start of the period the source data measures; may predate snapshot_date."
+          },
+          "observed_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed To",
+            "description": "End of the period the source data measures."
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/TrendSource"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Sources"
+          },
+          "snapshot_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Snapshot Date"
+          },
+          "scenario": {
+            "type": "string",
+            "enum": [
+              "moderate",
+              "fast"
+            ],
+            "title": "Scenario"
+          },
+          "is_estimate": {
+            "type": "boolean",
+            "title": "Is Estimate",
+            "default": true
+          },
+          "served_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "db",
+                  "fixture"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Served From"
+          },
+          "is_fallback": {
+            "type": "boolean",
+            "title": "Is Fallback",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "sources",
+          "snapshot_date",
+          "scenario"
+        ],
+        "title": "TrendRecommendationMeta",
+        "description": "Legacy trend endpoints retain the same explicit origin as snapshot/freshness."
       },
       "TrendRefreshStatus": {
         "properties": {
@@ -14703,6 +14977,99 @@
       },
       "TrendSnapshotMeta": {
         "properties": {
+          "observation_window_start": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observation Window Start"
+          },
+          "observation_window_end": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observation Window End"
+          },
+          "retrieved_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieved At"
+          },
+          "retrieved_at_basis": {
+            "type": "string",
+            "enum": [
+              "pipeline_fetch",
+              "fetch_log",
+              "git_commit_date",
+              "unknown"
+            ],
+            "title": "Retrieved At Basis",
+            "default": "unknown"
+          },
+          "retrieval_evidence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieval Evidence"
+          },
+          "is_replay": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Replay"
+          },
+          "observed_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed From"
+          },
+          "observed_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed To"
+          },
           "sources": {
             "items": {
               "$ref": "#/components/schemas/SourceRef"
@@ -14713,7 +15080,8 @@
           "snapshot_date": {
             "type": "string",
             "format": "date",
-            "title": "Snapshot Date"
+            "title": "Snapshot Date",
+            "description": "Snapshot version/slot label, not its observation or retrieval date."
           },
           "scenario": {
             "type": "string",
@@ -14774,32 +15142,6 @@
             ],
             "title": "Data Provenance Note",
             "description": "Optional explanation of data provenance, e.g. for historical arXiv date-window pulls or demo calibration."
-          },
-          "observed_from": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Observed From",
-            "description": "Start of the period the source data measures; may predate snapshot_date."
-          },
-          "observed_to": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Observed To",
-            "description": "End of the period the source data measures."
           }
         },
         "type": "object",
@@ -14831,6 +15173,56 @@
           "items"
         ],
         "title": "TrendSnapshotResponse"
+      },
+      "TrendSource": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "examples": [
+              "MOCK DATA"
+            ]
+          },
+          "url": {
+            "type": "string",
+            "title": "Url",
+            "description": "Empty only for mock data."
+          },
+          "retrieved_at": {
+            "type": "string",
+            "format": "date",
+            "title": "Retrieved At"
+          },
+          "retrieved_at_basis": {
+            "type": "string",
+            "enum": [
+              "pipeline_fetch",
+              "fetch_log",
+              "git_commit_date",
+              "unknown"
+            ],
+            "title": "Retrieved At Basis",
+            "default": "unknown"
+          },
+          "retrieval_evidence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieval Evidence"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "url",
+          "retrieved_at"
+        ],
+        "title": "TrendSource"
       },
       "UnmetSkill": {
         "properties": {
