@@ -15,6 +15,7 @@ from app.core.errors import AppError
 from app.features.matching.repository import load_roles, role_label
 from app.features.matching.scoring import MatchProfile, rank_roles
 from app.features.matching.trend_port import fetch_snapshot
+from app.features.profile.cv_parser import extract_pdf_bounded
 from app.features.profile.router import check_cv_type, read_capped
 from app.features.profile.service import extract_cv
 
@@ -129,6 +130,9 @@ async def preview_cv(
         )
     content_type = check_cv_type(file.content_type, file.filename)
     content = await read_capped(file, get_settings().max_upload_bytes)
+    if content_type == "application/pdf":
+        content = (await asyncio.to_thread(extract_pdf_bounded, content)).encode("utf-8")
+        content_type = "text/plain"
     return await asyncio.to_thread(
         build_preview,
         file.filename or "cv",

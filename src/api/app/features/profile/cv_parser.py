@@ -28,12 +28,17 @@ from __future__ import annotations
 
 import io
 import math
+import multiprocessing
+import os
 import re
+import threading
+import time
 import unicodedata
 import zipfile
 from dataclasses import dataclass
 from functools import lru_cache
 from itertools import islice
+from multiprocessing.connection import Connection
 from typing import Any
 from xml.etree import ElementTree
 
@@ -57,6 +62,9 @@ MAX_CONFIDENCE_HITS = math.ceil(1.0 / CONFIDENCE_PER_HIT)
 #: Pages read from a PDF. A CV is rarely longer than a few pages; the cap bounds the work a
 #: hostile or accidental 500-page upload can cause.
 MAX_PDF_PAGES = 30
+PDF_PARSE_TIMEOUT_S = 5.0
+PDF_PARSE_MEMORY_BYTES = 384 * 1024 * 1024
+_PDF_PARSE_SLOTS = threading.BoundedSemaphore(2)
 
 #: DOCX limits: a .docx is a zip, so its XML size is checked before it is decompressed.
 MAX_DOCX_XML_BYTES = 8 * 1024 * 1024
@@ -277,7 +285,20 @@ def _extract_pdf(data: bytes) -> str:
                 status_code=422,
                 code="pdf_encrypted",
             )
-        pages = [str(page.get_text()) for page in islice(doc, MAX_PDF_PAGES)]
+        if len(doc) > MAX_PDF_PAGES:
+            raise AppError(
+                "This PDF has too many pages to read as a CV.",
+                status_code=422,
+                code="pdf_too_many_pages",
+            )
+        pages: list[str] = []
+        remaining = MAX_TEXT_CHARS + 1
+        for page in islice(doc, MAX_PDF_PAGES):
+            text = str(page.get_text())[:remaining]
+            pages.append(text)
+            remaining -= len(text) + 1
+            if remaining <= 0:
+                break
     except AppError:
         raise
     except Exception as exc:
@@ -290,6 +311,129 @@ def _extract_pdf(data: bytes) -> str:
         raise PdfNoText()
 
     return text
+
+
+def _limit_pdf_worker() -> object:
+    """Bound native parser memory/CPU before opening untrusted bytes; fail closed."""
+    if os.name != "nt":
+        import resource
+
+        resource.setrlimit(resource.RLIMIT_AS, (PDF_PARSE_MEMORY_BYTES, PDF_PARSE_MEMORY_BYTES))
+        cpu_seconds = max(1, math.ceil(PDF_PARSE_TIMEOUT_S))
+        resource.setrlimit(resource.RLIMIT_CPU, (cpu_seconds, cpu_seconds))
+        return None
+
+    import ctypes
+    from ctypes import wintypes
+
+    class BasicLimits(ctypes.Structure):
+        _fields_ = [
+            ("process_time", ctypes.c_longlong),
+            ("job_time", ctypes.c_longlong),
+            ("flags", wintypes.DWORD),
+            ("minimum_working_set", ctypes.c_size_t),
+            ("maximum_working_set", ctypes.c_size_t),
+            ("active_processes", wintypes.DWORD),
+            ("affinity", ctypes.c_size_t),
+            ("priority", wintypes.DWORD),
+            ("scheduling", wintypes.DWORD),
+        ]
+
+    class ExtendedLimits(ctypes.Structure):
+        _fields_ = [
+            ("basic", BasicLimits),
+            ("io_counters", ctypes.c_ulonglong * 6),
+            ("process_memory", ctypes.c_size_t),
+            ("job_memory", ctypes.c_size_t),
+            ("peak_process_memory", ctypes.c_size_t),
+            ("peak_job_memory", ctypes.c_size_t),
+        ]
+
+    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel.CreateJobObjectW.argtypes = [ctypes.c_void_p, wintypes.LPCWSTR]
+    kernel.CreateJobObjectW.restype = wintypes.HANDLE
+    kernel.SetInformationJobObject.argtypes = [
+        wintypes.HANDLE,
+        ctypes.c_int,
+        ctypes.c_void_p,
+        wintypes.DWORD,
+    ]
+    kernel.SetInformationJobObject.restype = wintypes.BOOL
+    kernel.GetCurrentProcess.restype = wintypes.HANDLE
+    kernel.AssignProcessToJobObject.argtypes = [wintypes.HANDLE, wintypes.HANDLE]
+    kernel.AssignProcessToJobObject.restype = wintypes.BOOL
+    kernel.CloseHandle.argtypes = [wintypes.HANDLE]
+    handle = kernel.CreateJobObjectW(None, None)
+    if not handle:
+        raise ctypes.WinError(ctypes.get_last_error())
+    limits = ExtendedLimits()
+    # JOB_OBJECT_LIMIT_PROCESS_TIME | PROCESS_MEMORY | KILL_ON_JOB_CLOSE.
+    limits.basic.flags = 0x2 | 0x100 | 0x2000
+    limits.basic.process_time = math.ceil(PDF_PARSE_TIMEOUT_S * 10_000_000)
+    limits.process_memory = PDF_PARSE_MEMORY_BYTES
+    if not kernel.SetInformationJobObject(handle, 9, ctypes.byref(limits), ctypes.sizeof(limits)):
+        kernel.CloseHandle(handle)
+        raise ctypes.WinError(ctypes.get_last_error())
+    if not kernel.AssignProcessToJobObject(handle, kernel.GetCurrentProcess()):
+        kernel.CloseHandle(handle)
+        raise ctypes.WinError(ctypes.get_last_error())
+    # Owned by this short-lived child: the OS closes it on process exit.
+    return handle
+
+
+def _pdf_worker(data: bytes, output: Connection) -> None:
+    try:
+        worker_limit = _limit_pdf_worker()
+        output.send(("ok", _extract_pdf(data)))
+        del worker_limit
+    except AppError as exc:
+        output.send(("error", (exc.message, exc.status_code, exc.code)))
+    except Exception:
+        output.send(
+            ("error", ("PDF parsing exceeded its resource limits.", 422, "pdf_resource_limit"))
+        )
+    finally:
+        output.close()
+
+
+def extract_pdf_bounded(data: bytes) -> str:
+    """Public PDF parsing with no work queue and a killable, memory-limited child."""
+    if not _PDF_PARSE_SLOTS.acquire(blocking=False):
+        raise AppError("PDF parsing is busy. Try again shortly.", 503, "pdf_busy")
+    try:
+        return _extract_pdf_process(data)
+    finally:
+        _PDF_PARSE_SLOTS.release()
+
+
+def _extract_pdf_process(data: bytes) -> str:
+    context = multiprocessing.get_context("spawn")
+    receiver, sender = context.Pipe(duplex=False)
+    process = context.Process(target=_pdf_worker, args=(data, sender), daemon=True)
+    deadline = time.monotonic() + PDF_PARSE_TIMEOUT_S
+    try:
+        process.start()
+        sender.close()
+        if not receiver.poll(max(0, deadline - time.monotonic())):
+            raise AppError("PDF parsing took too long.", 422, "pdf_timeout")
+        try:
+            status, value = receiver.recv()
+        except EOFError as exc:
+            raise AppError(
+                "PDF parsing exceeded its resource limits.", 422, "pdf_resource_limit"
+            ) from exc
+        if status == "error":
+            raise AppError(*value)
+        return str(value)
+    finally:
+        receiver.close()
+        sender.close()
+        if process.pid is not None:
+            process.join(timeout=0.2)
+            if process.is_alive():
+                process.kill()
+                process.join()
+            process.close()
 
 
 _W_NS = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
