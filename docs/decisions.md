@@ -1986,3 +1986,13 @@
 - **Affects**: Database CI and local verification documentation; no runtime, schema, dependencies or fixture changes.
 - **Replaces**: none
 - **PR / branch**: feat/core-sidebar-home-button
+
+### M4-085: Harden production setup and broaden the regression gate
+- **Date**: 2026-10-30
+- **Feature**: Core, F7 and F8
+- **Type**: method
+- **Change**: Make production configuration fail closed; repair frozen-lockfile Docker builds, explicit-origin POST workspace/logout checks, identity-aware rate limits, scheduled job refresh, recommendation-write attribution tests and production-parser counterfactual fairness. Include web regressions in the Python task runner.
+- **Why**: The interrupted infrastructure draft needs a reviewable branch; integrated follow-up fixes and deployment acceptance are handled in the final integration PR.
+- **Affects**: associated API, web, tests and deployment configuration
+- **Replaces**: none
+- **PR / branch**: worktree-agent-a30a3ff3fc8019a74
