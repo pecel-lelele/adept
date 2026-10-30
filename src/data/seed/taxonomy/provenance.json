@@ -1,5 +1,5 @@
 {
-  "source": "O*NET 31.0 occupation_data.json",
+  "source": "O*NET 31.0 occupation crosswalk + dated O*NET OnLine occupation pages",
   "source_url": "https://www.onetcenter.org/database.html",
   "license_url": "https://www.onetcenter.org/license_db.html",
   "roles": [
@@ -289,7 +289,8 @@
       "occupation_title": "Retail Salespersons",
       "source_url": "https://www.onetonline.org/link/summary/41-2031.00",
       "retrieved_at": "2026-10-30",
-      "mapping": "Official occupation title; available as a current role, not asserted as an emerging role or a growth forecast"
+      "mapping": "Official occupation title; available as a current role, not asserted as an emerging role or a growth forecast",
+      "requirements_basis": "Customer assistance, stock checks and special orders support customer-service, inventory-counting and order-entry."
     },
     {
       "role_id": "customer-service-representatives",
@@ -298,7 +299,8 @@
       "occupation_title": "Customer Service Representatives",
       "source_url": "https://www.onetonline.org/link/summary/43-4051.00",
       "retrieved_at": "2026-10-30",
-      "mapping": "Official occupation title; available as a current role, not asserted as an emerging role or a growth forecast"
+      "mapping": "Official occupation title; available as a current role, not asserted as an emerging role or a growth forecast",
+      "requirements_basis": "Customer enquiries, order handling, interaction records and customer-management software support customer-service, order-entry, data-entry-forms and crm-systems."
     },
     {
       "role_id": "production-workers-all-other",
@@ -307,7 +309,170 @@
       "occupation_title": "Production Workers, All Other",
       "source_url": "https://www.onetonline.org/link/summary/51-9199.00",
       "retrieved_at": "2026-10-30",
-      "mapping": "Official occupation title; available as a current role, not asserted as an emerging role or a growth forecast"
+      "mapping": "Official occupation title; available as a current role, not asserted as an emerging role or a growth forecast",
+      "requirements_basis": "O*NET explicitly provides no detailed occupational requirements for this aggregate title. No skill requirements are inferred. Team Assemblers (51-2092.00) supplies a separately sourced production-line occupation."
+    },
+    {
+      "role_id": "bookkeeping-accounting-clerks",
+      "label": "Bookkeeping, Accounting, and Auditing Clerks",
+      "occupation_code": "43-3031.00",
+      "occupation_title": "Bookkeeping, Accounting, and Auditing Clerks",
+      "source_url": "https://www.onetonline.org/link/summary/43-3031.00",
+      "retrieved_at": "2026-10-30",
+      "mapping": "Official occupation title; available as a current role, not asserted as an emerging role or a growth forecast",
+      "requirements_basis": "Financial transaction records, spreadsheets, reconciliation, invoicing, payroll, tax records and reports support the mapped clerical skills."
+    },
+    {
+      "role_id": "secretaries-administrative-assistants",
+      "label": "Secretaries and Administrative Assistants, Except Legal, Medical, and Executive",
+      "occupation_code": "43-6014.00",
+      "occupation_title": "Secretaries and Administrative Assistants, Except Legal, Medical, and Executive",
+      "source_url": "https://www.onetonline.org/link/summary/43-6014.00",
+      "retrieved_at": "2026-10-30",
+      "mapping": "Official occupation title; available as a current role, not asserted as an emerging role or a growth forecast",
+      "requirements_basis": "Appointments, correspondence, files, spreadsheets, reports and caller information support the mapped administrative skills."
+    },
+    {
+      "role_id": "registered-nurses",
+      "label": "Registered Nurses",
+      "occupation_code": "29-1141.00",
+      "occupation_title": "Registered Nurses",
+      "source_url": "https://www.onetonline.org/link/summary/29-1141.00",
+      "retrieved_at": "2026-10-30",
+      "mapping": "Official occupation title; available as a current role, not asserted as an emerging role or a growth forecast",
+      "requirements_basis": "Patient assessment, care plans, patient education and electronic medical records support the mapped skills. Licensure and clinical qualifications remain separate requirements."
+    },
+    {
+      "role_id": "retail-sales-supervisors",
+      "label": "First-Line Supervisors of Retail Sales Workers",
+      "occupation_code": "41-1011.00",
+      "occupation_title": "First-Line Supervisors of Retail Sales Workers",
+      "source_url": "https://www.onetonline.org/link/summary/41-1011.00",
+      "retrieved_at": "2026-10-30",
+      "mapping": "Official occupation title; available as a current role, not asserted as an emerging role or a growth forecast",
+      "requirements_basis": "Customer issues, stock control, staff training, sales work and spreadsheets support the mapped supervisory skills."
+    },
+    {
+      "role_id": "shipping-receiving-inventory-clerks",
+      "label": "Shipping, Receiving, and Inventory Clerks",
+      "occupation_code": "43-5071.00",
+      "occupation_title": "Shipping, Receiving, and Inventory Clerks",
+      "source_url": "https://www.onetonline.org/link/summary/43-5071.00",
+      "retrieved_at": "2026-10-30",
+      "mapping": "Official occupation title; available as a current role, not asserted as an emerging role or a growth forecast",
+      "requirements_basis": "Shipment records, stock tracking, transport arrangements, document preparation and spreadsheets support the mapped logistics skills."
+    },
+    {
+      "role_id": "teaching-assistants-school",
+      "label": "Teaching Assistants, Preschool, Elementary, Middle, and Secondary School, Except Special Education",
+      "occupation_code": "25-9042.00",
+      "occupation_title": "Teaching Assistants, Preschool, Elementary, Middle, and Secondary School, Except Special Education",
+      "source_url": "https://www.onetonline.org/link/summary/25-9042.00",
+      "retrieved_at": "2026-10-30",
+      "mapping": "Official occupation title; available as a current role, not asserted as an emerging role or a growth forecast",
+      "requirements_basis": "Assisting classroom instruction and guiding learners support teaching-facilitation and coaching-mentoring."
+    },
+    {
+      "role_id": "accountants-auditors",
+      "label": "Accountants and Auditors",
+      "occupation_code": "13-2011.00",
+      "occupation_title": "Accountants and Auditors",
+      "source_url": "https://www.onetonline.org/link/summary/13-2011.00",
+      "retrieved_at": "2026-10-30",
+      "mapping": "Official occupation title; available as a current role, not asserted as an emerging role or a growth forecast",
+      "requirements_basis": "Financial statements, audits, tax returns, financial analysis, spreadsheets and compliance duties support the mapped accounting skills. These are not professional qualification claims."
+    },
+    {
+      "role_id": "bank-tellers",
+      "label": "Tellers",
+      "occupation_code": "43-3071.00",
+      "occupation_title": "Tellers",
+      "source_url": "https://www.onetonline.org/link/summary/43-3071.00",
+      "retrieved_at": "2026-10-30",
+      "mapping": "Official occupation title; available as a current role, not asserted as an emerging role or a growth forecast",
+      "requirements_basis": "Customer transactions, cash balancing, identity checks and transaction records support the mapped banking skills."
+    },
+    {
+      "role_id": "team-assemblers",
+      "label": "Team Assemblers",
+      "occupation_code": "51-2092.00",
+      "occupation_title": "Team Assemblers",
+      "source_url": "https://www.onetonline.org/link/summary/51-2092.00",
+      "retrieved_at": "2026-10-30",
+      "mapping": "Official occupation title; available as a current role, not asserted as an emerging role or a growth forecast",
+      "requirements_basis": "Product quality checks, production reports and training coworkers support quality-management, report-generation and coaching-mentoring. This partial skills map does not imply Lean/Six Sigma certification or machinery competence."
+    },
+    {
+      "role_id": "web-developers",
+      "label": "Web Developers",
+      "occupation_code": "15-1254.00",
+      "occupation_title": "Web Developers",
+      "source_url": "https://www.onetonline.org/link/summary/15-1254.00",
+      "retrieved_at": "2026-10-30",
+      "mapping": "Official occupation title; available as a learner-selected target, not a verified emerging occupation or growth forecast",
+      "requirements_basis": "Web application development, usability, version control, database access and information security support the selected digital skills."
+    },
+    {
+      "role_id": "database-administrators",
+      "label": "Database Administrators",
+      "occupation_code": "15-1242.00",
+      "occupation_title": "Database Administrators",
+      "source_url": "https://www.onetonline.org/link/summary/15-1242.00",
+      "retrieved_at": "2026-10-30",
+      "mapping": "Official occupation title; available as a learner-selected target, not a verified emerging occupation or growth forecast",
+      "requirements_basis": "Database maintenance, query languages, access controls, data standards and cloud technologies support the selected digital skills."
+    },
+    {
+      "role_id": "network-systems-administrators",
+      "label": "Network and Computer Systems Administrators",
+      "occupation_code": "15-1244.00",
+      "occupation_title": "Network and Computer Systems Administrators",
+      "source_url": "https://www.onetonline.org/link/summary/15-1244.00",
+      "retrieved_at": "2026-10-30",
+      "mapping": "Official occupation title; available as a learner-selected target, not a verified emerging occupation or growth forecast",
+      "requirements_basis": "Network and server maintenance, access controls, security tools, cloud management and Git support the selected digital skills. This partial map does not cover every networking qualification."
+    },
+    {
+      "role_id": "software-quality-assurance-testers",
+      "label": "Software Quality Assurance Analysts and Testers",
+      "occupation_code": "15-1253.00",
+      "occupation_title": "Software Quality Assurance Analysts and Testers",
+      "source_url": "https://www.onetonline.org/link/summary/15-1253.00",
+      "retrieved_at": "2026-10-30",
+      "mapping": "Official occupation title; available as a learner-selected target, not a verified emerging occupation or growth forecast",
+      "requirements_basis": "Software test plans, automated test tools including Selenium, programming, database tools and version control support the selected digital skills."
+    },
+    {
+      "role_id": "business-intelligence-analysts",
+      "label": "Business Intelligence Analysts",
+      "occupation_code": "15-2051.01",
+      "occupation_title": "Business Intelligence Analysts",
+      "source_url": "https://www.onetonline.org/link/summary/15-2051.01",
+      "retrieved_at": "2026-10-30",
+      "mapping": "Official occupation title; available as a learner-selected target, not a verified emerging occupation or growth forecast",
+      "requirements_basis": "Querying data repositories, generating reports, dashboard tools, spreadsheets and analysis support the selected digital skills."
+    }
+  ],
+  "snapshot_date": "2026-10-30",
+  "requirements_method": "Role-skill edges map cited tasks, software and knowledge to existing Adept skill IDs. Levels (1-5) and importance weights are Adept estimates, not official taxonomy ratings or complete occupational qualifications. Current occupations are excluded from future-role ranking.",
+  "skills": [
+    {
+      "skill_id": "git",
+      "label": "Git",
+      "technology_category": "File versioning software",
+      "occupation_code": "15-1254.00",
+      "source_url": "https://www.onetonline.org/link/summary/15-1254.00",
+      "retrieved_at": "2026-10-30",
+      "mapping": "Official software name used as a digital skill; levels and role importance are Adept estimates"
+    },
+    {
+      "skill_id": "selenium",
+      "label": "Selenium",
+      "technology_category": "Program testing software",
+      "occupation_code": "15-1253.00",
+      "source_url": "https://www.onetonline.org/link/summary/15-1253.00",
+      "retrieved_at": "2026-10-30",
+      "mapping": "Official software name used as a digital skill; levels and role importance are Adept estimates"
     }
   ]
 }

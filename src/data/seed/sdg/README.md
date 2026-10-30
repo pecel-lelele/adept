@@ -13,3 +13,15 @@ Regenerate goals and targets: `PYTHONPATH=src .venv/bin/python -m pipelines.sdg.
 `reviewed_by` / `reviewed_at` are empty on purpose: the mappings are drafts until a human
 reviewer signs them off, and the UI labels them "pending review" until then.
 `tests/api/sdg` fails if any role or skill lacks a link or a link names an unknown target.
+
+The 2026-10-30 current-occupation additions have enabling links to target 4.4. Its
+[UN indicator metadata](https://unstats.un.org/sdgs/metadata/files/Metadata-04-04-01.pdf)
+was reopened on that date; `provenance.json` records the evidence retrieval date separately
+from the mapping release date and preserves the original date for other evidence. The links
+describe a possible learning alignment, not an official endorsement or a measured SDG result.
+
+Five official tech occupations have draft enabling links to 4.4 (digital employment skills)
+and 8.2 (conditional technological upgrading). Five existing tech directions also gain 4.4
+links. Git and Selenium have separate skill links to 4.4. The official
+[target 8.2 page](https://sdgs.un.org/goals/goal8) was opened on 2026-10-30. These hypotheses
+do not establish job growth, hiring readiness or observed productivity gains.

@@ -1,4 +1,39 @@
 # Taxonomy seed (F4, M2)
 
-Small custom taxonomy used by the mocks. The real taxonomy (ESCO / O*NET / hybrid) is an
-open choice for M2; when chosen, set `taxonomy` and `taxonomy_uri` per row.
+48 roles and 142 skills, read by the shared reference loader and matching/pathway services.
+`provenance.json` records the official O*NET occupation code, source URL, stored title and
+retrieval date for every role. Existing `custom` labels are disclosed Adept specialisations
+of those occupations; they are not official titles or independently verified growth forecasts.
+
+The 2026-10-30 release adds nine current occupations (`is_target=false`): bookkeeping clerks,
+secretaries, registered nurses, retail supervisors, shipping clerks, teaching assistants,
+accountants, tellers and team assemblers. Their `O*NET-SOC` labels are the official titles.
+Each occupation page was opened on 2026-10-30. Retail salespersons, customer service
+representatives and the production-worker aggregate from the preceding release are retained.
+
+`role_skills.csv` maps tasks, software and knowledge on the cited pages to existing skill IDs.
+The manifest's `requirements_basis` explains the new mappings. **Levels and importance are
+Adept estimates**, not O*NET ratings, a complete qualification framework or professional
+licensure. Retail and customer-service roles now have baseline requirements. O*NET supplies
+no detailed requirements for `Production Workers, All Other` (51-9199.00), so that aggregate
+deliberately has no inferred skills; the separately sourced Team Assemblers (51-2092.00)
+provides production-line coverage. No current occupation is added to future-role ranking.
+
+Pipeline: official occupation pages → preserve IDs/titles and validate references → curated
+role-skill edges with estimated levels/importance → existing matching and pathway methods →
+graph, current-role exclusion and missing-trend regressions → reference seeds/API.
+
+The same release adds five official tech target roles: Web Developers, Database Administrators,
+Network and Computer Systems Administrators, Software Quality Assurance Analysts and Testers,
+and Business Intelligence Analysts. These are learner-selectable directions, not growth claims.
+Git and Selenium are added using the exact software names in O*NET technology lists, with
+digital aliases. Existing digital skills (SQL, Python, cloud, security and visualisation) are
+reused. No fresh trend signals are invented for the new skills; absent course coverage
+(e.g. Selenium) remains an explicit unmet gap. All new tech role links are digital skills.
+
+Synthetic benchmark annotation update: Business Intelligence Analysts is relevant to Aisyah
+(data/finance interests, spreadsheet and process work) and Ravi (analytics interest and
+spreadsheet/logistics reporting). It replaces their weaker third direction in the three-label
+benchmark; Aisyah retains Business Analyst, while Ravi retains Data Analyst and Supply Chain
+Analyst. These are curated fixture judgments, not human study outcomes. The ranking formula
+and evaluation thresholds are unchanged.

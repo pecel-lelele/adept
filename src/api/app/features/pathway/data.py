@@ -99,7 +99,7 @@ def taxonomy_source() -> Source:
         name="O*NET 31.0 crosswalk + Adept curated role requirements (estimates)",
         url="https://github.com/pecel-lelele/adept/blob/main/"
         "src/data/seed/taxonomy/provenance.json",
-        retrieved_at=date(2026, 10, 23),
+        retrieved_at=date(2026, 10, 30),  # dated catalogue release in provenance.json
     )
 
 

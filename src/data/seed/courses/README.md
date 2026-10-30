@@ -1,7 +1,7 @@
 # Courses seed (F5, M3)
 
 Written by `pipelines.pathway.run`; do not edit by hand. Rows are defined in
-`src/api/app/features/pathway/catalogue_sources.py` (`CURATED`, `COURSERA`, `MANUAL`), which
+`src/api/app/features/pathway/catalogue_sources.py` (`CURATED`, `COURSERA`, `MANUAL`, `FREE_DIGITAL`, `FREE_MS`, `BUNDLES`), which
 live sync also uses.
 
 - **Microsoft Learn** rows: title, URL and duration from the Microsoft Learn Catalog API on
@@ -11,3 +11,37 @@ live sync also uses.
   says and `duration_note` states any assumption (e.g. hours per training day).
 - `level` = the skill level (1-5) Adept estimates the course brings a learner to. It is an
   Adept judgment and the UI labels it as an estimate.
+- **Bahasa Melayu rows** use the established `language=ms` code for Malaysian Malay
+  (`ms-MY`); language is verified from provider content, never inferred from a URL locale.
+
+The 2026-10-30 release adds five provider pages opened on that date:
+
+| Course / source | Provider | Hours | Listed MYR fee | Language evidence |
+|---|---|---:|---:|---|
+| [Kursus Microsoft Excel](https://www.modernlms.com/learning/courses/kursus-microsoft-excel/) | ModernLMS | 2 | Free | Explicit Bahasa Melayu label |
+| [Kursus Google Ads](https://www.modernlms.com/learning/courses/kursus-google-ads/) | ModernLMS | 4 | 149 | Explicit Bahasa Melayu label |
+| [AI Ready Malaysia: Edisi Pendidik](https://pepper-s-site-1c7b.thinkific.com/courses/ai-ready-malaysia-asia-pacific-edisi-pendidik) | Pepper Labs | 2 | Free | Malay curriculum and lesson titles |
+| [AI Ready Malaysia: Edisi Tenaga Kerja MSME](https://pepper-s-site-1c7b.thinkific.com/courses/ai-ready-malaysia-asia-pacific-edisi-tenaga-kerja-MSME) | Pepper Labs | 2 | Free | Malay curriculum and lesson titles |
+| [AI Ready Malaysia: Edisi Pelajar](https://pepper-s-site-1c7b.thinkific.com/courses/ai-ready-malaysia-asia-pacific-edisi-pelajar) | Pepper Labs | 2 | Free | Malay curriculum and lesson titles |
+
+Pepper Labs durations are video-content hours, not total study-time guarantees; its pages do
+not establish certificate entitlement. ModernLMS lists Google Ads as HRD Corp claimable;
+actual reimbursement remains subject to eligibility and employer approval. Its free Excel
+course is not priced as a claim. Google certification exams are separate.
+
+No Microsoft Learn or e-LATiH course is labelled Malay without a course-level record
+supporting language, hours and price. This release does not establish that either platform
+lacks Malay content. Existing rows retain their historical `verified_at` dates and pricing
+caveats; opening a link alone does not refresh its fee or eligibility verification.
+
+Pipeline: public provider pages / Microsoft Learn API → URL and duration normalization →
+existing catalogue skill IDs and estimated levels → deterministic shared source definitions →
+full source/seed equality and graph regressions → CSV seed and live sync. Regeneration from
+an older saved API response must retain its original retrieval date.
+
+The digital-skills pass also adds [Introduction to Git](https://learn.microsoft.com/en-us/training/modules/intro-to-git/)
+from Microsoft Learn, opened 2026-10-30: free learning, English, 86 minutes across six units
+(1.4 hours after the existing rounding rule), GitHub account and CLI familiarity required.
+It is a dated manually checked row in `FREE_DIGITAL`, distinct from API-refreshed `CURATED` rows.
+All 104 course URLs were opened in this review (103 in the bulk HTTP audit and the Git page
+separately). HTTP availability does not establish current enrollment or refresh older price facts.

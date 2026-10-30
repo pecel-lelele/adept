@@ -915,6 +915,18 @@
 - **Replaces**: TEAM-039's per-lookup reference-file loading; preserves M2-015's fresh role catalogue and saved-profile behaviour
 - **PR / branch**: PR #69 / `fix/core-final-round-integration`
 
+### M2-026: Expand official occupations and digital software skills
+- **Date**: 2026-10-30
+- **Feature**: F4 (taxonomy), F1 (catalogue intake)
+- **Type**: data source | method
+- **Change**: Add nine official current occupations and five official tech target occupations from opened O*NET pages, with exact titles, codes and dated provenance. Add Git and Selenium using official software names and map role requirements to existing digital skills; preserve the production-worker aggregate without unsupported inferred requirements.
+- **Benchmark annotation**: Replace the weaker third direction for synthetic Aisyah and Ravi with Business Intelligence Analysts, based on their data/finance or analytics interests and spreadsheet/reporting work. Preserve the three-label benchmark size, all metric thresholds and the production ranker; labels are curated relevance judgments, not observed career outcomes.
+- **Why**: Issue #56 needs realistic non-tech starting points and the requested digital-skills emphasis, without inventing occupations, qualifications or growth forecasts. Levels and importance remain disclosed Adept estimates; current occupations stay outside target ranking.
+- **Pipeline**: O*NET occupation/technology pages → preserve IDs and exact source names → estimated role-skill edges → existing production ranker and pathway methods → graph closure, provenance, current-role exclusion and unknown-signal regressions → shared reference catalogue
+- **Affects**: F1/F4/F5/F6 reference reads; no model, ranking formula or authentication change
+- **Replaces**: none
+- **PR / branch**: feat/pathway-real-roles-courses / Closes #56
+
 ---
 
 ## M3: Pathway, SDG & Guardrails (F5, F6, F8)
@@ -1270,6 +1282,17 @@
 - **Affects**: Submission text only; no account, database, region, billing or infrastructure changes
 - **Replaces**: M3-031's incomplete plan/credit details and the unused external-service row
 - **PR / branch**: docs/core-submission-accuracy
+
+### M3-034: Verified Malay courses and dated tech learning alignments
+- **Date**: 2026-10-30
+- **Feature**: F5 (course catalogue), F6 (SDG mappings)
+- **Type**: data source | method
+- **Change**: Finish five verified Malay provider records and a free Microsoft Learn Git module; regenerate CSV rows in shared sync order while preserving older API verification dates. Add draft enabling SDG links for official current/tech occupations and digital skills, and a dated SDG evidence manifest so re-opened sources retain authentic attribution dates separately from the mapping release.
+- **Why**: The interrupted edit left source/seed consistency unverified. Language, hours, prices and HRD claims now have opened provider evidence; a URL locale alone never establishes Malay content. Fail validation for absent provider/source/date or invalid costs/durations, and report unsupported skills as unmet rather than invent courses.
+- **Pipeline**: opened provider pages + UN target definitions/metadata → normalize URLs/durations and retain source dates → catalogue IDs and estimated skill levels/draft alignments → existing deterministic planner and sync → source/CSV equality, invalid-row, attribution and missing-trend/course regressions → CSV reference data and existing API endpoints
+- **Affects**: F4 taxonomy attribution; F5 source definitions, validation, pipeline and seeds; F6 source dates and mapping seeds. No schema migration or provider enablement.
+- **Replaces**: none
+- **PR / branch**: feat/pathway-real-roles-courses / Closes #56
 
 ---
 

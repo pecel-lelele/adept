@@ -3,16 +3,18 @@ loads into `sdg_goals`, `sdg_targets`, `role_sdg_map`, `skill_sdg_map` and `org_
 
 from __future__ import annotations
 
+import json
 from datetime import date
 
 from app.contracts.common import Source
 from app.contracts.sdg import SdgEvidence, SdgLink, SdgStrength, SdgTarget
-from app.core import refdata
+from app.core import refdata, seed
 
 AREA = "sdg"
 UN_API_URL = "https://unstats.un.org/SDGAPI/v1/sdg/Goal/List"
 MAPPING_URL = "https://github.com/pecel-lelele/adept/blob/main/src/data/seed/sdg/"
-MAPPING_DATE = date(2026, 10, 20)
+_PROVENANCE = json.loads((seed.SEED_DIR / "sdg" / "provenance.json").read_text(encoding="utf-8"))
+MAPPING_DATE = date.fromisoformat(_PROVENANCE["mapping_date"])
 
 
 def un_source() -> Source:
@@ -46,7 +48,10 @@ def short_titles() -> dict[int, str]:
     }
 
 
-EVIDENCE_CHECKED = date(2026, 10, 20)
+EVIDENCE_CHECKED = date.fromisoformat(_PROVENANCE["default_evidence_retrieved_at"])
+_EVIDENCE_DATES = {
+    row["url"]: date.fromisoformat(row["retrieved_at"]) for row in _PROVENANCE["evidence"]
+}
 
 
 def _evidence(row: dict[str, str]) -> SdgEvidence | None:
@@ -54,7 +59,11 @@ def _evidence(row: dict[str, str]) -> SdgEvidence | None:
     if not url:
         return None
     return SdgEvidence(
-        source=Source(name=row.get("evidence_source", ""), url=url, retrieved_at=EVIDENCE_CHECKED),
+        source=Source(
+            name=row.get("evidence_source", ""),
+            url=url,
+            retrieved_at=_EVIDENCE_DATES.get(url, EVIDENCE_CHECKED),
+        ),
         note=row.get("evidence_note", ""),
     )
 

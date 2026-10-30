@@ -1,0 +1,16 @@
+{
+  "mapping_date": "2026-10-30",
+  "default_evidence_retrieved_at": "2026-10-20",
+  "evidence": [
+    {
+      "url": "https://unstats.un.org/sdgs/metadata/files/Metadata-04-04-01.pdf",
+      "retrieved_at": "2026-10-30",
+      "note": "Reopened for the current-occupation additions. Target 4.4 concerns employment-related skills; role links are Adept enabling hypotheses pending review, not official occupation endorsements or measured impact."
+    },
+    {
+      "url": "https://sdgs.un.org/goals/goal8",
+      "retrieved_at": "2026-10-30",
+      "note": "Opened for conditional target 8.2 technological-upgrading alignments of the five official tech occupations. These are draft enabling hypotheses, not measured productivity or employment outcomes."
+    }
+  ]
+}

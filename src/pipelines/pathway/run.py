@@ -25,6 +25,7 @@ from app.core.seed import SEED_DIR
 from app.features.pathway.catalogue_sources import (
     COURSERA,
     CURATED,
+    FREE_MS,
     MANUAL,
     CourseRow,
     all_rows,
@@ -40,6 +41,7 @@ OUT = SEED_DIR / "courses" / "courses.csv"
 __all__ = [
     "COURSERA",
     "CURATED",
+    "FREE_MS",
     "MANUAL",
     "CourseRow",
     "clean_url",

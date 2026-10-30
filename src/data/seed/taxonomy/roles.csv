@@ -33,3 +33,17 @@ responsible-ai-officer,Responsible AI & Governance Officer,custom,AI|risk|compli
 retail-salespersons,Retail Salespersons,O*NET-SOC,,false
 customer-service-representatives,Customer Service Representatives,O*NET-SOC,,false
 production-workers-all-other,"Production Workers, All Other",O*NET-SOC,,false
+bookkeeping-accounting-clerks,"Bookkeeping, Accounting, and Auditing Clerks",O*NET-SOC,,false
+secretaries-administrative-assistants,"Secretaries and Administrative Assistants, Except Legal, Medical, and Executive",O*NET-SOC,,false
+registered-nurses,Registered Nurses,O*NET-SOC,,false
+retail-sales-supervisors,First-Line Supervisors of Retail Sales Workers,O*NET-SOC,,false
+shipping-receiving-inventory-clerks,"Shipping, Receiving, and Inventory Clerks",O*NET-SOC,,false
+teaching-assistants-school,"Teaching Assistants, Preschool, Elementary, Middle, and Secondary School, Except Special Education",O*NET-SOC,,false
+accountants-auditors,Accountants and Auditors,O*NET-SOC,,false
+bank-tellers,Tellers,O*NET-SOC,,false
+team-assemblers,Team Assemblers,O*NET-SOC,,false
+web-developers,Web Developers,O*NET-SOC,software|design|customer,true
+database-administrators,Database Administrators,O*NET-SOC,data|software|cloud,true
+network-systems-administrators,Network and Computer Systems Administrators,O*NET-SOC,software|cloud|security,true
+software-quality-assurance-testers,Software Quality Assurance Analysts and Testers,O*NET-SOC,software|process improvement|security,true
+business-intelligence-analysts,Business Intelligence Analysts,O*NET-SOC,data|analytics|finance,true
