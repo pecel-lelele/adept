@@ -1,4 +1,6 @@
 # Full local stack. Database-only tasks use docker-compose.db.yml.
+# Every published port is bound to 127.0.0.1. Starting the stack never migrates or seeds;
+# run that once, explicitly:  docker compose --profile setup run --rm migrate
 services:
   db:
     extends:
@@ -11,7 +13,7 @@ services:
       context: .
       dockerfile: src/docker/api.Dockerfile
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-adept}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-adept}
       - APP_ENV=development
@@ -23,17 +25,32 @@ services:
       db:
         condition: service_healthy
 
+  # One-off schema migration and seed load for the local database (profile: setup).
+  migrate:
+    image: adept-api:latest
+    build:
+      context: .
+      dockerfile: src/docker/api.Dockerfile
+    profiles: ["setup"]
+    command: ["python", "src/docker/boot.py", "migrate"]
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-adept}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-adept}
+    depends_on:
+      db:
+        condition: service_healthy
+
   web:
-    image: node:22-alpine
+    # Node 24 and the frozen root lockfile, as in CI and on Replit.
+    image: node:24-alpine
     working_dir: /workspace
-    command: sh -c "corepack enable && pnpm install && pnpm --filter @workspace/adept dev"
+    command: sh -c "corepack enable && pnpm install --frozen-lockfile && pnpm --filter @workspace/adept dev"
     volumes:
       - .:/workspace
       - /workspace/node_modules
       - /workspace/src/web/node_modules
       - /workspace/src/web/.next
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     environment:
       - API_URL=http://api:8000
       - NEXT_PUBLIC_API_URL=http://localhost:8000

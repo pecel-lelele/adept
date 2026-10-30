@@ -37,6 +37,8 @@ def test_trusted_proxy_mode_requires_a_positive_hop_count_in_production() -> Non
         proxy_shared_secret="synthetic-proxy-secret",
         trusted_proxy_hops=0,
         proxy_client_ip_mode="trusted",
+        m3_backend="postgres",
+        web_origin="https://adept.example.test",
     )
     assert any("TRUSTED_PROXY_HOPS" in error for error in settings.deployment_problems()[0])
     settings.trusted_proxy_hops = 1
