@@ -7,7 +7,7 @@ import { journeyStepCount } from "@/config/navigation";
 import { ErrorState } from "@/components/ErrorState";
 import { AccountDataCard } from "@/features/core/components/AccountDataCard";
 import { LevelPips } from "@/components/viz";
-import { fetchMyOrg } from "@/features/org/api";
+import { getWorkspaces } from "@/lib/auth/workspaces";
 import { fetchRadar } from "@/features/trends/api";
 import type { ScenarioId } from "@/lib/api";
 
@@ -26,7 +26,7 @@ export async function ProfileView({ scenario = "moderate" }: { scenario?: Scenar
     fetchMyProfile(),
     fetchSkillCatalogue(),
     fetchRadar(scenario),
-    fetchMyOrg(),
+    getWorkspaces(),
   ]);
   if (!profile.ok) return <ErrorState failure={profile} />;
   const p = profile.data;
@@ -135,9 +135,9 @@ export async function ProfileView({ scenario = "moderate" }: { scenario?: Scenar
               <div>
                 <dt>{tp("organisation")}</dt>
                 <dd>
-                  {org.ok ? (
+                  {org.some((w) => w.kind === "org") ? (
                     <span className="a-inline">
-                      <Building2 size={14} aria-hidden /> {org.data.name}
+                      <Building2 size={14} aria-hidden /> {org.filter((w) => w.kind === "org").map((w) => w.name).join(", ")}
                     </span>
                   ) : (
                     <Link className="a-link" href="/app/join">

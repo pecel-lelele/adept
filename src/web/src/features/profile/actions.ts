@@ -29,7 +29,7 @@ export async function resolveSkillAction(query: string) {
 const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, Math.round(n || 0)));
 
 /** Save the questionnaire, then the confirmed skills. Both land in PostgreSQL. */
-export async function saveIntakeAction(input: IntakeInput): Promise<IntakeResult> {
+export async function saveIntakeAction(input: IntakeInput, returnTo?: string): Promise<IntakeResult> {
   if (!input.skills.length) return { error: "skill_required" };
   const api = await getApi();
   const profile = await call(
@@ -62,7 +62,7 @@ export async function saveIntakeAction(input: IntakeInput): Promise<IntakeResult
   revalidatePath("/app", "layout");
   revalidatePath("/org", "layout");
   // Intake leads to the Radar first (which skills are rising), then on to matches.
-  redirect("/app/radar");
+  redirect(returnTo === "/work/skills" ? returnTo : "/app/radar");
 }
 
 /** Forward a CV to the parser. The file is processed in memory by the API and never stored. */

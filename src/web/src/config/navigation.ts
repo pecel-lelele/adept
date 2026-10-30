@@ -64,7 +64,7 @@ export const workWorkspace: Workspace = {
       items: [
         { key: "home", href: "/work", icon: "home" },
         { key: "skills", href: "/work/skills", icon: "skills" },
-        { key: "plan", href: "/work/plan", icon: "plan", scenario: true },
+        { key: "plan", href: "/work/plan", icon: "plan" },
         { key: "progress", href: "/work/progress", icon: "progress", scenario: true },
       ],
     },

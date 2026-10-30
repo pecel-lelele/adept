@@ -1,3 +1,5 @@
+import { MalaysiaContextCard } from "@/features/trends/components/MalaysiaContextCard";
+import { AdminTrendRefresh } from "@/features/trends/components/AdminTrendRefresh";
 import { ArrowRight, ArrowUpRight, BookOpen, Building2, Check, Compass, Leaf, Route, Target, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -118,6 +120,7 @@ export async function DashboardView({ scenario, query }: { scenario: ScenarioId;
 
   return (
     <div className="a-view">
+      <AdminTrendRefresh />
       <section className="a-welcome">
         <div className="a-welcome-main">
           <span className="a-eyebrow">{t("hello", { name: account?.display_name ?? "" })}</span>
@@ -291,6 +294,7 @@ export async function DashboardView({ scenario, query }: { scenario: ScenarioId;
         </section>
       </div>
       {matches.ok ? <MetaBar meta={matches.data.meta} /> : null}
+      <MalaysiaContextCard />
     </div>
   );
 }

@@ -271,7 +271,7 @@
     "q4": "Are the outlooks guaranteed?",
     "a4": "No. Outlooks are estimates under a moderate and a fast AI scenario. They help you plan; they are not promises of a job.",
     "q5": "What happens to my CV?",
-    "a5": "It is read in memory to find your skills and is never stored. Only the skills you confirm are saved to your account.",
+    "a5": "The CV file is parsed in memory and is not stored. Only confirmed skills are saved. When optional AI skill matching is enabled, short redacted skill phrases may be sent to the disclosed provider; see Privacy.",
     "q6": "Can my organisation use Adept?",
     "a6": "Yes. A manager or career advisor creates a workspace, shares a join code, sees the team’s skill gaps and assigns one training plan. Members keep control of their own data.",
     "closeEyebrow": "Free to start",

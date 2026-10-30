@@ -1,3 +1,5 @@
+import { MalaysiaContextCard } from "@/features/trends/components/MalaysiaContextCard";
+import { AdminTrendRefresh } from "@/features/trends/components/AdminTrendRefresh";
 import { ArrowRight, ArrowUpRight, Check, Grid3x3, Leaf, Route, Target, UserCheck, Users } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
@@ -6,6 +8,7 @@ import { Kpis, MetaBar } from "@/components";
 import { ErrorState } from "@/components/ErrorState";
 import { Heatmap, SdgTiles, StackBar, StepTrack } from "@/components/viz";
 import { fetchOrgContribution } from "@/features/sdg/api";
+import { fetchProgrammes } from "../programmes/api";
 import type { ScenarioId, Schemas } from "@/lib/api";
 
 import { fetchGaps, fetchMembers, fetchMyOrg, fetchPlan } from "../api";
@@ -39,7 +42,7 @@ export async function OrgDashboardView({ scenario }: { scenario: ScenarioId }) {
   const t = await getTranslations("ui.org");
   const tn = await getTranslations("ui.nav");
   const tp = await getTranslations("ui.page");
-  const [org, members, gaps] = await Promise.all([fetchMyOrg(), fetchMembers(), fetchGaps(scenario)]);
+  const [org, members, gaps, programmes] = await Promise.all([fetchMyOrg(), fetchMembers(), fetchGaps(scenario), fetchProgrammes()]);
   if (!org.ok) return <ErrorState failure={org} />;
   const list = members.ok ? members.data.members : [];
   const complete = list.filter((m) => m.intake_status === "complete").length;
@@ -69,17 +72,18 @@ export async function OrgDashboardView({ scenario }: { scenario: ScenarioId }) {
       }))
     : [];
 
-  const journeyDone = [list.length > 0, complete > 0, complete > 0, Boolean(plan?.ok && plan.data.steps.length)];
+  const journeyDone = [list.length > 0, complete > 0, complete > 0, Boolean(programmes.ok && programmes.data.programmes.length)];
   const firstOpen = journeyDone.findIndex((d) => !d);
   const journey = [
     { key: "oInvite", to: "/org/members" },
-    { key: "oProfiles", to: "/org/members" },
+    { key: "oProfiles", to: `/org/radar?scenario=${scenario}` },
     { key: "oGaps", to: `/org/gaps?scenario=${scenario}` },
-    { key: "oPlan", to: `/org/plan?scenario=${scenario}${roleQuery}` },
+    { key: "oPlan", to: `/org/programmes?scenario=${scenario}${roleQuery}` },
   ] as const;
 
   return (
     <div className="a-view">
+      <AdminTrendRefresh />
       <section className="a-welcome">
         <div className="a-welcome-main">
           <span className="a-eyebrow">{org.data.name}</span>
@@ -242,6 +246,7 @@ export async function OrgDashboardView({ scenario }: { scenario: ScenarioId }) {
         </section>
       </div>
       {gaps.ok ? <MetaBar meta={gaps.data.meta} /> : null}
+      <MalaysiaContextCard />
     </div>
   );
 }

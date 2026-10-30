@@ -65,6 +65,7 @@ test("intake Finish shows a disabled Saving state while the save transition is p
     let states = 0;
     let transitions = 0;
     const { IntakeWizard } = loadComponent("src/features/profile/components/IntakeWizard.tsx", {
+      "next/navigation": { useSearchParams: () => new URLSearchParams() },
       "@/lib/api/error-message": errorMessages,
       "next-intl": translations(locale),
       react: { useState: (value) => [states++ === 0 ? 4 : value, nothing], useMemo: (fn) => fn(), useRef: (current) => ({ current }), useTransition: () => [++transitions === 3, nothing] },
