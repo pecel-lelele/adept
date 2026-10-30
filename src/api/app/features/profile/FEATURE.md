@@ -17,6 +17,12 @@ or stale index falls back to exact catalogue matches without optional suggestion
 
 Implemented: in-memory PDF/DOCX/text parsing, catalogue aliases and user-confirmed skill
 levels, questionnaire intake and PostgreSQL profiles. The web provides a four-step intake.
+
+Future-learning aspirations in English, Malay and Chinese are excluded from current skills and
+unmatched review suggestions. Leadership actions such as "Lead a team" and "Managed people"
+resolve only when the loaded catalogue has one unambiguous leadership/people-management skill;
+they never create a skill or imply project-management experience.
+
 Empty extraction and truncation remain visible in both upload screens; uploads never mutate saved skills before
 confirmation. See `cv_parser.py`, `service.py` and `tests/api/profile/`.
 

@@ -961,6 +961,17 @@
 - **PR / branch**: fix/matching-org-review-fixes / PR #77
 
 
+### M2-031: Exclude CV learning aspirations and resolve leadership actions conservatively
+- **Date**: 2026-10-31
+- **Feature**: F1 (Skills Profile Intake)
+- **Type**: method
+- **Change**: Exclude future-learning clauses in English, Malay and Chinese from current skill extraction and review suggestions. Recognise team-leading and people-management actions only when one matching leadership skill exists in the loaded catalogue.
+- **Why**: A wish to learn is not evidence of an existing skill; leadership action wording should not require an invented skill or be mistaken for project management.
+- **Pipeline**: synthetic CV text -> existing in-memory cleaning -> sentence-scoped aspiration exclusion and catalogue-bound action aliases -> deterministic extraction -> aspiration, later-experience and present/absent-catalogue regressions -> human skill confirmation
+- **Affects**: F1 CV preview/intake; no dataset, provider or dependency change
+- **Replaces**: none
+- **PR / branch**: fix/core-privacy-and-trust
+
 ---
 
 ## M3: Pathway, SDG & Guardrails (F5, F6, F8)
@@ -1382,6 +1393,17 @@
 - **Affects**: public impact evidence validation; no schema, source or provider change
 - **Replaces**: M3-036 numeric support rule only
 - **PR / branch**: fix/core-greptile-followups / Fixes #86
+
+### M3-040: Measure identity swaps and keep submitted credentials unearned
+- **Date**: 2026-10-31
+- **Feature**: F5, F6, F8
+- **Type**: method | contract | UI
+- **Change**: Share the impact service's synthetic name/segment swap through profile-to-matching and the production ranker with the live fairness report; disclose the limited regression scope. Reachable certificate links return submitted, and only org_confirmed completions earn skill levels, including for legacy provider_verified links. Direct pathway previews require a saved profile. SDG 4.3 free-learning wording discloses possible certificate fees in en/ms/zh without implying HRD funding.
+- **Why**: Byte-identical learner copies cannot detect identity leakage. HTTP reachability proves neither course nor learner ownership, and zero learning price establishes neither free certificates nor approved funding.
+- **Pipeline**: synthetic profiles and completion records -> production profile whitelist and evidence classification -> role ranks and confirmed skill levels -> shared ranker/earned-level method -> biased-scorer and submitted-versus-confirmed matching/team-gap regressions -> attributed fairness, pathway and SDG API/web
+- **Affects**: F1/F4 matching boundary, F5 evidence/history, F6 contribution UI, F7 team gaps and generated contracts; no migration or provider change
+- **Replaces**: automatic certificate-link trust in M3-022; prior decisions remain historical
+- **PR / branch**: fix/core-privacy-and-trust / Fixes #81, Fixes #83
 
 ---
 
@@ -2339,3 +2361,14 @@
 - **Affects**: submission documentation only
 - **Replaces**: none
 - **PR / branch**: fix/core-greptile-followups / Fixes #86
+
+### M4-091: Enforce the cohort privacy gate across team planning
+- **Date**: 2026-10-31
+- **Feature**: F7 (Organisation Mode), F6 (organisation contributions)
+- **Type**: method | UI
+- **Change**: Apply ORG_MIN_COHORT to group plans, package previews/selections, programme options/generation and organisation SDG contributions. Count only sharing members with completed usable profiles, and recheck selected subsets; below the configured minimum return HTTP 409 insufficient_cohort with a translated, accessible too-few-members state.
+- **Why**: Suppressing heatmap cells alone leaves equivalent skill-derived plans, member assignments and readiness exposed through other endpoints. Member-owned accepted programmes and existing regional distinct-person suppression remain available under their established permissions.
+- **Pipeline**: membership consent and saved profiles -> existing eligible-member loader -> whole/selected cohort size -> shared configured minimum gate -> zero/one/two/at/above-minimum and configured-four regressions -> manager planning API/web
+- **Affects**: F5 group planning consumers, F6 organisation contribution, F7 packages/programmes, shared web error state and synthetic planning fixtures; no migration or new setting
+- **Replaces**: M4-088 heatmap-only scope (its heatmap suppression is retained)
+- **PR / branch**: fix/core-privacy-and-trust / Fixes #82

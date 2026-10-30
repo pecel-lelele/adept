@@ -5,6 +5,8 @@ from harness import fixtures
 from app.features.org import funding, funding_store
 from app.features.pathway import repository
 
+pytestmark = pytest.mark.usefixtures("planning_cohort")
+
 HR = {"X-Demo-User": "demo-company"}
 MEMBER = {"X-Demo-User": "aisyah"}
 
@@ -22,7 +24,15 @@ def test_hr_compares_proposals_and_member_explicitly_adopts(client: TestClient):
     response = client.get(
         "/api/v1/org/packages",
         headers=HR,
-        params={"role_id": "data-analyst", "member_ids": ["aisyah"]},
+        params={
+            "role_id": "data-analyst",
+            "member_ids": [
+                "aisyah",
+                "emp-002",
+                "synthetic-cohort-third",
+                "synthetic-cohort-fourth",
+            ],
+        },
     )
     assert response.status_code == 200, response.text
     offers = response.json()["packages"]
@@ -37,7 +47,7 @@ def test_hr_compares_proposals_and_member_explicitly_adopts(client: TestClient):
         "kind": offer["kind"],
         "token": offer["token"],
         "role_id": offer["role_id"],
-        "member_ids": ["aisyah"],
+        "member_ids": ["aisyah", "emp-002", "synthetic-cohort-third", "synthetic-cohort-fourth"],
         "scenario": "moderate",
     }
     assert client.post("/api/v1/org/packages/select", headers=MEMBER, json=body).status_code == 403
@@ -68,7 +78,15 @@ def test_cohort_scope_and_stale_budget_reject_changed_offer(client: TestClient):
     offer = client.get(
         "/api/v1/org/packages",
         headers=HR,
-        params={"role_id": "data-analyst", "member_ids": ["aisyah"]},
+        params={
+            "role_id": "data-analyst",
+            "member_ids": [
+                "aisyah",
+                "emp-002",
+                "synthetic-cohort-third",
+                "synthetic-cohort-fourth",
+            ],
+        },
     ).json()["packages"][1]
     client.put(
         f"/api/v1/org/funding/{funding.current_year()}/budget",
@@ -80,7 +98,12 @@ def test_cohort_scope_and_stale_budget_reject_changed_offer(client: TestClient):
         headers=HR,
         json={
             "role_id": "data-analyst",
-            "member_ids": ["aisyah"],
+            "member_ids": [
+                "aisyah",
+                "emp-002",
+                "synthetic-cohort-third",
+                "synthetic-cohort-fourth",
+            ],
             "kind": offer["kind"],
             "token": offer["token"],
             "scenario": "moderate",

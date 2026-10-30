@@ -13,18 +13,23 @@ export async function ErrorState({ failure, compact = false }: { failure: ApiFai
   const t = await getTranslations("ui.error");
   const te = await getTranslations("ui.apiErrors");
   const needsProfile = failure.code === "profile_required";
+  const needsCohort = failure.code === "insufficient_cohort";
   const needsLogin = failure.status === 401;
   const Icon = needsProfile ? UserRoundPen : failure.code === "network" ? WifiOff : CircleAlert;
   const body = (
-    <div className="a-empty">
+    <div className="a-empty" role="status" aria-live="polite">
       <span className="a-empty-icon">
         <Icon size={24} aria-hidden />
       </span>
-      <strong style={{ color: "var(--a-ink)" }}>{needsProfile ? t("profile") : t("title")}</strong>
+      <strong style={{ color: "var(--a-ink)" }}>{needsProfile ? t("profile") : needsCohort ? t("cohort") : t("title")}</strong>
       <span>{errorMessage(te, failure.code)}</span>
       {needsProfile ? (
         <Link className="a-btn is-small" href="/app/onboarding">
           {t("profile")}
+        </Link>
+      ) : needsCohort ? (
+        <Link className="a-btn is-small" href="/org/members">
+          {t("members")}
         </Link>
       ) : needsLogin ? (
         <SignInAgainButton label={t("signIn")} />

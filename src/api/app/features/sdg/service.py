@@ -134,8 +134,8 @@ def plan_links(plan: Pathway) -> list[SdgLink]:
             links.append(
                 SdgLink(
                     target=targets["4.3"],
-                    reason="Every course in this plan is free or HRD Corp-funded for you, so "
-                    "cost is not a barrier to technical education.",
+                    reason="Every course in this plan is free to learn "
+                    "(certificate fees may apply).",
                     strength="direct",
                     via="pathway",
                     evidence=EVIDENCE_4_3,
@@ -293,6 +293,7 @@ def org_contribution(
 ) -> SdgContribution:
     """Aggregate of every counted member's plan towards the selected (or default) role."""
     plans = org_service.member_plans(org_id, scenario, role_id)
+    org_service.require_cohort(len(plans))
     return contribution_for_plans(plans, "organisation", org_id, scenario)
 
 

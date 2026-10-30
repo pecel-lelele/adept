@@ -10,6 +10,8 @@ from fastapi.testclient import TestClient
 from app.features.org import funding_store
 from app.features.pathway import repository
 
+pytestmark = pytest.mark.usefixtures("planning_cohort")
+
 HR = {"X-Demo-User": "demo-company"}
 MEMBER = {"X-Demo-User": "aisyah"}
 

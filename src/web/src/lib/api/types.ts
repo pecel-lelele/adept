@@ -2014,7 +2014,7 @@ export interface components {
              * @default not_submitted
              * @enum {string}
              */
-            link_status: "not_submitted" | "provider_verified" | "unreachable" | "not_provider_page";
+            link_status: "not_submitted" | "submitted" | "provider_verified" | "unreachable" | "not_provider_page";
             /** Link Checked At */
             link_checked_at?: string | null;
             /**

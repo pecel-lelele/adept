@@ -187,7 +187,7 @@ def _build_alias_index() -> list[_AliasEntry]:
     # Sort: longest phrase first so "python programming" wins over "python"
     entries.sort(key=lambda t: len(t[0]), reverse=True)
 
-    return [
+    index = [
         _AliasEntry(
             pattern=_phrase_pattern(phrase),
             skill_id=sid,
@@ -196,6 +196,24 @@ def _build_alias_index() -> list[_AliasEntry]:
         )
         for phrase, sid in entries
     ]
+    # Action wording is only an alias for a leadership/people skill the live catalogue
+    # actually contains. It must never create a new skill or imply project management.
+    leadership = {"leadership", "team leadership", "people management", "team management"}
+    candidates = {sid for phrase, sid in entries if phrase in leadership}
+    if len(candidates) == 1:
+        index.insert(
+            0,
+            _AliasEntry(
+                pattern=re.compile(
+                    r"\b(?:(?:lead|led|leading)\s+(?:a\s+|the\s+)?team|"
+                    r"(?:manage|managed|managing)\s+people)\b",
+                    re.IGNORECASE,
+                ),
+                skill_id=next(iter(candidates)),
+                phrase_len=0,
+            ),
+        )
+    return index
 
 
 def _phrase_pattern(phrase: str) -> re.Pattern[str]:
@@ -588,6 +606,15 @@ _NEGATION_RE = re.compile(
     re.IGNORECASE,
 )
 
+# Aspirations describe future learning, including lists joined by commas/conjunctions.
+# Sentence and line boundaries keep an aspiration from suppressing later actual experience.
+_ASPIRATION_RE = re.compile(
+    r"\b(?:seeking to|want(?:ing)? to|hope to|hoping to|wish to|planning to|"
+    r"would like to|aim(?:ing)? to)\b|\bingin belajar\b|\bmahu belajar\b|"
+    r"希望(?:学习|学会|掌握)|想(?:要)?(?:学习|学会|掌握)|计划学习",
+    re.IGNORECASE,
+)
+
 #: Characters either side of a mention read for level cues. Narrow on purpose: a wider window
 #: picked up "Senior Manager" from a nearby job title.
 _CONTEXT_CHARS = 45
@@ -617,6 +644,11 @@ def _estimate_level(context: str) -> int:
 def _is_negated(text: str, start: int) -> bool:
     """True when the words just before a mention deny it ("no experience in SQL")."""
     return bool(_NEGATION_RE.search(text[max(0, start - 40) : start]))
+
+
+def _is_aspiration(text: str, start: int) -> bool:
+    left = max(text.rfind(mark, 0, start) for mark in (".", ";", "\n", "。", "；")) + 1
+    return bool(_ASPIRATION_RE.search(text, left, start))
 
 
 # ---------------------------------------------------------------------------
@@ -663,7 +695,7 @@ def extract_skills(text: str) -> list[ParsedSkill]:
             # Skip if this match overlaps any already-recorded span for this skill
             if any(s < ex_e and e > ex_s for ex_s, ex_e in existing):
                 continue
-            if _is_negated(normed, s):
+            if _is_negated(normed, s) or _is_aspiration(normed, s):
                 continue
             if sid not in spans:
                 spans[sid] = existing
@@ -828,6 +860,7 @@ def unmatched_skill_terms(text: str) -> list[str]:
         # text is still untrusted: the web renders these strings as text only.
         if (
             not 2 <= len(term) <= 64
+            or _ASPIRATION_RE.search(term)
             or len(term.split()) > 6
             or not any(c.isalpha() for c in term)
             or not all(c.isalnum() or c in " +#./&()-'" for c in term)

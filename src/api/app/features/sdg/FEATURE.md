@@ -22,6 +22,10 @@ role → target mapping with explicit draft/review status for badges; `GET /sdg/
 
 ## Goal and tasks (from docs/tasks.md)
 
+Organisation contributions enforce the configured `ORG_MIN_COHORT` consent/completed-profile
+gate. A zero-learning-cost plan links to SDG 4.3 as free to learn, with possible certificate
+fees disclosed; HRD Corp eligibility is never presented as approved funding.
+
 **Goal:** every role and skill tagged to at least one SDG; show how the chosen path contributes. Meaningful, not decorative.
 
 **Open choices:** SDG data source, mapping method (embedding, LLM-assisted, manual), review process.

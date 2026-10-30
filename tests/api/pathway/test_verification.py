@@ -58,7 +58,7 @@ def test_only_official_verification_pages_count(provider: str, url: str, ok: boo
 def test_link_check_needs_a_resolving_provider_page() -> None:
     course = _course("Coursera (IBM)")
     url = "https://www.coursera.org/account/accomplishments/verify/ABC"
-    assert verification.check_link(url, course, lambda u: 200) == "provider_verified"
+    assert verification.check_link(url, course, lambda u: 200) == "submitted"
     assert verification.check_link(url, course, lambda u: 404) == "unreachable"
     assert verification.check_link(url, course, lambda u: None) == "unreachable"
     assert (
@@ -115,7 +115,7 @@ def test_certificate_link_is_checked(client: TestClient, monkeypatch: pytest.Mon
     )
     assert resp.status_code == 200, resp.text
     ev = Progress.model_validate(resp.json()).evidence[first]
-    assert ev.kind == "certificate_link" and ev.link_status == "provider_verified"
+    assert ev.kind == "certificate_link" and ev.link_status == "submitted"
 
 
 def test_evidence_needs_https_and_a_planned_course(client: TestClient) -> None:

@@ -7043,6 +7043,7 @@
             "type": "string",
             "enum": [
               "not_submitted",
+              "submitted",
               "provider_verified",
               "unreachable",
               "not_provider_page"
