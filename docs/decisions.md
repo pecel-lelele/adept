@@ -457,6 +457,39 @@
 - **Replaces**: TEAM-040's statement about 0 production hops (the rest of TEAM-040 stands)
 - **PR / branch**: fix/core-review-regressions (PR #66)
 
+### TEAM-042: Shared in-app refresh with GitHub as clock
+- **Date**: 2026-10-30
+- **Feature**: Core, F2/F4/F5/F6
+- **Type**: schema
+- **Change**: Add token-authenticated scheduler triggers, short signed-in check/status endpoints, durable per-source progress and one site-wide PostgreSQL advisory lease. Apply append-only run-log migrations explicitly; publish each validated source atomically.
+- **Why**: GitHub cannot reach Replit's private database; the app can. Separate scheduler credentials from users/Adi, bound/cancel model/network/SQL operations, share active work, enforce cooldown/admin-only bypass and preserve last good data.
+- **Pipeline**: public sources → bounded validation → catalogue/mention features → existing production methods → mocked auth/concurrency/failure/date regressions → saved snapshots and freshness
+- **Affects**: Core, trends, matching/pathway attribution, jobs, catalogue
+- **Replaces**: none (legacy workflow retained until automatic publication is proven)
+- **PR / branch**: feat/core-automatic-data-refresh
+
+### TEAM-043: Fence refresh publication and retain reproducible measured inputs
+- **Date**: 2026-10-31
+- **Feature**: Core, F2/F5
+- **Type**: method
+- **Change**: Keep publication on the original advisory-lock session, heartbeat/cancel on lease loss, fence replacement work through the maximum provider lifetime, re-read status under the lock, and check deadlines inside the owning transaction before commit. Persist measured counts/windows/baselines/sample IDs atomically for inference-free reconstruction via an append-only input migration.
+- **Why**: A dropped idle lock must not permit a second paid worker or an unfenced write; a completion race must not turn success into interruption. Partial-source successes must update cards. Incomplete course checks rotate and fail without claiming daily success; due-but-cooling-down scheduler work fails visibly; zero-row DB reads keep their true origin.
+- **Pipeline**: dated arXiv/BLS/catalogue inputs → bounded checks and canonical IDs → retained mention/baseline features → production scoring/reconstruction → mocked race/cancellation/rebuild tests plus two real PostgreSQL lease/rollback regressions (passed) → fenced atomic snapshots, truthful status/freshness and partial-success UI refresh
+- **Affects**: Core worker/clock, F2 publication and stored rescore, F5 course verification, refresh UX
+- **Replaces**: none (hardens TEAM-042)
+- **PR / branch**: feat/core-automatic-data-refresh
+
+
+### TEAM-044: Keep empty labour freshness aligned with the served frozen export
+- **Date**: 2026-10-31
+- **Feature**: F2 and Core (data refresh)
+- **Type**: method
+- **Change**: Preserve zero-row database freshness for jobs/courses while recognising that an empty labour table serves the frozen DOSM export. Labour freshness retains the export's actual dates and fallback flag.
+- **Why**: Empty-source behaviour differs by serving adapter; a successful aggregate SQL query does not establish that the database supplied the displayed content.
+- **Affects**: refresh freshness metadata and empty-labour regression; no schema/provider change
+- **Replaces**: none (narrows TEAM-043's zero-row handling to match serving behaviour)
+- **PR / branch**: feat/core-automatic-data-refresh / PR #75
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)
@@ -624,6 +657,17 @@
 - **Affects**: F2 radar growth rate, F5 pathway growth term, F4 match trend component, F3 scenario toggle
 - **Replaces**: refines the N1 scale in M1-012
 - **PR / branch**: fix/core-review-regressions (PR #66)
+
+### M1-015: Measure real completed arXiv weeks and retire backdating
+- **Date**: 2026-10-30
+- **Feature**: F2 (Trends)
+- **Type**: method
+- **Change**: Read exact prior completed cs.AI submission weeks through the public query API, capped at 350 papers/week. Reuse dedicated MiniLM and production scoring/validation; snapshot date is measured Sunday and acquisition dates remain distinct. Reject out-of-window papers and retire the bootstrap backdating command.
+- **Why**: October 2024 replay observations must never be presented as 2026 research. Skip RunPod before any I/O if the completed week is stored; preserve static BLS acquisition dates. Bounded samples remain disclosed estimates.
+- **Pipeline**: arXiv API + versioned BLS → publication-date/window validation → MiniLM cosine mentions → production scorer → measured-date/no-inference/failure tests → atomic PostgreSQL snapshot with historical fallback disclosure
+- **Affects**: F2/F3, downstream F4/F5 scores, legacy rescore date semantics
+- **Replaces**: none (corrects earlier replay bootstrap practice; historical entries remain)
+- **PR / branch**: feat/core-automatic-data-refresh
 
 ---
 
@@ -2296,6 +2340,17 @@
 - **Affects**: associated API, web, tests and deployment configuration
 - **Replaces**: none
 - **PR / branch**: worktree-agent-a30a3ff3fc8019a74
+
+### M4-087: Shared refresh progress and documented Malaysian job sources
+- **Date**: 2026-10-30
+- **Feature**: Core (refresh UX and jobs)
+- **Type**: data source
+- **Change**: Dashboard/radar users check/attach to the shared worker with translated accessible progress, last-good failure/retry, cooldown timing and visibility-aware backoff. Automatic jobs use documented Greenhouse/Lever/Ashby APIs plus optional configured keyed sources; serving requires the posting's own Malaysian location and 14-day freshness.
+- **Why**: Refresh must remain responsive and honestly dated. Worldwide-only eligibility and undocumented endpoints do not establish a permitted Malaysian feed. DOSM LFS remains cited national context; unsupported/unverified alternatives are deferred in docs/data-refresh.md.
+- **Pipeline**: documented public employer APIs/provider pages/DOSM → own-location and bounded URL/fact checks → existing job/catalogue features → production classifier/sync → mocked sources/UI-state/i18n tests → dated cards, saved rows and source assessment
+- **Affects**: dashboard/radar/admin, job board, matches/pathway freshness, about/source declaration
+- **Replaces**: none (narrows automatic path of M4-059; historical connectors retained)
+- **PR / branch**: feat/core-automatic-data-refresh
 
 ### M4-088: Suppress small consenting cohorts in team heatmaps
 - **Date**: 2026-10-31

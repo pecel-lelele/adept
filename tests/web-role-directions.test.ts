@@ -35,6 +35,9 @@ test("organisation radar renders role directions without loading personal intake
   const calls: unknown[] = [];
   const meta = { snapshot_date: "2026-10-13", scenario: "fast", available_snapshots: ["2026-10-13"] };
   const { RadarView } = loadComponent("src/features/trends/components/RadarView.tsx", {
+    "@/components/DataAsOf": { DataAsOf: () => null },
+    "@/lib/auth/account": { getAccount: async () => null },
+    "./RefreshDataButton": { RefreshDataButton: () => null },
     "next-intl": intl,
     "next-intl/server": { getTranslations: async (namespace) => intl.useTranslations(namespace) },
     "next/link": { default: ({ children, ...props }) => React.createElement("a", props, children) },

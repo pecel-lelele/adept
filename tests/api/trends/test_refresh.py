@@ -102,7 +102,11 @@ def configured(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @pytest.fixture(autouse=True)
-def _admin_account() -> Any:
+def _admin_account(monkeypatch: pytest.MonkeyPatch) -> Any:
+    from app.features.data_refresh import measurements
+
+    # These fixtures model legacy raw-signal databases, before automatic measured inputs.
+    monkeypatch.setattr(measurements, "load", lambda *args, **kwargs: None)
     refresh.reset_state()
     accounts.create(ADMIN, "")
     yield
@@ -353,9 +357,9 @@ def test_rescore_publishes_a_genuinely_new_window(monkeypatch: pytest.MonkeyPatc
     monkeypatch.setattr(refresh, "clear_trend_caches", lambda: cleared.append(1))
     pipeline, score = _fake_pipeline(published)
     result = refresh._rescore(pipeline, score, "synthetic")
-    assert result.status == "published" and result.snapshot_date == date(2026, 10, 30)
+    assert result.status == "published" and result.snapshot_date == date(2026, 10, 29)
     assert (result.observed_from, result.observed_to) == (date(2026, 10, 26), date(2026, 10, 29))
-    assert [day for day, _ in published] == [date(2026, 10, 30)] and cleared == [1]
+    assert [day for day, _ in published] == [date(2026, 10, 29)] and cleared == [1]
 
 
 def test_rescore_of_already_published_signals_is_no_new_data(
@@ -384,6 +388,27 @@ def test_rescore_needs_two_weeks(monkeypatch: pytest.MonkeyPatch) -> None:
     pipeline, score = _fake_pipeline(published, periods=["2026-W44"])
     assert refresh._rescore(pipeline, score, "synthetic").status == "no_new_data"
     assert published == []
+
+
+def test_rescore_cannot_relabel_historical_signals_as_current(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    published: list[tuple[date, str]] = []
+    note = "Historical arXiv window 2024-10-13..2024-10-19 replayed under 2026 dates."
+    monkeypatch.setattr(refresh, "latest_published", lambda _url: (date(2026, 10, 20), note))
+    pipeline, score = _fake_pipeline(published)
+    result = refresh._rescore(pipeline, score, "synthetic")
+    assert result.status == "failed" and published == []
+    assert result.observed_to == date(2024, 10, 19)
+    assert "Historical replay" in result.message
+
+
+def test_expired_rescore_budget_does_not_publish(monkeypatch: pytest.MonkeyPatch) -> None:
+    published: list[tuple[date, str]] = []
+    monkeypatch.setattr(refresh, "latest_published", lambda _url: (date(2026, 10, 20), "older"))
+    pipeline, score = _fake_pipeline(published)
+    result = refresh._rescore(pipeline, score, "synthetic", deadline=0)
+    assert result.status == "failed" and published == []
 
 
 def test_rescore_invalid_snapshot_is_not_published(monkeypatch: pytest.MonkeyPatch) -> None:

@@ -22,12 +22,15 @@ import argparse
 import json
 import math
 import sys
+from contextlib import nullcontext
 from datetime import date, timedelta
 from pathlib import Path
+from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 ARXIV_RSS_URL = "https://rss.arxiv.org/rss/cs.AI"
 BLS_URL = "https://www.bls.gov/emp/tables/occupational-projections-and-characteristics.htm"
+BLS_RETRIEVED_AT = "2026-10-20"  # recorded acquisition of the versioned static baseline
 MIN_SKILLS = 50  # a snapshot covering fewer skills is treated as a broken run
 DIRECTIONS = {"rising", "stable", "declining"}
 NUMERIC = (
@@ -91,7 +94,7 @@ def provenance(
         {
             "name": "BLS Occupational Projections 2023-2033",
             "url": BLS_URL,
-            "retrieved_at": retrieved,
+            "retrieved_at": BLS_RETRIEVED_AT,
         },
     ]
     return sources, note
@@ -112,7 +115,13 @@ def collected_dates(db_url: str, period: str | None = None) -> DateRange | None:
 
 
 def publish(
-    rows: list[dict], snapshot_date: date, sources: list[dict], note: str, db_url: str
+    rows: list[dict],
+    snapshot_date: date,
+    sources: list[dict],
+    note: str,
+    db_url: str,
+    *,
+    conn: Any = None,
 ) -> None:
     """Write the snapshot and its provenance in one transaction.
 
@@ -122,7 +131,10 @@ def publish(
     """
     import psycopg  # type: ignore[import]
 
-    with psycopg.connect(db_url) as conn, conn.transaction(), conn.cursor() as cur:
+    managed = nullcontext(conn) if conn is not None else psycopg.connect(db_url)
+    # An injected connection's caller owns the transaction and its deadline/lease checks.
+    # A standalone connection commits at its outer context exit after all statements.
+    with managed as conn, conn.cursor() as cur:
         # Snapshot cleanup: remove any stale rows from a previous run on this date.
         cur.execute(
             "DELETE FROM trend_snapshots WHERE snapshot_date = %s",
@@ -175,7 +187,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Refresh the trend snapshot (F2).")
     parser.add_argument("--skip-ingest", action="store_true", help="rescore stored signals only")
     parser.add_argument("--dry-run", action="store_true", help="validate but do not publish")
-    parser.add_argument("--snapshot-date", default=None, help="YYYY-MM-DD (default: today)")
+    parser.add_argument("--snapshot-date", default=None, help="Must equal the measured end date")
     args = parser.parse_args(argv)
 
     sys.path.insert(0, str(REPO_ROOT / "src" / "api"))
@@ -183,7 +195,6 @@ def main(argv: list[str] | None = None) -> int:
     from pipelines.trends import arxiv_ingest, score
 
     db_url = get_settings().database_url
-    snapshot_date = date.fromisoformat(args.snapshot_date) if args.snapshot_date else date.today()
 
     if not args.skip_ingest:
         arxiv_ingest.main()
@@ -235,6 +246,10 @@ def main(argv: list[str] | None = None) -> int:
         print("ERROR: signal collection dates missing; nothing published.", file=sys.stderr)
         return 1
     sources, note = provenance(t0, t1, t0_dates, t1_dates)
+    snapshot_date = t1_dates[1]
+    if args.snapshot_date and date.fromisoformat(args.snapshot_date) != snapshot_date:
+        print("ERROR: snapshot date must equal the actual measured end date.", file=sys.stderr)
+        return 1
     rising = sum(1 for r in evidenced if r["direction_moderate"] == "rising")
     print(f"Valid snapshot {snapshot_date}: {len(evidenced)} skills, {rising} rising. {note}")
     if args.dry_run:

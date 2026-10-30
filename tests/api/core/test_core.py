@@ -6,6 +6,7 @@ from app.main import discover_feature_routers
 FEATURES = {
     "accounts",
     "assistant",
+    "data_refresh",
     "guardrails",
     "impact",
     "jobs",

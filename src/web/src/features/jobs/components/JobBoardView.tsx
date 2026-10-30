@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 
 import { ErrorState } from "@/components/ErrorState";
 import { MetaBar, PageHeader } from "@/components";
+import { DataAsOf } from "@/components/DataAsOf";
 import type { ScenarioId } from "@/lib/api";
 
 import { fetchJobBoard } from "../api";
@@ -46,6 +47,7 @@ export async function JobBoardView({
       >
         <MetaBar meta={d.meta} />
       </PageHeader>
+      <DataAsOf source="jobs" />
 
       <Form action="/app/jobs" className="a-card a-controls a-jobfilters">
         <input type="hidden" name="scenario" value={scenario} />

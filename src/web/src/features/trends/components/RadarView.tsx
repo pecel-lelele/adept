@@ -2,6 +2,9 @@ import { Bot, Minus, Radar, TrendingDown, TrendingUp } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
 import { Kpis, MetaBar, PageHeader, TrendPill } from "@/components";
+import { DataAsOf } from "@/components/DataAsOf";
+import { getAccount } from "@/lib/auth/account";
+import { RefreshDataButton } from "./RefreshDataButton";
 import { journeyStepCount } from "@/config/navigation";
 import { ErrorState } from "@/components/ErrorState";
 import { TrendBars } from "@/components/viz";
@@ -26,6 +29,7 @@ export async function RadarView({
   snapshotDate?: string;
   context?: "individual" | "organisation";
 }) {
+  const account = await getAccount();
   const t = await getTranslations("trends");
   const d = await getTranslations("common.design");
   const tp = await getTranslations("ui.page");
@@ -60,6 +64,8 @@ export async function RadarView({
       >
         <MetaBar meta={meta} />
       </PageHeader>
+      <DataAsOf source="trends" meta={meta} />
+      {account ? <RefreshDataButton dataAsOf={meta.observed_to ?? meta.snapshot_date} /> : null}
 
       {meta.observed_to && Date.parse(meta.snapshot_date) - Date.parse(meta.observed_to) > 60 * 864e5 ? (
         <p className="a-notice" role="note">

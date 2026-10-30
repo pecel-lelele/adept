@@ -62,10 +62,15 @@ def _day(value: str) -> date | None:
 def openings() -> list[Posting]:
     """Active openings, newest listing first. Expired ones are excluded even before the next
     pipeline run closes them."""
+    from pipelines.jobs.sources import in_malaysia
+
     today = date.today()
     out: list[Posting] = []
     for r in refdata.rows("jobs", "job_postings", active_only=True):
         if r.get("active", "true") != "true":
+            continue
+        # Apply the automatic publisher's own-location rule to older stored exports too.
+        if not in_malaysia(r.get("location", "")):
             continue
         expires = _day(r.get("expires_at", ""))
         if expires and expires < today:
