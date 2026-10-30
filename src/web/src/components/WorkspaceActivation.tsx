@@ -5,23 +5,27 @@ import { useTranslations } from "next-intl";
 
 /**
  * A missing workspace cookie is activated through an origin-checked POST, never a GET.
- * Auto-submit happens once per target: if the browser refuses the cookie, a second load
- * shows the button and an explanation instead of reloading forever.
+ * If the browser refuses the cookie, the redirect lands here again straight away: a repeat
+ * within RETRY_WINDOW_MS shows the button and an explanation instead of reloading forever.
+ * Later activations (for example after signing in again) still submit automatically.
  */
+const RETRY_WINDOW_MS = 15_000;
+
 export function WorkspaceActivation({ to, next }: { to: string; next: string }) {
   const form = useRef<HTMLFormElement>(null);
   const t = useTranslations("ui.workspace");
   const note = useRef<HTMLParagraphElement>(null);
   useEffect(() => {
     const key = `adept-activate:${to}`;
-    let seen = false;
+    let looping = false;
     try {
-      seen = window.sessionStorage.getItem(key) !== null;
-      if (!seen) window.sessionStorage.setItem(key, "1");
+      const last = Number(window.sessionStorage.getItem(key));
+      looping = Number.isFinite(last) && last > 0 && Date.now() - last < RETRY_WINDOW_MS;
+      if (!looping) window.sessionStorage.setItem(key, String(Date.now()));
     } catch {
-      // Storage unavailable: still submit once per mount, never loop on reload.
+      // Storage unavailable: still submit once per mount.
     }
-    if (seen) {
+    if (looping) {
       if (note.current) note.current.hidden = false;
     }
     else form.current?.requestSubmit();

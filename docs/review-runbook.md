@@ -14,7 +14,7 @@ This setup can incur RunPod charges and publish to the deployment database. Perf
 
 Both Next.js and FastAPI require `PROXY_SHARED_SECRET` in production. The Next.js web server forwards client requests with `x-internal-proxy-secret`, and FastAPI's security middleware trusts `X-Real-IP` only when the secret matches.
 
-With `PROXY_CLIENT_IP_MODE=best-effort` and `TRUSTED_PROXY_HOPS=0`, no client IP is forwarded, so all anonymous visitors share one rate-limit bucket (see TEAM-030). Set `TRUSTED_PROXY_HOPS=1` for Replit production only after verifying the proxy chain with [replit-proxy-verification.md](replit-proxy-verification.md); do not assume the hop count. For local development, use `TRUSTED_PROXY_HOPS=0`.
+Replit production uses `TRUSTED_PROXY_HOPS=1`, which selects the right-most `X-Forwarded-For` entry appended by Replit's edge (production refuses trusted mode with 0 hops). For local development, use `TRUSTED_PROXY_HOPS=0`: no client IP is forwarded and anonymous visitors share one rate-limit bucket (TEAM-030). If the ingress chain changes, recheck it with [replit-proxy-verification.md](replit-proxy-verification.md).
 
 ## Other stored public data
 

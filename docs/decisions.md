@@ -447,6 +447,16 @@
 - **Replaces**: none
 - **PR / branch**: fix/core-review-regressions (PR #66)
 
+### TEAM-041: Record the deployed Replit proxy hop count
+- **Date**: 2026-10-30
+- **Feature**: Core
+- **Type**: other
+- **Change**: The Replit deployment runs with `TRUSTED_PROXY_HOPS=1` (best-effort mode, right-most `X-Forwarded-For` entry appended by Replit's edge), as confirmed by the deployment owner's configuration. `.replit` now records it, and AGENTS.md, README, replit.md, the review runbook and the verification note describe 1 for Replit and 0 for local development. Issue #55 is closed.
+- **Why**: TEAM-040 and the docs it touched assumed production forwarded no client IP with 0 hops. The deployed configuration uses 1, and production refuses trusted mode with 0, so the docs described a setup that is not deployed. Per-visitor anonymous limits therefore apply in production.
+- **Affects**: Core (proxy, rate limits, deployment docs)
+- **Replaces**: TEAM-040's statement about 0 production hops (the rest of TEAM-040 stands)
+- **PR / branch**: fix/core-review-regressions (PR #66)
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)

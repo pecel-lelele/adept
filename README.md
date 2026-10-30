@@ -157,10 +157,11 @@ choices are not verified CV facts. Parser regression fixtures remain under `test
 [publishing handoff](replit.md#publishing-handoff). The web starts with the monorepo standalone
 launcher, not `next start`. One public Next.js server relays `/api/v1/*` to private FastAPI; the root supervisor waits for API/database readiness before opening the web port.
 Provide stable `SESSION_SECRET`, matching `PROXY_SHARED_SECRET`, Replit's managed
-PostgreSQL `DATABASE_URL` and exact production origin. `PROXY_CLIENT_IP_MODE=best-effort`
-allows `TRUSTED_PROXY_HOPS=0`: with 0 hops no client IP is forwarded (the web warns and omits
-`X-Real-IP`), so all anonymous visitors share one rate-limit bucket. Set `TRUSTED_PROXY_HOPS=1`
-(`trusted` mode) only after verifying the proxy chain with
+PostgreSQL `DATABASE_URL` and exact production origin. The Replit deployment runs with
+`TRUSTED_PROXY_HOPS=1`: the client is the right-most `X-Forwarded-For` entry appended by
+Replit's edge, and caller-supplied entries to its left are ignored. Production refuses to start
+in trusted mode with 0 hops. With 0 hops (local development) no client IP is forwarded and
+anonymous visitors share one rate-limit bucket. If the ingress chain changes, recheck it with
 [docs/replit-proxy-verification.md](docs/replit-proxy-verification.md). Authenticated rate limits
 use verified session IDs; anonymous requests without a forwarded address share their direct
 peer's allowance. Both modes require the shared secret.
@@ -686,8 +687,8 @@ static CSS, health, CORS preflight and a read-only failed login through the publ
 ## Production boundaries
 
 The Next.js/API pair must receive the same nonempty `PROXY_SHARED_SECRET`. Set
-`TRUSTED_PROXY_HOPS` from the real forwarding chain; do not guess it. Your Replit configuration
-currently shows 1: retain it only if that matches the one public server's platform chain.
+`TRUSTED_PROXY_HOPS` from the real forwarding chain; do not guess it. Replit production uses 1
+(one appending edge in front of the single public server).
 Production rejects missing/zero trust configuration. Local direct-socket development may
 use zero. The public API handler strips caller-supplied internal identity headers.
 

@@ -5,7 +5,7 @@ Remotion workspace at `submission/demo-video/`. That workspace is not a judge-fa
 The [delivery checklist](submission-deliverables.md) links the team's existing video folder;
 the final exported file and anonymous viewing access still require verification.
 It follows one person, **Sofia Tan** (a synthetic CV), from uploading her CV to a saved learning plan,
-with motion graphics for the parts you cannot see on screen. It has an AI voice-over (Kokoro, local),
+with motion graphics for the parts you cannot see on screen. It has an AI voice-over (ElevenLabs stock voice, video only),
 sound effects, a music bed and soft light sweeps. App scenes use screens captured from the local app;
 each one can be swapped for a **live screen recording** (see "Combine with the live demo").
 

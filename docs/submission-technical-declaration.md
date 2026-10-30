@@ -246,7 +246,6 @@ These tools are used for presentation production, not career recommendations in 
 
 | Tool / version | Presentation purpose | Evidence and outstanding details |
 |---|---|---|
-| [Kokoro TTS](https://huggingface.co/hexgrad/Kokoro-82M) | Local synthetic narration, as recorded in the demo script | Exact installed revision and selected voice are not recorded here; model-card terms do not establish rights to every voice or other asset. |
 | [Google Fonts](https://fonts.google.com/) | Presentation typography where used | Confirm the exact exported font families and retain their applicable font licence notices. |
 | [Remotion](https://www.remotion.dev/) 4.0.538 | Motion graphics and demo-film composition | Version recorded by the team; the local video workspace is gitignored and not evidence of a reproducible application dependency. |
 | [Mixkit](https://mixkit.co/license/) | Presentation media, music / sound effects as applicable | Record the exact downloaded asset pages and applicable item licences in final credits; these are not supplied in the tracked repository. |

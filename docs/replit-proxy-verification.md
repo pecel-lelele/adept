@@ -1,8 +1,9 @@
 # Replit forwarding verification — issue #55
 
-Status on 2026-10-30: **live chain unverified**. The maintainer does not have access to
-the friend's Replit workspace or deployment logs. No deployment or live spoof-resistance
-test is claimed. Keep #55 open until its owner completes and records the checks below.
+Status on 2026-10-30: the Replit deployment runs with `TRUSTED_PROXY_HOPS=1`, confirmed by
+the deployment owner. Production refuses trusted mode with 0 hops, so 0 cannot be deployed.
+No count-only log capture has been recorded; use the procedure below if the ingress chain
+changes (custom domain, extra proxy) or if per-visitor limits ever look wrong.
 
 ## Implemented boundary
 
