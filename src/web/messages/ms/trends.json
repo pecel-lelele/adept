@@ -21,5 +21,39 @@
   "augmentation": "Peningkatan",
   "sourcesTitle": "Sumber data trend",
   "snapshotsTitle": "Snapshot",
-  "snapshotDate": "Snapshot terkini: {date}"
+  "snapshotDate": "Snapshot terkini: {date}",
+  "trendCoverage": "data trend untuk {percent}% kemahirannya",
+  "insufficientEvidenceRoles": "Bukti trend tidak mencukupi",
+  "insufficientEvidenceHelp": "Kurang daripada separuh wajaran kemahiran peranan ini mempunyai data trend, jadi tiada arah ditunjukkan.",
+  "insufficientEvidence": "Bukti tidak mencukupi",
+  "refresh": {
+    "title": "Muat semula data trend",
+    "help": "Mendapatkan arXiv melalui model RunPod yang dikonfigurasi dan menerbitkan petikan bertarikh; inferens mungkin dikenakan bayaran. Pengiraan semula hanya menggunakan isyarat tersimpan. Kegagalan mengekalkan petikan terakhir.",
+    "fetch": "Muat semula data trend sekarang",
+    "rescore": "Skor semula isyarat tersimpan",
+    "working": "Sedang diprosesâ€¦",
+    "queued": "Larian dalam baris gilir GitHub Actionsâ€¦",
+    "inProgress": "Aliran kerja sedang berjalan. Buka GitHub untuk langkah semasa.",
+    "succeeded": "Larian selesai dengan jayanya.",
+    "failed": "Larian selesai tanpa menerbitkan ({conclusion}).",
+    "alreadyRunning": "Muat semula sedang berjalan; menunjukkan larian tersebut.",
+    "viewRun": "Lihat larian di GitHub",
+    "newSnapshot": "Aplikasi kini menggunakan snapshot {date}.",
+    "openMatches": "Lihat unjuran yang dikemas kini",
+    "lastGoodStays": "Snapshot terakhir yang diterbitkan kekal aktif.",
+    "rescore_published": "Snapshot {date} diterbitkan daripada isyarat tersimpan.",
+    "rescore_no_new_data": "Tiada data baharu: snapshot {date} sudah merangkumi isyarat tersimpan. Tiada apa-apa diterbitkan.",
+    "rescore_failed": "Skor semula gagal; tiada apa-apa diterbitkan. Snapshot {date} kekal aktif.",
+    "notConfigured": "Pengambilan dari halaman ini belum dikonfigurasi pada pelayan. Jalankan aliran kerja \"Trends refresh\" secara manual dari tab GitHub Actions repositori (Run workflow).",
+    "forbidden": "Hanya pentadbir yang disenaraikan dalam ADMIN_USER_IDS boleh memuat semula data trend.",
+    "pollTimeout": "Berhenti menyemak selepas 35 minit. Semak larian di GitHub.",
+    "error": "Permintaan muat semula gagal ({code}). Snapshot semasa kekal aktif."
+  },
+  "nationalContext": {
+    "title": "Konteks tenaga buruh Malaysia Â· {month}",
+    "description": "Kadar tinjauan kebangsaan yang diterbitkan memberi konteks. Skor peranan menggunakan bukti yang disenaraikan sendiri; jumlah ini bukan ramalan kekosongan jawatan.",
+    "unemployment": "Kadar pengangguran",
+    "participation": "Penyertaan tenaga buruh",
+    "employmentRatio": "Nisbah guna tenaga kepada penduduk"
+  }
 }

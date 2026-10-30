@@ -21,5 +21,39 @@
   "augmentation": "Augmentation",
   "sourcesTitle": "Trend data sources",
   "snapshotsTitle": "Snapshots",
-  "snapshotDate": "Latest snapshot: {date}"
+  "snapshotDate": "Latest snapshot: {date}",
+  "trendCoverage": "trend data for {percent}% of its skills",
+  "insufficientEvidenceRoles": "Not enough trend evidence",
+  "insufficientEvidenceHelp": "Less than half of these roles' skill weight has trend data, so no direction is shown.",
+  "insufficientEvidence": "Insufficient evidence",
+  "refresh": {
+    "title": "Refresh trend data",
+    "help": "Fetches arXiv through the configured RunPod model and publishes a dated snapshot; inference may incur charges. Re-score uses stored signals only. Failed refreshes keep the last snapshot.",
+    "fetch": "Refresh trend data now",
+    "rescore": "Re-score stored signals",
+    "working": "Workingâ€¦",
+    "queued": "Run queued on GitHub Actionsâ€¦",
+    "inProgress": "Workflow is running. Open GitHub for the current step.",
+    "succeeded": "Run finished successfully.",
+    "failed": "Run finished without publishing ({conclusion}).",
+    "alreadyRunning": "A refresh is already running; showing that run.",
+    "viewRun": "View the run on GitHub",
+    "newSnapshot": "The app now serves snapshot {date}.",
+    "openMatches": "View refreshed outlook",
+    "lastGoodStays": "The last published snapshot stays live.",
+    "rescore_published": "Published snapshot {date} from stored signals.",
+    "rescore_no_new_data": "No new data: snapshot {date} already covers the stored signals. Nothing was published.",
+    "rescore_failed": "Re-score failed; nothing was published. Snapshot {date} stays live.",
+    "notConfigured": "Fetching from this page is not configured on the server. Run the \"Trends refresh\" workflow manually from the repository's GitHub Actions tab (Run workflow).",
+    "forbidden": "Only administrators listed in ADMIN_USER_IDS can refresh trend data.",
+    "pollTimeout": "Stopped checking after 35 minutes. Check the run on GitHub.",
+    "error": "The refresh request failed ({code}). The current snapshot stays live."
+  },
+  "nationalContext": {
+    "title": "Malaysian labour context Â· {month}",
+    "description": "Published national survey rates provide context. Role scores use their own listed evidence; these totals are not vacancy forecasts.",
+    "unemployment": "Unemployment rate",
+    "participation": "Labour-force participation",
+    "employmentRatio": "Employment-to-population ratio"
+  }
 }

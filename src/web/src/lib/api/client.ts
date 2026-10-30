@@ -8,19 +8,19 @@ const TIMEOUT_MS = 15000;
 export type ApiClient = Client<paths>;
 
 /** Typed API client. Paths, params and responses come from the generated OpenAPI types. */
-export function createApiClient(headers: Record<string, string> = {}): ApiClient {
+export function createApiClient(headers: Record<string, string> = {}, timeoutMs = TIMEOUT_MS): ApiClient {
   return createClient<paths>({
     baseUrl: API_URL,
     headers,
     cache: "no-store",
-    fetch: (request) => fetchWithRetry(request),
+    fetch: (request) => fetchWithRetry(request, timeoutMs),
   });
 }
 
 /** Retry reads once on a dropped connection or a transient gateway/database outage. */
-async function fetchWithRetry(request: Request): Promise<Response> {
+async function fetchWithRetry(request: Request, timeoutMs: number): Promise<Response> {
   const retryable = request.method === "GET" || request.method === "HEAD";
-  const attempt = () => fetch(request.clone(), { signal: AbortSignal.timeout(TIMEOUT_MS) });
+  const attempt = () => fetch(request.clone(), { signal: AbortSignal.timeout(timeoutMs) });
   try {
     const response = await attempt();
     if (!retryable || ![502, 503, 504].includes(response.status)) return response;
