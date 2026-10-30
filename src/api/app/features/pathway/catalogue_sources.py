@@ -1120,7 +1120,3 @@ def coursera_status(slug: str, get_json: Callable[[str, int], Any] = _get_json) 
     except (urllib.error.URLError, TimeoutError, ValueError):
         return None
     return bool(body.get("elements"))
-
-
-def with_verified(row: CourseRow, when: date) -> CourseRow:
-    return replace(row, verified_at=when)

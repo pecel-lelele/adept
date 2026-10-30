@@ -144,24 +144,6 @@
     "confirm": "Sahkan",
     "reject": "Tolak"
   },
-  "guide": {
-    "working": {
-      "title": "Sebelum mendaftar",
-      "body": "Langkah yang boleh dituntut HRD Corp dituntut oleh majikan anda, bukan oleh anda. Kongsi pelan ini dengan HR sebelum mendaftar; apabila selesai, mereka boleh mengesahkan penyiapan anda.",
-      "link": "Lihat kursus boleh tuntut HRD Corp"
-    },
-    "graduate": {
-      "title": "Mula percuma, simpan bukti",
-      "body": "Mulakan dengan langkah percuma. Setiap kali selesai, tambah pautan sijilnya di halaman kemajuan supaya anda boleh menunjukkannya kepada majikan dan pusat kerjaya anda.",
-      "link": "Lihat kursus percuma"
-    },
-    "switcher": {
-      "title": "Bina atas apa yang anda ada",
-      "body": "Pelan anda hanya meliputi jurang: kemahiran yang sudah anda miliki tidak diajar semula. Bandingkan peranan untuk melihat kemahiran anda yang boleh dibawa.",
-      "link": "Bandingkan peranan"
-    },
-    "sameplan": "Nasihat ini bergantung pada situasi anda; pelan itu sendiri sama bagi sesiapa yang mempunyai kemahiran, masa dan bajet yang sama."
-  },
   "compare": {
     "link": "Bandingkan peranan lain",
     "title": "Bandingkan peranan sebelum anda memilih",
