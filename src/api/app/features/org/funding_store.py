@@ -1,10 +1,12 @@
 """Atomic annual budgets; database failures never switch to volatile storage."""
 
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
 from threading import RLock
 from typing import Any, TypeVar
 
 import psycopg
+from psycopg.pq import TransactionStatus
 from psycopg.types.json import Jsonb
 
 from app.contracts.funding import FundingState
@@ -16,13 +18,26 @@ _memory: dict[str, FundingState] = {}
 _lock = RLock()
 
 
+@contextmanager
+def ledger_scope(conn: psycopg.Connection[Any], org_id: str) -> Iterator[None]:
+    """Transaction-local ledger scope, restored for nested borrowers and pooled connections."""
+    previous = conn.execute("SELECT current_setting('app.funding_org', true) AS scope").fetchone()
+    before = previous["scope"] or ""
+    conn.execute("SELECT set_config('app.funding_org', %s, true)", (org_id,))
+    try:
+        yield
+    finally:
+        if conn.info.transaction_status != TransactionStatus.INERROR:
+            conn.execute("SELECT set_config('app.funding_org', %s, true)", (before,))
+
+
 def snapshot(org_id: str) -> FundingState:
     """Read without a ledger write lock, and release the connection before callers do I/O."""
     if not use_postgres():
         with _lock:
             return _memory.get(org_id, FundingState()).model_copy(deep=True)
     try:
-        with connection() as conn:
+        with connection() as conn, ledger_scope(conn, org_id):
             row = conn.execute(
                 "SELECT state FROM learning_funding WHERE org_id = %s",
                 (org_id,),
@@ -40,7 +55,12 @@ def transact(org_id: str, year: int, change: Callable[[FundingState], T]) -> T:
             _memory[org_id] = state
             return result
     try:
-        with connection() as conn, conn.transaction(), reuse_connection(conn):
+        with (
+            connection() as conn,
+            conn.transaction(),
+            reuse_connection(conn),
+            ledger_scope(conn, org_id),
+        ):
             conn.execute(
                 "INSERT INTO learning_funding (org_id) VALUES (%s) ON CONFLICT DO NOTHING",
                 (org_id,),
@@ -62,14 +82,15 @@ def transact(org_id: str, year: int, change: Callable[[FundingState], T]) -> T:
         raise StorageUnavailableError("could not save the funding ledger") from exc
 
 
-def _purge(state: FundingState, user_id: str) -> None:
+def remove_member_records(state: FundingState, user_id: str) -> None:
+    """Remove private assignments while preserving anonymised audit event counts/history."""
     state.budgets = {k: v for k, v in state.budgets.items() if k.split(":", 1)[-1] != user_id}
     state.claims = [c for c in state.claims if c.user_id != user_id]
-    state.budget_events = [
-        e
-        for e in state.budget_events
-        if e.actor_id != user_id and not e.note.startswith(user_id + ":")
-    ]
+    for event in state.budget_events:
+        if event.actor_id == user_id or event.note.startswith(user_id + ":"):
+            if event.actor_id == user_id:
+                event.actor_id = "deleted-account"
+            event.note = ""
     for package in state.packages:
         package.members = [m for m in package.members if m.user_id != user_id]
         if package.selected_by == user_id:
@@ -103,25 +124,39 @@ def _purge(state: FundingState, user_id: str) -> None:
 def forget_user(user_id: str, conn: psycopg.Connection[Any] | None = None) -> None:
     """Purge embedded learning/receipt records in the account deletion transaction."""
     if conn is not None:
-        rows = conn.execute("SELECT org_id, state FROM learning_funding FOR UPDATE").fetchall()
-        for row in rows:
-            state = FundingState.model_validate(row["state"])
-            _purge(state, user_id)
-            conn.execute(
-                "UPDATE learning_funding SET state = %s WHERE org_id = %s",
-                (Jsonb(state.model_dump(mode="json")), row["org_id"]),
-            )
+        # Account deletion visits each ledger explicitly; no wildcard RLS bypass is granted.
+        for org in conn.execute("SELECT id FROM organizations ORDER BY id").fetchall():
+            with ledger_scope(conn, org["id"]):
+                row = conn.execute(
+                    "SELECT state FROM learning_funding WHERE org_id = %s FOR UPDATE",
+                    (org["id"],),
+                ).fetchone()
+                if row is not None:
+                    state = FundingState.model_validate(row["state"])
+                    remove_member_records(state, user_id)
+                    conn.execute(
+                        "UPDATE learning_funding SET state = %s WHERE org_id = %s",
+                        (Jsonb(state.model_dump(mode="json")), org["id"]),
+                    )
     else:
         with _lock:
             for state in _memory.values():
-                _purge(state, user_id)
+                remove_member_records(state, user_id)
 
 
 def export_user(user_id: str) -> list[dict[str, object]]:
     if use_postgres():
         try:
             with connection() as conn:
-                rows = conn.execute("SELECT org_id, state FROM learning_funding").fetchall()
+                rows = []
+                for org in conn.execute("SELECT id FROM organizations ORDER BY id").fetchall():
+                    with ledger_scope(conn, org["id"]):
+                        row = conn.execute(
+                            "SELECT org_id, state FROM learning_funding WHERE org_id = %s",
+                            (org["id"],),
+                        ).fetchone()
+                        if row is not None:
+                            rows.append(row)
         except psycopg.Error as exc:
             raise StorageUnavailableError("could not export learning funding") from exc
         states = [(r["org_id"], FundingState.model_validate(r["state"])) for r in rows]
