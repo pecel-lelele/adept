@@ -4,6 +4,7 @@ import { createRequire } from "node:module";
 import { runInNewContext } from "node:vm";
 import test from "node:test";
 
+import { getSafeRedirectPath } from "../src/web/src/lib/auth/safeRedirect.ts";
 import { loadComponent } from "./harness/web-components.ts";
 
 const require = createRequire(new URL("../src/web/package.json", import.meta.url));
@@ -56,6 +57,7 @@ test("logout refuses GET and cross-origin POST; successful revocation clears bot
     "next/server": { NextResponse },
     "@/lib/auth/session": { SESSION_COOKIE: "session" },
     "@/lib/auth/workspace": { ORG_COOKIE: "org" },
+    "@/lib/auth/safeRedirect": { getSafeRedirectPath },
     "@/lib/api": { call: async () => result, getApi: async (options) => {
       assert.equal(options.workspace, "personal");
       return { POST: (path) => calls.push(path) };
@@ -81,6 +83,19 @@ test("logout refuses GET and cross-origin POST; successful revocation clears bot
   assert.equal(response.headers.get("location"), "/");
   assert.deepEqual(deleted, ["session", "org"]);
   assert.deepEqual(calls, ["/api/v1/auth/logout", "/api/v1/auth/logout"]);
+  for (const [next, expected] of [
+    ["/auth/login?mode=organisation#form", "/auth/login?mode=organisation#form"],
+    ["https://attacker.example.test", "/"],
+    ["//attacker.example.test", "/"],
+    ["/.//attacker.example.test", "/"],
+  ]) {
+    const url = new URL(request().url);
+    url.searchParams.set("next", next);
+    const redirected = await POST(new Request(url, { method: "POST", headers: { origin: url.origin } }));
+    assert.equal(redirected.status, 303);
+    assert.equal(redirected.headers.get("location"), expected);
+    assert.equal(new URL(redirected.headers.get("location"), url).origin, url.origin);
+  }
   for (const file of ["components/shell/Shell.tsx", "components/shell/Nav.tsx", "components/ErrorState.tsx"]) {
     const source = readFileSync(new URL(`../src/web/src/${file}`, import.meta.url), "utf8");
     assert.match(source, /<form method="post" action="\/auth\/logout">/);

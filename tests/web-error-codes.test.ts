@@ -124,7 +124,7 @@ test("auth, join and deletion forms display translated codes in the current loca
         "next/navigation": { usePathname: () => "/auth/login", useSearchParams: () => new URLSearchParams() },
         react: { useActionState: () => [{ error: code }, nothing, false], useState: (value) => [name === "AccountDataCard" ? true : value, nothing] },
         "../auth-actions": { loginAction: nothing, signupAction: nothing, joinOrgAction: nothing, deleteAccountAction: nothing },
-        "@/components/shell/Brand": { BrandLogo: nothing },
+        "@/components/shell/Brand": { BrandMark: nothing },
         "@/components/viz/FeatureArt": { FeatureArt: nothing }, "@/components/viz/OrgScene": { OrgScene: nothing }, "@/components/viz/PathScene": { PathScene: nothing },
       });
       const html = renderToStaticMarkup(React.createElement(Component));

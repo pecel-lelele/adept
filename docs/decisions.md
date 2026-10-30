@@ -287,6 +287,16 @@
 - **Replaces**: none
 - **PR / branch**: `fix/core-review-upgrades`
 
+### TEAM-026: Reconcile scoped review commits with current main and gate all web regressions
+- **Date**: 2026-10-30
+- **Feature**: Core / all
+- **Type**: method, other
+- **Change**: Reconstruct the 20 numbered review commits on main at `55bf2d0`, preserving its team-account copy, auth branding and safe logout redirects while applying explicit consent, translated errors and POST-only revocation. Run every `tests/web-*.test.ts` regression in CI, including the component suites previously omitted; align the auth stub with BrandMark and exercise the production redirect helper through POST logout.
+- **Why**: The earlier instruction, profile resolver and provider-removal work is already merged through PRs #26/#27 and must contribute no new diff here. The broader web run exposed two harness integration failures despite the previous CI selection passing. The user authorized a separate compatibility commit after the 20 scoped commits instead of rewriting the pushed draft branch. Defer deploying review 3.3 until after judging: v2 rejects all existing v1 sessions, logout revokes every session for the account, and the session-version migration must precede the corresponding application release. Keep it in the draft for review without authorizing production changes.
+- **Affects**: Review integration, web regression CI and session rollout planning; no changes to resolver files, submission PDFs or lockfiles
+- **Replaces**: none
+- **PR / branch**: `fix/core-review-upgrades-clean` / PR #29
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)
