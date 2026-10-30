@@ -1997,3 +1997,23 @@
 - **Affects**: Database CI and local verification documentation; no runtime, schema, dependencies or fixture changes.
 - **Replaces**: none
 - **PR / branch**: feat/core-sidebar-home-button
+
+### M4-083: Ground Adi routing and multilingual explanations
+- **Date**: 2026-10-30
+- **Feature**: Core and F8
+- **Type**: method
+- **Change**: Phrase-level intent routing, scoped people-decision refusal, near-tie suggestions, multilingual replies, explicit fallback sources and validated page/catalogue references replace broad keyword routing. The browser opens with sources, scenario and declining-skill questions.
+- **Why**: Avoid misleading refusals and destination labels while keeping all displayed facts in validated server-authored blocks.
+- **Affects**: associated API, web, tests and deployment configuration
+- **Replaces**: none
+- **PR / branch**: worktree-agent-ae781c8985e0fb4d3
+
+### M4-084: Separate joining consent and clarify the individual journey
+- **Date**: 2026-10-30
+- **Feature**: F1, F4, F7 and Core
+- **Type**: UI
+- **Change**: Joining no longer requires sharing skills; sharing stays an explicit separate choice. Privacy disclosure, session-aware team CTAs, radar-first intake, populated comparison, weighted score bars, accessible wording and Steady/Rapid labels are updated without changing scenario IDs.
+- **Why**: Consent must remain optional and destinations, labels and score bars must match the actual behaviour.
+- **Affects**: associated API, web, tests and deployment configuration
+- **Replaces**: none
+- **PR / branch**: worktree-agent-ab3aa728dfca284ec

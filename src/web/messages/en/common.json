@@ -8,11 +8,11 @@
   },
   "scenario": {
     "label": "Scenario",
-    "moderate": "Moderate AI disruption",
-    "fast": "Fast AI disruption",
+    "moderate": "Steady AI change",
+    "fast": "Rapid AI change",
     "pace": "AI pace",
-    "moderateShort": "Moderate",
-    "fastShort": "Fast",
+    "moderateShort": "Steady",
+    "fastShort": "Rapid",
     "hint": "How fast AI changes work. Rankings and outlooks are estimates under each pace."
   },
   "estimate": {

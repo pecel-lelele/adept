@@ -7,7 +7,7 @@
   "noClosingCourse": "No catalogue course closes this gap yet",
   "description": "Ranked by an explainable score. You choose the target role.",
   "score": "Match {score}",
-  "missing": "Missing skills",
+  "missing": "Skills to build",
   "partial": "Partly there",
   "viewDetail": "See breakdown",
   "viewPathway": "Plan a pathway",
@@ -38,7 +38,7 @@
     "noDrivers": "None of this role’s skills moved between these dates.",
     "note": "Your skills stayed the same; only the trend data changed. Ranks are relative, so a role can move up when others fall further. Rankings are estimates."
   },
-  "readyNow": "Ready now",
+  "readyNow": "Close match",
   "readyNowHint": "You already hold at least {share}% of these roles' required skill levels: a short plan can get you there.",
   "worthExploring": "Worth exploring",
   "worthExploringHint": "You hold less than {share}% of the required skill levels today: a longer pathway, worth it if the role excites you.",

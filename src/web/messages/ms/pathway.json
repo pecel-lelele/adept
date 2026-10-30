@@ -41,7 +41,9 @@
     "saved": "Disimpan sebagai pelan anda ({date})",
     "decide": "Anda yang membuat keputusan. Menyimpan tidak mengikat anda dan boleh diubah bila-bila masa.",
     "sdgLink": "Sumbangan laluan ini kepada SDG",
-    "progressLink": "Jejak kemajuan"
+    "progressLink": "Jejak kemajuan",
+    "savedOtherScenario": "Pelan simpanan anda menggunakan {scenario}",
+    "viewSaved": "lihat pelan itu"
   },
   "replan": {
     "title": "Data trend baharu mengubah pelan anda",

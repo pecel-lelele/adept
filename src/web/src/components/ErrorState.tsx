@@ -6,6 +6,7 @@ import type { ApiFailure } from "@/lib/api/client";
 import { errorMessage } from "@/lib/api/error-message";
 
 import { RetryButton } from "./RetryButton";
+import { SignInAgainButton } from "./SignInAgainButton";
 
 /** A failed API call with the one action that fixes it: sign in, finish the profile, retry. */
 export async function ErrorState({ failure, compact = false }: { failure: ApiFailure; compact?: boolean }) {
@@ -26,9 +27,7 @@ export async function ErrorState({ failure, compact = false }: { failure: ApiFai
           {t("profile")}
         </Link>
       ) : needsLogin ? (
-        <form method="post" action="/auth/logout">
-          <button type="submit" className="a-btn is-small">{t("signIn")}</button>
-        </form>
+        <SignInAgainButton label={t("signIn")} />
       ) : (
         <RetryButton label={t("retry")} />
       )}

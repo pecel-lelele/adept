@@ -97,7 +97,7 @@
     "neverTitle": "永不分享",
     "never1": "个人计划、职位匹配与比较",
     "never2": "个人工作区中的学习，除非你分享某门课程",
-    "never3": "你与 Adi 的对话",
+    "never3": "你与 Adi 的对话从不会分享给你的组织",
     "fundedLabel": "雇主资助项目",
     "status": {
       "assigned": "等待你确认",
@@ -179,7 +179,7 @@
     "colStatus": "答复",
     "formerMember": "前成员",
     "emptyTitle": "还没有项目",
-    "emptyDesc": "从业务目标创建项目：Adept 会把成员匹配到职位并为每人制定学习路线。",
+    "emptyDesc": "从业务目标创建项目：Adept 建议通往各职位的学习路线，由成员自己选择。",
     "newTitle": "新建学习项目",
     "newDesc": "告诉 Adept 业务需要什么。它会为每个人提出个人路线；发送前由你审阅。",
     "objective": {
@@ -194,7 +194,7 @@
       "digital_health": "数字医疗",
       "people_learning": "人才与学习",
       "digital_marketing": "数字营销",
-      "redeploy_at_risk": "转岗高风险职位"
+      "redeploy_at_risk": "为正在变化的职位做准备"
     },
     "route": {
       "foundation": "基础",

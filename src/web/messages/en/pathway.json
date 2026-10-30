@@ -41,7 +41,9 @@
     "saved": "Saved as your plan ({date})",
     "decide": "You decide. Saving commits you to nothing, and you can change it any time.",
     "sdgLink": "How this path contributes to the SDGs",
-    "progressLink": "Track progress"
+    "progressLink": "Track progress",
+    "savedOtherScenario": "Your saved plan uses {scenario}",
+    "viewSaved": "view it"
   },
   "replan": {
     "title": "New trend data changes your plan",

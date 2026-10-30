@@ -36,13 +36,8 @@ export async function signupAction(_: AuthState, form: FormData): Promise<AuthSt
   const workspace = text(form, "workspace") === "organisation" ? "organisation" : "individual";
   const size = Number.parseInt(text(form, "size", 7), 10);
   const joinCode = workspace === "individual" ? text(form, "join_code", 16) || null : null;
+  // Sharing skill levels is optional and only ever true when the person ticked the box.
   const shareSkills = workspace === "individual" && Boolean(joinCode) && form.get("share_skills") === "on";
-  if (joinCode && !shareSkills) {
-    return {
-      error: "sharing_consent_required",
-      values: keep(form),
-    };
-  }
   const api = await getApi();
   const result = await call(
     api.POST("/api/v1/auth/signup", {
@@ -88,10 +83,9 @@ export async function loginAction(_: AuthState, form: FormData): Promise<AuthSta
 
 export async function joinOrgAction(_: AuthState, form: FormData): Promise<AuthState> {
   const consent = form.get("consent") === "on";
+  // Joining needs consent; sharing skill levels is a separate, optional choice (never inferred).
   const shareSkills = form.get("share_skills") === "on";
-  if (!consent || !shareSkills) {
-    return { error: !consent ? "consent_required" : "sharing_consent_required", values: keep(form) };
-  }
+  if (!consent) return { error: "consent_required", values: keep(form) };
   const api = await getApi();
   const result = await call(
     api.POST("/api/v1/org/join", {
@@ -101,11 +95,6 @@ export async function joinOrgAction(_: AuthState, form: FormData): Promise<AuthS
   if (!result.ok) return { error: result.code, values: keep(form) };
   revalidatePath("/app", "layout");
   return { values: { joined: result.data.name, org_id: result.data.id } };
-}
-
-export async function signOutAction(): Promise<void> {
-  await clearSession();
-  redirect("/");
 }
 
 /** Permanently delete the signed-in account after the API re-checks the password. */

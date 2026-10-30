@@ -19,7 +19,7 @@ export function BrandMark({ size = 28 }: { size?: number }) {
 }
 
 /** Mark + wordmark ("adept."), linking home. */
-export function BrandLogo({ href, label = "Adept home" }: { href: string; label?: string }) {
+export function BrandLogo({ href, label }: { href: string; label: string }) {
   return (
     <Link href={href} className="a-brand" aria-label={label}>
       <BrandMark />

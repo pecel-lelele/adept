@@ -11,7 +11,7 @@ import { RoleOpeningsCard } from "@/features/jobs";
 import { RoleOutlookPanel } from "@/features/scenarios/components/RoleOutlookPanel";
 import type { ScenarioId } from "@/lib/api";
 
-import { fetchMatch } from "../api";
+import { fetchMatch, fetchMatches } from "../api";
 import { componentLabels } from "./labels";
 import { MatchImprovements } from "./MatchImprovements";
 import { MatchSdgTargets } from "./MatchSdgTargets";
@@ -36,9 +36,17 @@ export async function MatchDetailView({
   const th = await getTranslations("ui.home");
   const tp = await getTranslations("ui.page");
   const tsc = await getTranslations("scenarios");
-  const result = await fetchMatch(roleId, scenario, snapshotDate, sdgWeight);
+  const [result, list] = await Promise.all([
+    fetchMatch(roleId, scenario, snapshotDate, sdgWeight),
+    fetchMatches(scenario, snapshotDate, sdgWeight),
+  ]);
   if (!result.ok) return <ErrorState failure={result} />;
   const m = result.data;
+  // Compare this role with the next-best matches from the same ranking (three roles in total).
+  const compareRoles = [
+    m.role_id,
+    ...(list.ok ? list.data.matches.map((x) => x.role_id).filter((id) => id !== m.role_id) : []),
+  ].slice(0, 3);
   const pct = (m.score * 100).toFixed(1);
   const back =
     `/app/matches?scenario=${scenario}` +
@@ -52,7 +60,7 @@ export async function MatchDetailView({
         title={m.label}
         actions={
           <>
-            <Link className="a-btn is-ghost" href={`/app/pathway/compare?scenario=${scenario}&roles=${encodeURIComponent(m.role_id)}`}>
+            <Link className="a-btn is-ghost" href={`/app/pathway/compare?scenario=${scenario}&roles=${compareRoles.map(encodeURIComponent).join(",")}`}>
               {th("compare")}
             </Link>
             <Link className="a-btn" href={`/app/pathway?role=${encodeURIComponent(m.role_id)}&scenario=${scenario}`}>

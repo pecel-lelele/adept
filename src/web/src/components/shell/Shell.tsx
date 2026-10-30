@@ -67,7 +67,7 @@ export async function Shell({
         {t("nav.skip")}
       </a>
       <aside className="a-side">
-        <BrandLogo href="/" />
+        <BrandLogo href={ws.home} label={t("shell.brandWorkspace")} />
         <span className="a-eyebrow a-side-space">{t(space)}</span>
         {switcher}
         <Suspense>
