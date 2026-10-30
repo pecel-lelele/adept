@@ -1,0 +1,30 @@
+{
+  "title": "Privacy notice",
+  "footerLink": "Privacy",
+  "intro": "Adept is a career and learning decision-support prototype. Use synthetic CVs and profiles for the competition demonstration. This notice describes the code's data flows; the team must complete the controller and contact details before using it for real personal data.",
+  "controller": {
+    "title": "Data controller and contact",
+    "body": "Controller: [TEAM TO COMPLETE: legal controller name]. Privacy contact: [TEAM TO COMPLETE: monitored contact address]. These placeholders are not an operational contact channel."
+  },
+  "purposes": {
+    "title": "What we process and why",
+    "body": "Account details, password hashes, confirmed skills, learning preferences, plans, progress, evidence links and organisation records support accounts, career guidance and learning administration. Uploads are parsed in memory; raw CV files are not saved by the upload path. Review extracted skills before saving them. Adi processes the conversation and relevant workspace context to select checked answers."
+  },
+  "providers": {
+    "title": "Hosting and AI service providers",
+    "body": "The deployment is configured for Replit hosting and PostgreSQL storage. When enabled, Adi sends sanitised conversation text and candidate answer/context data to its configured AI provider, such as RunPod or Google. Optional Google Gemini skill matching receives short contact-redacted skill phrases and catalogue text, rather than the uploaded CV file. MiniLM on RunPod processes public research and catalogue text. Redaction reduces exposure but does not guarantee removal of every personal detail."
+  },
+  "transfers": {
+    "title": "Processing outside Malaysia",
+    "body": "Hosting and AI services may process information outside Malaysia. The team must confirm actual deployment regions, provider terms and transfer arrangements; Malaysian-only storage or processing is not guaranteed by this prototype."
+  },
+  "retention": {
+    "title": "Retention and deletion",
+    "body": "Raw CV files are transient. Saved account and learning records persist in the application database; the code does not implement an automatic retention schedule. Account export and password-confirmed account deletion are available, with safeguards for organisation management. Provider-side and backup retention periods have not been established in this notice and require team confirmation."
+  },
+  "rights": {
+    "title": "Access, correction and withdrawal",
+    "body": "You may request access to or correction of your personal data, or withdraw consent for processing, through the controller's privacy contact once it is completed. Signed-in users can export their account data and request account deletion. Withdrawal can affect features that require the relevant data; this notice does not itself implement an automated withdrawal procedure.",
+    "reference": "Malaysia Personal Data Protection Department: data subject rights"
+  }
+}

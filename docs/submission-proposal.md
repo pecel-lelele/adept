@@ -1,4 +1,4 @@
-# Adept: preliminary project proposal
+# Adept: project proposal and final-round evidence
 
 Draft prepared on 22 October 2026 against the supplied **SDC Hackathon Submission Template**.
 Section numbering and answer limits follow that template. The supplied proposal deadline is
@@ -12,8 +12,13 @@ than committing them to this public repository. Do not treat an unchecked box as
 Updated 24 October 2026 for the root-only, single-public-server deployment, current dependencies, job feeds, certifications and organisation workflows. This source describes the proposed code revision; publishing that revision remains an owner action.
 
 Updated 25 October 2026 with the leader's provenance clarification and selected
-[five synthetic demo CVs and intake profiles](../submission/demo-cvs/). Older persona fixtures
+[five synthetic demo CVs and intake profiles](demo-cvs/). Older persona fixtures
 remain test inputs; they are not the selected presentation CVs.
+
+Final-round preparation (30 October 2026): use the [six-criterion evidence checklist](rubric-check.md)
+and [deliverable locations](submission-deliverables.md). The original template numbering and
+word-limit markers below are retained. KPI reduction remains an unmeasured target; source
+inspection is not verification of a current deployed revision or a published production snapshot.
 
 ## 1. Team and project overview
 
@@ -274,7 +279,7 @@ provides versions, purposes and a fuller inventory.
 | Other provider course pages (AITraining2U, UNIMAS PROCEL, FMM, MAICSA, UKM, UTM, IBFIM) | dataset | Respective provider copyright and terms |
 | Bank Negara Malaysia exchange-rate API | dataset / API | BNM terms and attribution |
 | Curated skill, course, prerequisite and SDG-alignment mappings; historical trend snapshots | dataset | Team-created; upstream BLS, provider and research rights retained; no UN endorsement |
-| Synthetic personas, organisations, regions and CV fixtures | dataset | Team-created; [five selected demo CVs](../submission/demo-cvs/) and regression fixtures are declared separately from real identities |
+| Synthetic personas, organisations, regions and CV fixtures | dataset | Team-created; [five selected demo CVs](demo-cvs/) and regression fixtures are declared separately from real identities |
 | PyYAML; actionlint; Prettier | code / development tools | MIT |
 | GitHub Container Registry | service | GitHub Terms of Service |
 

@@ -101,8 +101,8 @@ jobs:
       - name: TypeScript
         run: pnpm typecheck
 
-      - name: Web component, proxy and navigation regressions
-        run: node --experimental-strip-types --test tests/web-*.test.ts
+      - name: Web component, proxy, navigation, privacy and asset regressions
+        run: node --experimental-strip-types --test tests/web-*.test.ts tests/privacy-page.test.mjs tests/dead-assets.test.mjs
 
       # Stdlib-only script: no virtualenv needed.
       - name: Translation keys match English

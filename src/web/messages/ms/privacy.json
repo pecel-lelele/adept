@@ -1,0 +1,30 @@
+{
+  "title": "Notis privasi",
+  "footerLink": "Privasi",
+  "intro": "Adept ialah prototaip sokongan keputusan kerjaya dan pembelajaran. Gunakan CV dan profil sintetik untuk demonstrasi pertandingan. Notis ini menerangkan aliran data dalam kod; pasukan perlu melengkapkan maklumat pengawal data dan hubungan sebelum menggunakannya untuk data peribadi sebenar.",
+  "controller": {
+    "title": "Pengawal data dan hubungan",
+    "body": "Pengawal data: [PASUKAN PERLU LENGKAPKAN: nama sah pengawal data]. Hubungan privasi: [PASUKAN PERLU LENGKAPKAN: alamat hubungan yang dipantau]. Ruang ini bukan saluran hubungan yang beroperasi."
+  },
+  "purposes": {
+    "title": "Data yang diproses dan tujuannya",
+    "body": "Butiran akaun, hash kata laluan, kemahiran yang disahkan, pilihan pembelajaran, pelan, kemajuan, pautan bukti dan rekod organisasi menyokong akaun, panduan kerjaya dan pentadbiran pembelajaran. Muat naik dihuraikan dalam memori; fail CV mentah tidak disimpan oleh laluan muat naik. Semak kemahiran yang diekstrak sebelum menyimpannya. Adi memproses perbualan dan konteks ruang kerja yang berkaitan untuk memilih jawapan yang disemak."
+  },
+  "providers": {
+    "title": "Penyedia pengehosan dan perkhidmatan AI",
+    "body": "Konfigurasi deployment menggunakan pengehosan Replit dan storan PostgreSQL. Apabila diaktifkan, Adi menghantar teks perbualan yang ditapis serta data calon jawapan dan konteks kepada penyedia AI yang dikonfigurasi, seperti RunPod atau Google. Padanan kemahiran Google Gemini pilihan menerima frasa kemahiran pendek dengan maklumat hubungan disunting keluar serta teks katalog, bukannya fail CV yang dimuat naik. MiniLM di RunPod memproses teks penyelidikan awam dan katalog. Penyuntingan mengurangkan pendedahan tetapi tidak menjamin semua butiran peribadi dibuang."
+  },
+  "transfers": {
+    "title": "Pemprosesan di luar Malaysia",
+    "body": "Perkhidmatan pengehosan dan AI mungkin memproses maklumat di luar Malaysia. Pasukan perlu mengesahkan wilayah deployment sebenar, terma penyedia dan aturan pemindahan; prototaip ini tidak menjamin storan atau pemprosesan di Malaysia sahaja."
+  },
+  "retention": {
+    "title": "Penyimpanan dan pemadaman",
+    "body": "Fail CV mentah bersifat sementara. Rekod akaun dan pembelajaran yang disimpan kekal dalam pangkalan data aplikasi; kod tidak melaksanakan jadual penyimpanan automatik. Eksport akaun dan pemadaman akaun dengan pengesahan kata laluan tersedia, dengan perlindungan untuk pengurusan organisasi. Tempoh penyimpanan penyedia dan sandaran belum ditetapkan dalam notis ini dan memerlukan pengesahan pasukan."
+  },
+  "rights": {
+    "title": "Akses, pembetulan dan penarikan balik persetujuan",
+    "body": "Anda boleh meminta akses atau pembetulan data peribadi, atau menarik balik persetujuan pemprosesan, melalui hubungan privasi pengawal data selepas dilengkapkan. Pengguna yang telah log masuk boleh mengeksport data akaun dan meminta pemadaman akaun. Penarikan balik boleh menjejaskan ciri yang memerlukan data berkaitan; notis ini sendiri tidak melaksanakan prosedur penarikan balik automatik.",
+    "reference": "Jabatan Perlindungan Data Peribadi Malaysia: hak subjek data"
+  }
+}

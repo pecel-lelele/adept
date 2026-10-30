@@ -196,7 +196,7 @@ of every deployed database. No model was fine-tuned on these fixtures.
 | Job-posting extract (1,210 records, committed 23 October 2026) | [Public job boards and employer endpoints](../src/data/seed/jobs/job_postings.csv) | Public / curated | Each board's terms; public access is not an open-data licence; counts do not guarantee current availability | No learner data; postings may name public employers |
 | Certification and exam-pricing extract (14 exams) | [Microsoft, AWS, Google Cloud, IIBA and IAPP sources](../src/data/seed/jobs/certifications.csv) | Public / curated | Issuer site terms; dated prices | No |
 | Exchange rates | [BNM OpenAPI](https://api.bnm.gov.my/) | Public | BNM terms and attribution | No |
-| Synthetic personas, organisations, regions and CVs | [Five selected demo CVs/profiles](../submission/demo-cvs/), [regression fixtures](../tests/api/profile/fixtures/cvs/), [seeds](../src/data/seed/personas/) | Synthetic | Team-created evaluation/test data. Selected CVs: Imran, Sofia, Meera, Adrian and Nur Hana; additional intake settings are editable demo assumptions, not extracted qualifications. | No real identities |
+| Synthetic personas, organisations, regions and CVs | [Five selected demo CVs/profiles](demo-cvs/), [regression fixtures](../tests/api/profile/fixtures/cvs/), [seeds](../src/data/seed/personas/) | Synthetic | Team-created evaluation/test data. Selected CVs: Imran, Sofia, Meera, Adrian and Nur Hana; additional intake settings are editable demo assumptions, not extracted qualifications. | No real identities |
 
 ### 4.3 AI-assisted development tools
 
@@ -234,6 +234,27 @@ employment outcomes. The leader reviews the final documents, confirms actual too
 usage, and takes responsibility for the submission.
 
 <!-- answer:end technical-4.3 -->
+
+### 4.4 Content and presentation tools
+
+The task brief supplied on 30 October 2026 identifies the following presentation tools.
+This inventory does not establish the contents of a final exported video. Retain the final
+asset credits and confirm which generated takes were used before signing this declaration.
+These tools are used for presentation production, not career recommendations in Adept.
+
+| Tool / version | Presentation purpose | Evidence and outstanding details |
+|---|---|---|
+| [Kokoro TTS](https://huggingface.co/hexgrad/Kokoro-82M) | Local synthetic narration, as recorded in the demo script | Exact installed revision and selected voice are not recorded here; model-card terms do not establish rights to every voice or other asset. |
+| [Remotion](https://www.remotion.dev/) 4.0.538 | Motion graphics and demo-film composition | Version supplied in the task brief; the local video workspace is gitignored and not evidence of a reproducible application dependency. |
+| [Mixkit](https://mixkit.co/license/) | Presentation media, music / sound effects as applicable | Record the exact downloaded asset pages and applicable item licences in final credits; these are not supplied in the tracked repository. |
+| [ElevenLabs](https://elevenlabs.io/) | Reported presentation audio production | Exact model, voice, account terms and retained output are unrecorded; do not infer use of voice cloning or a specific model. |
+
+The demo's statistical context and dates are listed in the
+[demo evidence register](demo-script.md#evidence-register). WEF forecasts are global estimates;
+the Malaysian figure is a conditional ministerial warning, not observed job losses caused by AI.
+MiniLM is already declared in section 4.1; public job feeds, BNM rates and the O*NET crosswalk
+are declared in section 4.2. Workday career-site connectors use an undocumented public-facing
+interface; public reachability does not establish an open-data licence or a stable API contract.
 
 ## 5. Sponsor-provided resources
 

@@ -32,6 +32,7 @@ node_modules
 *.launch
 .settings/
 *.sublime-workspace
+.qoder/
 
 # IDE - VSCode
 .vscode/*
@@ -79,3 +80,4 @@ submission/demo-video/
 /submission/pitch/
 # Local generated images for submission documents.
 /submission/diagrams/*.png
+docs/daftar-perbaikan-aman.md

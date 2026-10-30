@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 import os
 import re
+import sys
 import time
 from collections.abc import Sequence
 from functools import lru_cache
@@ -77,48 +78,89 @@ class RunPodEncoder:
         self.api_key = api_key
         self.timeout = timeout
 
-    def _batch(self, texts: list[str]) -> list[list[float]]:
-        deadline = time.monotonic() + self.timeout
+    def _batch(self, texts: list[str], *, deadline: float | None = None) -> list[list[float]]:
+        if deadline is None:
+            deadline = time.monotonic() + self.timeout
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise TimeoutError("RunPod MiniLM inference exceeded its deadline")
         with httpx.Client(
             headers={"Authorization": f"Bearer {self.api_key}"},
-            timeout=min(30, self.timeout),
+            timeout=min(30, remaining),
             follow_redirects=False,
         ) as client:
-            response = client.post(f"{self.url}/runsync", json={"input": {"texts": texts}})
-            response.raise_for_status()
-            result = response.json()
-            while result.get("status") in {"IN_QUEUE", "IN_PROGRESS"}:
-                remaining = deadline - time.monotonic()
-                if remaining <= 0:
-                    raise TimeoutError("RunPod MiniLM inference exceeded its deadline")
-                job_id = result.get("id", "")
-                if not isinstance(job_id, str) or not re.fullmatch(r"[A-Za-z0-9_-]+", job_id):
-                    raise ValueError("RunPod returned an invalid job id")
-                time.sleep(min(1, remaining))
-                remaining = deadline - time.monotonic()
-                if remaining <= 0:
-                    raise TimeoutError("RunPod MiniLM inference exceeded its deadline")
-                response = client.get(f"{self.url}/status/{job_id}", timeout=min(30, remaining))
+            job_id: str | None = None
+            completed = False
+            try:
+                milliseconds = math.ceil(remaining * 1000)
+                response = client.post(
+                    f"{self.url}/runsync",
+                    json={
+                        "input": {"texts": texts},
+                        # Provider minimums also bound orphan jobs if submission loses its ID.
+                        "policy": {
+                            "executionTimeout": max(5000, milliseconds),
+                            "ttl": max(10000, milliseconds),
+                        },
+                    },
+                )
                 response.raise_for_status()
                 result = response.json()
-        if result.get("status") != "COMPLETED":
-            raise RuntimeError("RunPod MiniLM job did not complete; snapshot will not publish")
-        output = result.get("output")
-        if not isinstance(output, dict) or (
-            output.get("model") != MODEL_ID
-            or output.get("revision") != MODEL_REVISION
-            or output.get("dimensions") != DIMENSIONS
-        ):
-            raise ValueError("RunPod returned an incompatible embedding model")
-        return validate_vectors(output.get("embeddings"), len(texts))
+                candidate = result.get("id")
+                if candidate is not None:
+                    if not isinstance(candidate, str) or not re.fullmatch(
+                        r"[A-Za-z0-9_-]+", candidate
+                    ):
+                        raise ValueError("RunPod returned an invalid job id")
+                    job_id = candidate
+                while result.get("status") in {"IN_QUEUE", "IN_PROGRESS"}:
+                    remaining = deadline - time.monotonic()
+                    if remaining <= 0:
+                        raise TimeoutError("RunPod MiniLM inference exceeded its deadline")
+                    if job_id is None:
+                        raise ValueError("RunPod returned an invalid job id")
+                    time.sleep(min(1, remaining))
+                    remaining = deadline - time.monotonic()
+                    if remaining <= 0:
+                        raise TimeoutError("RunPod MiniLM inference exceeded its deadline")
+                    response = client.get(f"{self.url}/status/{job_id}", timeout=min(30, remaining))
+                    response.raise_for_status()
+                    result = response.json()
+                completed = result.get("status") == "COMPLETED"
+                if not completed:
+                    raise RuntimeError(
+                        "RunPod MiniLM job did not complete; snapshot will not publish"
+                    )
+                if time.monotonic() > deadline:
+                    raise TimeoutError("RunPod MiniLM inference exceeded its deadline")
+                output = result.get("output")
+                if not isinstance(output, dict) or (
+                    output.get("model") != MODEL_ID
+                    or output.get("revision") != MODEL_REVISION
+                    or output.get("dimensions") != DIMENSIONS
+                ):
+                    raise ValueError("RunPod returned an incompatible embedding model")
+                return validate_vectors(output.get("embeddings"), len(texts))
+            finally:
+                if job_id is not None and not completed:
+                    error = sys.exception()
+                    try:
+                        cancelled = client.post(f"{self.url}/cancel/{job_id}", timeout=2.0)
+                        cancelled.raise_for_status()
+                    except httpx.HTTPError:
+                        if error is not None:
+                            error.add_note(
+                                "RunPod cancellation failed; the job policy remains bounded."
+                            )
 
     def encode(
         self, texts: Sequence[str], *, batch_size: int = 32, show_progress_bar: bool = False
     ) -> list[list[float]]:
         size = min(MAX_BATCH, max(1, batch_size))
         vectors: list[list[float]] = []
+        deadline = time.monotonic() + self.timeout
         for start in range(0, len(texts), size):
-            vectors.extend(self._batch(list(texts[start : start + size])))
+            vectors.extend(self._batch(list(texts[start : start + size]), deadline=deadline))
         return vectors
 
 

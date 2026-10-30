@@ -84,7 +84,14 @@ Preliminary round: the proposal explains how each one will be delivered; the dem
 
 A new user gets from profile to ranked future roles and an actionable pathway **in minutes**. Every recommendation is transparent about its source, the **output visibly changes when the trend data changes**, and the SDG link is **meaningful, not decorative**.
 
-## 10. Preliminary round rubric
+## 10. Judging context
+
+For final-round preparation, use the [current evidence checklist](rubric-check.md).
+The task brief supplies six final-round weights (25/25/20/15/10/5); official names and
+criterion descriptions still need reconciliation with the participant handbook. The
+table below is **historical preliminary guidance only**.
+
+### Historical preliminary round rubric
 
 | Criterion | Weight | What judges look for |
 |---|---|---|
