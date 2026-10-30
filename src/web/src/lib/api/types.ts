@@ -269,6 +269,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/impact/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Summary
+         * @description Public, read-only impact evidence computed on request from the catalogue, the trend
+         *     snapshot and the production matching and pathway engines, on synthetic personas.
+         */
+        get: operations["impact_get_summary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/jobs/summary": {
         parameters: {
             query?: never;
@@ -1847,6 +1868,46 @@ export interface components {
             /** File */
             file: string;
         };
+        /** CatalogueCoverage */
+        CatalogueCoverage: {
+            /** Course Count */
+            course_count: number;
+            /** Role Count */
+            role_count: number;
+            /** Target Role Count */
+            target_role_count: number;
+            /** Skill Count */
+            skill_count: number;
+            /** Free Course Count */
+            free_course_count: number;
+            /** Free Course Share */
+            free_course_share: number;
+            /** Free Hours */
+            free_hours: number;
+            /** Sdg Target Count */
+            sdg_target_count: number;
+            /** Role Sdg Link Count */
+            role_sdg_link_count: number;
+            /** By Language */
+            by_language: components["schemas"]["CountBucket"][];
+            /** By Provider Type */
+            by_provider_type: components["schemas"]["CountBucket"][];
+            /** Verified Recent Share */
+            verified_recent_share: number;
+            /** Verified Window Days */
+            verified_window_days: number;
+            /**
+             * Verified Since
+             * Format: date
+             */
+            verified_since: string;
+            /**
+             * As Of
+             * Format: date
+             * @description Newest stored course verification date; not the clock.
+             */
+            as_of: string;
+        };
         /** CatalogueResponse */
         CatalogueResponse: {
             /** Courses */
@@ -1979,6 +2040,13 @@ export interface components {
              * @description Set when the member copied this from their personal learning.
              */
             shared_from?: "personal" | null;
+        };
+        /** CountBucket */
+        CountBucket: {
+            /** Key */
+            key: string;
+            /** Count */
+            count: number;
         };
         /** CounterfactualResult */
         CounterfactualResult: {
@@ -2237,6 +2305,47 @@ export interface components {
             links: components["schemas"]["SdgLink"][];
             meta: components["schemas"]["RecommendationMeta"];
         };
+        /**
+         * EvidenceItem
+         * @description A figure quoted from a public page that was fetched and checked, with its source.
+         */
+        EvidenceItem: {
+            /** Id */
+            id: string;
+            /** Figure */
+            figure: string;
+            /** Value */
+            value: number;
+            /** Unit */
+            unit: string;
+            /** Scope */
+            scope: string;
+            /** Claim */
+            claim: string;
+            /**
+             * Quote
+             * @description Short verbatim phrase from the page.
+             */
+            quote: string;
+            /** Publisher */
+            publisher: string;
+            /** Title */
+            title: string;
+            /** Url */
+            url: string;
+            /**
+             * Retrieved At
+             * Format: date
+             */
+            retrieved_at: string;
+            /** Published At */
+            published_at?: string | null;
+            /**
+             * Feature
+             * @description Key of the Adept feature that addresses it.
+             */
+            feature: string;
+        };
         /** EvidenceSubmit */
         EvidenceSubmit: {
             /** Role Id */
@@ -2256,6 +2365,26 @@ export interface components {
             level: number;
             /** Confidence */
             confidence: number;
+        };
+        /** FairnessEvidence */
+        FairnessEvidence: {
+            /** Variants Tested */
+            variants_tested: number;
+            /** Personas Tested */
+            personas_tested: number;
+            /**
+             * Max Rank Change
+             * @description Largest role-position change across swaps.
+             */
+            max_rank_change: number;
+            /** Guardrail Report Passed */
+            guardrail_report_passed: boolean;
+            /** Api Inputs Checked */
+            api_inputs_checked: number;
+            /** Protected Inputs Found */
+            protected_inputs_found: string[];
+            /** Method */
+            method: string;
         };
         /** FairnessReport */
         FairnessReport: {
@@ -2531,6 +2660,51 @@ export interface components {
              * @enum {string}
              */
             database: "ok" | "unavailable";
+        };
+        /** ImpactAggregate */
+        ImpactAggregate: {
+            /**
+             * Scenario
+             * @enum {string}
+             */
+            scenario: "moderate" | "fast";
+            /** Persona Count */
+            persona_count: number;
+            /** Median Free Course Share */
+            median_free_course_share: number;
+            /** Median Free Hours Share */
+            median_free_hours_share: number;
+            /** Median Hrd Course Share */
+            median_hrd_course_share: number;
+            /** Median Total Hours */
+            median_total_hours: number;
+            /** Median Sdg Target Count */
+            median_sdg_target_count: number;
+            /** Median Top5 Changed */
+            median_top5_changed: number;
+        };
+        /** ImpactSummary */
+        ImpactSummary: {
+            /** Personas */
+            personas: components["schemas"]["PersonaImpact"][];
+            /** Aggregates */
+            aggregates: components["schemas"]["ImpactAggregate"][];
+            catalogue: components["schemas"]["CatalogueCoverage"];
+            fairness: components["schemas"]["FairnessEvidence"];
+            /** Public Evidence */
+            public_evidence: components["schemas"]["EvidenceItem"][];
+            /** @description Stored DOSM labour force snapshot, with its real dates. */
+            labour_context?: components["schemas"]["MalaysiaLabourContext"] | null;
+            /**
+             * Formulas
+             * @description How each displayed figure is derived.
+             */
+            formulas: {
+                [key: string]: string;
+            };
+            /** Persona Note */
+            persona_note: string;
+            meta: components["schemas"]["RecommendationMeta"];
         };
         /**
          * JobBoardPage
@@ -2986,6 +3160,46 @@ export interface components {
              */
             segment?: ("working" | "graduate" | "switcher") | null;
         };
+        /**
+         * PathwayImpact
+         * @description One persona's pathway towards their top-ranked role in one scenario.
+         */
+        PathwayImpact: {
+            /**
+             * Scenario
+             * @enum {string}
+             */
+            scenario: "moderate" | "fast";
+            /** Top Role Id */
+            top_role_id: string;
+            /** Top Role Label */
+            top_role_label: string;
+            /** Course Count */
+            course_count: number;
+            /** Total Hours */
+            total_hours: number;
+            /**
+             * Free Course Share
+             * @description Courses with cost_myr == 0.
+             */
+            free_course_share: number;
+            /** Free Hours Share */
+            free_hours_share: number;
+            /**
+             * Hrd Course Share
+             * @description Courses flagged HRD Corp claimable.
+             */
+            hrd_course_share: number;
+            /** Hrd Hours Share */
+            hrd_hours_share: number;
+            /**
+             * Sdg Target Count
+             * @description Distinct SDG targets the path contributes to.
+             */
+            sdg_target_count: number;
+            /** Sdg Targets */
+            sdg_targets?: string[];
+        };
         /** PathwayStep */
         PathwayStep: {
             /** Order */
@@ -3043,6 +3257,28 @@ export interface components {
              * @description Group plans: members who need this step.
              */
             member_ids?: string[];
+        };
+        /** PersonaImpact */
+        PersonaImpact: {
+            /** Persona Id */
+            persona_id: string;
+            /** Source */
+            source: string;
+            /** Skill Count */
+            skill_count: number;
+            /** Hours Per Week */
+            hours_per_week: number;
+            /** Hrd Eligible */
+            hrd_eligible: boolean;
+            moderate: components["schemas"]["PathwayImpact"];
+            fast: components["schemas"]["PathwayImpact"];
+            /**
+             * Top5 Changed
+             * @description Roles in the Moderate top 5 that are absent from the Fast top 5.
+             */
+            top5_changed: number;
+            /** Top Role Changed */
+            top_role_changed: boolean;
         };
         /** PlanChange */
         PlanChange: {
@@ -5240,6 +5476,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FairnessReport"];
+                };
+            };
+        };
+    };
+    impact_get_summary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImpactSummary"];
                 };
             };
         };

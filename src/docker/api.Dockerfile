@@ -14,6 +14,7 @@ COPY src/pipelines src/pipelines
 COPY src/db src/db
 COPY src/data/seed src/data/seed
 COPY docs/reference docs/reference
+COPY docs/demo-cvs/profiles.json docs/demo-cvs/profiles.json
 COPY src/docker/boot.py src/docker/boot.py
 RUN useradd --create-home adept
 USER adept

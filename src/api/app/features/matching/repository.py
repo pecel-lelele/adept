@@ -8,12 +8,13 @@ Missing profiles or skills raise ProfileRequiredError; production never loads pe
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import replace
 
 from app.contracts.common import RecommendationMeta, ScenarioId
 from app.contracts.matching import RoleMatch, ScoreComponent, ScoreImprovement
 from app.contracts.pathway import Course
-from app.contracts.profile import Skill
+from app.contracts.profile import Profile, Skill
 from app.core import refdata, seed
 from app.core.errors import ProfileRequiredError
 from app.features.matching.critical_occupations import badge_for_role
@@ -150,15 +151,18 @@ def _load_profile(user_id: str) -> MatchProfile:
     # provider's verification page) raises a level; self-reported ticks do not (H08).
     from app.features.pathway import service as pathway_service
 
-    skills = {
-        skill_id: float(level)
-        for skill_id, level in pathway_service.combined_levels(
-            user_id, {s.skill_id: s.level for s in profile.skills}
-        ).items()
-    }
-    interests = frozenset(profile.interests)
+    return profile_to_match(
+        profile,
+        pathway_service.combined_levels(user_id, {s.skill_id: s.level for s in profile.skills}),
+    )
 
-    return MatchProfile(skills=skills, interests=interests)
+
+def profile_to_match(profile: Profile, levels: Mapping[str, int]) -> MatchProfile:
+    """The only fields matching reads from a profile: skill levels and interests (fairness)."""
+    return MatchProfile(
+        skills={skill_id: float(level) for skill_id, level in levels.items()},
+        interests=frozenset(profile.interests),
+    )
 
 
 def _score_to_contract(

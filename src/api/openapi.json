@@ -579,6 +579,28 @@
         }
       }
     },
+    "/api/v1/impact/summary": {
+      "get": {
+        "tags": [
+          "impact"
+        ],
+        "summary": "Get Summary",
+        "description": "Public, read-only impact evidence computed on request from the catalogue, the trend\nsnapshot and the production matching and pathway engines, on synthetic personas.",
+        "operationId": "impact_get_summary",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImpactSummary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/jobs/summary": {
       "get": {
         "tags": [
@@ -6699,6 +6721,110 @@
         ],
         "title": "Body_profile_upload_cv"
       },
+      "CatalogueCoverage": {
+        "properties": {
+          "course_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Course Count"
+          },
+          "role_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Role Count"
+          },
+          "target_role_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Target Role Count"
+          },
+          "skill_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Skill Count"
+          },
+          "free_course_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Free Course Count"
+          },
+          "free_course_share": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Free Course Share"
+          },
+          "free_hours": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Free Hours"
+          },
+          "sdg_target_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Sdg Target Count"
+          },
+          "role_sdg_link_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Role Sdg Link Count"
+          },
+          "by_language": {
+            "items": {
+              "$ref": "#/components/schemas/CountBucket"
+            },
+            "type": "array",
+            "title": "By Language"
+          },
+          "by_provider_type": {
+            "items": {
+              "$ref": "#/components/schemas/CountBucket"
+            },
+            "type": "array",
+            "title": "By Provider Type"
+          },
+          "verified_recent_share": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Verified Recent Share"
+          },
+          "verified_window_days": {
+            "type": "integer",
+            "title": "Verified Window Days"
+          },
+          "verified_since": {
+            "type": "string",
+            "format": "date",
+            "title": "Verified Since"
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date",
+            "title": "As Of",
+            "description": "Newest stored course verification date; not the clock."
+          }
+        },
+        "type": "object",
+        "required": [
+          "course_count",
+          "role_count",
+          "target_role_count",
+          "skill_count",
+          "free_course_count",
+          "free_course_share",
+          "free_hours",
+          "sdg_target_count",
+          "role_sdg_link_count",
+          "by_language",
+          "by_provider_type",
+          "verified_recent_share",
+          "verified_window_days",
+          "verified_since",
+          "as_of"
+        ],
+        "title": "CatalogueCoverage"
+      },
       "CatalogueResponse": {
         "properties": {
           "courses": {
@@ -6989,6 +7115,25 @@
           "submitted_at"
         ],
         "title": "CompletionEvidence"
+      },
+      "CountBucket": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "count"
+        ],
+        "title": "CountBucket"
       },
       "CounterfactualResult": {
         "properties": {
@@ -7547,6 +7692,95 @@
         ],
         "title": "EntitySdgLinks"
       },
+      "EvidenceItem": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "figure": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Figure"
+          },
+          "value": {
+            "type": "number",
+            "title": "Value"
+          },
+          "unit": {
+            "type": "string",
+            "title": "Unit"
+          },
+          "scope": {
+            "type": "string",
+            "title": "Scope"
+          },
+          "claim": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Claim"
+          },
+          "quote": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Quote",
+            "description": "Short verbatim phrase from the page."
+          },
+          "publisher": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Publisher"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "url": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Url"
+          },
+          "retrieved_at": {
+            "type": "string",
+            "format": "date",
+            "title": "Retrieved At"
+          },
+          "published_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published At"
+          },
+          "feature": {
+            "type": "string",
+            "title": "Feature",
+            "description": "Key of the Adept feature that addresses it."
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "figure",
+          "value",
+          "unit",
+          "scope",
+          "claim",
+          "quote",
+          "publisher",
+          "title",
+          "url",
+          "retrieved_at",
+          "feature"
+        ],
+        "title": "EvidenceItem",
+        "description": "A figure quoted from a public page that was fetched and checked, with its source."
+      },
       "EvidenceSubmit": {
         "properties": {
           "role_id": {
@@ -7606,6 +7840,57 @@
           "confidence"
         ],
         "title": "ExtractedSkill"
+      },
+      "FairnessEvidence": {
+        "properties": {
+          "variants_tested": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Variants Tested"
+          },
+          "personas_tested": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Personas Tested"
+          },
+          "max_rank_change": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Max Rank Change",
+            "description": "Largest role-position change across swaps."
+          },
+          "guardrail_report_passed": {
+            "type": "boolean",
+            "title": "Guardrail Report Passed"
+          },
+          "api_inputs_checked": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Api Inputs Checked"
+          },
+          "protected_inputs_found": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Protected Inputs Found"
+          },
+          "method": {
+            "type": "string",
+            "title": "Method"
+          }
+        },
+        "type": "object",
+        "required": [
+          "variants_tested",
+          "personas_tested",
+          "max_rank_change",
+          "guardrail_report_passed",
+          "api_inputs_checked",
+          "protected_inputs_found",
+          "method"
+        ],
+        "title": "FairnessEvidence"
       },
       "FairnessReport": {
         "properties": {
@@ -8264,6 +8549,128 @@
           "database"
         ],
         "title": "HealthResponse"
+      },
+      "ImpactAggregate": {
+        "properties": {
+          "scenario": {
+            "type": "string",
+            "enum": [
+              "moderate",
+              "fast"
+            ],
+            "title": "Scenario"
+          },
+          "persona_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Persona Count"
+          },
+          "median_free_course_share": {
+            "type": "number",
+            "title": "Median Free Course Share"
+          },
+          "median_free_hours_share": {
+            "type": "number",
+            "title": "Median Free Hours Share"
+          },
+          "median_hrd_course_share": {
+            "type": "number",
+            "title": "Median Hrd Course Share"
+          },
+          "median_total_hours": {
+            "type": "number",
+            "title": "Median Total Hours"
+          },
+          "median_sdg_target_count": {
+            "type": "number",
+            "title": "Median Sdg Target Count"
+          },
+          "median_top5_changed": {
+            "type": "number",
+            "title": "Median Top5 Changed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "scenario",
+          "persona_count",
+          "median_free_course_share",
+          "median_free_hours_share",
+          "median_hrd_course_share",
+          "median_total_hours",
+          "median_sdg_target_count",
+          "median_top5_changed"
+        ],
+        "title": "ImpactAggregate"
+      },
+      "ImpactSummary": {
+        "properties": {
+          "personas": {
+            "items": {
+              "$ref": "#/components/schemas/PersonaImpact"
+            },
+            "type": "array",
+            "title": "Personas"
+          },
+          "aggregates": {
+            "items": {
+              "$ref": "#/components/schemas/ImpactAggregate"
+            },
+            "type": "array",
+            "title": "Aggregates"
+          },
+          "catalogue": {
+            "$ref": "#/components/schemas/CatalogueCoverage"
+          },
+          "fairness": {
+            "$ref": "#/components/schemas/FairnessEvidence"
+          },
+          "public_evidence": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceItem"
+            },
+            "type": "array",
+            "title": "Public Evidence"
+          },
+          "labour_context": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MalaysiaLabourContext"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Stored DOSM labour force snapshot, with its real dates."
+          },
+          "formulas": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Formulas",
+            "description": "How each displayed figure is derived."
+          },
+          "persona_note": {
+            "type": "string",
+            "title": "Persona Note"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RecommendationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "personas",
+          "aggregates",
+          "catalogue",
+          "fairness",
+          "public_evidence",
+          "formulas",
+          "persona_note",
+          "meta"
+        ],
+        "title": "ImpactSummary"
       },
       "JobBoardPage": {
         "properties": {
@@ -9289,6 +9696,90 @@
         ],
         "title": "Pathway"
       },
+      "PathwayImpact": {
+        "properties": {
+          "scenario": {
+            "type": "string",
+            "enum": [
+              "moderate",
+              "fast"
+            ],
+            "title": "Scenario"
+          },
+          "top_role_id": {
+            "type": "string",
+            "title": "Top Role Id"
+          },
+          "top_role_label": {
+            "type": "string",
+            "title": "Top Role Label"
+          },
+          "course_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Course Count"
+          },
+          "total_hours": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Total Hours"
+          },
+          "free_course_share": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Free Course Share",
+            "description": "Courses with cost_myr == 0."
+          },
+          "free_hours_share": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Free Hours Share"
+          },
+          "hrd_course_share": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Hrd Course Share",
+            "description": "Courses flagged HRD Corp claimable."
+          },
+          "hrd_hours_share": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Hrd Hours Share"
+          },
+          "sdg_target_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Sdg Target Count",
+            "description": "Distinct SDG targets the path contributes to."
+          },
+          "sdg_targets": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Sdg Targets"
+          }
+        },
+        "type": "object",
+        "required": [
+          "scenario",
+          "top_role_id",
+          "top_role_label",
+          "course_count",
+          "total_hours",
+          "free_course_share",
+          "free_hours_share",
+          "hrd_course_share",
+          "hrd_hours_share",
+          "sdg_target_count"
+        ],
+        "title": "PathwayImpact",
+        "description": "One persona's pathway towards their top-ranked role in one scenario."
+      },
       "PathwayStep": {
         "properties": {
           "order": {
@@ -9405,6 +9896,62 @@
           "reason"
         ],
         "title": "PathwayStep"
+      },
+      "PersonaImpact": {
+        "properties": {
+          "persona_id": {
+            "type": "string",
+            "title": "Persona Id"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "skill_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Skill Count"
+          },
+          "hours_per_week": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Hours Per Week"
+          },
+          "hrd_eligible": {
+            "type": "boolean",
+            "title": "Hrd Eligible"
+          },
+          "moderate": {
+            "$ref": "#/components/schemas/PathwayImpact"
+          },
+          "fast": {
+            "$ref": "#/components/schemas/PathwayImpact"
+          },
+          "top5_changed": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 0.0,
+            "title": "Top5 Changed",
+            "description": "Roles in the Moderate top 5 that are absent from the Fast top 5."
+          },
+          "top_role_changed": {
+            "type": "boolean",
+            "title": "Top Role Changed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "persona_id",
+          "source",
+          "skill_count",
+          "hours_per_week",
+          "hrd_eligible",
+          "moderate",
+          "fast",
+          "top5_changed",
+          "top_role_changed"
+        ],
+        "title": "PersonaImpact"
       },
       "PlanChange": {
         "properties": {
