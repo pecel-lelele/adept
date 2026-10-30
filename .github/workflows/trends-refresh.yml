@@ -2,7 +2,7 @@
 # the previous week, validate, and publish one new snapshot to the deployment database.
 # A failed run publishes nothing, so the last valid snapshot stays live.
 # Needs TREND_DATABASE_URL and TRENDS_RUNPOD_API_KEY secrets, plus the
-# TRENDS_RUNPOD_ENDPOINT_ID repository variable. Missing configuration skips refresh.
+# TRENDS_RUNPOD_ENDPOINT_ID repository variable. Missing configuration fails manual runs.
 name: Trends refresh
 
 on:
@@ -30,10 +30,15 @@ jobs:
       TRENDS_RUNPOD_ENDPOINT_ID: ${{ vars.TRENDS_RUNPOD_ENDPOINT_ID }}
       TRENDS_RUNPOD_API_KEY: ${{ secrets.TRENDS_RUNPOD_API_KEY }}
     steps:
-      - name: Skip when deployment configuration is incomplete
+      - name: Check incomplete deployment configuration
         if: env.DATABASE_URL == '' || env.TRENDS_RUNPOD_ENDPOINT_ID == '' || env.TRENDS_RUNPOD_API_KEY == ''
         working-directory: ${{ github.workspace }}
-        run: echo "::notice::Database or RunPod encoder configuration is missing; trend refresh skipped."
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+            echo "::error::Required deployment configuration is missing."
+            exit 1
+          fi
+          echo "::notice::Deployment configuration is incomplete; scheduled refresh skipped."
 
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         if: env.DATABASE_URL != '' && env.TRENDS_RUNPOD_ENDPOINT_ID != '' && env.TRENDS_RUNPOD_API_KEY != ''
@@ -43,16 +48,27 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install pipeline client dependencies
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        if: env.DATABASE_URL != '' && env.TRENDS_RUNPOD_ENDPOINT_ID != '' && env.TRENDS_RUNPOD_API_KEY != ''
+
+      - name: Install pipeline client dependencies from lockfile
         if: env.DATABASE_URL != '' && env.TRENDS_RUNPOD_ENDPOINT_ID != '' && env.TRENDS_RUNPOD_API_KEY != ''
         run: |
-          pip install -r requirements.txt
+          uv sync --frozen --python 3.11
 
       - name: Verify database access before inference
         if: env.DATABASE_URL != '' && env.TRENDS_RUNPOD_ENDPOINT_ID != '' && env.TRENDS_RUNPOD_API_KEY != ''
         timeout-minutes: 1
-        run: PYTHONPATH=src/api:src python -m pipelines.trends.preflight
+        run: PYTHONPATH=src/api:src .venv/bin/python -m pipelines.trends.preflight
 
       - name: Ingest, score, validate and publish
         if: env.DATABASE_URL != '' && env.TRENDS_RUNPOD_ENDPOINT_ID != '' && env.TRENDS_RUNPOD_API_KEY != ''
-        run: PYTHONPATH=src/api:src python -m pipelines.trends.run
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src/api:src .venv/bin/python -m pipelines.trends.run | tee "$RUNNER_TEMP/trends-refresh.log"
+          snapshot_date="$(sed -nE 's/^Published snapshot ([0-9]{4}-[0-9]{2}-[0-9]{2})\.$/\1/p' "$RUNNER_TEMP/trends-refresh.log")"
+          if [[ -z "$snapshot_date" ]]; then
+            echo "::error::The publisher did not confirm a snapshot date."
+            exit 1
+          fi
+          printf 'Published snapshot: **%s**\n' "$snapshot_date" >> "$GITHUB_STEP_SUMMARY"

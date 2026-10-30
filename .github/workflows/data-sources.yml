@@ -25,18 +25,20 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install Python dependencies
-        run: pip install -r requirements.txt
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+
+      - name: Install Python dependencies from lockfile
+        run: uv sync --frozen --python 3.11
 
       - name: UN SDG API still returns 17 goals and their targets
-        run: PYTHONPATH=src/api:src python -m pipelines.sdg.run --out "$RUNNER_TEMP/sdg"
+        run: PYTHONPATH=src/api:src .venv/bin/python -m pipelines.sdg.run --out "$RUNNER_TEMP/sdg"
 
       - name: Microsoft Learn still lists every curated course
-        run: PYTHONPATH=src/api:src python -m pipelines.pathway.run --out "$RUNNER_TEMP/courses.csv"
+        run: PYTHONPATH=src/api:src .venv/bin/python -m pipelines.pathway.run --out "$RUNNER_TEMP/courses.csv"
 
       - name: Coursera still lists every curated course
         run: |
-          PYTHONPATH=src/api:src python - <<'PY'
+          PYTHONPATH=src/api:src .venv/bin/python - <<'PY'
           from app.features.pathway.catalogue_sources import COURSERA, coursera_status
           gone = [r.provider_ref for r in COURSERA if coursera_status(r.provider_ref) is False]
           if gone:
@@ -44,7 +46,7 @@ jobs:
           PY
 
       - name: Course pages and SDG evidence links still resolve
-        run: PYTHONPATH=src/api:src python -m pipelines.guardrails.check_links
+        run: PYTHONPATH=src/api:src .venv/bin/python -m pipelines.guardrails.check_links
 
       - name: Report differences from the committed seed
         run: |
