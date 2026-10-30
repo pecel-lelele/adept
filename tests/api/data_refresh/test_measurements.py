@@ -128,3 +128,21 @@ def test_zero_row_database_read_does_not_substitute_seed_metadata(
     value = service._one("jobs")
     assert value.rows == 0 and value.served_from == "database" and not value.is_fallback
     assert value.last_fetched_at == date(2026, 10, 30)
+
+
+def test_empty_labour_table_describes_the_frozen_export(monkeypatch: pytest.MonkeyPatch) -> None:
+    class Empty:
+        def execute(self, *args: Any) -> Any:
+            return SimpleNamespace(fetchone=lambda: {"n": 0, "fetched": None, "as_of": None})
+
+    @contextmanager
+    def connection() -> Any:
+        yield Empty()
+
+    monkeypatch.setattr(repository, "use_postgres", lambda: True)
+    monkeypatch.setattr(repository, "connection", connection)
+    value = service._one("labour")
+    count, fetched, observed = service._seed_labour()
+    assert count > 0 and value.rows == count
+    assert value.served_from == "seed" and value.is_fallback
+    assert value.last_fetched_at == fetched and value.data_as_of == observed

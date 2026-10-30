@@ -148,7 +148,7 @@ _FRESHNESS_SQL = {
 
 
 def stored_freshness(source: str) -> StoredFreshness | None:
-    """What the database holds for a source, or None (not in use, empty or unreachable)."""
+    """Database facts, or None when serving uses its frozen fallback (or DB is unavailable)."""
     if not use_postgres() or source not in _FRESHNESS_SQL:
         return None
     try:
@@ -157,7 +157,9 @@ def stored_freshness(source: str) -> StoredFreshness | None:
     except psycopg.Error as exc:
         log.warning("freshness read for %s failed: %s", source, type(exc).__name__)
         return None
-    if row is None:
+    if row is None or (source == "labour" and int(row["n"]) == 0):
+        # Labour.current serves the frozen export when this table is empty. Jobs/courses
+        # serve a valid empty database result instead, so preserve their zero counts.
         return None
     return StoredFreshness(int(row["n"]), row["fetched"], row["as_of"])
 

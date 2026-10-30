@@ -479,6 +479,17 @@
 - **Replaces**: none (hardens TEAM-042)
 - **PR / branch**: feat/core-automatic-data-refresh
 
+
+### TEAM-044: Keep empty labour freshness aligned with the served frozen export
+- **Date**: 2026-10-31
+- **Feature**: F2 and Core (data refresh)
+- **Type**: method
+- **Change**: Preserve zero-row database freshness for jobs/courses while recognising that an empty labour table serves the frozen DOSM export. Labour freshness retains the export's actual dates and fallback flag.
+- **Why**: Empty-source behaviour differs by serving adapter; a successful aggregate SQL query does not establish that the database supplied the displayed content.
+- **Affects**: refresh freshness metadata and empty-labour regression; no schema/provider change
+- **Replaces**: none (narrows TEAM-043's zero-row handling to match serving behaviour)
+- **PR / branch**: feat/core-automatic-data-refresh / PR #75
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)
