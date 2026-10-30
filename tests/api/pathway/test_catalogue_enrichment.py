@@ -47,13 +47,21 @@ def test_official_occupation_titles_and_digital_skills_resolve_to_dated_sources(
     manifest = json.loads((seed.SEED_DIR / "taxonomy/provenance.json").read_text(encoding="utf-8"))
     sources = {row["role_id"]: row for row in manifest["roles"]}
     assert len(sources) == len(manifest["roles"])
+    labels = []
     for role in seed.rows("taxonomy", "roles"):
         source = sources[role["id"]]
         assert role["taxonomy"] == "O*NET-SOC"
-        assert role["label"] == source["occupation_title"] == source["label"]
+        assert role["label"] == source["label"]
+        # The official title always leads; profiles sharing one occupation add only a skill focus.
+        title = source["occupation_title"]
+        assert role["label"] == title or (
+            role["label"].startswith(f"{title} (") and role["label"].endswith(" focus)")
+        )
+        labels.append(role["label"])
         assert source["source_url"].endswith(source["occupation_code"])
         assert source["retrieved_at"] in {"2026-10-30", "2026-10-31"}
         assert source["requirements_basis"]
+    assert len(labels) == len(set(labels)), "two role profiles would show the same name"
     assert {row["skill_id"] for row in manifest["skills"]} == {"git", "selenium"}
     assert TECH_ROLES <= {role.role_id for role in matching.load_roles()}
     assert not {

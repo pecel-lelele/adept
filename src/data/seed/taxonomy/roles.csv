@@ -2,34 +2,34 @@ id,label,taxonomy,interest_tags,is_target
 bank-operations-executive,"Financial Clerks, All Other",O*NET-SOC,,false
 data-entry-clerk,Data Entry Keyers,O*NET-SOC,,false
 logistics-supervisor,Supply Chain Managers,O*NET-SOC,,false
-data-analyst,Data Scientists,O*NET-SOC,data|analytics|software,true
-ai-operations-specialist,Computer Systems Engineers/Architects,O*NET-SOC,software|AI|automation,true
-process-automation-analyst,Management Analysts,O*NET-SOC,process improvement|operations|automation|finance,true
-compliance-analytics-officer,Compliance Officers,O*NET-SOC,finance|risk|data|compliance,true
-machine-learning-engineer,Data Scientists,O*NET-SOC,AI|software|data,true
+data-analyst,Data Scientists (data analysis focus),O*NET-SOC,data|analytics|software,true
+ai-operations-specialist,Computer Systems Engineers/Architects (AI operations focus),O*NET-SOC,software|AI|automation,true
+process-automation-analyst,Management Analysts (process automation focus),O*NET-SOC,process improvement|operations|automation|finance,true
+compliance-analytics-officer,Compliance Officers (compliance analytics focus),O*NET-SOC,finance|risk|data|compliance,true
+machine-learning-engineer,Data Scientists (machine learning focus),O*NET-SOC,AI|software|data,true
 data-engineer,Database Architects,O*NET-SOC,data|software|cloud,true
-cloud-solutions-architect,Computer Systems Engineers/Architects,O*NET-SOC,cloud|software,true
+cloud-solutions-architect,Computer Systems Engineers/Architects (cloud solutions focus),O*NET-SOC,cloud|software,true
 cybersecurity-analyst,Information Security Analysts,O*NET-SOC,security|risk|software,true
 ai-product-manager,Computer and Information Systems Managers,O*NET-SOC,AI|product|people,true
 ux-designer,Web and Digital Interface Designers,O*NET-SOC,design|software|people,true
 digital-marketing-specialist,Search Marketing Strategists,O*NET-SOC,marketing|customer|creative,true
-business-analyst,Management Analysts,O*NET-SOC,data|process improvement|operations,true
+business-analyst,Management Analysts (business analysis focus),O*NET-SOC,data|process improvement|operations,true
 solar-pv-engineer,Solar Energy Systems Engineers,O*NET-SOC,sustainability|energy|engineering,true
 energy-manager,"Energy Engineers, Except Wind and Solar",O*NET-SOC,sustainability|energy|operations,true
 esg-sustainability-analyst,Sustainability Specialists,O*NET-SOC,sustainability|finance|compliance,true
-smart-manufacturing-engineer,Industrial Engineers,O*NET-SOC,manufacturing|engineering|automation,true
-semiconductor-process-engineer,Industrial Engineers,O*NET-SOC,manufacturing|engineering,true
+smart-manufacturing-engineer,Industrial Engineers (smart manufacturing focus),O*NET-SOC,manufacturing|engineering|automation,true
+semiconductor-process-engineer,Industrial Engineers (semiconductor process focus),O*NET-SOC,manufacturing|engineering,true
 supply-chain-analyst,Logisticians,O*NET-SOC,logistics|operations|data,true
 precision-agriculture-specialist,Precision Agriculture Technicians,O*NET-SOC,agriculture|sustainability|data,true
 health-informatics-specialist,Health Informatics Specialists,O*NET-SOC,healthcare|data,true
-digital-health-nurse,Registered Nurses,O*NET-SOC,healthcare|people,true
+digital-health-nurse,Registered Nurses (digital health focus),O*NET-SOC,healthcare|people,true
 learning-experience-designer,Instructional Coordinators,O*NET-SOC,education|people|creative,true
 tvet-digital-skills-trainer,"Career/Technical Education Teachers, Postsecondary",O*NET-SOC,education|people,true
-customer-success-specialist,Customer Service Representatives,O*NET-SOC,customer|people|AI,true
+customer-success-specialist,Customer Service Representatives (customer success focus),O*NET-SOC,customer|people|AI,true
 islamic-finance-analyst,Financial and Investment Analysts,O*NET-SOC,finance|risk|compliance,true
 people-analytics-specialist,Human Resources Specialists,O*NET-SOC,people|data|HR,true
 hospitality-experience-manager,Lodging Managers,O*NET-SOC,tourism|customer|people,true
-responsible-ai-officer,Compliance Officers,O*NET-SOC,AI|risk|compliance,true
+responsible-ai-officer,Compliance Officers (responsible AI focus),O*NET-SOC,AI|risk|compliance,true
 retail-salespersons,Retail Salespersons,O*NET-SOC,,false
 customer-service-representatives,Customer Service Representatives,O*NET-SOC,,false
 production-workers-all-other,"Production Workers, All Other",O*NET-SOC,,false

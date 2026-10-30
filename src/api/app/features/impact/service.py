@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import json
 import statistics
+import threading
+import time
 from collections import Counter
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -391,6 +393,32 @@ def compute_summary() -> ImpactSummary:
     )
 
 
+SUMMARY_TTL_SECONDS = 120
+_summary_lock = threading.Lock()
+_summary_cache: tuple[float, ImpactSummary] | None = None
+
+
 def get_summary() -> ImpactSummary:
-    """Recomputed on every request from the live catalogue, trend snapshot and engines."""
-    return compute_summary()
+    """Recomputed from the live catalogue, trend snapshot and engines at most every 2 minutes.
+
+    The public page re-ranks every synthetic persona, so a short memo stops repeated anonymous
+    requests from redoing that work while a data refresh still shows within the TTL.
+    Failures are never cached.
+    """
+    global _summary_cache
+    now = time.monotonic()
+    cached = _summary_cache
+    if cached and now - cached[0] < SUMMARY_TTL_SECONDS:
+        return cached[1]
+    with _summary_lock:
+        cached = _summary_cache
+        if cached and time.monotonic() - cached[0] < SUMMARY_TTL_SECONDS:
+            return cached[1]
+        summary = compute_summary()
+        _summary_cache = (time.monotonic(), summary)
+        return summary
+
+
+def clear_summary_cache() -> None:
+    global _summary_cache
+    _summary_cache = None
