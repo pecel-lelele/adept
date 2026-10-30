@@ -1,8 +1,9 @@
 """What Adi knows when it answers: the person's own Adept data, or public figures for visitors.
 
 Each piece is optional. A piece that fails to load (no profile yet, database hiccup) is left out
-and never guessed. The same facts feed the model prompt and the deterministic guide, and every
-role, skill, course, SDG target and page Adi may cite is collected in `Refs`.
+and never guessed. `facts` render the guide's server-authored answer blocks (the model only
+chooses among those blocks); `lines` is a readable summary of the same data, not sent to any
+model. Every role, skill, course, SDG target and page Adi may cite is collected in `Refs`.
 """
 
 from __future__ import annotations
@@ -47,6 +48,7 @@ PAGES: dict[str, str] = {
     "/org/verify": "Review completions",
     "/auth/signup": "Create a free account",
     "/about": "How Adept works and its sources",
+    "/privacy": "Privacy notice",
 }
 
 
@@ -89,6 +91,14 @@ def _try(label: str, fn: Callable[[], T]) -> T | None:
 
 def _pct(value: float) -> str:
     return f"{round(value * 100)}%"
+
+
+def _plain(text: str) -> str:
+    """Manager-authored text (organisation names, programme titles) must never form a reference
+    tag when templated into an answer, so reference brackets are removed."""
+    while "[[" in text or "]]" in text:
+        text = text.replace("[[", "").replace("]]", "")
+    return text.strip("[]")
 
 
 def _catalogue_refs(refs: Refs) -> None:
@@ -333,7 +343,7 @@ def _org_name(ctx: Context, user: CurrentUser) -> bool:
     org = _try("org", lambda: org_service.get_my_org(user))
     if org is None:
         return False
-    ctx.org_name = org.name
+    ctx.org_name = _plain(org.name)
     ctx.workspace = org.id
     return True
 
@@ -360,19 +370,19 @@ def _employee(ctx: Context, user: CurrentUser, scenario: ScenarioId) -> None:
     pending = [a for a in assignments if a.status in ("assigned", "change_requested")]
     accepted = [a for a in assignments if a.status == "accepted"]
     ctx.facts["work_pending"] = [
-        {"title": a.agreement.title, "role": a.agreement.role_id, "status": a.status}
+        {"title": _plain(a.agreement.title), "role": a.agreement.role_id, "status": a.status}
         for a in pending
     ]
     for a in pending:
         ctx.lines.append(
-            f"PROGRAMME AWAITING THE PERSON ({a.status}): '{a.agreement.title}' toward "
+            f"PROGRAMME AWAITING THE PERSON ({a.status}): '{_plain(a.agreement.title)}' toward "
             f"[[role:{a.agreement.role_id}]], {a.agreement.hours_per_week:g} h/week until "
             f"{a.agreement.target_date}."
         )
     if accepted:
         a = accepted[0]
         work = {
-            "title": a.agreement.title,
+            "title": _plain(a.agreement.title),
             "role": a.agreement.role_id,
             "date": a.agreement.target_date.isoformat(),
             "hours": a.agreement.hours_per_week,
@@ -392,7 +402,7 @@ def _employee(ctx: Context, user: CurrentUser, scenario: ScenarioId) -> None:
             work["share"] = progress.percent_complete
         ctx.facts["work_active"] = work
         ctx.lines.append(
-            f"ACCEPTED PROGRAMME '{a.agreement.title}' toward [[role:{a.agreement.role_id}]]: "
+            f"ACCEPTED PROGRAMME '{work['title']}' toward [[role:{a.agreement.role_id}]]: "
             f"{a.agreement.hours_per_week:g} h/week of paid learning time until "
             f"{a.agreement.target_date}; employer committed up to RM {a.agreement.budget_myr:g}."
         )
@@ -434,7 +444,7 @@ def _manager(ctx: Context, user: CurrentUser, scenario: ScenarioId) -> None:
     if sent is not None:
         ctx.facts["programmes"] = [
             {
-                "title": p.record.brief.title,
+                "title": _plain(p.record.brief.title),
                 "accepted": p.accepted,
                 "pending": p.pending,
                 "declined": p.declined,
@@ -445,7 +455,8 @@ def _manager(ctx: Context, user: CurrentUser, scenario: ScenarioId) -> None:
         for p in sent[:5]:
             roles = ", ".join(f"[[role:{r.role_id}]]" for r in p.record.brief.roles)
             ctx.lines.append(
-                f"PROGRAMME '{p.record.brief.title}' ({roles}) due {p.record.brief.target_date}: "
+                f"PROGRAMME '{_plain(p.record.brief.title)}' ({roles}) due "
+                f"{p.record.brief.target_date}: "
                 f"{p.accepted} accepted, {p.pending} waiting, {p.change_requested} asked for "
                 f"changes, {p.declined} declined."
             )

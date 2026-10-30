@@ -10,15 +10,25 @@
 1. `context.py` gathers the person's own profile, matches, saved plan and its scenario's
    effective progress, team gaps and dated trends. Rejected completions never count as done.
 2. `guide.py` renders candidate answer blocks in English, Malay or Chinese from those facts.
-3. The model selects one or two block IDs through the F8 gateway and `validate_ids`.
+3. `guide.intents` routes the question to one block, or two when the runner-up intent is a
+   near tie. People-decision requests (hire/fire/promote/admit/reject a person), injection
+   and other people's data are refused first; ordinary questions such as "Which roles are
+   hiring?" or "admission requirements" are not decisions. The model selects one or two
+   block IDs through `select_ids_or_fallback` (F8 gateway, `validate_ids`); a specific
+   question's selection must include the routed block.
    Every prompt component is sanitised and PII-redacted. Model prose, rationale, names and
    figures are never displayed. References in the selected server-authored blocks resolve
    against the actual catalogue before rendering.
 4. Missing model, invalid selection or provider failure uses the deterministic guide. Provider
    retries use cancellable async I/O under one wall-clock budget; the complete API answer has
-   a 24-second deadline and at most four outstanding workers. Expired context cannot start
-   paid work. Attribution records the model that actually answered in that request.
-5. Adi appears only in signed-in workspaces. Account changes remount the conversation, abort
+   a 24-second deadline, at most four outstanding workers and at most one answer in flight per
+   account. Busy, overloaded, timeout and catalogue failures each have their own message.
+   Expired context cannot start paid work. Attribution records the model that actually
+   answered in that request.
+5. Replies follow the question's language when it is clearly Chinese or Malay; otherwise the
+   UI locale. Follow-up chips depend on the answer just given, and every chip routes back to
+   its own grounded block.
+6. Adi appears only in signed-in workspaces. Account changes remount the conversation, abort
    in-flight browser requests and remove other accounts' stored chats.
 
 ## Saved-plan answers and intent coverage
