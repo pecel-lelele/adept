@@ -91,6 +91,7 @@ export async function SiteHeader({
 export async function SiteFooter({ note }: { note?: ReactNode }) {
   const t = await getTranslations("ui.landing");
   const tn = await getTranslations("ui.nav");
+  const privacy = await getTranslations("privacy");
   return (
     <footer className="a-site-foot">
       <div className="a-wrap">
@@ -117,6 +118,7 @@ export async function SiteFooter({ note }: { note?: ReactNode }) {
               {t("footMethods")} <ArrowUpRight size={13} aria-hidden />
             </Link>
             <span>{t("footHuman")}</span>
+            <Link href="/privacy">{privacy("footerLink")}</Link>
             <span>{t("footPlace")}</span>
           </div>
         </div>
