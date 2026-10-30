@@ -48,6 +48,33 @@ def review_note(links: Iterable[SdgLink]) -> str:
     )
 
 
+def component_score(parts: list[ScoreComponent]) -> float:
+    return round(min(1.0, sum(c.weight * c.value for c in parts)), 6)
+
+
+def blend_components(
+    components: list[ScoreComponent], impact: float, weight: float, note: str = ""
+) -> list[ScoreComponent]:
+    """One rounded component blend for displayed scores and counterfactual rankings."""
+    if weight <= 0:
+        return components
+    weight = min(1.0, weight)
+    parts = [c.model_copy(update={"weight": round(c.weight * (1 - weight), 4)}) for c in components]
+    parts.append(
+        ScoreComponent(
+            name="sdg_impact",
+            weight=round(weight, 4),
+            value=impact,
+            explanation=(
+                "Strength of this role's links to the UN Sustainable Development Goals "
+                "(direct links count fully, enabling links half), relative to the strongest role. "
+                + note
+            ).strip(),
+        )
+    )
+    return parts
+
+
 def apply(
     matches: list[RoleMatch],
     impact: dict[str, float],
@@ -63,22 +90,10 @@ def apply(
     weight = min(1.0, weight)
     out: list[RoleMatch] = []
     for m in matches:
-        parts = [
-            c.model_copy(update={"weight": round(c.weight * (1 - weight), 4)}) for c in m.components
-        ]
-        parts.append(
-            ScoreComponent(
-                name="sdg_impact",
-                weight=round(weight, 4),
-                value=impact.get(m.role_id, 0.0),
-                explanation=(
-                    "Strength of this role's links to the UN Sustainable Development Goals "
-                    "(direct links count fully, enabling links half), relative to the strongest "
-                    "role. " + (notes or {}).get(m.role_id, "")
-                ).strip(),
-            )
+        parts = blend_components(
+            m.components, impact.get(m.role_id, 0.0), weight, (notes or {}).get(m.role_id, "")
         )
-        score = min(1.0, sum(c.weight * c.value for c in parts))
+        score = component_score(parts)
         skill_weight = next((c.weight for c in parts if c.name == "skill_overlap"), 0.0)
         old_skill_weight = next((c.weight for c in m.components if c.name == "skill_overlap"), 0.0)
         improvements = (
@@ -95,7 +110,7 @@ def apply(
             m.model_copy(
                 update={
                     "components": parts,
-                    "score": round(score, 6),
+                    "score": score,
                     "improvements": improvements,
                 }
             )

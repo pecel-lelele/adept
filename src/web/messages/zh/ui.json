@@ -492,7 +492,8 @@
     "save": "保存更改",
     "saved": "已保存",
     "gapsLow": "已具备",
-    "gapsHigh": "最缺乏"
+    "gapsHigh": "最缺乏",
+    "tooFewMembers": "成员人数过少，无法显示"
   },
   "skills": {
     "title": "我的技能",

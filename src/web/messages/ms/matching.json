@@ -45,5 +45,9 @@
   "emptyTitle": "Belum ada padanan untuk dipaparkan",
   "emptyHint": "Semak kemahiran dan minat anda, kemudian cuba padankan lagi.",
   "criticalOccupation": "Pekerjaan kritikal MyCOL {edition}",
-  "criticalOccupationNote": "Penyenaraian pekerjaan bersejarah; bukan kekosongan semasa atau bonus kedudukan."
+  "criticalOccupationNote": "Penyenaraian pekerjaan bersejarah; bukan kekosongan semasa atau bonus kedudukan.",
+  "scenarioRankDelta": "{movement} berbanding {scenario} · anggaran",
+  "otherScenarioScore": "skor lain {score}% (anggaran)",
+  "otherScenarioRank": "kedudukan lain {rank}",
+  "newRank": "→ kedudukan {rank} (anggaran)"
 }

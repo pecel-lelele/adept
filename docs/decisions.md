@@ -915,6 +915,18 @@
 - **Replaces**: TEAM-039's per-lookup reference-file loading; preserves M2-015's fresh role catalogue and saved-profile behaviour
 - **PR / branch**: PR #69 / `fix/core-final-round-integration`
 
+
+### M2-027: Compare scenario and skill counterfactual ranks on one saved profile
+- **Date**: 2026-10-31
+- **Feature**: F4 (Future-Role Matching & Gap)
+- **Type**: method
+- **Change**: Return optional current/other-scenario ranks and scores from one profile and the two velocity columns of one snapshot. Rerank every target role after raising each top-three improvement skill to its required level, including the requested SDG weight through the same rounded component blend as displayed scores. Explain the existing median-scaled log-tanh formula accurately.
+- **Why**: Independent latest reads could compare different snapshots; adding a score gain to just one role ignores effects on other roles and SDG preferences. Pure ranker results remain estimates, with canonical role/skill/course IDs and unchanged source dates.
+- **Pipeline**: saved profile + canonical requirements + paired snapshot velocities → existing fairness whitelist → existing skills, trends, interests and SDG components → production ranker and shared SDG blend → reciprocal scenario and changed-profile rank regressions → translated rank/score chips and counterfactual ranks
+- **Affects**: matching contracts/repository/UI; SDG blend extraction preserves existing rounding
+- **Replaces**: none (M2-026 is reserved by catalogue PR #74)
+- **PR / branch**: fix/matching-org-review-fixes
+
 ---
 
 ## M3: Pathway, SDG & Guardrails (F5, F6, F8)
@@ -2206,3 +2218,14 @@
 - **Affects**: associated API, web, tests and deployment configuration
 - **Replaces**: none
 - **PR / branch**: worktree-agent-a30a3ff3fc8019a74
+
+### M4-088: Suppress small consenting cohorts in team heatmaps
+- **Date**: 2026-10-31
+- **Feature**: F7 (Organisation mode), Core
+- **Type**: contract
+- **Change**: ORG_MIN_COHORT defaults to 3; only consenting completed-intake members with usable profiles count. Below the threshold, every cell and required-skill row aggregate is null with explicit suppression flags. Web views retain neutral placeholders and translated disclosure rather than zero-gap colours or percentages. Adi excludes suppressed aggregates and explains the missing data in all three languages.
+- **Why**: A small team's aggregate can reveal an individual. A suppressed result is unavailable information, not evidence of a fully skilled team. Existing authorisation, consent and personal/group planning stay intact.
+- **Pipeline**: membership consent + saved completed profiles → existing member filter → eligible cohort count and required-skill gaps → threshold suppression → zero/below/at/above-threshold and consent regressions → manager heatmap and dashboard with neutral states
+- **Affects**: org contracts, settings/env example, shared heatmap and en/ms/zh views; no migration
+- **Replaces**: none (M4-087 is reserved by refresh PR #75)
+- **PR / branch**: fix/matching-org-review-fixes

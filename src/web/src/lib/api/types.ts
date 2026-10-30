@@ -2385,9 +2385,14 @@ export interface components {
             skill_id: string;
             /**
              * Gap
-             * @description Share of members missing the skill.
+             * @description Share below required level; null when suppressed.
              */
-            gap: number;
+            gap: number | null;
+            /**
+             * Suppressed
+             * @default false
+             */
+            suppressed: boolean;
         };
         /** GapHeatmapResponse */
         GapHeatmapResponse: {
@@ -2405,11 +2410,25 @@ export interface components {
             /** Cells */
             cells: components["schemas"]["GapHeatmapCell"][];
             /**
+             * Cohort Size
+             * @default 0
+             */
+            cohort_size: number;
+            /**
+             * Min Cohort
+             * @default 3
+             */
+            min_cohort: number;
+            /** Role Suppressed */
+            role_suppressed?: {
+                [key: string]: boolean;
+            };
+            /**
              * Role Gaps
-             * @description role_id -> average gap over that role's required skills only. Cells for skills a role does not require are 0 and must not be averaged.
+             * @description role_id -> average gap over that role's required skills only. Suppressed rows are null. Unsuppressed cells for unrequired skills are 0 and must not be averaged.
              */
             role_gaps?: {
-                [key: string]: number;
+                [key: string]: number | null;
             };
             meta: components["schemas"]["RecommendationMeta"];
         };
@@ -3551,19 +3570,19 @@ export interface components {
             velocity_after: number;
             /**
              * Position Before
-             * @description Skill velocity on the shared min-max scale, earlier snapshot.
+             * @description Skill trend position (0-1, median-scaled log-tanh), earlier snapshot.
              * @default 0
              */
             position_before: number;
             /**
              * Position After
-             * @description Skill velocity on the shared min-max scale, later snapshot.
+             * @description Skill trend position (0-1, median-scaled log-tanh), later snapshot.
              * @default 0
              */
             position_after: number;
             /**
              * Effect
-             * @description Score points this skill moved the role: change on the shared min-max scale times its share of the role's importance times the trend weight; > 0 pushed up.
+             * @description Score points this skill moved the role: change in trend position times its share of the role's importance times the trend weight; > 0 pushed up.
              */
             effect: number;
         };
@@ -3648,6 +3667,17 @@ export interface components {
              * @description Sum of weight * value over components.
              */
             score: number;
+            /** Rank */
+            rank?: number | null;
+            /** Other Scenario */
+            other_scenario?: ("moderate" | "fast") | null;
+            /** Other Score */
+            other_score?: number | null;
+            /**
+             * Other Rank
+             * @description Other-scenario rank for the same profile, snapshot and SDG weight.
+             */
+            other_rank?: number | null;
             /** Components */
             components: components["schemas"]["ScoreComponent"][];
             /** Missing Skills */
@@ -3965,6 +3995,11 @@ export interface components {
             label: string;
             /** Score Gain */
             score_gain: number;
+            /**
+             * New Rank
+             * @description Estimated rank after raising this skill and reranking all roles.
+             */
+            new_rank?: number | null;
             /** Course Id */
             course_id?: string | null;
             /** Course Title */

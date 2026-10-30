@@ -672,6 +672,7 @@ T: dict[str, dict[str, str]] = {
         "programmes": " Programmes: {count} sent; {accepted} accepted, {pending} waiting, {changes} asked for changes, {declined} declined. See [[page:/org/programmes]].",
         "programmes_none": " No programme sent yet: start from a business objective on [[page:/org/programmes/new]].",
         "team_shared": " {shared} of them share their skill levels.",
+        "team_suppressed": " Too few members to show team skill gaps.",
     },
     "ms": {
         "decision": "Adept menyokong pertimbangan anda; ia tidak membuat keputusan pengambilan, pemecatan, kenaikan pangkat atau kemasukan.",
@@ -756,6 +757,7 @@ T: dict[str, dict[str, str]] = {
         "programmes": " Program: {count} dihantar; {accepted} diterima, {pending} menunggu, {changes} minta perubahan, {declined} ditolak. Lihat [[page:/org/programmes]].",
         "programmes_none": " Belum ada program dihantar: mulakan dari objektif perniagaan di [[page:/org/programmes/new]].",
         "team_shared": " {shared} daripadanya berkongsi tahap kemahiran.",
+        "team_suppressed": " Terlalu sedikit ahli untuk memaparkan jurang kemahiran pasukan.",
     },
     "zh": {
         "decision": "Adept 为您的判断提供支持，绝不作出招聘、解雇、晋升或录取决定。",
@@ -829,6 +831,7 @@ T: dict[str, dict[str, str]] = {
         "programmes": " 项目：已发送 {count} 个；{accepted} 人接受，{pending} 人待定，{changes} 人申请调整，{declined} 人拒绝。详见 [[page:/org/programmes]]。",
         "programmes_none": " 尚未发送项目：可在 [[page:/org/programmes/new]] 从业务目标开始。",
         "team_shared": " 其中 {shared} 人分享了技能水平。",
+        "team_suppressed": " 成员人数过少，无法显示团队技能差距。",
     },
 }
 
@@ -1292,6 +1295,8 @@ def reply_for_intent(kind: str, ctx: Context, locale: Locale) -> str:
         if f.get("role_gaps"):
             role, value = f["role_gaps"][0]
             gap = t["team_gap"].format(role=role, gap=_pct(value))
+        if f.get("team_gaps_suppressed"):
+            gap += t["team_suppressed"]
         if "members_shared" in f:
             gap = t["team_shared"].format(shared=f["members_shared"]) + gap
         programmes = f.get("programmes")
