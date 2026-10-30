@@ -14,11 +14,24 @@ const HOP_HEADERS = new Set([
   "proxy-authenticate", "proxy-authorization", "te", "trailer", "upgrade",
 ]);
 
-/** Use only the right-most entry; never accept a caller-prepended left-most identity. */
+/**
+ * The client address from X-Forwarded-For, never a caller-prepended left-most identity.
+ *
+ * trusted: each of the `hops` verified proxies appends the address it received the request
+ * from, so the client is the entry `hops` places from the right. A shorter chain means the
+ * request did not pass through every configured proxy: no address is returned.
+ * best-effort: the right-most entry (written by the nearest proxy), whatever `hops` says.
+ */
 export function trustedClientIp(forwardedFor: string | null, hops: number, mode: "trusted" | "best-effort" = "trusted"): string | undefined {
-  if (!forwardedFor || (hops <= 0 && mode === "trusted")) return undefined;
+  if (!forwardedFor) return undefined;
   const chain = forwardedFor.split(",").map((part) => part.trim());
-  const address = chain.at(-1);
+  let address: string | undefined;
+  if (mode === "trusted") {
+    if (hops <= 0) return undefined;
+    address = chain.length >= hops ? chain[chain.length - hops] : undefined;
+  } else {
+    address = chain.at(-1);
+  }
   return address && isIP(address) ? address : undefined;
 }
 

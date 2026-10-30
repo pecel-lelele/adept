@@ -4,6 +4,7 @@ import { createRequire } from "node:module";
 import { runInNewContext } from "node:vm";
 import test from "node:test";
 
+import { isSameOriginRequest, publicOrigin } from "../src/web/src/lib/api/proxy-config.ts";
 import { getSafeRedirectPath } from "../src/web/src/lib/auth/safeRedirect.ts";
 import { loadComponent } from "./harness/web-components.ts";
 
@@ -42,7 +43,7 @@ test("the cookie reader forwards versioned sessions and rejects legacy or raw id
   }
 });
 
-test("logout refuses GET and cross-origin POST; successful revocation clears both cookies", async () => {
+test("logout refuses GET and cross-origin POST; it always clears both cookies", async (t) => {
   const deleted: string[] = [];
   const calls: string[] = [];
   class NextResponse extends Response {
@@ -53,8 +54,10 @@ test("logout refuses GET and cross-origin POST; successful revocation clears bot
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
   }).outputText;
   let result = { ok: true, status: 204, code: "" };
-  runInNewContext(code, { module, exports: module.exports, URL, process: { env: {} }, require: (id: string) => ({
+  const warning = t.mock.method(console, "warn", () => undefined);
+  runInNewContext(code, { module, exports: module.exports, URL, console, process: { env: {} }, require: (id: string) => ({
     "next/server": { NextResponse },
+    "@/lib/api/proxy-config": { publicOrigin: (request: Request) => publicOrigin(request, {}) },
     "@/lib/auth/session": { SESSION_COOKIE: "session" },
     "@/lib/auth/workspace": { ORG_COOKIE: "org" },
     "@/lib/auth/safeRedirect": { getSafeRedirectPath },
@@ -74,18 +77,27 @@ test("logout refuses GET and cross-origin POST; successful revocation clears bot
   assert.deepEqual(calls, []);
   assert.deepEqual(deleted, []);
   const request = () => new Request("https://adept.example.test/auth/logout", { method: "POST", headers: { origin: "https://adept.example.test" } });
+  // A failed revocation still signs this browser out, and is reported separately.
   result = { ok: false, status: 503, code: "storage_unavailable" };
-  assert.equal((await POST(request())).status, 503);
-  assert.deepEqual(deleted, []);
+  const failed = await POST(request());
+  assert.equal(failed.status, 303);
+  assert.equal(failed.headers.get("location"), "/");
+  assert.equal(failed.headers.get("x-adept-logout"), "revoke-failed");
+  assert.deepEqual(deleted, ["session", "org"]);
+  assert.equal(warning.mock.calls.length, 1);
+  deleted.length = 0;
   result = { ok: true, status: 204, code: "" };
   const response = await POST(request());
   assert.equal(response.status, 303);
   assert.equal(response.headers.get("location"), "/");
+  assert.equal(response.headers.get("x-adept-logout"), null);
   assert.deepEqual(deleted, ["session", "org"]);
   assert.deepEqual(calls, ["/api/v1/auth/logout", "/api/v1/auth/logout"]);
   for (const [next, expected] of [
     ["/auth/login?mode=organisation#form", "/auth/login?mode=organisation#form"],
     ["/auth/signup?mode=organisation&role=team", "/auth/signup?mode=organisation&role=team"],
+    // ErrorState links a stale session to logout, then back to login with its own next.
+    ["/auth/login?next=%2Fapp%2Fmatches", "/auth/login?next=%2Fapp%2Fmatches"],
     ["https://attacker.example.test", "/"],
     ["//attacker.example.test", "/"],
     ["/.//attacker.example.test", "/"],
@@ -102,4 +114,77 @@ test("logout refuses GET and cross-origin POST; successful revocation clears bot
     assert.match(source, /<form method="post" action="\/auth\/logout">/);
     assert.doesNotMatch(source, /href="\/auth\/logout"/);
   }
+});
+
+test("logout trusts WEB_ORIGIN, never a forwarded host, and fails closed in production", async () => {
+  const forged = new Request("https://adept.example.test/auth/logout", { method: "POST", headers: {
+    host: "adept.example.test", "x-forwarded-host": "attacker.example.test", "x-forwarded-proto": "https",
+  } });
+  assert.equal(publicOrigin(forged, {}), "https://adept.example.test");
+  assert.equal(publicOrigin(forged, { WEB_ORIGIN: "https://adept-my.replit.app" }), "https://adept-my.replit.app");
+  assert.equal(publicOrigin(forged, { APP_ENV: "production" }), undefined);
+  assert.equal(publicOrigin(forged, { NODE_ENV: "production" }), undefined);
+});
+
+test("workspace switching changes the cookie only for Adept's own pages", async () => {
+  const set: string[] = [];
+  class NextResponse extends Response {
+    cookies = { set: (name: string, value: string) => set.push(`${name}=${value}`) };
+    static redirect(url: URL, status: number) {
+      return new NextResponse(null, { status, headers: { location: url.toString() } });
+    }
+  }
+  const module = { exports: {} };
+  const code = ts.transpileModule(readFileSync(new URL("../src/web/src/app/api/workspace/route.ts", import.meta.url), "utf8"), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+  }).outputText;
+  let lookups = 0;
+  runInNewContext(code, { module, exports: module.exports, URL, process: { env: {} }, require: (id: string) => ({
+    "next/server": { NextResponse },
+    "@/lib/api/proxy-config": { isSameOriginRequest, publicOrigin: (request: Request) => publicOrigin(request, {}) },
+    "@/lib/auth/session": { getSessionToken: async () => "v2.synthetic.9999999999.0.signature" },
+    "@/lib/auth/workspace": { ORG_COOKIE: "org", PERSONAL: "personal", isOrgId: (id: string) => id.startsWith("org-") },
+    "@/lib/api/client": {
+      createApiClient: () => ({ GET: () => undefined }),
+      call: async () => {
+        lookups += 1;
+        return { ok: true, data: { workspaces: [{ kind: "org", id: "org-synthetic", role: "manager" }] } };
+      },
+    },
+  }[id]) });
+  const { GET, POST } = module.exports;
+  const page = "https://adept.example.test";
+  const get = (headers: Record<string, string>) =>
+    GET(new Request(`${page}/api/workspace?to=org-synthetic`, { headers: { host: "adept.example.test", ...headers } }));
+  for (const headers of [{ "sec-fetch-site": "same-origin" }, { "sec-fetch-site": "none" }, { referer: `${page}/app` }, { origin: page }]) {
+    set.length = 0;
+    const response = await get(headers);
+    assert.equal(response.status, 303);
+    assert.equal(response.headers.get("location"), `${page}/org`);
+    assert.deepEqual(set, ["org=org-synthetic"]);
+  }
+  for (const headers of [
+    { "sec-fetch-site": "cross-site" }, { "sec-fetch-site": "same-site" },
+    { origin: "https://attacker.example.test" }, { referer: "https://attacker.example.test/x" }, {},
+  ]) {
+    set.length = 0;
+    const before = lookups;
+    const response = await get(headers);
+    assert.equal(response.headers.get("location"), `${page}/app`);
+    assert.deepEqual(set, []);
+    assert.equal(lookups, before, "no membership lookup for a cross-site switch");
+  }
+  const form = (origin?: string) => {
+    const body = new FormData();
+    body.set("to", "org-synthetic");
+    return new Request(`${page}/api/workspace`, { method: "POST", body, headers: { host: "adept.example.test", ...(origin ? { origin } : {}) } });
+  };
+  set.length = 0;
+  assert.equal((await POST(form("https://attacker.example.test"))).status, 403);
+  assert.equal((await POST(form())).status, 403);
+  assert.deepEqual(set, []);
+  const posted = await POST(form(page));
+  assert.equal(posted.status, 303);
+  assert.equal(posted.headers.get("location"), `${page}/org`);
+  assert.deepEqual(set, ["org=org-synthetic"]);
 });
