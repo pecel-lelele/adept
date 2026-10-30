@@ -11010,12 +11010,21 @@
             "title": "Snapshot Date"
           },
           "scenario": {
-            "type": "string",
-            "enum": [
-              "moderate",
-              "fast"
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "moderate",
+                  "fast"
+                ]
+              },
+              {
+                "type": "string",
+                "const": "both"
+              }
             ],
-            "title": "Scenario"
+            "title": "Scenario",
+            "description": "Scenario of the result; 'both' identifies a moderate/fast comparison."
           },
           "is_estimate": {
             "type": "boolean",

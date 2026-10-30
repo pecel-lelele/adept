@@ -8,7 +8,6 @@ from app.features.scenarios import service
 from app.features.scenarios.service import (
     BASE_UNCERTAINTY,
     MIN_COVERAGE_THRESHOLD,
-    enforce_fast_magnitude,
 )
 from app.features.scenarios.service import (
     outlook_range as _range,
@@ -267,33 +266,8 @@ class TestHasEvidenceFiltering:
 
 
 # ===========================================================================
-# Bug 2 — enforce_fast_magnitude: |fast| must be >= |moderate| at role level
+# Issue #80 — computed-signal regressions live in test_computed_outlook.py
 # ===========================================================================
-
-
-class TestEnforceFastMagnitude:
-    def test_adversarial_mix_bug_reproduces_then_fixed(self) -> None:
-        """Adversarial: role_moderate=0.14, role_fast=0.125 (before fix). Bug confirmed."""
-        role_moderate = 0.14
-        role_fast_buggy = 0.125
-        assert abs(role_fast_buggy) < abs(role_moderate), "Precondition: bug must exist"
-        fixed = enforce_fast_magnitude(role_moderate, role_fast_buggy)
-        assert abs(fixed) >= abs(role_moderate)
-        assert fixed >= 0, "Direction must be preserved"
-
-    def test_already_satisfied_unchanged(self) -> None:
-        assert enforce_fast_magnitude(0.10, 0.20) == pytest.approx(0.20)
-
-    def test_negative_direction_preserved(self) -> None:
-        fixed = enforce_fast_magnitude(-0.15, -0.08)
-        assert abs(fixed) >= 0.15
-        assert fixed <= 0
-
-    def test_opposite_sign_not_adjusted(self) -> None:
-        assert enforce_fast_magnitude(0.10, -0.05) == pytest.approx(-0.05)
-
-    def test_zero_fast_same_direction_gets_floor(self) -> None:
-        assert abs(enforce_fast_magnitude(0.12, 0.0)) >= 0.12
 
 
 # ===========================================================================

@@ -14,6 +14,12 @@ Role requirements weight skill velocities; stored snapshot variation and missing
 widen the estimate range. These are heuristic assumptions, not calibrated employment
 forecasts. See `service.py` and `tests/api/scenarios/`.
 
+Each scenario reports its own importance-weighted skill signal, clipped to the demand
+index band. Mixed positive/negative skill signals can cancel differently, so fast is
+not forced to be more extreme than moderate (M1-015). Comparison responses use
+`RecommendationMeta.scenario = "both"`; individual outlook rows retain `moderate` or
+`fast`. Snapshot/source dates and fallback disclosures are preserved.
+
 ## Goal and tasks (from docs/tasks.md)
 
 **Goal:** more than one future scenario; predictions clearly marked as estimates.

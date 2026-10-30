@@ -16,7 +16,6 @@ Nothing is hard-coded. Method (documented in docs/decisions.md):
 
 from __future__ import annotations
 
-import math
 from datetime import date
 
 from app.contracts.common import RecommendationMeta, ScenarioId, Source
@@ -48,13 +47,13 @@ BASE_UNCERTAINTY: float = 0.10
 MIN_COVERAGE_THRESHOLD: float = 0.20
 
 
-def _meta(snap: TrendSnapshotResponse, scenario: ScenarioId) -> RecommendationMeta:
+def _meta(snap: TrendSnapshotResponse) -> RecommendationMeta:
     return RecommendationMeta(
         sources=[
             Source(name=s.name, url=s.url, retrieved_at=s.retrieved_at) for s in snap.meta.sources
         ],
         snapshot_date=snap.meta.snapshot_date,
-        scenario=scenario,
+        scenario="both",
         is_estimate=True,
         served_from=snap.meta.served_from,
         is_fallback=snap.meta.is_fallback,
@@ -87,26 +86,6 @@ def clip(signal: float) -> float:
     return max(lo, min(hi, signal))
 
 
-def enforce_fast_magnitude(moderate: float, fast: float) -> float:
-    """Bug 2 fix: at the role-aggregation level, |fast deviation| must be >= |moderate deviation|.
-
-    Per-skill, scenario_fast() always preserves sign and direction.  At the role level,
-    importance-weighted sums of mixed-exposure skills can partially cancel, making the
-    aggregate fast signal *less* extreme than moderate.  This guard restores the invariant
-    by flooring |fast| to |moderate| when they share the same direction, without ever
-    flipping the sign of the fast signal.
-    """
-    if abs(fast) >= abs(moderate):
-        return fast  # invariant already satisfied
-    # Only apply the floor when both signals have the same direction (or fast is 0).
-    # Opposite-sign signals indicate contradictory skill mixes; report them as-is and let
-    # the uncertainty range carry the ambiguity.
-    same_direction = (moderate >= 0 and fast >= 0) or (moderate <= 0 and fast <= 0)
-    if same_direction:
-        return math.copysign(abs(moderate), moderate)
-    return fast
-
-
 def outlook_range(signals: list[float], latest: float, coverage: float) -> tuple[float, float]:
     """Bug 3 fix: uncertainty width is decoupled from signal magnitude.
 
@@ -134,7 +113,7 @@ def list_scenarios() -> ScenarioListResponse:
                 description=description,
             )
         )
-    return ScenarioListResponse(scenarios=scenarios, meta=_meta(latest, "moderate"))
+    return ScenarioListResponse(scenarios=scenarios, meta=_meta(latest))
 
 
 def get_outlook(role_id: str | None, snapshot_date: date | None = None) -> OutlookResponse:
@@ -162,32 +141,16 @@ def get_outlook(role_id: str | None, snapshot_date: date | None = None) -> Outlo
     for rid in roles:
         reqs = [(r.skill_id, r.importance) for r in repository.role_requirements(rid)]
 
-        # Bug 2 fix: compute both scenarios before emitting any RoleOutlook so we can
-        # enforce the fast-magnitude invariant at the role-aggregation level.
-        signals: dict[ScenarioId, float | None] = {}
-        coverages: dict[ScenarioId, float] = {}
+        # Mixed skill signals can cancel differently under fast adoption. Report each
+        # scenario's own aggregate, even when fast is less extreme (M1-015).
         for sid in SCENARIO_IDS:
             latest_v = history[sid][-1]
-            sig, cov = role_signal(reqs, latest_v)
-            signals[sid] = sig
-            coverages[sid] = cov
-
-        # Apply invariant: |fast| >= |moderate| (same direction).
-        if signals["moderate"] is not None and signals["fast"] is not None:
-            signals["fast"] = enforce_fast_magnitude(signals["moderate"], signals["fast"])
-
-        for sid in SCENARIO_IDS:
-            signal = signals[sid]
-            coverage = coverages[sid]
+            signal, coverage = role_signal(reqs, latest_v)
             if signal is None:
                 continue
             past = [s for s in (role_signal(reqs, v)[0] for v in history[sid]) if s is not None]
             low, high = outlook_range(past or [signal], signal, coverage)
             outlook_val = round(1.0 + clip(signal), 3)
-            # Guarantee low <= outlook_val <= high even after enforce_fast_magnitude may have
-            # pushed the signal beyond the stored historical range.
-            low = min(low, outlook_val)
-            high = max(high, outlook_val)
             outlooks.append(
                 RoleOutlook(
                     role_id=rid,
@@ -200,4 +163,4 @@ def get_outlook(role_id: str | None, snapshot_date: date | None = None) -> Outlo
             )
     if role_id is not None and not outlooks:
         raise NotFoundError(f"No trend coverage for role {role_id}")
-    return OutlookResponse(outlooks=outlooks, meta=_meta(latest, "moderate"))
+    return OutlookResponse(outlooks=outlooks, meta=_meta(latest))

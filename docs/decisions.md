@@ -625,6 +625,17 @@
 - **Replaces**: refines the N1 scale in M1-012
 - **PR / branch**: fix/core-review-regressions (PR #66)
 
+### M1-015: Report each scenario's computed role outlook without a magnitude floor
+- **Date**: 2026-10-31
+- **Feature**: F3 (Scenarios & Uncertainty)
+- **Type**: method | contract
+- **Change**: Remove `enforce_fast_magnitude` and its range adjustment. Each scenario now serves its own importance-weighted signal with the existing growth clip, rounding, historical range and coverage widening. Both scenario comparison endpoints identify `RecommendationMeta.scenario` as `both`; row scenarios remain moderate/fast. The generated client and estimate label support this attribution value while selectable scenario IDs remain unchanged.
+- **Why**: Mixed positive/negative skill velocities can cancel differently under fast adoption. Forcing a larger role aggregate fabricated figures: process-automation-analyst's fast signal is -0.1120267 (index 0.888), previously replaced by moderate's -0.3018917 (index 0.698). A comparison must not be attributed only to moderate. Existing source/retrieval/snapshot dates and fallback metadata are preserved.
+- **Pipeline**: dated F2 snapshots and canonical role requirements → preserve both velocity columns → importance-weighted covered skills and coverage → independent clipped scenario indices and historical uncertainty → computed-signal regressions across all frozen snapshots plus positive/negative/zero/opposite-sign cases → outlook API with both-scenario attribution and translated estimate labels.
+- **Affects**: F3 outlook API, shared recommendation attribution schema/generated client and estimate label; no provider, database or selectable-scenario changes.
+- **Replaces**: M1-009 (magnitude guard and compensating range clamp only)
+- **PR / branch**: fix/matching-interest-and-fast-scenario / Fixes #80
+
 ---
 
 ## M2: Profile Intake & Matching (F1, F4)
@@ -959,6 +970,19 @@
 - **Affects**: matching detail computation only; no schema/source/scoring change
 - **Replaces**: none (implementation follow-up to M2-027; M2-028 reserved by PR #74)
 - **PR / branch**: fix/matching-org-review-fixes / PR #77
+
+### M2-030: Treat declared matching interests as a bonus above neutral
+- **Date**: 2026-10-31
+- **Feature**: F4 (Future-Role Matching & Gap)
+- **Type**: formula | method
+- **Change**: After case-folding and deduplicating both sets, interest fit is `NEUTRAL + (1 - NEUTRAL) × |interests ∩ role_tags| / |interests|`, with existing `NEUTRAL=0.5`. No interests still returns None/not provided and contributes neutral; untagged or unmatched roles stay neutral. Keep production weights 0.45/0.25/0.30 and the existing skill-improvement gain arithmetic; the score explanation describes the new bonus and what raises it.
+- **Why**: A declared matching interest must not lower the score relative to no interests, be diluted by extra role tags, or fail because of case. For a full-skill/neutral-trend synthetic example, one matching interest changes 0.675 → 0.875; case mismatch 0.575 → 0.875; an untagged role 0.575 → 0.725; no interests stays 0.725.
+- **Benchmark annotation**: Replace Aisyah's third label business-analyst with process-automation-analyst: both match two of her three interests, but process automation credits more of her Excel/process-mapping skills (overlap 0.1852 vs 0.1481). Replace Wei Jie's machine-learning-engineer label with software-quality-assurance-testers: QA credits his Python/SQL more strongly (0.3056 vs 0.1149), while AI operations remains the strongest relevance label. These are disclosed synthetic readiness judgments, not observed outcomes. Keep three labels per persona, relevance grades, all metric thresholds, profiles, catalogue tags and scoring weights unchanged. With old labels the corrected formula gives P/R@3=0.7778 and nDCG@3=0.8100; after the justified annotation P/R@3=1.0000, MRR=1.0000, nDCG@3=0.9533 (prior code/prior labels: 1.0000/1.0000/1.0000/0.9766).
+- **Scenario regression**: Interest bonuses change score gaps, so these particular demo profiles need not reorder their top five between scenarios. Replace that incidental rank-flip assertion with a top-five score-change check retaining the 0.005 signal threshold and production sorting; retain the per-profile full-catalogue score-change and synthetic near-tie rank-flip tests. Do not alter velocities to force ranks.
+- **Pipeline**: saved synthetic profiles and canonical role tags/requirements plus paired trend snapshots → fairness whitelist and case-folded unique interests → declared-interest containment → neutral-plus-bonus weighted production ranker → production-path benchmark, saved-profile fairness, API arithmetic and no-interest/case/untagged regressions → matching list/detail, unchanged skill-improvement estimates and web score breakdown.
+- **Affects**: F4 interest component/explanation, synthetic expected-role annotations and scenario regressions; no identity fields, dependencies, matching schema or provider changes.
+- **Replaces**: M2-010 Jaccard interest formula; M2-011 weights remain unchanged
+- **PR / branch**: fix/matching-interest-and-fast-scenario / Fixes #78
 
 
 ---
