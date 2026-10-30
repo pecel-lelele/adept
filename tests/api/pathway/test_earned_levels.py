@@ -472,9 +472,12 @@ def test_team_learning_excludes_other_organisations_and_unshared_personal_credit
         ],
     )
     monkeypatch.setattr(
-        org_service.profile_service,
-        "get_my_profile",
-        lambda _: SimpleNamespace(skills=[], hours_per_week=4, budget_myr=100, hrd_eligible=False),
+        org_service.profile_repository,
+        "get_profiles",
+        lambda ids: {
+            uid: SimpleNamespace(skills=[], hours_per_week=4, budget_myr=100, hrd_eligible=False)
+            for uid in ids
+        },
     )
     for scope, skill in [
         (repository.org_scope(BANK), "sql"),

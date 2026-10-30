@@ -35,6 +35,7 @@ from app.features.pathway import data as pathway_data
 from app.features.pathway import engine
 from app.features.pathway import repository as pathway_repository
 from app.features.pathway import service as pathway_service
+from app.features.profile import repository as profile_repository
 from app.features.profile import service as profile_service
 
 TEAM_DATA_SOURCE = Source(
@@ -221,8 +222,11 @@ def member_learners(org_id: str, only: str | None = None) -> dict[str, engine.Le
     if all(m.skills_shared for m in members):
         scopes.append(pathway_repository.PERSONAL)
     earned = pathway_service.evidenced_levels_many([m.id for m in members], scopes)
+    profiles = profile_repository.get_profiles([m.id for m in members])
     for m in members:
-        profile = profile_service.get_my_profile(m.id)
+        profile = profiles.get(m.id)
+        if profile is None:
+            continue
         out[m.id] = engine.Learner(
             skill_levels=pathway_service.combined_levels(
                 m.id, {s.skill_id: s.level for s in profile.skills}, earned[m.id]
@@ -285,7 +289,9 @@ def member_plans(
 
 
 def get_gaps(user: CurrentUser, scenario: ScenarioId) -> GapHeatmapResponse:
-    members = member_learners(_require_manager(user))
+    org_id = _require_manager(user)
+    members = member_learners(org_id)
+    observed = profile_repository.observed_on(list(members), org_id)
     labels = pathway_data.skill_labels()
     roles = pathway_data.target_role_ids()
     computed = pathway_service.team_gaps(members, roles)
@@ -308,8 +314,19 @@ def get_gaps(user: CurrentUser, scenario: ScenarioId) -> GapHeatmapResponse:
             # Same average as _team_gap_by_role, so the page ranks roles like the backend.
             "role_gaps": {r: round(sum(v) / len(v), 4) if v else 0.0 for r, v in required.items()},
             "meta": RecommendationMeta(
-                sources=[TEAM_DATA_SOURCE],
-                snapshot_date=TEAM_DATA_SOURCE.retrieved_at,
+                sources=[TEAM_DATA_SOURCE]
+                + (
+                    [
+                        Source(
+                            name="Consenting member learning records",
+                            url="https://github.com/pecel-lelele/adept/blob/main/src/api/app/features/org/service.py",
+                            retrieved_at=observed,
+                        )
+                    ]
+                    if observed
+                    else []
+                ),
+                snapshot_date=observed or TEAM_DATA_SOURCE.retrieved_at,
                 scenario=scenario,
                 is_estimate=False,
             ),
