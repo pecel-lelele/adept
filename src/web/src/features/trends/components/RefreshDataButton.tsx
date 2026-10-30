@@ -51,6 +51,17 @@ export function RefreshProgressView({ state, onRefresh }: { state: RefreshView; 
           <p className="a-small a-muted">{t("keepShowing", { date: day })}</p>
         </div>
       ) : null}
+      {(state.phase === "done" || state.phase === "failed") && state.run?.steps?.length ? (
+        // Partial success stays visible: each source reports its own terminal result.
+        <ol className="a-refresh-steps a-small" data-refresh-result="per-source">
+          {state.run.steps.map((step) => (
+            <li key={step.source} data-status={step.status}>
+              <strong>{t(`sources.${step.source}`)}</strong>
+              <span>{t(`states.${step.status}`)}</span>
+            </li>
+          ))}
+        </ol>
+      ) : null}
     </section>
   );
 }

@@ -38,7 +38,10 @@ optional and were not provisioned as part of this change.
   request. The under-one-second target assumes a warm app/database; cold starts can exceed it.
 - Both return 202 and a UUID for queued/running work, 200 for up-to-date/cooldown. An existing
   run is shared across users and app instances. Only `ADMIN_USER_IDS` may request a cooldown
-  bypass. `TRENDS_REFRESH_COOLDOWN_MINUTES=10`; per-user check limit is 6/minute.
+  bypass. `TRENDS_REFRESH_COOLDOWN_MINUTES=10`; per-user check limit is 6/minute. After a failed
+  trends step, signed-in non-admin checks skip the paid MiniLM step for
+  `TRENDS_FAILURE_BACKOFF_MINUTES=60` (other due sources still run; admins and the scheduler are
+  exempt). See TEAM-045.
 - `GET /api/v1/data/refresh/status/{run_id}`: signed-in user or scheduler token, 120/minute.
   `GET /api/v1/data/refresh/recent`: admin only, last five parent runs plus next scheduled time.
 - `GET /api/v1/data/freshness`: public, reads saved data only. Separates measured dates,

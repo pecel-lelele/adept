@@ -3074,6 +3074,18 @@ export interface components {
              */
             first_seen: string;
             /**
+             * Last Seen
+             * Format: date
+             * @description Last day a source read still listed the ad.
+             */
+            last_seen: string;
+            /**
+             * Is Stale
+             * @description Not re-seen by a source read in the last 14 days; it may have closed. Shown labelled, never counted as open.
+             * @default false
+             */
+            is_stale: boolean;
+            /**
              * Role Method
              * @description How the opening was matched to the role: its job title, or its skills.
              * @enum {string}

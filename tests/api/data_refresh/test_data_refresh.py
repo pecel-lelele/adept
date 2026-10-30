@@ -562,6 +562,12 @@ def test_freshness_dates_come_from_stored_data_not_the_clock(
     assert items["jobs"]["last_fetched_at"] == STORED_ON.isoformat()
     assert items["courses"]["served_from"] == "database"
     assert items["courses"]["rows"] == 1
+    assert items["jobs"]["is_stale"] is False
+    # Job ads last read beyond the serving window are flagged stale, not shown as current.
+    store.jobs = [{"last_seen": date(2026, 2, 1).isoformat()}]
+    items = {s["source"]: s for s in client.get("/api/v1/data/freshness").json()["sources"]}
+    assert items["jobs"]["is_stale"] is True
+    assert items["courses"]["is_stale"] is False
 
 
 def test_freshness_falls_back_to_the_dated_seed(client: TestClient, store: FakeStore) -> None:

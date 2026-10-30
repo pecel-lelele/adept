@@ -73,6 +73,7 @@
     "pickRole": "Pilih peranan untuk melihat kemahiran yang sudah anda miliki bagi setiap kerja."
   },
   "toLearn": "Perlu dipelajari: {skills}",
+  "stale": "Tidak dilihat dalam bacaan sumber sejak {date}; iklan ini mungkin sudah ditutup.",
   "match": {
     "label": "Padanan kemahiran",
     "today": "Hari ini",

@@ -49,6 +49,18 @@ for (const locale of ["en", "ms", "zh"]) {
     assert.doesNotMatch(failed, /disabled/);
     assert.ok(render("cooldown", { retryAt: new Date(Date.now() + 420000).toISOString() }, locale).includes(t("cooldown", { minutes: "7" })));
     assert.ok(render("running", { run: { ...run, shared: true } }, locale).includes(t("shared")));
+    // Partial success (trends done, jobs failed) shows each source's terminal result.
+    const partial = {
+      ...run,
+      status: "failed",
+      steps: [{ source: "trends", status: "done", rows: 3 }, { source: "jobs", status: "failed", rows: 0 }],
+    };
+    const terminal = render("failed", { run: partial }, locale);
+    assert.match(terminal, /data-refresh-result="per-source"/);
+    assert.match(terminal, /data-status="done"/);
+    assert.match(terminal, /data-status="failed"/);
+    assert.ok(terminal.includes(t("sources.trends")) && terminal.includes(t("sources.jobs")));
+    assert.doesNotMatch(render("done", {}, locale), /per-source/);
   });
 }
 

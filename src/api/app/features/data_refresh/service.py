@@ -48,6 +48,7 @@ from app.core.config import Settings
 from app.core.errors import AppError
 from app.core.logging import get_logger
 from app.features.data_refresh import repository
+from app.features.jobs import repository as jobs_repository
 
 log = get_logger("app.data_refresh")
 
@@ -724,13 +725,17 @@ def freshness() -> DataFreshnessResponse:
                     "last_success": successes.get(source),
                     "last_checked_at": runs[source].finished_at if source in runs else None,
                     "age_days": age,
-                    "is_stale": source == "trends"
-                    and (
-                        item.is_fallback
-                        or item.is_historical_replay
-                        or age is None
-                        or age > RefreshSettings().trends_stale_days
-                    ),
+                    "is_stale": (
+                        source == "trends"
+                        and (
+                            item.is_fallback
+                            or item.is_historical_replay
+                            or age is None
+                            or age > RefreshSettings().trends_stale_days
+                        )
+                    )
+                    # Job ads not re-read within the serving window are labelled, not hidden.
+                    or (source == "jobs" and (age is None or age > jobs_repository.FRESH_DAYS)),
                 }
             )
         )

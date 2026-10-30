@@ -9730,6 +9730,18 @@
             "format": "date",
             "title": "First Seen"
           },
+          "last_seen": {
+            "type": "string",
+            "format": "date",
+            "title": "Last Seen",
+            "description": "Last day a source read still listed the ad."
+          },
+          "is_stale": {
+            "type": "boolean",
+            "title": "Is Stale",
+            "description": "Not re-seen by a source read in the last 14 days; it may have closed. Shown labelled, never counted as open.",
+            "default": false
+          },
           "role_method": {
             "type": "string",
             "enum": [
@@ -9794,6 +9806,7 @@
           "url",
           "source_name",
           "first_seen",
+          "last_seen",
           "role_method",
           "skills"
         ],

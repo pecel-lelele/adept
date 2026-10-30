@@ -490,6 +490,17 @@
 - **Replaces**: none (narrows TEAM-043's zero-row handling to match serving behaviour)
 - **PR / branch**: feat/core-automatic-data-refresh / PR #75
 
+### TEAM-045: Combine explicit replay provenance with automatic refresh and date static artifacts by content
+- **Date**: 2026-10-31
+- **Feature**: F2 and Core (data refresh)
+- **Type**: schema
+- **Change**: Integrates PR #73 (explicit `is_replay`, observation window, `retrieved_at`/basis/evidence columns on raw signals, snapshots and snapshot metadata; validator; per-date advisory lock; live/replay origin guard; replay rows excluded from live scoring) with PR #75 (in-app background refresh and measured inputs). Automatic measured publications are stored as live: observation window = measured ISO week, `retrieved_at` = real fetch day, basis `pipeline_fetch`, evidence = arXiv query, windows and a SHA-256 of the sampled paper IDs. Freshness uses the stored `is_replay` (the 60-day heuristic only for unclassified legacy rows) and counts only `pipeline_fetch`/`fetch_log` sources as "last fetched". Git-commit retrieval fallbacks now follow renames and skip pure moves, so the BLS baseline dates from its content commit 750fa30 (2026-10-20) and the replay fixtures from data commit 8005c5f (2026-10-20), not the 8a5a460 re-layout move (2026-10-24); the BLS sidecar is read at runtime without Git. The provenance migration is renamed to `20261031120000` (after #75's migrations) and uses a portable unique constraint plus a partial unique index instead of PostgreSQL 15+ `UNIQUE NULLS NOT DISTINCT`. After a failed trends step, signed-in non-admin refresh checks skip the paid MiniLM step for `TRENDS_FAILURE_BACKOFF_MINUTES` (default 60); administrators and the scheduler are exempt.
+- **Why**: A move or metadata commit is not an acquisition; dating an artifact by it overstated freshness by four days. Live refresh rows must satisfy #73's live-classification constraint, and a user-visible refresh button must not repeatedly bill a failing paid step. Production PostgreSQL version is unconfirmed, so the migration stays portable.
+- **Pipeline**: arXiv submission API (bounded weekly samples) → existing MiniLM/score/validate → provenance validator (live: fetch basis + evidence) → fenced atomic publish with advisory lock and origin guard → disposable-DB migrate up/down/up, provenance/refresh/backoff regressions → dated freshness and trend metadata
+- **Affects**: trend snapshot schema and seed fixtures, data refresh service/jobs/router, settings and `.env.example`, freshness API
+- **Replaces**: none (extends TEAM-042/TEAM-043 and M1-015)
+- **PR / branch**: integ/refresh-provenance (PR #73 + PR #75)
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)
@@ -2362,3 +2373,13 @@
 - **Affects**: org contracts, settings/env example, shared heatmap and en/ms/zh views; no migration
 - **Replaces**: none (M4-087 is reserved by refresh PR #75)
 - **PR / branch**: fix/matching-org-review-fixes
+
+### M4-089: Label stale job ads instead of letting them vanish
+- **Date**: 2026-10-31
+- **Feature**: Core (jobs board), F4 role openings
+- **Type**: contract
+- **Change**: Job ads not re-seen by a source read within 14 days are no longer dropped silently from listings: the board and role openings list them last with `is_stale` and `last_seen`, and a translated "may have closed" note. Open counts, readiness and matching still use only fresh ads. Data freshness flags jobs as stale when the last read is older than the serving window.
+- **Why**: When automatic reads stop, the board would otherwise empty without explanation; showing an old ad as current would be fake freshness. Labelled, uncounted ads are honest about both.
+- **Affects**: jobs contract (`JobOpening.last_seen`, `is_stale`), jobs service/repository, OpeningItem and en/ms/zh messages, data freshness
+- **Replaces**: none (keeps M4-087's 14-day rule for counts)
+- **PR / branch**: integ/refresh-provenance

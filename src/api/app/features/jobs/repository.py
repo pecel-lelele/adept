@@ -11,6 +11,7 @@ from app.core import refdata, seed
 from app.core.seed import pg_array
 
 FETCH_LOG = seed.SEED_DIR / "jobs" / "fetch_log.json"
+FRESH_DAYS = 14  # an ad not re-seen within this many days may have closed (M4-087)
 
 
 @dataclass(frozen=True)
@@ -35,6 +36,8 @@ class Posting:
     role_method: str
     skill_ids: tuple[str, ...]
     cert_ids: tuple[str, ...]
+    # Not re-seen by a source read within FRESH_DAYS: shown only with a staleness label.
+    stale: bool = False
 
 
 @dataclass(frozen=True)
@@ -59,9 +62,11 @@ def _day(value: str) -> date | None:
     return date.fromisoformat(value[:10]) if value else None
 
 
-def openings() -> list[Posting]:
+def openings(*, include_stale: bool = False) -> list[Posting]:
     """Active openings, newest listing first. Expired ones are excluded even before the next
-    pipeline run closes them."""
+    pipeline run closes them. Ads not re-seen within FRESH_DAYS are excluded from counts and
+    matching; ``include_stale`` returns them too, flagged ``stale`` so listings can label
+    them instead of letting them silently vanish."""
     from pipelines.jobs.sources import in_malaysia
 
     today = date.today()
@@ -77,7 +82,8 @@ def openings() -> list[Posting]:
             continue
         first = _day(r["first_seen"]) or today
         last = _day(r["last_seen"]) or first
-        if last < today - timedelta(days=14):
+        stale = last < today - timedelta(days=FRESH_DAYS)
+        if stale and not include_stale:
             continue
         out.append(
             Posting(
@@ -101,9 +107,11 @@ def openings() -> list[Posting]:
                 role_method=r.get("role_method", ""),
                 skill_ids=tuple(pg_array(r.get("skill_ids") or "{}")),
                 cert_ids=tuple(pg_array(r.get("cert_ids") or "{}")),
+                stale=stale,
             )
         )
-    out.sort(key=lambda p: (p.posted_at or p.first_seen, p.id), reverse=True)
+    # Fresh ads first (newest listing first), then stale ones.
+    out.sort(key=lambda p: (not p.stale, p.posted_at or p.first_seen, p.id), reverse=True)
     return out
 
 
