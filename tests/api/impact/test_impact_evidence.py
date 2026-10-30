@@ -1,6 +1,7 @@
 """Impact evidence: every displayed number must be derived from data, never typed in."""
 
 import ast
+import json
 from datetime import date
 from pathlib import Path
 
@@ -8,6 +9,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.contracts.common import RecommendationMeta
+from app.contracts.impact import EvidenceItem
 from app.features.impact import service
 from app.features.matching import repository as matching_repository
 from app.features.matching.scoring import MatchProfile
@@ -112,12 +114,33 @@ def test_public_evidence_items_are_complete_and_sourced(client: TestClient) -> N
         assert e["url"].startswith("https://") and e["publisher"] and e["quote"].strip()
         assert date.fromisoformat(e["retrieved_at"])
         assert len(e["quote"].split()) <= 15
-        assert e["figure"].rstrip("%").replace(",", "") in e["quote"].replace(",", "") or e["claim"]
+        EvidenceItem.model_validate(e)  # numeric support/value/publication-date gate
     ids = [e["id"] for e in items]
     assert len(ids) == len(set(ids))
     assert {s["url"] for s in client.get(URL).json()["meta"]["sources"]} >= {
         e["url"] for e in items
     }
+
+
+def test_unrelated_figure_is_rejected_even_with_a_nonempty_claim() -> None:
+    record = service.public_evidence()[0].model_dump()
+    record.update(figure="123,456", value=123456)
+    with pytest.raises(ValueError, match="quotation or claim"):
+        EvidenceItem.model_validate(record)
+
+
+def test_api_image_packages_the_synthetic_profile_input(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = SERVICE_FILE.parents[5]
+    dockerfile = (root / "src/docker/api.Dockerfile").read_text()
+    assert "COPY docs/demo-cvs/profiles.json docs/demo-cvs/profiles.json" in dockerfile
+    packaged = tmp_path / "docs/demo-cvs/profiles.json"
+    packaged.parent.mkdir(parents=True)
+    packaged.write_text((root / "docs/demo-cvs/profiles.json").read_text())
+    monkeypatch.setattr(service, "DEMO_PROFILES", packaged)
+    assert len(service.load_personas()) == len(json.loads(packaged.read_text()))
+    assert service.load_personas(), "packaged impact evidence must not lose all personas"
 
 
 def test_service_never_reads_the_clock() -> None:

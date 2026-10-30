@@ -24,7 +24,7 @@
   "sdg": {
     "label": "SDG targets per pathway",
     "note": "Distinct UN SDG targets the path's skills contribute to (median).",
-    "formula": "Distinct targets on the pathway steps, from the reviewed skill-to-target mapping."
+    "formula": "Distinct targets on the pathway steps, from draft skill-to-target mappings pending human review."
   },
   "scenario": {
     "label": "Roles that change with the scenario",
@@ -79,6 +79,6 @@
   "catalogueSdg": {
     "label": "SDG targets linked",
     "note": "{links} role-to-target links · {targets} target roles.",
-    "formula": "Distinct official targets resolved through the reviewed role and skill mappings; alignment is not a measured development outcome."
+    "formula": "Distinct official targets resolved through draft role and skill mappings pending human review; alignment is not a measured development outcome."
   }
 }

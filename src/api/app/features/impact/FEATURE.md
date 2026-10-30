@@ -25,3 +25,9 @@ counterfactual regressions → dated public page and `src/scripts/impact_evidenc
 
 The report is generated from the same service as the API. Run with explicit fixture/provider
 settings for local review; do not infer production verification from this static report.
+
+The API image explicitly copies the required synthetic `docs/demo-cvs/profiles.json`; it does
+not need or copy CV documents for this feature. Evidence models reject unrelated displayed
+figures and invalid publication/retrieval ordering. Both SDG formulas disclose draft mappings
+pending human review, consistent with the stored mapping status. These checks supplement
+manual source verification; numeric co-occurrence alone cannot prove a claim is true.

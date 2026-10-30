@@ -24,7 +24,7 @@
   "sdg": {
     "label": "Sasaran SDG bagi setiap laluan",
     "note": "Sasaran SDG PBB berbeza yang disumbang kemahiran laluan (median).",
-    "formula": "Sasaran berbeza pada langkah laluan, daripada pemetaan kemahiran-ke-sasaran yang disemak."
+    "formula": "Sasaran berbeza pada langkah laluan, daripada draf pemetaan kemahiran-ke-sasaran yang menunggu semakan manusia."
   },
   "scenario": {
     "label": "Peranan yang berubah mengikut senario",
@@ -79,6 +79,6 @@
   "catalogueSdg": {
     "label": "Sasaran SDG dipautkan",
     "note": "{links} pautan peranan-ke-sasaran · {targets} peranan sasaran.",
-    "formula": "Sasaran rasmi berbeza daripada pemetaan peranan dan kemahiran yang disemak; penjajaran bukan hasil pembangunan yang diukur."
+    "formula": "Sasaran rasmi berbeza daripada draf pemetaan peranan dan kemahiran yang menunggu semakan manusia; penjajaran bukan hasil pembangunan yang diukur."
   }
 }

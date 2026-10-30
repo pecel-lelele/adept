@@ -1,8 +1,10 @@
 """F8 impact evidence: system measurements computed live on synthetic personas."""
 
+import re
 from datetime import date
+from decimal import Decimal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from app.contracts.common import RecommendationMeta, ScenarioId
 from app.contracts.labour import MalaysiaLabourContext
@@ -98,6 +100,22 @@ class EvidenceItem(BaseModel):
     retrieved_at: date
     published_at: date | None = None
     feature: str = Field(description="Key of the Adept feature that addresses it.")
+
+    @model_validator(mode="after")
+    def figure_matches_support(self) -> "EvidenceItem":
+        def numbers(text: str) -> set[Decimal]:
+            return {
+                Decimal(part.replace(",", "")) for part in re.findall(r"-?\d[\d,]*(?:\.\d+)?", text)
+            }
+
+        figure = numbers(self.figure)
+        if len(figure) != 1 or Decimal(str(self.value)) not in figure:
+            raise ValueError("Evidence value must match its displayed figure")
+        if not figure <= numbers(self.quote + " " + self.claim):
+            raise ValueError("Evidence figure must occur in its quotation or claim")
+        if self.published_at and self.published_at > self.retrieved_at:
+            raise ValueError("Publication cannot follow retrieval")
+        return self
 
 
 class ImpactSummary(BaseModel):

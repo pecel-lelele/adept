@@ -332,10 +332,7 @@ def _meta(snap: TrendSnapshot, evidence: Sequence[EvidenceItem]) -> Recommendati
             retrieved_at=date.fromisoformat("2026-10-30"),  # files inspected for this entry
         ),
     ]
-    sources += [
-        Source(name=f"{e.publisher}: {e.title}", url=e.url, retrieved_at=e.retrieved_at)
-        for e in evidence
-    ]
+    sources += [Source(name=e.publisher, url=e.url, retrieved_at=e.retrieved_at) for e in evidence]
     unique = {(x.name, x.url): x for x in sources}
     return RecommendationMeta(
         sources=list(unique.values()),
