@@ -195,7 +195,7 @@ def main() -> None:
         "Structural checks are not independent human plan-validity review.",
         "records": records,
     }
-    output = ROOT / "docs/kpi-automated-journeys.json"
+    output = ROOT / "docs/evidence/kpi-automated-journeys.json"
     output.write_text(json.dumps(result, indent=2, allow_nan=False) + "\n", "utf-8")
     rows = []
     for profile in profiles:
@@ -232,7 +232,7 @@ def main() -> None:
             "",
         ]
     )
-    (ROOT / "docs/kpi-automated-journeys.md").write_text(report, "utf-8")
+    (ROOT / "docs/evidence/kpi-automated-journeys.md").write_text(report, "utf-8")
     completed = sum(r["status"] == "completed" for r in records)
     print(f"Recorded {len(records)} isolated journeys; {completed} completed")
 

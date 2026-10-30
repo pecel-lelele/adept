@@ -1,26 +1,44 @@
 # Documentation
 
-Use these maintained guides rather than historical PR reports.
+New here? Read the [project README](../README.md) first, then [architecture](architecture.md).
+
+## Understand the product
 
 | Guide | Purpose |
 |---|---|
-| [Project README](../README.md) | Product behaviour, setup, configuration and checks |
 | [Project context](project-context.md) | Competition brief, users and scope |
 | [Solution design](solution-design.md) | Product approach and user journeys |
 | [Architecture](architecture.md) | Services, data flow and workspace boundaries |
-| [Tasks](tasks.md) | Feature ownership and task scope |
+| [Skill exposure methodology](skill-exposure-methodology.md) | How trend coefficients are computed and read |
+| [Diagrams](diagrams/index.html) | System diagrams (open in a browser) |
+
+## Work on the code
+
+| Guide | Purpose |
+|---|---|
+| [Tasks](tasks.md) | Feature areas and scope |
 | [Team rules](team-rules.md) | Collaboration and engineering agreements |
 | [Decisions](decisions.md) | Append-only record of methods, data and implementation choices |
-| [Skill exposure methodology](skill-exposure-methodology.md) | Trend coefficient interpretation and evidence |
-| [Submission proposal](submission-proposal.md) | Working proposal; team review and private fields remain pending |
-| [Technical declaration](submission-technical-declaration.md) | Working technology/AI declaration; unsigned |
-| [Submission deliverables](submission-deliverables.md) | Final deliverable checklist |
 
-Feature-local `FEATURE.md` files document their current API, implementation and method.
-Run results belong in PR descriptions and CI; old one-off validation and handoff reports
-are recoverable from Git history. Existing decisions are retained as written, so historical
-entries may mention a document's former name.
+Each feature also has a `FEATURE.md` next to its code describing its API and method.
 
-Use lowercase kebab-case for descriptive Markdown filenames. Keep conventional entrypoints
-`README.md`, `AGENTS.md`, `CLAUDE.md`, `GEMINI.md` and `FEATURE.md` so repository and agent
-navigation continues to work. Use repository-relative links; avoid developer-specific paths.
+## Run and deploy
+
+| Guide | Purpose |
+|---|---|
+| [Replit deployment](replit-deployment.md) | Production deployment and configuration |
+| [Replit proxy verification](replit-proxy-verification.md) | Checking the trusted-proxy setup |
+| [Review runbook](review-runbook.md) | Data refresh and demo preparation |
+| [Demo script](demo-script.md) | Live demo walkthrough |
+
+## Folders
+
+| Folder | Contents |
+|---|---|
+| [demo-cvs/](demo-cvs/README.md) | Synthetic demo CVs and their profiles (read by the app and tests) |
+| [reference/](reference/critical-occupations.md) | Malaysia critical-occupations reference list (read by matching) |
+| [evidence/](evidence/) | Generated measurements: KPI timings, impact evidence, CV flow test |
+| [submission/](submission/) | Hackathon report, technical declaration and checklists |
+
+Run results belong in PR descriptions and CI; old one-off reports are in Git history.
+Use lowercase kebab-case filenames and repository-relative links.

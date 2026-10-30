@@ -46,18 +46,18 @@ publication require their own verification.
 
 <!-- answer:end technical-2.1 -->
 
-**Diagram appendix:** [current system block diagram](submission-proposal.md#31-conceptual-tech-stack),
-[full Mermaid collection](../README.md#diagrams), and the
-[offline pan-and-zoom viewer](diagrams/index.html). Diagram relationships are traced to routers,
+**Diagram appendix:** [current system block diagram](submission-proposal.md#31-final-system-architecture),
+[full Mermaid collection](../../README.md#diagrams), and the
+[offline pan-and-zoom viewer](../diagrams/index.html). Diagram relationships are traced to routers,
 the root launcher, Next.js routes, FastAPI routers and migrations. Schema excerpts distinguish enforced foreign keys from logical joins.
 
 ### 2.2 Languages, frameworks and libraries
 
 Versions below describe the reviewed source/lockfiles, not every deployed environment.
-The authoritative inputs are [web package](../src/web/package.json), [pnpm lock](../pnpm-lock.yaml),
-[Python project](../pyproject.toml), [uv lock](../uv.lock), and
-[worker requirements](../src/pipelines/trends/runpod/requirements.txt). Runtime fallback
-requirements remain in [requirements.txt](../requirements.txt). Full transitive notices must
+The authoritative inputs are [web package](../../src/web/package.json), [pnpm lock](../../pnpm-lock.yaml),
+[Python project](../../pyproject.toml), [uv lock](../../uv.lock), and
+[worker requirements](../../src/pipelines/trends/runpod/requirements.txt). Runtime fallback
+requirements remain in [requirements.txt](../../requirements.txt). Full transitive notices must
 be retained with distribution.
 
 | Name & Version | Purpose in Project | License |
@@ -101,7 +101,7 @@ Docker Desktop/Engine and Compose are local development tools under their applic
 distribution terms; they are not a cloud host. This draft does not assert that every transitive
 licence obligation has been discharged. Review [PyMuPDF's licensing statement](https://pymupdf.readthedocs.io/en/latest/about.html#license-and-copyright)
 and upstream notices before signing the final compliance checklist. Adept's own repository
-licence is [Apache-2.0](../LICENSE); that does not replace dependency licences.
+licence is [Apache-2.0](../../LICENSE); that does not replace dependency licences.
 
 ## 3. APIs and cloud services
 
@@ -175,8 +175,8 @@ publication; ingestion audit/raw data may already have been written.
 
 This is a semantic encoder plus heuristics, not a trained predictor of actual job vacancies.
 The fast-scenario range is not a calibrated statistical confidence interval. See
-[scoring](../src/pipelines/trends/score.py), [publication](../src/pipelines/trends/run.py),
-and [exposure methodology](skill-exposure-methodology.md).
+[scoring](../../src/pipelines/trends/score.py), [publication](../../src/pipelines/trends/run.py),
+and [exposure methodology](../skill-exposure-methodology.md).
 
 ### 4.2 Datasets
 
@@ -185,20 +185,20 @@ of every deployed database. No model was fine-tuned on these fixtures.
 
 | Dataset Name | Source / URL | Type (public / private / self-collected / synthetic) | License | Personal Data? (Y/N) |
 |---|---|---|---|---|
-| Custom skill and role catalogue (140 skills, 31 roles, 28 targets) | [Taxonomy seed](../src/data/seed/taxonomy/) | Team-curated / synthetic | Team curation; upstream references retained; not a complete O*NET/ESCO import | No |
-| O*NET 31.0 occupation crosswalk | [O*NET](https://www.onetcenter.org/), [curated provenance](../src/data/seed/taxonomy/provenance.json) | Public-derived / curated | CC BY 4.0 with stated exceptions; credit and modifications required | No |
-| arXiv cs.AI research signal | [RSS ingest](../src/pipelines/trends/arxiv_ingest.py) and cached windows | Public | arXiv terms; metadata and paper content have different rights; no blanket CC0 claim | No learner data; raw feed metadata may contain public author names |
-| BLS 2023–2033 labour baseline | [Committed extract](../src/data/seed/labor_decay.csv), [BLS](https://www.bls.gov/emp/tables/occupational-projections-and-characteristics.htm) | Public / team-derived | US government data, cite BLS; US baseline, not a Malaysian vacancy forecast | No |
-| Canonical skill exposure and historical snapshots | [Seed data and fixtures](../src/data/seed/), [methodology](skill-exposure-methodology.md) | Curated / public-derived | Reviewer-assigned exposure estimates, not probabilities; demo snapshots replay October 2024 research windows | No |
-| 17 SDG goals and 169 targets | [UN SDG API](https://unstats.un.org/SDGAPI/v1/sdg/Goal/List), [seed](../src/data/seed/sdg/) | Public | UN data terms and attribution | No |
-| 61 role-target and 165 skill-target links | [Mapping seed](../src/data/seed/sdg/) | Team-curated | Draft team interpretations with cited evidence; no UN endorsement | No |
-| Course records (98) and prerequisite graph | [Catalogue sources](../src/api/app/features/pathway/catalogue_sources.py), [seed](../src/data/seed/courses/) | Public facts / curated | Providers retain their terms; prices and HRD Corp notes are dated estimates | No |
-| Job-posting extract (1,210 records, committed 23 October 2026) | [Public job boards and employer endpoints](../src/data/seed/jobs/job_postings.csv) | Public / curated | Each board's terms; public access is not an open-data licence; counts do not guarantee current availability | No learner data; postings may name public employers |
-| Certification and exam-pricing extract (14 exams) | [Microsoft, AWS, Google Cloud, IIBA and IAPP sources](../src/data/seed/jobs/certifications.csv) | Public / curated | Issuer site terms; dated prices | No |
+| Custom skill and role catalogue (140 skills, 31 roles, 28 targets) | [Taxonomy seed](../../src/data/seed/taxonomy/) | Team-curated / synthetic | Team curation; upstream references retained; not a complete O*NET/ESCO import | No |
+| O*NET 31.0 occupation crosswalk | [O*NET](https://www.onetcenter.org/), [curated provenance](../../src/data/seed/taxonomy/provenance.json) | Public-derived / curated | CC BY 4.0 with stated exceptions; credit and modifications required | No |
+| arXiv cs.AI research signal | [RSS ingest](../../src/pipelines/trends/arxiv_ingest.py) and cached windows | Public | arXiv terms; metadata and paper content have different rights; no blanket CC0 claim | No learner data; raw feed metadata may contain public author names |
+| BLS 2023–2033 labour baseline | [Committed extract](../../src/data/seed/labor_decay.csv), [BLS](https://www.bls.gov/emp/tables/occupational-projections-and-characteristics.htm) | Public / team-derived | US government data, cite BLS; US baseline, not a Malaysian vacancy forecast | No |
+| Canonical skill exposure and historical snapshots | [Seed data and fixtures](../../src/data/seed/), [methodology](../skill-exposure-methodology.md) | Curated / public-derived | Reviewer-assigned exposure estimates, not probabilities; demo snapshots replay October 2024 research windows | No |
+| 17 SDG goals and 169 targets | [UN SDG API](https://unstats.un.org/SDGAPI/v1/sdg/Goal/List), [seed](../../src/data/seed/sdg/) | Public | UN data terms and attribution | No |
+| 61 role-target and 165 skill-target links | [Mapping seed](../../src/data/seed/sdg/) | Team-curated | Draft team interpretations with cited evidence; no UN endorsement | No |
+| Course records (98) and prerequisite graph | [Catalogue sources](../../src/api/app/features/pathway/catalogue_sources.py), [seed](../../src/data/seed/courses/) | Public facts / curated | Providers retain their terms; prices and HRD Corp notes are dated estimates | No |
+| Job-posting extract (1,210 records, committed 23 October 2026) | [Public job boards and employer endpoints](../../src/data/seed/jobs/job_postings.csv) | Public / curated | Each board's terms; public access is not an open-data licence; counts do not guarantee current availability | No learner data; postings may name public employers |
+| Certification and exam-pricing extract (14 exams) | [Microsoft, AWS, Google Cloud, IIBA and IAPP sources](../../src/data/seed/jobs/certifications.csv) | Public / curated | Issuer site terms; dated prices | No |
 | Exchange rates | [BNM OpenAPI](https://api.bnm.gov.my/) | Public | BNM terms and attribution | No |
-| Synthetic personas, organisations, regions and CVs | [Five selected demo CVs/profiles](demo-cvs/), [regression fixtures](../tests/api/profile/fixtures/cvs/), [seeds](../src/data/seed/personas/) | Synthetic | Team-created evaluation/test data. Selected CVs: Imran, Sofia, Meera, Adrian and Nur Hana; additional intake settings are editable demo assumptions, not extracted qualifications. | No real identities |
+| Synthetic personas, organisations, regions and CVs | [Five selected demo CVs/profiles](../demo-cvs/), [regression fixtures](../../tests/api/profile/fixtures/cvs/), [seeds](../../src/data/seed/personas/) | Synthetic | Team-created evaluation/test data. Selected CVs: Imran, Sofia, Meera, Adrian and Nur Hana; additional intake settings are editable demo assumptions, not extracted qualifications. | No real identities |
 | OpenDOSM monthly Labour Force Survey | [Official catalogue](https://open.dosm.gov.my/data-catalogue/lfs_month) | Public national aggregates | CC BY 4.0; retain DOSM attribution; monthly observation dates differ from retrieval dates | No |
-| MyCOL 2024/2025 occupation groups and reviewed role crosswalk | [TalentCorp source and mapping evidence](reference/critical-occupations.md) | Public-derived / curated | TalentCorp publication terms; no open-data licence inferred. 66 source groups, one reviewed stored role-ID mapping; historical badge only, no ranking effect | No |
+| MyCOL 2024/2025 occupation groups and reviewed role crosswalk | [TalentCorp source and mapping evidence](../reference/critical-occupations.md) | Public-derived / curated | TalentCorp publication terms; no open-data licence inferred. 66 source groups, one reviewed stored role-ID mapping; historical badge only, no ranking effect | No |
 
 ### 4.3 AI-assisted development tools
 
@@ -252,7 +252,7 @@ These tools are used for presentation production, not career recommendations in 
 | [ElevenLabs](https://elevenlabs.io/) | Demo/walkthrough video voiceover narration only (`submission/demo-video`) | The team confirmed use on 30 October 2026. Team recorded use strictly for demo video audio production with stock voice `21m00Tcm4TlvDq8ikWAM` (Rachel); no voice cloning; not integrated into or used by the Adept web application or recommendation runtime. |
 
 The demo's statistical context and dates are listed in the
-[demo evidence register](demo-script.md#evidence-register). WEF forecasts are global estimates;
+[demo evidence register](../demo-script.md#evidence-register). WEF forecasts are global estimates;
 the Malaysian figure is a conditional ministerial warning, not observed job losses caused by AI.
 MiniLM is already declared in section 4.1; public job feeds, BNM rates and the O*NET crosswalk
 are declared in section 4.2. Workday career-site connectors use an undocumented public-facing
@@ -352,12 +352,12 @@ accuracy declaration. A repository-generated draft cannot attest on the leader's
 
 ## Implementation references
 
-[Compose](../docker-compose.yml) · [requirements](../requirements.txt) ·
-[web manifest](../src/web/package.json) · [auth](../src/api/app/core/auth.py) ·
-[LLM providers and failover](../src/api/app/core/llm/provider.py) ·
-[trend workflow](../.github/workflows/trends-refresh.yml) ·
-[source audit](../.github/workflows/data-sources.yml) ·
-[catalogue sources](../src/api/app/features/pathway/catalogue_sources.py).
+[Compose](../../docker-compose.yml) · [requirements](../../requirements.txt) ·
+[web manifest](../../src/web/package.json) · [auth](../../src/api/app/core/auth.py) ·
+[LLM providers and failover](../../src/api/app/core/llm/provider.py) ·
+[trend workflow](../../.github/workflows/trends-refresh.yml) ·
+[source audit](../../.github/workflows/data-sources.yml) ·
+[catalogue sources](../../src/api/app/features/pathway/catalogue_sources.py).
 
 ## Final-round evidence update - 30 October 2026
 
@@ -371,6 +371,6 @@ audio tooling, not an Adept runtime model. See section 4.4 for the team's stock-
 
 Human planning-time KPI: **0 testers, 0 measured human trials**, as confirmed by the
 team on 30 October 2026. No achieved planning-time reduction is claimed. Automated
-local API measurements are reported separately in `docs/kpi-automated-journeys.md`;
+local API measurements are reported separately in `docs/evidence/kpi-automated-journeys.md`;
 they exclude human review, browser interaction, network and a manual baseline.
 This remains an unsigned draft, with private team fields reserved for completion.

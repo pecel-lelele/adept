@@ -86,7 +86,7 @@ A new user gets from profile to ranked future roles and an actionable pathway **
 
 ## 10. Judging context
 
-For final-round preparation, use the [current evidence checklist](rubric-check.md).
+For final-round preparation, use the [current evidence checklist](submission/rubric-check.md).
 The supplied Domain 1 Finalist Guide provides six criteria (25/25/20/15/10/5), mapped in
 the current evidence checklist. The
 table below is **historical preliminary guidance only**.

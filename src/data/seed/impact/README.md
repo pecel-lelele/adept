@@ -23,7 +23,7 @@ request dates or silently update published claims.
 Catalogue coverage and synthetic-profile measurements are computed by the production
 impact service. The synthetic profiles in `docs/demo-cvs/profiles.json` were inspected on
 2026-10-30; they are not pilot users. No cost metric is seeded or served. The generated report
-at `docs/impact-evidence.md` declares its backend and actual research observation window.
+at `docs/evidence/impact-evidence.md` declares its backend and actual research observation window.
 
 The API validates numeric consistency between each figure, stored value and quotation/claim.
 This does not replace reopening the source. SDG counts refer to draft alignments pending human
