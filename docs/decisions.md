@@ -1271,6 +1271,18 @@
 - **Replaces**: M3-031's incomplete plan/credit details and the unused external-service row
 - **PR / branch**: docs/core-submission-accuracy
 
+### M3-034: Conversational Adi: warm server-authored blocks, friendly refusals, at most three chips
+
+- **Date**: 2026-10-31
+- **Feature**: F8 (guardrails), Core (Adi assistant)
+- **Type**: method | contract | UI
+- **Change**: Adi's answer blocks in en/ms/zh are rewritten in a short, second-person, plain-language tone (facts, attribution and estimate labels unchanged; the roles answer no longer lists runner-up roles). New server-authored blocks: `off_topic` and `invent` (refused before context or model, like the people-decision refusal), `unknown` (nothing matched; replaces the old silent fallback to "next"), `greeting` and `thanks`. The people-decision refusal now states that hiring, firing, promotion and admission decisions belong to people and that Adept never makes them. Routing adds phrase rules for "boost/raise/better match or score", "what if AI slows down / adoption is slower", "moderate vs fast", "trust this data", and shrinking/falling/going-away work. Follow-up chips are catalogue IDs (`AssistantReply.suggestion_ids`, new) with their question text in `suggestions`; both are capped at three in the contract. Chips never repeat the question just asked or ask for the answer just shown, and after refusals/small talk they follow the page (matches → "Why is this my top match?", pathway → "Which course should I start with?"). The web starter chips are page-aware (at most three), the log is an ARIA live region with a status typing indicator, and the chip row has a reserved height. The model selection prompt names the specific blocks per intent and tells the model to choose `unknown` rather than a loosely related block; for an `unknown` question the model may still pick any checked block.
+- **Why**: Product owner: answers felt stiff, and unanswerable questions got unrelated plan advice. Free-form model text was rejected (AGENTS §3.3); variable server-authored phrasing variants were considered but not needed, since one warm block per intent keeps answers predictable and testable with `LLM_PROVIDER=none`.
+- **Pipeline**: n/a (rule-based routing plus F8 `select_ids_or_fallback`/`validate_ids` selection of server-authored blocks). Evaluation: `tests/api/assistant/test_conversational.py` (routing in en/ms/zh, refusals with 1–3 valid chips, page-aware chips, decision refusal wording, arbitrary model text never shown, contract cap) plus the existing assistant/guardrail suites.
+- **Affects**: `POST /api/v1/assistant/chat` response gains `suggestion_ids` (additive; `openapi.json` and `types.ts` regenerated); web `ui.adi` messages gain `conversation`, `suggested` and page starter keys
+- **Replaces**: none (refines the Adi routing and chip behaviour; earlier entries unchanged)
+- **PR / branch**: feat/core-adi-conversational
+
 ---
 
 ## M4: Core & Organisation (Core, F7)

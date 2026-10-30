@@ -6542,8 +6542,18 @@
               "type": "string"
             },
             "type": "array",
+            "maxItems": 3,
             "title": "Suggestions",
-            "description": "Follow-up questions."
+            "description": "Up to three server-authored follow-up questions; tapping one asks it."
+          },
+          "suggestion_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 3,
+            "title": "Suggestion Ids",
+            "description": "Catalogue IDs of the follow-up questions, in the same order."
           },
           "used_llm": {
             "type": "boolean",

@@ -535,7 +535,7 @@ def test_missing_plan_or_unavailable_progress_never_invents_zero_totals():
         ("Show job trends for the coming weeks", "trend"),
         ("What are my budgets?", "cost"),
         ("Show database skills", "learn"),
-        ("Microcourses and roleplaying", "next"),
+        ("Microcourses and roleplaying", "unknown"),
         ("我的计划需要多久？", "plan_duration"),
         ("Berapa lama pelan saya?", "plan_duration"),
         ("我的计划费用是多少？", "plan_cost"),
