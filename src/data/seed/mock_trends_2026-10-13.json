@@ -4,12 +4,12 @@
       {
         "name": "arXiv cs.AI Query API",
         "url": "http://export.arxiv.org/api/query",
-        "retrieved_at": "2026-10-13"
+        "retrieved_at": "2026-10-20"
       },
       {
         "name": "BLS Occupational Projections 2023-2033",
         "url": "https://www.bls.gov/emp/tables/occupational-projections-and-characteristics.htm",
-        "retrieved_at": "2026-10-13"
+        "retrieved_at": "2026-10-20"
       }
     ],
     "snapshot_date": "2026-10-13",
@@ -24,7 +24,7 @@
       "2026-10-13",
       "2026-10-20"
     ],
-    "data_provenance_note": "Frozen offline snapshot exported from PostgreSQL trend_snapshots (measured from arXiv cs.AI query API submission window 2024-10-06..2024-10-12 calibrated as 2026-W42 baseline; static copy that does not update unless export_fixtures_from_db.py is re-run against a fresh pipeline run)."
+    "data_provenance_note": "Frozen offline snapshot exported from PostgreSQL trend_snapshots (measured from arXiv cs.AI query API submission window 2024-10-06..2024-10-12 calibrated as 2026-W42 baseline; static copy that does not update unless export_fixtures_from_db.py is re-run against a fresh pipeline run). Historical replay: the measured arXiv windows are October 2024 submissions shown under 2026 demo snapshot dates. Sources retrieved_at is 2026-10-20, the date the raw arXiv windows and BLS projections were first committed (commits 750fa30 and 4e2c984) and these files were exported (commit 8005c5f); no earlier retrieval is recorded."
   },
   "items": [
     {

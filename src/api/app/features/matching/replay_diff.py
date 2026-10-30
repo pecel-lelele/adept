@@ -2,7 +2,7 @@
 
 Ranks the same profile on two snapshot dates (``replay.replay``) and, for every role, names
 the required skills that moved its score most. The scorer does not use raw velocity: it uses
-each skill's position on the shared min-max scale (``scoring.trend_scores``).
+each skill's position on the shared robust (median-scaled tanh) scale (``scoring.trend_scores``).
 So a driver's effect is the change in that position times the skill's share of the role's
 importance times the trend weight: exactly how many score points that skill added or removed.
 Each dated snapshot supplies one range shared by both of its scenarios.

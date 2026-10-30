@@ -185,6 +185,7 @@ def test_timed_out_read_does_not_block_other_requests(strict_matching: None) -> 
         try:
             with pytest.raises(trend_port.TrendUnavailable, match="timed out"):
                 trend_port._call_with_timeout("moderate")
+            trend_port.reset_down()  # skip the outage back-off; this test is about blocking
             started = time.monotonic()
             assert trend_port._call_with_timeout("moderate") is good
             assert time.monotonic() - started < 0.5
@@ -252,9 +253,52 @@ def test_outstanding_reads_are_bounded(strict_matching: None) -> None:
             for _ in range(2):  # each timed-out caller leaves its read holding a slot
                 with pytest.raises(trend_port.TrendUnavailable, match="timed out"):
                     trend_port._call_with_timeout("moderate")
+                trend_port.reset_down()  # skip the outage back-off; this test is about slots
             started = time.monotonic()
             with pytest.raises(trend_port.TrendUnavailable, match="backed up"):
                 trend_port._call_with_timeout("moderate")
             assert time.monotonic() - started < 0.2
         finally:
             release.set()
+
+
+def test_outage_backoff_skips_the_timeout_for_later_requests(strict_matching: None) -> None:
+    """N4: after one failed strict read, requests use the last good snapshot at once."""
+    from app.features.matching import trend_port
+    from app.features.trends import repository as trends_repository
+
+    calls = 0
+
+    def down(snapshot_date, scenario, strict=False):  # noqa: ANN001,ARG001
+        nonlocal calls
+        calls += 1
+        raise trends_repository.TrendsUnavailableError("database unavailable")
+
+    with patch("app.features.trends.service.get_snapshot", side_effect=down):
+        first = trend_port.fetch_snapshot("moderate")
+        started = time.monotonic()
+        for _ in range(5):
+            again = trend_port.fetch_snapshot("moderate")
+        assert time.monotonic() - started < 0.2
+    assert calls == 1
+    assert first.is_fallback and again.is_fallback
+    assert again.snapshot_date == first.snapshot_date
+
+    trend_port.reset_down()
+    good = trends_mocks.snapshot("moderate", trends_mocks.AVAILABLE_MOCK_DATES[-1])
+    with patch("app.features.trends.service.get_snapshot", return_value=good):
+        assert trend_port._call_with_timeout("moderate") is good
+
+
+def test_outage_on_an_unheld_replay_date_is_503_not_404(strict_matching: None) -> None:
+    """N5: during an outage a date we hold no copy of is unavailable, not unknown."""
+    from app.core.errors import TrendUnavailableError
+    from app.features.matching import trend_port
+    from app.features.trends import repository as trends_repository
+
+    def down(snapshot_date, scenario, strict=False):  # noqa: ANN001,ARG001
+        raise trends_repository.TrendsUnavailableError("database unavailable")
+
+    with patch("app.features.trends.service.get_snapshot", side_effect=down):
+        with pytest.raises(TrendUnavailableError):
+            trend_port.fetch_snapshot("moderate", date(2026, 1, 5))

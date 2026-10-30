@@ -13,13 +13,26 @@ from __future__ import annotations
 from datetime import date
 from typing import Annotated
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
 
 from app.contracts.common import ScenarioId
-from app.contracts.trends import RadarResponse, RoleTrendResponse, TrendSnapshotResponse
-from app.features.trends import service
+from app.contracts.labour import MalaysiaLabourContext
+from app.contracts.trends import (
+    RadarResponse,
+    RoleTrendResponse,
+    TrendRefreshStatus,
+    TrendRescoreResult,
+    TrendSnapshotResponse,
+)
+from app.core.auth import CurrentUser, CurrentUserDep
+from app.features.trends import labour, refresh, service
 
 router = APIRouter(prefix="/trends", tags=["trends"])
+
+
+@router.get("/malaysia-context")
+def malaysia_context() -> MalaysiaLabourContext:
+    return labour.current()
 
 
 @router.get("/snapshot")
@@ -57,3 +70,39 @@ def get_radar(
 @router.get("/roles/{role_id}")
 def get_role_trend(role_id: str, scenario: ScenarioId = "moderate") -> RoleTrendResponse:
     return service.get_role_trend(role_id, scenario)
+
+
+# ---------------------------------------------------------------------------
+# Admin refresh (signed-in account listed in ADMIN_USER_IDS; checked on the server)
+# ---------------------------------------------------------------------------
+
+
+def _admin(user: CurrentUserDep) -> CurrentUser:
+    return refresh.require_admin(user)
+
+
+@router.post("/refresh", dependencies=[Depends(_admin)])
+def start_refresh() -> TrendRefreshStatus:
+    """Fetch the latest data: start the trends-refresh GitHub Actions workflow.
+
+    Returns the run already queued or in progress instead of starting a second one.
+    503 refresh_not_configured when GITHUB_DISPATCH_TOKEN / GITHUB_REPOSITORY are unset.
+    """
+    return refresh.dispatch()
+
+
+@router.get("/refresh/status", dependencies=[Depends(_admin)])
+def refresh_status(
+    run_id: Annotated[int | None, Query(ge=1, description="GitHub Actions run id.")] = None,
+) -> TrendRefreshStatus:
+    """Status of a refresh run; a successful run clears the trend caches once."""
+    return refresh.status(run_id)
+
+
+@router.post("/refresh/rescore", dependencies=[Depends(_admin)])
+def rescore() -> TrendRescoreResult:
+    """Re-score the latest stored signals (no ingest, no model call).
+
+    Publishes only a genuinely new snapshot; otherwise reports no_new_data.
+    """
+    return refresh.rescore()

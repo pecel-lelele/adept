@@ -32,6 +32,16 @@ CANONICAL_CSV = SEED_DIR / "canonical_skills.csv"
 
 SNAPSHOT_DATES = ["2026-10-13", "2026-10-20"]
 AVAILABLE_SNAPSHOTS = ["2026-10-13", "2026-10-20"]
+# When the sources were actually retrieved: the raw arXiv windows and BLS projections were
+# first committed on 2026-10-20 (750fa30, 4e2c984). The snapshot dates are demo replay labels,
+# so they must not be used as retrieval dates.
+SOURCES_RETRIEVED_AT = "2026-10-20"
+HISTORICAL_REPLAY = (
+    " Historical replay: the measured arXiv windows are October 2024 submissions shown under "
+    "2026 demo snapshot dates. Sources retrieved_at is 2026-10-20, the date the raw arXiv "
+    "windows and BLS projections were first committed (commits 750fa30 and 4e2c984) and these "
+    "files were exported (commit 8005c5f); no earlier retrieval is recorded."
+)
 
 PROVENANCE_NOTES = {
     "2026-10-13": (
@@ -111,7 +121,7 @@ def export_snapshot(
                 {
                     "name": "arXiv cs.AI Query API",
                     "url": "http://export.arxiv.org/api/query",
-                    "retrieved_at": snapshot_date_str,
+                    "retrieved_at": SOURCES_RETRIEVED_AT,
                 },
                 {
                     "name": "BLS Occupational Projections 2023-2033",
@@ -119,7 +129,7 @@ def export_snapshot(
                         "https://www.bls.gov/emp/tables/"
                         "occupational-projections-and-characteristics.htm"
                     ),
-                    "retrieved_at": snapshot_date_str,
+                    "retrieved_at": SOURCES_RETRIEVED_AT,
                 },
             ],
             "snapshot_date": snapshot_date_str,
@@ -131,7 +141,8 @@ def export_snapshot(
             "data_provenance_note": PROVENANCE_NOTES.get(
                 snapshot_date_str,
                 "Frozen offline snapshot exported from PostgreSQL trend_snapshots.",
-            ),
+            )
+            + HISTORICAL_REPLAY,
         },
         "items": items,
     }

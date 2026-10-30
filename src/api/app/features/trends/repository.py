@@ -114,6 +114,8 @@ class ResolvedContext:
     source: Literal["db", "fixture"]
     available_dates: list[date]
     conn: Any | None = None
+    # True when the fixture context exists because the database failed (not merely empty).
+    outage: bool = False
 
     def close(self) -> None:
         if self.conn is not None:
@@ -184,10 +186,11 @@ def resolve_context(strict: bool = False) -> ResolvedContext:
         status, timestamp = _db_status_cache
         if not status and now - timestamp < DB_FAILED_RETRY_TTL_S:
             return ResolvedContext(
-                source="fixture", available_dates=list(mocks.AVAILABLE_MOCK_DATES)
+                source="fixture", available_dates=list(mocks.AVAILABLE_MOCK_DATES), outage=True
             )
 
     conn = None
+    outage = False
     dates: list[date] = []
     try:
         conn = _get_connection()
@@ -201,13 +204,16 @@ def resolve_context(strict: bool = False) -> ResolvedContext:
         raise
     except Exception as exc:
         _db_status_cache = (False, now)
+        outage = True
         if strict:
             raise TrendsUnavailableError("Trend database unavailable") from exc
     finally:
         # Ownership transfers to ResolvedContext only on a successful dates read.
         if conn is not None and not dates:
             ResolvedContext("db", [], conn).close()
-    return ResolvedContext(source="fixture", available_dates=list(mocks.AVAILABLE_MOCK_DATES))
+    return ResolvedContext(
+        source="fixture", available_dates=list(mocks.AVAILABLE_MOCK_DATES), outage=outage
+    )
 
 
 def resolve_source(strict: bool = False) -> SourceType:

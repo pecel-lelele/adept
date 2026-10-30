@@ -23,6 +23,16 @@ test passed on 24 October 2026; the first integrated refresh failed on Replit's 
 development host `helium`. See the
 [operations guide](../../../../pipelines/trends/runpod/DEPLOYMENT_HANDOFF.md).
 
+Manual refresh from `/admin/snapshots` (`refresh.py`): **Refresh trend data now** dispatches
+`trends-refresh.yml` through the GitHub REST API (`POST /trends/refresh`, server-side
+`GITHUB_DISPATCH_TOKEN` + `GITHUB_REPOSITORY`; an already queued/running run is returned instead
+of a second dispatch), and `GET /trends/refresh/status` polls the run and clears the trend caches
+once it succeeds. **Re-score stored signals** (`POST /trends/refresh/rescore`) re-runs the
+pipeline's scorer/validator/publisher on the stored weeks and publishes only a newer measured
+window, else reports `no_new_data`. All three require a signed-in account listed in
+`ADMIN_EMAILS` (empty = nobody). The workflow's `TREND_DATABASE_URL` secret is the same database
+the app reads as `DATABASE_URL`.
+
 ## Goal and tasks (from docs/tasks.md)
 
 **Goal:** at least one updatable AI/job-market source; source and date visible; no hard-coded lists.

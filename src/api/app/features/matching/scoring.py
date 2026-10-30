@@ -17,6 +17,7 @@ NOTE for the service bridge and evaluation harness:
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 
 NEUTRAL = 0.5  # used when there is no data, and reported through `trend_coverage`
@@ -64,21 +65,45 @@ class _RoleScore:
     trend_coverage: float = 1.0  # share of role skill weight that had trend data
 
 
+# Same bound the trend pipeline applies to both scenario velocities (pipelines/trends/score.py).
+VELOCITY_CLAMP = 2.0
+
+
+def _clamped(value: float) -> float:
+    return max(-VELOCITY_CLAMP, min(VELOCITY_CLAMP, value))
+
+
 def trend_scores(
     velocities: dict[str, float], reference_velocities: dict[str, float] | None = None
 ) -> dict[str, float]:
-    """Min-max over both scenarios' raw velocities, using one shared reference range.
+    """Robust 0..1 trend position on one scale shared by both scenarios.
 
-    A snapshot already contains both scenarios; its adapter supplies the other one.
-    Pure offline callers may supply one set only. A constant range is neutral.
+    position(v) = 0.5 + 0.5 * tanh(clamp(v, ±2) / s), s = median |v| over the union of both
+    scenarios' clamped velocities. Zero velocity is neutral (0.5), rising skills sit above it,
+    declining below. Min-max let a few large velocities stretch the range so most skills
+    collapsed into ~0.577; the median scale keeps the bulk separated while outliers saturate.
+
+    A snapshot already contains both scenarios; its adapter supplies the other one, so the
+    scale is the same for Moderate and Fast and Fast >= Moderate wherever v_fast >= v_mod.
+    Pure offline callers may supply one set only. All-zero velocities are neutral.
     """
-    values = [*velocities.values(), *(reference_velocities or {}).values()]
+    values = [_clamped(v) for v in (*velocities.values(), *(reference_velocities or {}).values())]
     if not values:
         return {}
-    low, high = min(values), max(values)
-    if high == low:
+    magnitudes = sorted(abs(v) for v in values)
+    middle = len(magnitudes) // 2
+    scale = (
+        magnitudes[middle]
+        if len(magnitudes) % 2
+        else (magnitudes[middle - 1] + magnitudes[middle]) / 2
+    )
+    if scale <= 0:
+        scale = magnitudes[-1]
+    if scale <= 0:
         return {skill: NEUTRAL for skill in velocities}
-    return {skill: (value - low) / (high - low) for skill, value in velocities.items()}
+    return {
+        skill: 0.5 + 0.5 * math.tanh(_clamped(value) / scale) for skill, value in velocities.items()
+    }
 
 
 def gap_state(user_level: float | int, required_level: int = 1) -> str:
