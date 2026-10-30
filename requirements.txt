@@ -25,4 +25,4 @@ idna>=3.15
 # --- dev / quality gate ---
 pytest>=8.2
 pygments>=2.20.0
-ruff>=0.6
+ruff>=0.17.3

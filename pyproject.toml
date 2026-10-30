@@ -12,7 +12,7 @@ dependencies = [
     "pymupdf<2",
     "pytest>=9.1.1",
     "python-multipart>=0.0.32",
-    "ruff>=0.17.2",
+    "ruff>=0.17.3",
     "uvicorn[standard]>=0.54.0",
     "anyio>=4.14.2",
     "certifi>=2026.10.19",
