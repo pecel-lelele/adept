@@ -97,7 +97,13 @@ def _meta(rows: Sequence[Posting], scenario: ScenarioId) -> RecommendationMeta:
         Source(name=name, url=url, retrieved_at=day)
         for (name, url), (day, _) in sorted(latest.items())
     ]
-    fetched = max((s.retrieved_at for s in sources), default=date.today())
+    fetched = max((s.retrieved_at for s in sources), default=None)
+    if fetched is None:
+        fetched = repository.observation_date()
+    if fetched is None:
+        raise AppError(
+            "No dated job observations are available yet.", status_code=503, code="jobs_no_data"
+        )
     if not sources:
         sources = [
             Source(name="Adept job openings pipeline", url=PIPELINE_URL, retrieved_at=fetched)

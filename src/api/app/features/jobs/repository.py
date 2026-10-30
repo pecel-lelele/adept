@@ -130,3 +130,13 @@ def fetch_log() -> dict[str, object]:
         return dict(json.loads(FETCH_LOG.read_text(encoding="utf-8")))
     except (OSError, ValueError):
         return {}
+
+
+def observation_date() -> date | None:
+    """Last actual posting observation, including expired rows; never a request date."""
+    dates = [
+        day
+        for row in refdata.rows("jobs", "job_postings")
+        if (day := _day(row.get("last_seen", ""))) is not None
+    ]
+    return max(dates, default=None)
