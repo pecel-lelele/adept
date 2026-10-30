@@ -14,7 +14,7 @@ python-multipart>=0.0.32
 # PdfSupportUnavailable (501) rather than decoding PDF bytes as text.
 # Upper bound: 2.x deprecates the `fitz` module and pulls pymupdf-layout,
 # pymupdf4llm, tabulate and psutil into every `make setup`.
-pymupdf>=1.24.0,<2
+pymupdf>=2.0,<3
 # HTTPS client for the OpenAI-compatible LLM provider (Adi) and live data sync.
 httpx>=0.27
 # Security floors for transitive packages used by the Python runtime.
