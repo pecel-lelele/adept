@@ -392,6 +392,16 @@
 - **Replaces**: mandatory sharing condition on joining; preserves explicit programme acceptance requirements
 - **PR / branch**: fix/core-review-regressions
 
+### TEAM-036: Keep refresh workflow configuration distinct from CI metadata
+- **Date**: 2026-10-30
+- **Feature**: F2 and Core
+- **Type**: contract
+- **Change**: Rename the app-only workflow setting to TRENDS_REFRESH_WORKFLOW. Regenerate source branch contracts and add a regression with the real GitHub runner variable present.
+- **Why**: GITHUB_WORKFLOW is reserved runner metadata and caused refresh configuration tests to reject CI as a filename; validation remains strict.
+- **Affects**: app environment configuration and review-branch CI
+- **Replaces**: workflow environment setting in TEAM-030
+- **PR / branch**: fix/core-review-regressions
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)

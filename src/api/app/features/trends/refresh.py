@@ -53,7 +53,7 @@ class RefreshSettings(Settings):
 
     github_dispatch_token: str = ""
     github_repository: str = ""
-    github_workflow: str = "trends-refresh.yml"
+    trends_refresh_workflow: str = "trends-refresh.yml"
     github_dispatch_ref: str = "main"
 
 
@@ -126,12 +126,12 @@ def _configured(cfg: RefreshSettings) -> tuple[str, str, str]:
         )
     repo, workflow, ref = (
         cfg.github_repository.strip(),
-        cfg.github_workflow.strip(),
+        cfg.trends_refresh_workflow.strip(),
         cfg.github_dispatch_ref.strip(),
     )
     if not (_REPOSITORY.fullmatch(repo) and _WORKFLOW.fullmatch(workflow) and _REF.fullmatch(ref)):
         raise AppError(
-            "GITHUB_REPOSITORY, GITHUB_WORKFLOW or GITHUB_DISPATCH_REF is malformed.",
+            "GITHUB_REPOSITORY, TRENDS_REFRESH_WORKFLOW or GITHUB_DISPATCH_REF is malformed.",
             status_code=503,
             code="refresh_not_configured",
         )

@@ -35,7 +35,7 @@ Assignee means acceptance owner, not proof that they caused a problem. Issue bod
 ## Evidence that still needs a person or deployment
 
 1. Human KPI measurements, actual model latency/cost, and end-to-end production refresh. Do not substitute local timings or invent participants/results.
-2. Team-confirmed tool use (including the unconfirmed ElevenLabs entry), private registration/contact details, IP declarations and signatures.
+2. Team-confirmed tool use (ElevenLabs confirmed strictly for demo-video voiceover narration, not in the application), private registration/contact details, IP declarations and signatures.
 3. Final PDF export/layout review, pitch/demo recording, public sharing permissions, final deployment revision and external link checks.
 4. Verified Malay-language course delivery, duration, pricing and eligibility before adding catalogue records.
 5. Production DB migration approval, legacy orphan counts/constraint validation, non-BYPASSRLS application role, stable admin IDs and GitHub/RunPod secret configuration.

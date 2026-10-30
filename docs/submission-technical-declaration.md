@@ -250,7 +250,7 @@ These tools are used for presentation production, not career recommendations in 
 | [Google Fonts](https://fonts.google.com/) | Presentation typography where used | Confirm the exact exported font families and retain their applicable font licence notices. |
 | [Remotion](https://www.remotion.dev/) 4.0.538 | Motion graphics and demo-film composition | Version supplied in the task brief; the local video workspace is gitignored and not evidence of a reproducible application dependency. |
 | [Mixkit](https://mixkit.co/license/) | Presentation media, music / sound effects as applicable | Record the exact downloaded asset pages and applicable item licences in final credits; these are not supplied in the tracked repository. |
-| [ElevenLabs](https://elevenlabs.io/) | Unconfirmed presentation audio use; team verification required | Exact model, voice, account terms and retained output are unrecorded; do not infer use of voice cloning or a specific model. |
+| [ElevenLabs](https://elevenlabs.io/) | Demo/walkthrough video voiceover narration only (`submission/demo-video`) | Team confirmed used strictly for demo video audio production with stock voice `21m00Tcm4TlvDq8ikWAM` (Rachel); no voice cloning; not integrated into or used by the Adept web application or recommendation runtime. |
 
 The demo's statistical context and dates are listed in the
 [demo evidence register](demo-script.md#evidence-register). WEF forecasts are global estimates;

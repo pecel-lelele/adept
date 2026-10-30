@@ -40,3 +40,43 @@ test("synthetic CV reaches radar, an explained match and a saved sourced plan", 
   expect(saved.ok()).toBeTruthy(); expect((await saved.json()).saved?.role_id).toBeTruthy();
   await page.screenshot({ path: `tmp/playwright-results/plan-${test.info().project.name}.png`, fullPage: true });
 });
+
+test("team CTAs and deep workspace links match signed-out, manager and member sessions", async ({ page, context, request }) => {
+  await page.goto("/?for=teams");
+  await expect(page.getByRole("link", { name: "Set up your team, free", exact: true }).first()).toHaveAttribute("href", "/auth/signup?mode=organisation");
+  const managerSignup = await request.post(`${api}/api/v1/auth/signup`, { data: {
+    display_name: "Synthetic Browser Manager", email: `synthetic-manager-${test.info().project.name}-${Date.now()}@example.test`,
+    password: "synthetic-browser-test-password", consent: true, workspace: "organisation",
+    organisation: { type: "company", name: "Synthetic Browser Team", industry: "Synthetic testing", size: 2 },
+  } });
+  expect(managerSignup.status()).toBe(201);
+  const manager = await managerSignup.json();
+  const signIn = async (token: string) => {
+    await context.clearCookies();
+    await context.addCookies([{ name: "adept_session", value: token, url: "http://127.0.0.1:13091", httpOnly: true, sameSite: "Lax" }]);
+  };
+  await signIn(manager.token);
+  await page.goto("/?for=teams");
+  await expect(page.getByRole("link", { name: "Open team workspace", exact: true }).first()).toHaveAttribute("href", "/org");
+  await page.goto("/org/members?scenario=fast");
+  await expect(page.locator("main h1")).toBeVisible();
+  await expect(page).toHaveURL(/\/org\/members\?scenario=fast$/);
+  const org = await request.get(`${api}/api/v1/org/me`, { headers: { "X-Demo-User": manager.token, "X-Workspace": manager.account.org_id } });
+  expect(org.ok()).toBeTruthy();
+  const memberSignup = await request.post(`${api}/api/v1/auth/signup`, { data: {
+    display_name: "Synthetic Browser Member", email: `synthetic-member-${test.info().project.name}-${Date.now()}@example.test`,
+    password: "synthetic-browser-test-password", consent: true, join_code: (await org.json()).join_code, share_skills: false,
+  } });
+  expect(memberSignup.status()).toBe(201);
+  const member = await memberSignup.json();
+  await signIn(member.token);
+  await page.goto("/?for=teams");
+  await expect(page.getByRole("button", { name: "Create a team account", exact: true }).first()).toBeVisible();
+  await expect(page.getByRole("link", { name: "Join your team with a code", exact: true }).first()).toHaveAttribute("href", "/app/join");
+  await page.goto("/work/progress?scenario=fast");
+  await expect(page.locator("main h1")).toBeVisible();
+  await expect(page).toHaveURL(/\/work\/progress\?scenario=fast$/);
+  expect((await page.request.get("/api/workspace?to=personal")).status()).toBe(405);
+  await page.goto("/about");
+  await expect(page.locator('.a-site-actions a[href="/work"]').first()).toBeVisible();
+});

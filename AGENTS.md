@@ -27,7 +27,7 @@
 ### Protect the workspace, credentials, and environments
 
 - Inspect `git status`, branch, and relevant diffs before editing. Preserve existing staged, unstaged, and untracked work. Do not discard, overwrite, stash, stage, or commit unrelated work. If a concurrent edit overlaps yours, inspect it and reconcile safely; ask only when intent cannot be determined.
-- Before deletion, destructive cleanup, migration, seeding, or resource removal, resolve the exact target and confirm the environment. Keep destructive operations confined to the intended paths/resources; never infer that a database is disposable from a friendly name. Use a disposable database for migration and seed verification, not an ambient connection from `.env`.
+- Before deletion, destructive cleanup, migration, seeding, or resource removal, resolve the exact target and confirm the environment. Keep destructive operations confined to the intended paths/resources; never infer that a database is disposable from a friendly name. Use a disposable database for migration and seed verification, not an ambient connection from `.env`. **Never create new Docker containers**: do not spin up temporary, ad-hoc, or duplicate review/test containers (e.g. `docker run`). Use only the repository's established Docker Compose services (`docker-compose.yml`) or isolated test fixtures.
 - Use configured credentials through the intended client and only for the authorized service. Do not print secrets, dump `.env` or credential stores, place credentials in command arguments/URLs, forward one provider's key to another, or copy private data into prompts, logs, artifacts, or third-party tools. Prefer redacted diagnostics and non-secret configuration examples. If a secret is exposed, stop spreading it, report it without repeating it, and recommend rotation; history rewriting needs authorization.
 - Review commands, package lifecycle scripts, and downloaded scripts before executing unfamiliar code. Prefer the repository's pinned toolchain and lockfiles; do not pipe fetched code straight into a shell or disable TLS verification, package-integrity checks, audit gates, authentication, or guardrails to make a task pass.
 - Bind local services to loopback by default; broader exposure must be required by the task and deliberately configured. Tests use synthetic fixtures, isolated state, and mocked providers by default. Verify opt-in database/model/network settings before running anything that can mutate data or incur charges.
@@ -264,7 +264,7 @@ Use repository manifests, lockfiles, and current runtime configuration for exact
 - Preserve the API security middleware and existing sanitisation/redaction at applicable input and LLM boundaries. Prompt filters are defence in depth; they do not replace structured validation, authorization, or output grounding.
 - CV uploads support PDF, DOCX, and plain text under the existing parser contract. Check declared/inferred type and actual bytes, enforce `MAX_UPLOAD_BYTES` plus parser/page/decompression limits, and offload blocking parsing with `asyncio.to_thread` or the existing bounded mechanism. Do not store raw CVs or log extracted personal text.
 - Preserve production startup checks, session security, exact CORS origins, admin restrictions, and fail-closed authentication. Local/demo auth and test bypasses must not become production defaults.
-- Trust forwarded client-IP headers only across the configured, verified proxy boundary (`PROXY_SHARED_SECRET` where used). Do not accept a caller's `X-Real-IP`, forwarded identity, or workspace header as authority.
+- Trust forwarded client-IP headers only across the configured, verified proxy boundary (`PROXY_SHARED_SECRET` on both web and API; `TRUSTED_PROXY_HOPS=1` in Replit production, `0` for local dev, or `PROXY_CLIENT_IP_MODE=best-effort` to extract the edge-stamped right-most entry). Do not accept a caller's `X-Real-IP`, forwarded identity, or workspace header as authority.
 - Validate external fetch destinations and redirects against existing SSRF protections; restrict protocols/hosts as appropriate and bound response size/time. Keep provider credentials scoped to the correct destination, including on failover and redirects.
 
 ---
@@ -375,7 +375,7 @@ All targets use the cross-platform runner [src/scripts/dev.py](src/scripts/dev.p
 - [ ] Added a decisions entry for material changes using the existing section/ID scheme.
 - [ ] If contracts changed (`src/api/app/contracts/`), ran `make contracts` and verified no drift.
 - [ ] If a new env variable was added, updated [.env.example](.env.example).
-- [ ] If a new migration was added, verified migration/seed behaviour in an explicitly selected disposable database.
+- [ ] If a new migration was added, verified migration/seed behaviour in an explicitly selected disposable database without creating new Docker containers.
 - [ ] Ran `make check` (or the cross-platform Python equivalent) and relevant checks; reported actual failures/skips/blockers.
 - [ ] Reviewed final diff for scope, secrets, accidental generated changes, and preservation of existing work; cleaned up task-owned processes.
 - [ ] Provided a concise summary of changes and the standard commit message for the user to use.
