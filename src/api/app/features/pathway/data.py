@@ -178,17 +178,3 @@ def snapshots() -> list[Snapshot]:
         source = Source(name=r["source"], url=r.get("url") or "", retrieved_at=fetched)
         out.append(Snapshot(r["id"], r["version"], source))
     return out
-
-
-def latest_snapshot() -> Snapshot | None:
-    snaps = snapshots()
-    return snaps[-1] if snaps else None
-
-
-def skill_growth(snapshot_id: str) -> dict[str, float]:
-    """skill_id -> year-on-year growth rate in that snapshot."""
-    return {
-        r["entity_id"]: float(r["growth_rate"])
-        for r in seed.rows("trends", "trend_signals")
-        if r["snapshot_id"] == snapshot_id and r["entity_type"] == "skill"
-    }

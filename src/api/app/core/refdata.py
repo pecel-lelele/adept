@@ -12,7 +12,7 @@ nothing is silently lost.
 from __future__ import annotations
 
 import time
-from collections.abc import Callable, Sequence
+from collections.abc import Callable
 from typing import Any, TypeVar
 
 import psycopg
@@ -47,12 +47,6 @@ class StorageUnavailableError(AppError):
 
 def use_postgres() -> bool:
     return get_settings().m3_backend == "postgres"
-
-
-def fetch_all(sql: str, params: Sequence[Any] = ()) -> list[dict[str, Any]]:
-    with connection() as conn:
-        rows: list[dict[str, Any]] = conn.execute(sql, params).fetchall()  # type: ignore[arg-type]
-        return rows
 
 
 def read(from_db: Callable[[], T], from_seed: Callable[[], T]) -> T:

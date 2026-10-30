@@ -54,15 +54,6 @@ class DataFreshness(BaseModel):
     is_fallback: bool
 
 
-class ErrorBody(BaseModel):
-    code: str
-    message: str
-
-
-class ErrorResponse(BaseModel):
-    error: ErrorBody
-
-
 # Every mock response uses this source so mock data is never mistaken for real data.
 MOCK_SOURCE = Source(name="MOCK DATA", url="", retrieved_at=date(2026, 10, 20))
 MOCK_SNAPSHOT_DATE = date(2026, 10, 20)

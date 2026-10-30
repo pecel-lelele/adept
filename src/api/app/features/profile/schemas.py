@@ -3,7 +3,6 @@
 Shared models live in app/contracts/profile.py.
 Feature-local models here cover:
   - Questionnaire intake request (M2-02): adds learning_style field not in shared Profile
-  - CV parse response enrichment (M2-01): wraps ParsedSkill for API responses
   - Skill confirmation request (M2-03): user edits and submits the final skill list
 """
 
@@ -13,7 +12,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.contracts.profile import ExtractedSkill, UserSkill
+from app.contracts.profile import UserSkill
 
 # ---------------------------------------------------------------------------
 # M2-02: Questionnaire intake
@@ -77,29 +76,6 @@ class QuestionnaireResponse(BaseModel):
     budget_myr: float
     hrd_eligible: bool
     message: str = "Profile saved. Please confirm your skills."
-
-
-# ---------------------------------------------------------------------------
-# M2-01: CV parse result (API layer)
-# ---------------------------------------------------------------------------
-
-
-class CvParseResponse(BaseModel):
-    """API response for POST /profile/cv after real parsing.
-
-    Wraps ExtractedSkill (from contracts) plus a flag for unmatched terms
-    found in the CV that didn't resolve to a taxonomy entry.
-    """
-
-    skills: list[ExtractedSkill]
-    unmatched_terms: list[str] = Field(
-        default_factory=list,
-        description="Terms found in the CV that did not match any taxonomy skill.",
-    )
-    warning: str | None = Field(
-        default=None,
-        description="Non-fatal warning, e.g. 'PDF could not be parsed; fell back to text mode'.",
-    )
 
 
 # ---------------------------------------------------------------------------

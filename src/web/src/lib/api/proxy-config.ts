@@ -41,23 +41,3 @@ export function publicOrigin(request: Request, env: NodeJS.ProcessEnv = process.
   const url = new URL(request.url);
   return `${url.protocol}//${request.headers.get("host") ?? url.host}`;
 }
-
-/**
- * True when a state-changing request comes from the app's own pages.
- *
- * Uses Fetch Metadata (`Sec-Fetch-Site`) when the browser sends it, otherwise an exact
- * `Origin` match, otherwise the `Referer` origin. Absent evidence fails closed.
- */
-export function isSameOriginRequest(request: Request, origin: string): boolean {
-  const site = request.headers.get("sec-fetch-site");
-  if (site) return site === "same-origin" || site === "none";
-  const sent = request.headers.get("origin");
-  if (sent) return sent === origin;
-  const referer = request.headers.get("referer");
-  if (!referer) return false;
-  try {
-    return new URL(referer).origin === origin;
-  } catch {
-    return false;
-  }
-}
