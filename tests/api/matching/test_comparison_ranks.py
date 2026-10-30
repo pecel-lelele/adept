@@ -54,6 +54,18 @@ def test_new_rank_reranks_all_roles_after_the_skill_change(
     assert detail == result.matches[0]
 
 
+@pytest.mark.parametrize("scenario", ["moderate", "fast"])
+@pytest.mark.parametrize("weight", [0.0, 0.3729, 1.0])
+def test_every_detail_equals_the_full_list_path(scenario: str, weight: float) -> None:
+    listed = service.list_matches(USER, scenario, sdg_weight_value=weight)
+    assert len(listed.matches) > 1
+    for expected in listed.matches:
+        actual = service.get_match(
+            USER, expected.role_id, scenario, listed.meta.snapshot_date, weight
+        )
+        assert actual == expected
+
+
 def test_detail_only_formats_requested_role_but_reranks_the_full_catalogue(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

@@ -352,6 +352,11 @@ accuracy declaration. A repository-generated draft cannot attest on the leader's
 
 ## Implementation references
 
+Regenerate the unsigned PDF from this Markdown with
+`uv run --no-project python src/scripts/export_technical_declaration.py` from the repository
+root. The [exporter](../../src/scripts/export_technical_declaration.py) writes
+`submission/SDC2026_Pecel-Lele_TechDeclaration.pdf`; review the rendered PDF before submission.
+
 [Compose](../../docker-compose.yml) · [requirements](../../requirements.txt) ·
 [web manifest](../../src/web/package.json) · [auth](../../src/api/app/core/auth.py) ·
 [LLM providers and failover](../../src/api/app/core/llm/provider.py) ·

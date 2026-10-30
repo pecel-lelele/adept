@@ -1373,6 +1373,16 @@
 - **Replaces**: none (refines the Adi routing and chip behaviour; earlier entries unchanged)
 - **PR / branch**: feat/core-adi-conversational
 
+### M3-041: Require displayed evidence figures in verbatim quotations
+- **Date**: 2026-10-31
+- **Feature**: F8 (Impact evidence)
+- **Type**: method
+- **Change**: Require the displayed figure and stored value to match a number in the verbatim quotation; a number in Adept's claim alone is insufficient. Add a direct quote assertion and a claim-only negative regression.
+- **Why**: The existing check could accept a figure introduced by the claim without quoted source support. Preserve number formatting normalization, dated provenance and the publication/retrieval ordering check.
+- **Affects**: public impact evidence validation; no schema, source or provider change
+- **Replaces**: M3-036 numeric support rule only
+- **PR / branch**: fix/core-greptile-followups / Fixes #86
+
 ---
 
 ## M4: Core & Organisation (Core, F7)
@@ -2319,3 +2329,13 @@
 - **Affects**: org contracts, settings/env example, shared heatmap and en/ms/zh views; no migration
 - **Replaces**: none (M4-087 is reserved by refresh PR #75)
 - **PR / branch**: fix/matching-org-review-fixes
+
+### M4-092: Connect the technical-declaration export
+- **Date**: 2026-10-31
+- **Feature**: Core (Deployment and submission)
+- **Type**: other
+- **Change**: Link the existing technical-declaration PDF exporter and document its output/review step. Keep scripts/post-merge.sh: it is not referenced by .replit, but it came from Replit's pnpm workspace scaffold and Replit's agent runs it after merges. The deployment guide is already linked in docs/README.md.
+- **Why**: Keep maintained tools discoverable without changing Replit build, start or merge hooks.
+- **Affects**: submission documentation only
+- **Replaces**: none
+- **PR / branch**: fix/core-greptile-followups / Fixes #86
