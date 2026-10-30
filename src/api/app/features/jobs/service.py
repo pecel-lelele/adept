@@ -81,6 +81,24 @@ def _context(user: CurrentUser, role_id: str, scenario: ScenarioId) -> Context:
 # --- shared builders ---------------------------------------------------------------------------
 
 
+def _unavailable() -> AppError:
+    return AppError(
+        "Job openings data is unavailable right now.", status_code=503, code="jobs_unavailable"
+    )
+
+
+def _feed_date() -> date | None:
+    """When the openings feed was last actually read: the pipeline's fetch date, else the
+    newest last_seen. Never the request date: an empty result must not look fresh."""
+    fetched = repository.fetch_log().get("fetched_on")
+    if isinstance(fetched, str):
+        try:
+            return date.fromisoformat(fetched[:10])
+        except ValueError:
+            pass
+    return max((p.last_seen for p in repository.openings()), default=None)
+
+
 def _meta(rows: Sequence[Posting], scenario: ScenarioId) -> RecommendationMeta:
     """One source per employer feed or job board, dated by the last time it was read."""
     latest: dict[tuple[str, str], tuple[date, str]] = {}
@@ -97,7 +115,9 @@ def _meta(rows: Sequence[Posting], scenario: ScenarioId) -> RecommendationMeta:
         Source(name=name, url=url, retrieved_at=day)
         for (name, url), (day, _) in sorted(latest.items())
     ]
-    fetched = max((s.retrieved_at for s in sources), default=date.today())
+    fetched = max((s.retrieved_at for s in sources), default=None) or _feed_date()
+    if fetched is None:
+        raise _unavailable()
     if not sources:
         sources = [
             Source(name="Adept job openings pipeline", url=PIPELINE_URL, retrieved_at=fetched)
@@ -305,6 +325,12 @@ def certifications(
         )
     level_order = {"foundational": 0, "associate": 1, "professional": 2}
     out.sort(key=lambda c: (-c.openings_naming, -c.role_skills, level_order[c.level], c.fee_myr))
+    # With no matching certification, date the answer by when the list was last verified.
+    verified = max((c.verified_at for c in out), default=None) or max(
+        (c.verified_at for c in repository.certifications()), default=None
+    )
+    if verified is None:
+        raise _unavailable()
     meta = RecommendationMeta(
         sources=[
             Source(
@@ -314,8 +340,8 @@ def certifications(
             )
             for c in out
         ]
-        or [Source(name="Adept certification list", url=PIPELINE_URL, retrieved_at=date.today())],
-        snapshot_date=max((c.verified_at for c in out), default=date.today()),
+        or [Source(name="Adept certification list", url=PIPELINE_URL, retrieved_at=verified)],
+        snapshot_date=verified,
         scenario=scenario,
         is_estimate=False,
     )

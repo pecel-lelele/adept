@@ -187,3 +187,22 @@ def test_seed_feed_is_well_formed(client: TestClient) -> None:
     assert s.total_open == sum(r.open_count for r in s.roles)
     for p in repository.openings():
         assert p.url.startswith("https://") and p.title
+
+
+def test_empty_result_is_dated_by_the_feed_not_the_request(monkeypatch) -> None:
+    """No fabricated freshness: an empty answer carries the last real fetch date."""
+    from datetime import date
+
+    from app.core.errors import AppError
+    from app.features.jobs import service as jobs_service
+
+    monkeypatch.setattr(repository, "fetch_log", lambda: {"fetched_on": "2026-10-23"})
+    meta = jobs_service._meta([], "moderate")
+    assert meta.snapshot_date == date(2026, 10, 23)
+    assert {s.retrieved_at for s in meta.sources} == {date(2026, 10, 23)}
+
+    monkeypatch.setattr(repository, "fetch_log", lambda: {})
+    monkeypatch.setattr(repository, "openings", lambda: [])
+    with pytest.raises(AppError) as error:
+        jobs_service._meta([], "moderate")
+    assert error.value.status_code == 503
