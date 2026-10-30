@@ -83,6 +83,8 @@ class Settings(BaseSettings):
     data_refresh_token: str = Field(default="", repr=False)
     trends_stale_days: int = Field(default=10, ge=1, le=365)
     trends_refresh_cooldown_minutes: int = Field(default=10, ge=1, le=1440)
+    # After a failed trends step, non-admin refresh checks skip the paid MiniLM step this long.
+    trends_failure_backoff_minutes: int = Field(default=60, ge=1, le=10080)
     # Stable, operator-provisioned account IDs; self-asserted signup email grants no access.
     admin_user_ids: str = ""
 

@@ -105,7 +105,26 @@ def due_sources(moment: datetime) -> list[str]:
     return due
 
 
-def start(*, bypass_cooldown: bool = False) -> BackgroundRefresh:
+def failed_trends_retry_at(conn: Any) -> datetime | None:
+    """End of the paid-step backoff if the latest attempted trends step failed."""
+    row = conn.execute(
+        "SELECT started_at, (SELECT s->>'status' FROM jsonb_array_elements(steps) s "
+        "WHERE s->>'source' = 'trends') AS trends FROM data_refresh_runs "
+        "WHERE source='automatic' AND EXISTS (SELECT 1 FROM jsonb_array_elements(steps) s "
+        "WHERE s->>'source' = 'trends' AND s->>'status' IN ('done','failed')) "
+        "ORDER BY started_at DESC LIMIT 1"
+    ).fetchone()
+    if not row or row["trends"] != "failed":
+        return None
+    return row["started_at"] + timedelta(minutes=get_settings().trends_failure_backoff_minutes)
+
+
+def start(*, bypass_cooldown: bool = False, trends_backoff: bool = False) -> BackgroundRefresh:
+    """Start (or attach to) the shared run.
+
+    ``trends_backoff`` (signed-in non-admin checks): after a failed trends step, skip the
+    paid MiniLM step until the configured backoff ends; other due sources still run.
+    """
     if not service._storage_ready():
         raise AppError(
             "The app database is unavailable.", status_code=503, code="refresh_requires_database"
@@ -137,6 +156,18 @@ def start(*, bypass_cooldown: bool = False) -> BackgroundRefresh:
             else None
         )
         due = due_sources(moment)
+        backoff = failed_trends_retry_at(conn) if trends_backoff and "trends" in due else None
+        if backoff is not None and moment < backoff:
+            due = [source for source in due if source != "trends"]
+            if not due:
+                return BackgroundRefresh(
+                    status="cooldown",
+                    started_at=moment,
+                    checked_at=moment,
+                    retry_at=backoff,
+                    data_as_of=service._trends().data_as_of,
+                    next_scheduled_at=next_schedule(moment),
+                )
         if not due:
             return BackgroundRefresh(
                 status="up_to_date",
