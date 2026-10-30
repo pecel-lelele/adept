@@ -202,7 +202,7 @@ def answer(
                     task, candidates, lambda: [], provider
                 )
             chosen = _accept(selected, kinds) if from_model else None
-            if chosen is None:
+            if chosen is None or any(key not in candidates for key in chosen):
                 log.info(
                     "assistant uses the guide: %s",
                     "invalid_selection" if from_model else "llm_unavailable",

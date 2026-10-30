@@ -2018,3 +2018,13 @@
 - **Affects**: Dependabot pull request volume only; no runtime, dependency versions or CI checks change.
 - **Replaces**: none
 - **PR / branch**: chore/core-dependabot-grouping
+
+### M4-083: Keep grounded chat fallbacks and refuse lowercase decision questions
+- **Date**: 2026-10-30
+- **Feature**: Core / F8 (Adi)
+- **Type**: method
+- **Change**: Keep the already-checked deterministic answer if routing restores any model-selected answer ID absent from the grounded candidate set. Recognize explicit English people-decision questions without requiring capitalized names.
+- **Why**: Greptile identified a catalogue-outage `KeyError` when a rejected learn runner-up was restored, and lowercase-name questions bypassing the decision refusal. Both failures were reproduced before fixing them; changes are limited to these two review findings and their regressions.
+- **Affects**: Adi answer selection and decision refusals; EN/MS/ZH catalogue-outage HTTP tests and learner/manager lowercase-name safety coverage. No contracts, dependencies, scoring, catalogue data or other product flows change.
+- **Replaces**: none
+- **PR / branch**: fix/core-proxy-scenario-loading

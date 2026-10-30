@@ -327,6 +327,14 @@ def test_ordinary_career_questions_are_not_people_decisions(
     "question",
     [
         "Should I hire Ali?",
+        "should i hire ali?",
+        "should we fire siti?",
+        "can you promote ali?",
+        "could we demote siti?",
+        "should i admit ali?",
+        "should i reject siti?",
+        "must we shortlist ali?",
+        "should i hire or fire ali?",
         "Who should I fire?",
         "Should we fire?",
         "Can you reject this candidate for me?",
@@ -342,6 +350,31 @@ def test_ordinary_career_questions_are_not_people_decisions(
 @pytest.mark.parametrize("audience", ["learner", "manager"])
 def test_requests_to_decide_about_a_person_are_refused(question: str, audience: str) -> None:
     assert guide.intent(question, audience) == "decision"
+
+
+@pytest.mark.parametrize("audience", ["learner", "manager"])
+def test_lowercase_decision_refusal_skips_context_and_model(
+    audience: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    user = (
+        USER
+        if audience == "learner"
+        else CurrentUser(
+            "synthetic-manager", "Synthetic manager", "org_admin", "synthetic-org", "org"
+        )
+    )
+
+    def forbidden(*_: object) -> None:
+        pytest.fail("Decision refusals must not load context or invoke a model")
+
+    monkeypatch.setattr(context, "build", forbidden)
+    monkeypatch.setattr(service, "get_provider", forbidden)
+    body = AssistantIn.model_validate(
+        {"messages": [{"role": "user", "content": "should i hire ali?"}]}
+    )
+    answer = service.answer(user, body)
+    assert "".join(part.text for part in answer.parts) == guide.T["en"]["decision"]
+    assert answer.used_llm is False and answer.meta is None
 
 
 def test_managers_ranking_people_for_promotion_get_the_decision_refusal() -> None:

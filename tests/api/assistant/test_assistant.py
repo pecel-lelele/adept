@@ -133,6 +133,41 @@ def test_unstructured_figures_never_reach_users(client: TestClient) -> None:
     assert "87%" not in "".join(p["text"] for p in body["parts"])
 
 
+@pytest.mark.parametrize("locale", ["en", "ms", "zh"])
+def test_rejected_runner_up_keeps_checked_fallback(
+    client: TestClient, locale: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    question = "How does Adept work and which courses are HRD Corp claimable?"
+    ctx = ctx_mod.Context(
+        audience="learner",
+        facts={
+            "has_profile": True,
+            "plan_role": "data-analyst",
+            "plan_steps": [{"skill": "sql", "courses": ["synthetic-unavailable-course"]}],
+        },
+    )
+    ctx.refs.roles["data-analyst"] = "Data Analyst"
+    ctx.refs.skills["sql"] = "SQL"
+    # An unfinished saved plan survives a catalogue outage, but its course cannot resolve.
+    assert guide.intents(question, "learner") == ["cost", "learn"]
+    assert "learn" not in service._candidates(ctx, locale)
+    expected, rejected = service.to_parts(guide.reply_for_intent("cost", ctx, locale), ctx)
+    assert not rejected
+    fake = FakeProvider('{"ids":["cost"]}')
+    monkeypatch.setattr(service, "get_provider", lambda: fake)
+    monkeypatch.setattr(ctx_mod, "build", lambda *_: ctx)
+
+    body = _ask(client, question, locale=locale)
+
+    assert fake.seen, "exercise model selection through the real ID-validation gateway"
+    assert body["used_llm"] is False
+    assert body["provider"] == "none" and body["model"] == ""
+    assert "".join(part["text"] for part in body["parts"]) == "".join(
+        part.text for part in expected
+    )
+    assert all(part["kind"] != "course" for part in body["parts"])
+
+
 def test_question_is_redacted_before_the_model_sees_it(client: TestClient) -> None:
     fake = FakeProvider("Noted.")
     with patch.object(service, "get_provider", return_value=fake):
