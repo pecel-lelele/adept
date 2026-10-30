@@ -58,3 +58,7 @@ For each role's first three improvements, `new_rank` reruns the production ranke
 raising that skill to the role's required level. Other roles also receive that skill change;
 shared skill/level counterfactuals are reused within the request. Labels say estimate, and
 all attribution dates, fallback disclosures and catalogue resolution are preserved.
+
+Detail requests still rank the full role catalogue, but build explanations, course options
+and top-three improvement counterfactuals only for the requested role. This preserves the
+same ranks as the list without discarding responses built for every unrelated role.

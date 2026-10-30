@@ -927,6 +927,17 @@
 - **Replaces**: none (M2-026 is reserved by catalogue PR #74)
 - **PR / branch**: fix/matching-org-review-fixes
 
+### M2-029: Limit detail response construction to the requested role
+- **Date**: 2026-10-31
+- **Feature**: F4 (Future-Role Matching & Gap)
+- **Type**: method
+- **Change**: Share one ranking path for list/detail requests but format explanations, course options and improvement counterfactuals only for the requested detail role. Current, other-scenario and changed-profile ranks still score every target role with the same profile/snapshot/SDG weight.
+- **Why**: Building unrelated role responses and their course lookups on a detail request discarded useful work and duplicated the list request's cost. The optimization preserves existing ranking results and attribution.
+- **Pipeline**: unchanged profile/catalogue/snapshot inputs → full production ranking → requested-role response selection → unchanged full-catalogue counterfactual ranks → list/detail equality and formatter/ranker call-boundary regressions → same public detail contract
+- **Affects**: matching detail computation only; no schema/source/scoring change
+- **Replaces**: none (implementation follow-up to M2-027; M2-028 reserved by PR #74)
+- **PR / branch**: fix/matching-org-review-fixes / PR #77
+
 ---
 
 ## M3: Pathway, SDG & Guardrails (F5, F6, F8)

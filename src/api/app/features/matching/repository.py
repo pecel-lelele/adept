@@ -303,7 +303,7 @@ def _ranked_scores(
     )
 
 
-def list_matches(
+def _matches(
     user_id: str,
     scenario: ScenarioId,
     velocities: dict[str, float],
@@ -311,14 +311,21 @@ def list_matches(
     reference_velocities: dict[str, float] | None = None,
     *,
     sdg_weight_value: float = 0.0,
+    only_role_id: str | None = None,
 ) -> list[RoleMatch]:
     """Rank one saved profile, including same-snapshot comparisons and skill counterfactuals."""
     profile = _load_profile(user_id)
     roles = _load_roles()
     ranked = rank_roles(profile, roles, velocities, _W, reference_velocities=reference_velocities)
+    if only_role_id is not None and not any(r.role_id == only_role_id for r in ranked):
+        return []
     user_levels = {k: int(round(v)) for k, v in profile.skills.items()}
     catalogue = pathway_data.catalogue()
-    matches = [_score_to_contract(r, scenario, meta, user_levels, catalogue) for r in ranked]
+    matches = [
+        _score_to_contract(r, scenario, meta, user_levels, catalogue)
+        for r in ranked
+        if only_role_id is None or r.role_id == only_role_id
+    ]
     links = (
         {r.role_id: sdg_weight.default_links(r.role_id) for r in roles}
         if sdg_weight_value > 0
@@ -351,11 +358,30 @@ def list_matches(
         if reference_velocities is not None
         else {}
     )
+    positions = (
+        {
+            rid: index
+            for index, (rid, _) in enumerate(
+                _ranked_scores(
+                    profile,
+                    roles,
+                    velocities,
+                    reference_velocities,
+                    scenario,
+                    impact,
+                    sdg_weight_value,
+                ),
+                1,
+            )
+        }
+        if only_role_id is not None
+        else {m.role_id: i for i, m in enumerate(matches, 1)}
+    )
     # Many roles share a required skill/level: compute each changed profile just once.
     counterfactuals: dict[tuple[str, int], dict[str, int]] = {}
     role_by_id = {r.role_id: r for r in roles}
     out: list[RoleMatch] = []
-    for index, match in enumerate(matches, 1):
+    for match in matches:
         improvements = list(match.improvements)
         for i, item in enumerate(improvements[:3]):
             req = next(r for r in role_by_id[match.role_id].skills if r.skill_id == item.skill)
@@ -386,7 +412,7 @@ def list_matches(
         out.append(
             match.model_copy(
                 update={
-                    "rank": index,
+                    "rank": positions[match.role_id],
                     "other_scenario": other_scenario if alternative else None,
                     "other_rank": alternative[0] if alternative else None,
                     "other_score": alternative[1] if alternative else None,
@@ -395,6 +421,20 @@ def list_matches(
             )
         )
     return out
+
+
+def list_matches(
+    user_id: str,
+    scenario: ScenarioId,
+    velocities: dict[str, float],
+    meta: RecommendationMeta,
+    reference_velocities: dict[str, float] | None = None,
+    *,
+    sdg_weight_value: float = 0.0,
+) -> list[RoleMatch]:
+    return _matches(
+        user_id, scenario, velocities, meta, reference_velocities, sdg_weight_value=sdg_weight_value
+    )
 
 
 def get_match(
@@ -411,13 +451,14 @@ def get_match(
     return next(
         (
             m
-            for m in list_matches(
+            for m in _matches(
                 user_id,
                 scenario,
                 velocities,
                 meta,
                 reference_velocities,
                 sdg_weight_value=sdg_weight_value,
+                only_role_id=role_id,
             )
             if m.role_id == role_id
         ),

@@ -52,3 +52,31 @@ def test_new_rank_reranks_all_roles_after_the_skill_change(
         USER, result.matches[0].role_id, scenario, result.meta.snapshot_date, weight
     )
     assert detail == result.matches[0]
+
+
+def test_detail_only_formats_requested_role_but_reranks_the_full_catalogue(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from typing import Any
+
+    formatted: list[str] = []
+    ranked_sizes: list[int] = []
+    original_format = repository._score_to_contract
+    original_rank = repository.rank_roles
+    role_count = len(repository.load_roles())
+
+    def format_one(raw: Any, *args: Any, **kwargs: Any) -> Any:
+        formatted.append(raw.role_id)
+        return original_format(raw, *args, **kwargs)
+
+    def rank_all(profile: Any, roles: Any, *args: Any, **kwargs: Any) -> Any:
+        ranked_sizes.append(len(roles))
+        return original_rank(profile, roles, *args, **kwargs)
+
+    monkeypatch.setattr(repository, "_score_to_contract", format_one)
+    monkeypatch.setattr(repository, "rank_roles", rank_all)
+    result = service.get_match(USER, "data-analyst", "fast", sdg_weight_value=0.3729)
+    assert formatted == ["data-analyst"]
+    assert ranked_sizes and all(size == role_count for size in ranked_sizes)
+    assert result.rank and result.other_rank
+    assert all(i.new_rank for i in result.improvements[:3])
