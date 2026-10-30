@@ -1987,6 +1987,16 @@
 - **Replaces**: none
 - **PR / branch**: feat/core-sidebar-home-button
 
+### M4-083: Ground Adi routing and multilingual explanations
+- **Date**: 2026-10-30
+- **Feature**: Core and F8
+- **Type**: method
+- **Change**: Phrase-level intent routing, scoped people-decision refusal, near-tie suggestions, multilingual replies, explicit fallback sources and validated page/catalogue references replace broad keyword routing. The browser opens with sources, scenario and declining-skill questions.
+- **Why**: Avoid misleading refusals and destination labels while keeping all displayed facts in validated server-authored blocks.
+- **Affects**: associated API, web, tests and deployment configuration
+- **Replaces**: none
+- **PR / branch**: worktree-agent-ae781c8985e0fb4d3
+
 ### M4-084: Separate joining consent and clarify the individual journey
 - **Date**: 2026-10-30
 - **Feature**: F1, F4, F7 and Core

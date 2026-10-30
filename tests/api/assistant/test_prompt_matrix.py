@@ -1,7 +1,6 @@
 """The user's reconstructed review matrix, preserved verbatim with traceable row IDs."""
 
 from datetime import UTC, date, datetime
-from types import SimpleNamespace
 
 import pytest
 
@@ -230,7 +229,7 @@ def test_model_cannot_replace_a_specific_grounded_intent_with_generic_advice(
     body = AssistantIn.model_validate({"messages": [{"role": "user", "content": question}]})
     before = service.answer(USER, body)
     monkeypatch.setattr(provider, "name", "synthetic-test-provider")
-    monkeypatch.setattr(service, "select_ids", lambda *_: SimpleNamespace(ids=["next"]))
+    monkeypatch.setattr(service, "select_ids_or_fallback", lambda *_: (["next"], True))
     after = service.answer(USER, body)
     assert after.parts == before.parts
     assert after.used_llm is False
@@ -294,3 +293,338 @@ def test_scenario_comparison_pins_both_match_reads_despite_newer_trend_cache(
 def test_missing_context_is_explicit_in_every_locale(kind: str, key: str, locale: str) -> None:
     ctx = context.Context(audience="learner")
     assert guide.reply_for_intent(kind, ctx, locale) == guide.T[locale][key]
+
+
+# --- Re-review of the scored routing (855b97f) ----------------------------------------------
+
+NOT_DECISIONS = [
+    ("en", "Which roles are hiring now?", "roles"),
+    ("en", "Which companies are hiring data analysts?", "roles"),
+    ("en", "Does this course help me get promoted?", "learn"),
+    ("en", "Is my job at risk of being let go to AI?", "trend_declining"),
+    ("en", "What are the admission requirements for this course?", "learn"),
+    ("en", "Will AI fire me?", None),
+    ("ms", "Syarikat mana yang sedang mengambil pekerja?", "roles"),
+    ("ms", "Adakah kursus ini membantu saya naik pangkat?", "learn"),
+    ("ms", "Bolehkah saya ambil kursus ini?", "learn"),
+    ("zh", "这门课程能帮我晋升吗？", "learn"),
+    ("zh", "这门课程的录取要求是什么？", "learn"),
+    ("zh", "我应该学什么才能晋升？", None),
+]
+
+
+@pytest.mark.parametrize(("locale", "question", "expected"), NOT_DECISIONS)
+@pytest.mark.parametrize("audience", ["learner", "manager"])
+def test_ordinary_career_questions_are_not_people_decisions(
+    locale: str, question: str, expected: str | None, audience: str
+) -> None:
+    assert guide.intent(question, audience) != "decision"
+    if expected and audience == "learner":
+        assert guide.intent(question, audience) == expected
+
+
+@pytest.mark.parametrize(
+    "question",
+    [
+        "Should I hire Ali?",
+        "Who should I fire?",
+        "Should we fire?",
+        "Can you reject this candidate for me?",
+        "Which employee should be promoted?",
+        "Patutkah saya pecat Ali?",
+        "Siapa yang patut saya berhentikan?",
+        "Perlukah kami naikkan pangkat Siti?",
+        "我该解雇谁？",
+        "我应该录用Ali吗？",
+        "谁应该被晋升？",
+    ],
+)
+@pytest.mark.parametrize("audience", ["learner", "manager"])
+def test_requests_to_decide_about_a_person_are_refused(question: str, audience: str) -> None:
+    assert guide.intent(question, audience) == "decision"
+
+
+def test_managers_ranking_people_for_promotion_get_the_decision_refusal() -> None:
+    assert guide.intent("Rank my team members for promotion", "manager") == "decision"
+    assert guide.intent("Rank my team members for promotion", "learner") != "decision"
+
+
+ROUTING = [
+    # Single words no longer override the answer the question asks for.
+    ("en", "Can HRD Corp pay for my plan?", "cost"),
+    ("en", "What if my plan costs too much?", "plan_cost"),
+    ("en", "What if I don't have a CV?", "profile"),
+    ("ms", "Saya tiada CV, apa patut saya buat?", "profile"),
+    ("zh", "我没有简历怎么办？", "profile"),
+    ("en", "What if I only have 5 hours a week?", "plan_duration"),
+    ("ms", "Bagaimana jika saya hanya ada 5 jam seminggu?", "plan_duration"),
+    ("zh", "如果我每周只有5小时呢？", "plan_duration"),
+    ("en", "Is there an open source course for Python?", "learn"),
+    ("en", "What is the source of my skills gap?", "learn"),
+    ("en", "How do I build confidence in SQL?", "learn"),
+    ("en", "What are your sources?", "sources"),
+    ("en", "How confident are you in this prediction?", "forecast_accuracy"),
+    ("en", "Are your predictions accurate?", "forecast_accuracy"),
+    ("en", "What if AI adoption speeds up?", "scenario"),
+    ("en", "How much does a data analyst earn?", "no_data"),
+    ("en", "Which cities have data jobs?", "no_data"),
+    # Declining work, typos, possessives.
+    ("en", "Which jobs will disappear?", "trend_declining"),
+    ("en", "Which skills will become obsolete?", "trend_declining"),
+    ("en", "Am I going to lose my job to AI?", "trend_declining"),
+    ("ms", "Pekerjaan mana yang akan hilang?", "trend_declining"),
+    ("zh", "哪些工作会被淘汰？", "trend_declining"),
+    ("en", "mtach scor", "score_breakdown"),
+    ("en", "How does the fit score work?", "score_breakdown"),
+    ("zh", "为什么我的匹配分数是72？", "score_breakdown"),
+    ("en", "What is Ali's match score?", "other_person"),
+    ("en", "Ali's match score please", "other_person"),
+    ("en", "Show me Sarah's saved plan", "other_person"),
+    ("en", "Where is my team's biggest gap?", None),
+    ("en", "Can Adept apply to jobs for me?", "action_not_supported"),
+]
+
+
+@pytest.mark.parametrize(("locale", "question", "expected"), ROUTING)
+def test_phrase_level_routing(locale: str, question: str, expected: str | None) -> None:
+    got = guide.intent(question, "learner")
+    if expected is None:
+        assert got != "other_person"
+    else:
+        assert got == expected
+
+
+@pytest.mark.parametrize(
+    ("question", "expected"),
+    [
+        ("Microcourses and roleplaying", "next"),
+        ("What is the most rising skill?", "trend"),
+        ("Show sourcess", "sources"),
+    ],
+)
+def test_typo_tolerance_is_per_token_and_ignores_other_words(question: str, expected: str) -> None:
+    assert guide._typo("mtach", "match") and guide._typo("scor", "score")
+    assert not guide._typo("source", "sources") and not guide._typo("promoted", "promote")
+    assert not guide._typo("most", "cost")
+    assert guide.intent(question, "learner") == expected
+
+
+WEIGHTED = [
+    ("en", "Why is my top role a match?"),
+    ("en", "How does the fit score work?"),
+    ("ms", "Kenapa peranan teratas sesuai?"),
+    ("zh", "为什么这个职位最匹配？"),
+    ("zh", "为什么我的匹配分数是72？"),
+]
+
+
+@pytest.mark.parametrize(("locale", "question"), WEIGHTED)
+def test_role_and_score_answers_always_show_the_weighted_arithmetic(
+    locale: str,
+    question: str,
+    grounded_context: context.Context,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(context, "build", lambda *_: grounded_context)
+    body = AssistantIn.model_validate(
+        {"messages": [{"role": "user", "content": question}], "locale": locale}
+    )
+    shown = "".join(part.text for part in service.answer(USER, body).parts)
+    top = grounded_context.facts["matches"][0]
+    for component in top["components"]:
+        points = component["weight"] * component["value"] * 100
+        assert (
+            f"{guide.T[locale][component['name']]} {component['weight'] * 100:g}% × "
+            f"{component['value'] * 100:.1f}% = {points:.1f}"
+        ) in shown
+    assert f"{top['score'] * 100:.1f}" in shown
+
+
+@pytest.mark.parametrize(
+    ("ui", "question", "expected"),
+    [
+        ("en", "为什么我的匹配分数是72？", "zh"),
+        ("ms", "哪些技能在下降？", "zh"),
+        ("en", "Kemahiran apa yang semakin menurun?", "ms"),
+        ("zh", "Apa langkah seterusnya untuk saya?", "ms"),
+        ("ms", "Which skills are declining?", "ms"),
+        ("en", "What is SDG 4.4?", "en"),
+    ],
+)
+def test_reply_follows_a_clearly_different_question_language(
+    ui: str,
+    question: str,
+    expected: str,
+    grounded_context: context.Context,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    assert guide.reply_locale(question, ui) == expected
+    monkeypatch.setattr(context, "build", lambda *_: grounded_context)
+    body = AssistantIn.model_validate(
+        {"messages": [{"role": "user", "content": question}], "locale": ui}
+    )
+    answer = service.answer(USER, body)
+    focused = guide.focus_context(question, grounded_context)
+    kind = guide.intent(question, "learner")
+    expected_parts, _ = service.to_parts(guide.reply_for_intent(kind, focused, expected), focused)
+    assert answer.parts == expected_parts
+    assert answer.suggestions == guide.suggestions(focused, "/", expected, kind)
+
+
+def test_near_tied_intents_render_both_blocks_and_keep_a_valid_model_second_choice(
+    grounded_context: context.Context, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    question = "Show sources and the fast scenario"
+    assert guide.intents(question, "learner") == ["sources", "scenario"]
+    monkeypatch.setattr(context, "build", lambda *_: grounded_context)
+    body = AssistantIn.model_validate({"messages": [{"role": "user", "content": question}]})
+    offline = service.answer(USER, body)
+    focused = guide.focus_context(question, grounded_context)
+    context.add_scenario_comparison(focused, USER, "moderate")
+    both = "\n\n".join(guide.reply_for_intent(k, focused, "en") for k in ("sources", "scenario"))
+    assert offline.parts == service.to_parts(both, focused)[0]
+
+    provider = NullProvider()
+    monkeypatch.setattr(provider, "name", "synthetic-test-provider")
+    monkeypatch.setattr(service, "get_provider", lambda: provider)
+    monkeypatch.setattr(service, "select_ids_or_fallback", lambda *_: (["sources", "trend"], True))
+    chosen = service.answer(USER, body)
+    assert chosen.used_llm is True
+    shown = "".join(part.text for part in chosen.parts)
+    assert "Stored sources" in shown and "rising" in shown
+    # A selection without the routed block falls back to the deterministic pair.
+    monkeypatch.setattr(service, "select_ids_or_fallback", lambda *_: (["trend"], True))
+    fallback = service.answer(USER, body)
+    assert fallback.used_llm is False and fallback.parts == offline.parts
+
+
+def test_model_selections_follow_the_routing_rules() -> None:
+    assert service._accept(["sources", "trend"], ["sources"]) == ["sources"]
+    assert service._accept(["next", "learn"], ["next"]) == ["next", "learn"]
+    assert service._accept(["learn"], ["sources"]) is None
+    assert service._accept([], ["next"]) is None
+    assert service._accept(["sources"], ["sources", "scenario"]) == ["sources", "scenario"]
+
+
+def test_gateway_failure_keeps_the_guide(
+    grounded_context: context.Context, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    provider = NullProvider()
+    monkeypatch.setattr(provider, "name", "synthetic-test-provider")
+    monkeypatch.setattr(context, "build", lambda *_: grounded_context)
+    monkeypatch.setattr(service, "get_provider", lambda: provider)
+    body = AssistantIn.model_validate(
+        {"messages": [{"role": "user", "content": "What would raise my score?"}]}
+    )
+    answer = service.answer(USER, body)  # NullProvider raises inside select_ids_or_fallback
+    expected, _ = service.to_parts(
+        guide.reply_for_intent("score_improvement", grounded_context, "en"), grounded_context
+    )
+    assert answer.used_llm is False
+    assert answer.parts == expected
+
+
+@pytest.mark.parametrize("locale", ["en", "ms", "zh"])
+@pytest.mark.parametrize("audience", ["learner", "employee", "manager", "visitor"])
+def test_every_offered_chip_routes_to_its_grounded_answer(locale: str, audience: str) -> None:
+    ctx = context.Context(audience=audience)
+    for kind in [None, *guide._CHIP_FOLLOW_UPS, *guide._MANAGER_FOLLOW_UPS]:
+        for chip in guide.suggestions(ctx, "/", locale, kind):
+            key = next(k for k, text in guide.CHIPS[locale].items() if text == chip)
+            if key in guide.CHIP_INTENTS:
+                assert guide.intent(chip, audience) == guide.CHIP_INTENTS[key], (chip, audience)
+    for key in ("sources", "faster", "declining", "raise"):
+        assert guide.intent(guide.CHIPS[locale][key]) == guide.CHIP_INTENTS[key]
+
+
+def test_learner_chips_follow_the_answer_given() -> None:
+    ctx = context.Context(audience="learner")
+    assert guide.suggestions(ctx, "/", "en", "roles")[0] == "What would raise my score?"
+    assert "Which skills are rising?" in guide.suggestions(ctx, "/", "en", "trend_declining")
+    assert guide.suggestions(ctx, "/", "en") == [
+        "What would raise my score?",
+        "What if AI moves faster?",
+        "Where does this data come from?",
+    ]
+
+
+def _with_meta(ctx: context.Context, **update: object) -> context.Context:
+    assert ctx.meta is not None
+    copy = context.Context(audience=ctx.audience, facts=dict(ctx.facts), refs=ctx.refs)
+    copy.meta = ctx.meta.model_copy(update=update)
+    return copy
+
+
+@pytest.mark.parametrize("locale", ["en", "ms", "zh"])
+def test_sources_answer_discloses_fallback_snapshots(
+    locale: str, grounded_context: context.Context
+) -> None:
+    assert grounded_context.meta is not None
+    notice = guide.T[locale]["sources_fallback"].format(date=grounded_context.meta.snapshot_date)
+    live = _with_meta(grounded_context, is_fallback=False, served_from="db")
+    assert notice not in guide.reply_for_intent("sources", live, locale)
+    for update in ({"is_fallback": True}, {"is_fallback": False, "served_from": "fixture"}):
+        stale = _with_meta(grounded_context, **update)
+        assert guide.reply_for_intent("sources", stale, locale).startswith(notice)
+
+
+@pytest.mark.parametrize("locale", ["en", "ms", "zh"])
+def test_privacy_answer_matches_the_privacy_notice(locale: str) -> None:
+    ctx = context.Context(audience="learner")
+    text = guide.reply_for_intent("privacy", ctx, locale)
+    assert "[[page:/privacy]]" in text and "RunPod" in text and "Gemini" in text
+    parts, rejected = service.to_parts(text, ctx)
+    assert rejected == []
+    assert any(part.href == "/privacy" for part in parts)
+
+
+def test_manager_authored_titles_cannot_form_reference_tags() -> None:
+    assert context._plain("[[course:evil]] Upskill]]") == "course:evil Upskill"
+    assert "[[" not in context._plain("[[[x]]]") and "]]" not in context._plain("a[]]]b")
+    ctx = context.Context(audience="employee", org_name=context._plain("Acme [[page:/org]]"))
+    ctx.facts["work_pending"] = [
+        {"title": context._plain("Data [[role:x]]"), "role": "data-analyst", "status": "assigned"}
+    ]
+    ctx.refs.roles["data-analyst"] = "Data Analyst"
+    parts, rejected = service.to_parts(guide.reply_for_intent("next", ctx, "en"), ctx)
+    assert rejected == []
+    assert [p.ref_id for p in parts if p.kind != "text"] == ["data-analyst", "/work/plan"]
+
+
+def test_one_answer_in_flight_per_person(monkeypatch: pytest.MonkeyPatch) -> None:
+    from app.features.assistant import router
+
+    def never(*_: object) -> None:
+        pytest.fail("a second concurrent answer must not start")
+
+    monkeypatch.setattr(router, "get_current_user", lambda **_: USER)
+    monkeypatch.setattr(service, "answer", never)
+    body = AssistantIn.model_validate({"messages": [{"role": "user", "content": "What next?"}]})
+    assert router._claim(USER.id)
+    try:
+        seen: list[CurrentUser] = []
+        busy = router._answer(body, "token", None, 0.0, seen)
+    finally:
+        router._release(USER.id)
+    assert "".join(p.text for p in busy.parts) == guide.T["en"]["unavailable_busy"]
+    assert busy.suggestions == guide.suggestions(context.Context(audience="learner"), "/", "en")
+    assert seen == [USER]
+    assert router._claim(USER.id)  # released again
+    router._release(USER.id)
+
+
+@pytest.mark.parametrize("reason", ["busy", "overloaded", "timeout", "catalogue"])
+@pytest.mark.parametrize("locale", ["en", "ms", "zh"])
+def test_unavailable_replies_name_the_reason_and_never_show_visitor_chips(
+    reason: service.UnavailableReason, locale: str
+) -> None:
+    body = AssistantIn.model_validate(
+        {"messages": [{"role": "user", "content": "help"}], "locale": locale}
+    )
+    anonymous = service.unavailable(None, body, reason)
+    assert anonymous.suggestions == []
+    shown = "".join(p.text for p in anonymous.parts)
+    assert shown.startswith(guide.T[locale][f"unavailable_{reason}"].split("[[")[0])
+    signed_in = service.unavailable(USER, body, reason)
+    visitor_chips = guide.suggestions(context.Context(audience="visitor"), "/", locale)
+    assert signed_in.suggestions and signed_in.suggestions != visitor_chips
