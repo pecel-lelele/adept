@@ -245,7 +245,7 @@ Keeping the same database does not require a Replit redeployment for each trend 
 See the [operations and recovery guide](src/pipelines/trends/runpod/DEPLOYMENT_HANDOFF.md)
 for image access, worker recovery, first-run validation and deployment evidence.
 
-**Submission and technical guides:** [Proposal](docs/submission-proposal.md) · [Technical declaration](docs/submission-technical-declaration.md) · [Diagrams](docs/diagrams/index.html) · [Decisions](docs/decisions.md) · [MiniLM operations](src/pipelines/trends/runpod/DEPLOYMENT_HANDOFF.md) · [Replit publishing](replit.md). Background: [architecture](docs/architecture.md) · [solution design](docs/solution-design.md).
+**Submission and technical guides:** [Proposal](docs/submission/submission-proposal.md) · [Technical declaration](docs/submission/submission-technical-declaration.md) · [Diagrams](docs/diagrams/index.html) · [Decisions](docs/decisions.md) · [MiniLM operations](src/pipelines/trends/runpod/DEPLOYMENT_HANDOFF.md) · [Replit publishing](replit.md). Background: [architecture](docs/architecture.md) · [solution design](docs/solution-design.md).
 
 <a name="interactive-diagrams"></a>
 
@@ -701,7 +701,7 @@ requires a guarded image build and RunPod redeployment. The historical verified 
 is not evidence that those newer dependencies are already deployed. Keep all keys and
 connection strings in secret stores, never in this README or submission PDFs.
 
-Final-round review: [status and responsibilities](docs/final-round-status.md), [refresh and demo runbook](docs/review-runbook.md). Dashboard refresh uses the existing published RunPod MiniLM model through an admin-only workflow dispatch; production configuration and paid-run acceptance remain explicit rollout steps.
+Final-round review: [refresh and demo runbook](docs/review-runbook.md). Dashboard refresh uses the existing published RunPod MiniLM model through an admin-only workflow dispatch; production configuration and paid-run acceptance remain explicit rollout steps.
 
 ### Final-round disclosure and measurement notes (30 October 2026)
 
@@ -715,4 +715,4 @@ The MyCOL 2024/2025 badge uses only the reviewed stored `data-analyst` ID and ci
 TalentCorp's restricted title list; it does not change ranking or claim current vacancies.
 See [mapping evidence](docs/reference/critical-occupations.md).
 Human KPI trials remain unrun (0 testers, 0 trials); automated local API timings
-are separate evidence: [journey measurements](docs/kpi-automated-journeys.md).
+are separate evidence: [journey measurements](docs/evidence/kpi-automated-journeys.md).

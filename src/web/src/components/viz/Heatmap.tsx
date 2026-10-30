@@ -1,4 +1,4 @@
-export type HeatRow = { id: string; label: string; cells: { id: string; value: number }[] };
+export type HeatRow = { id: string; label: string; cells: { id: string; value: number | null; suppressed?: boolean }[] };
 
 function tone(value: number): { background: string; color: string } {
   const v = Math.max(0, Math.min(1, value));
@@ -21,10 +21,12 @@ export function Heatmap({
   rows,
   columns,
   legend,
+  suppressedLabel,
 }: {
   rows: HeatRow[];
   columns: { id: string; label: string }[];
   legend: [string, string];
+  suppressedLabel?: string;
 }) {
   const template = `minmax(110px, 170px) repeat(${columns.length}, minmax(30px, 1fr))`;
   return (
@@ -44,8 +46,8 @@ export function Heatmap({
               {r.label}
             </span>
             {r.cells.map((c) => (
-              <span key={c.id} className="a-heat-cell" role="cell" style={tone(c.value)}>
-                {c.value > 0 ? `${Math.round(c.value * 100)}` : ""}
+              <span key={c.id} className="a-heat-cell" role="cell" title={c.suppressed || c.value == null ? suppressedLabel : undefined} style={c.suppressed || c.value == null ? { background: "#ececec", color: "#444" } : tone(c.value)}>
+                {c.suppressed || c.value == null ? <><span aria-hidden>—</span><span className="a-sr">{suppressedLabel}</span></> : c.value > 0 ? `${Math.round(c.value * 100)}` : ""}
               </span>
             ))}
           </div>

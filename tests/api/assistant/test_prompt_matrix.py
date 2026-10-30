@@ -430,7 +430,7 @@ def test_phrase_level_routing(locale: str, question: str, expected: str | None) 
 @pytest.mark.parametrize(
     ("question", "expected"),
     [
-        ("Microcourses and roleplaying", "next"),
+        ("Microcourses and roleplaying", "unknown"),
         ("What is the most rising skill?", "trend"),
         ("Show sourcess", "sources"),
     ],

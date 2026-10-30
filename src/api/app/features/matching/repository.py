@@ -8,14 +8,16 @@ Missing profiles or skills raise ProfileRequiredError; production never loads pe
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import replace
 
 from app.contracts.common import RecommendationMeta, ScenarioId
 from app.contracts.matching import RoleMatch, ScoreComponent, ScoreImprovement
 from app.contracts.pathway import Course
-from app.contracts.profile import Skill
+from app.contracts.profile import Profile, Skill
 from app.core import refdata, seed
 from app.core.errors import ProfileRequiredError
+from app.features.matching import sdg_weight
 from app.features.matching.critical_occupations import badge_for_role
 from app.features.matching.gap_port import fetch_skills_gap
 from app.features.matching.scoring import (
@@ -150,15 +152,57 @@ def _load_profile(user_id: str) -> MatchProfile:
     # provider's verification page) raises a level; self-reported ticks do not (H08).
     from app.features.pathway import service as pathway_service
 
-    skills = {
-        skill_id: float(level)
-        for skill_id, level in pathway_service.combined_levels(
-            user_id, {s.skill_id: s.level for s in profile.skills}
-        ).items()
-    }
-    interests = frozenset(profile.interests)
+    return profile_to_match(
+        profile,
+        pathway_service.combined_levels(user_id, {s.skill_id: s.level for s in profile.skills}),
+    )
 
-    return MatchProfile(skills=skills, interests=interests)
+
+def profile_to_match(profile: Profile, levels: Mapping[str, int]) -> MatchProfile:
+    """The only fields matching reads from a profile: skill levels and interests (fairness)."""
+    return MatchProfile(
+        skills={skill_id: float(level) for skill_id, level in levels.items()},
+        interests=frozenset(profile.interests),
+    )
+
+
+def score_components(role_score: _RoleScore, scenario: ScenarioId) -> list[ScoreComponent]:
+    """Canonical explanation and values used for display and weighted reranking."""
+    bd = role_score.breakdown
+    skill_value = bd["skill"]
+    trend_value = bd["trend"]
+    if skill_value is None or trend_value is None:
+        raise ValueError("A scored role must have skill and trend values")
+
+    return [
+        ScoreComponent(
+            name="skill_overlap",
+            weight=_W.skill,
+            value=skill_value,
+            explanation="Share of required skills weighted by importance.",
+        ),
+        ScoreComponent(
+            name="trend_outlook",
+            weight=_W.trend,
+            value=trend_value,
+            explanation=(
+                "Importance-weighted skill trend position: velocity clamped to +/-2, median-scaled "
+                f"log-tanh to 0-1, 0.5 = no data ({scenario})."
+            ),
+        ),
+        ScoreComponent(
+            name="interest_fit",
+            weight=_W.interest,
+            value=(bd["interest"] if bd["interest"] is not None else NEUTRAL),
+            provided=bd["interest"] is not None,
+            explanation=(
+                "Jaccard similarity (intersection over union) between your interests and this"
+                " role's tags."
+                if bd["interest"] is not None
+                else "Not provided: you have no saved interests, so a neutral 0.5 is used here."
+            ),
+        ),
+    ]
 
 
 def _score_to_contract(
@@ -184,46 +228,11 @@ def _score_to_contract(
             ]
         }
     )
-    bd = role_score.breakdown
-    skill_value = bd["skill"]
-    trend_value = bd["trend"]
-    if skill_value is None or trend_value is None:
-        raise ValueError("A scored role must have skill and trend values")
-
     # Gap status from unified gap port (pathway.service.skills_gap)
     gap = fetch_skills_gap(user_levels, role_id)
 
     def _skill_obj(sid: str) -> Skill:
         return Skill(id=sid, label=_SKILL_LABELS.get(sid, sid))
-
-    components = [
-        ScoreComponent(
-            name="skill_overlap",
-            weight=_W.skill,
-            value=skill_value,
-            explanation="Share of required skills weighted by importance.",
-        ),
-        ScoreComponent(
-            name="trend_outlook",
-            weight=_W.trend,
-            value=trend_value,
-            explanation=(
-                f"Importance-weighted skill velocity on a shared min-max scale ({scenario})."
-            ),
-        ),
-        ScoreComponent(
-            name="interest_fit",
-            weight=_W.interest,
-            value=(bd["interest"] if bd["interest"] is not None else NEUTRAL),
-            provided=bd["interest"] is not None,
-            explanation=(
-                "Jaccard similarity (intersection over union) between your interests and this"
-                " role's tags."
-                if bd["interest"] is not None
-                else "Not provided: you have no saved interests, so a neutral 0.5 is used here."
-            ),
-        ),
-    ]
 
     reqs = pathway_data.requirements(role_id)
     total = sum(r.importance for r in reqs)
@@ -258,7 +267,7 @@ def _score_to_contract(
         role_id=role_id,
         label=_ROLE_LABELS.get(role_id, role_id),
         score=role_score.score,
-        components=components,
+        components=score_components(role_score, scenario),
         missing_skills=[_skill_obj(s) for s in gap.get("missing", [])],
         partial_skills=[_skill_obj(s) for s in gap.get("partial", [])],
         sdg_targets=fetch_role_badges(role_id),
@@ -270,20 +279,166 @@ def _score_to_contract(
     )
 
 
+def _ranked_scores(
+    profile: MatchProfile,
+    roles: list[Role],
+    velocities: dict[str, float],
+    reference_velocities: dict[str, float] | None,
+    scenario: ScenarioId,
+    impact: dict[str, float],
+    weight: float,
+) -> list[tuple[str, float]]:
+    ranked = rank_roles(profile, roles, velocities, _W, reference_velocities=reference_velocities)
+    if weight <= 0:
+        return [(r.role_id, r.score) for r in ranked]
+    return sorted(
+        [
+            (
+                r.role_id,
+                sdg_weight.component_score(
+                    sdg_weight.blend_components(
+                        score_components(r, scenario), impact.get(r.role_id, 0.0), weight
+                    )
+                ),
+            )
+            for r in ranked
+        ],
+        key=lambda item: (-item[1], item[0]),
+    )
+
+
+def _matches(
+    user_id: str,
+    scenario: ScenarioId,
+    velocities: dict[str, float],
+    meta: RecommendationMeta,
+    reference_velocities: dict[str, float] | None = None,
+    *,
+    sdg_weight_value: float = 0.0,
+    only_role_id: str | None = None,
+) -> list[RoleMatch]:
+    """Rank one saved profile, including same-snapshot comparisons and skill counterfactuals."""
+    profile = _load_profile(user_id)
+    roles = _load_roles()
+    ranked = rank_roles(profile, roles, velocities, _W, reference_velocities=reference_velocities)
+    if only_role_id is not None and not any(r.role_id == only_role_id for r in ranked):
+        return []
+    user_levels = {k: int(round(v)) for k, v in profile.skills.items()}
+    catalogue = pathway_data.catalogue()
+    matches = [
+        _score_to_contract(r, scenario, meta, user_levels, catalogue)
+        for r in ranked
+        if only_role_id is None or r.role_id == only_role_id
+    ]
+    links = (
+        {r.role_id: sdg_weight.default_links(r.role_id) for r in roles}
+        if sdg_weight_value > 0
+        else {}
+    )
+    impact = sdg_weight.sdg_impact(links, lambda rid: links[rid])
+    matches = sdg_weight.apply(
+        matches,
+        impact,
+        sdg_weight_value,
+        {rid: sdg_weight.review_note(found) for rid, found in links.items()},
+    )
+    other_scenario: ScenarioId = "fast" if scenario == "moderate" else "moderate"
+    other = (
+        {
+            rid: (index, score)
+            for index, (rid, score) in enumerate(
+                _ranked_scores(
+                    profile,
+                    roles,
+                    reference_velocities,
+                    velocities,
+                    other_scenario,
+                    impact,
+                    sdg_weight_value,
+                ),
+                1,
+            )
+        }
+        if reference_velocities is not None
+        else {}
+    )
+    positions = (
+        {
+            rid: index
+            for index, (rid, _) in enumerate(
+                _ranked_scores(
+                    profile,
+                    roles,
+                    velocities,
+                    reference_velocities,
+                    scenario,
+                    impact,
+                    sdg_weight_value,
+                ),
+                1,
+            )
+        }
+        if only_role_id is not None
+        else {m.role_id: i for i, m in enumerate(matches, 1)}
+    )
+    # Many roles share a required skill/level: compute each changed profile just once.
+    counterfactuals: dict[tuple[str, int], dict[str, int]] = {}
+    role_by_id = {r.role_id: r for r in roles}
+    out: list[RoleMatch] = []
+    for match in matches:
+        improvements = list(match.improvements)
+        for i, item in enumerate(improvements[:3]):
+            req = next(r for r in role_by_id[match.role_id].skills if r.skill_id == item.skill)
+            key = (item.skill, req.required_level)
+            if key not in counterfactuals:
+                raised = replace(
+                    profile, skills={**profile.skills, item.skill: float(req.required_level)}
+                )
+                counterfactuals[key] = {
+                    rid: pos
+                    for pos, (rid, _) in enumerate(
+                        _ranked_scores(
+                            raised,
+                            roles,
+                            velocities,
+                            reference_velocities,
+                            scenario,
+                            impact,
+                            sdg_weight_value,
+                        ),
+                        1,
+                    )
+                }
+            improvements[i] = item.model_copy(
+                update={"new_rank": counterfactuals[key][match.role_id]}
+            )
+        alternative = other.get(match.role_id)
+        out.append(
+            match.model_copy(
+                update={
+                    "rank": positions[match.role_id],
+                    "other_scenario": other_scenario if alternative else None,
+                    "other_rank": alternative[0] if alternative else None,
+                    "other_score": alternative[1] if alternative else None,
+                    "improvements": improvements,
+                }
+            )
+        )
+    return out
+
+
 def list_matches(
     user_id: str,
     scenario: ScenarioId,
     velocities: dict[str, float],
     meta: RecommendationMeta,
     reference_velocities: dict[str, float] | None = None,
+    *,
+    sdg_weight_value: float = 0.0,
 ) -> list[RoleMatch]:
-    """Run the real scoring engine and return ranked RoleMatch objects."""
-    profile = _load_profile(user_id)
-    roles = _load_roles()
-    ranked = rank_roles(profile, roles, velocities, _W, reference_velocities=reference_velocities)
-    user_levels = {k: int(round(v)) for k, v in profile.skills.items()}
-    catalogue = pathway_data.catalogue()
-    return [_score_to_contract(r, scenario, meta, user_levels, catalogue) for r in ranked]
+    return _matches(
+        user_id, scenario, velocities, meta, reference_velocities, sdg_weight_value=sdg_weight_value
+    )
 
 
 def get_match(
@@ -293,13 +448,23 @@ def get_match(
     velocities: dict[str, float],
     meta: RecommendationMeta,
     reference_velocities: dict[str, float] | None = None,
+    *,
+    sdg_weight_value: float = 0.0,
 ) -> RoleMatch | None:
-    """Return the scored RoleMatch for a single role, or None if not found."""
-    profile = _load_profile(user_id)
-    roles = _load_roles()
-    ranked = rank_roles(profile, roles, velocities, _W, reference_velocities=reference_velocities)
-    user_levels = {k: int(round(v)) for k, v in profile.skills.items()}
-    for r in ranked:
-        if r.role_id == role_id:
-            return _score_to_contract(r, scenario, meta, user_levels, pathway_data.catalogue())
-    return None
+    """Use the full production ranking so list/detail counterfactual ranks agree."""
+    return next(
+        (
+            m
+            for m in _matches(
+                user_id,
+                scenario,
+                velocities,
+                meta,
+                reference_velocities,
+                sdg_weight_value=sdg_weight_value,
+                only_role_id=role_id,
+            )
+            if m.role_id == role_id
+        ),
+        None,
+    )

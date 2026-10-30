@@ -69,15 +69,12 @@ export async function MatchesView({
   const t = await getTranslations("matching");
   const th = await getTranslations("ui.home");
   const tp = await getTranslations("ui.page");
-  const otherScenario = scenario === "fast" ? "moderate" : "fast";
-  const [result, radar, changes, jobs, alternative] = await Promise.all([
+  const [result, radar, changes, jobs] = await Promise.all([
     fetchMatches(scenario, snapshotDate, sdgWeight),
     fetchRadar(scenario),
     snapshotDate ? fetchReplay(scenario, snapshotDate, sdgWeight) : Promise.resolve(null),
     fetchJobsSummary(scenario),
-    fetchMatches(otherScenario, snapshotDate, sdgWeight),
   ]);
-  const otherScores = new Map(alternative.ok ? alternative.data.matches.map((match) => [match.role_id, match.score]) : []);
   const tj = await getTranslations("jobs");
   const openings = new Map(jobs.ok ? jobs.data.roles.map((r) => [r.role_id, r.open_count]) : []);
   const labels = await componentLabels();
@@ -148,7 +145,7 @@ export async function MatchesView({
                           <Link href={detail}>{m.label}</Link>
                         </h2>
                         <span className="a-chips">
-                          <ScenarioDelta score={m.score} otherScore={otherScores.get(m.role_id)} otherScenario={otherScenario} />
+                          <ScenarioDelta score={m.score} rank={m.rank} otherScore={m.other_score} otherRank={m.other_rank} otherScenario={m.other_scenario} />
                           <span className="a-chip" data-tone={m.missing_skills.length ? "down" : "up"}>
                             {tp("toLearn", { count: m.missing_skills.length })}
                           </span>

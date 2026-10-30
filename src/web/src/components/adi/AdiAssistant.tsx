@@ -19,6 +19,21 @@ type Turn = { role: "user"; text: string } | { role: "assistant"; reply: Reply }
 const STORE_PREFIX = "adept.adi.chat.";
 const SEEN = "adept.adi.seen";
 const MAX_CHARS = 600;
+const MAX_CHIPS = 3;
+
+type StarterKey =
+  | "s1" | "s2" | "s3"
+  | "sMatches1" | "sMatches2" | "sMatches3"
+  | "sPathway1" | "sPathway2" | "sPathway3"
+  | "sRadar1" | "sRadar2" | "sRadar3";
+
+/** Opening questions for an empty chat, picked for the page the person is on. */
+function starters(path: string): StarterKey[] {
+  if (path.startsWith("/app/matches")) return ["sMatches1", "sMatches2", "sMatches3"];
+  if (path.startsWith("/app/pathway") || path.startsWith("/app/progress")) return ["sPathway1", "sPathway2", "sPathway3"];
+  if (path.startsWith("/app/radar")) return ["sRadar1", "sRadar2", "sRadar3"];
+  return ["s1", "s2", "s3"];
+}
 
 function load<T>(key: string, fallback: T): T {
   try {
@@ -190,7 +205,8 @@ function AdiConversation({
   if (path.startsWith("/app/onboarding")) return null;
 
   const lastReply = [...turns].reverse().find((turn) => turn.role === "assistant") as { reply: Reply } | undefined;
-  const suggestions = lastReply?.reply.suggestions ?? [t("s1"), t("s2"), t("s3")];
+  // Never more than three chips at once: the server's follow-ups, or starters for this page.
+  const suggestions = (lastReply?.reply.suggestions ?? starters(path).map((key) => t(key))).slice(0, MAX_CHIPS);
 
   return (
     <div className="adi-dock" data-placement={placement} data-open={open}>
@@ -214,7 +230,16 @@ function AdiConversation({
               <X size={18} aria-hidden />
             </button>
           </header>
-          <div className="adi-log" ref={list} aria-live="polite">
+          <div
+            className="adi-log"
+            ref={list}
+            role="log"
+            aria-live="polite"
+            aria-relevant="additions"
+            aria-busy={busy}
+            aria-label={t("conversation")}
+            tabIndex={0}
+          >
             <div className="adi-msg is-adi">
               <p>{t("greet")}</p>
             </div>
@@ -232,14 +257,15 @@ function AdiConversation({
               ),
             )}
             {busy ? (
-              <div className="adi-msg is-adi is-typing" aria-label={t("thinking")}>
-                <span />
-                <span />
-                <span />
+              <div className="adi-msg is-adi is-typing" role="status" aria-label={t("thinking")}>
+                <span aria-hidden />
+                <span aria-hidden />
+                <span aria-hidden />
               </div>
             ) : null}
           </div>
-          <div className="adi-suggest">
+          {/* Fixed-height chip row: replacing chips never shifts the conversation or the input. */}
+          <div className="adi-suggest" role="group" aria-label={t("suggested")}>
             {suggestions.map((s) => (
               <button key={s} type="button" onClick={() => void ask(s)} disabled={busy}>
                 {s}

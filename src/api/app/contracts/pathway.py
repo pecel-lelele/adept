@@ -47,6 +47,11 @@ class Course(BaseModel):
     location: str = ""
     price_note: str = Field(default="", description="How cost_myr was derived (e.g. FX rate).")
     price_status: Literal["listed", "certificate_price_unknown"] = "listed"
+    certificate_status: Literal["unknown", "included"] = Field(
+        default="unknown",
+        description="Completion certificate verified as included in the listed learning price.",
+    )
+    certificate_source: Source | None = None
     certificate_note: str = ""
 
 

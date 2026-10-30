@@ -59,14 +59,18 @@ def list_matches(
     snap = fetch_snapshot(scenario, snapshot_date) if snapshot_date else fetch_snapshot(scenario)
     meta = _build_meta(snap, scenario)
     matches = repository.list_matches(
-        user.id, scenario, snap.velocities, meta, snap.reference_velocities
+        user.id,
+        scenario,
+        snap.velocities,
+        meta,
+        snap.reference_velocities,
+        **({"sdg_weight_value": sdg_weight_value} if sdg_weight_value > 0 else {}),
     )
     if snap.data_provenance_note:
         matches = [
             match.model_copy(update={"data_provenance_note": snap.data_provenance_note})
             for match in matches
         ]
-    matches = _weighted(matches, sdg_weight_value)
     return MatchResponse(matches=matches, meta=meta, data_provenance_note=snap.data_provenance_note)
 
 
@@ -79,18 +83,15 @@ def get_match(
 ) -> RoleMatch:
     snap = fetch_snapshot(scenario, snapshot_date) if snapshot_date else fetch_snapshot(scenario)
     meta = _build_meta(snap, scenario)
-    if sdg_weight_value > 0:
-        # Impact is relative to the strongest role, so score the full list and pick one.
-        everyone = repository.list_matches(
-            user.id, scenario, snap.velocities, meta, snap.reference_velocities
-        )
-        match = next(
-            (m for m in _weighted(everyone, sdg_weight_value) if m.role_id == role_id), None
-        )
-    else:
-        match = repository.get_match(
-            user.id, role_id, scenario, snap.velocities, meta, snap.reference_velocities
-        )
+    match = repository.get_match(
+        user.id,
+        role_id,
+        scenario,
+        snap.velocities,
+        meta,
+        snap.reference_velocities,
+        **({"sdg_weight_value": sdg_weight_value} if sdg_weight_value > 0 else {}),
+    )
     if match is None:
         raise NotFoundError(f"No match for role {role_id}")
     return match.model_copy(update={"data_provenance_note": snap.data_provenance_note})

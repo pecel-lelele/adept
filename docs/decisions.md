@@ -915,6 +915,52 @@
 - **Replaces**: TEAM-039's per-lookup reference-file loading; preserves M2-015's fresh role catalogue and saved-profile behaviour
 - **PR / branch**: PR #69 / `fix/core-final-round-integration`
 
+### M2-026: Expand official occupations and digital software skills
+- **Date**: 2026-10-30
+- **Feature**: F4 (taxonomy), F1 (catalogue intake)
+- **Type**: data source | method
+- **Change**: Add nine official current occupations and five official tech target occupations from opened O*NET pages, with exact titles, codes and dated provenance. Add Git and Selenium using official software names and map role requirements to existing digital skills; preserve the production-worker aggregate without unsupported inferred requirements.
+- **Benchmark annotation**: Replace the weaker third direction for synthetic Aisyah and Ravi with Business Intelligence Analysts, based on their data/finance or analytics interests and spreadsheet/reporting work. Preserve the three-label benchmark size, all metric thresholds and the production ranker; labels are curated relevance judgments, not observed career outcomes.
+- **Why**: Issue #56 needs realistic non-tech starting points and the requested digital-skills emphasis, without inventing occupations, qualifications or growth forecasts. Levels and importance remain disclosed Adept estimates; current occupations stay outside target ranking.
+- **Pipeline**: O*NET occupation/technology pages → preserve IDs and exact source names → estimated role-skill edges → existing production ranker and pathway methods → graph closure, provenance, current-role exclusion and unknown-signal regressions → shared reference catalogue
+- **Affects**: F1/F4/F5/F6 reference reads; no model, ranking formula or authentication change
+- **Replaces**: none
+- **PR / branch**: feat/pathway-real-roles-courses / Closes #56
+
+### M2-027: Compare scenario and skill counterfactual ranks on one saved profile
+- **Date**: 2026-10-31
+- **Feature**: F4 (Future-Role Matching & Gap)
+- **Type**: method
+- **Change**: Return optional current/other-scenario ranks and scores from one profile and the two velocity columns of one snapshot. Rerank every target role after raising each top-three improvement skill to its required level, including the requested SDG weight through the same rounded component blend as displayed scores. Explain the existing median-scaled log-tanh formula accurately.
+- **Why**: Independent latest reads could compare different snapshots; adding a score gain to just one role ignores effects on other roles and SDG preferences. Pure ranker results remain estimates, with canonical role/skill/course IDs and unchanged source dates.
+- **Pipeline**: saved profile + canonical requirements + paired snapshot velocities → existing fairness whitelist → existing skills, trends, interests and SDG components → production ranker and shared SDG blend → reciprocal scenario and changed-profile rank regressions → translated rank/score chips and counterfactual ranks
+- **Affects**: matching contracts/repository/UI; SDG blend extraction preserves existing rounding
+- **Replaces**: none (M2-026 is reserved by catalogue PR #74)
+- **PR / branch**: fix/matching-org-review-fixes
+
+### M2-028: Display official occupation titles for every stored role profile
+- **Date**: 2026-10-31
+- **Feature**: F4 (Taxonomy)
+- **Type**: data source
+- **Change**: Replace 31 legacy editorial display labels with their official O*NET occupation titles after opening all 26 distinct source pages. Preserve stable IDs, links and estimated digital-skill requirements; keep former labels only as provenance history. Explicitly count 48 role profiles covering 41 distinct official occupations.
+- **Why**: A broad taxonomy crosswalk does not make an Adept-created specialisation an official job title. Multiple stored skill profiles for one occupation must not inflate the count of distinct occupations.
+- **Pipeline**: dated official O*NET pages → exact occupation titles/codes and stable-ID crosswalk → existing estimated digital requirements → unchanged matching/pathway methods → all-role title/provenance and graph closure regressions → grounded canonical display labels
+- **Affects**: role display labels, provenance/README and taxonomy release date; no identifier or scoring change
+- **Replaces**: none (supersedes legacy editorial label treatment; M2-027 is reserved by PR #77)
+- **PR / branch**: feat/pathway-real-roles-courses / PR #74
+
+### M2-029: Limit detail response construction to the requested role
+- **Date**: 2026-10-31
+- **Feature**: F4 (Future-Role Matching & Gap)
+- **Type**: method
+- **Change**: Share one ranking path for list/detail requests but format explanations, course options and improvement counterfactuals only for the requested detail role. Current, other-scenario and changed-profile ranks still score every target role with the same profile/snapshot/SDG weight.
+- **Why**: Building unrelated role responses and their course lookups on a detail request discarded useful work and duplicated the list request's cost. The optimization preserves existing ranking results and attribution.
+- **Pipeline**: unchanged profile/catalogue/snapshot inputs → full production ranking → requested-role response selection → unchanged full-catalogue counterfactual ranks → list/detail equality and formatter/ranker call-boundary regressions → same public detail contract
+- **Affects**: matching detail computation only; no schema/source/scoring change
+- **Replaces**: none (implementation follow-up to M2-027; M2-028 reserved by PR #74)
+- **PR / branch**: fix/matching-org-review-fixes / PR #77
+
+
 ---
 
 ## M3: Pathway, SDG & Guardrails (F5, F6, F8)
@@ -1270,6 +1316,62 @@
 - **Affects**: Submission text only; no account, database, region, billing or infrastructure changes
 - **Replaces**: M3-031's incomplete plan/credit details and the unused external-service row
 - **PR / branch**: docs/core-submission-accuracy
+
+### M3-034: Verified Malay courses and dated tech learning alignments
+- **Date**: 2026-10-30
+- **Feature**: F5 (course catalogue), F6 (SDG mappings)
+- **Type**: data source | method
+- **Change**: Finish five verified Malay provider records and a free Microsoft Learn Git module; regenerate CSV rows in shared sync order while preserving older API verification dates. Add draft enabling SDG links for official current/tech occupations and digital skills, and a dated SDG evidence manifest so re-opened sources retain authentic attribution dates separately from the mapping release.
+- **Why**: The interrupted edit left source/seed consistency unverified. Language, hours, prices and HRD claims now have opened provider evidence; a URL locale alone never establishes Malay content. Fail validation for absent provider/source/date or invalid costs/durations, and report unsupported skills as unmet rather than invent courses.
+- **Pipeline**: opened provider pages + UN target definitions/metadata → normalize URLs/durations and retain source dates → catalogue IDs and estimated skill levels/draft alignments → existing deterministic planner and sync → source/CSV equality, invalid-row, attribution and missing-trend/course regressions → CSV reference data and existing API endpoints
+- **Affects**: F4 taxonomy attribution; F5 source definitions, validation, pipeline and seeds; F6 source dates and mapping seeds. No schema migration or provider enablement.
+- **Replaces**: none
+- **PR / branch**: feat/pathway-real-roles-courses / Closes #56
+
+### M3-035: Verifiable public impact evidence and catalogue coverage
+- **Date**: 2026-10-30
+- **Feature**: F8 (Transparency), F4/F5/F6 evidence
+- **Type**: method
+- **Change**: Add a public impact summary/page with counts from the current canonical catalogue, free learning hours, languages and resolved SDG links. Show production matching/pathway measurements on explicitly synthetic profiles, preserve the actual research observation window, and separate external published context from system results. No cost or budget metric is served.
+- **Why**: There are no human pilot users or measured human outcomes. External claims require short verified quotations, publication/retrieval dates and source links. Both scenario calculations must use the same snapshot; course verification coverage uses its own newest fact date, not a trend label.
+- **Pipeline**: official catalogue/mappings + six sourced public claims + synthetic profiles → validated IDs/dates and distinct counts → course/hour/SDG coverage and production matching/pathway features → production methods and counterfactual name/segment swaps → source/recount/no-cost/fairness regressions (9 API tests passed) → dated public summary, translated page and generated report
+- **Affects**: F8 public pages/navigation, F4 profile-to-matcher whitelist adapter, F5/F6 attribution; no account data or production writes
+- **Replaces**: none
+- **PR / branch**: feat/core-impact-evidence
+
+### M3-036: Package synthetic evidence inputs and keep assurance claims factual
+- **Date**: 2026-10-31
+- **Feature**: F8 (Impact evidence)
+- **Type**: other
+- **Change**: Include only the required synthetic profile JSON in the API image and verify its declared packaging path. Describe SDG mappings as drafts pending human review in every locale. Validate that each displayed evidence number matches its stored value and occurs in its quote or claim, with publication no later than retrieval.
+- **Why**: The image otherwise lacks the input required by the public summary. Mapping availability is not proof of human review, and a nonempty claim cannot validate an unrelated figure. Publisher/date attribution and short exact quotations remain separate from Adept's own measurements.
+- **Pipeline**: packaged synthetic profiles + dated public claims → schema/numeric/date checks → unchanged coverage and production-method features → existing computation → 11 API regressions passed, including a rejected unrelated figure and packaged input loading → image-compatible public evidence with draft alignment disclosure
+- **Affects**: API Docker packaging, F8 evidence validation and en/ms/zh wording; no new provider or production operation
+- **Replaces**: none (corrects review gaps in M3-035)
+- **PR / branch**: feat/core-impact-evidence
+
+### M3-037: Separate verified completion certificates from course learning prices
+- **Date**: 2026-10-31
+- **Feature**: F5 (Catalogue), F7 programme restrictions
+- **Type**: contract
+- **Change**: Add certificate status and dated provider evidence independently of the learning price. Only certificates verified as included in that price qualify for certificate-required programmes; the filtered catalogue also supplies alternatives. Two reopened ModernLMS course pages establish included completion certificates; every other course defaults to unknown.
+- **Why**: A listed learning fee, including zero, does not establish a certificate or its price. Pepper Labs learning pages do not claim one. Versioned certificate annotations work with both serving adapters without guessing database metadata or changing ingestion schemas.
+- **Pipeline**: public provider course pages → dated canonical-ID certificate evidence → included/unknown status separate from learning price → programme catalogue filter → positive and negative selected-course/alternative regressions → attributed courses with unchanged fee/hour verification dates
+- **Affects**: course contract/data adapter, programme filtering, pathway source attribution, generated contracts and source README; no migration
+- **Replaces**: none (M3-035/M3-036 are reserved by PR #76)
+- **PR / branch**: feat/pathway-real-roles-courses / PR #74
+
+### M3-038: Conversational Adi: warm server-authored blocks, friendly refusals, at most three chips
+
+- **Date**: 2026-10-31
+- **Feature**: F8 (guardrails), Core (Adi assistant)
+- **Type**: method | contract | UI
+- **Change**: Adi's answer blocks in en/ms/zh are rewritten in a short, second-person, plain-language tone (facts, attribution and estimate labels unchanged; the roles answer no longer lists runner-up roles). New server-authored blocks: `off_topic` and `invent` (refused before context or model, like the people-decision refusal), `unknown` (nothing matched; replaces the old silent fallback to "next"), `greeting` and `thanks`. The people-decision refusal now states that hiring, firing, promotion and admission decisions belong to people and that Adept never makes them. Routing adds phrase rules for "boost/raise/better match or score", "what if AI slows down / adoption is slower", "moderate vs fast", "trust this data", and shrinking/falling/going-away work. Follow-up chips are catalogue IDs (`AssistantReply.suggestion_ids`, new) with their question text in `suggestions`; both are capped at three in the contract. Chips never repeat the question just asked or ask for the answer just shown, and after refusals/small talk they follow the page (matches → "Why is this my top match?", pathway → "Which course should I start with?"). The web starter chips are page-aware (at most three), the log is an ARIA live region with a status typing indicator, and the chip row has a reserved height. The model selection prompt names the specific blocks per intent and tells the model to choose `unknown` rather than a loosely related block; for an `unknown` question the model may still pick any checked block.
+- **Why**: Product owner: answers felt stiff, and unanswerable questions got unrelated plan advice. Free-form model text was rejected (AGENTS §3.3); variable server-authored phrasing variants were considered but not needed, since one warm block per intent keeps answers predictable and testable with `LLM_PROVIDER=none`.
+- **Pipeline**: n/a (rule-based routing plus F8 `select_ids_or_fallback`/`validate_ids` selection of server-authored blocks). Evaluation: `tests/api/assistant/test_conversational.py` (routing in en/ms/zh, refusals with 1–3 valid chips, page-aware chips, decision refusal wording, arbitrary model text never shown, contract cap) plus the existing assistant/guardrail suites.
+- **Affects**: `POST /api/v1/assistant/chat` response gains `suggestion_ids` (additive; `openapi.json` and `types.ts` regenerated); web `ui.adi` messages gain `conversation`, `suggested` and page starter keys
+- **Replaces**: none (refines the Adi routing and chip behaviour; earlier entries unchanged)
+- **PR / branch**: feat/core-adi-conversational
 
 ---
 
@@ -2206,3 +2308,14 @@
 - **Affects**: associated API, web, tests and deployment configuration
 - **Replaces**: none
 - **PR / branch**: worktree-agent-a30a3ff3fc8019a74
+
+### M4-088: Suppress small consenting cohorts in team heatmaps
+- **Date**: 2026-10-31
+- **Feature**: F7 (Organisation mode), Core
+- **Type**: contract
+- **Change**: ORG_MIN_COHORT defaults to 3; only consenting completed-intake members with usable profiles count. Below the threshold, every cell and required-skill row aggregate is null with explicit suppression flags. Web views retain neutral placeholders and translated disclosure rather than zero-gap colours or percentages. Adi excludes suppressed aggregates and explains the missing data in all three languages.
+- **Why**: A small team's aggregate can reveal an individual. A suppressed result is unavailable information, not evidence of a fully skilled team. Existing authorisation, consent and personal/group planning stay intact.
+- **Pipeline**: membership consent + saved completed profiles → existing member filter → eligible cohort count and required-skill gaps → threshold suppression → zero/below/at/above-threshold and consent regressions → manager heatmap and dashboard with neutral states
+- **Affects**: org contracts, settings/env example, shared heatmap and en/ms/zh views; no migration
+- **Replaces**: none (M4-087 is reserved by refresh PR #75)
+- **PR / branch**: fix/matching-org-review-fixes

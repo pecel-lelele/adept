@@ -13,7 +13,7 @@ from urllib.parse import urljoin
 import pymupdf
 
 ROOT = Path(__file__).resolve().parents[2]
-SOURCE = ROOT / "docs/submission-technical-declaration.md"
+SOURCE = ROOT / "docs/submission/submission-technical-declaration.md"
 OUTPUT = ROOT / "submission/SDC2026_Pecel-Lele_TechDeclaration.pdf"
 
 

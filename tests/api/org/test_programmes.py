@@ -80,7 +80,9 @@ def test_restrictions_filter_the_courses_used(client: TestClient) -> None:
     plan = _generate(client, _brief(client, certificate_required=True, hrd_claimable_only=True))
     for route in plan["routes"]:
         for step in route["pathway"]["steps"]:
-            for course in step["courses"]:
+            for course in step["courses"] + step["alternatives"]:
+                assert course["certificate_status"] == "included"
+                assert course["certificate_source"]
                 assert course["price_status"] == "listed"
                 assert course["hrd_claimable"] or course["cost_myr"] == 0
 

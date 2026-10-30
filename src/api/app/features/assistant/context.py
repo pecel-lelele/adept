@@ -437,7 +437,13 @@ def _manager(ctx: Context, user: CurrentUser, scenario: ScenarioId) -> None:
         )
     gaps = _try("gaps", lambda: org_service.get_gaps(user, scenario))
     if gaps is not None and gaps.role_gaps:
-        ranked = sorted(gaps.role_gaps.items(), key=lambda kv: -kv[1])[:5]
+        visible = {
+            r: g
+            for r, g in gaps.role_gaps.items()
+            if g is not None and not gaps.role_suppressed.get(r, False)
+        }
+        ranked = sorted(visible.items(), key=lambda kv: -kv[1])[:5]
+        ctx.facts["team_gaps_suppressed"] = any(gaps.role_suppressed.values())
         ctx.facts["role_gaps"] = ranked
         ctx.lines.append(
             "Average team gap per target role (share of required skill level missing): "

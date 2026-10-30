@@ -74,6 +74,7 @@ ROUTE_LIMITS: dict[str, Limit] = {
     "/api/v1/pathway/progress": (60, 60),  # writes
     "/api/v1/pathway/plans": (30, 60),  # writes + rebuilds a plan
     "/api/v1/guardrails": (60, 60),
+    "/api/v1/impact": (30, 60),  # public page; recomputes persona rankings when the memo expires
     "/api/v1/assistant": (20, 60),  # each answer may call a paid language model
 }
 

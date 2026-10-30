@@ -1,6 +1,36 @@
+import pytest
 from fastapi.testclient import TestClient
 
-from app.contracts.org import GapHeatmapResponse, GroupPlan, MemberListResponse, Organization
+from app.contracts.org import (
+    GapHeatmapResponse,
+    GroupPlan,
+    Member,
+    MemberListResponse,
+    Organization,
+)
+from app.features.org import repository
+from app.features.profile import repository as profile_repository
+
+
+@pytest.fixture
+def three_member_cohort(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A third synthetic consenting learner tests values above the real default threshold."""
+    member = Member(
+        id="synthetic-cohort-third",
+        display_name="Synthetic third member",
+        current_role_id=None,
+        intake_status="complete",
+        skills_shared=True,
+    )
+    monkeypatch.setitem(
+        repository._members, "org-demo-bank", [*repository._members["org-demo-bank"], member]
+    )
+    monkeypatch.setitem(
+        profile_repository._store,
+        member.id,
+        profile_repository._store["emp-002"].model_copy(update={"user_id": member.id}),
+    )
+
 
 COMPANY = {"X-Demo-User": "demo-company"}
 INSTITUTION = {"X-Demo-User": "demo-institution"}
@@ -45,10 +75,12 @@ def test_plan_follows_the_selected_scenario(client: TestClient) -> None:
         assert GroupPlan.model_validate(resp.json()).meta.scenario == scenario
 
 
-def test_heatmap_is_computed_from_member_skills(client: TestClient) -> None:
+def test_heatmap_is_computed_from_member_skills(
+    client: TestClient, three_member_cohort: None
+) -> None:
     body = GapHeatmapResponse.model_validate(client.get("/api/v1/org/gaps", headers=COMPANY).json())
     cell = {(c.role_id, c.skill_id): c.gap for c in body.cells}
-    # Two counted members (Aisyah, Employee 002); neither has RPA, so everyone is missing it.
+    # Three consenting completed members; none has RPA, so everyone is missing it.
     assert cell[("process-automation-analyst", "rpa")] == 1.0
     # A skill the role does not require is not a gap.
     assert cell[("process-automation-analyst", "sql")] == 0.0
@@ -67,13 +99,18 @@ def test_group_plan_target_role_can_be_chosen(client: TestClient) -> None:
     assert GroupPlan.model_validate(resp.json()).target_role_id == "data-analyst"
 
 
-def test_role_gaps_average_required_skills_and_pick_the_default_target(client: TestClient) -> None:
+def test_role_gaps_average_required_skills_and_pick_the_default_target(
+    client: TestClient,
+    three_member_cohort: None,
+) -> None:
     """Zero cells for skills a role does not require must not dilute its average."""
     body = GapHeatmapResponse.model_validate(client.get("/api/v1/org/gaps", headers=COMPANY).json())
     assert set(body.role_gaps) == set(body.role_ids)
     for role in body.role_ids:
         all_cells = [c.gap for c in body.cells if c.role_id == role]
-        naive = sum(all_cells) / len(all_cells)
+        assert all(c is not None for c in all_cells)
+        naive = sum(c for c in all_cells if c is not None) / len(all_cells)
+        assert body.role_gaps[role] is not None
         assert body.role_gaps[role] >= naive - 1e-6
     plan = GroupPlan.model_validate(client.get("/api/v1/org/plan", headers=COMPANY).json())
     # The bank cohort already has customer-service skills, and no UX skills.
@@ -106,7 +143,6 @@ def test_heatmap_date_uses_the_same_scopes_as_the_learners(client: TestClient, m
 
 
 def test_personal_scope_needs_every_included_member_to_share() -> None:
-    from app.contracts.org import Member
     from app.features.org import service as org_service
 
     base = {"name": "Synthetic", "role": "member", "intake_status": "complete"}
