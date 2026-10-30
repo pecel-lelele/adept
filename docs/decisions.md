@@ -477,6 +477,16 @@
 - **Replaces**: none
 - **PR / branch**: worktree-agent-a17103c77ff6e8291
 
+### M1-013: Separate app refresh configuration from GitHub runner metadata
+- **Date**: 2026-10-30
+- **Feature**: F2
+- **Type**: contract
+- **Change**: Use TRENDS_REFRESH_WORKFLOW for the application workflow filename; the runner-owned GITHUB_WORKFLOW variable must not select an app dispatch target. Regenerate the source branch contracts from production schemas.
+- **Why**: Branch CI exposed a collision with GITHUB_WORKFLOW=CI. Preserve validation instead of accepting a malformed filename or masking the inherited setting in tests.
+- **Affects**: refresh configuration and branch CI
+- **Replaces**: workflow environment setting in M1-012
+- **PR / branch**: worktree-agent-a17103c77ff6e8291
+
 ---
 
 ## M2: Profile Intake & Matching (F1, F4)

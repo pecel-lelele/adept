@@ -399,3 +399,15 @@ def test_rescore_failure_is_reported_and_concurrent_rescore_is_409(
     finally:
         refresh._rescore_lock.release()
     assert response.status_code == 409
+
+
+def test_ci_workflow_name_cannot_override_the_app_refresh_target(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("GITHUB_WORKFLOW", "CI")
+    monkeypatch.delenv("TRENDS_REFRESH_WORKFLOW", raising=False)
+    assert refresh.RefreshSettings(_env_file=None).trends_refresh_workflow == "trends-refresh.yml"
+    monkeypatch.setenv("TRENDS_REFRESH_WORKFLOW", "synthetic-refresh.yml")
+    assert (
+        refresh.RefreshSettings(_env_file=None).trends_refresh_workflow == "synthetic-refresh.yml"
+    )
