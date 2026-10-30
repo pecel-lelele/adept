@@ -224,3 +224,16 @@ class TestSignalAggregation:
 
         freq_python = combined_counts["python"] / combined_total
         assert freq_python == pytest.approx(0.10, abs=1e-9)
+
+
+def test_moderate_is_clamped_like_fast() -> None:
+    """N1: an unclamped V_moderate (2.44) used to exceed the clamped V_fast (2.0)."""
+    from pipelines.trends.score import scenario_moderate
+
+    assert scenario_moderate(2.44) == 2.0
+    assert scenario_moderate(-3.3) == -2.0
+    assert scenario_moderate(0.3) == 0.3
+    for v in (0.01, 0.4, 1.9, 2.44, 5.0):
+        for exposure in (0.0, 0.5, 1.0):
+            assert scenario_fast(v, exposure) >= scenario_moderate(v)
+            assert scenario_fast(-v, exposure) <= scenario_moderate(-v)

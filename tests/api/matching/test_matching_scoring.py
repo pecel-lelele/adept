@@ -126,10 +126,28 @@ def test_trend_scores_ties_averaged() -> None:
 
 
 def test_trend_scores_single_item() -> None:
-    scores = trend_scores({"only": 0.99})
-    assert scores["only"] == NEUTRAL
-    assert trend_scores({"only": 0.99}, {"other": -0.5})["only"] == 1.0
+    # Zero velocity is neutral; the sign of a lone velocity is kept (rising above neutral).
+    assert trend_scores({"only": 0.99})["only"] > NEUTRAL
+    assert trend_scores({"only": -0.99})["only"] < NEUTRAL
+    assert trend_scores({"only": 0.99}, {"other": -0.5})["only"] > NEUTRAL
     assert trend_scores({"still": 0})["still"] == NEUTRAL
+
+
+def test_trend_scores_do_not_collapse_behind_outliers() -> None:
+    """N1: a few large velocities must not squeeze the bulk into one value (min-max did)."""
+    bulk = {f"s{i}": (i - 10) * 0.001 for i in range(21)}  # -0.01 .. 0.01
+    scores = trend_scores({**bulk, "outlier-up": 2.4, "outlier-down": -3.3})
+    assert scores["s20"] - scores["s0"] > 0.3
+    assert scores["outlier-up"] > scores["s20"] and scores["outlier-down"] < scores["s0"]
+    assert scores["s10"] == NEUTRAL
+
+
+def test_fast_never_below_moderate_for_a_rise() -> None:
+    """Both scenarios are clamped to the same bound before sharing one scale."""
+    moderate = {"rise": 2.44, "small": 0.01, "fall": -0.2}
+    fast = {"rise": 2.0, "small": 0.02, "fall": -0.3}
+    m, f = trend_scores(moderate, fast), trend_scores(fast, moderate)
+    assert f["rise"] >= m["rise"] and f["small"] >= m["small"] and f["fall"] <= m["fall"]
 
 
 # ---------------------------------------------------------------------------
