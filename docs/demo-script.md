@@ -1,6 +1,9 @@
 # Demo film and pitch video script
 
-The **demo film** (3 min 11 s, 1920×1080, 30 fps) is built in Remotion in [`demo-video/`](demo-video/).
+The **demo film** (planned 3 min 11 s, 1920×1080, 30 fps) is built in a local, gitignored
+Remotion workspace at `submission/demo-video/`. That workspace is not a judge-facing link.
+The [delivery checklist](submission-deliverables.md) links the team's existing video folder;
+the final exported file and anonymous viewing access still require verification.
 It follows one person, **Sofia Tan** (a synthetic CV), from uploading her CV to a saved learning plan,
 with motion graphics for the parts you cannot see on screen. It has an AI voice-over (Kokoro, local),
 sound effects, a music bed and soft light sweeps. App scenes use screens captured from the local app;
@@ -31,12 +34,16 @@ If the video runs long, cut scene 6 (trend engine, 15 s) or scene 13 (for teams,
 
 ## Film storyline
 
+The values below are storyboard examples from an older local build, not verified results
+for the current revision. Re-record and update visible scores/counts after the matching
+and scenario work is merged. Do not claim the historical storyboard proves current behaviour.
+
 Times are approximate (transitions overlap by half a second). **VO** is the voice-over line.
 
 | # | Time | Scene | On screen | VO | Motion |
 |---|---|---|---|---|---|
 | 1 | 0:00 | **Hook** (motion graphic) | "AI is changing work faster than people can retrain." · **56%** use AI at work · **26%** trained · source line | "AI is changing work faster than people can retrain. In Malaysia, fifty-six percent of professionals already use AI at work. Only twenty-six percent have been trained to use it." | Words rise in time with the voice; numbers count up; bars grow. Wipe + warm light sweep. |
-| 1b | 0:11 | **Why now** (motion graphic) | Three sourced beats: **+170M new jobs, −92M displaced by 2030** (WEF Future of Jobs Report 2025) · Jensen Huang, NVIDIA: "…you're going to lose your job to someone who uses AI" (Milken Institute, May 2025, reported by Reuters) · **697,000** Malaysian jobs could be significantly affected without urgent upskilling (HR Minister R. Ramanan, Malay Mail, June 2026) | "By 2030, AI and new technology will create a hundred and seventy million jobs, and displace ninety-two million. More jobs, but different ones. As NVIDIA's Jensen Huang says: you'll lose your job to someone who uses AI. In Malaysia, up to six hundred and ninety-seven thousand jobs could be hit, without urgent upskilling." | Tags "Why now / Why people / Why organisations"; numbers count up; quote card. |
+| 1b | 0:11 | **Why now** (motion graphic) | Global estimates: **+170M jobs, −92M displaced by 2030** (WEF, 8 January 2025; multiple macrotrends) · Jensen Huang's opinion (Milken, 6 May 2025) · **Up to 697,000** Malaysian jobs potentially affected (Malay Mail, 24 June 2026; AI, digitalisation and green economy; conditional on insufficient upskilling) | "The World Economic Forum projects major job creation and displacement from global economic and technology shifts. Jensen Huang urges workers to learn AI tools. In Malaysia, the human resources minister warns that AI, digitalisation and the green economy could significantly affect up to six hundred and ninety-seven thousand jobs over three to five years without upskilling." | Three source cards; keep estimate, geography, date and conditions visible. Re-time the revised narration. |
 | 2 | 0:33 | **Meet Sofia** (motion graphic) | Her synthetic CV floats in · "Meet Sofia Tan. Process automation analyst · 4 years · Malaysia" · skill chips · an **AI agent at work** card ticking off her usual tasks · "What should she learn next?" | "Meet Sofia Tan. She builds automation for a living… Now AI agents can do much of that work in minutes. So what should she learn next?" | CV drifts; chips pop; agent tasks spin and tick; question rises. |
 | 3 | 0:46 | **Adept reveal** | Logo draws in · "See where your skills can take you in the AI era." · Profile → Radar → Match → Plan | "Adept shows where your skills can take you in the AI era, in four steps." | Logo build, green light sweep, step rail lights up. |
 | 4 | 0:51 | **1 · Upload a CV** (app) | Landing page → scroll to upload → CV page flies into the drop zone → consent tick → Upload → "Reading the CV…" → **55% Process Automation Analyst · 7 skills found** | "Sofia drops her CV onto Adept. No account needed. It's read in memory, and never stored. In seconds, she sees her best-fit future role…" | Cursor, click ripples and sounds; camera scroll and zoom; callout. |
@@ -52,6 +59,23 @@ Times are approximate (transitions overlap by half a second). **VO** is the voic
 | 13b | 2:46 | **Why Adept** | Three cards: For people (a clear next step, in minutes) · For organisations (training budget aimed at real gaps) · For Malaysia (a workforce that keeps pace with AI; SDG targets 4.4, 4.3, 8.2, 8.5; goal of 20% faster planning, to be measured) | "For people, Adept turns uncertainty into a clear next step, in minutes. For organisations, training budgets go to the gaps that really matter. And for Malaysia, a workforce that keeps pace with AI: quality education, and decent work." | Cards rise one by one with the voice. |
 | 14 | 3:01 | **Outro** | Four principles (sources, estimates, grounded AI, people decide) → logo · "Make your next move." | "Sources on every result. Estimates labelled. People make the decisions. Adept. Make your next move." | Cards pop then clear; logo builds; light sweep; ding. |
 
+## Evidence register
+
+Sources checked on 30 October 2026. Publication dates below are not the recording date
+or the observation date of Adept's trend snapshot.
+
+| Scene / claim | Source and publication / event date | Meaning and limitation |
+|---|---|---|
+| 1: 56% use AI; 26% trained | [Hays Malaysia](https://www.hays.com.my/press-release/content/future-of-work-malaysia-technology-ai-impact), 7 March 2025 | Historical reported survey shares; the 30 percentage-point difference does not measure the share of AI users lacking training. |
+| 1b: 170M created, 92M displaced by 2030 | [WEF release](https://www.weforum.org/press/2025/01/future-of-jobs-report-2025-78-million-new-job-opportunities-by-2030-but-urgent-upskilling-needed-to-prepare-workforces/), 8 January 2025 | Global projections across technology, economic, demographic and green-transition drivers; not AI-only effects or observed losses. |
+| 1b: Huang on learning AI | [Milken event transcript](https://milkeninstitute.org/sites/default/files/2025-05/new-innovation-economy-conversation-nvidia-ceo-jensen-huang_Transcript_GC25.pdf), event 6 May 2025, around 06:20 | Speaker opinion, not a measured statistic. Primary transcript supports a paraphrase; no unverified Reuters quotation is needed. |
+| 1b: up to 697,000 Malaysian jobs affected | [Malay Mail, Anis Zalani](https://www.malaymail.com/news/malaysia/2026/06/24/malaysia-records-42807-job-losses-as-697000-roles-at-risk-from-ai-without-urgent-upskilling-says-hr-minister/224963), 24 June 2026 | Minister's conditional warning over three to five years, attributed to a TalentCorp study; AI, digitalisation and green economy. Not 697,000 observed job losses. |
+| App scores, course counts, durations and SDG/ranking changes | Record the final revision, snapshot and synthetic intake with each new capture | Storyboard values require revalidation; they are not independent labour-market statistics. |
+| At least 20% faster planning | Proposed matched manual/Adept evaluation | Target only; no collected baseline or achieved reduction is asserted. |
+
+Presentation production tools and outstanding asset credits are declared in
+[technical declaration section 4.4](submission-technical-declaration.md#44-content-and-presentation-tools).
+
 ## Combine with the live demo
 
 The handbook requires a **live** walkthrough of the working build, so scenes 4, 5, 7, 8, 10, 11, 12 and
@@ -65,6 +89,6 @@ The handbook requires a **live** walkthrough of the working build, so scenes 4, 
 3. Record one clip per app scene following the click path above. Move the mouse slowly and pause one
    second after each click.
 4. Put the clips in `demo-video/public/live/` and set them in the `recordings` prop of `AdeptDemo`
-   (see [`demo-video/README.md`](demo-video/README.md)).
+   (use the local workspace's README; its contents are not part of the submitted source).
 5. Also keep one uncut 20–30 second recording of **radar → matches → change the snapshot date → the
    scores move**. That is the "most important working feature" judges want to see live.

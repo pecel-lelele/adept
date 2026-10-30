@@ -137,7 +137,7 @@ write data and terminate their own pooled sessions; use neither a shared nor a p
 database. The CI database job runs these integration checks and trend export comparisons.
 Passed subtests are successful cases inside workflow-security tests, not skipped checks.
 
-**Try the app:** choose one of the [five complete synthetic demo CVs and intake profiles](submission/demo-cvs/),
+**Try the app:** choose one of the [five complete synthetic demo CVs and intake profiles](docs/demo-cvs/),
 create an invented `example.test` account, and follow **Radar → Roles → Plan → Progress → Jobs**.
 Create a team account to try programmes, funding decisions and completion reviews, and join
 with a synthetic learner using its join code. Personal and organisation learning stay separate.
@@ -207,8 +207,8 @@ trend runner installs pipeline client dependencies and calls RunPod over HTTPS.
 | Workflow                                               | Trigger and responsibility                                                                                                                                     |
 | :----------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [CI](.github/workflows/ci.yml)                         | Pushes to `main`, pull requests and manual runs: lint, tests, real PostgreSQL checks, translations, generated contracts and production web build.              |
-| [Data sources](.github/workflows/data-sources.yml)     | Mondays 02:17 UTC (10:17 WITA) and manual runs: checks upstream SDG/course data and evidence links; does not publish trend snapshots.                          |
-| [Trends refresh](.github/workflows/trends-refresh.yml) | Mondays 03:41 UTC (11:41 WITA) and manual runs: ingest public research → RunPod embeddings → score → validate → publish a dated database snapshot.             |
+| [Data sources](.github/workflows/data-sources.yml)     | Mondays 02:17 UTC (10:17 MYT) and manual runs: checks upstream SDG/course data and evidence links; does not publish trend snapshots.                          |
+| [Trends refresh](.github/workflows/trends-refresh.yml) | Mondays 03:41 UTC (11:41 MYT) and manual runs: ingest public research → RunPod embeddings → score → validate → publish a dated database snapshot.             |
 | [Publish MiniLM](.github/workflows/publish-minilm.yml) | Manual dispatch on the source repository's `main` only: builds `linux/amd64` and publishes GHCR tags with job-scoped `GITHUB_TOKEN`. PRs/forks do not publish. |
 
 Configure **repository Settings → Secrets and variables → Actions**:

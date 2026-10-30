@@ -14,7 +14,7 @@ Use these maintained guides rather than historical PR reports.
 | [Skill exposure methodology](skill-exposure-methodology.md) | Trend coefficient interpretation and evidence |
 | [Submission proposal](submission-proposal.md) | Working proposal; team review and private fields remain pending |
 | [Technical declaration](submission-technical-declaration.md) | Working technology/AI declaration; unsigned |
-| [Submission deliverables](../submission/README.md) | Final deliverable checklist |
+| [Submission deliverables](submission-deliverables.md) | Final deliverable checklist |
 
 Feature-local `FEATURE.md` files document their current API, implementation and method.
 Run results belong in PR descriptions and CI; old one-off validation and handoff reports
