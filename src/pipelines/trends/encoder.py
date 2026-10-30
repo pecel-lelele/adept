@@ -129,7 +129,10 @@ class RunPodEncoder:
                 if not isinstance(result, dict):
                     raise ValueError("RunPod returned an invalid submit response")
                 return result
-            except (httpx.TimeoutException, httpx.TransportError, _TransientSubmitError):
+            except (httpx.ConnectError, httpx.ConnectTimeout, _TransientSubmitError):
+                # Only failures that prove the POST never reached RunPod (or an explicit
+                # 429/5xx refusal) are retried. A read timeout or mid-flight transport error
+                # may follow an accepted job, and resubmitting would create a duplicate paid job.
                 if attempt + 1 >= SUBMIT_ATTEMPTS:
                     raise
                 time.sleep(min(SUBMIT_BACKOFF_S * (2**attempt), self._remaining(deadline)))

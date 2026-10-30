@@ -43,8 +43,9 @@ _slots = threading.BoundedSemaphore(MAX_OUTSTANDING)
 _inflight: dict[tuple[date | None, str, bool], Future[TrendSnapshotResponse]] = {}
 _inflight_lock = threading.Lock()
 # After a failed or timed-out read, answer from the shared last good snapshot until this
-# monotonic time instead of paying SNAPSHOT_TIMEOUT_S on every request during an outage
-# (strict/production reads are never served from M1's in-process cache on failure).
+# monotonic time instead of paying SNAPSHOT_TIMEOUT_S on every request during an outage.
+# Only non-strict (development) reads use this shortcut: strict/production reads never record
+# or honour it, so each request re-attempts the authoritative database read.
 RETRY_AFTER_S: float = 5.0
 _down_until = 0.0
 
@@ -173,9 +174,9 @@ def _call_with_timeout(
     A caller that times out stops sharing that read, so the next caller starts a fresh one; the
     slow read still holds its slot until it ends (bounded by MAX_OUTSTANDING).
     """
-    if time.monotonic() < _down_until:
-        raise TrendUnavailable("Trend snapshot recently unavailable; retrying shortly.")
     strict = get_settings().app_env == "production"
+    if not strict and time.monotonic() < _down_until:
+        raise TrendUnavailable("Trend snapshot recently unavailable; retrying shortly.")
     key = (snapshot_date, scenario, strict)
     future = _start_read(key, scenario, snapshot_date)
     try:
@@ -185,7 +186,8 @@ def _call_with_timeout(
             if _inflight.get(key) is future:
                 del _inflight[key]
         future.cancel()  # only succeeds if it has not started yet
-        _mark_down()
+        if not strict:
+            _mark_down()
         raise TrendUnavailable(
             f"Trend snapshot for scenario {scenario!r} timed out "
             f"after {SNAPSHOT_TIMEOUT_S:g}s — M1 service may be unavailable."
@@ -193,7 +195,8 @@ def _call_with_timeout(
     except NotFoundError:
         raise
     except Exception as exc:  # noqa: BLE001 - every M1 failure is a 503 for matching
-        _mark_down()
+        if not strict:
+            _mark_down()
         raise TrendUnavailable(
             f"Trend snapshot unavailable for scenario {scenario!r}: {exc}"
         ) from exc

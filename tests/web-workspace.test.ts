@@ -39,13 +39,49 @@ test('workspace switching requires same-origin POST, membership and a role-appro
   const member = await POST(request());
   assert.equal(member.headers.get('location'), 'https://adept.example.test/work/plan?scenario=fast');
   assert.match(member.headers.get('set-cookie'), /adept_org=demo-org/);
-  assert.equal((await POST(request('other-org'))).status, 403);
+  const stranger = await POST(request('other-org'));
+  assert.equal(stranger.status, 303);
+  assert.equal(stranger.headers.get('location'), 'https://adept.example.test/app?workspace_error=1');
+  assert.equal(stranger.headers.get('set-cookie'), null);
+  const malformed = await POST(request('Not An Id!'));
+  assert.equal(malformed.headers.get('location'), 'https://adept.example.test/app?workspace_error=1');
   assert.equal((await POST(request('demo-org', 'https://adept.example.test', '/org/settings'))).headers.get('location'), 'https://adept.example.test/work');
   result = { ok: false, data: { workspaces: [] }, status: 503 };
   const unavailable = await POST(request());
-  assert.equal(unavailable.status, 503);
+  assert.equal(unavailable.status, 303);
+  assert.equal(unavailable.headers.get('location'), 'https://adept.example.test/app?workspace_error=1');
   assert.equal(unavailable.headers.get('set-cookie'), null);
+  result = { ok: false, data: { workspaces: [] }, status: 401 };
+  const expired = await POST(request());
+  assert.equal(expired.status, 303);
+  assert.match(expired.headers.get('location'), /auth\/login\?next=%2Fwork%2Fplan/);
   const personal = await POST(request('personal', 'https://adept.example.test', 'https://attacker.test'));
   assert.equal(personal.headers.get('location'), 'https://adept.example.test/app');
   assert.match(personal.headers.get('set-cookie'), /adept_org=;/);
+});
+
+test('signup with a join code still lands on onboarding; login keeps a join deep link', async () => {
+  const { loadComponent } = await import('./harness/web-components.ts');
+  let target = '';
+  let nextPath = '/app/onboarding';
+  const load = () => loadComponent('src/features/core/auth-actions.ts', {
+    'next/cache': { revalidatePath: () => {} },
+    'next/navigation': { redirect: (to: string) => { target = to; } },
+    '@/lib/api': {
+      getApi: async () => ({ POST: () => ({ token: 'v2.synthetic.signature', next_path: nextPath }) }),
+      call: async (data: unknown) => ({ ok: true, data }),
+    },
+    '@/lib/auth/session': { setSessionToken: async () => {}, clearSession: async () => {} },
+    '@/lib/navigation': { safeReturn },
+  });
+  const { signupAction, loginAction } = load();
+  const form = new FormData();
+  form.set('next', '/app/join?code=SYNTHETIC');
+  form.set('workspace', 'individual');
+  form.set('join_code', 'SYNTHETIC');
+  await signupAction({}, form);
+  assert.equal(target, '/app/onboarding');
+  nextPath = '/app';
+  await loginAction({}, form);
+  assert.equal(target, '/app/join?code=SYNTHETIC');
 });

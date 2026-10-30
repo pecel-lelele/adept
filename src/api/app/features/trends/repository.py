@@ -28,6 +28,7 @@ from app.core.config import get_settings
 from app.core.errors import NotFoundError
 from app.features.trends import mocks
 from app.features.trends.provenance import observation_window
+from app.features.trends.velocity import served_velocity
 
 
 def _skill_labels() -> dict[str, str]:
@@ -328,8 +329,8 @@ def _load_snapshot_db(
                     labor_decay=r["labor_decay"],
                     labor_decay_source_note=r["labor_decay_source_note"],
                     automation_exposure=r["automation_exposure"],
-                    velocity_moderate=r["velocity_moderate"],
-                    velocity_fast=r["velocity_fast"],
+                    velocity_moderate=served_velocity(r["velocity_moderate"]),
+                    velocity_fast=served_velocity(r["velocity_fast"]),
                     direction_moderate=r["direction_moderate"],
                     direction_fast=r["direction_fast"],
                 )

@@ -29,8 +29,10 @@ function destination(next: string, apiNext: string, signup = false): string {
   const mode = apiNext.startsWith("/org") ? "organisation" : "individual";
   const safe = safeReturn(next, mode);
   if (signup && apiNext.startsWith("/org") && !(safe === "/org" || safe.startsWith("/org/"))) return apiNext;
-  // New learners must finish intake first.
-  return apiNext === "/app/onboarding" && !safe.startsWith("/app/join") ? apiNext : safe;
+  // New learners must finish intake first. Only a login keeps a /app/join deep link: signup
+  // with a join code has already joined them, so they still go to onboarding.
+  const keepJoin = !signup && safe.startsWith("/app/join");
+  return apiNext === "/app/onboarding" && !keepJoin ? apiNext : safe;
 }
 
 export async function signupAction(_: AuthState, form: FormData): Promise<AuthState> {

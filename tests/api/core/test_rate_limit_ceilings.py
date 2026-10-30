@@ -30,9 +30,9 @@ def _app(**kwargs: object) -> TestClient:
     return TestClient(app)
 
 
-def test_signup_is_limited_more_tightly_than_login() -> None:
+def test_signup_is_not_looser_than_login() -> None:
     signup, _ = ROUTE_LIMITS["/api/v1/auth/signup"]
-    assert signup <= 5 < ROUTE_LIMITS["/api/v1/auth/login"][0]
+    assert signup <= ROUTE_LIMITS["/api/v1/auth/login"][0]
 
 
 def test_one_address_cannot_create_more_than_the_signup_allowance() -> None:

@@ -562,6 +562,7 @@
     "interests": "兴趣",
     "none": "未添加",
     "organisation": "组织",
+    "organisationUnavailable": "暂时无法显示组织信息。",
     "nextStep": "下一步",
     "nextRadarTitle": "看看你的哪些技能正在上升",
     "nextRadarBody": "雷达将你的技能与最新的就业市场和 AI 研究信号进行比较。",
@@ -735,7 +736,9 @@
     "member": "员工",
     "manager": "管理者",
     "switch": "切换工作区",
-    "join": "加入其他组织"
+    "join": "加入其他组织",
+    "workspaceError": "无法切换到该工作区。请确认您仍是其成员，然后从工作区菜单重试。",
+    "activateRetry": "您的浏览器没有保存工作区设置，因此我们已停止自动重试。请允许此网站使用 Cookie，然后点击按钮重试。"
   },
   "cvReview": {
     "title": "待核对的用词",

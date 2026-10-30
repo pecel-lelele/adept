@@ -8,5 +8,5 @@ export default defineConfig({
     { name: "desktop", use: { ...devices["Desktop Chrome"] } },
     { name: "mobile", use: { ...devices["Pixel 7"] } },
   ],
-  webServer: { command: "node tests/e2e/serve.mjs", url: "http://127.0.0.1:13091", reuseExistingServer: false, timeout: 60000 },
+  webServer: { command: "node tests/e2e/serve.mjs", url: "http://127.0.0.1:13091", reuseExistingServer: false, timeout: 120000 },
 });

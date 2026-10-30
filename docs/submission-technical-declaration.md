@@ -239,7 +239,7 @@ usage, and takes responsibility for the submission.
 
 ### 4.4 Content and presentation tools
 
-The task brief supplied on 30 October 2026 identifies the following presentation tools.
+The team identified the following presentation tools on 30 October 2026.
 This inventory does not establish the contents of a final exported video. Retain the final
 asset credits and confirm which generated takes were used before signing this declaration.
 These tools are used for presentation production, not career recommendations in Adept.
@@ -248,9 +248,9 @@ These tools are used for presentation production, not career recommendations in 
 |---|---|---|
 | [Kokoro TTS](https://huggingface.co/hexgrad/Kokoro-82M) | Local synthetic narration, as recorded in the demo script | Exact installed revision and selected voice are not recorded here; model-card terms do not establish rights to every voice or other asset. |
 | [Google Fonts](https://fonts.google.com/) | Presentation typography where used | Confirm the exact exported font families and retain their applicable font licence notices. |
-| [Remotion](https://www.remotion.dev/) 4.0.538 | Motion graphics and demo-film composition | Version supplied in the task brief; the local video workspace is gitignored and not evidence of a reproducible application dependency. |
+| [Remotion](https://www.remotion.dev/) 4.0.538 | Motion graphics and demo-film composition | Version recorded by the team; the local video workspace is gitignored and not evidence of a reproducible application dependency. |
 | [Mixkit](https://mixkit.co/license/) | Presentation media, music / sound effects as applicable | Record the exact downloaded asset pages and applicable item licences in final credits; these are not supplied in the tracked repository. |
-| [ElevenLabs](https://elevenlabs.io/) | Demo/walkthrough video voiceover narration only (`submission/demo-video`) | User reconfirmed use on 30 October 2026. Team recorded use strictly for demo video audio production with stock voice `21m00Tcm4TlvDq8ikWAM` (Rachel); no voice cloning; not integrated into or used by the Adept web application or recommendation runtime. |
+| [ElevenLabs](https://elevenlabs.io/) | Demo/walkthrough video voiceover narration only (`submission/demo-video`) | The team confirmed use on 30 October 2026. Team recorded use strictly for demo video audio production with stock voice `21m00Tcm4TlvDq8ikWAM` (Rachel); no voice cloning; not integrated into or used by the Adept web application or recommendation runtime. |
 
 The demo's statistical context and dates are listed in the
 [demo evidence register](demo-script.md#evidence-register). WEF forecasts are global estimates;
@@ -367,11 +367,11 @@ tools. RunPod hosts the pinned all-MiniLM-L6-v2 encoder and the separate GLM-5.3
 endpoint; Gemini is the separately authenticated Adi failover. Replit hosts the
 prototype and PostgreSQL. Google Fonts' Inter is distributed through the declared
 Fontsource package; current app styling uses Arial/system fallbacks. ElevenLabs
-was confirmed used by the user in this session, so it is declared as presentation
+was confirmed by the team as used, so it is declared as presentation
 audio tooling, not an Adept runtime model. See section 4.4 for the team's stock-voice record; the synthesis model is unrecorded.
 
 Human planning-time KPI: **0 testers, 0 measured human trials**, as confirmed by the
-user on 30 October 2026. No achieved planning-time reduction is claimed. Automated
+team on 30 October 2026. No achieved planning-time reduction is claimed. Automated
 local API measurements are reported separately in `docs/kpi-automated-journeys.md`;
 they exclude human review, browser interaction, network and a manual baseline.
 This remains an unsigned draft, with private team fields reserved for completion.

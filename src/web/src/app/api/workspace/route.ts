@@ -26,12 +26,16 @@ export async function POST(request: Request) {
     response.cookies.delete(ORG_COOKIE);
     return response;
   }
-  if (typeof to !== "string" || !isOrgId(to)) return new NextResponse(null, { status: 400 });
+  // Failures are browser navigations (also auto-submitted by layouts): redirect, never a blank page.
+  const failed = () => go("/app?workspace_error=1");
+  if (typeof to !== "string" || !isOrgId(to)) return failed();
   const api = createApiClient({ "X-Demo-User": token });
   const result = await call(api.GET("/api/v1/org/workspaces"));
-  if (!result.ok) return new NextResponse(null, { status: result.status || 503 });
+  if (!result.ok) {
+    return result.status === 401 ? go(`/auth/login?${new URLSearchParams({ next: next || "/app" })}`) : failed();
+  }
   const space = result.data.workspaces.find((w) => w.kind === "org" && w.id === to);
-  if (!space) return new NextResponse(null, { status: 403 });
+  if (!space) return failed();
   const home = space.role === "member" ? "/work" : "/org";
   const response = go(next === home || next.startsWith(home + "/") ? next : home);
   response.cookies.set(ORG_COOKIE, space.id, {

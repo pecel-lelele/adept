@@ -55,6 +55,11 @@ publish. If needed, use Replit's production-database initialization from reviewe
 data. Never run migration/seed scripts automatically at production build or start, or point
 local setup at production. Production schema changes follow the database owner's procedure.
 
+Before publishing, set `ADMIN_USER_IDS` (comma-separated account IDs of trend-refresh admins) to
+the same value on both web and API; it replaces `ADMIN_EMAILS`. Replit startup never migrates, so
+apply the two new migrations manually to the production database first:
+`20261030140000_core_workspace_integrity.sql` and `20261030143000_public_labour_context.sql`.
+
 Publish only when the owner is ready. Verify `/`, `/about`, `/auth/login`, a static asset,
 `/api/healthz`, `/api/v1` and `/api/v1/health`, then test signed-in flows with synthetic accounts.
 A live old release can remain healthy while a new publish attempt fails; verify the source

@@ -77,8 +77,7 @@ flowchart LR
 
 <!-- answer:start final-3.2 limit=300 -->
 The repository implements the six-stage learner journey, organisation programmes and
-multilingual interfaces. The final review integrates previously separated Claude worktrees
-and improves cold-start handling, snapshot provenance, scenario scaling, low-evidence labels,
+multilingual interfaces. The final review improves cold-start handling, snapshot provenance, scenario scaling, low-evidence labels,
 optional sharing, navigation, keyboard controls and error recovery. A dashboard refresh
 control uses the existing published model rather than adding request-time inference.
 

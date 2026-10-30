@@ -30,7 +30,7 @@ of a second dispatch), and `GET /trends/refresh/status` polls the run and clears
 once it succeeds. **Re-score stored signals** (`POST /trends/refresh/rescore`) re-runs the
 pipeline's scorer/validator/publisher on the stored weeks and publishes only a newer measured
 window, else reports `no_new_data`. All three require a signed-in account listed in
-`ADMIN_EMAILS` (empty = nobody). The workflow's `TREND_DATABASE_URL` secret is the same database
+`ADMIN_USER_IDS` (account IDs, set on both web and API; empty = nobody). The workflow's `TREND_DATABASE_URL` secret is the same database
 the app reads as `DATABASE_URL`.
 
 ## Goal and tasks (from docs/tasks.md)

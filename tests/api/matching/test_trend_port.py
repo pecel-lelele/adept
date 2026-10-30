@@ -262,8 +262,8 @@ def test_outstanding_reads_are_bounded(strict_matching: None) -> None:
             release.set()
 
 
-def test_outage_backoff_skips_the_timeout_for_later_requests(strict_matching: None) -> None:
-    """N4: after one failed strict read, requests use the last good snapshot at once."""
+def test_outage_backoff_skips_the_timeout_for_later_requests() -> None:
+    """N4: after one failed non-strict read, requests use the last good snapshot at once."""
     from app.features.matching import trend_port
     from app.features.trends import repository as trends_repository
 
@@ -288,6 +288,25 @@ def test_outage_backoff_skips_the_timeout_for_later_requests(strict_matching: No
     good = trends_mocks.snapshot("moderate", trends_mocks.AVAILABLE_MOCK_DATES[-1])
     with patch("app.features.trends.service.get_snapshot", return_value=good):
         assert trend_port._call_with_timeout("moderate") is good
+
+
+def test_strict_reads_do_not_use_the_outage_backoff(strict_matching: None) -> None:
+    """Strict (production) reads re-attempt the authoritative read on every request."""
+    from app.features.matching import trend_port
+    from app.features.trends import repository as trends_repository
+
+    calls = 0
+
+    def down(snapshot_date, scenario, strict=False):  # noqa: ANN001,ARG001
+        nonlocal calls
+        calls += 1
+        raise trends_repository.TrendsUnavailableError("database unavailable")
+
+    with patch("app.features.trends.service.get_snapshot", side_effect=down):
+        for _ in range(3):
+            trend_port.fetch_snapshot("moderate")
+    assert calls == 3
+    assert trend_port._down_until == 0.0
 
 
 def test_outage_on_an_unheld_replay_date_is_503_not_404(strict_matching: None) -> None:

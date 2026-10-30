@@ -562,6 +562,7 @@
     "interests": "Minat",
     "none": "Tiada",
     "organisation": "Organisasi",
+    "organisationUnavailable": "Butiran organisasi tidak tersedia buat masa ini.",
     "nextStep": "Langkah seterusnya",
     "nextRadarTitle": "Lihat kemahiran anda yang sedang meningkat",
     "nextRadarBody": "Radar membandingkan kemahiran anda dengan isyarat pasaran kerja dan penyelidikan AI terkini.",
@@ -735,7 +736,9 @@
     "member": "Pekerja",
     "manager": "Pengurus",
     "switch": "Tukar ruang kerja",
-    "join": "Sertai organisasi lain"
+    "join": "Sertai organisasi lain",
+    "workspaceError": "Kami tidak dapat beralih ke ruang kerja itu. Semak bahawa anda masih menjadi ahlinya, kemudian cuba semula daripada menu ruang kerja.",
+    "activateRetry": "Pelayar anda tidak menyimpan tetapan ruang kerja, jadi kami berhenti mencuba semula. Benarkan kuki untuk tapak ini, kemudian tekan butang untuk mencuba lagi."
   },
   "cvReview": {
     "title": "Istilah untuk disemak",

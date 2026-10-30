@@ -437,6 +437,16 @@
 - **Replaces**: none; extends TEAM-015 disclosure and the historical MyCOL reference deliverable
 - **PR / branch**: `fix/core-final-round-integration`, based on fetched `fix/core-review-regressions`
 
+### TEAM-040: Pre-demo review fixes on the integration branch
+- **Date**: 2026-10-30
+- **Feature**: all
+- **Type**: other
+- **Change**: Workspace switching redirects to `/app?workspace_error=1` (or sign-in on 401) instead of returning blank pages, auto-activation submits once per target, signup with a join code goes to onboarding, signup returns to 20/min, the profile shows "unavailable" instead of "Join an organisation" when the workspace lookup fails, and the SDG suppression message no longer assumes a threshold. Scheduled `data-sources.yml` runs only fetch and validate; database writes need `workflow_dispatch`. Playwright e2e has its own 25-minute CI job. Judge-facing declaration wording is neutral and the PDF is re-exported; internal handover notes moved to `docs/archive/`. Feature ownership no longer limits who fixes what during the debugging phase (AGENTS.md §5.1, team-rules). This entry also records that TEAM-037 and M4-085 describe the same change, and that the branch named in M1-012, TEAM-039 and M4-084 to M4-086 was integrated as `fix/core-review-regressions` (PR #66, which includes PR #69).
+- **Why**: Three independent reviews of the integration branch found demo risks: blank or looping workspace pages, a 5/min shared signup bucket (production forwards no client IP with 0 verified hops, TEAM-030), unattended production writes from the weekly cron, a CI job likely to time out, and session wording in submission documents.
+- **Affects**: Core, F1, F6, F7, CI, submission
+- **Replaces**: none
+- **PR / branch**: fix/core-review-regressions (PR #66)
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)
@@ -593,6 +603,17 @@
 - **Affects**: refresh configuration and branch CI
 - **Replaces**: workflow environment setting in M1-012
 - **PR / branch**: worktree-agent-a17103c77ff6e8291
+
+### M1-014: Clamp served velocities and log-compress the matching trend scale
+- **Date**: 2026-10-30
+- **Feature**: F2 (Trend Signals), F4 (Matching)
+- **Type**: method
+- **Change**: Both scenario velocities are clamped to ±2 when served (`trends/velocity.py`, reusing the pipeline's `clamp`), so snapshots and fixtures published before the pipeline clamp keep Fast ≥ Moderate for rising skills. The matching trend position is now 0.5 + 0.5·tanh(2·asinh(c/s)/asinh(2/s)), with c the clamped velocity and s the median |v| over both scenarios.
+- **Why**: Unclamped moderate values let 8 rising skills per fixture show weaker growth under Fast on the radar and in pathway priority. The previous tanh(c/s) scale put 11 to 16 skills at ≥0.99; a p90 scale fixed that but flattened most skills to about 0.5. Log compression keeps the top and the middle distinguishable and stays monotone.
+- **Pipeline**: dated trend snapshot → clamp ±2 at serving → shared median scale over both scenarios → asinh/tanh position → evaluation: 0 rising skills with Fast < Moderate on all three fixtures (was 8, 8, 0); 0 skills ≥0.99 (was 11–16); existing scenario-ranking tests unchanged → served by radar, pathway and matching.
+- **Affects**: F2 radar growth rate, F5 pathway growth term, F4 match trend component, F3 scenario toggle
+- **Replaces**: refines the N1 scale in M1-012
+- **PR / branch**: fix/core-review-regressions (PR #66)
 
 ---
 

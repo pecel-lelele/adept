@@ -148,8 +148,9 @@ def get_profiles(user_ids: Sequence[str]) -> dict[str, Profile]:
         raise StorageUnavailableError("could not load member profiles") from exc
 
 
-def observed_on(user_ids: Sequence[str], org_id: str) -> date | None:
-    """Actual latest input update; fixture-only in-memory profiles have no update clock."""
+def observed_on(user_ids: Sequence[str], scopes: Sequence[str]) -> date | None:
+    """Actual latest input update over the given progress scopes (the caller passes the same
+    scopes it read the learners with); fixture-only in-memory profiles have no update clock."""
     if not user_ids or not use_postgres():
         return None
     try:
@@ -159,7 +160,7 @@ def observed_on(user_ids: Sequence[str], org_id: str) -> date | None:
                 "SELECT updated_at FROM profiles WHERE user_id=ANY(%s) UNION ALL "
                 "SELECT updated_at FROM course_progress WHERE user_id=ANY(%s) "
                 "AND scope=ANY(%s)) inputs",
-                (list(user_ids), list(user_ids), ["personal", f"org:{org_id}"]),
+                (list(user_ids), list(user_ids), list(scopes)),
             ).fetchone()
         return row["day"] if row else None
     except psycopg.Error as exc:

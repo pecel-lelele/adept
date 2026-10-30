@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import re
 import secrets
+from collections.abc import Sequence
 from datetime import date
 
 from app.contracts.common import RecommendationMeta, ScenarioId, Source
@@ -204,6 +205,22 @@ def remove_member(user: CurrentUser, member_id: str) -> None:
     accounts.forget(member_id)
 
 
+def _learner_members(org_id: str, only: str | None = None) -> list[Member]:
+    return [
+        m
+        for m in repository.list_members(org_id)
+        if m.intake_status == "complete" and (m.id == only if only else m.skills_shared)
+    ]
+
+
+def _progress_scopes(org_id: str, members: Sequence[Member]) -> list[str]:
+    """Personal records count only when every included member shared them."""
+    scopes = [pathway_repository.org_scope(org_id)]
+    if all(m.skills_shared for m in members):
+        scopes.append(pathway_repository.PERSONAL)
+    return scopes
+
+
 def member_learners(org_id: str, only: str | None = None) -> dict[str, engine.Learner]:
     """Engine inputs for members with a completed intake (skills, time, budget only).
 
@@ -213,14 +230,8 @@ def member_learners(org_id: str, only: str | None = None) -> dict[str, engine.Le
     org = repository.get_org(org_id)
     company = org is not None and org.type == "company"
     out: dict[str, engine.Learner] = {}
-    members = [
-        m
-        for m in repository.list_members(org_id)
-        if m.intake_status == "complete" and (m.id == only if only else m.skills_shared)
-    ]
-    scopes = [pathway_repository.org_scope(org_id)]
-    if all(m.skills_shared for m in members):
-        scopes.append(pathway_repository.PERSONAL)
+    members = _learner_members(org_id, only)
+    scopes = _progress_scopes(org_id, members)
     earned = pathway_service.evidenced_levels_many([m.id for m in members], scopes)
     profiles = profile_repository.get_profiles([m.id for m in members])
     for m in members:
@@ -291,7 +302,9 @@ def member_plans(
 def get_gaps(user: CurrentUser, scenario: ScenarioId) -> GapHeatmapResponse:
     org_id = _require_manager(user)
     members = member_learners(org_id)
-    observed = profile_repository.observed_on(list(members), org_id)
+    observed = profile_repository.observed_on(
+        list(members), _progress_scopes(org_id, _learner_members(org_id))
+    )
     labels = pathway_data.skill_labels()
     roles = pathway_data.target_role_ids()
     computed = pathway_service.team_gaps(members, roles)

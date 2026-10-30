@@ -1,9 +1,10 @@
-# Weekly check that the live public sources behind the catalogue and SDG list still answer
-# and still contain what we rely on (e.g. a curated Microsoft Learn module was not retired).
-# It does not commit anything; a failure means someone should rerun the pipeline and review.
-# The jobs-refresh job fetches live job openings (src/pipelines/jobs) every week and writes
-# them to the deployment database only when the JOBS_DATABASE_URL secret is set; keyed job
-# boards run only when their own secrets are set.
+# Weekly (scheduled) run: fetch and validate only. It checks that the live public sources behind
+# the catalogue and SDG list still answer and still contain what we rely on, and fetches/classifies
+# job openings into the runner's discarded working copy. It never writes to any database and
+# commits nothing; a failure means someone should rerun the pipeline and review.
+# Database writes (catalogue-refresh with CATALOGUE_DATABASE_URL, jobs-refresh with
+# JOBS_DATABASE_URL) happen only on a manual workflow_dispatch run, and only when the matching
+# secret is set. Keyed job boards run only when their own secrets are set.
 name: Data sources
 
 on:
@@ -16,6 +17,8 @@ permissions:
 
 jobs:
   catalogue-refresh:
+    # Writes to the catalogue database: manual runs only, never the weekly schedule.
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -127,7 +130,7 @@ jobs:
       # Without the database secret the run still fetches and classifies (a source check) but
       # writes only the runner's working copy, which is discarded; nothing is committed.
       - name: Fetch and classify job openings (no database write)
-        if: env.DATABASE_URL == ''
+        if: env.DATABASE_URL == '' || github.event_name != 'workflow_dispatch'
         run: |
           if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
             echo "::notice::JOBS_DATABASE_URL is not set; running without a database write."
@@ -135,7 +138,7 @@ jobs:
           PYTHONPATH=src/api:src .venv/bin/python -m pipelines.jobs.run
 
       - name: Fetch, classify and upsert job openings into the deployment database
-        if: env.DATABASE_URL != ''
+        if: github.event_name == 'workflow_dispatch' && env.DATABASE_URL != ''
         run: PYTHONPATH=src/api:src .venv/bin/python -m pipelines.jobs.run --db
 
       - name: Summarise the fetch

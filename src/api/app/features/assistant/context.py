@@ -157,7 +157,9 @@ def _trends(ctx: Context, scenario: ScenarioId, own: set[str]) -> None:
     ctx.facts["declining_roles"] = [
         signal.entity_id
         for signal in trends_service.signals_from_snapshot(snap, scenario)
-        if signal.entity_type == "role" and signal.direction == "declining"
+        if signal.entity_type == "role"
+        and signal.direction == "declining"
+        and not signal.insufficient_evidence
     ]
     ctx.facts["my_trends"] = {i.skill_id: getattr(i, f"direction_{scenario}") for i in mine}
     ctx.grounded_on.append("trend snapshot")

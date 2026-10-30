@@ -29,5 +29,6 @@
   "noRoleYet": "You have not chosen a target role yet, so there is no contribution to show.",
   "compareRoles": "Compare roles and choose one",
   "whyLinked": "Why these goals",
-  "tooFewMembers": "Regional results are hidden until at least {count} distinct members can be included safely."
+  "tooFewMembers": "Regional results are hidden until at least {count} distinct members can be included safely.",
+  "tooFewMembersUnknown": "Regional results are hidden until enough distinct members can be included safely."
 }

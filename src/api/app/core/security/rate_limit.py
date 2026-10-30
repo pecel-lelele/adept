@@ -59,8 +59,9 @@ DEFAULT_BUCKET = "__default__"
 ROUTE_LIMITS: dict[str, Limit] = {
     "/api/v1/preview/cv": (10, 60),  # anonymous parsing and ranking
     "/api/v1/auth/login": (20, 60),  # slows password guessing
-    # Each account gets its own per-user buckets (e.g. Adi), so sign-ups are kept scarce.
-    "/api/v1/auth/signup": (5, 60),
+    # Production best-effort mode (0 proxy hops) forwards no client IP, so every anonymous visitor
+    # shares one bucket: keep this high enough for a room of people signing up in the same minute.
+    "/api/v1/auth/signup": (20, 60),
     "/api/v1/auth/me/delete": (5, 60),  # re-checks a password
     "/api/v1/org/join": (10, 60),  # slows join-code guessing
     "/api/v1/org/funding": (60, 60),

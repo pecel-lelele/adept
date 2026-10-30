@@ -301,3 +301,19 @@ def test_counterfactual_fairness_demographic_swaps() -> None:
         "skills_changed": MatchProfile(skills={"python": 1.0, "sql": 1.0}, interests=base_interests)
     }
     assert counterfactual_diffs(_rank_key, baseline, perturbed) == ["skills_changed"]
+
+
+def test_top_trend_skills_do_not_all_saturate_on_either_fixture() -> None:
+    from app.features.matching.scoring import trend_scores
+    from app.features.trends import mocks
+
+    for snapshot_date in mocks.AVAILABLE_MOCK_DATES:
+        items = mocks.snapshot("moderate", snapshot_date).items
+        moderate = {i.skill_id: i.velocity_moderate for i in items}
+        fast = {i.skill_id: i.velocity_fast for i in items}
+        for own, other in ((moderate, fast), (fast, moderate)):
+            scores = trend_scores(own, other)
+            top = sorted(scores.values(), reverse=True)[:10]
+            assert top[-1] < 0.99, (snapshot_date, top)
+            assert len({round(s, 3) for s in top}) > 1
+            assert sum(s >= 0.99 for s in scores.values()) < 5

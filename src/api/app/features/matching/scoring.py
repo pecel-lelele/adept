@@ -69,6 +69,9 @@ class _RoleScore:
 VELOCITY_CLAMP = 2.0
 
 
+TREND_GAIN = 2.0  # tanh gain on the log-compressed velocity; keeps the ends below 0.99
+
+
 def _clamped(value: float) -> float:
     return max(-VELOCITY_CLAMP, min(VELOCITY_CLAMP, value))
 
@@ -78,10 +81,15 @@ def trend_scores(
 ) -> dict[str, float]:
     """Robust 0..1 trend position on one scale shared by both scenarios.
 
-    position(v) = 0.5 + 0.5 * tanh(clamp(v, ±2) / s), s = median |v| over the union of both
-    scenarios' clamped velocities. Zero velocity is neutral (0.5), rising skills sit above it,
-    declining below. Min-max let a few large velocities stretch the range so most skills
-    collapsed into ~0.577; the median scale keeps the bulk separated while outliers saturate.
+    position(v) = 0.5 + 0.5 * tanh(G * asinh(c / s) / asinh(2 / s)), c = clamp(v, ±2), G = 2,
+    s = median |v| over the union of both scenarios' clamped velocities. Zero velocity is
+    neutral (0.5), rising skills sit above it, declining below, and the map is monotone so
+    Fast >= Moderate wherever v_fast >= v_mod.
+
+    Plain tanh(c / s) saturated: most skills barely move, so the median is tiny and 11-16
+    skills reached >= 0.99, while a p90 scale flattened the bulk to ~0.5. asinh compresses
+    large |v| logarithmically, so the bulk still separates (IQR ~0.2) and the strongest skills
+    stay below 0.99 and distinguishable instead of collapsing to 1.0.
 
     A snapshot already contains both scenarios; its adapter supplies the other one, so the
     scale is the same for Moderate and Fast and Fast >= Moderate wherever v_fast >= v_mod.
@@ -101,8 +109,10 @@ def trend_scores(
         scale = magnitudes[-1]
     if scale <= 0:
         return {skill: NEUTRAL for skill in velocities}
+    full = math.asinh(VELOCITY_CLAMP / scale)
     return {
-        skill: 0.5 + 0.5 * math.tanh(_clamped(value) / scale) for skill, value in velocities.items()
+        skill: 0.5 + 0.5 * math.tanh(TREND_GAIN * math.asinh(_clamped(value) / scale) / full)
+        for skill, value in velocities.items()
     }
 
 

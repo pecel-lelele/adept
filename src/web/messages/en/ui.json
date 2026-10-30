@@ -562,6 +562,7 @@
     "interests": "Interests",
     "none": "None added",
     "organisation": "Organisation",
+    "organisationUnavailable": "Organisation details are unavailable right now.",
     "nextStep": "Next step",
     "nextRadarTitle": "See which of your skills are rising",
     "nextRadarBody": "The radar compares your skills with the latest job-market and AI research signals.",
@@ -735,7 +736,9 @@
     "member": "Employee",
     "manager": "Manager",
     "switch": "Switch workspace",
-    "join": "Join another organisation"
+    "join": "Join another organisation",
+    "workspaceError": "We couldn’t switch to that workspace. Check that you still belong to it, then try again from the workspace menu.",
+    "activateRetry": "Your browser didn’t keep the workspace setting, so we stopped retrying. Allow cookies for this site, then press the button to try again."
   },
   "cvReview": {
     "title": "Wording to review",

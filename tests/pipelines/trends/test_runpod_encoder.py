@@ -86,7 +86,7 @@ def test_cold_start_is_submitted_async_and_polled(monkeypatch: pytest.MonkeyPatc
     assert "/v2/endpoint/runsync" not in fake.paths
 
 
-def test_submit_read_timeout_is_retried_without_a_duplicate_job(
+def test_submit_connect_failure_and_5xx_are_retried_without_a_duplicate_job(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     fake = FakeRunPod()
@@ -96,7 +96,7 @@ def test_submit_read_timeout_is_retried_without_a_duplicate_job(
         if request.url.path.endswith("/run"):
             attempts.append(request.url.path)
             if len(attempts) == 1:
-                raise httpx.ReadTimeout("cold worker", request=request)
+                raise httpx.ConnectTimeout("cold worker", request=request)
             if len(attempts) == 2:
                 return httpx.Response(503)
         return fake(request)
@@ -111,12 +111,27 @@ def test_submit_gives_up_after_bounded_attempts(monkeypatch: pytest.MonkeyPatch)
 
     def down(request: httpx.Request) -> httpx.Response:
         calls.append(request.url.path)
-        raise httpx.ReadTimeout("still cold", request=request)
+        raise httpx.ConnectError("unreachable", request=request)
 
     transport(monkeypatch, down)
-    with pytest.raises(httpx.ReadTimeout):
+    monkeypatch.setattr(encoder, "SUBMIT_BACKOFF_S", 0)
+    with pytest.raises(httpx.ConnectError):
         encoder.RunPodEncoder("endpoint", "test-key").encode(["public text"])
     assert calls == ["/v2/endpoint/run"] * encoder.SUBMIT_ATTEMPTS  # never cancels: no job id
+
+
+def test_submit_read_timeout_is_never_retried(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The POST may have been accepted; a retry could start a second paid job."""
+    calls = []
+
+    def slow(request: httpx.Request) -> httpx.Response:
+        calls.append(request.url.path)
+        raise httpx.ReadTimeout("accepted?", request=request)
+
+    transport(monkeypatch, slow)
+    with pytest.raises(httpx.ReadTimeout):
+        encoder.RunPodEncoder("endpoint", "test-key").encode(["public text"])
+    assert calls == ["/v2/endpoint/run"]
 
 
 @pytest.mark.parametrize("status", ["FAILED", "CANCELLED", "TIMED_OUT"])

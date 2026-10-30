@@ -26,7 +26,7 @@ for (const signal of ["SIGTERM", "SIGINT"]) process.on(signal, () => {
 const python = resolve(process.platform === "win32" ? ".venv/Scripts/python.exe" : ".venv/bin/python");
 start(python, ["-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "18091"], process.cwd());
 let ready = false;
-for (let n = 0; n < 100; n++) {
+for (let n = 0; n < 300; n++) {
   try { const r = await fetch(`${env.API_URL}/api/v1/health`); if (r.ok) { ready = true; break; } } catch {}
   await new Promise((r) => setTimeout(r, 200));
 }
