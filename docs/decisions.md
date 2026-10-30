@@ -297,6 +297,17 @@
 - **Replaces**: none
 - **PR / branch**: `fix/core-review-upgrades-clean` / PR #29
 
+
+### TEAM-027: Keep streamed score text under React ownership during scenario navigation
+- **Date**: 2026-10-30
+- **Feature**: Core / F3 / F4
+- **Type**: UI, method
+- **Change**: Remove the imperative number count-up from PageEnter while retaining its CSS page entrance. The parent no longer rewrites server-rendered KPI/fit text during child hydration or scenario navigation. Add a production-component regression that runs the mount effects before descendant hydration and preserves the server score text.
+- **Why**: The old effect changed a server score from 41 to 0 before its descendant could hydrate, reproducing a concrete text mismatch consistent with React error 418. A streamed parent effect is not proof that every descendant has hydrated. The synthetic PostgreSQL-backed scenario endpoints returned in 41?141 ms during investigation; that does not verify browser transition latency or prove this is the only cause of the reported hang. The existing Docker web image showed the older four-stage UI, so it must not be confused with the clean review branch. Browser automation stopped on an address/document URL confidence check; no successful manual toggle is claimed.
+- **Affects**: Shared page entrance and recommendation metric rendering; scores, attribution, session rollout and provider configuration are unchanged
+- **Replaces**: none
+- **PR / branch**: `fix/core-review-upgrades-clean` / PR #29
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)

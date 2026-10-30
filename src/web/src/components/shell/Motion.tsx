@@ -3,9 +3,6 @@
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 
-const reduced = () =>
-  typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
 /**
  * A thin bar at the top of the window from the moment an internal link is clicked until the
  * new route has rendered, so a slow server page never feels like a dead click.
@@ -58,45 +55,13 @@ export function NavProgress() {
   return <div className="a-navprogress" data-state={state} aria-hidden />;
 }
 
-/** Counts each key number up from zero when a page opens (skipped for reduced motion). */
-function countUp(root: ParentNode) {
-  if (reduced() || window.matchMedia("(max-width: 900px)").matches) return;
-  root.querySelectorAll<HTMLElement>(".a-kpi-value strong, .a-fit strong").forEach((el) => {
-    const text = el.textContent ?? "";
-    const match = /^([^\d-]*)(-?\d[\d,]*(?:\.\d+)?)(.*)$/.exec(text);
-    if (!match || el.dataset.counted === text) return;
-    const [, before = "", num = "", after = ""] = match;
-    const target = Number(num.replace(/,/g, ""));
-    if (!Number.isFinite(target) || target === 0) return;
-    const decimals = (num.split(".")[1] ?? "").length;
-    const grouped = num.includes(",");
-    const format = (v: number) => {
-      const fixed = v.toFixed(decimals);
-      return grouped ? Number(fixed).toLocaleString("en-MY", { minimumFractionDigits: decimals }) : fixed;
-    };
-    el.dataset.counted = text;
-    const start = performance.now();
-    const duration = 700;
-    const step = (now: number) => {
-      const t = Math.min(1, (now - start) / duration);
-      const eased = 1 - Math.pow(1 - t, 3);
-      el.textContent = t < 1 ? `${before}${format(target * eased)}${after}` : text;
-      if (t < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-  });
-}
-
 /**
- * Wraps each page: a short fade-and-rise entrance on every route change (keyed by path, so a
- * scenario or filter change in the query string does not replay it), then the number count-up.
+ * CSS animates the page wrapper only. Server-rendered score/KPI text belongs to React:
+ * changing it from a parent effect can race streamed child hydration and strand a route
+ * transition. Query-only scenario changes keep the same wrapper.
  */
 export function PageEnter({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  useEffect(() => {
-    const main = document.getElementById("a-main");
-    if (main) countUp(main);
-  }, [pathname]);
   return (
     <div key={pathname} className="a-page-enter">
       {children}
