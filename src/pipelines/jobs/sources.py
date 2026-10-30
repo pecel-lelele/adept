@@ -163,8 +163,11 @@ def html_to_text(value: str | None) -> str:
 
 
 def in_malaysia(*places: str | None) -> bool:
-    blob = " ".join(p for p in places if p).lower()
-    return any(p in blob for p in MY_PLACES)
+    """The first supplied location is authoritative; later fields only fill a missing one."""
+    primary = next((p.strip().lower() for p in places if p and p.strip()), "")
+    return primary in {"my", "mys"} or any(
+        re.search(rf"(?<!\w){re.escape(place)}(?!\w)", primary) for place in MY_PLACES
+    )
 
 
 def remote_scope(*places: str | None) -> str:
@@ -236,7 +239,7 @@ def lever(f: Fetcher, b: Board) -> Iterator[RawPosting]:
     api = f"https://api.lever.co/v0/postings/{quote(b.board)}?mode=json"
     for j in f.get_json(api):
         cats = j.get("categories") or {}
-        places = " ".join([cats.get("location") or "", *(cats.get("allLocations") or [])])
+        places = cats.get("location") or ""
         if not in_malaysia(places, j.get("country")):
             continue
         lists = " ".join(
