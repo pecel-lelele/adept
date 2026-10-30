@@ -40,6 +40,7 @@ PAGES: dict[str, str] = {
     "/org": "Team home",
     "/org/members": "Team members",
     "/org/radar": "Team radar",
+    "/org/courses": "Team course catalogue",
     "/org/gaps": "Team skill gaps",
     "/org/programmes": "Programmes",
     "/org/programmes/new": "New programme",
