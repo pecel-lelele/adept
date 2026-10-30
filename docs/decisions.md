@@ -1987,12 +1987,12 @@
 - **Replaces**: none
 - **PR / branch**: feat/core-sidebar-home-button
 
-### M4-082: Group Dependabot updates into one pull request per ecosystem
+### M4-082: Pause Dependabot version updates and group them per ecosystem
 - **Date**: 2026-10-30
 - **Feature**: Core (CI and dependency maintenance)
 - **Type**: dependency
-- **Change**: Each Dependabot ecosystem (uv, RunPod pip, npm, GitHub Actions) now sends one grouped pull request with `open-pull-requests-limit: 1`.
-- **Why**: The ungrouped config used the defaults (one PR per package, up to five open per ecosystem). Its first run opened 12 separate bump PRs (#31–#43) at once. Options considered: delete the config (stops version PRs entirely), set the limit to 0 (pause), or group. Grouping keeps dependency auditing at no more than 4 open PRs. Security alerts remain a separate repository setting.
+- **Change**: Routine Dependabot version updates are paused (`open-pull-requests-limit: 0`) for all four ecosystems (uv, RunPod pip, npm, GitHub Actions). Each ecosystem keeps one catch-all group, so setting the limit to 1 after the final resumes updates as one grouped PR per ecosystem.
+- **Why**: The ungrouped config used the defaults (one PR per package, up to five open per ecosystem). Its first run opened 12 separate bump PRs (#31–#43) at once. Options considered: delete the config (stops version PRs entirely), set the limit to 0 (pause), or group. The team chose to pause version PRs before the final and closed the 12 open bumps. Grouping is kept for when updates resume. Security alerts remain a separate repository setting.
 - **Affects**: Dependabot pull request volume only; no runtime, dependency versions or CI checks change.
 - **Replaces**: none
 - **PR / branch**: chore/core-dependabot-grouping
