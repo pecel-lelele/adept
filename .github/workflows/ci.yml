@@ -101,8 +101,9 @@ jobs:
       - name: TypeScript
         run: pnpm typecheck
 
+      # The same file list `make check` uses: every tests/*.test.ts|mjs except live-server tests.
       - name: Web component, proxy, navigation, privacy and asset regressions
-        run: node --experimental-strip-types --test tests/web-*.test.ts tests/privacy-page.test.mjs tests/dead-assets.test.mjs
+        run: python3 src/scripts/dev.py web-test
 
       # Stdlib-only script: no virtualenv needed.
       - name: Translation keys match English
@@ -113,6 +114,25 @@ jobs:
           API_URL: http://localhost:8000
           NEXT_TELEMETRY_DISABLED: "1"
         run: pnpm build
+
+      # /privacy must render in every locale from the production build (loopback only).
+      - name: Privacy page over HTTP from the production build
+        env:
+          API_URL: http://127.0.0.1:9
+          HOSTNAME: 127.0.0.1
+          PORT: "3107"
+          PROXY_SHARED_SECRET: ci-privacy-http-only
+          NEXT_TELEMETRY_DISABLED: "1"
+          ADEPT_PRIVACY_TEST_ORIGIN: http://127.0.0.1:3107
+        run: |
+          pnpm --filter @workspace/adept start > "$RUNNER_TEMP/web.log" 2>&1 &
+          server=$!
+          trap 'kill "$server" 2>/dev/null || true' EXIT
+          for _ in $(seq 1 60); do
+            curl --silent --fail --output /dev/null "$ADEPT_PRIVACY_TEST_ORIGIN/privacy" && break
+            sleep 1
+          done
+          node --test tests/privacy-http.test.mjs || { cat "$RUNNER_TEMP/web.log"; exit 1; }
 
   contracts:
     name: API contracts in sync (OpenAPI + TypeScript types)
