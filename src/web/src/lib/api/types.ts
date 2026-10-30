@@ -1450,6 +1450,71 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/trends/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start Refresh
+         * @description Fetch the latest data: start the trends-refresh GitHub Actions workflow.
+         *
+         *     Returns the run already queued or in progress instead of starting a second one.
+         *     503 refresh_not_configured when GITHUB_DISPATCH_TOKEN / GITHUB_REPOSITORY are unset.
+         */
+        post: operations["trends_start_refresh"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trends/refresh/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Refresh Status
+         * @description Status of a refresh run; a successful run clears the trend caches once.
+         */
+        get: operations["trends_refresh_status"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trends/refresh/rescore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Rescore
+         * @description Re-score the latest stored signals (no ingest, no model call).
+         *
+         *     Publishes only a genuinely new snapshot; otherwise reports no_new_data.
+         */
+        post: operations["trends_rescore"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -4417,6 +4482,84 @@ export interface components {
             /** Trend Coverage */
             trend_coverage: number;
         };
+        /**
+         * TrendRefreshStatus
+         * @description State of the GitHub Actions trend refresh run (the workflow publishes the snapshot).
+         */
+        TrendRefreshStatus: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "queued" | "in_progress" | "completed";
+            /**
+             * Conclusion
+             * @description GitHub run conclusion once completed, e.g. success, failure.
+             */
+            conclusion?: string | null;
+            /**
+             * Run Id
+             * @description None until GitHub lists the new run.
+             */
+            run_id?: number | null;
+            /** Run Url */
+            run_url?: string | null;
+            /** Created At */
+            created_at?: string | null;
+            /** Updated At */
+            updated_at?: string | null;
+            /**
+             * Dispatched
+             * @description True when this request started the run.
+             * @default false
+             */
+            dispatched: boolean;
+            /**
+             * Already Running
+             * @description True when an earlier run was still queued or in progress.
+             * @default false
+             */
+            already_running: boolean;
+            /**
+             * Caches Cleared
+             * @default false
+             */
+            caches_cleared: boolean;
+            /**
+             * Snapshot Date
+             * @description Latest snapshot the app serves after a completed run.
+             */
+            snapshot_date?: string | null;
+            /** Served From */
+            served_from?: ("db" | "fixture") | null;
+            /**
+             * Is Fallback
+             * @default false
+             */
+            is_fallback: boolean;
+        };
+        /**
+         * TrendRescoreResult
+         * @description Outcome of re-scoring the latest stored signals (no ingest, no model call).
+         */
+        TrendRescoreResult: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "published" | "no_new_data" | "failed";
+            /** Message */
+            message: string;
+            /**
+             * Snapshot Date
+             * @description New snapshot date (published) or the one still live.
+             */
+            snapshot_date?: string | null;
+            /** Observed From */
+            observed_from?: string | null;
+            /** Observed To */
+            observed_to?: string | null;
+        };
         /** TrendSignal */
         TrendSignal: {
             /**
@@ -4444,6 +4587,17 @@ export interface components {
             automation_share: number;
             /** Augmentation Share */
             augmentation_share: number;
+            /**
+             * Trend Coverage
+             * @description Roles only: share of the role's skill importance that has trend data.
+             */
+            trend_coverage?: number | null;
+            /**
+             * Insufficient Evidence
+             * @description Roles only: trend_coverage is below 0.5, so the direction is not reliable.
+             * @default false
+             */
+            insufficient_evidence: boolean;
         };
         /** TrendSnapshotMeta */
         TrendSnapshotMeta: {
@@ -7187,6 +7341,105 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RoleTrendResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    trends_start_refresh: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                "x-workspace"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrendRefreshStatus"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    trends_refresh_status: {
+        parameters: {
+            query?: {
+                /** @description GitHub Actions run id. */
+                run_id?: number | null;
+            };
+            header?: {
+                "x-demo-user"?: string | null;
+                "x-workspace"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrendRefreshStatus"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    trends_rescore: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                "x-workspace"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrendRescoreResult"];
                 };
             };
             /** @description Validation Error */

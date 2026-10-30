@@ -5805,6 +5805,226 @@
           }
         }
       }
+    },
+    "/api/v1/trends/refresh": {
+      "post": {
+        "tags": [
+          "trends"
+        ],
+        "summary": "Start Refresh",
+        "description": "Fetch the latest data: start the trends-refresh GitHub Actions workflow.\n\nReturns the run already queued or in progress instead of starting a second one.\n503 refresh_not_configured when GITHUB_DISPATCH_TOKEN / GITHUB_REPOSITORY are unset.",
+        "operationId": "trends_start_refresh",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrendRefreshStatus"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/trends/refresh/status": {
+      "get": {
+        "tags": [
+          "trends"
+        ],
+        "summary": "Refresh Status",
+        "description": "Status of a refresh run; a successful run clears the trend caches once.",
+        "operationId": "trends_refresh_status",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "GitHub Actions run id.",
+              "title": "Run Id"
+            },
+            "description": "GitHub Actions run id."
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrendRefreshStatus"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/trends/refresh/rescore": {
+      "post": {
+        "tags": [
+          "trends"
+        ],
+        "summary": "Rescore",
+        "description": "Re-score the latest stored signals (no ingest, no model call).\n\nPublishes only a genuinely new snapshot; otherwise reports no_new_data.",
+        "operationId": "trends_rescore",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrendRescoreResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -12461,6 +12681,193 @@
         ],
         "title": "TopRole"
       },
+      "TrendRefreshStatus": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "in_progress",
+              "completed"
+            ],
+            "title": "Status"
+          },
+          "conclusion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conclusion",
+            "description": "GitHub run conclusion once completed, e.g. success, failure."
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id",
+            "description": "None until GitHub lists the new run."
+          },
+          "run_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Url"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          },
+          "dispatched": {
+            "type": "boolean",
+            "title": "Dispatched",
+            "description": "True when this request started the run.",
+            "default": false
+          },
+          "already_running": {
+            "type": "boolean",
+            "title": "Already Running",
+            "description": "True when an earlier run was still queued or in progress.",
+            "default": false
+          },
+          "caches_cleared": {
+            "type": "boolean",
+            "title": "Caches Cleared",
+            "default": false
+          },
+          "snapshot_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snapshot Date",
+            "description": "Latest snapshot the app serves after a completed run."
+          },
+          "served_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "db",
+                  "fixture"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Served From"
+          },
+          "is_fallback": {
+            "type": "boolean",
+            "title": "Is Fallback",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "TrendRefreshStatus",
+        "description": "State of the GitHub Actions trend refresh run (the workflow publishes the snapshot)."
+      },
+      "TrendRescoreResult": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "published",
+              "no_new_data",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "snapshot_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snapshot Date",
+            "description": "New snapshot date (published) or the one still live."
+          },
+          "observed_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed From"
+          },
+          "observed_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed To"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "message"
+        ],
+        "title": "TrendRescoreResult",
+        "description": "Outcome of re-scoring the latest stored signals (no ingest, no model call)."
+      },
       "TrendSignal": {
         "properties": {
           "entity_type": {
@@ -12510,6 +12917,26 @@
             "maximum": 1.0,
             "minimum": 0.0,
             "title": "Augmentation Share"
+          },
+          "trend_coverage": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trend Coverage",
+            "description": "Roles only: share of the role's skill importance that has trend data."
+          },
+          "insufficient_evidence": {
+            "type": "boolean",
+            "title": "Insufficient Evidence",
+            "description": "Roles only: trend_coverage is below 0.5, so the direction is not reliable.",
+            "default": false
           }
         },
         "type": "object",
