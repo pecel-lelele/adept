@@ -64,6 +64,8 @@ class Settings(BaseSettings):
     proxy_client_ip_mode: Literal["trusted", "best-effort"] = "best-effort"
     # Minimum consenting, completed-intake members before showing team gap aggregates.
     org_min_cohort: int = Field(default=3, ge=1)
+    # Seconds the public impact summary is reused before it is recomputed (0 = every request).
+    impact_summary_ttl_s: int = Field(default=120, ge=0, le=3600)
     # --- storage ---
     # postgres (default): every account, profile, organisation, plan, progress record and
     # rate-limit counter lives in DATABASE_URL, so nothing a user enters is kept only in one

@@ -171,3 +171,21 @@ def test_no_numeric_constant_can_become_a_displayed_metric() -> None:
             for kw in node.keywords:
                 if isinstance(kw.value, ast.Constant) and isinstance(kw.value.value, int | float):
                     assert kw.arg == "status_code" or kw.value.value in (0, 1), kw.arg
+
+
+def test_summary_is_reused_within_the_ttl_and_never_caches_failures(monkeypatch) -> None:
+    calls: list[int] = []
+    fake = object()
+
+    def compute() -> object:
+        calls.append(1)
+        if len(calls) == 1:
+            raise RuntimeError("source unavailable")
+        return fake
+
+    monkeypatch.setattr(service, "compute_summary", compute)
+    with pytest.raises(RuntimeError):
+        service.get_summary()
+    assert service.get_summary() is fake
+    assert service.get_summary() is fake
+    assert len(calls) == 2

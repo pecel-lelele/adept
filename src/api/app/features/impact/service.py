@@ -31,7 +31,7 @@ from app.contracts.labour import MalaysiaLabourContext
 from app.contracts.pathway import Course, Pathway
 from app.contracts.profile import Profile, Segment, UserSkill
 from app.core import refdata
-from app.core.config import REPO_ROOT
+from app.core.config import REPO_ROOT, get_settings
 from app.core.errors import AppError
 from app.core.fairness import PROTECTED_TERMS
 from app.core.seed import SEED_DIR
@@ -393,26 +393,28 @@ def compute_summary() -> ImpactSummary:
     )
 
 
-SUMMARY_TTL_SECONDS = 120
 _summary_lock = threading.Lock()
 _summary_cache: tuple[float, ImpactSummary] | None = None
 
 
 def get_summary() -> ImpactSummary:
-    """Recomputed from the live catalogue, trend snapshot and engines at most every 2 minutes.
+    """Recomputed from the live catalogue, trend snapshot and engines.
+
+    The result is reused for at most IMPACT_SUMMARY_TTL_S seconds.
 
     The public page re-ranks every synthetic persona, so a short memo stops repeated anonymous
     requests from redoing that work while a data refresh still shows within the TTL.
     Failures are never cached.
     """
     global _summary_cache
+    ttl = get_settings().impact_summary_ttl_s
     now = time.monotonic()
     cached = _summary_cache
-    if cached and now - cached[0] < SUMMARY_TTL_SECONDS:
+    if cached and now - cached[0] < ttl:
         return cached[1]
     with _summary_lock:
         cached = _summary_cache
-        if cached and time.monotonic() - cached[0] < SUMMARY_TTL_SECONDS:
+        if cached and time.monotonic() - cached[0] < ttl:
             return cached[1]
         summary = compute_summary()
         _summary_cache = (time.monotonic(), summary)
