@@ -1,18 +1,42 @@
+# Dependabot version updates: PAUSED (open-pull-requests-limit: 0).
+# No routine version-bump PRs are opened. Security alerts are a separate
+# repository setting (Settings -> Code security) and are not affected.
+# To resume after the final, set open-pull-requests-limit to 1: each
+# ecosystem then sends ONE grouped PR instead of one PR per package.
 version: 2
 updates:
   - package-ecosystem: uv
     directory: /
     schedule:
       interval: weekly
+    open-pull-requests-limit: 0
+    groups:
+      python:
+        patterns: ["*"]
+
   - package-ecosystem: pip
     directory: /src/pipelines/trends/runpod
     schedule:
       interval: weekly
+    open-pull-requests-limit: 0
+    groups:
+      runpod-image:
+        patterns: ["*"]
+
   - package-ecosystem: npm
     directory: /
     schedule:
       interval: weekly
+    open-pull-requests-limit: 0
+    groups:
+      javascript:
+        patterns: ["*"]
+
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+    open-pull-requests-limit: 0
+    groups:
+      ci-actions:
+        patterns: ["*"]
