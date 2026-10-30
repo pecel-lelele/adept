@@ -16,6 +16,7 @@ fake without touching the real trends module.
 from __future__ import annotations
 
 import threading
+import time
 from concurrent.futures import Future, ThreadPoolExecutor
 from concurrent.futures import TimeoutError as FuturesTimeout
 from dataclasses import dataclass
@@ -41,6 +42,22 @@ _slots = threading.BoundedSemaphore(MAX_OUTSTANDING)
 # Concurrent requests for the same snapshot share one read.
 _inflight: dict[tuple[date | None, str, bool], Future[TrendSnapshotResponse]] = {}
 _inflight_lock = threading.Lock()
+# After a failed or timed-out read, answer from the shared last good snapshot until this
+# monotonic time instead of paying SNAPSHOT_TIMEOUT_S on every request during an outage
+# (strict/production reads are never served from M1's in-process cache on failure).
+RETRY_AFTER_S: float = 5.0
+_down_until = 0.0
+
+
+def reset_down() -> None:
+    """Forget a recorded outage (after a trend refresh, and between tests)."""
+    global _down_until
+    _down_until = 0.0
+
+
+def _mark_down() -> None:
+    global _down_until
+    _down_until = time.monotonic() + RETRY_AFTER_S
 
 
 @dataclass(frozen=True)
@@ -74,7 +91,7 @@ def fetch_snapshot(scenario: ScenarioId, snapshot_date: date | None = None) -> T
     except TrendUnavailable:
         from app.features.trends import service as trends_service
 
-        snap = trends_service.last_good_snapshot(snapshot_date, scenario)
+        snap = trends_service.last_good_snapshot(snapshot_date, scenario, outage=True)
 
     if snap.meta.scenario != scenario or (
         snapshot_date is not None and snap.meta.snapshot_date != snapshot_date
@@ -156,6 +173,8 @@ def _call_with_timeout(
     A caller that times out stops sharing that read, so the next caller starts a fresh one; the
     slow read still holds its slot until it ends (bounded by MAX_OUTSTANDING).
     """
+    if time.monotonic() < _down_until:
+        raise TrendUnavailable("Trend snapshot recently unavailable; retrying shortly.")
     strict = get_settings().app_env == "production"
     key = (snapshot_date, scenario, strict)
     future = _start_read(key, scenario, snapshot_date)
@@ -166,6 +185,7 @@ def _call_with_timeout(
             if _inflight.get(key) is future:
                 del _inflight[key]
         future.cancel()  # only succeeds if it has not started yet
+        _mark_down()
         raise TrendUnavailable(
             f"Trend snapshot for scenario {scenario!r} timed out "
             f"after {SNAPSHOT_TIMEOUT_S:g}s — M1 service may be unavailable."
@@ -173,6 +193,7 @@ def _call_with_timeout(
     except NotFoundError:
         raise
     except Exception as exc:  # noqa: BLE001 - every M1 failure is a 503 for matching
+        _mark_down()
         raise TrendUnavailable(
             f"Trend snapshot unavailable for scenario {scenario!r}: {exc}"
         ) from exc
