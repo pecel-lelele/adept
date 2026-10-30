@@ -304,7 +304,7 @@ def test_migration_backfills_saved_and_replaced_target_progress(client: TestClie
     from db.migrate import MIGRATIONS, up_section
 
     course, _skill = _complete_and_confirm(client)
-    # An older catalogue target with no surviving saved plan must use catalogue facts during upgrade.
+    # An older target with no surviving saved plan must use catalogue facts during upgrade.
     repository.set_course_status("aisyah", OLD_TARGET, course.id, "completed")
     migration = MIGRATIONS / "20261022220000_core_completion_course_snapshots.sql"
     with connection() as conn, conn.transaction(force_rollback=True):
