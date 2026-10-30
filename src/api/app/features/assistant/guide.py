@@ -85,8 +85,13 @@ INTENTS: dict[str, tuple[str, ...]] = {
         "apply for me",
         "padam kursus",
         "ubah pelan",
+        "daftarkan saya",
+        "tempahkan kursus",
         "删除课程",
         "修改计划",
+        "帮我报名",
+        "帮我申请",
+        "帮我预订",
     ),
     "match_detail": (
         "second role",
@@ -177,6 +182,12 @@ INTENTS: dict[str, tuple[str, ...]] = {
         "add my skills",
         "update my skills",
         "edit my skills",
+        "my profile",
+        "change my skills",
+        "profil saya",
+        "tukar kemahiran",
+        "我的资料",
+        "修改技能",
         "tiada cv",
         "tak ada cv",
         "muat naik cv",
@@ -249,6 +260,12 @@ INTENTS: dict[str, tuple[str, ...]] = {
         "how does",
         "how do",
         "what is adept",
+        "what can you do",
+        "what can adi do",
+        "how can you help",
+        "what do you do",
+        "apa yang boleh anda buat",
+        "你能做什么",
         "how it works",
         "method",
         "methods",
@@ -304,6 +321,7 @@ INTENTS: dict[str, tuple[str, ...]] = {
         "permintaan",
         "趋势",
         "上升",
+        "增长",
         "雷达",
         "未来",
     ),
@@ -346,6 +364,14 @@ INTENTS: dict[str, tuple[str, ...]] = {
         "计划",
     ),
     "roles": (
+        "move into",
+        "switch into",
+        "switch careers",
+        "change careers",
+        "career change",
+        "transition into",
+        "pindah kerjaya",
+        "转行",
         "hiring",
         "companies",
         "employers",
@@ -444,6 +470,12 @@ PLAN_WORDS = ("plan", "plans", "pelan", "rancangan", "计划")
 # "what if" is a scenario question only when it is about AI pace.
 PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
     "sources": (
+        re.compile(
+            r"\bhow\s+(?:old|recent|fresh|current|up[-\s]to[-\s]date)\s+(?:is|are)\b.*"
+            r"\b(?:data|trends?|figures?|numbers?|forecasts?|snapshot|estimates?)\b"
+        ),
+        re.compile(r"\bwhen\s+(?:was|were|is|are)\b.*\b(?:updated|refreshed)\b"),
+        re.compile(r"\blast\s+(?:updated|refreshed)\b"),
         re.compile(r"\b(?:your|the|data|stored|which|what|cite|show)\s+sources\b"),
         re.compile(r"\bdata\s+sources?\b"),
         re.compile(
@@ -452,6 +484,24 @@ PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         ),
         re.compile(r"\bwhere\s+(?:does|do|did)\s+(?:the|this|these|your)\s+\w+\s+come\s+from\b"),
         re.compile(r"\btrust\s+(?:the|this|your|these)\s+(?:data|numbers|figures|results)\b"),
+    ),
+    "score_breakdown": (
+        re.compile(
+            r"\bwhy\s+(?:is|was|are|am|did|does)\b.*"
+            r"\b(?:top|best|first|highest|number\s+one|#1)\s+(?:match|role|job|fit|result)\b"
+        ),
+    ),
+    "profile": (
+        re.compile(r"\b(?:what|which)\s+skills\s+(?:do\s+i|have\s+i|am\s+i)\b"),
+        re.compile(r"\bskills\s+(?:in|on|from)\s+my\s+(?:profile|cv|resume)\b"),
+        re.compile(r"\b(?:change|edit|update|fix|correct)\s+(?:my\s+)?(?:skills|profile)\b"),
+    ),
+    "action_not_supported": (
+        re.compile(
+            r"\b(?:book|enrol|enroll|register|sign\s+me\s+up|apply|pay)\b.*\bfor\s+me\b"
+        ),
+        re.compile(r"\b(?:enrol|enroll|register|sign)\s+me\s+(?:up|in|into|for|on)\b"),
+        re.compile(r"\bapply\s+(?:to|for)\s+(?:this|that|a|the)\s+(?:job|role|position)\b"),
     ),
     "score_improvement": (
         re.compile(
@@ -491,15 +541,26 @@ PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         re.compile(r"(?:哪个城市|工作地点|职位地点)"),
     ),
     "trend_declining": (
+        re.compile(
+            r"\b(?:will|can|could|would|is|are)\s+(?:ai|automation|robots?)\s+(?:going\s+to\s+)?"
+            r"(?:replace|take\s+over|eliminate|kill)\b"
+        ),
+        re.compile(r"\breplace[ds]?\s+(?:(?:my|our)\s+)?jobs?\b"),
         re.compile(r"\b(?:at\s+risk|risk\s+of|be\s+replaced|being\s+replaced|replaced\s+by)\b"),
         re.compile(r"\b(?:let\s+go|laid\s+off|lose\s+(?:my|our)\s+jobs?)\b.*\b(?:ai|automation)\b"),
     ),
     # Funding: who pays for courses. "Will my employer pay..." also hits course advice.
     "cost": (re.compile(r"\bpay\s+for\b"),),
     # "How much of my plan have I finished?" asks about progress, not price.
-    "plan_progress": (re.compile(r"\bhow\s+much\s+of\s+(?:my|the|this)\b"),),
+    "plan_progress": (
+        re.compile(r"\bhow\s+much\s+of\s+(?:my|the|this)\b"),
+        re.compile(r"\bhow\s+far\b"),
+    ),
     # Weekly study time stated without the word "plan" still asks about the plan's duration.
     "plan_duration": (
+        re.compile(r"\bhow\s+many\s+(?:hours?|hrs?|weeks?)\b"),
+        re.compile(r"\bhours?\s+(?:a|per|each|every)\s+week\b"),
+        re.compile(r"\bberapa\s+jam\b"),
         re.compile(r"\b\d+\s*(?:hours?|hrs?|h)\s+(?:a|per|each|every)\s+week\b"),
         re.compile(r"\b\d+\s*jam\s+(?:seminggu|setiap\s+minggu)\b"),
         re.compile(r"每周[^，。？]{0,4}?\d+\s*(?:个)?小时"),
@@ -572,6 +633,24 @@ _INVENT = (
         r"\b(?:reka|mereka|rekaan|palsu)\b.*\b(?:kerja|kursus|kemahiran|statistik|angka|data)\b"
     ),
     re.compile(r"(?:编造|捏造|虚构|瞎编)"),
+)
+# Who may see a learner's data is a privacy question even when it names progress or skills.
+_VISIBILITY = (
+    re.compile(
+        r"\b(?:can|could|will|would|does|do|is|are)\s+(?:my\s+|the\s+|our\s+)?"
+        r"(?:employer|manager|hr|boss|company|team|supervisor)\s+(?:also\s+)?"
+        r"(?:see|view|access|read|check)\b"
+    ),
+    re.compile(r"\bwho\s+(?:can|could)\s+(?:see|view|access)\b"),
+    re.compile(r"\b(?:majikan|bos|pengurus)\s+(?:boleh\s+)?(?:lihat|nampak|akses)\b"),
+    re.compile(r"(?:雇主|老板|经理|公司|主管)(?:能|可以|会)?(?:看到|看见|查看|访问)"),
+)
+# A question that names careers or learning is about them, whatever else it mentions.
+_CAREER_WORDS = (
+    "role", "roles", "job", "jobs", "career", "careers", "skill", "skills", "course", "courses",
+    "learn", "learning", "plan", "trend", "trends", "salary", "hiring", "cv", "resume", "sdg",
+    "upskill", "reskill", "kerja", "kerjaya", "kemahiran", "kursus", "belajar", "pelan", "gaji",
+    "职位", "工作", "技能", "课程", "学习", "计划", "招聘", "趋势", "薪资",
 )
 # Intents whose phrase patterns satisfy the "about my saved plan" requirement on their own.
 PLAN_PATTERN_INTENTS = frozenset({"plan_duration"})
@@ -731,7 +810,7 @@ T: dict[str, dict[str, str]] = {
         "decision": "Sorry, that's not a call I can make. Hiring, firing, promotion and admission decisions belong to people: Adept supports human judgement and never makes those decisions. I can show skills data that helps you decide fairly.",
         "other_person": "Sorry, I can only talk about your own data. I can't share anyone else's CV, skills, scores or plans.",
         "injection": "Sorry, I can't change my rules or share hidden instructions. I'm happy to explain your own Adept results, though.",
-        "action_not_supported": "Sorry, I can't edit your plan from the chat. You can change it yourself on [[page:/app/pathway]], or pick a different goal on [[page:/app/pathway/compare]].",
+        "action_not_supported": "Sorry, I can't enrol you, book courses, apply to jobs or change your plan from the chat. Open a course from [[page:/app/pathway]] to sign up on the provider's site, and apply on the employer's own page from [[page:/app/jobs]].",
         "no_data": "I don't have checked salary or location data, so I won't guess. For pay and places, check real postings on [[page:/app/jobs]].",
         "forecast_accuracy": "Good question! These forecasts are estimates for each AI-pace scenario, built from dated research and labour projections. They aren't guarantees, and Adept has no verified accuracy figure for your own outcome. Check the source dates on [[page:/app/radar]].",
         "sources": "Here's where it comes from. Data snapshot: {date}. Stored sources: {sources}. Courses in your plan: {courses}. Prices and openings change, so check the provider or employer page too.",
@@ -807,7 +886,7 @@ T: dict[str, dict[str, str]] = {
         "decision": "Maaf, itu bukan keputusan yang boleh saya buat. Keputusan mengambil, memecat, menaikkan pangkat atau menerima masuk seseorang ialah milik manusia: Adept menyokong pertimbangan manusia dan tidak pernah membuat keputusan itu. Saya boleh tunjukkan data kemahiran untuk membantu anda membuat keputusan yang adil.",
         "other_person": "Maaf, saya hanya boleh berbincang tentang data anda sendiri. Saya tidak boleh kongsi CV, kemahiran, skor atau pelan orang lain.",
         "injection": "Maaf, saya tidak boleh mengubah peraturan saya atau mendedahkan arahan tersembunyi. Tapi saya sedia menerangkan hasil Adept anda.",
-        "action_not_supported": "Maaf, saya tidak boleh mengedit pelan anda dari sembang. Anda boleh mengubahnya sendiri di [[page:/app/pathway]], atau pilih matlamat lain di [[page:/app/pathway/compare]].",
+        "action_not_supported": "Maaf, saya tidak boleh mendaftarkan anda, menempah kursus, memohon kerja atau mengubah pelan anda dari sembang. Buka kursus dari [[page:/app/pathway]] untuk mendaftar di laman penyedia, dan mohon di laman majikan sendiri melalui [[page:/app/jobs]].",
         "no_data": "Saya tiada data gaji atau lokasi yang disahkan, jadi saya tidak akan meneka. Untuk gaji dan lokasi, semak iklan sebenar di [[page:/app/jobs]].",
         "forecast_accuracy": "Soalan yang bagus! Unjuran ini ialah anggaran bagi setiap senario kadar AI, berdasarkan penyelidikan bertarikh dan unjuran tenaga kerja. Ia bukan jaminan, dan Adept tiada angka ketepatan yang disahkan untuk hasil anda sendiri. Semak tarikh sumber di [[page:/app/radar]].",
         "sources": "Ini sumbernya. Petikan data: {date}. Sumber tersimpan: {sources}. Kursus dalam pelan anda: {courses}. Harga dan jawatan kosong boleh berubah, jadi semak juga halaman penyedia atau majikan.",
@@ -883,7 +962,7 @@ T: dict[str, dict[str, str]] = {
         "decision": "抱歉，这不是我能做的决定。招聘、解雇、晋升和录取的决定属于人：Adept 只为人的判断提供支持，从不作出这些决定。我可以展示技能数据，帮助你公平地做决定。",
         "other_person": "抱歉，我只能谈你自己的数据，不能分享他人的简历、技能、分数或计划。",
         "injection": "抱歉，我不能更改规则或透露隐藏指令。不过我很乐意解释你自己的 Adept 结果。",
-        "action_not_supported": "抱歉，我无法在聊天中修改你的计划。你可以在 [[page:/app/pathway]] 自行调整，或在 [[page:/app/pathway/compare]] 选择其他目标。",
+        "action_not_supported": "抱歉，我无法在聊天中帮你报名、预订课程、申请职位或修改计划。请在 [[page:/app/pathway]] 打开课程，到提供方网站自行报名；申请职位请通过 [[page:/app/jobs]] 前往雇主自己的页面。",
         "no_data": "我没有经过核实的薪资或地点数据，所以不会猜测。薪资和地点请查看 [[page:/app/jobs]] 上的真实职位信息。",
         "forecast_accuracy": "好问题！这些预测是每种 AI 发展速度情景下的估计，依据有日期的研究和劳动力预测。它们不是保证，Adept 也没有针对你个人结果的已验证准确率。请在 [[page:/app/radar]] 查看来源日期。",
         "sources": "数据来源如下。数据快照：{date}。已存来源：{sources}。你计划中的课程：{courses}。价格和职位会变化，请同时查看提供方或雇主页面。",
@@ -1033,7 +1112,7 @@ CHIP_INTENTS: dict[str, str] = {
     "declining": "trend_declining",
     "rising": "trend",
     "accuracy": "forecast_accuracy",
-    "why_top": "roles",
+    "why_top": "score_breakdown",
     "start_course": "learn",
     "progress": "plan_progress",
     "sdg_what": "sdg_explain",
@@ -1134,6 +1213,12 @@ def intents(question: str, audience: str = "learner") -> list[str]:
         return ["other_person"]
     if any(pattern.search(q) for pattern in _INVENT):
         return ["invent"]
+    if any(pattern.search(q) for pattern in _VISIBILITY):
+        return ["privacy"]
+    if any(_contains(q, word) for word in _OFF_TOPIC) and not any(
+        _contains(q, word) for word in _CAREER_WORDS
+    ):
+        return ["off_topic"]
     scores: dict[str, float] = {}
     for name, words in INTENTS.items():
         if name in SAFETY_INTENTS or name == "unknown":
