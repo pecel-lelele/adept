@@ -330,6 +330,68 @@
 - **Replaces**: none
 - **PR / branch**: `feat/core-hardening-and-submission-evidence` / PR #30
 
+### TEAM-030: Integrate reviewed trend scoring and on-demand refresh
+- **Date**: 2026-10-30
+- **Feature**: F2, F3, F4, F5 and Core
+- **Type**: method
+- **Change**: Integrate the interrupted trend worktree: robust shared velocity scaling, bounded scenario weights, evidence coverage, truthful frozen-source dates, bounded database reads and asynchronous RunPod job polling/cancellation. Dashboard admins can dispatch the existing published MiniLM workflow or re-score stored signals; provider and GitHub credentials stay server-side.
+- **Why**: Scenario comparisons need a shared reference distribution; an untracked skill is not evidence of decline. Refresh should be reachable from the app without an unbounded inference request.
+- **Pipeline**: arXiv → cleaned abstracts → catalogue skill embeddings → published MiniLM and shared robust scoring → production-function regression/counterfactual tests → dated PostgreSQL snapshots with explicit fixture fallback.
+- **Affects**: matching, preview, pathway, trend contracts, dashboards and workflow setup
+- **Replaces**: scenario scaling/fallback implementation portions of TEAM-010 and TEAM-020
+- **PR / branch**: fix/core-review-regressions
+
+### TEAM-031: Stable admin identities and scoped learning records
+- **Date**: 2026-10-30
+- **Feature**: Core and F7
+- **Type**: schema
+- **Change**: Replace unverified email admin matching with ADMIN_USER_IDS in API and web gates. Add membership lookup index, generated organisation keys and NOT VALID learning foreign keys, and force transaction-scoped funding RLS. Member removal cleans private ledger references atomically while retaining anonymised historical events.
+- **Why**: Email text is not identity proof. New writes must resolve to real roles/workspaces without deleting legacy records; old orphan rows require a separate audit before constraint validation. Production roles must not have superuser/BYPASSRLS privileges.
+- **Affects**: admin deployment configuration, funding, membership removal and migration rollout
+- **Replaces**: email-based admin authorization in M4-027
+- **PR / branch**: fix/core-review-regressions
+
+### TEAM-032: Observation dates, regional privacy and explicit workspace navigation
+- **Date**: 2026-10-30
+- **Feature**: F1, F5, F6, F7 and Core
+- **Type**: contract
+- **Change**: Batch heatmap profile reads and date their actual stored inputs; keep raw skill gaps scenario-invariant observations. Regional SDG outputs require five distinct people and suppress rare target/goal cells. Workspace selection is an exact-origin POST verified against current memberships; login, join, role, cohort and scenario context survive navigation.
+- **Why**: Trend metadata cannot make observations fresh. Counting memberships twice or returning rare cells leaks small cohorts. GET links must not change workspace state.
+- **Affects**: SdgContribution status fields, heatmaps, auth/workspace routes, Adi links and pathway navigation
+- **Replaces**: none
+- **PR / branch**: fix/core-review-regressions
+
+### TEAM-033: Dated Malaysian context and verified current occupations
+- **Date**: 2026-10-30
+- **Feature**: F2, F5 and Core
+- **Type**: data source
+- **Change**: Add the DOSM monthly Labour Force Survey as separately labelled national observations, never blended into occupational forecasts. Add three verified O*NET current occupations with source codes; do not advertise them as emerging target roles. Scheduled catalogue and jobs sync require explicit database secrets.
+- **Why**: Local context and non-technical intake coverage are useful only with traceable evidence. Malay course records remain pending verified delivery-language and provider metadata.
+- **Pipeline**: DOSM public CSV → bounded date/rate validation → latest complete monthly rates → no predictive model → parsing/provenance tests → stored API response and dated fixture, with collapsed dashboard disclosure.
+- **Affects**: source register, role catalogue, new public-context table/API, dashboard and data-source workflow
+- **Replaces**: none
+- **PR / branch**: fix/core-review-regressions
+
+### TEAM-034: Final-round operations, infrastructure and browser verification
+- **Date**: 2026-10-30
+- **Feature**: all
+- **Type**: dependency
+- **Change**: Integrate the infra draft's production configuration, container, rate-limit, source-attribution and fairness checks; remove pathway daemon-thread timeouts in favour of the bounded F2 operation. Pin Playwright 1.64.1 and run real desktop/mobile synthetic journeys against isolated services; run CI for every PR target, including stacked branches. Publish revision/dirty build identity and loopback-only synthetic account preparation. Align unsigned submission sources with the supplied finalist templates and six official rubric categories.
+- **Why**: Local passing checks do not establish production state or measured human impact. Reproducible builds, independent browser checks and explicit outstanding evidence make those limits reviewable.
+- **Affects**: CI, Docker, Python task runner, development dependency lock, demo tooling and submission documentation
+- **Replaces**: abandoned timeout-worker implementation in refactor/pathway-trend-and-match-ports
+- **PR / branch**: fix/core-review-regressions
+
+### TEAM-035: Record the frontend and Adi worktree handover
+- **Date**: 2026-10-30
+- **Feature**: F1, F4, F7, F8 and Core
+- **Type**: UI
+- **Change**: Record the already integrated frontend/Adi commits: optional skill sharing independent of membership, operational student-project privacy notice, session-aware team CTAs, radar-first intake, populated role comparison and weighted score bars, Steady/Rapid display labels, phrase-level Adi routing and grounded multilingual replies. Scenario IDs remain moderate/fast; Adi uses validated answer blocks.
+- **Why**: Claude left proposed decision notes outside the append-only log. These changes affect consent and user interpretation and need an authoritative record.
+- **Affects**: signup/join, privacy, matching, landing and Adi; original commits d51c0d7, f724298, d287224 and e0be794
+- **Replaces**: mandatory sharing condition on joining; preserves explicit programme acceptance requirements
+- **PR / branch**: fix/core-review-regressions
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)
@@ -1986,3 +2048,13 @@
 - **Affects**: Database CI and local verification documentation; no runtime, schema, dependencies or fixture changes.
 - **Replaces**: none
 - **PR / branch**: feat/core-sidebar-home-button
+
+### M4-082: Pause Dependabot version updates and group them per ecosystem
+- **Date**: 2026-10-30
+- **Feature**: Core (CI and dependency maintenance)
+- **Type**: dependency
+- **Change**: Routine Dependabot version updates are paused (`open-pull-requests-limit: 0`) for all four ecosystems (uv, RunPod pip, npm, GitHub Actions). Each ecosystem keeps one catch-all group, so setting the limit to 1 after the final resumes updates as one grouped PR per ecosystem.
+- **Why**: The ungrouped config used the defaults (one PR per package, up to five open per ecosystem). Its first run opened 12 separate bump PRs (#31–#43) at once. Options considered: delete the config (stops version PRs entirely), set the limit to 0 (pause), or group. The team chose to pause version PRs before the final and closed the 12 open bumps. Grouping is kept for when updates resume. Security alerts remain a separate repository setting.
+- **Affects**: Dependabot pull request volume only; no runtime, dependency versions or CI checks change.
+- **Replaces**: none
+- **PR / branch**: chore/core-dependabot-grouping

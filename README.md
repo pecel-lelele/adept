@@ -697,3 +697,5 @@ The hardened MiniLM dependency pins are source changes. Applying them to the liv
 requires a guarded image build and RunPod redeployment. The historical verified worker image
 is not evidence that those newer dependencies are already deployed. Keep all keys and
 connection strings in secret stores, never in this README or submission PDFs.
+
+Final-round review: [status and responsibilities](docs/final-round-status.md), [refresh and demo runbook](docs/review-runbook.md). Dashboard refresh uses the existing published RunPod MiniLM model through an admin-only workflow dispatch; production configuration and paid-run acceptance remain explicit rollout steps.

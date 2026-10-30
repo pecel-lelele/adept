@@ -1,7 +1,7 @@
 # Adept: technical tools declaration
 
-Draft prepared on 22 October 2026 against the supplied **SDC Hackathon Technical Tools
-Declaration Template**. Its deadline field is unspecified; confirm it with the organisers.
+Updated 30 October 2026 against the supplied finalist **Technical & Tools Declaration**
+template. Its stated deadline is **1 November 2026**. Sections 1-8 follow that template.
 This document records repository evidence and explicit unknowns, not a signed compliance claim.
 Personal contact details belong in the private submission PDF, not in this public repository.
 
@@ -198,6 +198,8 @@ of every deployed database. No model was fine-tuned on these fixtures.
 | Exchange rates | [BNM OpenAPI](https://api.bnm.gov.my/) | Public | BNM terms and attribution | No |
 | Synthetic personas, organisations, regions and CVs | [Five selected demo CVs/profiles](demo-cvs/), [regression fixtures](../tests/api/profile/fixtures/cvs/), [seeds](../src/data/seed/personas/) | Synthetic | Team-created evaluation/test data. Selected CVs: Imran, Sofia, Meera, Adrian and Nur Hana; additional intake settings are editable demo assumptions, not extracted qualifications. | No real identities |
 
+| OpenDOSM monthly Labour Force Survey | [Official catalogue](https://open.dosm.gov.my/data-catalogue/lfs_month) | Public national aggregates | CC BY 4.0; retain DOSM attribution; monthly observation dates differ from retrieval dates | No |
+
 ### 4.3 AI-assisted development tools
 
 **Yes.** The team defined Adept's problem, product direction and SDG focus. Claude Code was
@@ -245,9 +247,10 @@ These tools are used for presentation production, not career recommendations in 
 | Tool / version | Presentation purpose | Evidence and outstanding details |
 |---|---|---|
 | [Kokoro TTS](https://huggingface.co/hexgrad/Kokoro-82M) | Local synthetic narration, as recorded in the demo script | Exact installed revision and selected voice are not recorded here; model-card terms do not establish rights to every voice or other asset. |
+| [Google Fonts](https://fonts.google.com/) | Presentation typography where used | Confirm the exact exported font families and retain their applicable font licence notices. |
 | [Remotion](https://www.remotion.dev/) 4.0.538 | Motion graphics and demo-film composition | Version supplied in the task brief; the local video workspace is gitignored and not evidence of a reproducible application dependency. |
 | [Mixkit](https://mixkit.co/license/) | Presentation media, music / sound effects as applicable | Record the exact downloaded asset pages and applicable item licences in final credits; these are not supplied in the tracked repository. |
-| [ElevenLabs](https://elevenlabs.io/) | Reported presentation audio production | Exact model, voice, account terms and retained output are unrecorded; do not infer use of voice cloning or a specific model. |
+| [ElevenLabs](https://elevenlabs.io/) | Unconfirmed presentation audio use; team verification required | Exact model, voice, account terms and retained output are unrecorded; do not infer use of voice cloning or a specific model. |
 
 The demo's statistical context and dates are listed in the
 [demo evidence register](demo-script.md#evidence-register). WEF forecasts are global estimates;
