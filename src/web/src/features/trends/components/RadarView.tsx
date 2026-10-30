@@ -6,10 +6,9 @@ import { journeyStepCount } from "@/config/navigation";
 import { ErrorState } from "@/components/ErrorState";
 import { TrendBars } from "@/components/viz";
 import { fetchMyProfile } from "@/features/profile/api";
-import { fetchCompare } from "@/features/pathway/api";
 import type { ScenarioId } from "@/lib/api";
 
-import { fetchRadar } from "../api";
+import { fetchRadar, fetchRoleDirections } from "../api";
 import { SignalExplorer } from "./SignalExplorer";
 import { RoleDirectionsCard } from "./RoleDirectionsCard";
 
@@ -30,13 +29,13 @@ export async function RadarView({
   const t = await getTranslations("trends");
   const d = await getTranslations("common.design");
   const tp = await getTranslations("ui.page");
-  const [result, profile, comparison] = await Promise.all([
+  const [result, profile] = await Promise.all([
     fetchRadar(scenario, snapshotDate),
     context === "individual" ? fetchMyProfile() : Promise.resolve(null),
-    fetchCompare(scenario, [], snapshotDate),
   ]);
   if (!result.ok) return <ErrorState failure={result} />;
   const { items, meta } = result.data;
+  const directions = await fetchRoleDirections(scenario, meta.snapshot_date);
   const v = scenario === "fast" ? "velocity_fast" : "velocity_moderate";
   const dir = scenario === "fast" ? "direction_fast" : "direction_moderate";
   const count = (x: string) => items.filter((i) => i[dir] === x).length;
@@ -132,7 +131,7 @@ export async function RadarView({
         )}
       </div>
 
-      {comparison.ok ? <RoleDirectionsCard options={comparison.data.options} meta={comparison.data.meta} organisation={context === "organisation"} snapshotDate={snapshotDate} /> : <ErrorState failure={comparison} />}
+      {directions.ok ? <RoleDirectionsCard signals={directions.data.items} meta={directions.data.meta} organisation={context === "organisation"} snapshotDate={snapshotDate} /> : <ErrorState failure={directions} />}
       <section className="a-card" aria-labelledby="h-all">
         <div className="a-card-head">
           <h2 id="h-all">{tp("allSkills")}</h2>

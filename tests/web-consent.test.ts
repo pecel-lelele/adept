@@ -20,6 +20,13 @@ test("join has separate, initially unticked membership and skill-sharing checkbo
       assert.match(input, /required=""/);
     }
     assert.doesNotMatch(html, /checked=""/);
+    const signup = html.match(/<form[^>]*action="([^"]*\/auth\/logout[^"]*)"[^>]*>/);
+    assert.ok(signup, "team signup submits the POST-only logout handler");
+    assert.match(signup[0], /method="post"/);
+    const url = new URL(signup[1], "https://adept.example.test");
+    assert.equal(url.pathname, "/auth/logout");
+    assert.equal(url.searchParams.get("next"), "/auth/signup?mode=organisation&role=team");
+    assert.doesNotMatch(html, /href="\/auth\/logout/);
   }
 });
 

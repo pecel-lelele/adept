@@ -7139,6 +7139,7 @@ export interface operations {
         parameters: {
             query?: {
                 scenario?: "moderate" | "fast";
+                snapshot_date?: string | null;
             };
             header?: never;
             path?: never;

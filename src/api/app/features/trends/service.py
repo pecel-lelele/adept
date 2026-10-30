@@ -199,8 +199,8 @@ def signals_from_snapshot(snap: TrendSnapshotResponse, scenario: ScenarioId) -> 
     return out
 
 
-def get_radar(scenario: ScenarioId) -> RadarResponse:
-    snap = get_snapshot(None, scenario)
+def get_radar(scenario: ScenarioId, snapshot_date: date | None = None) -> RadarResponse:
+    snap = get_snapshot(snapshot_date, scenario)
     return RadarResponse(items=signals_from_snapshot(snap, scenario), meta=_meta(snap, scenario))
 
 

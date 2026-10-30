@@ -85,6 +85,7 @@ test("logout refuses GET and cross-origin POST; successful revocation clears bot
   assert.deepEqual(calls, ["/api/v1/auth/logout", "/api/v1/auth/logout"]);
   for (const [next, expected] of [
     ["/auth/login?mode=organisation#form", "/auth/login?mode=organisation#form"],
+    ["/auth/signup?mode=organisation&role=team", "/auth/signup?mode=organisation&role=team"],
     ["https://attacker.example.test", "/"],
     ["//attacker.example.test", "/"],
     ["/.//attacker.example.test", "/"],

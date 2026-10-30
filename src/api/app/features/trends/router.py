@@ -48,8 +48,10 @@ def get_snapshot(
 
 
 @router.get("/radar")
-def get_radar(scenario: ScenarioId = "moderate") -> RadarResponse:
-    return service.get_radar(scenario)
+def get_radar(
+    scenario: ScenarioId = "moderate", snapshot_date: date | None = None
+) -> RadarResponse:
+    return service.get_radar(scenario, snapshot_date)
 
 
 @router.get("/roles/{role_id}")

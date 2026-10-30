@@ -5707,6 +5707,23 @@
               "default": "moderate",
               "title": "Scenario"
             }
+          },
+          {
+            "name": "snapshot_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Snapshot Date"
+            }
           }
         ],
         "responses": {

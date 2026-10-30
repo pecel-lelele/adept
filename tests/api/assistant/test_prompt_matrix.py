@@ -1,11 +1,13 @@
 """The user's reconstructed review matrix, preserved verbatim with traceable row IDs."""
 
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from types import SimpleNamespace
 
 import pytest
 
 from app.contracts.assistant import AssistantIn
+from app.contracts.common import ScenarioId
+from app.contracts.matching import MatchResponse
 from app.contracts.pathway import SavedPlan
 from app.core.auth import CurrentUser
 from app.core.llm.provider import NullProvider
@@ -244,6 +246,40 @@ def test_scenario_answer_uses_the_other_matcher_scores_at_the_same_snapshot(
     comparison = grounded_context.facts["scenario_comparison"]
     assert comparison["before"] == "moderate" and comparison["after"] == "fast"
     assert all(item["after"] == scores[item["role_id"]] for item in comparison["roles"])
+
+
+@pytest.mark.parametrize("wrong_date", [None, "moderate", "fast"])
+def test_scenario_comparison_pins_both_match_reads_despite_newer_trend_cache(
+    grounded_context: context.Context, monkeypatch: pytest.MonkeyPatch, wrong_date: str | None
+) -> None:
+    ctx = grounded_context
+    assert ctx.meta is not None and ctx.matches_meta is not None
+    matched_date = ctx.matches_meta.snapshot_date
+    ctx.meta = ctx.meta.model_copy(update={"snapshot_date": date(2026, 10, 30)})
+    originals = {
+        scenario: matching_service.list_matches(USER, scenario, matched_date)
+        for scenario in ("moderate", "fast")
+    }
+    calls: list[tuple[ScenarioId, date]] = []
+
+    def read(user: CurrentUser, scenario: ScenarioId, snapshot_date: date) -> MatchResponse:
+        calls.append((scenario, snapshot_date))
+        result = originals[scenario].model_copy(deep=True)
+        if scenario == wrong_date:
+            result.meta.snapshot_date = date(2026, 10, 30)
+        return result
+
+    monkeypatch.setattr(matching_service, "list_matches", read)
+    context.add_scenario_comparison(ctx, USER, "moderate")
+    assert calls == [("moderate", matched_date), ("fast", matched_date)]
+    if wrong_date:
+        assert "scenario_comparison" not in ctx.facts
+    else:
+        assert ctx.meta.snapshot_date == matched_date
+        rows = ctx.facts["scenario_comparison"]["roles"]
+        for scenario, key in (("moderate", "before"), ("fast", "after")):
+            scores = {match.role_id: match.score for match in originals[scenario].matches}
+            assert all(row[key] == scores[row["role_id"]] for row in rows)
 
 
 @pytest.mark.parametrize(

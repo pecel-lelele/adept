@@ -308,6 +308,16 @@
 - **Replaces**: none
 - **PR / branch**: `fix/core-review-upgrades-clean` / PR #29
 
+### TEAM-028: Correct signup, public role directions and recommendation provenance after PR review
+- **Date**: 2026-10-30
+- **Feature**: Core / F2 / F3 / F6 / F7 / F8
+- **Type**: UI, contract, method
+- **Change**: Submit JoinView's team-account switch through POST logout, preserving both signup query parameters. Read radar role directions through the public trend-signals endpoint with an additive optional snapshot date, pinned to the displayed skill snapshot, without loading personal intake or plans. Keep the original match metadata separately from Adi's trend metadata, re-read both scenarios at that match date, and reject mismatched responses. Aggregate SDG plan origins independently of fallback status: cached database plans remain database-sourced; any fixture input marks the aggregate fixture-sourced, and otherwise incomplete origin metadata remains unknown.
+- **Why**: The review found a GET caller left behind by POST-only logout, an inappropriate learner-profile dependency for managers, comparison dates that could diverge across strict/non-strict caches, and database fallback mislabeled as fixture data.
+- **Affects**: Team signup entry, learner/organisation radar, generated OpenAPI/TypeScript bindings, Adi scenario answers and SDG attribution. Existing radar callers remain compatible. Session-version production rollout remains deferred until after judging.
+- **Replaces**: none
+- **PR / branch**: `fix/core-review-upgrades-clean` / PR #29
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)

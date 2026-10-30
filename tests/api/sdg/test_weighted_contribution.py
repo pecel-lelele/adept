@@ -9,6 +9,29 @@ from app.contracts.sdg import SdgLink
 from app.features.sdg import repository, service
 
 
+@pytest.mark.parametrize(
+    ("origins", "fallbacks", "expected"),
+    [
+        (["db"], [True], "db"),
+        (["db", "db"], [False, True], "db"),
+        (["fixture", "db"], [True, False], "fixture"),
+        (["db", "fixture"], [False, True], "fixture"),
+        (["db", None], [False, False], None),
+    ],
+)
+def test_contribution_preserves_plan_origin_separately_from_fallback(
+    origins: list[str | None], fallbacks: list[bool], expected: str | None
+) -> None:
+    plans = {}
+    for index, (origin, fallback) in enumerate(zip(origins, fallbacks, strict=True)):
+        plan = _plan((0, 0))
+        plan.meta = plan.meta.model_copy(update={"served_from": origin, "is_fallback": fallback})
+        plans[str(index)] = plan
+    result = service.contribution_for_plans(plans, "organisation", "synthetic-org", "moderate")
+    assert result.meta.served_from == expected
+    assert result.meta.is_fallback == any(fallbacks)
+
+
 def _plan(hours: tuple[float, float]) -> Pathway:
     return Pathway(
         role_id="data-analyst",

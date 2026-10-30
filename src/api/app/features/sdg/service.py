@@ -229,13 +229,16 @@ def contribution_for_plans(
             meta.sources.append(src)
     if plans:
         fallback = any(plan.meta.is_fallback for plan in plans.values())
+        served_from = {plan.meta.served_from for plan in plans.values()}
         meta = meta.model_copy(
             update={
                 "snapshot_date": min(plan.meta.snapshot_date for plan in plans.values()),
                 "is_fallback": fallback,
                 "served_from": "fixture"
-                if fallback
-                else next(iter(plans.values())).meta.served_from,
+                if "fixture" in served_from
+                else "db"
+                if served_from == {"db"}
+                else None,
             }
         )
     role_ids = sorted({p.role_id for p in plans.values()})

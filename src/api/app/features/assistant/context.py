@@ -73,6 +73,7 @@ class Context:
     facts: dict[str, Any] = field(default_factory=dict)
     meta: RecommendationMeta | None = None
     plan_meta: RecommendationMeta | None = None
+    matches_meta: RecommendationMeta | None = None
 
     def text(self) -> str:
         return "\n".join(self.lines)
@@ -191,6 +192,7 @@ def _learner(ctx: Context, user: CurrentUser, scenario: ScenarioId) -> None:
 
         matches = _try("matches", lambda: matching_service.list_matches(user, scenario))
         if matches is not None and matches.matches:
+            ctx.matches_meta = matches.meta
             top = matches.matches[:5]
             ctx.facts["matches"] = [
                 {
@@ -286,15 +288,24 @@ def _learner(ctx: Context, user: CurrentUser, scenario: ScenarioId) -> None:
 
 def add_scenario_comparison(ctx: Context, user: CurrentUser | None, scenario: ScenarioId) -> None:
     """Compare the same person's profile on both stored scenarios at one snapshot date."""
-    if user is None or ctx.audience != "learner" or ctx.meta is None:
+    if user is None or ctx.audience != "learner" or ctx.matches_meta is None:
         return
     from app.features.matching import service as matching_service
 
     other: ScenarioId = "fast" if scenario == "moderate" else "moderate"
-    alternative = _try(
-        "other scenario", lambda: matching_service.list_matches(user, other, ctx.meta.snapshot_date)
+    snapshot_date = ctx.matches_meta.snapshot_date
+    original = _try(
+        "original scenario", lambda: matching_service.list_matches(user, scenario, snapshot_date)
     )
-    if alternative is None or alternative.meta.snapshot_date != ctx.meta.snapshot_date:
+    alternative = _try(
+        "other scenario", lambda: matching_service.list_matches(user, other, snapshot_date)
+    )
+    if (
+        original is None
+        or alternative is None
+        or original.meta.snapshot_date != snapshot_date
+        or alternative.meta.snapshot_date != snapshot_date
+    ):
         return
     after = {
         match.role_id: (rank, match.score)
@@ -302,16 +313,17 @@ def add_scenario_comparison(ctx: Context, user: CurrentUser | None, scenario: Sc
     }
     rows = [
         {
-            "role_id": match["role_id"],
-            "before": match["score"],
-            "after": after[match["role_id"]][1],
+            "role_id": match.role_id,
+            "before": match.score,
+            "after": after[match.role_id][1],
             "rank_before": rank,
-            "rank_after": after[match["role_id"]][0],
+            "rank_after": after[match.role_id][0],
         }
-        for rank, match in enumerate(ctx.facts.get("matches", []), start=1)
-        if match["role_id"] in after
+        for rank, match in enumerate(original.matches[:5], start=1)
+        if match.role_id in after
     ]
     if rows:
+        ctx.meta = original.meta
         ctx.facts["scenario_comparison"] = {"before": scenario, "after": other, "roles": rows}
 
 
