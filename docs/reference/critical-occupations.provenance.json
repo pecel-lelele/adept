@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "source_id": "talentcorp-mycol-2024-2025-table7",
+  "publisher": "TalentCorp",
+  "title": "MyMahir Malaysia Critical Occupations List 2024/2025",
+  "edition": "2024/2025",
+  "source_url": "https://www.talentcorp.com.my/images/uploads/publication/204/MyMahir-Malaysia-Critical-Occupations-List-MyCOL20242025-1773385490.pdf",
+  "publication_page": "https://www.talentcorp.com.my/resources/publications/mymahir-malaysia-critical-occupations-list-mycol20242025/",
+  "publication_date": null,
+  "publication_date_note": "Exact publication date was not established; neither the edition nor retrieval time is substituted for it.",
+  "retrieved_at_utc": "2026-10-29T17:49:55.796409+00:00",
+  "source_pdf_sha256": "bada182b399ee9944231102402f5f5ce3a23c8328d99abb22ead6e1f8ec20937",
+  "source_pdf_bytes": 21685713,
+  "source_pdf_page_count": 212,
+  "source_table": 7,
+  "source_printed_pages": [85, 86, 87],
+  "source_pdf_pages": [44, 45],
+  "record_count": 66,
+  "csv_sha256": "c75276e1c18580e4ca82e47ecf3ccf11645ca44aabf7b8e6f9cab194bf6d399e",
+  "verification": "Full official PDF downloaded; Table 7 visually inspected as rendered source spreads. Labels transcribed with wrapped lines joined by spaces.",
+  "integration_status": "reference_only_not_connected"
+}
