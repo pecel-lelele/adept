@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Explainable career matching and personalised reskilling"
 requires-python = ">=3.11"
 dependencies = [
-    "fastapi>=0.161.1",
+    "fastapi>=0.162.0",
     "httpx>=0.28.1",
     "psycopg-pool>=3.3.3",
     "psycopg[binary]>=3.3.6",
