@@ -96,6 +96,22 @@ def get_sources() -> SourcesResponse:
             by_source.setdefault(c.source.name, []).append(c.verified_at)
             urls.setdefault(c.source.name, c.source.url)
     out: list[DataSourceInfo] = []
+    from app.features.trends.labour import current
+
+    context = current()
+    src = context.meta.sources[0]
+    out.append(
+        DataSourceInfo(
+            name=src.name,
+            url=src.url,
+            retrieved_at=src.retrieved_at,
+            kind="curated" if context.meta.is_fallback else "live_api",
+            used_for=(
+                f"National survey context for {context.observed_month:%Y-%m}; not a role forecast"
+            ),
+            records=1,
+        )
+    )
     un = sdg_repository.un_source()
     out.append(
         DataSourceInfo(
