@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { Card, CardContent, ErrorState, PageHeader, SourceBadge } from "@/components";
 
 import { fetchDataFreshness } from "../api";
+import { TrendRefreshPanel } from "./TrendRefreshPanel";
 
 /** Admin pages for trend sources and snapshot versions (F2 Final). */
 export async function AdminDataView({ view }: { view: "sources" | "snapshots" }) {
@@ -23,6 +24,13 @@ export async function AdminDataView({ view }: { view: "sources" | "snapshots" })
           </CardContent>
         </Card>
       )}
+      {view === "snapshots" ? (
+        <Card className="mt-4">
+          <CardContent className="pt-4">
+            <TrendRefreshPanel />
+          </CardContent>
+        </Card>
+      ) : null}
     </section>
   );
 }

@@ -28,6 +28,7 @@ from app.core.config import get_settings
 from app.core.errors import NotFoundError
 from app.features.trends import mocks
 from app.features.trends.provenance import provenance_values
+from app.features.trends.velocity import served_velocity
 
 
 def _skill_labels() -> dict[str, str]:
@@ -114,6 +115,8 @@ class ResolvedContext:
     source: Literal["db", "fixture"]
     available_dates: list[date]
     conn: Any | None = None
+    # True when the fixture context exists because the database failed (not merely empty).
+    outage: bool = False
 
     def close(self) -> None:
         if self.conn is not None:
@@ -184,10 +187,11 @@ def resolve_context(strict: bool = False) -> ResolvedContext:
         status, timestamp = _db_status_cache
         if not status and now - timestamp < DB_FAILED_RETRY_TTL_S:
             return ResolvedContext(
-                source="fixture", available_dates=list(mocks.AVAILABLE_MOCK_DATES)
+                source="fixture", available_dates=list(mocks.AVAILABLE_MOCK_DATES), outage=True
             )
 
     conn = None
+    outage = False
     dates: list[date] = []
     try:
         conn = _get_connection()
@@ -201,13 +205,16 @@ def resolve_context(strict: bool = False) -> ResolvedContext:
         raise
     except Exception as exc:
         _db_status_cache = (False, now)
+        outage = True
         if strict:
             raise TrendsUnavailableError("Trend database unavailable") from exc
     finally:
         # Ownership transfers to ResolvedContext only on a successful dates read.
         if conn is not None and not dates:
             ResolvedContext("db", [], conn).close()
-    return ResolvedContext(source="fixture", available_dates=list(mocks.AVAILABLE_MOCK_DATES))
+    return ResolvedContext(
+        source="fixture", available_dates=list(mocks.AVAILABLE_MOCK_DATES), outage=outage
+    )
 
 
 def resolve_source(strict: bool = False) -> SourceType:
@@ -321,8 +328,8 @@ def _load_snapshot_db(
                     labor_decay=r["labor_decay"],
                     labor_decay_source_note=r["labor_decay_source_note"],
                     automation_exposure=r["automation_exposure"],
-                    velocity_moderate=r["velocity_moderate"],
-                    velocity_fast=r["velocity_fast"],
+                    velocity_moderate=served_velocity(r["velocity_moderate"]),
+                    velocity_fast=served_velocity(r["velocity_fast"]),
                     direction_moderate=r["direction_moderate"],
                     direction_fast=r["direction_fast"],
                 )

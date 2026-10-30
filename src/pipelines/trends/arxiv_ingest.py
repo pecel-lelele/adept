@@ -227,18 +227,19 @@ def count_mentions(
     Returns {skill_id: count}.
     """
     counts: dict[str, int] = {sid: 0 for sid in skill_ids}
+    if model is None:
+        return counts  # cannot embed
 
-    for paper in papers:
-        text = f"{paper['title']}. {paper['abstract']}"
-        sentences = _split_sentences(text)
+    # One encode call for every sentence of every paper: the remote encoder then runs a few
+    # 64-sentence jobs under one deadline instead of one job (and one cold start) per paper.
+    per_paper = [_split_sentences(f"{p['title']}. {p['abstract']}") for p in papers]
+    flat = [sentence for sentences in per_paper for sentence in sentences]
+    vectors = model.encode(flat, batch_size=64, show_progress_bar=False) if flat else []
+    offset = 0
+    for sentences in per_paper:
+        sent_vecs = vectors[offset : offset + len(sentences)]
+        offset += len(sentences)
         if not sentences:
-            continue
-
-        # Embed sentences
-        if model is not None:
-            sent_vecs = model.encode(sentences, batch_size=64, show_progress_bar=False)
-        else:
-            # Cannot embed; skip
             continue
 
         # Check each skill

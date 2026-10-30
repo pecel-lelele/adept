@@ -25,6 +25,26 @@ os.environ["LLM_FALLBACK_API_KEY"] = ""
 os.environ["RUNPOD_API_KEY"] = ""
 os.environ["GEMINI_API_KEY"] = ""
 os.environ["APP_ENV"] = "development"
+# Never embed text with a real provider or call the MiniLM RunPod encoder from the suite.
+os.environ["EMBEDDINGS_PROVIDER"] = "none"
+os.environ["TRENDS_EMBEDDING_BACKEND"] = "runpod"
+os.environ["TRENDS_RUNPOD_API_KEY"] = ""
+os.environ["TRENDS_RUNPOD_ENDPOINT_ID"] = ""
+# Sync endpoints stay off unless a test enables them; proxy trust uses the documented defaults.
+os.environ["SYNC_TOKEN"] = ""
+os.environ["PROXY_SHARED_SECRET"] = ""
+os.environ["TRUSTED_PROXY_HOPS"] = "0"
+os.environ["PROXY_CLIENT_IP_MODE"] = "best-effort"
+os.environ["WEB_ORIGIN"] = ""
+os.environ["ADMIN_USER_IDS"] = ""
+os.environ["ADMIN_EMAILS"] = ""
+os.environ["GITHUB_DISPATCH_TOKEN"] = ""
+os.environ["GITHUB_REPOSITORY"] = ""
+# Keyed job boards are skipped without keys, so the jobs pipeline tests never reach them.
+os.environ["CAREERJET_API_KEY"] = ""
+os.environ["CAREERJET_LOCALE"] = "en_MY"
+os.environ["JOOBLE_API_KEY"] = ""
+os.environ["WEB3_CAREER_TOKEN"] = ""
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # tests/harness
 
 import pytest  # noqa: E402

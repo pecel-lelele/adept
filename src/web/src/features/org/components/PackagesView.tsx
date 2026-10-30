@@ -25,10 +25,16 @@ export async function PackagesView({ scenario, roleId, memberIds }: {
   const names = Object.fromEntries(people.map(m => [m.id, m.display_name]));
   const selected = memberIds ?? people.map(m => m.id);
   const chosenRole = roleId ?? (result.ok ? result.data.packages[0]?.role_id : undefined);
+  const fundingQuery = new URLSearchParams({ scenario });
+  if (chosenRole) fundingQuery.set("role", chosenRole);
+  if (memberIds) {
+    fundingQuery.set("cohort", "selected");
+    memberIds.forEach(id => fundingQuery.append("member", id));
+  }
   return <div className="a-view">
     <PageHeader title={t("title")} description={t("description")} />
     <p className="a-notice">{t("policy")}</p>
-    <Link className="a-link" href="/org/funding">{t("budgets")}</Link>
+    <Link className="a-link" href={`/org/funding?${fundingQuery}`}>{t("budgets")}</Link>
     <Form action="/org/plan" className="a-card">
       <input type="hidden" name="scenario" value={scenario} />
       <label className="a-field">{t("role")}<select className="a-select" name="role" defaultValue={roleId ?? (result.ok ? result.data.packages[0]?.role_id : "")}>

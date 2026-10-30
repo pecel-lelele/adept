@@ -50,7 +50,7 @@ export async function SharingView({ org }: { org: WorkspaceOption }) {
             </ul>
           ) : (
             <p className="a-muted a-small">
-              {t("noSkills")} <Link href="/app/onboarding">{t("addSkills")}</Link>
+              {t("noSkills")} <Link href="/app/onboarding?returnTo=%2Fwork%2Fskills">{t("addSkills")}</Link>
             </p>
           )}
         </section>

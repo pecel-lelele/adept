@@ -26,3 +26,38 @@ export function proxyConfig(env: NodeJS.ProcessEnv = process.env): {
   const mode = env.APP_ENV === "production" ? clientIpMode : "trusted";
   return { secret, trustedHops, clientIpMode: mode, logXffCount: logXffCount === "true" };
 }
+
+/**
+ * The app's public origin for same-origin checks and redirects.
+ *
+ * WEB_ORIGIN wins whenever it is set (production requires it). Without it, only a local
+ * development server falls back to the request's own Host; forwarded host headers are never
+ * trusted, because a caller can set them. Returns undefined in production without WEB_ORIGIN.
+ */
+export function publicOrigin(request: Request, env: NodeJS.ProcessEnv = process.env): string | undefined {
+  const configured = env.WEB_ORIGIN?.trim();
+  if (configured) return configured;
+  if (env.APP_ENV === "production" || env.NODE_ENV === "production") return undefined;
+  const url = new URL(request.url);
+  return `${url.protocol}//${request.headers.get("host") ?? url.host}`;
+}
+
+/**
+ * True when a state-changing request comes from the app's own pages.
+ *
+ * Uses Fetch Metadata (`Sec-Fetch-Site`) when the browser sends it, otherwise an exact
+ * `Origin` match, otherwise the `Referer` origin. Absent evidence fails closed.
+ */
+export function isSameOriginRequest(request: Request, origin: string): boolean {
+  const site = request.headers.get("sec-fetch-site");
+  if (site) return site === "same-origin" || site === "none";
+  const sent = request.headers.get("origin");
+  if (sent) return sent === origin;
+  const referer = request.headers.get("referer");
+  if (!referer) return false;
+  try {
+    return new URL(referer).origin === origin;
+  } catch {
+    return false;
+  }
+}

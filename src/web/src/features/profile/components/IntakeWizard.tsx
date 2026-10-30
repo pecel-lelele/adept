@@ -2,6 +2,7 @@
 
 import { Briefcase, FileUp, GraduationCap, Repeat, Search, X } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useSearchParams } from "next/navigation";
 import { useMemo, useRef, useState, useTransition } from "react";
 
 import { errorMessage } from "@/lib/api/error-message";
@@ -36,6 +37,7 @@ export function IntakeWizard({
   initial: Schemas["Profile"] | null;
 }) {
   const t = useTranslations("ui.intake");
+  const returnTo = useSearchParams().get("returnTo");
   const te = useTranslations("ui.apiErrors");
   const cvText = useTranslations("ui.cvReview");
   const [step, setStep] = useState(1);
@@ -142,7 +144,7 @@ export function IntakeWizard({
         hrd_eligible: hrd,
         learning_style: style,
         skills: skills.map(({ skill_id, level }) => ({ skill_id, level })),
-      });
+      }, returnTo ?? undefined);
       if (result?.error) setError(errorMessage(te, result.error));
       else {
         try {

@@ -2,12 +2,28 @@
 
 from fastapi import APIRouter
 
-from app.contracts.common import DataFreshness, HealthResponse, PlatformOverview, TrendSource
+from app.contracts.common import (
+    DataFreshness,
+    HealthResponse,
+    PlatformOverview,
+    TrendSource,
+    VersionInfo,
+)
 from app.core import overview
 from app.core.config import get_settings
 from app.core.db import database_status
 
 router = APIRouter(tags=["core"])
+
+
+@router.get("/meta/version")
+def version() -> VersionInfo:
+    from app.core.buildinfo import dirty, revision
+
+    settings = get_settings()
+    return VersionInfo(
+        version=settings.version, revision=revision(), dirty=dirty(), environment=settings.app_env
+    )
 
 
 @router.get("/health")

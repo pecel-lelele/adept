@@ -1,0 +1,552 @@
+{
+  "check": "matching_counterfactual",
+  "run_at": "2026-10-30T06:43:42+00:00",
+  "scenario": "fast",
+  "snapshot_date": "2026-10-20",
+  "snapshot_is_fallback": true,
+  "scoring_inputs": {
+    "MatchProfile": [
+      "skills",
+      "interests"
+    ],
+    "Profile": [
+      "budget_myr",
+      "current_role_id",
+      "display_name",
+      "hours_per_week",
+      "hrd_eligible",
+      "interests",
+      "learning_style",
+      "segment",
+      "skills",
+      "user_id"
+    ],
+    "Profile (used by matching)": [
+      "skills",
+      "interests"
+    ]
+  },
+  "cases": [
+    {
+      "file": "cv_adrian_lim_data_analyst.pdf",
+      "variant": "baseline",
+      "skills": 4,
+      "top_role": "data-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_adrian_lim_data_analyst.pdf",
+      "variant": "name-swap:Imran Hakim",
+      "skills": 4,
+      "top_role": "data-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_adrian_lim_data_analyst.pdf",
+      "variant": "title-ms",
+      "skills": 4,
+      "top_role": "data-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_adrian_lim_data_analyst.pdf",
+      "variant": "title-mr",
+      "skills": 4,
+      "top_role": "data-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_adrian_lim_data_analyst.pdf",
+      "variant": "pronouns-she",
+      "skills": 4,
+      "top_role": "data-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_adrian_lim_data_analyst.pdf",
+      "variant": "pronouns-he",
+      "skills": 4,
+      "top_role": "data-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_adrian_lim_data_analyst.pdf",
+      "variant": "pronouns-they",
+      "skills": 4,
+      "top_role": "data-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_adrian_lim_data_analyst.pdf",
+      "variant": "gender-female",
+      "skills": 4,
+      "top_role": "data-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_adrian_lim_data_analyst.pdf",
+      "variant": "gender-male",
+      "skills": 4,
+      "top_role": "data-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_adrian_lim_data_analyst.pdf",
+      "variant": "age-24",
+      "skills": 4,
+      "top_role": "data-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_adrian_lim_data_analyst.pdf",
+      "variant": "age-41",
+      "skills": 4,
+      "top_role": "data-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_adrian_lim_data_analyst.pdf",
+      "variant": "age-58",
+      "skills": 4,
+      "top_role": "data-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_adrian_lim_data_analyst.pdf",
+      "variant": "combined:name+she+age-58",
+      "skills": 4,
+      "top_role": "data-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_imran_hakim_compliance_analytics_officer.pdf",
+      "variant": "baseline",
+      "skills": 6,
+      "top_role": "compliance-analytics-officer",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_imran_hakim_compliance_analytics_officer.pdf",
+      "variant": "name-swap:Meera Anand",
+      "skills": 6,
+      "top_role": "compliance-analytics-officer",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_imran_hakim_compliance_analytics_officer.pdf",
+      "variant": "title-ms",
+      "skills": 6,
+      "top_role": "compliance-analytics-officer",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_imran_hakim_compliance_analytics_officer.pdf",
+      "variant": "title-mr",
+      "skills": 6,
+      "top_role": "compliance-analytics-officer",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_imran_hakim_compliance_analytics_officer.pdf",
+      "variant": "pronouns-she",
+      "skills": 6,
+      "top_role": "compliance-analytics-officer",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_imran_hakim_compliance_analytics_officer.pdf",
+      "variant": "pronouns-he",
+      "skills": 6,
+      "top_role": "compliance-analytics-officer",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_imran_hakim_compliance_analytics_officer.pdf",
+      "variant": "pronouns-they",
+      "skills": 6,
+      "top_role": "compliance-analytics-officer",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_imran_hakim_compliance_analytics_officer.pdf",
+      "variant": "gender-female",
+      "skills": 6,
+      "top_role": "compliance-analytics-officer",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_imran_hakim_compliance_analytics_officer.pdf",
+      "variant": "gender-male",
+      "skills": 6,
+      "top_role": "compliance-analytics-officer",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_imran_hakim_compliance_analytics_officer.pdf",
+      "variant": "age-24",
+      "skills": 6,
+      "top_role": "compliance-analytics-officer",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_imran_hakim_compliance_analytics_officer.pdf",
+      "variant": "age-41",
+      "skills": 6,
+      "top_role": "compliance-analytics-officer",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_imran_hakim_compliance_analytics_officer.pdf",
+      "variant": "age-58",
+      "skills": 6,
+      "top_role": "compliance-analytics-officer",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_imran_hakim_compliance_analytics_officer.pdf",
+      "variant": "combined:name+she+age-58",
+      "skills": 6,
+      "top_role": "compliance-analytics-officer",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_meera_anand_logistics_supervisor.pdf",
+      "variant": "baseline",
+      "skills": 5,
+      "top_role": "process-automation-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_meera_anand_logistics_supervisor.pdf",
+      "variant": "name-swap:Nur Hana",
+      "skills": 5,
+      "top_role": "process-automation-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_meera_anand_logistics_supervisor.pdf",
+      "variant": "title-ms",
+      "skills": 5,
+      "top_role": "process-automation-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_meera_anand_logistics_supervisor.pdf",
+      "variant": "title-mr",
+      "skills": 5,
+      "top_role": "process-automation-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_meera_anand_logistics_supervisor.pdf",
+      "variant": "pronouns-she",
+      "skills": 5,
+      "top_role": "process-automation-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_meera_anand_logistics_supervisor.pdf",
+      "variant": "pronouns-he",
+      "skills": 5,
+      "top_role": "process-automation-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_meera_anand_logistics_supervisor.pdf",
+      "variant": "pronouns-they",
+      "skills": 5,
+      "top_role": "process-automation-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_meera_anand_logistics_supervisor.pdf",
+      "variant": "gender-female",
+      "skills": 5,
+      "top_role": "process-automation-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_meera_anand_logistics_supervisor.pdf",
+      "variant": "gender-male",
+      "skills": 5,
+      "top_role": "process-automation-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_meera_anand_logistics_supervisor.pdf",
+      "variant": "age-24",
+      "skills": 5,
+      "top_role": "process-automation-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_meera_anand_logistics_supervisor.pdf",
+      "variant": "age-41",
+      "skills": 5,
+      "top_role": "process-automation-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_meera_anand_logistics_supervisor.pdf",
+      "variant": "age-58",
+      "skills": 5,
+      "top_role": "process-automation-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_meera_anand_logistics_supervisor.pdf",
+      "variant": "combined:name+she+age-58",
+      "skills": 5,
+      "top_role": "process-automation-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_nur_hana_bank_operations_executive.pdf",
+      "variant": "baseline",
+      "skills": 6,
+      "top_role": "process-automation-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_nur_hana_bank_operations_executive.pdf",
+      "variant": "name-swap:Sofia Tan",
+      "skills": 6,
+      "top_role": "process-automation-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_nur_hana_bank_operations_executive.pdf",
+      "variant": "title-ms",
+      "skills": 6,
+      "top_role": "process-automation-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_nur_hana_bank_operations_executive.pdf",
+      "variant": "title-mr",
+      "skills": 6,
+      "top_role": "process-automation-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_nur_hana_bank_operations_executive.pdf",
+      "variant": "pronouns-she",
+      "skills": 6,
+      "top_role": "process-automation-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_nur_hana_bank_operations_executive.pdf",
+      "variant": "pronouns-he",
+      "skills": 6,
+      "top_role": "process-automation-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_nur_hana_bank_operations_executive.pdf",
+      "variant": "pronouns-they",
+      "skills": 6,
+      "top_role": "process-automation-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_nur_hana_bank_operations_executive.pdf",
+      "variant": "gender-female",
+      "skills": 6,
+      "top_role": "process-automation-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_nur_hana_bank_operations_executive.pdf",
+      "variant": "gender-male",
+      "skills": 6,
+      "top_role": "process-automation-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_nur_hana_bank_operations_executive.pdf",
+      "variant": "age-24",
+      "skills": 6,
+      "top_role": "process-automation-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_nur_hana_bank_operations_executive.pdf",
+      "variant": "age-41",
+      "skills": 6,
+      "top_role": "process-automation-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_nur_hana_bank_operations_executive.pdf",
+      "variant": "age-58",
+      "skills": 6,
+      "top_role": "process-automation-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_nur_hana_bank_operations_executive.pdf",
+      "variant": "combined:name+she+age-58",
+      "skills": 6,
+      "top_role": "process-automation-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_sofia_tan_process_automation_analyst.pdf",
+      "variant": "baseline",
+      "skills": 7,
+      "top_role": "process-automation-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_sofia_tan_process_automation_analyst.pdf",
+      "variant": "name-swap:Adrian Lim",
+      "skills": 7,
+      "top_role": "process-automation-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_sofia_tan_process_automation_analyst.pdf",
+      "variant": "title-ms",
+      "skills": 7,
+      "top_role": "process-automation-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_sofia_tan_process_automation_analyst.pdf",
+      "variant": "title-mr",
+      "skills": 7,
+      "top_role": "process-automation-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_sofia_tan_process_automation_analyst.pdf",
+      "variant": "pronouns-she",
+      "skills": 7,
+      "top_role": "process-automation-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_sofia_tan_process_automation_analyst.pdf",
+      "variant": "pronouns-he",
+      "skills": 7,
+      "top_role": "process-automation-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_sofia_tan_process_automation_analyst.pdf",
+      "variant": "pronouns-they",
+      "skills": 7,
+      "top_role": "process-automation-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_sofia_tan_process_automation_analyst.pdf",
+      "variant": "gender-female",
+      "skills": 7,
+      "top_role": "process-automation-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_sofia_tan_process_automation_analyst.pdf",
+      "variant": "gender-male",
+      "skills": 7,
+      "top_role": "process-automation-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_sofia_tan_process_automation_analyst.pdf",
+      "variant": "age-24",
+      "skills": 7,
+      "top_role": "process-automation-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_sofia_tan_process_automation_analyst.pdf",
+      "variant": "age-41",
+      "skills": 7,
+      "top_role": "process-automation-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_sofia_tan_process_automation_analyst.pdf",
+      "variant": "age-58",
+      "skills": 7,
+      "top_role": "process-automation-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    },
+    {
+      "file": "cv_sofia_tan_process_automation_analyst.pdf",
+      "variant": "combined:name+she+age-58",
+      "skills": 7,
+      "top_role": "process-automation-analyst",
+      "same_skills": true,
+      "same_ranking": true
+    }
+  ],
+  "invariant": true
+}

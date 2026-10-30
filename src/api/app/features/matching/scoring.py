@@ -17,6 +17,7 @@ NOTE for the service bridge and evaluation harness:
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 
 NEUTRAL = 0.5  # used when there is no data, and reported through `trend_coverage`
@@ -64,21 +65,55 @@ class _RoleScore:
     trend_coverage: float = 1.0  # share of role skill weight that had trend data
 
 
+# Same bound the trend pipeline applies to both scenario velocities (pipelines/trends/score.py).
+VELOCITY_CLAMP = 2.0
+
+
+TREND_GAIN = 2.0  # tanh gain on the log-compressed velocity; keeps the ends below 0.99
+
+
+def _clamped(value: float) -> float:
+    return max(-VELOCITY_CLAMP, min(VELOCITY_CLAMP, value))
+
+
 def trend_scores(
     velocities: dict[str, float], reference_velocities: dict[str, float] | None = None
 ) -> dict[str, float]:
-    """Min-max over both scenarios' raw velocities, using one shared reference range.
+    """Robust 0..1 trend position on one scale shared by both scenarios.
 
-    A snapshot already contains both scenarios; its adapter supplies the other one.
-    Pure offline callers may supply one set only. A constant range is neutral.
+    position(v) = 0.5 + 0.5 * tanh(G * asinh(c / s) / asinh(2 / s)), c = clamp(v, ±2), G = 2,
+    s = median |v| over the union of both scenarios' clamped velocities. Zero velocity is
+    neutral (0.5), rising skills sit above it, declining below, and the map is monotone so
+    Fast >= Moderate wherever v_fast >= v_mod.
+
+    Plain tanh(c / s) saturated: most skills barely move, so the median is tiny and 11-16
+    skills reached >= 0.99, while a p90 scale flattened the bulk to ~0.5. asinh compresses
+    large |v| logarithmically, so the bulk still separates (IQR ~0.2) and the strongest skills
+    stay below 0.99 and distinguishable instead of collapsing to 1.0.
+
+    A snapshot already contains both scenarios; its adapter supplies the other one, so the
+    scale is the same for Moderate and Fast and Fast >= Moderate wherever v_fast >= v_mod.
+    Pure offline callers may supply one set only. All-zero velocities are neutral.
     """
-    values = [*velocities.values(), *(reference_velocities or {}).values()]
+    values = [_clamped(v) for v in (*velocities.values(), *(reference_velocities or {}).values())]
     if not values:
         return {}
-    low, high = min(values), max(values)
-    if high == low:
+    magnitudes = sorted(abs(v) for v in values)
+    middle = len(magnitudes) // 2
+    scale = (
+        magnitudes[middle]
+        if len(magnitudes) % 2
+        else (magnitudes[middle - 1] + magnitudes[middle]) / 2
+    )
+    if scale <= 0:
+        scale = magnitudes[-1]
+    if scale <= 0:
         return {skill: NEUTRAL for skill in velocities}
-    return {skill: (value - low) / (high - low) for skill, value in velocities.items()}
+    full = math.asinh(VELOCITY_CLAMP / scale)
+    return {
+        skill: 0.5 + 0.5 * math.tanh(TREND_GAIN * math.asinh(_clamped(value) / scale) / full)
+        for skill, value in velocities.items()
+    }
 
 
 def gap_state(user_level: float | int, required_level: int = 1) -> str:

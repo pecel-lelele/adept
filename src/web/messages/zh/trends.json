@@ -21,5 +21,39 @@
   "augmentation": "增强",
   "sourcesTitle": "趋势数据来源",
   "snapshotsTitle": "快照",
-  "snapshotDate": "最新快照：{date}"
+  "snapshotDate": "最新快照：{date}",
+  "trendCoverage": "{percent}% 的技能有趋势数据",
+  "insufficientEvidenceRoles": "趋势证据不足",
+  "insufficientEvidenceHelp": "这些职位不到一半的技能权重有趋势数据，因此不显示方向。",
+  "insufficientEvidence": "证据不足",
+  "refresh": {
+    "title": "刷新趋势数据",
+    "help": "通过已配置的 RunPod 模型读取 arXiv 并发布带日期的快照；推理可能产生费用。重新评分仅使用已存储的信号。刷新失败时保留上次快照。",
+    "fetch": "立即刷新趋势数据",
+    "rescore": "重新评分已存储的信号",
+    "working": "处理中…",
+    "queued": "运行已在 GitHub Actions 排队…",
+    "inProgress": "工作流正在运行。请在 GitHub 查看当前步骤。",
+    "succeeded": "运行已成功完成。",
+    "failed": "运行结束但未发布（{conclusion}）。",
+    "alreadyRunning": "已有刷新正在运行；显示该运行。",
+    "viewRun": "在 GitHub 上查看运行",
+    "newSnapshot": "应用现在使用快照 {date}。",
+    "openMatches": "查看更新后的趋势",
+    "lastGoodStays": "上一次发布的快照保持不变。",
+    "rescore_published": "已根据已存储的信号发布快照 {date}。",
+    "rescore_no_new_data": "没有新数据：快照 {date} 已涵盖已存储的信号。未发布任何内容。",
+    "rescore_failed": "重新评分失败；未发布任何内容。快照 {date} 保持不变。",
+    "notConfigured": "服务器未配置从此页面获取数据。请在代码仓库的 GitHub Actions 页面手动运行 “Trends refresh” 工作流（Run workflow）。",
+    "forbidden": "只有 ADMIN_USER_IDS 中列出的管理员可以刷新趋势数据。",
+    "pollTimeout": "35 分钟后已停止检查。请在 GitHub 上查看运行。",
+    "error": "刷新请求失败（{code}）。当前快照保持不变。"
+  },
+  "nationalContext": {
+    "title": "马来西亚劳动力背景 · {month}",
+    "description": "已发布的全国调查比率提供背景信息。职业评分使用各自列出的证据；这些全国数据不是职位空缺预测。",
+    "unemployment": "失业率",
+    "participation": "劳动力参与率",
+    "employmentRatio": "就业人口比率"
+  }
 }

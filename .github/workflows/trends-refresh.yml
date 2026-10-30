@@ -63,6 +63,8 @@ jobs:
 
       - name: Ingest, score, validate and publish
         if: env.DATABASE_URL != '' && env.TRENDS_RUNPOD_ENDPOINT_ID != '' && env.TRENDS_RUNPOD_API_KEY != ''
+        env:
+          TRENDS_RUNPOD_TIMEOUT_SECONDS: "900"
         run: |
           set -euo pipefail
           PYTHONPATH=src/api:src .venv/bin/python -m pipelines.trends.run | tee "$RUNNER_TEMP/trends-refresh.log"

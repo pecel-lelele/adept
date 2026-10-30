@@ -23,6 +23,7 @@ from app.contracts.trends import (
     TrendSnapshotResponse,
 )
 from app.features.trends.provenance import provenance_values
+from app.features.trends.velocity import served_velocity
 
 _REPO_ROOT = Path(__file__).resolve().parents[5]
 _SEED_DIR = _REPO_ROOT / "src" / "data" / "seed"
@@ -87,8 +88,8 @@ def _parse_items(raw_items: list[dict], scenario: str) -> list[SkillVelocity]:
                 labor_decay=item["labor_decay"],
                 labor_decay_source_note=item["labor_decay_source_note"],
                 automation_exposure=item["automation_exposure"],
-                velocity_moderate=item["velocity_moderate"],
-                velocity_fast=item["velocity_fast"],
+                velocity_moderate=served_velocity(item["velocity_moderate"]),
+                velocity_fast=served_velocity(item["velocity_fast"]),
                 direction_moderate=item["direction_moderate"],  # type: ignore[arg-type]
                 direction_fast=item["direction_fast"],  # type: ignore[arg-type]
             )

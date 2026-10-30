@@ -352,6 +352,111 @@
 - **Replaces**: ScenarioToggle's transition-only navigation; TEAM-027's React ownership fix remains in place.
 - **PR / branch**: `fix/core-proxy-scenario-loading`
 
+### TEAM-032: Integrate reviewed trend scoring and on-demand refresh
+- **Date**: 2026-10-30
+- **Feature**: F2, F3, F4, F5 and Core
+- **Type**: method
+- **Change**: Integrate the interrupted trend worktree: robust shared velocity scaling, bounded scenario weights, evidence coverage, truthful frozen-source dates, bounded database reads and asynchronous RunPod job polling/cancellation. Dashboard admins can dispatch the existing published MiniLM workflow or re-score stored signals; provider and GitHub credentials stay server-side.
+- **Why**: Scenario comparisons need a shared reference distribution; an untracked skill is not evidence of decline. Refresh should be reachable from the app without an unbounded inference request.
+- **Pipeline**: arXiv → cleaned abstracts → catalogue skill embeddings → published MiniLM and shared robust scoring → production-function regression/counterfactual tests → dated PostgreSQL snapshots with explicit fixture fallback.
+- **Affects**: matching, preview, pathway, trend contracts, dashboards and workflow setup
+- **Replaces**: scenario scaling/fallback implementation portions of TEAM-010 and TEAM-020
+- **PR / branch**: fix/core-review-regressions
+
+### TEAM-033: Stable admin identities and scoped learning records
+- **Date**: 2026-10-30
+- **Feature**: Core and F7
+- **Type**: schema
+- **Change**: Replace unverified email admin matching with ADMIN_USER_IDS in API and web gates. Add membership lookup index, generated organisation keys and NOT VALID learning foreign keys, and force transaction-scoped funding RLS. Member removal cleans private ledger references atomically while retaining anonymised historical events.
+- **Why**: Email text is not identity proof. New writes must resolve to real roles/workspaces without deleting legacy records; old orphan rows require a separate audit before constraint validation. Production roles must not have superuser/BYPASSRLS privileges.
+- **Affects**: admin deployment configuration, funding, membership removal and migration rollout
+- **Replaces**: email-based admin authorization in M4-027
+- **PR / branch**: fix/core-review-regressions
+
+### TEAM-034: Observation dates, regional privacy and explicit workspace navigation
+- **Date**: 2026-10-30
+- **Feature**: F1, F5, F6, F7 and Core
+- **Type**: contract
+- **Change**: Batch heatmap profile reads and date their actual stored inputs; keep raw skill gaps scenario-invariant observations. Regional SDG outputs require five distinct people and suppress rare target/goal cells. Workspace selection is an exact-origin POST verified against current memberships; login, join, role, cohort and scenario context survive navigation.
+- **Why**: Trend metadata cannot make observations fresh. Counting memberships twice or returning rare cells leaks small cohorts. GET links must not change workspace state.
+- **Affects**: SdgContribution status fields, heatmaps, auth/workspace routes, Adi links and pathway navigation
+- **Replaces**: none
+- **PR / branch**: fix/core-review-regressions
+
+### TEAM-035: Dated Malaysian context and verified current occupations
+- **Date**: 2026-10-30
+- **Feature**: F2, F5 and Core
+- **Type**: data source
+- **Change**: Add the DOSM monthly Labour Force Survey as separately labelled national observations, never blended into occupational forecasts. Add three verified O*NET current occupations with source codes; do not advertise them as emerging target roles. Scheduled catalogue and jobs sync require explicit database secrets.
+- **Why**: Local context and non-technical intake coverage are useful only with traceable evidence. Malay course records remain pending verified delivery-language and provider metadata.
+- **Pipeline**: DOSM public CSV → bounded date/rate validation → latest complete monthly rates → no predictive model → parsing/provenance tests → stored API response and dated fixture, with collapsed dashboard disclosure.
+- **Affects**: source register, role catalogue, new public-context table/API, dashboard and data-source workflow
+- **Replaces**: none
+- **PR / branch**: fix/core-review-regressions
+
+### TEAM-036: Final-round operations, infrastructure and browser verification
+- **Date**: 2026-10-30
+- **Feature**: all
+- **Type**: dependency
+- **Change**: Integrate the infra draft's production configuration, container, rate-limit, source-attribution and fairness checks; remove pathway daemon-thread timeouts in favour of the bounded F2 operation. Pin Playwright 1.64.1 and run real desktop/mobile synthetic journeys against isolated services; run CI for every PR target, including stacked branches. Publish revision/dirty build identity and loopback-only synthetic account preparation. Align unsigned submission sources with the supplied finalist templates and six official rubric categories.
+- **Why**: Local passing checks do not establish production state or measured human impact. Reproducible builds, independent browser checks and explicit outstanding evidence make those limits reviewable.
+- **Affects**: CI, Docker, Python task runner, development dependency lock, demo tooling and submission documentation
+- **Replaces**: abandoned timeout-worker implementation in refactor/pathway-trend-and-match-ports
+- **PR / branch**: fix/core-review-regressions
+
+### TEAM-037: Record the frontend and Adi worktree handover
+- **Date**: 2026-10-30
+- **Feature**: F1, F4, F7, F8 and Core
+- **Type**: UI
+- **Change**: Record the already integrated frontend/Adi commits: optional skill sharing independent of membership, operational student-project privacy notice, session-aware team CTAs, radar-first intake, populated role comparison and weighted score bars, Steady/Rapid display labels, phrase-level Adi routing and grounded multilingual replies. Scenario IDs remain moderate/fast; Adi uses validated answer blocks.
+- **Why**: Claude left proposed decision notes outside the append-only log. These changes affect consent and user interpretation and need an authoritative record.
+- **Affects**: signup/join, privacy, matching, landing and Adi; original commits d51c0d7, f724298, d287224 and e0be794
+- **Replaces**: mandatory sharing condition on joining; preserves explicit programme acceptance requirements
+- **PR / branch**: fix/core-review-regressions
+
+### TEAM-038: Keep refresh workflow configuration distinct from CI metadata
+- **Date**: 2026-10-30
+- **Feature**: F2 and Core
+- **Type**: contract
+- **Change**: Rename the app-only workflow setting to TRENDS_REFRESH_WORKFLOW. Regenerate source branch contracts and add a regression with the real GitHub runner variable present.
+- **Why**: GITHUB_WORKFLOW is reserved runner metadata and caused refresh configuration tests to reject CI as a filename; validation remains strict.
+- **Affects**: app environment configuration and review-branch CI
+- **Replaces**: workflow environment setting in TEAM-032
+- **PR / branch**: fix/core-review-regressions
+
+### TEAM-039: Ground historical MyCOL badges and separate measured API timings from human KPIs
+- **Date**: 2026-10-30
+- **Feature**: F1 / F4 / F8 / Core submission evidence
+- **Type**: contract | method | UI | other
+- **Change**: Add an optional historical MyCOL badge to RoleMatch, with its own RecommendationMeta, edition and page locator. Resolve only an explicit stored role-ID crosswalk; the sole reviewed mapping is data-analyst to MASCO 2524, whose restricted title list explicitly includes Data Analyst. Display the sourced badge on matching list/detail cards in all three locales without changing scoring. Align the About register, README and re-exported technical declaration on RunPod MiniLM, RunPod GLM with Gemini failover, Replit and Google Fonts/Fontsource assets; retain ElevenLabs after the user's actual-use confirmation.
+- **Why**: The reference CSV was disconnected, broad MASCO groups are insufficient evidence for arbitrary title matches, and the declaration export lagged its source. Existing CSS uses system fonts, so installed Inter assets are disclosed without inventing live Google Fonts requests. The user confirmed no human trials exist; preserve the unrun human template and null reduction while recording separate automated synthetic journeys, including failed attempts.
+- **Pipeline**: official MyCOL PDF and five synthetic demo CVs -> visually verify the restricted title list and use existing intake/parser rules -> stored role IDs and reviewed synthetic skill fixtures -> metadata-only badge and production API journeys with signed synthetic sessions -> exact-ID/negative/ranking-invariance/source regressions and recorded step timings -> matching cards and dated submission evidence, with no human speed-up claim
+- **Affects**: additive matching/guardrails contracts and generated clients, matching UI/translations, reference crosswalk, API image reference-file packaging, declaration export and KPI evidence; no ranking formula, migration, runtime provider enablement or deployment change
+- **Validation**: Final full quality gate passed: 1,435 Python tests passed, 34 skipped, 54 subtests passed, and 78 frontend regressions passed. The production frontend build passed. Both fairness reports contain 65 invariant synthetic-CV cases; all 15 final signed-session API journeys completed. The eight-page declaration was exported and visually reviewed; Docker runtime and production deployment remain unverified.
+- **Limits**: Review the published CV-text fairness rewrite from cb8bbf0 using both scenarios, meaningful negative controls and real stored-profile boundary regressions. Passing these finite synthetic cases does not establish universal fairness. Human KPI trials remain 0 testers/0 trials.
+- **Replaces**: none; extends TEAM-015 disclosure and the historical MyCOL reference deliverable
+- **PR / branch**: `fix/core-final-round-integration`, based on fetched `fix/core-review-regressions`
+
+### TEAM-040: Pre-demo review fixes on the integration branch
+- **Date**: 2026-10-30
+- **Feature**: all
+- **Type**: other
+- **Change**: Workspace switching redirects to `/app?workspace_error=1` (or sign-in on 401) instead of returning blank pages, auto-activation submits once per target, signup with a join code goes to onboarding, signup returns to 20/min, the profile shows "unavailable" instead of "Join an organisation" when the workspace lookup fails, and the SDG suppression message no longer assumes a threshold. Scheduled `data-sources.yml` runs only fetch and validate; database writes need `workflow_dispatch`. Playwright e2e has its own 25-minute CI job. Judge-facing declaration wording is neutral and the PDF is re-exported; internal handover notes moved to `docs/archive/`. Feature ownership no longer limits who fixes what during the debugging phase (AGENTS.md §5.1, team-rules). This entry also records that TEAM-037 and M4-085 describe the same change, and that the branch named in M1-012, TEAM-039 and M4-084 to M4-086 was integrated as `fix/core-review-regressions` (PR #66, which includes PR #69).
+- **Why**: Three independent reviews of the integration branch found demo risks: blank or looping workspace pages, a 5/min shared signup bucket (production forwards no client IP with 0 verified hops, TEAM-030), unattended production writes from the weekly cron, a CI job likely to time out, and session wording in submission documents.
+- **Affects**: Core, F1, F6, F7, CI, submission
+- **Replaces**: none
+- **PR / branch**: fix/core-review-regressions (PR #66)
+
+### TEAM-041: Record the deployed Replit proxy hop count
+- **Date**: 2026-10-30
+- **Feature**: Core
+- **Type**: other
+- **Change**: The Replit deployment runs with `TRUSTED_PROXY_HOPS=1` (best-effort mode, right-most `X-Forwarded-For` entry appended by Replit's edge), as confirmed by the deployment owner's configuration. `.replit` now records it, and AGENTS.md, README, replit.md, the review runbook and the verification note describe 1 for Replit and 0 for local development. Issue #55 is closed.
+- **Why**: TEAM-040 and the docs it touched assumed production forwarded no client IP with 0 hops. The deployed configuration uses 1, and production refuses trusted mode with 0, so the docs described a setup that is not deployed. Per-visitor anonymous limits therefore apply in production.
+- **Affects**: Core (proxy, rate limits, deployment docs)
+- **Replaces**: TEAM-040's statement about 0 production hops (the rest of TEAM-040 stands)
+- **PR / branch**: fix/core-review-regressions (PR #66)
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)
@@ -487,6 +592,38 @@
 - **Affects**: M1 (trend pipeline execution), M4 (Replit deployment / RunPod setup)
 - **Replaces**: none
 - **PR / branch**: `feat/minilm-runpod-deploy`
+
+### M1-012: Review trend scaling, on-demand refresh and source provenance
+- **Date**: 2026-10-30
+- **Feature**: F2, F3 and jobs
+- **Type**: method
+- **Change**: Share robust reference scaling across scenarios and preview/matching, disclose coverage and frozen provenance, bound outages, poll/cancel RunPod asynchronous jobs, and expose workflow refresh/re-score controls. Refilter stored job locations offline before the next fetch; the committed source data stays dated.
+- **Why**: Low coverage must not be confused with decline; source dates and cold-start handling must reflect actual evidence and runtime behaviour. Final integration replaces email-based admins with stable account IDs.
+- **Pipeline**: arXiv/job sources → cleaning/geographic filtering → catalogue embeddings/counts → MiniLM/shared scaling → production scorer/refilter tests → dated stored snapshots and job records
+- **Affects**: F4, F5, preview, dashboard and jobs
+- **Replaces**: none
+- **PR / branch**: worktree-agent-a17103c77ff6e8291
+
+### M1-013: Separate app refresh configuration from GitHub runner metadata
+- **Date**: 2026-10-30
+- **Feature**: F2
+- **Type**: contract
+- **Change**: Use TRENDS_REFRESH_WORKFLOW for the application workflow filename; the runner-owned GITHUB_WORKFLOW variable must not select an app dispatch target. Regenerate the source branch contracts from production schemas.
+- **Why**: Branch CI exposed a collision with GITHUB_WORKFLOW=CI. Preserve validation instead of accepting a malformed filename or masking the inherited setting in tests.
+- **Affects**: refresh configuration and branch CI
+- **Replaces**: workflow environment setting in M1-012
+- **PR / branch**: worktree-agent-a17103c77ff6e8291
+
+### M1-014: Clamp served velocities and log-compress the matching trend scale
+- **Date**: 2026-10-30
+- **Feature**: F2 (Trend Signals), F4 (Matching)
+- **Type**: method
+- **Change**: Both scenario velocities are clamped to ±2 when served (`trends/velocity.py`, reusing the pipeline's `clamp`), so snapshots and fixtures published before the pipeline clamp keep Fast ≥ Moderate for rising skills. The matching trend position is now 0.5 + 0.5·tanh(2·asinh(c/s)/asinh(2/s)), with c the clamped velocity and s the median |v| over both scenarios.
+- **Why**: Unclamped moderate values let 8 rising skills per fixture show weaker growth under Fast on the radar and in pathway priority. The previous tanh(c/s) scale put 11 to 16 skills at ≥0.99; a p90 scale fixed that but flattened most skills to about 0.5. Log compression keeps the top and the middle distinguishable and stays monotone.
+- **Pipeline**: dated trend snapshot → clamp ±2 at serving → shared median scale over both scenarios → asinh/tanh position → evaluation: 0 rising skills with Fast < Moderate on all three fixtures (was 8, 8, 0); 0 skills ≥0.99 (was 11–16); existing scenario-ranking tests unchanged → served by radar, pathway and matching.
+- **Affects**: F2 radar growth rate, F5 pathway growth term, F4 match trend component, F3 scenario toggle
+- **Replaces**: refines the N1 scale in M1-012
+- **PR / branch**: fix/core-review-regressions (PR #66)
 
 ---
 
@@ -766,6 +903,17 @@
 - **Validation**: All 215 profile/preview tests and four skill-search client tests passed. Regressions verify that both CV APIs skip suggestion calls when disabled, preserve their default behaviour and return truncation/empty extraction metadata; the resolver scores the catalogue once. The complete quality gate and production web build also passed.
 - **Replaces**: M2-023's unchanged CV UI behaviour; preserves its resolver gates
 - **PR / branch**: `chore/core-replit-database-cleanup`
+
+### M2-025: Index frozen MyCOL reference assets once per worker
+- **Date**: 2026-10-30
+- **Feature**: F4 (Future-Role Matching & Gap)
+- **Type**: method
+- **Change**: Read the frozen crosswalk, occupation CSV and provenance JSON through a cached zero-argument loader and index them by stored role ID and MASCO code. Badge lookups no longer reopen or rescan files, including for unsupported roles; construct fresh scenario-specific response models and source metadata on every call.
+- **Why**: PR #69 review identified repeated reference reads across every ranked role. These are versioned release assets, so a worker restart loads a new reference release; user profiles, role catalogue reads, scores and request metadata are not cached.
+- **Pipeline**: frozen verified MyCOL assets -> parse once per worker -> role-ID and MASCO indexes -> exact ID lookup with unchanged badge attribution -> file-open-count, metadata-isolation and existing badge/source regressions -> matching list/detail responses
+- **Affects**: F4 historical MyCOL badge reads only; no contract, dependency, scoring or source-date change
+- **Replaces**: TEAM-039's per-lookup reference-file loading; preserves M2-015's fresh role catalogue and saved-profile behaviour
+- **PR / branch**: PR #69 / `fix/core-final-round-integration`
 
 ---
 
@@ -2028,3 +2176,33 @@
 - **Affects**: Adi answer selection and decision refusals; EN/MS/ZH catalogue-outage HTTP tests and learner/manager lowercase-name safety coverage. No contracts, dependencies, scoring, catalogue data or other product flows change.
 - **Replaces**: none
 - **PR / branch**: fix/core-proxy-scenario-loading
+
+### M4-084: Ground Adi routing and multilingual explanations
+- **Date**: 2026-10-30
+- **Feature**: Core and F8
+- **Type**: method
+- **Change**: Phrase-level intent routing, scoped people-decision refusal, near-tie suggestions, multilingual replies, explicit fallback sources and validated page/catalogue references replace broad keyword routing. The browser opens with sources, scenario and declining-skill questions.
+- **Why**: Avoid misleading refusals and destination labels while keeping all displayed facts in validated server-authored blocks.
+- **Affects**: associated API, web, tests and deployment configuration
+- **Replaces**: none
+- **PR / branch**: worktree-agent-ae781c8985e0fb4d3
+
+### M4-085: Separate joining consent and clarify the individual journey
+- **Date**: 2026-10-30
+- **Feature**: F1, F4, F7 and Core
+- **Type**: UI
+- **Change**: Joining no longer requires sharing skills; sharing stays an explicit separate choice. Privacy disclosure, session-aware team CTAs, radar-first intake, populated comparison, weighted score bars, accessible wording and Steady/Rapid labels are updated without changing scenario IDs.
+- **Why**: Consent must remain optional and destinations, labels and score bars must match the actual behaviour.
+- **Affects**: associated API, web, tests and deployment configuration
+- **Replaces**: none
+- **PR / branch**: worktree-agent-ab3aa728dfca284ec
+
+### M4-086: Harden production setup and broaden the regression gate
+- **Date**: 2026-10-30
+- **Feature**: Core, F7 and F8
+- **Type**: method
+- **Change**: Make production configuration fail closed; repair frozen-lockfile Docker builds, explicit-origin POST workspace/logout checks, identity-aware rate limits, scheduled job refresh, recommendation-write attribution tests and production-parser counterfactual fairness. Include web regressions in the Python task runner.
+- **Why**: The interrupted infrastructure draft needs a reviewable branch; integrated follow-up fixes and deployment acceptance are handled in the final integration PR.
+- **Affects**: associated API, web, tests and deployment configuration
+- **Replaces**: none
+- **PR / branch**: worktree-agent-a30a3ff3fc8019a74

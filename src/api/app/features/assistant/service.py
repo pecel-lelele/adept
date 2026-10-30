@@ -38,6 +38,31 @@ def _href(kind: str, ref_id: str, ctx: ctx_mod.Context) -> str | None:
     if kind == "course":
         return ctx.refs.courses[ref_id][1]
     if kind == "page":
+        if ctx.audience == "manager":
+            return {
+                "/app": "/org",
+                "/app/radar": "/org/radar",
+                "/app/courses": "/org/courses",
+                "/app/sdg": "/org/sdg",
+                "/app/pathway": "/org/plan",
+                "/app/pathway/compare": "/org/plan",
+                "/app/progress": "/org/verify",
+                "/app/matches": "/org/gaps",
+                "/app/profile": "/org/members",
+                "/app/onboarding": "/org/members",
+            }.get(ref_id, None if ref_id.startswith("/app") else ref_id)
+        if ctx.audience == "employee":
+            return {
+                "/app": "/work",
+                "/app/radar": "/work/skills",
+                "/app/sdg": "/work/progress",
+                "/app/pathway": "/work/plan",
+                "/app/pathway/compare": "/work/plan",
+                "/app/progress": "/work/progress",
+                "/app/profile": "/work/skills",
+                "/app/onboarding": "/work/skills",
+                "/app/matches": "/work/plan",
+            }.get(ref_id, None if ref_id.startswith("/app") else ref_id)
         return ref_id
     if kind == "sdg":
         return "/app/sdg" if ctx.audience == "learner" else None
@@ -45,6 +70,9 @@ def _href(kind: str, ref_id: str, ctx: ctx_mod.Context) -> str | None:
 
 
 def _label(kind: str, ref_id: str, ctx: ctx_mod.Context) -> str | None:
+    if kind == "page" and ref_id in ctx.refs.pages:
+        target = _href(kind, ref_id, ctx)
+        return ctx.refs.pages.get(target, ctx.refs.pages[ref_id])
     if kind == "course":
         course = ctx.refs.courses.get(ref_id)
         return course[0] if course else None

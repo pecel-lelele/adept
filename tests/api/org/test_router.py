@@ -79,3 +79,38 @@ def test_role_gaps_average_required_skills_and_pick_the_default_target(client: T
     # The bank cohort already has customer-service skills, and no UX skills.
     assert plan.target_role_id == "customer-success-specialist"
     assert plan.target_role_id != "ux-designer"
+
+
+def test_heatmap_date_uses_the_same_scopes_as_the_learners(client: TestClient, monkeypatch) -> None:
+    from app.features.pathway import service as pathway_service
+    from app.features.profile import repository as profile_repository
+
+    learner_scopes: list[list[str]] = []
+    date_scopes: list[list[str]] = []
+    real = pathway_service.evidenced_levels_many
+
+    def spy_levels(user_ids, scopes):  # noqa: ANN001
+        learner_scopes.append(list(scopes))
+        return real(user_ids, scopes)
+
+    def spy_date(user_ids, scopes):  # noqa: ANN001,ARG001
+        date_scopes.append(list(scopes))
+
+    monkeypatch.setattr(pathway_service, "evidenced_levels_many", spy_levels)
+    monkeypatch.setattr(profile_repository, "observed_on", spy_date)
+    assert (
+        client.get("/api/v1/org/gaps", params={"scenario": "fast"}, headers=COMPANY).status_code
+        == 200
+    )
+    assert date_scopes and date_scopes[-1] == learner_scopes[0]
+
+
+def test_personal_scope_needs_every_included_member_to_share() -> None:
+    from app.contracts.org import Member
+    from app.features.org import service as org_service
+
+    base = {"name": "Synthetic", "role": "member", "intake_status": "complete"}
+    shared = Member.model_construct(id="a", skills_shared=True, **base)
+    private = Member.model_construct(id="b", skills_shared=False, **base)
+    assert "personal" in org_service._progress_scopes("o1", [shared])
+    assert org_service._progress_scopes("o1", [shared, private]) == ["org:o1"]

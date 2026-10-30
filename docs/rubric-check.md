@@ -6,20 +6,23 @@ Earlier screenshots and test counts do not verify a newer build.
 
 ## Six-criterion mapping
 
-The task brief supplies six weights: **25 / 25 / 20 / 15 / 10 / 5**, totalling 100%.
-It does not supply the corresponding official criterion names or descriptions.
-The [public official handbook](https://sdchack.my/legal/handbook-2026-08-17.pdf), printed page 4
-(PDF page 6), delegates detailed judging criteria to the participant handbook.
-Do not attach invented names to these weights or reuse the preliminary rubric.
+The supplied **Domain 1 Finalist Guide**, printed pages 10-11 (PDF pages 11-12),
+provides the following official criteria. This supersedes the earlier pending-name mapping.
+The guide describes a live demonstration and verifiable evidence; the table is not a self-score.
 
-| Criterion in supplied order | Weight | Official name and evidence mapping |
+| Official criterion | Weight | Evidence to prepare |
 |---|---|---|
-| 1 | 25% | Pending participant-handbook verification |
-| 2 | 25% | Pending participant-handbook verification |
-| 3 | 20% | Pending participant-handbook verification |
-| 4 | 15% | Pending participant-handbook verification |
-| 5 | 10% | Pending participant-handbook verification |
-| 6 | 5% | Pending participant-handbook verification |
+| Innovation & Creativity | 25% | Updating trend pipeline, replay, explainability, uncertainty and meaningful SDG choices |
+| Technical Execution | 25% | Live six-stage journey, refreshed source data, decomposable scores and deployment checks |
+| Impact & Feasibility | 20% | Matched baseline/KPI measurements, reach, cost, data freshness, privacy and fairness |
+| Problem-Solution Fit | 15% | All six must-haves work live; people retain decisions; SDG links affect choices |
+| Presentation & Pitch | 10% | Clear live story and Q&A, more than one speaker, honest estimates and limitations |
+| Design & UX | 5% | A first-time journey that is understandable without coaching; readable reasons and sources |
+
+The supplied finalist report template requires sections 1-8, a project description of at most
+250 words, section 3.2 at most 300 words, section 5 at most 250 words, impact verification in
+section 4 and optional mathematical/code proof in 4.1. Do not sign the team's originality or
+employment/IP declarations without their confirmation.
 
 ## Demonstration evidence to collect
 
@@ -45,3 +48,10 @@ Do not attach invented names to these weights or reuse the preliminary rubric.
   and [statistical evidence register](demo-script.md#evidence-register).
 
 This document does not claim new test results, deployment checks or pipeline refreshes.
+
+Final-round measurement status, **30 October 2026**: **0 human testers and 0 human
+trials**; no measured manual baseline or achieved planning-time reduction. The
+20% figure is a proposed target only. See the [calculator output](kpi-human-summary.json)
+and [separate automated synthetic API measurements](kpi-automated-journeys.md)
+for dated sample sizes, completion/failure counts and methodological limits.
+Automated response timings do not establish human planning speed or impact.

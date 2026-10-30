@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
 
+import { pickOrg } from "@/lib/auth/workspaces";
 import { getAccount } from "@/lib/auth/account";
 
 import { LocaleSwitcher } from "../LocaleSwitcher";
@@ -23,12 +24,13 @@ export async function SiteHeader({
 }) {
   const t = await getTranslations("ui");
   const account = await getAccount();
-  const home = account ? (account.kind === "org_admin" ? "/org" : "/app") : null;
+  const member = account ? await pickOrg(["member", "manager", "advisor"]) : null;
+  const home = account ? member?.chosen ? (member.chosen.role === "member" ? "/work" : "/org") : account.kind === "org_admin" ? "/org" : "/app" : null;
   const links = (
     <>
       <Link href="/#features">{t("landing.navFeatures")}</Link>
       <Link href="/#how">{t("landing.navHow")}</Link>
-      <Link href="/#faq">{t("landing.navFaq")}</Link>
+      <Link href="/faq">{t("landing.navFaq")}</Link>
       <Link href="/about">{t("landing.navAbout")}</Link>
     </>
   );
@@ -93,6 +95,8 @@ export async function SiteFooter({ note }: { note?: ReactNode }) {
   const tn = await getTranslations("ui.nav");
   const tu = await getTranslations("ui");
   const privacy = await getTranslations("privacy");
+  const pages = await getTranslations("publicPages");
+  const account = await getAccount();
   return (
     <footer className="a-site-foot">
       <div className="a-wrap">
@@ -110,8 +114,8 @@ export async function SiteFooter({ note }: { note?: ReactNode }) {
           <div>
             <b>{t("footExplore")}</b>
             <Link href="/#start">{t("ctaUpload")}</Link>
-            <Link href="/app/radar">{tn("radar")}</Link>
-            <Link href="/#faq">{t("navFaq")}</Link>
+            <Link href={account?.kind === "org_admin" ? "/org/radar" : "/app/radar"}>{tn("radar")}</Link>
+            <Link href="/faq">{t("navFaq")}</Link>
           </div>
           <div>
             <b>{t("footTrust")}</b>
@@ -120,6 +124,7 @@ export async function SiteFooter({ note }: { note?: ReactNode }) {
             </Link>
             <span>{t("footHuman")}</span>
             <Link href="/privacy">{privacy("footerLink")}</Link>
+            <Link href="/terms">{pages("terms")}</Link>
             <span>{t("footPlace")}</span>
           </div>
         </div>

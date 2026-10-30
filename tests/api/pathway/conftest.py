@@ -2,6 +2,7 @@ import os
 from collections.abc import Iterator
 from datetime import date
 
+import psycopg
 import pytest
 
 from app.contracts.trends import TrendSnapshotResponse
@@ -52,6 +53,17 @@ def pg_backend(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     # or leave negative account-cache entries for subsequent memory-backend tests.
     for module in (accounts, org_repository, profile_repository, funding_store):
         monkeypatch.setattr(module, "use_postgres", lambda: False)
+    # Learning workspace foreign keys intentionally require actual organisation rows.
+    # Match the synthetic memory identities instead of weakening the storage constraint.
+    from harness.workspaces import BANK
+
+    org = org_repository.get_org(BANK)
+    assert org is not None
+    with psycopg.connect(PG_URL) as conn:
+        conn.execute(
+            "INSERT INTO organizations(id,type,name) VALUES (%s,%s,%s) ON CONFLICT(id) DO NOTHING",
+            (org.id, org.type, org.name),
+        )
     accounts._cache.clear()
     repository.reset()
     yield

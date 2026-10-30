@@ -1,4 +1,4 @@
-import { lstat, rm } from "node:fs/promises";
+import { lstat, rm, writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
@@ -20,3 +20,8 @@ const result = spawnSync(process.execPath, [require.resolve("next/dist/bin/next"
 if (result.error) throw result.error;
 if (result.status !== 0) process.exit(result.status ?? 1);
 await import("./prepare-standalone.mjs");
+const identity = spawnSync("git", ["rev-parse", "HEAD"], { cwd: app, encoding: "utf8" });
+const revision = identity.status === 0 ? identity.stdout.trim() : "";
+if (/^[0-9a-f]{40}$/.test(revision)) await writeFile(path.join(output, "adept-revision.txt"), revision + "\n");
+const changes = spawnSync("git", ["status", "--porcelain"], { cwd: app, encoding: "utf8" });
+if (changes.status === 0) await writeFile(path.join(output, "adept-dirty.txt"), changes.stdout.trim() ? "true\n" : "false\n");

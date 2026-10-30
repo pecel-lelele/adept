@@ -15,7 +15,6 @@ as neutral and the pathway lists them in a warning instead of inventing a value.
 from __future__ import annotations
 
 import logging
-import threading
 import time
 from dataclasses import dataclass
 from datetime import date
@@ -30,9 +29,7 @@ log = logging.getLogger(__name__)
 
 M1_PREFIX = "m1-"
 CACHE_TTL_S = 30.0
-# A slow or hung trend layer must never freeze a pathway request: wait this long, then use the
-# shared fallback and retry after the central fallback TTL.
-M1_TIMEOUT_S = 3.0
+# F2 owns operation-level I/O deadlines; retry after its central fallback TTL.
 M1_RETRY_AFTER_S = trends_service.FALLBACK_TTL_S
 
 
@@ -90,7 +87,7 @@ def _from_m1(scenario: ScenarioId, snapshot_date: date | None) -> TrendView | No
         snap = (
             trends_service.last_good_snapshot(snapshot_date, scenario)
             if time.monotonic() < _m1_down_until
-            else _call_with_timeout(scenario, snapshot_date)
+            else _read_snapshot(scenario, snapshot_date)
         )
     except NotFoundError:
         return None  # M1 is up but has no snapshot for that date
@@ -125,24 +122,10 @@ def _from_m1(scenario: ScenarioId, snapshot_date: date | None) -> TrendView | No
     )
 
 
-def _call_with_timeout(scenario: ScenarioId, snapshot_date: date | None) -> TrendSnapshotResponse:
-    """Run M1's read on a daemon thread: a hung database connect can neither block the request
-    past M1_TIMEOUT_S nor stop the process from exiting."""
-    from app.features.trends import service as trends_service
+def _read_snapshot(scenario: ScenarioId, snapshot_date: date | None) -> TrendSnapshotResponse:
+    """F2 bounds connect/query/socket I/O and closes it on this request's own thread.
 
-    box: dict[str, object] = {}
-
-    def run() -> None:
-        try:
-            box["value"] = trends_service.get_snapshot(snapshot_date, scenario)
-        except BaseException as exc:  # noqa: BLE001 - re-raised in the caller's thread
-            box["error"] = exc
-
-    worker = threading.Thread(target=run, name="pathway-m1-trends", daemon=True)
-    worker.start()
-    worker.join(M1_TIMEOUT_S)
-    if worker.is_alive():
-        raise TimeoutError(f"M1 trend snapshot took longer than {M1_TIMEOUT_S:g}s")
-    if "error" in box:
-        raise box["error"]  # type: ignore[misc]
-    return box["value"]  # type: ignore[return-value]
+    No waiting-only timeout or abandoned worker is introduced by the pathway adapter.
+    F2's negative cache and this adapter's backoff suppress repeated outage reads.
+    """
+    return trends_service.get_snapshot(snapshot_date, scenario)

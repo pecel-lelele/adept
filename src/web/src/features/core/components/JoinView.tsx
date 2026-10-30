@@ -38,9 +38,9 @@ export function JoinView({ code = "" }: { code?: string }) {
               </span>
               <h2>{t("done", { org: joined })}</h2>
               <p className="a-muted">{tp("joinedBody")}</p>
-              <a className="a-btn" href={`/api/workspace?to=${encodeURIComponent(state.values?.org_id ?? "")}`}>
+              <form method="post" action="/api/workspace"><input type="hidden" name="to" value={state.values?.org_id ?? ""} /><button className="a-btn" type="submit">
                 {t("openWorkspace", { org: joined })} <ArrowRight size={16} aria-hidden />
-              </a>
+              </button></form>
               <Link className="a-link" href="/app">
                 {tp("joinedCta")}
               </Link>

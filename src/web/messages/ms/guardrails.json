@@ -18,7 +18,9 @@
     "googlecert": "Penerangan pensijilan Google Cloud dan yuran peperiksaan rasmi.",
     "iibacert": "Penerangan pensijilan IIBA ECBA dan yuran peperiksaan rasmi.",
     "iappcert": "Penerangan pensijilan IAPP AIGP dan yuran peperiksaan rasmi.",
-    "bnm": "Kadar jualan bertarikh untuk menukar kos kursus dan peperiksaan kepada ringgit Malaysia; harga ditukar ialah anggaran."
+    "bnm": "Kadar jualan bertarikh untuk menukar kos kursus dan peperiksaan kepada ringgit Malaysia; harga ditukar ialah anggaran.",
+    "replit": "Mengehoskan prototaip dan pangkalan data PostgreSQL terurusnya.",
+    "fonts": "Aset fon Inter melalui Fontsource; gaya aplikasi semasa menggunakan fon sistem Arial."
   },
   "llmProvider": "Penyedia: {provider} · model: {model}",
   "llmCalls": "{calls} panggilan model direkodkan; {rejected} ID rekaan ditolak.",

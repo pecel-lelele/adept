@@ -20,6 +20,7 @@ import { MatchImprovements } from "./MatchImprovements";
 import { ScenarioDelta } from "./ScenarioDelta";
 import { MatchSdgTargets } from "./MatchSdgTargets";
 import { ProfileNote } from "./ProfileNote";
+import { CriticalOccupationBadge } from "./CriticalOccupationBadge";
 
 /**
  * One horizontal bar per score part: how much each part contributed to the fit. The bar and the
@@ -173,6 +174,7 @@ export async function MatchesView({
                     <div className="a-rolecard-body">
                       <div>
                         <h3>{tp("drivers")}</h3>
+                        <CriticalOccupationBadge badge={m.critical_occupation} />
                         <ScoreParts parts={m.components} labels={labels} score={m.score} />
                       </div>
                       <div>

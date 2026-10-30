@@ -25,7 +25,10 @@ Scoring formula (all deterministic arithmetic, no ML training):
     else:
         V_fast = V(s) * (1 + (1 - E) * k)      # amplify rise for low-exposure skills
     V_fast = clamp(V_fast, -2.0, 2.0)
-    V_moderate = V(s)                           # no amplification
+    V_moderate = clamp(V(s), -2.0, 2.0)         # no amplification, same bound as Fast
+
+    Both scenarios share the bound so a rising skill can never score lower under Fast
+    (an unclamped V_moderate of 2.4 against a clamped V_fast of 2.0 used to do exactly that).
 
     direction(v) = "rising"   if v >  0.05 else
                    "declining" if v < -0.05 else
@@ -91,6 +94,11 @@ def scenario_fast(v: float, automation_exposure: float, k: float = K) -> float:
     else:
         v_fast = v * (1 + (1 - automation_exposure) * k)
     return clamp(v_fast, V_CLAMP_MIN, V_CLAMP_MAX)
+
+
+def scenario_moderate(v: float) -> float:
+    """Moderate scenario: no amplification, bounded like Fast so Fast >= Moderate on a rise."""
+    return clamp(v, V_CLAMP_MIN, V_CLAMP_MAX)
 
 
 def clamp(value: float, lo: float, hi: float) -> float:
@@ -283,8 +291,9 @@ def score_rows(
         rv = research_velocity(freq_t0, freq_t1)
         ld, ld_note = labor_decay_map.get(sid, (0.0, "no BLS mapping"))
         exposure = exposure_map.get(sid, DEFAULT_EXPOSURE)
-        v_mod = composite_velocity(rv, ld)
-        v_fast = scenario_fast(v_mod, exposure)
+        v_raw = composite_velocity(rv, ld)
+        v_mod = scenario_moderate(v_raw)
+        v_fast = scenario_fast(v_raw, exposure)
         # Issue 3 fix: a skill only has evidence when it was actually measured.
         # Catalogue membership alone (sid in skill_ids) is not evidence.
         has_evidence: bool = (

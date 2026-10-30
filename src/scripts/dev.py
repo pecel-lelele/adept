@@ -25,6 +25,9 @@ DB = ROOT / "src" / "db"
 VENV = ROOT / ".venv"
 PYTHON_VERSION = "3.11"
 CONTRACT_FILES = [str(API / "openapi.json"), str(WEB / "src/lib/api/types.ts")]
+TESTS = ROOT / "tests"
+# Node web tests that need a running server; CI runs them against its production build.
+SERVER_WEB_TESTS = frozenset({"privacy-http.test.mjs"})
 
 
 class TaskError(Exception):
@@ -219,6 +222,20 @@ def task_typecheck() -> None:
     web_run("typecheck")
 
 
+def web_test_files() -> list[str]:
+    """Every root-level Node test (tests/*.test.ts|mjs) except those needing a live server."""
+    found = sorted([*TESTS.glob("*.test.ts"), *TESTS.glob("*.test.mjs")])
+    return [str(p.relative_to(ROOT)) for p in found if p.name not in SERVER_WEB_TESTS]
+
+
+def task_web_test() -> None:
+    """Node web component, proxy, navigation, privacy and asset regressions (as CI runs them)."""
+    node = shutil.which("node")
+    if not node:
+        raise TaskError("node not found. Install Node.js 24 first.")
+    run([node, "--experimental-strip-types", "--test", *web_test_files()])
+
+
 def task_contracts() -> None:
     """Regenerate openapi.json from the Pydantic contracts, then the TS types."""
     run(py("-m", "app.export_openapi", str(API / "openapi.json")), cwd=API)
@@ -284,6 +301,7 @@ def task_check() -> None:
         ("lint", task_lint),
         ("i18n", task_i18n_check),
         ("test", task_test),
+        ("web-test", task_web_test),
         ("typecheck", task_typecheck),
         ("contracts", task_contracts_check),
     ]
@@ -308,6 +326,7 @@ TASKS: dict[str, Callable[[], None]] = {
     "format": task_format,
     "test": task_test,
     "typecheck": task_typecheck,
+    "web-test": task_web_test,
     "contracts": task_contracts,
     "contracts-check": task_contracts_check,
     "i18n-check": task_i18n_check,

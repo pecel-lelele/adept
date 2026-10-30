@@ -271,7 +271,7 @@
     "q4": "Adakah unjuran dijamin?",
     "a4": "Tidak. Unjuran ialah anggaran di bawah senario AI sederhana dan pantas. Ia membantu anda merancang; bukan janji pekerjaan.",
     "q5": "Apa yang berlaku kepada CV saya?",
-    "a5": "Ia dibaca dalam memori untuk mencari kemahiran anda dan tidak pernah disimpan. Hanya kemahiran yang anda sahkan disimpan dalam akaun anda.",
+    "a5": "Fail CV dihuraikan dalam memori dan tidak disimpan. Hanya kemahiran yang disahkan disimpan. Jika pemadanan AI pilihan diaktifkan, frasa kemahiran ringkas yang telah disunting mungkin dihantar kepada penyedia yang dinyatakan; lihat Privasi.",
     "q6": "Bolehkah organisasi saya menggunakan Adept?",
     "a6": "Ya. Pengurus atau penasihat kerjaya mencipta ruang kerja, berkongsi kod sertai, melihat jurang kemahiran pasukan dan menetapkan satu pelan latihan. Ahli kekal mengawal data mereka.",
     "closeEyebrow": "Percuma untuk bermula",
@@ -562,6 +562,7 @@
     "interests": "Minat",
     "none": "Tiada",
     "organisation": "Organisasi",
+    "organisationUnavailable": "Butiran organisasi tidak tersedia buat masa ini.",
     "nextStep": "Langkah seterusnya",
     "nextRadarTitle": "Lihat kemahiran anda yang sedang meningkat",
     "nextRadarBody": "Radar membandingkan kemahiran anda dengan isyarat pasaran kerja dan penyelidikan AI terkini.",
@@ -735,7 +736,9 @@
     "member": "Pekerja",
     "manager": "Pengurus",
     "switch": "Tukar ruang kerja",
-    "join": "Sertai organisasi lain"
+    "join": "Sertai organisasi lain",
+    "workspaceError": "Kami tidak dapat beralih ke ruang kerja itu. Semak bahawa anda masih menjadi ahlinya, kemudian cuba semula daripada menu ruang kerja.",
+    "activateRetry": "Pelayar anda tidak menyimpan tetapan ruang kerja, jadi kami berhenti mencuba semula. Benarkan kuki untuk tapak ini, kemudian tekan butang untuk mencuba lagi."
   },
   "cvReview": {
     "title": "Istilah untuk disemak",

@@ -11,6 +11,8 @@ starts empty, there are no built-in personas.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+from datetime import date
 from typing import Any
 
 import psycopg
@@ -120,6 +122,49 @@ def get_profile(user_id: str) -> Profile | None:
     except psycopg.Error as exc:
         log.warning("profile read failed: %s", exc)
         raise StorageUnavailableError("could not load the profile") from exc
+
+
+def get_profiles(user_ids: Sequence[str]) -> dict[str, Profile]:
+    """Batch inputs for already-authorized consenting members; no per-person SQL loop."""
+    if not user_ids:
+        return {}
+    if not use_postgres():
+        return {uid: _store[uid] for uid in user_ids if uid in _store}
+    try:
+        with connection() as conn:
+            rows = conn.execute(
+                _SELECT_PROFILE.replace("p.user_id = %s", "p.user_id = ANY(%s)"),
+                (list(user_ids),),
+            ).fetchall()
+            skills = conn.execute(
+                "SELECT user_id, skill_id, level, source FROM user_skills WHERE user_id = ANY(%s)",
+                (list(user_ids),),
+            ).fetchall()
+        grouped: dict[str, list[dict[str, Any]]] = {}
+        for skill in skills:
+            grouped.setdefault(skill["user_id"], []).append(skill)
+        return {row["id"]: _row_to_profile(row, grouped.get(row["id"], [])) for row in rows}
+    except psycopg.Error as exc:
+        raise StorageUnavailableError("could not load member profiles") from exc
+
+
+def observed_on(user_ids: Sequence[str], scopes: Sequence[str]) -> date | None:
+    """Actual latest input update over the given progress scopes (the caller passes the same
+    scopes it read the learners with); fixture-only in-memory profiles have no update clock."""
+    if not user_ids or not use_postgres():
+        return None
+    try:
+        with connection() as conn:
+            row = conn.execute(
+                "SELECT max(updated_at)::date AS day FROM ("
+                "SELECT updated_at FROM profiles WHERE user_id=ANY(%s) UNION ALL "
+                "SELECT updated_at FROM course_progress WHERE user_id=ANY(%s) "
+                "AND scope=ANY(%s)) inputs",
+                (list(user_ids), list(user_ids), list(scopes)),
+            ).fetchone()
+        return row["day"] if row else None
+    except psycopg.Error as exc:
+        raise StorageUnavailableError("could not date the member observations") from exc
 
 
 def save_profile(profile: Profile) -> Profile:

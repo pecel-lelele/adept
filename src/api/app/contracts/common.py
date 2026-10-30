@@ -45,6 +45,13 @@ class HealthResponse(BaseModel):
     database: Literal["ok", "unavailable"]
 
 
+class VersionInfo(BaseModel):
+    version: str
+    revision: str | None
+    dirty: bool | None
+    environment: Literal["development", "production"]
+
+
 class TrendProvenance(BaseModel):
     """Observation dates are independent of a snapshot's filing/label date.
 

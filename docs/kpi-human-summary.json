@@ -1,0 +1,30 @@
+{
+  "workflows": {
+    "manual": {
+      "n_records": 15,
+      "n_attempted": 0,
+      "n_not_run": 15,
+      "n_failed": 0,
+      "n_valid": 0,
+      "valid_plan_percent": null,
+      "median_valid_plan_minutes": null
+    },
+    "adept": {
+      "n_records": 15,
+      "n_attempted": 0,
+      "n_not_run": 15,
+      "n_failed": 0,
+      "n_valid": 0,
+      "valid_plan_percent": null,
+      "median_valid_plan_minutes": null
+    }
+  },
+  "paired_valid_n": 0,
+  "paired_manual_median_minutes": null,
+  "paired_adept_median_minutes": null,
+  "paired_median_reduction_percent": null,
+  "expected_records": 30,
+  "missing_records": 0,
+  "all_pairs_valid": false,
+  "interpretation": "Descriptive synthetic-case results only. Compare validity and failures alongside time. No automatic pass/fail or population impact claim; reviewer validity is not inferred."
+}
