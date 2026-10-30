@@ -297,6 +297,174 @@ def test_raw_origins_do_not_mix_and_live_publish_preserves_retrieval(provenance_
         ).fetchone() == (False,)
 
 
+@pytest.mark.parametrize("has_metadata", [False, True])
+@pytest.mark.parametrize("changed_field", [None, "research_velocity", "labor_decay_source_note"])
+def test_seed_repairs_only_scores_matching_the_cited_fixture(
+    provenance_db,
+    has_metadata: bool,
+    changed_field: str | None,
+) -> None:  # type: ignore[no-untyped-def]
+    import psycopg
+
+    from app.features.trends import repository
+    from db import seed
+
+    url, directory = provenance_db
+    export = _replay_export(directory / "mock_trends_2026-10-20.json")
+    with psycopg.connect(url) as conn:
+        seed.load_trend_exports(conn)
+        # Model a pre-provenance database, independently of the migration's repair.
+        for table in ("trend_snapshots", "trend_snapshot_meta"):
+            conn.execute(
+                f"UPDATE {table} SET is_replay = NULL, observation_window_start = NULL, "
+                "observation_window_end = NULL, retrieved_at = NULL, "
+                "retrieved_at_basis = 'unknown', retrieval_evidence = NULL"
+            )
+        if not has_metadata:
+            conn.execute("DELETE FROM trend_snapshot_meta")
+        elif changed_field:
+            conn.execute(
+                "UPDATE trend_snapshot_meta SET sources = '[]', "
+                "provenance_note = 'Synthetic unverified rescore; not the replay fixture'"
+            )
+        if changed_field == "research_velocity":
+            conn.execute(
+                "UPDATE trend_snapshots SET research_velocity = research_velocity + 1 "
+                "WHERE skill_id = %s",
+                (export["items"][0]["skill_id"],),
+            )
+        elif changed_field == "labor_decay_source_note":
+            conn.execute(
+                "UPDATE trend_snapshots SET labor_decay_source_note = 'Different source evidence' "
+                "WHERE skill_id = %s",
+                (export["items"][0]["skill_id"],),
+            )
+        before = conn.execute("SELECT * FROM trend_snapshots ORDER BY skill_id").fetchall()
+        meta_before = conn.execute("SELECT * FROM trend_snapshot_meta").fetchall()
+        seed.load_trend_exports(conn)
+        after = conn.execute("SELECT * FROM trend_snapshots ORDER BY skill_id").fetchall()
+        if changed_field:
+            # Do not attach fixture evidence to a different dataset or fabricate metadata.
+            assert after == before
+            assert conn.execute("SELECT * FROM trend_snapshot_meta").fetchall() == meta_before
+    snapshot = repository.get_snapshot(date(2026, 10, 20), "moderate", strict=True)
+    assert snapshot.meta.served_from == "db"
+    assert snapshot.meta.is_replay is (None if changed_field else True)
+    if not changed_field:
+        assert snapshot.meta.observation_window_start == date(2024, 10, 13)
+
+
+@pytest.mark.parametrize("second_is_replay", [False, True])
+def test_first_publications_serialize_before_any_snapshot_row_exists(
+    provenance_db,
+    monkeypatch: pytest.MonkeyPatch,
+    second_is_replay: bool,
+) -> None:  # type: ignore[no-untyped-def]
+    import threading
+    import time
+    from concurrent.futures import ThreadPoolExecutor
+
+    import psycopg
+
+    from app.features.trends import repository
+    from pipelines.trends import run
+
+    url, directory = provenance_db
+    export = _replay_export(directory / "mock_trends_2026-10-20.json")
+    first = {
+        **export["meta"],
+        "is_replay": False,
+        "observation_window_start": "2026-10-19",
+        "observation_window_end": "2026-10-24",
+        "retrieved_at_basis": "fetch_log",
+        "retrieval_evidence": "synthetic first fetch",
+    }
+    second = {
+        **first,
+        "is_replay": second_is_replay,
+        "retrieval_evidence": "synthetic second fetch",
+    }
+    if second_is_replay:
+        second = export["meta"]
+    paused, release, second_connected = threading.Event(), threading.Event(), threading.Event()
+    real_connect = psycopg.connect
+    second_pid: list[int] = []
+
+    class PausingCursor:
+        def __init__(self, cursor):  # type: ignore[no-untyped-def]
+            self.cursor = cursor
+
+        def __enter__(self):  # type: ignore[no-untyped-def]
+            self.cursor.__enter__()
+            return self
+
+        def __exit__(self, *args):  # type: ignore[no-untyped-def]
+            return self.cursor.__exit__(*args)
+
+        def __getattr__(self, name):  # type: ignore[no-untyped-def]
+            return getattr(self.cursor, name)
+
+        def execute(self, query, params=None, **kwargs):  # type: ignore[no-untyped-def]
+            result = self.cursor.execute(query, params, **kwargs)
+            if str(query).strip().startswith("DELETE FROM trend_snapshots"):
+                paused.set()
+                assert release.wait(10), "first publication was never released"
+            return result
+
+    class PausingConnection(psycopg.Connection):
+        def cursor(self, *args, **kwargs):  # type: ignore[no-untyped-def]
+            return PausingCursor(super().cursor(*args, **kwargs))
+
+    def connect(*args, **kwargs):  # type: ignore[no-untyped-def]
+        if threading.current_thread().name.endswith("_0"):
+            return PausingConnection.connect(*args, **kwargs)
+        connection = real_connect(*args, **kwargs)
+        second_pid.append(connection.info.backend_pid)
+        second_connected.set()
+        return connection
+
+    monkeypatch.setattr(psycopg, "connect", connect)
+    slot = date(2026, 11, 1)
+    sources = export["meta"]["sources"]
+    with real_connect(url, autocommit=True) as observer, ThreadPoolExecutor(max_workers=2) as pool:
+        one = pool.submit(
+            run.publish, export["items"][:2], slot, sources, "first", url, provenance=first
+        )
+        try:
+            assert paused.wait(5)
+            two = pool.submit(
+                run.publish, export["items"][:1], slot, sources, "second", url, provenance=second
+            )
+            assert second_connected.wait(5)
+            deadline = time.monotonic() + 5
+            waiting = False
+            while time.monotonic() < deadline and not two.done():
+                row = observer.execute(
+                    "SELECT wait_event FROM pg_stat_activity WHERE pid = %s", (second_pid[0],)
+                ).fetchone()
+                if row and row[0] == "advisory":
+                    waiting = True
+                    break
+                time.sleep(0.01)
+            assert waiting, "second first-time publication did not wait on the snapshot-date lock"
+        finally:
+            release.set()
+        one.result(timeout=5)
+        if second_is_replay:
+            with pytest.raises(ValueError, match="cannot change origin"):
+                two.result(timeout=5)
+        else:
+            two.result(timeout=5)
+    monkeypatch.setattr(psycopg, "connect", real_connect)
+    snapshot = repository.get_snapshot(slot, "moderate", strict=True)
+    assert snapshot.meta.is_replay is False
+    assert (
+        snapshot.meta.retrieval_evidence
+        == (first if second_is_replay else second)["retrieval_evidence"]
+    )
+    assert len(snapshot.items) == (2 if second_is_replay else 1)
+
+
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SEED_DIR = REPO_ROOT / "src" / "data" / "seed"
 

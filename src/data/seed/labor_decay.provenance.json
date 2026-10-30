@@ -1,0 +1,6 @@
+{
+  "retrieved_at": "2026-10-24",
+  "retrieved_at_basis": "git_commit_date",
+  "retrieval_evidence": "git:8a5a4608c0a5907d85e5acf1b8fc246661bbfd2a:src/data/seed/labor_decay.csv (UTC commit date; fetch time unverified)",
+  "sha256": "a80972bcd25ad5ab043fd51e6dd78b9a5967de1b2bde4cf5e8d13d7ef86512ea"
+}

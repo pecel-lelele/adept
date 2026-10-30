@@ -90,7 +90,7 @@ def provenance(
         f"{base_start.isoformat()}..{base_end.isoformat()} ({t0}), blended with the BLS "
         "2023-2033 projections as the labour baseline."
     )
-    from pipelines.trends.provenance import git_commit_retrieval
+    from pipelines.trends.provenance import cached_retrieval
 
     sources = [
         {
@@ -104,7 +104,7 @@ def provenance(
         {
             "name": "BLS Occupational Projections 2023-2033",
             "url": BLS_URL,
-            **git_commit_retrieval(REPO_ROOT / "src/data/seed/labor_decay.csv"),
+            **cached_retrieval(REPO_ROOT / "src/data/seed/labor_decay.csv"),
         },
     ]
     return sources, note
@@ -147,11 +147,12 @@ def publish(
     """
     import psycopg  # type: ignore[import]
 
-    from app.features.trends.provenance import PROVENANCE_FIELDS, provenance_values
+    from app.features.trends.provenance import PROVENANCE_FIELDS, lock_snapshot, provenance_values
 
     facts = provenance_values(provenance or {}, note)
 
     with psycopg.connect(db_url) as conn, conn.transaction(), conn.cursor() as cur:
+        lock_snapshot(conn, snapshot_date)
         cur.execute(
             "SELECT is_replay FROM trend_snapshot_meta WHERE snapshot_date = %s FOR UPDATE",
             (snapshot_date,),

@@ -12,6 +12,22 @@ from __future__ import annotations
 import re
 from collections.abc import Mapping
 from datetime import date
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from psycopg import Connection
+
+
+def lock_snapshot(conn: Connection, snapshot_date: date | str) -> None:
+    """Serialize trend writers for a date, even before its metadata row exists.
+
+    Called inside the writer's transaction by both seed import and publication.
+    The TRND namespace is separate from other application advisory locks; the lock
+    is released on commit/rollback. FOR UPDATE alone cannot lock an absent row.
+    """
+    day = date.fromisoformat(snapshot_date) if isinstance(snapshot_date, str) else snapshot_date
+    conn.execute("SELECT pg_advisory_xact_lock(%s, %s)", (0x54524E44, day.toordinal()))
+
 
 # "2024-10-13..2024-10-19" (the first range in a note is the window the snapshot measures).
 _RANGE = re.compile(r"(\d{4}-\d{2}-\d{2})\s*\.\.\s*(\d{4}-\d{2}-\d{2})")
