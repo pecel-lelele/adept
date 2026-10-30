@@ -8257,11 +8257,23 @@
             "title": "Skill Id"
           },
           "gap": {
-            "type": "number",
-            "maximum": 1.0,
-            "minimum": 0.0,
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Gap",
-            "description": "Share of members missing the skill."
+            "description": "Share below required level; null when suppressed."
+          },
+          "suppressed": {
+            "type": "boolean",
+            "title": "Suppressed",
+            "default": false
           }
         },
         "type": "object",
@@ -8303,13 +8315,39 @@
             "type": "array",
             "title": "Cells"
           },
+          "cohort_size": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Cohort Size",
+            "default": 0
+          },
+          "min_cohort": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Min Cohort",
+            "default": 3
+          },
+          "role_suppressed": {
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "type": "object",
+            "title": "Role Suppressed"
+          },
           "role_gaps": {
             "additionalProperties": {
-              "type": "number"
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             },
             "type": "object",
             "title": "Role Gaps",
-            "description": "role_id -> average gap over that role's required skills only. Cells for skills a role does not require are 0 and must not be averaged."
+            "description": "role_id -> average gap over that role's required skills only. Suppressed rows are null. Unsuppressed cells for unrequired skills are 0 and must not be averaged."
           },
           "meta": {
             "$ref": "#/components/schemas/RecommendationMeta"
@@ -11165,19 +11203,19 @@
           "position_before": {
             "type": "number",
             "title": "Position Before",
-            "description": "Skill velocity on the shared min-max scale, earlier snapshot.",
+            "description": "Skill trend position (0-1, median-scaled log-tanh), earlier snapshot.",
             "default": 0.0
           },
           "position_after": {
             "type": "number",
             "title": "Position After",
-            "description": "Skill velocity on the shared min-max scale, later snapshot.",
+            "description": "Skill trend position (0-1, median-scaled log-tanh), later snapshot.",
             "default": 0.0
           },
           "effect": {
             "type": "number",
             "title": "Effect",
-            "description": "Score points this skill moved the role: change on the shared min-max scale times its share of the role's importance times the trend weight; > 0 pushed up."
+            "description": "Score points this skill moved the role: change in trend position times its share of the role's importance times the trend weight; > 0 pushed up."
           }
         },
         "type": "object",
@@ -11376,6 +11414,59 @@
             "minimum": 0.0,
             "title": "Score",
             "description": "Sum of weight * value over components."
+          },
+          "rank": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rank"
+          },
+          "other_scenario": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "moderate",
+                  "fast"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Other Scenario"
+          },
+          "other_score": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Other Score"
+          },
+          "other_rank": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Other Rank",
+            "description": "Other-scenario rank for the same profile, snapshot and SDG weight."
           },
           "components": {
             "items": {
@@ -12079,6 +12170,19 @@
             "maximum": 1.0,
             "minimum": 0.0,
             "title": "Score Gain"
+          },
+          "new_rank": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "New Rank",
+            "description": "Estimated rank after raising this skill and reranking all roles."
           },
           "course_id": {
             "anyOf": [

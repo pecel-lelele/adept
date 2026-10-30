@@ -492,7 +492,8 @@
     "save": "Save changes",
     "saved": "Saved",
     "gapsLow": "Covered",
-    "gapsHigh": "Most missing"
+    "gapsHigh": "Most missing",
+    "tooFewMembers": "Too few members to show"
   },
   "skills": {
     "title": "My skills",

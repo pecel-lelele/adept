@@ -492,7 +492,8 @@
     "save": "Simpan perubahan",
     "saved": "Disimpan",
     "gapsLow": "Dipenuhi",
-    "gapsHigh": "Paling kurang"
+    "gapsHigh": "Paling kurang",
+    "tooFewMembers": "Terlalu sedikit ahli untuk dipaparkan"
   },
   "skills": {
     "title": "Kemahiran saya",

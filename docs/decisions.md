@@ -927,6 +927,17 @@
 - **Replaces**: none
 - **PR / branch**: feat/pathway-real-roles-courses / Closes #56
 
+### M2-027: Compare scenario and skill counterfactual ranks on one saved profile
+- **Date**: 2026-10-31
+- **Feature**: F4 (Future-Role Matching & Gap)
+- **Type**: method
+- **Change**: Return optional current/other-scenario ranks and scores from one profile and the two velocity columns of one snapshot. Rerank every target role after raising each top-three improvement skill to its required level, including the requested SDG weight through the same rounded component blend as displayed scores. Explain the existing median-scaled log-tanh formula accurately.
+- **Why**: Independent latest reads could compare different snapshots; adding a score gain to just one role ignores effects on other roles and SDG preferences. Pure ranker results remain estimates, with canonical role/skill/course IDs and unchanged source dates.
+- **Pipeline**: saved profile + canonical requirements + paired snapshot velocities → existing fairness whitelist → existing skills, trends, interests and SDG components → production ranker and shared SDG blend → reciprocal scenario and changed-profile rank regressions → translated rank/score chips and counterfactual ranks
+- **Affects**: matching contracts/repository/UI; SDG blend extraction preserves existing rounding
+- **Replaces**: none (M2-026 is reserved by catalogue PR #74)
+- **PR / branch**: fix/matching-org-review-fixes
+
 ### M2-028: Display official occupation titles for every stored role profile
 - **Date**: 2026-10-31
 - **Feature**: F4 (Taxonomy)
@@ -937,6 +948,18 @@
 - **Affects**: role display labels, provenance/README and taxonomy release date; no identifier or scoring change
 - **Replaces**: none (supersedes legacy editorial label treatment; M2-027 is reserved by PR #77)
 - **PR / branch**: feat/pathway-real-roles-courses / PR #74
+
+### M2-029: Limit detail response construction to the requested role
+- **Date**: 2026-10-31
+- **Feature**: F4 (Future-Role Matching & Gap)
+- **Type**: method
+- **Change**: Share one ranking path for list/detail requests but format explanations, course options and improvement counterfactuals only for the requested detail role. Current, other-scenario and changed-profile ranks still score every target role with the same profile/snapshot/SDG weight.
+- **Why**: Building unrelated role responses and their course lookups on a detail request discarded useful work and duplicated the list request's cost. The optimization preserves existing ranking results and attribution.
+- **Pipeline**: unchanged profile/catalogue/snapshot inputs → full production ranking → requested-role response selection → unchanged full-catalogue counterfactual ranks → list/detail equality and formatter/ranker call-boundary regressions → same public detail contract
+- **Affects**: matching detail computation only; no schema/source/scoring change
+- **Replaces**: none (implementation follow-up to M2-027; M2-028 reserved by PR #74)
+- **PR / branch**: fix/matching-org-review-fixes / PR #77
+
 
 ---
 
@@ -2273,3 +2296,14 @@
 - **Affects**: associated API, web, tests and deployment configuration
 - **Replaces**: none
 - **PR / branch**: worktree-agent-a30a3ff3fc8019a74
+
+### M4-088: Suppress small consenting cohorts in team heatmaps
+- **Date**: 2026-10-31
+- **Feature**: F7 (Organisation mode), Core
+- **Type**: contract
+- **Change**: ORG_MIN_COHORT defaults to 3; only consenting completed-intake members with usable profiles count. Below the threshold, every cell and required-skill row aggregate is null with explicit suppression flags. Web views retain neutral placeholders and translated disclosure rather than zero-gap colours or percentages. Adi excludes suppressed aggregates and explains the missing data in all three languages.
+- **Why**: A small team's aggregate can reveal an individual. A suppressed result is unavailable information, not evidence of a fully skilled team. Existing authorisation, consent and personal/group planning stay intact.
+- **Pipeline**: membership consent + saved completed profiles → existing member filter → eligible cohort count and required-skill gaps → threshold suppression → zero/below/at/above-threshold and consent regressions → manager heatmap and dashboard with neutral states
+- **Affects**: org contracts, settings/env example, shared heatmap and en/ms/zh views; no migration
+- **Replaces**: none (M4-087 is reserved by refresh PR #75)
+- **PR / branch**: fix/matching-org-review-fixes

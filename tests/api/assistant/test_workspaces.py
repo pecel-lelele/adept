@@ -81,6 +81,8 @@ def test_managers_hear_about_sent_programmes_not_a_default_team_plan(client: Tes
     hr = {"X-Demo-User": "demo-company", "X-Workspace": BANK}
     body = _ask(client, "How is my team doing?", hr)
     text = _text(body)
+    assert "Too few members to show team skill gaps" in text
+    assert "largest average gap" not in text
     assert "No programme sent yet" in text
     assert "share their skill levels" in text
     assert body["workspace_name"] == "Demo Bank Berhad"

@@ -30,6 +30,7 @@ from app.contracts.pathway import Pathway
 from app.contracts.profile import Skill
 from app.core import accounts
 from app.core.auth import CurrentUser
+from app.core.config import get_settings
 from app.core.errors import AppError, NotFoundError
 from app.features.org import repository
 from app.features.pathway import data as pathway_data
@@ -307,6 +308,8 @@ def get_gaps(user: CurrentUser, scenario: ScenarioId) -> GapHeatmapResponse:
     )
     labels = pathway_data.skill_labels()
     roles = pathway_data.target_role_ids()
+    min_cohort = get_settings().org_min_cohort
+    suppressed = len(members) < min_cohort
     computed = pathway_service.team_gaps(members, roles)
     skill_ids = list(dict.fromkeys(skill for _, skill, _ in computed))
     by_cell = {(role, skill): gap for role, skill, gap in computed}
@@ -314,7 +317,12 @@ def get_gaps(user: CurrentUser, scenario: ScenarioId) -> GapHeatmapResponse:
     for role, _skill, gap in computed:
         required[role].append(gap)
     cells = [
-        {"role_id": role, "skill_id": skill, "gap": by_cell.get((role, skill), 0.0)}
+        {
+            "role_id": role,
+            "skill_id": skill,
+            "gap": None if suppressed else by_cell.get((role, skill), 0.0),
+            "suppressed": suppressed,
+        }
         for role in roles
         for skill in skill_ids
     ]
@@ -325,7 +333,13 @@ def get_gaps(user: CurrentUser, scenario: ScenarioId) -> GapHeatmapResponse:
             "skills": [Skill(id=s, label=labels.get(s, s)) for s in skill_ids],
             "cells": cells,
             # Same average as _team_gap_by_role, so the page ranks roles like the backend.
-            "role_gaps": {r: round(sum(v) / len(v), 4) if v else 0.0 for r, v in required.items()},
+            "cohort_size": len(members),
+            "min_cohort": min_cohort,
+            "role_suppressed": {r: suppressed for r in roles},
+            "role_gaps": {
+                r: None if suppressed else (round(sum(v) / len(v), 4) if v else 0.0)
+                for r, v in required.items()
+            },
             "meta": RecommendationMeta(
                 sources=[TEAM_DATA_SOURCE]
                 + (

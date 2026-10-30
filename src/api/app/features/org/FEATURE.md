@@ -101,3 +101,19 @@ completions enter employer routes only through explicit sharing.
 Programme schemas live in `contracts/programmes.py`; behaviour is covered by
 `tests/api/org/test_programmes.py` and `test_workspaces.py`. Personal saved plans and Adi
 conversations remain separate. Last-manager deletion is blocked when it would orphan a team.
+
+## Small-cohort heatmap privacy
+
+`ORG_MIN_COHORT=3` counts only consenting, completed-intake members whose profile is
+available through `member_learners`. All roles currently use that same cohort. Below the
+threshold, `cells[].gap` and `role_gaps[role]` are null, `suppressed` and
+`role_suppressed[role]` are true, and `cohort_size` / `min_cohort` explain the boundary.
+Never convert these nulls into zeroes, green cells, gap percentages or a ranked gap.
+The manager's other authorised planning tools are unchanged.
+
+The synthetic test/demo fixtures currently have 4 bank members (2 complete and consenting)
+and 2 polytechnic members (1 complete and consenting), excluding managers/advisors. Both
+heatmaps are therefore suppressed at the safe default. They are test fixtures, not automatic
+production seed accounts. A meaningful demo of numeric heatmap data requires at least three
+completed synthetic member profiles with explicit sharing consent; the above-threshold
+regressions install a third synthetic bank learner without lowering the threshold.

@@ -45,3 +45,20 @@ Gap responses and SDG badges use M3's service ports. Persona CSVs are harness-on
 | Evaluation | Precision@k, Recall@k, MRR, nDCG@k on synthetic personas | Mean MRR=1.0, Mean P@3>=0.85, Mean nDCG@3>=0.90 |
 | Serving | `/api/v1/matches` (`list_matches`, `get_match`) | Explainable `ScoreComponent` breakdown, missing/partial skills and trend coverage |
 
+
+## Same-snapshot scenario and skill comparisons
+
+List/detail responses include optional `rank`, `other_scenario`, `other_score` and
+`other_rank`. The reference velocities already contain the other scenario from the same
+snapshot, so one saved profile and one snapshot read determine both rankings. Missing
+reference data leaves the comparison null. Both rankings include the requested SDG weight,
+including its production component rounding and role-ID tie-break.
+
+For each role's first three improvements, `new_rank` reruns the production ranker after
+raising that skill to the role's required level. Other roles also receive that skill change;
+shared skill/level counterfactuals are reused within the request. Labels say estimate, and
+all attribution dates, fallback disclosures and catalogue resolution are preserved.
+
+Detail requests still rank the full role catalogue, but build explanations, course options
+and top-three improvement counterfactuals only for the requested role. This preserves the
+same ranks as the list without discarding responses built for every unrelated role.
