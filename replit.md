@@ -28,8 +28,13 @@ trusted visitor identity and ignore supplied internal-secret/IP headers.
 ## Production configuration
 
 Replit supplies its managed `DATABASE_URL`. Set a stable random `SESSION_SECRET` of at least
-32 characters, a matching `PROXY_SHARED_SECRET` for web/API and a verified positive
-`TRUSTED_PROXY_HOPS` (the current account screenshot shows 1). Keep `APP_ENV=production`,
+32 characters and a matching `PROXY_SHARED_SECRET` for web/API. Set `TRUSTED_PROXY_HOPS`
+only after verifying the live ingress chain; a settings screenshot is not evidence of
+header sanitisation. Until then, `PROXY_CLIENT_IP_MODE=best-effort` with zero hops keeps
+serving without signing an unverified address, so anonymous requests share the private
+API peer's rate bucket. Signed-in limits still use verified session IDs.
+Follow [the count-only verification procedure](docs/replit-proxy-verification.md) before
+enabling a positive hop count and trusted mode. Keep `APP_ENV=production`,
 `AUTH_RAW_USER_IDS=false`, an empty `AUTH_DEFAULT_USER`, and `M3_BACKEND=postgres`.
 `AUTH_MODE=demo` means normal local PostgreSQL accounts, not a fixture/demo session.
 Set `WEB_ORIGIN` and `CORS_ORIGINS` to the exact published HTTPS origin without a trailing

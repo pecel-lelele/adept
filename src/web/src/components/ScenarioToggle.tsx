@@ -1,12 +1,10 @@
 "use client";
 
 import { Gauge, Rabbit, Turtle } from "lucide-react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useTransition } from "react";
 
 import { parseScenario, SCENARIO_PARAM, SCENARIOS } from "@/lib/scenario";
-import { useBusy } from "@/components/useBusy";
 
 import { onRadioKeyDown, radioTabIndex } from "./radioGroup";
 
@@ -18,23 +16,19 @@ const ICON = { moderate: Turtle, fast: Rabbit } as const;
  */
 export function ScenarioToggle() {
   const t = useTranslations("common.scenario");
-  const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
-  const [pending, startTransition] = useTransition();
-  useBusy(pending);
   const current = parseScenario(params.get(SCENARIO_PARAM) ?? undefined);
-
-  function select(scenario: string) {
-    if (pending || scenario === current) return;
-    const next = new URLSearchParams(params.toString());
-    next.set(SCENARIO_PARAM, scenario);
-    startTransition(() => router.push(`${pathname}?${next.toString()}`, { scroll: false }));
-  }
+  const preserved = [...params.entries()].filter(([key]) => key !== SCENARIO_PARAM);
 
   return (
     <div className="a-stack" style={{ gap: 4, alignItems: "flex-end" }}>
-      <div className="a-pace" aria-busy={pending} title={t("hint")}>
+      <form className="a-pace" action={pathname} method="get" title={t("hint")}>
+        {/* A native GET replaces the document even if an RSC transition is stranded.
+            Keep repeated filters and replay context; only replace the scenario. */}
+        {preserved.map(([name, value], index) => (
+          <input key={index} type="hidden" name={name} value={value} />
+        ))}
         <span className="a-pace-label">
           <Gauge size={15} aria-hidden /> {t("pace")}
         </span>
@@ -44,15 +38,19 @@ export function ScenarioToggle() {
             return (
               <button
                 key={s}
-                type="button"
+                type="submit"
+                name={SCENARIO_PARAM}
+                value={s}
                 role="radio"
                 aria-checked={current === s}
-                // Not `disabled` while the route updates: that would drop keyboard focus.
-                aria-disabled={pending || undefined}
                 tabIndex={radioTabIndex(current === s)}
                 title={t(s)}
-                onClick={() => select(s)}
-                onKeyDown={(e) => onRadioKeyDown(e, SCENARIOS, current, select)}
+                onClick={(e) => { if (s === current) e.preventDefault(); }}
+                onKeyDown={(e) => onRadioKeyDown(e, SCENARIOS, current, (next) => {
+                  if (next === current) return;
+                  const button = e.currentTarget.form?.querySelector<HTMLButtonElement>(`button[value="${next}"]`);
+                  if (button) button.form?.requestSubmit(button);
+                })}
               >
                 <Icon size={14} aria-hidden />
                 {t(`${s}Short`)}
@@ -60,7 +58,7 @@ export function ScenarioToggle() {
             );
           })}
         </div>
-      </div>
+      </form>
       <small className="a-small a-muted" style={{ maxWidth: 320, textAlign: "right" }}>{t("hint")}</small>
     </div>
   );
