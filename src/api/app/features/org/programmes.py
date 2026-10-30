@@ -175,7 +175,11 @@ def _catalogue(brief: ProgrammeBriefIn) -> list[Course]:
     for c in data.catalogue():
         if c.format == "subscription" or c.price_basis != "per_course":
             continue
-        if brief.certificate_required and c.price_status != "listed":
+        if brief.certificate_required and (
+            c.certificate_status != "included"
+            or c.certificate_source is None
+            or c.price_status != "listed"
+        ):
             continue
         if brief.hrd_claimable_only and not c.hrd_claimable and c.cost_myr > 0:
             continue

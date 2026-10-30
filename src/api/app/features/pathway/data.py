@@ -9,9 +9,12 @@
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from datetime import date, datetime
 from typing import Literal
+
+from pydantic import BaseModel
 
 from app.contracts.common import Source
 from app.contracts.pathway import Course
@@ -39,12 +42,35 @@ class Snapshot:
         return self.sources or (self.source,)
 
 
+class CertificateEvidence(BaseModel):
+    course_id: str
+    status: Literal["included"]
+    note: str
+    source: Source
+
+
+def certificate_evidence() -> dict[str, CertificateEvidence]:
+    """Versioned provider evidence, shared by CSV and DB-backed catalogue adapters."""
+    path = seed.SEED_DIR / "courses/certificate_evidence.json"
+    if not path.exists():
+        return {}  # Missing verification never grants certificate eligibility.
+    rows = [
+        CertificateEvidence.model_validate(row)
+        for row in json.loads(path.read_text(encoding="utf-8"))
+    ]
+    if len({row.course_id for row in rows}) != len(rows):
+        raise ValueError("Duplicate certificate evidence course ID")
+    return {row.course_id: row for row in rows}
+
+
 def catalogue() -> list[Course]:
     out: list[Course] = []
+    certificates = certificate_evidence()
     # Retired courses (no longer listed by their provider) are never recommended.
     for r in refdata.rows("courses", "courses", non_retired_only=True, order_by_id=True):
         verified = date.fromisoformat(r["verified_at"])
         source_name = r.get("source_name") or r["provider"]
+        certificate = certificates.get(r["id"])
         out.append(
             Course(
                 id=r["id"],
@@ -72,15 +98,19 @@ def catalogue() -> list[Course]:
                     if r["provider"].startswith("Coursera") and float(r["cost_myr"]) == 0
                     else "listed"
                 ),
-                certificate_note=(
+                certificate_status=certificate.status if certificate else "unknown",
+                certificate_source=certificate.source if certificate else None,
+                certificate_note=certificate.note
+                if certificate
+                else (
                     "Free enrolment is not a free certificate. Confirm the paid certificate "
                     "price at checkout and request HR approval before purchase."
                     if r["provider"].startswith("Coursera") and float(r["cost_myr"]) == 0
                     else "Microsoft Learn modules award learning achievements, not professional "
                     "certification. Certification exams may have separate fees."
                     if r["provider"] == "Microsoft Learn"
-                    else "Confirm certificate, taxes, eligibility and current price "
-                    "with the provider."
+                    else "Completion certificate and its price are unverified. Confirm "
+                    "certificate, taxes, eligibility and current price with the provider."
                 ),
                 source=Source(
                     name=source_name, url=r.get("source_url") or r["url"], retrieved_at=verified
@@ -99,7 +129,7 @@ def taxonomy_source() -> Source:
         name="O*NET 31.0 crosswalk + Adept curated role requirements (estimates)",
         url="https://github.com/pecel-lelele/adept/blob/main/"
         "src/data/seed/taxonomy/provenance.json",
-        retrieved_at=date(2026, 10, 30),  # dated catalogue release in provenance.json
+        retrieved_at=date(2026, 10, 31),  # dated catalogue release in provenance.json
     )
 
 

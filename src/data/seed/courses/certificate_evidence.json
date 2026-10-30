@@ -1,0 +1,14 @@
+[
+  {
+    "course_id": "modernlms-kursus-google-ads-ms",
+    "status": "included",
+    "note": "Provider lists Certificate of Completion among course benefits at RM149; Google's professional certification exam is separate.",
+    "source": {"name": "ModernLMS Google Ads completion certificate", "url": "https://www.modernlms.com/learning/courses/kursus-google-ads/", "retrieved_at": "2026-10-31"}
+  },
+  {
+    "course_id": "modernlms-kursus-excel-ms",
+    "status": "included",
+    "note": "Provider lists Certificate of Completion among the benefits of this free course; not a Microsoft professional certification.",
+    "source": {"name": "ModernLMS Excel completion certificate", "url": "https://www.modernlms.com/learning/courses/kursus-microsoft-excel/", "retrieved_at": "2026-10-31"}
+  }
+]

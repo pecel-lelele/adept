@@ -49,10 +49,11 @@ def test_official_occupation_titles_and_digital_skills_resolve_to_dated_sources(
     assert len(sources) == len(manifest["roles"])
     for role in seed.rows("taxonomy", "roles"):
         source = sources[role["id"]]
-        if role["taxonomy"] == "O*NET-SOC":
-            assert role["label"] == source["occupation_title"] == source["label"]
-            assert source["source_url"].endswith(source["occupation_code"])
-            assert source["retrieved_at"] == "2026-10-30" and source["requirements_basis"]
+        assert role["taxonomy"] == "O*NET-SOC"
+        assert role["label"] == source["occupation_title"] == source["label"]
+        assert source["source_url"].endswith(source["occupation_code"])
+        assert source["retrieved_at"] in {"2026-10-30", "2026-10-31"}
+        assert source["requirements_basis"]
     assert {row["skill_id"] for row in manifest["skills"]} == {"git", "selenium"}
     assert TECH_ROLES <= {role.role_id for role in matching.load_roles()}
     assert not {

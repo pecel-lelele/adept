@@ -1,9 +1,13 @@
 # Taxonomy seed (F4, M2)
 
-48 roles and 142 skills, read by the shared reference loader and matching/pathway services.
+48 role profiles covering 41 distinct official occupations, and 142 skills, read by the shared reference loader and matching/pathway services.
 `provenance.json` records the official O*NET occupation code, source URL, stored title and
-retrieval date for every role. Existing `custom` labels are disclosed Adept specialisations
-of those occupations; they are not official titles or independently verified growth forecasts.
+retrieval date for every role. All displayed labels are official occupation titles. The 2026-10-31 verification pass opened
+the 26 distinct O*NET pages behind the older editorial labels and replaced those labels with
+their official occupation titles. Stable IDs and estimated requirement profiles are retained;
+former labels exist only as `legacy_label` history in provenance. Several profiles map to the
+same official occupation: 48 stored profiles must not be reported as 48 distinct occupations.
+No title is an independently verified growth forecast.
 
 The 2026-10-30 release adds nine current occupations (`is_target=false`): bookkeeping clerks,
 secretaries, registered nurses, retail supervisors, shipping clerks, teaching assistants,

@@ -927,6 +927,17 @@
 - **Replaces**: none
 - **PR / branch**: feat/pathway-real-roles-courses / Closes #56
 
+### M2-028: Display official occupation titles for every stored role profile
+- **Date**: 2026-10-31
+- **Feature**: F4 (Taxonomy)
+- **Type**: data source
+- **Change**: Replace 31 legacy editorial display labels with their official O*NET occupation titles after opening all 26 distinct source pages. Preserve stable IDs, links and estimated digital-skill requirements; keep former labels only as provenance history. Explicitly count 48 role profiles covering 41 distinct official occupations.
+- **Why**: A broad taxonomy crosswalk does not make an Adept-created specialisation an official job title. Multiple stored skill profiles for one occupation must not inflate the count of distinct occupations.
+- **Pipeline**: dated official O*NET pages → exact occupation titles/codes and stable-ID crosswalk → existing estimated digital requirements → unchanged matching/pathway methods → all-role title/provenance and graph closure regressions → grounded canonical display labels
+- **Affects**: role display labels, provenance/README and taxonomy release date; no identifier or scoring change
+- **Replaces**: none (supersedes legacy editorial label treatment; M2-027 is reserved by PR #77)
+- **PR / branch**: feat/pathway-real-roles-courses / PR #74
+
 ---
 
 ## M3: Pathway, SDG & Guardrails (F5, F6, F8)
@@ -1293,6 +1304,17 @@
 - **Affects**: F4 taxonomy attribution; F5 source definitions, validation, pipeline and seeds; F6 source dates and mapping seeds. No schema migration or provider enablement.
 - **Replaces**: none
 - **PR / branch**: feat/pathway-real-roles-courses / Closes #56
+
+### M3-037: Separate verified completion certificates from course learning prices
+- **Date**: 2026-10-31
+- **Feature**: F5 (Catalogue), F7 programme restrictions
+- **Type**: contract
+- **Change**: Add certificate status and dated provider evidence independently of the learning price. Only certificates verified as included in that price qualify for certificate-required programmes; the filtered catalogue also supplies alternatives. Two reopened ModernLMS course pages establish included completion certificates; every other course defaults to unknown.
+- **Why**: A listed learning fee, including zero, does not establish a certificate or its price. Pepper Labs learning pages do not claim one. Versioned certificate annotations work with both serving adapters without guessing database metadata or changing ingestion schemas.
+- **Pipeline**: public provider course pages → dated canonical-ID certificate evidence → included/unknown status separate from learning price → programme catalogue filter → positive and negative selected-course/alternative regressions → attributed courses with unchanged fee/hour verification dates
+- **Affects**: course contract/data adapter, programme filtering, pathway source attribution, generated contracts and source README; no migration
+- **Replaces**: none (M3-035/M3-036 are reserved by PR #76)
+- **PR / branch**: feat/pathway-real-roles-courses / PR #74
 
 ---
 

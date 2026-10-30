@@ -5,282 +5,344 @@
   "roles": [
     {
       "role_id": "bank-operations-executive",
-      "label": "Bank Operations Executive",
+      "label": "Financial Clerks, All Other",
       "occupation_code": "43-3099.00",
       "occupation_title": "Financial Clerks, All Other",
       "source_url": "https://www.onetonline.org/link/summary/43-3099.00",
-      "retrieved_at": "2026-10-23",
-      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+      "retrieved_at": "2026-10-31",
+      "mapping": "Official O*NET occupation title. Stable legacy ID retains an Adept estimated digital-skill profile, not a separate occupation or a verified growth forecast.",
+      "legacy_label": "Bank Operations Executive",
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
     },
     {
       "role_id": "data-entry-clerk",
-      "label": "Data Entry Clerk",
+      "label": "Data Entry Keyers",
       "occupation_code": "43-9021.00",
       "occupation_title": "Data Entry Keyers",
       "source_url": "https://www.onetonline.org/link/summary/43-9021.00",
-      "retrieved_at": "2026-10-23",
-      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+      "retrieved_at": "2026-10-31",
+      "mapping": "Official O*NET occupation title. Stable legacy ID retains an Adept estimated digital-skill profile, not a separate occupation or a verified growth forecast.",
+      "legacy_label": "Data Entry Clerk",
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
     },
     {
       "role_id": "logistics-supervisor",
-      "label": "Logistics Supervisor",
+      "label": "Supply Chain Managers",
       "occupation_code": "11-3071.04",
       "occupation_title": "Supply Chain Managers",
       "source_url": "https://www.onetonline.org/link/summary/11-3071.04",
-      "retrieved_at": "2026-10-23",
-      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+      "retrieved_at": "2026-10-31",
+      "mapping": "Official O*NET occupation title. Stable legacy ID retains an Adept estimated digital-skill profile, not a separate occupation or a verified growth forecast.",
+      "legacy_label": "Logistics Supervisor",
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
     },
     {
       "role_id": "data-analyst",
-      "label": "Data Analyst",
+      "label": "Data Scientists",
       "occupation_code": "15-2051.00",
       "occupation_title": "Data Scientists",
       "source_url": "https://www.onetonline.org/link/summary/15-2051.00",
-      "retrieved_at": "2026-10-23",
-      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+      "retrieved_at": "2026-10-31",
+      "mapping": "Official O*NET occupation title. Stable legacy ID retains an Adept estimated digital-skill profile, not a separate occupation or a verified growth forecast.",
+      "legacy_label": "Data Analyst",
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
     },
     {
       "role_id": "ai-operations-specialist",
-      "label": "AI Operations Specialist",
+      "label": "Computer Systems Engineers/Architects",
       "occupation_code": "15-1299.08",
       "occupation_title": "Computer Systems Engineers/Architects",
       "source_url": "https://www.onetonline.org/link/summary/15-1299.08",
-      "retrieved_at": "2026-10-23",
-      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+      "retrieved_at": "2026-10-31",
+      "mapping": "Official O*NET occupation title. Stable legacy ID retains an Adept estimated digital-skill profile, not a separate occupation or a verified growth forecast.",
+      "legacy_label": "AI Operations Specialist",
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
     },
     {
       "role_id": "process-automation-analyst",
-      "label": "Process Automation Analyst",
+      "label": "Management Analysts",
       "occupation_code": "13-1111.00",
       "occupation_title": "Management Analysts",
       "source_url": "https://www.onetonline.org/link/summary/13-1111.00",
-      "retrieved_at": "2026-10-23",
-      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+      "retrieved_at": "2026-10-31",
+      "mapping": "Official O*NET occupation title. Stable legacy ID retains an Adept estimated digital-skill profile, not a separate occupation or a verified growth forecast.",
+      "legacy_label": "Process Automation Analyst",
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
     },
     {
       "role_id": "compliance-analytics-officer",
-      "label": "Compliance Analytics Officer",
+      "label": "Compliance Officers",
       "occupation_code": "13-1041.00",
       "occupation_title": "Compliance Officers",
       "source_url": "https://www.onetonline.org/link/summary/13-1041.00",
-      "retrieved_at": "2026-10-23",
-      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+      "retrieved_at": "2026-10-31",
+      "mapping": "Official O*NET occupation title. Stable legacy ID retains an Adept estimated digital-skill profile, not a separate occupation or a verified growth forecast.",
+      "legacy_label": "Compliance Analytics Officer",
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
     },
     {
       "role_id": "machine-learning-engineer",
-      "label": "Machine Learning Engineer",
+      "label": "Data Scientists",
       "occupation_code": "15-2051.00",
       "occupation_title": "Data Scientists",
       "source_url": "https://www.onetonline.org/link/summary/15-2051.00",
-      "retrieved_at": "2026-10-23",
-      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+      "retrieved_at": "2026-10-31",
+      "mapping": "Official O*NET occupation title. Stable legacy ID retains an Adept estimated digital-skill profile, not a separate occupation or a verified growth forecast.",
+      "legacy_label": "Machine Learning Engineer",
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
     },
     {
       "role_id": "data-engineer",
-      "label": "Data Engineer",
+      "label": "Database Architects",
       "occupation_code": "15-1243.00",
       "occupation_title": "Database Architects",
       "source_url": "https://www.onetonline.org/link/summary/15-1243.00",
-      "retrieved_at": "2026-10-23",
-      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+      "retrieved_at": "2026-10-31",
+      "mapping": "Official O*NET occupation title. Stable legacy ID retains an Adept estimated digital-skill profile, not a separate occupation or a verified growth forecast.",
+      "legacy_label": "Data Engineer",
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
     },
     {
       "role_id": "cloud-solutions-architect",
-      "label": "Cloud Solutions Architect",
+      "label": "Computer Systems Engineers/Architects",
       "occupation_code": "15-1299.08",
       "occupation_title": "Computer Systems Engineers/Architects",
       "source_url": "https://www.onetonline.org/link/summary/15-1299.08",
-      "retrieved_at": "2026-10-23",
-      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+      "retrieved_at": "2026-10-31",
+      "mapping": "Official O*NET occupation title. Stable legacy ID retains an Adept estimated digital-skill profile, not a separate occupation or a verified growth forecast.",
+      "legacy_label": "Cloud Solutions Architect",
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
     },
     {
       "role_id": "cybersecurity-analyst",
-      "label": "Cybersecurity Analyst",
+      "label": "Information Security Analysts",
       "occupation_code": "15-1212.00",
       "occupation_title": "Information Security Analysts",
       "source_url": "https://www.onetonline.org/link/summary/15-1212.00",
-      "retrieved_at": "2026-10-23",
-      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+      "retrieved_at": "2026-10-31",
+      "mapping": "Official O*NET occupation title. Stable legacy ID retains an Adept estimated digital-skill profile, not a separate occupation or a verified growth forecast.",
+      "legacy_label": "Cybersecurity Analyst",
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
     },
     {
       "role_id": "ai-product-manager",
-      "label": "AI Product Manager",
+      "label": "Computer and Information Systems Managers",
       "occupation_code": "11-3021.00",
       "occupation_title": "Computer and Information Systems Managers",
       "source_url": "https://www.onetonline.org/link/summary/11-3021.00",
-      "retrieved_at": "2026-10-23",
-      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+      "retrieved_at": "2026-10-31",
+      "mapping": "Official O*NET occupation title. Stable legacy ID retains an Adept estimated digital-skill profile, not a separate occupation or a verified growth forecast.",
+      "legacy_label": "AI Product Manager",
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
     },
     {
       "role_id": "ux-designer",
-      "label": "UX / UI Designer",
+      "label": "Web and Digital Interface Designers",
       "occupation_code": "15-1255.00",
       "occupation_title": "Web and Digital Interface Designers",
       "source_url": "https://www.onetonline.org/link/summary/15-1255.00",
-      "retrieved_at": "2026-10-23",
-      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+      "retrieved_at": "2026-10-31",
+      "mapping": "Official O*NET occupation title. Stable legacy ID retains an Adept estimated digital-skill profile, not a separate occupation or a verified growth forecast.",
+      "legacy_label": "UX / UI Designer",
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
     },
     {
       "role_id": "digital-marketing-specialist",
-      "label": "Digital Marketing Specialist",
+      "label": "Search Marketing Strategists",
       "occupation_code": "13-1161.01",
       "occupation_title": "Search Marketing Strategists",
       "source_url": "https://www.onetonline.org/link/summary/13-1161.01",
-      "retrieved_at": "2026-10-23",
-      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+      "retrieved_at": "2026-10-31",
+      "mapping": "Official O*NET occupation title. Stable legacy ID retains an Adept estimated digital-skill profile, not a separate occupation or a verified growth forecast.",
+      "legacy_label": "Digital Marketing Specialist",
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
     },
     {
       "role_id": "business-analyst",
-      "label": "Business Analyst",
+      "label": "Management Analysts",
       "occupation_code": "13-1111.00",
       "occupation_title": "Management Analysts",
       "source_url": "https://www.onetonline.org/link/summary/13-1111.00",
-      "retrieved_at": "2026-10-23",
-      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+      "retrieved_at": "2026-10-31",
+      "mapping": "Official O*NET occupation title. Stable legacy ID retains an Adept estimated digital-skill profile, not a separate occupation or a verified growth forecast.",
+      "legacy_label": "Business Analyst",
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
     },
     {
       "role_id": "solar-pv-engineer",
-      "label": "Solar PV & Renewable Energy Engineer",
+      "label": "Solar Energy Systems Engineers",
       "occupation_code": "17-2199.11",
       "occupation_title": "Solar Energy Systems Engineers",
       "source_url": "https://www.onetonline.org/link/summary/17-2199.11",
-      "retrieved_at": "2026-10-23",
-      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+      "retrieved_at": "2026-10-31",
+      "mapping": "Official O*NET occupation title. Stable legacy ID retains an Adept estimated digital-skill profile, not a separate occupation or a verified growth forecast.",
+      "legacy_label": "Solar PV & Renewable Energy Engineer",
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
     },
     {
       "role_id": "energy-manager",
-      "label": "Energy Manager",
+      "label": "Energy Engineers, Except Wind and Solar",
       "occupation_code": "17-2199.03",
       "occupation_title": "Energy Engineers, Except Wind and Solar",
       "source_url": "https://www.onetonline.org/link/summary/17-2199.03",
-      "retrieved_at": "2026-10-23",
-      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+      "retrieved_at": "2026-10-31",
+      "mapping": "Official O*NET occupation title. Stable legacy ID retains an Adept estimated digital-skill profile, not a separate occupation or a verified growth forecast.",
+      "legacy_label": "Energy Manager",
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
     },
     {
       "role_id": "esg-sustainability-analyst",
-      "label": "ESG & Sustainability Analyst",
+      "label": "Sustainability Specialists",
       "occupation_code": "13-1199.05",
       "occupation_title": "Sustainability Specialists",
       "source_url": "https://www.onetonline.org/link/summary/13-1199.05",
-      "retrieved_at": "2026-10-23",
-      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+      "retrieved_at": "2026-10-31",
+      "mapping": "Official O*NET occupation title. Stable legacy ID retains an Adept estimated digital-skill profile, not a separate occupation or a verified growth forecast.",
+      "legacy_label": "ESG & Sustainability Analyst",
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
     },
     {
       "role_id": "smart-manufacturing-engineer",
-      "label": "Smart Manufacturing Engineer",
+      "label": "Industrial Engineers",
       "occupation_code": "17-2112.00",
       "occupation_title": "Industrial Engineers",
       "source_url": "https://www.onetonline.org/link/summary/17-2112.00",
-      "retrieved_at": "2026-10-23",
-      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+      "retrieved_at": "2026-10-31",
+      "mapping": "Official O*NET occupation title. Stable legacy ID retains an Adept estimated digital-skill profile, not a separate occupation or a verified growth forecast.",
+      "legacy_label": "Smart Manufacturing Engineer",
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
     },
     {
       "role_id": "semiconductor-process-engineer",
-      "label": "Semiconductor Process Engineer",
+      "label": "Industrial Engineers",
       "occupation_code": "17-2112.00",
       "occupation_title": "Industrial Engineers",
       "source_url": "https://www.onetonline.org/link/summary/17-2112.00",
-      "retrieved_at": "2026-10-23",
-      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+      "retrieved_at": "2026-10-31",
+      "mapping": "Official O*NET occupation title. Stable legacy ID retains an Adept estimated digital-skill profile, not a separate occupation or a verified growth forecast.",
+      "legacy_label": "Semiconductor Process Engineer",
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
     },
     {
       "role_id": "supply-chain-analyst",
-      "label": "Supply Chain Analyst",
+      "label": "Logisticians",
       "occupation_code": "13-1081.00",
       "occupation_title": "Logisticians",
       "source_url": "https://www.onetonline.org/link/summary/13-1081.00",
-      "retrieved_at": "2026-10-23",
-      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+      "retrieved_at": "2026-10-31",
+      "mapping": "Official O*NET occupation title. Stable legacy ID retains an Adept estimated digital-skill profile, not a separate occupation or a verified growth forecast.",
+      "legacy_label": "Supply Chain Analyst",
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
     },
     {
       "role_id": "precision-agriculture-specialist",
-      "label": "Precision Agriculture Specialist",
+      "label": "Precision Agriculture Technicians",
       "occupation_code": "19-4012.01",
       "occupation_title": "Precision Agriculture Technicians",
       "source_url": "https://www.onetonline.org/link/summary/19-4012.01",
-      "retrieved_at": "2026-10-23",
-      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+      "retrieved_at": "2026-10-31",
+      "mapping": "Official O*NET occupation title. Stable legacy ID retains an Adept estimated digital-skill profile, not a separate occupation or a verified growth forecast.",
+      "legacy_label": "Precision Agriculture Specialist",
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
     },
     {
       "role_id": "health-informatics-specialist",
-      "label": "Health Informatics Specialist",
+      "label": "Health Informatics Specialists",
       "occupation_code": "15-1211.01",
       "occupation_title": "Health Informatics Specialists",
       "source_url": "https://www.onetonline.org/link/summary/15-1211.01",
-      "retrieved_at": "2026-10-23",
-      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+      "retrieved_at": "2026-10-31",
+      "mapping": "Official O*NET occupation title. Stable legacy ID retains an Adept estimated digital-skill profile, not a separate occupation or a verified growth forecast.",
+      "legacy_label": "Health Informatics Specialist",
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
     },
     {
       "role_id": "digital-health-nurse",
-      "label": "Digital Health Nurse",
+      "label": "Registered Nurses",
       "occupation_code": "29-1141.00",
       "occupation_title": "Registered Nurses",
       "source_url": "https://www.onetonline.org/link/summary/29-1141.00",
-      "retrieved_at": "2026-10-23",
-      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+      "retrieved_at": "2026-10-31",
+      "mapping": "Official O*NET occupation title. Stable legacy ID retains an Adept estimated digital-skill profile, not a separate occupation or a verified growth forecast.",
+      "legacy_label": "Digital Health Nurse",
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
     },
     {
       "role_id": "learning-experience-designer",
-      "label": "Learning Experience Designer",
+      "label": "Instructional Coordinators",
       "occupation_code": "25-9031.00",
       "occupation_title": "Instructional Coordinators",
       "source_url": "https://www.onetonline.org/link/summary/25-9031.00",
-      "retrieved_at": "2026-10-23",
-      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+      "retrieved_at": "2026-10-31",
+      "mapping": "Official O*NET occupation title. Stable legacy ID retains an Adept estimated digital-skill profile, not a separate occupation or a verified growth forecast.",
+      "legacy_label": "Learning Experience Designer",
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
     },
     {
       "role_id": "tvet-digital-skills-trainer",
-      "label": "TVET & Digital Skills Trainer",
+      "label": "Career/Technical Education Teachers, Postsecondary",
       "occupation_code": "25-1194.00",
       "occupation_title": "Career/Technical Education Teachers, Postsecondary",
       "source_url": "https://www.onetonline.org/link/summary/25-1194.00",
-      "retrieved_at": "2026-10-23",
-      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+      "retrieved_at": "2026-10-31",
+      "mapping": "Official O*NET occupation title. Stable legacy ID retains an Adept estimated digital-skill profile, not a separate occupation or a verified growth forecast.",
+      "legacy_label": "TVET & Digital Skills Trainer",
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
     },
     {
       "role_id": "customer-success-specialist",
-      "label": "Customer Success Specialist",
+      "label": "Customer Service Representatives",
       "occupation_code": "43-4051.00",
       "occupation_title": "Customer Service Representatives",
       "source_url": "https://www.onetonline.org/link/summary/43-4051.00",
-      "retrieved_at": "2026-10-23",
-      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+      "retrieved_at": "2026-10-31",
+      "mapping": "Official O*NET occupation title. Stable legacy ID retains an Adept estimated digital-skill profile, not a separate occupation or a verified growth forecast.",
+      "legacy_label": "Customer Success Specialist",
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
     },
     {
       "role_id": "islamic-finance-analyst",
-      "label": "Islamic Finance Analyst",
+      "label": "Financial and Investment Analysts",
       "occupation_code": "13-2051.00",
       "occupation_title": "Financial and Investment Analysts",
       "source_url": "https://www.onetonline.org/link/summary/13-2051.00",
-      "retrieved_at": "2026-10-23",
-      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+      "retrieved_at": "2026-10-31",
+      "mapping": "Official O*NET occupation title. Stable legacy ID retains an Adept estimated digital-skill profile, not a separate occupation or a verified growth forecast.",
+      "legacy_label": "Islamic Finance Analyst",
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
     },
     {
       "role_id": "people-analytics-specialist",
-      "label": "People Analytics Specialist",
+      "label": "Human Resources Specialists",
       "occupation_code": "13-1071.00",
       "occupation_title": "Human Resources Specialists",
       "source_url": "https://www.onetonline.org/link/summary/13-1071.00",
-      "retrieved_at": "2026-10-23",
-      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+      "retrieved_at": "2026-10-31",
+      "mapping": "Official O*NET occupation title. Stable legacy ID retains an Adept estimated digital-skill profile, not a separate occupation or a verified growth forecast.",
+      "legacy_label": "People Analytics Specialist",
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
     },
     {
       "role_id": "hospitality-experience-manager",
-      "label": "Hospitality Experience Manager",
+      "label": "Lodging Managers",
       "occupation_code": "11-9081.00",
       "occupation_title": "Lodging Managers",
       "source_url": "https://www.onetonline.org/link/summary/11-9081.00",
-      "retrieved_at": "2026-10-23",
-      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+      "retrieved_at": "2026-10-31",
+      "mapping": "Official O*NET occupation title. Stable legacy ID retains an Adept estimated digital-skill profile, not a separate occupation or a verified growth forecast.",
+      "legacy_label": "Hospitality Experience Manager",
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
     },
     {
       "role_id": "responsible-ai-officer",
-      "label": "Responsible AI & Governance Officer",
+      "label": "Compliance Officers",
       "occupation_code": "13-1041.00",
       "occupation_title": "Compliance Officers",
       "source_url": "https://www.onetonline.org/link/summary/13-1041.00",
-      "retrieved_at": "2026-10-23",
-      "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+      "retrieved_at": "2026-10-31",
+      "mapping": "Official O*NET occupation title. Stable legacy ID retains an Adept estimated digital-skill profile, not a separate occupation or a verified growth forecast.",
+      "legacy_label": "Responsible AI & Governance Officer",
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
     },
     {
       "role_id": "retail-salespersons",
@@ -453,7 +515,7 @@
       "requirements_basis": "Querying data repositories, generating reports, dashboard tools, spreadsheets and analysis support the selected digital skills."
     }
   ],
-  "snapshot_date": "2026-10-30",
+  "snapshot_date": "2026-10-31",
   "requirements_method": "Role-skill edges map cited tasks, software and knowledge to existing Adept skill IDs. Levels (1-5) and importance weights are Adept estimates, not official taxonomy ratings or complete occupational qualifications. Current occupations are excluded from future-role ranking.",
   "skills": [
     {
@@ -474,5 +536,8 @@
       "retrieved_at": "2026-10-30",
       "mapping": "Official software name used as a digital skill; levels and role importance are Adept estimates"
     }
-  ]
+  ],
+  "role_profile_count": 48,
+  "distinct_occupation_count": 41,
+  "label_method": "All displayed role titles are official O*NET occupation titles. Stable legacy IDs may retain different estimated digital-skill profiles for the same official occupation; these are not distinct occupations. Former editorial labels are retained only as historical legacy_label values."
 }

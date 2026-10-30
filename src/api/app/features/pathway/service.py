@@ -112,6 +112,11 @@ def _meta(
             prev = sources.get(src.name)
             if prev is None or src.retrieved_at < prev.retrieved_at:
                 sources[src.name] = src  # oldest verification date is the honest one
+            if course.certificate_source:
+                cert = course.certificate_source
+                previous = sources.get(cert.name)
+                if previous is None or cert.retrieved_at < previous.retrieved_at:
+                    sources[cert.name] = cert
     if snapshot:
         for src in snapshot.all_sources():
             sources.setdefault(src.name, src)

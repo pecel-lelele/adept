@@ -45,3 +45,21 @@ from Microsoft Learn, opened 2026-10-30: free learning, English, 86 minutes acro
 It is a dated manually checked row in `FREE_DIGITAL`, distinct from API-refreshed `CURATED` rows.
 All 104 course URLs were opened in this review (103 in the bulk HTTP audit and the Git page
 separately). HTTP availability does not establish current enrollment or refresh older price facts.
+
+## Completion-certificate evidence (2026-10-31)
+
+Learning price and completion-certificate availability are separate facts. The versioned
+`certificate_evidence.json` records only provider-verified inclusion in the listed course
+price, with its own source and retrieval date. It is a serving-side annotation of canonical
+course IDs, shared by CSV and database catalogues; it does not change ingestion CSV columns
+or need a migration. Missing evidence defaults to `unknown` and never satisfies an HR
+certificate-required brief, even when learning is free or the course has a listed fee.
+
+Both ModernLMS pages were reopened on 2026-10-31: [Google Ads](https://www.modernlms.com/learning/courses/kursus-google-ads/)
+lists a completion certificate and RM149; [Microsoft Excel](https://www.modernlms.com/learning/courses/kursus-microsoft-excel/)
+lists a completion certificate and FREE. These are course-completion documents, not Google
+or Microsoft professional certification exams. Other course certificates and their fees
+remain unverified. In particular, the three Pepper Labs pages do not establish a certificate.
+Existing course fee/hour verification dates remain 2026-10-30; certificate verification does
+not refresh unrelated facts. Certificate restrictions apply to selected courses and all
+alternatives through the same filtered catalogue. Personal learning remains available.
