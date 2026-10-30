@@ -120,7 +120,7 @@ def test_joining_org_without_consent_fails(client: TestClient) -> None:
     assert silent.status_code == 422
 
 
-@pytest.mark.parametrize("choice", [{}, {"share_skills": False}, {"share_skills": "true"}])
+@pytest.mark.parametrize("choice", [{}, {"share_skills": "true"}])
 def test_join_requires_explicit_sharing_without_assuming_missing_consent(
     client: TestClient, choice: dict[str, object]
 ) -> None:
@@ -148,3 +148,39 @@ def test_nonconsenting_members_skill_time_and_budget_are_unavailable_to_managers
         assert "aisyah" not in _option_members(client)
     finally:
         client.put("/api/v1/org/me/sharing", headers=WORK, json={"share_skills": True})
+
+
+def test_joining_without_sharing_succeeds_and_hides_skills_from_managers(
+    client: TestClient,
+) -> None:
+    """Sharing is optional: an explicit "no" joins the organisation without exposing skills."""
+    from app.features.org import service
+
+    signup = client.post(
+        "/api/v1/auth/signup",
+        json={
+            "display_name": "Synthetic Private Joiner",
+            "email": "synthetic.private.joiner@example.com",
+            "password": "correct-horse-battery",
+            "consent": True,
+        },
+    )
+    assert signup.status_code == 201, signup.text
+    token = signup.json()["token"]
+    joiner = signup.json()["account"]["id"]
+    joined = client.post(
+        "/api/v1/org/join",
+        headers={"X-Demo-User": token},
+        json={"code": "BANKDEMO", "consent": True, "share_skills": False},
+    )
+    assert joined.status_code == 200, joined.text
+    spaces = client.get("/api/v1/org/workspaces", headers={"X-Demo-User": token}).json()
+    bank = next(w for w in spaces["workspaces"] if w["id"] == BANK)
+    assert bank["role"] == "member" and bank["skills_shared"] is False
+    assert joiner not in service.member_learners(BANK)
+    assert joiner not in _option_members(client)
+    listed = client.get("/api/v1/org/members", headers=HR).json()
+    rows = listed["members"] if isinstance(listed, dict) else listed
+    mine = [m for m in rows if m["id"] == joiner]
+    assert mine and mine[0]["skills_shared"] is False
+    assert mine[0]["current_role_id"] is None

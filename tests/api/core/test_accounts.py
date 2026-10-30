@@ -192,12 +192,12 @@ def test_unknown_join_code_is_rejected(client: TestClient) -> None:
     assert resp.json()["error"]["code"] == "bad_join_code"
 
 
-def test_signup_with_join_code_requires_sharing_consent(client: TestClient) -> None:
-    _manager, join_code = _org(client, "Sharing Consent Org")
-    bad = client.post(
+def test_signup_with_join_code_does_not_require_sharing(client: TestClient) -> None:
+    manager, join_code = _org(client, "Sharing Consent Org")
+    private = client.post(
         "/api/v1/auth/signup",
         json={
-            "display_name": "No Consent",
+            "display_name": "Private Joiner",
             "email": _email(),
             "password": "correct horse battery",
             "consent": True,
@@ -205,13 +205,16 @@ def test_signup_with_join_code_requires_sharing_consent(client: TestClient) -> N
             "share_skills": False,
         },
     )
-    assert bad.status_code == 422
-    assert bad.json()["error"]["code"] == "sharing_consent_required"
+    assert private.status_code == 201, private.text
+    token = {"X-Demo-User": private.json()["token"]}
+    spaces = client.get("/api/v1/org/workspaces", headers=token).json()["workspaces"]
+    org = next(w for w in spaces if w["kind"] == "org")
+    assert org["skills_shared"] is False
 
-    good = client.post(
+    shared = client.post(
         "/api/v1/auth/signup",
         json={
-            "display_name": "With Consent",
+            "display_name": "Sharing Joiner",
             "email": _email(),
             "password": "correct horse battery",
             "consent": True,
@@ -219,7 +222,12 @@ def test_signup_with_join_code_requires_sharing_consent(client: TestClient) -> N
             "share_skills": True,
         },
     )
-    assert good.status_code == 201
+    assert shared.status_code == 201
+    spaces = client.get(
+        "/api/v1/org/workspaces", headers={"X-Demo-User": shared.json()["token"]}
+    ).json()["workspaces"]
+    assert next(w for w in spaces if w["kind"] == "org")["skills_shared"] is True
+    del manager
 
 
 def _org(client: TestClient, name: str) -> tuple[dict, str]:
