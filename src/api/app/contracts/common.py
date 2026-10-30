@@ -39,6 +39,13 @@ class HealthResponse(BaseModel):
     database: Literal["ok", "unavailable"]
 
 
+class VersionInfo(BaseModel):
+    version: str
+    revision: str | None
+    dirty: bool | None
+    environment: Literal["development", "production"]
+
+
 class DataFreshness(BaseModel):
     snapshot_date: date
     sources: list[Source]

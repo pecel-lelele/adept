@@ -157,11 +157,14 @@ choices are not verified CV facts. Parser regression fixtures remain under `test
 [publishing handoff](replit.md#publishing-handoff). The web starts with the monorepo standalone
 launcher, not `next start`. One public Next.js server relays `/api/v1/*` to private FastAPI; the root supervisor waits for API/database readiness before opening the web port.
 Provide stable `SESSION_SECRET`, matching `PROXY_SHARED_SECRET`, Replit's managed
-PostgreSQL `DATABASE_URL` and exact production origin. `PROXY_CLIENT_IP_MODE=best-effort`
-allows `TRUSTED_PROXY_HOPS=0`: the web forwards only the right-most valid forwarded address,
-or warns and omits `X-Real-IP` when absent. `trusted` mode requires a verified positive hop
-count. Authenticated rate limits use verified session IDs; anonymous requests without a
-forwarded address share their direct peer's allowance. Both modes require the shared secret.
+PostgreSQL `DATABASE_URL` and exact production origin. The Replit deployment runs with
+`TRUSTED_PROXY_HOPS=1`: the client is the right-most `X-Forwarded-For` entry appended by
+Replit's edge, and caller-supplied entries to its left are ignored. Production refuses to start
+in trusted mode with 0 hops. With 0 hops (local development) no client IP is forwarded and
+anonymous visitors share one rate-limit bucket. If the ingress chain changes, recheck it with
+[docs/replit-proxy-verification.md](docs/replit-proxy-verification.md). Authenticated rate limits
+use verified session IDs; anonymous requests without a forwarded address share their direct
+peer's allowance. Both modes require the shared secret.
 Importing GitHub files copies neither database contents nor secrets. Pull the merged source
 into the correct Replit project before making a fresh publish attempt. A working public
 instance does not prove that a newer attempted release succeeded.
@@ -684,8 +687,8 @@ static CSS, health, CORS preflight and a read-only failed login through the publ
 ## Production boundaries
 
 The Next.js/API pair must receive the same nonempty `PROXY_SHARED_SECRET`. Set
-`TRUSTED_PROXY_HOPS` from the real forwarding chain; do not guess it. Your Replit configuration
-currently shows 1: retain it only if that matches the one public server's platform chain.
+`TRUSTED_PROXY_HOPS` from the real forwarding chain; do not guess it. Replit production uses 1
+(one appending edge in front of the single public server).
 Production rejects missing/zero trust configuration. Local direct-socket development may
 use zero. The public API handler strips caller-supplied internal identity headers.
 
@@ -697,3 +700,19 @@ The hardened MiniLM dependency pins are source changes. Applying them to the liv
 requires a guarded image build and RunPod redeployment. The historical verified worker image
 is not evidence that those newer dependencies are already deployed. Keep all keys and
 connection strings in secret stores, never in this README or submission PDFs.
+
+Final-round review: [status and responsibilities](docs/final-round-status.md), [refresh and demo runbook](docs/review-runbook.md). Dashboard refresh uses the existing published RunPod MiniLM model through an admin-only workflow dispatch; production configuration and paid-run acceptance remain explicit rollout steps.
+
+### Final-round disclosure and measurement notes (30 October 2026)
+
+The About registry and technical declaration identify RunPod MiniLM, RunPod GLM-5.3
+with separately authenticated Gemini failover, and Replit hosting. Google Fonts'
+Inter assets are available through `@fontsource-variable/inter`; current app styles
+use Arial/system fallbacks, without a live Google Fonts request. ElevenLabs was
+confirmed used for presentation audio, not application recommendations.
+
+The MyCOL 2024/2025 badge uses only the reviewed stored `data-analyst` ID and cites
+TalentCorp's restricted title list; it does not change ranking or claim current vacancies.
+See [mapping evidence](docs/reference/critical-occupations.md).
+Human KPI trials remain unrun (0 testers, 0 trials); automated local API timings
+are separate evidence: [journey measurements](docs/kpi-automated-journeys.md).

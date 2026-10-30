@@ -105,10 +105,42 @@ test("missing or malformed proxy addresses warn and forward without a signed ide
     assert.equal(headers["x-internal-proxy-secret"], undefined);
   }
   assert.equal(warning.mock.calls.length, 3);
-  assert.equal(trustedClientIp("203.0.113.1", 2), undefined);
   assert.equal(trustedClientIp("192.0.2.123, invalid", 1), undefined);
-  assert.equal(trustedClientIp("forged, 2001:db8::1", 1), "2001:db8::1");
+});
+
+test("trusted mode selects the entry exactly TRUSTED_PROXY_HOPS from the right", () => {
+  const chain = "192.0.2.66, 203.0.113.7, 198.51.100.5";
+  // hops=0 trusts nothing in trusted mode.
+  assert.equal(trustedClientIp(chain, 0), undefined);
+  assert.equal(trustedClientIp(chain, 1), "198.51.100.5");
+  assert.equal(trustedClientIp(chain, 2), "203.0.113.7");
+  assert.equal(trustedClientIp(chain, 3), "192.0.2.66");
+  // A chain shorter than the configured hops did not pass every trusted proxy.
+  assert.equal(trustedClientIp("203.0.113.1", 2), undefined);
+  assert.equal(trustedClientIp(chain, 4), undefined);
+  // Spoofed left-most entries never shift the selected position.
+  assert.equal(trustedClientIp("10.0.0.1, 10.0.0.2, 192.0.2.66, 203.0.113.7, 198.51.100.5", 2), "203.0.113.7");
   assert.equal(trustedClientIp("forged, 2001:db8::1", 2), undefined);
+  assert.equal(trustedClientIp("forged, 2001:db8::1", 1), "2001:db8::1");
+});
+
+test("best-effort mode still needs a deployment-verified hop count", () => {
+  const chain = "192.0.2.66, 203.0.113.7, 198.51.100.5";
+  assert.equal(trustedClientIp(chain, 0, "best-effort"), undefined);
+  assert.equal(trustedClientIp(chain, 1, "best-effort"), "198.51.100.5");
+  assert.equal(trustedClientIp("192.0.2.66, not-an-ip", 1, "best-effort"), undefined);
+  assert.equal(trustedClientIp(null, 1, "best-effort"), undefined);
+});
+
+test("a chain shorter than the trusted hops forwards no X-Real-IP and logs once", async (t) => {
+  const apiUrl = await serve(t, (req, res) => res.end(JSON.stringify(req.headers)));
+  const warning = t.mock.method(console, "warn", () => undefined);
+  const response = await proxyRequest(request(undefined, { headers: { "x-forwarded-for": "203.0.113.1" } }),
+    { apiUrl, secret, trustedHops: 2, clientIpMode: "trusted" });
+  const headers = await response.json();
+  assert.equal(headers["x-real-ip"], undefined);
+  assert.equal(headers["x-internal-proxy-secret"], undefined);
+  assert.equal(warning.mock.calls.length, 1);
 });
 
 test("upload bodies, response cookies and status are preserved without hop headers", async (t) => {

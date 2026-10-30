@@ -9,7 +9,7 @@ import sys
 import time
 from collections.abc import Sequence
 from functools import lru_cache
-from typing import Protocol
+from typing import Any, Protocol
 
 import httpx
 
@@ -17,6 +17,17 @@ MODEL_ID = "sentence-transformers/all-MiniLM-L6-v2"
 MODEL_REVISION = "1110a243fdf4706b3f48f1d95db1a4f5529b4d41"
 DIMENSIONS = 384
 MAX_BATCH = 64
+# Whole-encode deadline: long enough for a cold worker (~80 s observed) plus several batches.
+DEFAULT_TIMEOUT_S = 600.0
+MAX_TIMEOUT_S = 900.0
+# Each HTTP request is short; long waits happen between status polls, never inside one request.
+REQUEST_TIMEOUT_S = 15.0
+SUBMIT_ATTEMPTS = 3
+SUBMIT_BACKOFF_S = 2.0
+POLL_START_S = 1.0
+POLL_MAX_S = 5.0
+POLL_ERROR_LIMIT = 3
+TRANSIENT_STATUS = frozenset({429, 500, 502, 503, 504})
 
 
 class Encoder(Protocol):
@@ -69,32 +80,38 @@ class LocalEncoder:
 
 
 class RunPodEncoder:
-    def __init__(self, endpoint_id: str, api_key: str, timeout: float = 120) -> None:
+    """Remote MiniLM on RunPod Serverless.
+
+    Jobs are submitted with ``POST /run`` (returns the job id at once) and then polled with
+    short per-request timeouts. ``/runsync`` held the connection open while a cold worker
+    booted (~80 s), longer than the client read timeout, so cold starts failed before a job id
+    existed and the job could not be cancelled.
+    """
+
+    def __init__(self, endpoint_id: str, api_key: str, timeout: float = DEFAULT_TIMEOUT_S) -> None:
         if not re.fullmatch(r"[A-Za-z0-9_-]+", endpoint_id) or not api_key:
             raise ValueError("Set TRENDS_RUNPOD_ENDPOINT_ID and TRENDS_RUNPOD_API_KEY")
-        if not math.isfinite(timeout) or timeout <= 0 or timeout > 900:
+        if not math.isfinite(timeout) or timeout <= 0 or timeout > MAX_TIMEOUT_S:
             raise ValueError("RunPod timeout must be between 0 and 900 seconds")
         self.url = f"https://api.runpod.ai/v2/{endpoint_id}"
         self.api_key = api_key
         self.timeout = timeout
 
-    def _batch(self, texts: list[str], *, deadline: float | None = None) -> list[list[float]]:
-        if deadline is None:
-            deadline = time.monotonic() + self.timeout
+    @staticmethod
+    def _remaining(deadline: float) -> float:
         remaining = deadline - time.monotonic()
         if remaining <= 0:
             raise TimeoutError("RunPod MiniLM inference exceeded its deadline")
-        with httpx.Client(
-            headers={"Authorization": f"Bearer {self.api_key}"},
-            timeout=min(30, remaining),
-            follow_redirects=False,
-        ) as client:
-            job_id: str | None = None
-            completed = False
+        return remaining
+
+    def _submit(self, client: httpx.Client, texts: list[str], deadline: float) -> dict[str, Any]:
+        """Submit one job, retrying transient failures only while no job id was obtained."""
+        for attempt in range(SUBMIT_ATTEMPTS):
+            remaining = self._remaining(deadline)
+            milliseconds = math.ceil(remaining * 1000)
             try:
-                milliseconds = math.ceil(remaining * 1000)
                 response = client.post(
-                    f"{self.url}/runsync",
+                    f"{self.url}/run",
                     json={
                         "input": {"texts": texts},
                         # Provider minimums also bound orphan jobs if submission loses its ID.
@@ -103,29 +120,72 @@ class RunPodEncoder:
                             "ttl": max(10000, milliseconds),
                         },
                     },
+                    timeout=min(REQUEST_TIMEOUT_S, remaining),
                 )
+                if response.status_code in TRANSIENT_STATUS and attempt + 1 < SUBMIT_ATTEMPTS:
+                    raise _TransientSubmitError(f"RunPod submit returned {response.status_code}")
                 response.raise_for_status()
                 result = response.json()
+                if not isinstance(result, dict):
+                    raise ValueError("RunPod returned an invalid submit response")
+                return result
+            except (httpx.ConnectError, httpx.ConnectTimeout, _TransientSubmitError):
+                # Only failures that prove the POST never reached RunPod (or an explicit
+                # 429/5xx refusal) are retried. A read timeout or mid-flight transport error
+                # may follow an accepted job, and resubmitting would create a duplicate paid job.
+                if attempt + 1 >= SUBMIT_ATTEMPTS:
+                    raise
+                time.sleep(min(SUBMIT_BACKOFF_S * (2**attempt), self._remaining(deadline)))
+        raise AssertionError("unreachable")  # pragma: no cover
+
+    def _poll(
+        self, client: httpx.Client, job_id: str, result: dict[str, Any], deadline: float
+    ) -> dict[str, Any]:
+        """Poll until the job leaves the queue; transient poll errors are retried a few times."""
+        interval = POLL_START_S
+        failures = 0
+        while result.get("status") in {"IN_QUEUE", "IN_PROGRESS"}:
+            time.sleep(min(interval, self._remaining(deadline)))
+            interval = min(POLL_MAX_S, interval * 1.5)
+            remaining = self._remaining(deadline)
+            try:
+                response = client.get(
+                    f"{self.url}/status/{job_id}", timeout=min(REQUEST_TIMEOUT_S, remaining)
+                )
+                response.raise_for_status()
+                polled = response.json()
+            except (httpx.TimeoutException, httpx.TransportError, httpx.HTTPStatusError) as exc:
+                transient = not isinstance(exc, httpx.HTTPStatusError) or (
+                    exc.response.status_code in TRANSIENT_STATUS
+                )
+                failures += 1
+                if not transient or failures >= POLL_ERROR_LIMIT:
+                    raise
+                continue
+            failures = 0
+            if not isinstance(polled, dict):
+                raise ValueError("RunPod returned an invalid status response")
+            result = polled
+        return result
+
+    def _batch(self, texts: list[str], *, deadline: float | None = None) -> list[list[float]]:
+        if deadline is None:
+            deadline = time.monotonic() + self.timeout
+        self._remaining(deadline)
+        with httpx.Client(
+            headers={"Authorization": f"Bearer {self.api_key}"},
+            timeout=REQUEST_TIMEOUT_S,
+            follow_redirects=False,
+        ) as client:
+            job_id: str | None = None
+            completed = False
+            try:
+                result = self._submit(client, texts, deadline)
                 candidate = result.get("id")
-                if candidate is not None:
-                    if not isinstance(candidate, str) or not re.fullmatch(
-                        r"[A-Za-z0-9_-]+", candidate
-                    ):
-                        raise ValueError("RunPod returned an invalid job id")
-                    job_id = candidate
-                while result.get("status") in {"IN_QUEUE", "IN_PROGRESS"}:
-                    remaining = deadline - time.monotonic()
-                    if remaining <= 0:
-                        raise TimeoutError("RunPod MiniLM inference exceeded its deadline")
-                    if job_id is None:
-                        raise ValueError("RunPod returned an invalid job id")
-                    time.sleep(min(1, remaining))
-                    remaining = deadline - time.monotonic()
-                    if remaining <= 0:
-                        raise TimeoutError("RunPod MiniLM inference exceeded its deadline")
-                    response = client.get(f"{self.url}/status/{job_id}", timeout=min(30, remaining))
-                    response.raise_for_status()
-                    result = response.json()
+                if not isinstance(candidate, str) or not re.fullmatch(r"[A-Za-z0-9_-]+", candidate):
+                    raise ValueError("RunPod returned an invalid job id")
+                job_id = candidate
+                result = self._poll(client, job_id, result, deadline)
                 completed = result.get("status") == "COMPLETED"
                 if not completed:
                     raise RuntimeError(
@@ -164,6 +224,19 @@ class RunPodEncoder:
         return vectors
 
 
+class _TransientSubmitError(Exception):
+    """A retryable submit response (429 / 5xx) received before any job id."""
+
+
+def configured_timeout() -> float:
+    """Whole-encode deadline from TRENDS_RUNPOD_TIMEOUT_SECONDS (default 600, max 900)."""
+    raw = os.environ.get("TRENDS_RUNPOD_TIMEOUT_SECONDS", "").strip()
+    value = float(raw) if raw else DEFAULT_TIMEOUT_S
+    if not math.isfinite(value) or value <= 0 or value > MAX_TIMEOUT_S:
+        raise ValueError("TRENDS_RUNPOD_TIMEOUT_SECONDS must be between 0 and 900")
+    return value
+
+
 @lru_cache(maxsize=1)
 def get_encoder() -> Encoder:
     backend = os.environ.get("TRENDS_EMBEDDING_BACKEND", "runpod").lower()
@@ -174,5 +247,5 @@ def get_encoder() -> Encoder:
     return RunPodEncoder(
         os.environ.get("TRENDS_RUNPOD_ENDPOINT_ID", ""),
         os.environ.get("TRENDS_RUNPOD_API_KEY", ""),
-        float(os.environ.get("TRENDS_RUNPOD_TIMEOUT_SECONDS", "120")),
+        configured_timeout(),
     )

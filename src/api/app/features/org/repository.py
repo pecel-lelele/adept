@@ -291,21 +291,33 @@ def add_member(org_id: str, member: Member) -> Member:
 
 
 def remove_member(org_id: str, member_id: str) -> bool:
-    if use_postgres():
-        return _db(
-            "remove the member",
-            lambda c: (
-                c.execute(
-                    "DELETE FROM memberships WHERE org_id = %s AND user_id = %s "
-                    "AND role = 'member'",
-                    (org_id, member_id),
-                ).rowcount
-                > 0
-            ),
-        )
-    before = len(_members.get(org_id, []))
-    _members[org_id] = [m for m in _members.get(org_id, []) if m.id != member_id]
-    return len(_members[org_id]) < before
+    from app.contracts.funding import FundingState
+    from app.features.org import funding_store
+
+    def remove(state: FundingState) -> bool:
+        # Lock order matches programme writes: ledger first, then membership. The funding
+        # transaction lends its connection so cleanup and membership removal commit together.
+        if use_postgres():
+            removed = _db(
+                "remove the member",
+                lambda c: (
+                    c.execute(
+                        "DELETE FROM memberships WHERE org_id = %s AND user_id = %s "
+                        "AND role = 'member'",
+                        (org_id, member_id),
+                    ).rowcount
+                    > 0
+                ),
+            )
+        else:
+            before = len(_members.get(org_id, []))
+            _members[org_id] = [m for m in _members.get(org_id, []) if m.id != member_id]
+            removed = len(_members[org_id]) < before
+        if removed:
+            funding_store.remove_member_records(state, member_id)
+        return removed
+
+    return funding_store.transact(org_id, 0, remove)
 
 
 def forget_user(user_id: str) -> None:

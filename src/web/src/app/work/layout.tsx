@@ -2,8 +2,11 @@ import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { Shell } from "@/components/shell/Shell";
+import { ErrorState } from "@/components/ErrorState";
+import { WorkspaceActivation } from "@/components/WorkspaceActivation";
 import { workWorkspace } from "@/config/navigation";
 import { getAccount } from "@/lib/auth/account";
+import { currentPath, loginHref } from "@/lib/auth/return-path";
 import { getWorkspaces, pickOrg } from "@/lib/auth/workspaces";
 
 /**
@@ -12,11 +15,12 @@ import { getWorkspaces, pickOrg } from "@/lib/auth/workspaces";
  */
 export default async function Layout({ children }: { children: ReactNode }) {
   const account = await getAccount();
-  if (!account) redirect("/auth/login?next=/work");
-  const { chosen, remembered, fallback } = await pickOrg(["member"]);
+  if (!account) redirect(await loginHref("/work"));
+  const { chosen, remembered, fallback, failure } = await pickOrg(["member"]);
+  if (failure) return <ErrorState failure={failure} />;
   if (!chosen) {
+    if (fallback) return <WorkspaceActivation to={fallback.id} next={await currentPath("/work")} />;
     if (remembered && remembered.role !== "member") redirect("/org");
-    if (fallback) redirect(`/api/workspace?to=${encodeURIComponent(fallback.id)}`);
     redirect("/app/join");
   }
   const workspaces = await getWorkspaces();

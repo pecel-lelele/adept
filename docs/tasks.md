@@ -4,7 +4,7 @@ This document defines feature scope and ownership. For current behaviour, use th
 [project README](../README.md), each feature's `FEATURE.md`, and the
 [decisions log](decisions.md). Test results belong to the relevant PR.
 
-Work is organised **per feature**. Each feature has an owner who leads it end to end (data → logic → API → page) and decides its additional tech. The same breakdown is in `aiversecity_team_tasks.xlsx` for progress tracking.
+Work is organised **per feature**. Each feature has an owner who leads it end to end (data → logic → API → page) and decides its additional tech. In the final debugging phase ownership does not limit who may fix a feature: anyone can fix any feature, and the owner reviews. The same breakdown is in `aiversecity_team_tasks.xlsx` for progress tracking.
 
 - **Primary stack (fixed for all features):** Python, Next.js (TypeScript), PostgreSQL, Git + GitHub.
 - **Open choices:** listed per feature below. The owner decides and records each choice in `docs/decisions.md`.

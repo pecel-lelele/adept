@@ -57,7 +57,7 @@ async function PlanAside({ plan, query }: { plan: Schemas["Pathway"]; query: str
     { to: `/app/progress${query}`, icon: <Target size={16} aria-hidden />, label: t("plan.progressLink") },
     { to: `/app/sdg${query}`, icon: <Leaf size={16} aria-hidden />, label: t("plan.sdgLink") },
     { to: `/app/courses${query}`, icon: <BookOpen size={16} aria-hidden />, label: t("catalogue.browse") },
-    { to: `/app/pathway/compare${query}`, icon: <GitCompareArrows size={16} aria-hidden />, label: t("compare.link") },
+    { to: `/app/pathway/compare${query.replace("?role=", "?roles=")}`, icon: <GitCompareArrows size={16} aria-hidden />, label: t("compare.link") },
   ];
   return (
     <aside className="a-aside is-sticky">

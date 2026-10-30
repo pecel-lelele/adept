@@ -1,0 +1,640 @@
+{
+  "measured_at_utc": "2026-10-30T06:24:53.388750+00:00",
+  "base_revision": "8cc9ed06f197ebc1361423aab074304d2a698f4d",
+  "working_tree_changes": true,
+  "python": "3.11.17",
+  "measurement_kind": "automated_in_process_api_fixture_journey",
+  "human_testers": 0,
+  "human_trials": 0,
+  "manual_baseline": null,
+  "persona_count": 5,
+  "attempts": 15,
+  "profiles_sha256": "e2380f851fb4b19656aefbc025fa8e36d99b724afbb206206534288a14d3e3d6",
+  "cv_sha256": {
+    "cv_adrian_lim_data_analyst.pdf": "d37f6de94d078456e449c3c06f008cd3877e12a6690f043f462a39f096ffb82d",
+    "cv_imran_hakim_compliance_analytics_officer.pdf": "6eaf33855053380125c5399d6d7d61ea69b093a6f72f25e7abef85efc0ef8bfa",
+    "cv_meera_anand_logistics_supervisor.pdf": "8b267e7024922341cd9b0cf60f95a67cfd72005ce95f0b6332517777acaf0b7b",
+    "cv_nur_hana_bank_operations_executive.pdf": "cd555879e55175e1d2509df43581741d44b0ff2b9d62096e5cd5bae4b06ee6bb",
+    "cv_sofia_tan_process_automation_analyst.pdf": "23a099247c509580773ed1e402d071c0ab1a785784ccc8fc8faab95b2539d654"
+  },
+  "taxonomy_sha256": {
+    "role_skills.csv": "5e5fd2e7b7b064c04e30acde7b92f95ac9135352cdae70e7bd572bfedc79a036",
+    "roles.csv": "663d83aa0d9a66274b469ac857382d1687244409fcd44b623ab85d7eab9a4d27",
+    "skills.csv": "c240d9bb50cbd540c2d87447f37a9f978c22ff52dada32812325b435095913b3"
+  },
+  "limitations": "Local TestClient, CSV/in-memory storage and historical fixture fallback. No browser, network transit, human thought/review, paid model or manual baseline. First run includes cold caches; later runs share process caches. Structural checks are not independent human plan-validity review.",
+  "records": [
+    {
+      "case": "imran",
+      "repeat": 1,
+      "steps": [
+        {
+          "step": "cv_upload",
+          "elapsed_seconds": 0.26181390000056126,
+          "http_status": 200
+        },
+        {
+          "step": "questionnaire",
+          "elapsed_seconds": 0.012627099999917846,
+          "http_status": 200
+        },
+        {
+          "step": "fixture_skill_confirmation",
+          "elapsed_seconds": 0.02419499999996333,
+          "http_status": 200
+        },
+        {
+          "step": "radar",
+          "elapsed_seconds": 2.0705841999997574,
+          "http_status": 200
+        },
+        {
+          "step": "matches",
+          "elapsed_seconds": 0.10075729999971372,
+          "http_status": 200
+        },
+        {
+          "step": "save_pathway",
+          "elapsed_seconds": 0.040044899999884365,
+          "http_status": 200
+        }
+      ],
+      "status": "completed",
+      "target_role_id": "compliance-analytics-officer",
+      "snapshot_date": "2026-10-20",
+      "served_from": "fixture",
+      "source_names": [
+        "O*NET 31.0 crosswalk + Adept curated role requirements (estimates)",
+        "Microsoft Learn Catalog API",
+        "arXiv cs.AI Query API",
+        "BLS Occupational Projections 2023-2033"
+      ],
+      "unmet_skills": 1,
+      "warnings": [
+        "The trend snapshot (m1-2026-10-20) has no signal for SQL; they are treated as neutral demand, not rising or declining."
+      ],
+      "structural_checks_passed": true,
+      "human_validity_review": false,
+      "elapsed_seconds": 2.5307505999999194
+    },
+    {
+      "case": "sofia",
+      "repeat": 1,
+      "steps": [
+        {
+          "step": "cv_upload",
+          "elapsed_seconds": 0.019081999999798427,
+          "http_status": 200
+        },
+        {
+          "step": "questionnaire",
+          "elapsed_seconds": 0.009876799999801733,
+          "http_status": 200
+        },
+        {
+          "step": "fixture_skill_confirmation",
+          "elapsed_seconds": 0.012013699999442906,
+          "http_status": 200
+        },
+        {
+          "step": "radar",
+          "elapsed_seconds": 0.01159300000017538,
+          "http_status": 200
+        },
+        {
+          "step": "matches",
+          "elapsed_seconds": 0.038340400000379304,
+          "http_status": 200
+        },
+        {
+          "step": "save_pathway",
+          "elapsed_seconds": 0.01727290000053472,
+          "http_status": 200
+        }
+      ],
+      "status": "completed",
+      "target_role_id": "process-automation-analyst",
+      "snapshot_date": "2026-10-20",
+      "served_from": "fixture",
+      "source_names": [
+        "O*NET 31.0 crosswalk + Adept curated role requirements (estimates)",
+        "Microsoft Learn Catalog API",
+        "arXiv cs.AI Query API",
+        "BLS Occupational Projections 2023-2033"
+      ],
+      "unmet_skills": 2,
+      "warnings": [
+        "The trend snapshot (m1-2026-10-20) has no signal for Robotic process automation; they are treated as neutral demand, not rising or declining."
+      ],
+      "structural_checks_passed": true,
+      "human_validity_review": false,
+      "elapsed_seconds": 0.11891939999986789
+    },
+    {
+      "case": "meera",
+      "repeat": 1,
+      "steps": [
+        {
+          "step": "cv_upload",
+          "elapsed_seconds": 0.020011899999190064,
+          "http_status": 200
+        },
+        {
+          "step": "questionnaire",
+          "elapsed_seconds": 0.008581300000514602,
+          "http_status": 200
+        },
+        {
+          "step": "fixture_skill_confirmation",
+          "elapsed_seconds": 0.010495000000446453,
+          "http_status": 200
+        },
+        {
+          "step": "radar",
+          "elapsed_seconds": 0.012067599999681988,
+          "http_status": 200
+        },
+        {
+          "step": "matches",
+          "elapsed_seconds": 0.05538250000063272,
+          "http_status": 200
+        },
+        {
+          "step": "save_pathway",
+          "elapsed_seconds": 0.016677500000696455,
+          "http_status": 200
+        }
+      ],
+      "status": "completed",
+      "target_role_id": "business-analyst",
+      "snapshot_date": "2026-10-20",
+      "served_from": "fixture",
+      "source_names": [
+        "O*NET 31.0 crosswalk + Adept curated role requirements (estimates)",
+        "Coursera course page",
+        "Microsoft Learn Catalog API",
+        "arXiv cs.AI Query API",
+        "BLS Occupational Projections 2023-2033"
+      ],
+      "unmet_skills": 2,
+      "warnings": [
+        "The trend snapshot (m1-2026-10-20) has no signal for Business analysis & requirements, SQL; they are treated as neutral demand, not rising or declining."
+      ],
+      "structural_checks_passed": true,
+      "human_validity_review": false,
+      "elapsed_seconds": 0.13655329999983223
+    },
+    {
+      "case": "adrian",
+      "repeat": 1,
+      "steps": [
+        {
+          "step": "cv_upload",
+          "elapsed_seconds": 0.018334800000047835,
+          "http_status": 200
+        },
+        {
+          "step": "questionnaire",
+          "elapsed_seconds": 0.007120199999917531,
+          "http_status": 200
+        },
+        {
+          "step": "fixture_skill_confirmation",
+          "elapsed_seconds": 0.006370000000060827,
+          "http_status": 200
+        },
+        {
+          "step": "radar",
+          "elapsed_seconds": 0.01065429999925982,
+          "http_status": 200
+        },
+        {
+          "step": "matches",
+          "elapsed_seconds": 0.12218350000057399,
+          "http_status": 200
+        },
+        {
+          "step": "save_pathway",
+          "elapsed_seconds": 0.028459899999688787,
+          "http_status": 200
+        }
+      ],
+      "status": "completed",
+      "target_role_id": "data-analyst",
+      "snapshot_date": "2026-10-20",
+      "served_from": "fixture",
+      "source_names": [
+        "O*NET 31.0 crosswalk + Adept curated role requirements (estimates)",
+        "Microsoft Learn Catalog API",
+        "arXiv cs.AI Query API",
+        "BLS Occupational Projections 2023-2033"
+      ],
+      "unmet_skills": 1,
+      "warnings": [
+        "The trend snapshot (m1-2026-10-20) has no signal for SQL, Spreadsheet analysis; they are treated as neutral demand, not rising or declining."
+      ],
+      "structural_checks_passed": true,
+      "human_validity_review": false,
+      "elapsed_seconds": 0.20568240000011428
+    },
+    {
+      "case": "nur-hana",
+      "repeat": 1,
+      "steps": [
+        {
+          "step": "cv_upload",
+          "elapsed_seconds": 0.02804180000021006,
+          "http_status": 200
+        },
+        {
+          "step": "questionnaire",
+          "elapsed_seconds": 0.012644999999793072,
+          "http_status": 200
+        },
+        {
+          "step": "fixture_skill_confirmation",
+          "elapsed_seconds": 0.013266500000099768,
+          "http_status": 200
+        },
+        {
+          "step": "radar",
+          "elapsed_seconds": 0.012834399999519519,
+          "http_status": 200
+        },
+        {
+          "step": "matches",
+          "elapsed_seconds": 0.04810570000063308,
+          "http_status": 200
+        },
+        {
+          "step": "save_pathway",
+          "elapsed_seconds": 0.021441100000629376,
+          "http_status": 200
+        }
+      ],
+      "status": "completed",
+      "target_role_id": "process-automation-analyst",
+      "snapshot_date": "2026-10-20",
+      "served_from": "fixture",
+      "source_names": [
+        "O*NET 31.0 crosswalk + Adept curated role requirements (estimates)",
+        "Microsoft Learn Catalog API",
+        "arXiv cs.AI Query API",
+        "BLS Occupational Projections 2023-2033"
+      ],
+      "unmet_skills": 2,
+      "warnings": [
+        "The trend snapshot (m1-2026-10-20) has no signal for Robotic process automation; they are treated as neutral demand, not rising or declining."
+      ],
+      "structural_checks_passed": true,
+      "human_validity_review": false,
+      "elapsed_seconds": 0.15326869999989867
+    },
+    {
+      "case": "imran",
+      "repeat": 2,
+      "steps": [
+        {
+          "step": "cv_upload",
+          "elapsed_seconds": 0.018633099999533442,
+          "http_status": 200
+        },
+        {
+          "step": "questionnaire",
+          "elapsed_seconds": 0.00815229999989242,
+          "http_status": 200
+        },
+        {
+          "step": "fixture_skill_confirmation",
+          "elapsed_seconds": 0.009434399999918242,
+          "http_status": 200
+        },
+        {
+          "step": "radar",
+          "elapsed_seconds": 0.01053799999954208,
+          "http_status": 200
+        },
+        {
+          "step": "matches",
+          "elapsed_seconds": 0.05089880000014091,
+          "http_status": 200
+        },
+        {
+          "step": "save_pathway",
+          "elapsed_seconds": 0.020736200000101235,
+          "http_status": 200
+        }
+      ],
+      "status": "completed",
+      "target_role_id": "compliance-analytics-officer",
+      "snapshot_date": "2026-10-20",
+      "served_from": "fixture",
+      "source_names": [
+        "O*NET 31.0 crosswalk + Adept curated role requirements (estimates)",
+        "Microsoft Learn Catalog API",
+        "arXiv cs.AI Query API",
+        "BLS Occupational Projections 2023-2033"
+      ],
+      "unmet_skills": 1,
+      "warnings": [
+        "The trend snapshot (m1-2026-10-20) has no signal for SQL; they are treated as neutral demand, not rising or declining."
+      ],
+      "structural_checks_passed": true,
+      "human_validity_review": false,
+      "elapsed_seconds": 0.12087489999976242
+    },
+    {
+      "case": "sofia",
+      "repeat": 2,
+      "steps": [
+        {
+          "step": "cv_upload",
+          "elapsed_seconds": 0.024323600000570877,
+          "http_status": 200
+        },
+        {
+          "step": "questionnaire",
+          "elapsed_seconds": 0.008742099999835773,
+          "http_status": 200
+        },
+        {
+          "step": "fixture_skill_confirmation",
+          "elapsed_seconds": 0.008187200000065786,
+          "http_status": 200
+        },
+        {
+          "step": "radar",
+          "elapsed_seconds": 0.01157100000000355,
+          "http_status": 200
+        },
+        {
+          "step": "matches",
+          "elapsed_seconds": 0.052972399999816844,
+          "http_status": 200
+        },
+        {
+          "step": "save_pathway",
+          "elapsed_seconds": 0.01743209999949613,
+          "http_status": 200
+        }
+      ],
+      "status": "completed",
+      "target_role_id": "process-automation-analyst",
+      "snapshot_date": "2026-10-20",
+      "served_from": "fixture",
+      "source_names": [
+        "O*NET 31.0 crosswalk + Adept curated role requirements (estimates)",
+        "Microsoft Learn Catalog API",
+        "arXiv cs.AI Query API",
+        "BLS Occupational Projections 2023-2033"
+      ],
+      "unmet_skills": 2,
+      "warnings": [
+        "The trend snapshot (m1-2026-10-20) has no signal for Robotic process automation; they are treated as neutral demand, not rising or declining."
+      ],
+      "structural_checks_passed": true,
+      "human_validity_review": false,
+      "elapsed_seconds": 0.12568850000025122
+    },
+    {
+      "case": "meera",
+      "repeat": 2,
+      "steps": [
+        {
+          "step": "cv_upload",
+          "elapsed_seconds": 0.019460399999843503,
+          "http_status": 200
+        },
+        {
+          "step": "questionnaire",
+          "elapsed_seconds": 0.00793820000035339,
+          "http_status": 200
+        },
+        {
+          "step": "fixture_skill_confirmation",
+          "elapsed_seconds": 0.008019599999897764,
+          "http_status": 200
+        },
+        {
+          "step": "radar",
+          "elapsed_seconds": 0.01047999999991589,
+          "http_status": 200
+        },
+        {
+          "step": "matches",
+          "elapsed_seconds": 0.04786809999950492,
+          "http_status": 200
+        },
+        {
+          "step": "save_pathway",
+          "elapsed_seconds": 0.01977930000066408,
+          "http_status": 200
+        }
+      ],
+      "status": "completed",
+      "target_role_id": "business-analyst",
+      "snapshot_date": "2026-10-20",
+      "served_from": "fixture",
+      "source_names": [
+        "O*NET 31.0 crosswalk + Adept curated role requirements (estimates)",
+        "Coursera course page",
+        "Microsoft Learn Catalog API",
+        "arXiv cs.AI Query API",
+        "BLS Occupational Projections 2023-2033"
+      ],
+      "unmet_skills": 2,
+      "warnings": [
+        "The trend snapshot (m1-2026-10-20) has no signal for Business analysis & requirements, SQL; they are treated as neutral demand, not rising or declining."
+      ],
+      "structural_checks_passed": true,
+      "human_validity_review": false,
+      "elapsed_seconds": 0.11609759999919333
+    },
+    {
+      "case": "adrian",
+      "repeat": 2,
+      "steps": [
+        {
+          "step": "cv_upload",
+          "elapsed_seconds": 0.022573799999918265,
+          "http_status": 200
+        },
+        {
+          "step": "questionnaire",
+          "elapsed_seconds": 0.008248699999967357,
+          "http_status": 200
+        },
+        {
+          "step": "fixture_skill_confirmation",
+          "elapsed_seconds": 0.008159799999702955,
+          "http_status": 200
+        },
+        {
+          "step": "radar",
+          "elapsed_seconds": 0.0120744999994713,
+          "http_status": 200
+        },
+        {
+          "step": "matches",
+          "elapsed_seconds": 0.052636899999924935,
+          "http_status": 200
+        },
+        {
+          "step": "save_pathway",
+          "elapsed_seconds": 0.015006300000095507,
+          "http_status": 200
+        }
+      ],
+      "status": "completed",
+      "target_role_id": "data-analyst",
+      "snapshot_date": "2026-10-20",
+      "served_from": "fixture",
+      "source_names": [
+        "O*NET 31.0 crosswalk + Adept curated role requirements (estimates)",
+        "Microsoft Learn Catalog API",
+        "arXiv cs.AI Query API",
+        "BLS Occupational Projections 2023-2033"
+      ],
+      "unmet_skills": 1,
+      "warnings": [
+        "The trend snapshot (m1-2026-10-20) has no signal for SQL, Spreadsheet analysis; they are treated as neutral demand, not rising or declining."
+      ],
+      "structural_checks_passed": true,
+      "human_validity_review": false,
+      "elapsed_seconds": 0.12150280000059865
+    },
+    {
+      "case": "nur-hana",
+      "repeat": 2,
+      "steps": [
+        {
+          "step": "cv_upload",
+          "elapsed_seconds": 0.017598200000065845,
+          "http_status": 200
+        },
+        {
+          "step": "questionnaire",
+          "elapsed_seconds": 0.007771999999931722,
+          "http_status": 200
+        },
+        {
+          "step": "fixture_skill_confirmation",
+          "elapsed_seconds": 0.009856800000306976,
+          "http_status": 200
+        },
+        {
+          "step": "radar",
+          "elapsed_seconds": 0.011962799999309937,
+          "http_status": 200
+        },
+        {
+          "step": "matches",
+          "elapsed_seconds": 0.056398300000182644,
+          "http_status": 200
+        },
+        {
+          "step": "save_pathway",
+          "elapsed_seconds": 0.020365500000480097,
+          "http_status": 200
+        }
+      ],
+      "status": "completed",
+      "target_role_id": "process-automation-analyst",
+      "snapshot_date": "2026-10-20",
+      "served_from": "fixture",
+      "source_names": [
+        "O*NET 31.0 crosswalk + Adept curated role requirements (estimates)",
+        "Microsoft Learn Catalog API",
+        "arXiv cs.AI Query API",
+        "BLS Occupational Projections 2023-2033"
+      ],
+      "unmet_skills": 2,
+      "warnings": [
+        "The trend snapshot (m1-2026-10-20) has no signal for Robotic process automation; they are treated as neutral demand, not rising or declining."
+      ],
+      "structural_checks_passed": true,
+      "human_validity_review": false,
+      "elapsed_seconds": 0.12653789999967557
+    },
+    {
+      "case": "imran",
+      "repeat": 3,
+      "steps": [
+        {
+          "step": "cv_upload",
+          "elapsed_seconds": 0.006512799999654817,
+          "http_status": 429
+        }
+      ],
+      "status": "failed",
+      "error": "cv_upload: HTTP 429",
+      "structural_checks_passed": false,
+      "human_validity_review": false,
+      "elapsed_seconds": 0.006866699999591219
+    },
+    {
+      "case": "sofia",
+      "repeat": 3,
+      "steps": [
+        {
+          "step": "cv_upload",
+          "elapsed_seconds": 0.006095499999901222,
+          "http_status": 429
+        }
+      ],
+      "status": "failed",
+      "error": "cv_upload: HTTP 429",
+      "structural_checks_passed": false,
+      "human_validity_review": false,
+      "elapsed_seconds": 0.006411200000002282
+    },
+    {
+      "case": "meera",
+      "repeat": 3,
+      "steps": [
+        {
+          "step": "cv_upload",
+          "elapsed_seconds": 0.006722500000250875,
+          "http_status": 429
+        }
+      ],
+      "status": "failed",
+      "error": "cv_upload: HTTP 429",
+      "structural_checks_passed": false,
+      "human_validity_review": false,
+      "elapsed_seconds": 0.007024699999419681
+    },
+    {
+      "case": "adrian",
+      "repeat": 3,
+      "steps": [
+        {
+          "step": "cv_upload",
+          "elapsed_seconds": 0.007394999999633001,
+          "http_status": 429
+        }
+      ],
+      "status": "failed",
+      "error": "cv_upload: HTTP 429",
+      "structural_checks_passed": false,
+      "human_validity_review": false,
+      "elapsed_seconds": 0.007722599999397062
+    },
+    {
+      "case": "nur-hana",
+      "repeat": 3,
+      "steps": [
+        {
+          "step": "cv_upload",
+          "elapsed_seconds": 0.007870399999774236,
+          "http_status": 429
+        }
+      ],
+      "status": "failed",
+      "error": "cv_upload: HTTP 429",
+      "structural_checks_passed": false,
+      "human_validity_review": false,
+      "elapsed_seconds": 0.008170399999471556
+    }
+  ]
+}

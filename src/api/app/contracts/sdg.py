@@ -79,6 +79,8 @@ class SdgContribution(BaseModel):
     scope_id: str = ""
     role_ids: list[str] = Field(default_factory=list)
     target_contributions: list[TargetContribution] = Field(default_factory=list)
+    aggregation_status: Literal["available", "suppressed"] = "available"
+    minimum_people: int | None = Field(default=None, ge=2)
 
 
 class SdgGoal(BaseModel):

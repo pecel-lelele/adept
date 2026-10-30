@@ -18,7 +18,9 @@
     "googlecert": "Official Google Cloud certification descriptions and exam fees.",
     "iibacert": "Official IIBA ECBA certification description and exam fee.",
     "iappcert": "Official IAPP AIGP certification description and exam fee.",
-    "bnm": "Dated selling rates used to convert course and exam costs to Malaysian ringgit; converted prices are estimates."
+    "bnm": "Dated selling rates used to convert course and exam costs to Malaysian ringgit; converted prices are estimates.",
+    "replit": "Hosts the prototype and its managed PostgreSQL database.",
+    "fonts": "Inter font assets via Fontsource; current application styles use system Arial fallbacks."
   },
   "llmProvider": "Provider: {provider} · model: {model}",
   "llmCalls": "{calls} model calls logged; {rejected} invented IDs rejected.",

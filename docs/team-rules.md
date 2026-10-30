@@ -47,8 +47,8 @@ Python dependencies are in the root `requirements.txt`; JS dependencies in `src/
 
 Guidelines, not laws:
 
-- **Work mostly inside your feature's folders.** Inside them, structure things however suits you.
-- **Need to change another feature's code?** Fine. Tell the owner (chat), keep the change small, and ask them to review the PR.
+- **Final debugging phase: anyone fixes anything.** Bugs, regressions and integration problems in any feature can be fixed by whoever finds them; you don't need to wait for the owner or stay in your own folders.
+- **Keep fixes focused**, and mention the owner in the PR so they can review what changed in their feature.
 - **New feature or sub-feature?** Create its own folder rather than growing someone else's.
 
 ## 4. Shared things (handle with a heads-up)
@@ -90,7 +90,7 @@ The skeleton also ships with **starter defaults** (e.g. the web framework for th
 - Do each task on a short-lived branch, then open a PR into `main`.
 - Branch names: `<type>/<feature>-<short-desc>`, e.g. `feat/matching-score-breakdown`, `fix/trends-empty-response`.
 - Types: `feat`, `fix`, `docs`, `chore`, `refactor`.
-- One approval before merging, ideally from the owner of any feature you touched. If nobody is free and it only touches your own feature, merge and ask for a review afterwards.
+- One approval before merging, ideally from the owner of a feature you touched. If nobody is free and CI is green, merge and ask for a review afterwards.
 - Keep PRs small enough to review in ~10 minutes. Merge at least every 1–2 days so branches don't drift.
 
 ## 7. Daily git routine (copy this)
@@ -143,7 +143,7 @@ Then open the PR on GitHub.
 
 **Every change you make gets an entry in `docs/decisions.md`, in the same PR.** That includes tech choices, methods, data sources, formulas, contract or schema changes, new dependencies and notable feature changes. Small fixes can be one line.
 
-- Write only in **your own section** (M1/M2/M3/M4), adding entries at the **bottom** of that section. Separate sections = git can usually merge without conflicts.
+- Write in the section of the **feature you changed** (M1/M2/M3/M4, or Team for cross-feature changes), whoever you are, adding entries at the **bottom** of that section.
 - Don't edit old entries; add a new one with `Replaces: <ID>`.
 - For data/ML changes, fill in the pipeline line (source → preprocessing → features → model → evaluation → serving). This becomes the methodology section of the proposal.
 - Conflict in `decisions.md`? Keep **both** sides, remove the markers, continue.

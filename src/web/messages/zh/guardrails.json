@@ -18,7 +18,9 @@
     "googlecert": "Google Cloud 官方认证说明和考试费用。",
     "iibacert": "IIBA ECBA 官方认证说明和考试费用。",
     "iappcert": "IAPP AIGP 官方认证说明和考试费用。",
-    "bnm": "使用有日期的卖出汇率将课程和考试费用换算为马来西亚令吉；换算价格为估计值。"
+    "bnm": "使用有日期的卖出汇率将课程和考试费用换算为马来西亚令吉；换算价格为估计值。",
+    "replit": "托管原型及其托管 PostgreSQL 数据库。",
+    "fonts": "通过 Fontsource 提供 Inter 字体资源；当前应用样式使用系统 Arial 后备字体。"
   },
   "llmProvider": "提供方：{provider} · 模型：{model}",
   "llmCalls": "已记录 {calls} 次模型调用；已拒绝 {rejected} 个虚构的 ID。",

@@ -55,7 +55,8 @@ const ICONS: Record<IconName, LucideIcon> = {
 
 function useHref() {
   const params = useSearchParams();
-  return (href: string) => journeyHref(href, params);
+  const path = usePathname();
+  return (href: string) => journeyHref(href, params, path);
 }
 
 function isCurrent(ws: Workspace, item: NavItem, pathname: string): boolean {

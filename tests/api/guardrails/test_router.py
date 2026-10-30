@@ -46,6 +46,8 @@ def test_disclosure_includes_the_complete_shared_model_and_data_register(
         "iibacert",
         "iappcert",
         "bnm",
+        "replit",
+        "fonts",
         "onet",
     } <= {entry.id for entry in body.registry}
     assert all(entry.name and entry.url.startswith("https://") for entry in body.registry)

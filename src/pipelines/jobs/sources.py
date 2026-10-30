@@ -57,7 +57,11 @@ MY_PLACES = (
     "kota kinabalu",
     "seremban",
     "negeri sembilan",
+    "miri",
 )
+# Location values that name no place: treated as missing so a later field (offices, country)
+# decides. A bare "Remote" primary used to reject a Malaysian office listed second.
+PLACEHOLDER_LOCATIONS = frozenset({"remote", "anywhere", "remote anywhere", "anywhere remote"})
 # Remote openings open to someone living in Malaysia.
 REMOTE_OK = ("malaysia", "worldwide", "anywhere", "global", "asia", "apac", "southeast asia")
 
@@ -162,9 +166,18 @@ def html_to_text(value: str | None) -> str:
     return _SPACE.sub(" ", text).strip()
 
 
+def _placeholder(place: str) -> bool:
+    return " ".join(re.findall(r"[a-z]+", place.lower())) in PLACEHOLDER_LOCATIONS
+
+
 def in_malaysia(*places: str | None) -> bool:
-    """The first supplied location is authoritative; later fields only fill a missing one."""
-    primary = next((p.strip().lower() for p in places if p and p.strip()), "")
+    """The first supplied location is authoritative; later fields only fill a missing one.
+
+    A bare "Remote" / "Anywhere" names no place, so it counts as missing too.
+    """
+    primary = next(
+        (p.strip().lower() for p in places if p and p.strip() and not _placeholder(p)), ""
+    )
     return primary in {"my", "mys"} or any(
         re.search(rf"(?<!\w){re.escape(place)}(?!\w)", primary) for place in MY_PLACES
     )

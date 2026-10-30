@@ -27,7 +27,7 @@
 ### Protect the workspace, credentials, and environments
 
 - Inspect `git status`, branch, and relevant diffs before editing. Preserve existing staged, unstaged, and untracked work. Do not discard, overwrite, stash, stage, or commit unrelated work. If a concurrent edit overlaps yours, inspect it and reconcile safely; ask only when intent cannot be determined.
-- Before deletion, destructive cleanup, migration, seeding, or resource removal, resolve the exact target and confirm the environment. Keep destructive operations confined to the intended paths/resources; never infer that a database is disposable from a friendly name. Use a disposable database for migration and seed verification, not an ambient connection from `.env`.
+- Before deletion, destructive cleanup, migration, seeding, or resource removal, resolve the exact target and confirm the environment. Keep destructive operations confined to the intended paths/resources; never infer that a database is disposable from a friendly name. Use a disposable database for migration and seed verification, not an ambient connection from `.env`. **Never create new Docker containers**: do not spin up temporary, ad-hoc, or duplicate review/test containers (e.g. `docker run`). Use only the repository's established Docker Compose services (`docker-compose.yml`) or isolated test fixtures.
 - Use configured credentials through the intended client and only for the authorized service. Do not print secrets, dump `.env` or credential stores, place credentials in command arguments/URLs, forward one provider's key to another, or copy private data into prompts, logs, artifacts, or third-party tools. Prefer redacted diagnostics and non-secret configuration examples. If a secret is exposed, stop spreading it, report it without repeating it, and recommend rotation; history rewriting needs authorization.
 - Review commands, package lifecycle scripts, and downloaded scripts before executing unfamiliar code. Prefer the repository's pinned toolchain and lockfiles; do not pipe fetched code straight into a shell or disable TLS verification, package-integrity checks, audit gates, authentication, or guardrails to make a task pass.
 - Bind local services to loopback by default; broader exposure must be required by the task and deliberately configured. Tests use synthetic fixtures, isolated state, and mocked providers by default. Verify opt-in database/model/network settings before running anything that can mutate data or incur charges.
@@ -203,8 +203,9 @@ Check current signatures and adapters before editing callers; this table is a na
 
 ## 5. Working Agreements & Anti-Conflict Rules
 
-1. **Focused Scope**:
-   - Work mainly in the requested feature; follow a bug or dependency across feature boundaries when necessary for the requested result. Avoid unrelated refactors and preserve established interfaces unless the task requires changing them.
+1. **Focused Scope (final debugging and integration phase)**:
+   - Feature ownership does not restrict who fixes what. Any member or agent may fix bugs, regressions and integration problems in any feature (F1–F8 or Core) without waiting for that feature's owner; M1 is not limited to M1 work, and so on. Owners are reviewers, not gatekeepers.
+   - Keep each change focused on the fix, avoid unrelated refactors, and preserve established interfaces unless the fix requires changing them (then follow §4 and §7).
 
 2. **Shared Things Protocol** — assess impact and coordinate these changes:
    - Shared API contracts (`src/api/app/contracts/`)
@@ -264,7 +265,7 @@ Use repository manifests, lockfiles, and current runtime configuration for exact
 - Preserve the API security middleware and existing sanitisation/redaction at applicable input and LLM boundaries. Prompt filters are defence in depth; they do not replace structured validation, authorization, or output grounding.
 - CV uploads support PDF, DOCX, and plain text under the existing parser contract. Check declared/inferred type and actual bytes, enforce `MAX_UPLOAD_BYTES` plus parser/page/decompression limits, and offload blocking parsing with `asyncio.to_thread` or the existing bounded mechanism. Do not store raw CVs or log extracted personal text.
 - Preserve production startup checks, session security, exact CORS origins, admin restrictions, and fail-closed authentication. Local/demo auth and test bypasses must not become production defaults.
-- Trust forwarded client-IP headers only across the configured, verified proxy boundary (`PROXY_SHARED_SECRET` where used). Do not accept a caller's `X-Real-IP`, forwarded identity, or workspace header as authority.
+- Trust forwarded client-IP headers only across the configured, verified proxy boundary (`PROXY_SHARED_SECRET` on both web and API). Both modes need a positive `TRUSTED_PROXY_HOPS` before any client IP is forwarded. Replit production uses `1` (the right-most entry, appended by Replit's edge; production refuses trusted mode with `0`). Local dev uses `0`, where anonymous visitors share one rate-limit bucket (TEAM-030). Recheck with `docs/replit-proxy-verification.md` if the ingress chain changes. Do not accept a caller's `X-Real-IP`, forwarded identity, or workspace header as authority.
 - Validate external fetch destinations and redirects against existing SSRF protections; restrict protocols/hosts as appropriate and bound response size/time. Keep provider credentials scoped to the correct destination, including on failover and redirects.
 
 ---
@@ -275,7 +276,7 @@ Use repository manifests, lockfiles, and current runtime configuration for exact
 
 ### Rules for Logging Decisions
 
-1. Write cross-cutting decisions in the **Team** section. For isolated changes, use the existing member section associated with the feature (M1: F2/F3, M2: F1/F4, M3: F5/F6/F8, M4: Core/F7); this routes the entry, not the agent's identity or permission to work.
+1. Write cross-cutting decisions in the **Team** section. For isolated changes, use the member section associated with the feature (M1: F2/F3, M2: F1/F4, M3: F5/F6/F8, M4: Core/F7). Sections only route entries by feature: anyone may add an entry to any section, whoever made the change.
 2. Add new entries at the **bottom** of the relevant section (above the next `---`).
 3. Never edit or overwrite previous entries. If superseding an old decision, add a new entry referencing `Replaces: <OLD-ID>`.
 4. Preserve the log's actual ID scheme: `TEAM-NNN` for Team and `M1-NNN` through `M4-NNN` for the existing member sections. Choose the next unused number by inspecting the whole section, not just its last entry. Do not renumber history or invent feature sections.
@@ -375,7 +376,7 @@ All targets use the cross-platform runner [src/scripts/dev.py](src/scripts/dev.p
 - [ ] Added a decisions entry for material changes using the existing section/ID scheme.
 - [ ] If contracts changed (`src/api/app/contracts/`), ran `make contracts` and verified no drift.
 - [ ] If a new env variable was added, updated [.env.example](.env.example).
-- [ ] If a new migration was added, verified migration/seed behaviour in an explicitly selected disposable database.
+- [ ] If a new migration was added, verified migration/seed behaviour in an explicitly selected disposable database without creating new Docker containers.
 - [ ] Ran `make check` (or the cross-platform Python equivalent) and relevant checks; reported actual failures/skips/blockers.
 - [ ] Reviewed final diff for scope, secrets, accidental generated changes, and preservation of existing work; cleaned up task-owned processes.
 - [ ] Provided a concise summary of changes and the standard commit message for the user to use.

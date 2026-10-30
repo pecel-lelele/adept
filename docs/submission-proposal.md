@@ -1,220 +1,159 @@
-# Adept: project proposal and final-round evidence
+# Adept Final Project and Prototype Report
 
-Draft prepared on 22 October 2026 against the supplied **SDC Hackathon Submission Template**.
-Section numbering and answer limits follow that template. The supplied proposal deadline is
-25 October 2026. This Markdown is working material for the final PDF, not a signed submission.
-
-**Team-only completion items:** registration name, leader details, affiliation, workshop
-attendance, prior-work ownership, employment IP declarations and signature. These cannot be
-verified from the code. Add personal contact details privately in the submission PDF rather
-than committing them to this public repository. Do not treat an unchecked box as a declaration.
-
-Updated 24 October 2026 for the root-only, single-public-server deployment, current dependencies, job feeds, certifications and organisation workflows. This source describes the proposed code revision; publishing that revision remains an owner action.
-
-Updated 25 October 2026 with the leader's provenance clarification and selected
-[five synthetic demo CVs and intake profiles](demo-cvs/). Older persona fixtures
-remain test inputs; they are not the selected presentation CVs.
-
-Final-round preparation (30 October 2026): use the [six-criterion evidence checklist](rubric-check.md)
-and [deliverable locations](submission-deliverables.md). The original template numbering and
-word-limit markers below are retained. KPI reduction remains an unmeasured target; source
-inspection is not verification of a current deployed revision or a published production snapshot.
+Working source aligned to the supplied **Phase 2 Final Project & Prototype Report** template,
+reviewed 30 October 2026. Deadline in that template: **1 November 2026**. Export filename:
+`SDC2026_Pecel-Lele_Final.pdf`. This is an unsigned draft. Unmeasured claims and private team
+attestations remain explicitly outstanding; source code and local tests do not establish a
+production deployment or real-world impact.
 
 ## 1. Team and project overview
 
-| Template field | Response |
+| Field | Response |
 |---|---|
-| Team name | Pecel Lele (repository team record; confirm exact registration spelling). |
-| Selected domain | Domain 1: The Aiversecity Future-Ready Workforce. |
-| Selected SDG track | SDG 4: Quality Education; primary target 4.4, supported by 4.3, 8.2 and 8.5. |
-| Project / solution name | Adept. |
-| Name (leader) | Team to complete privately in the submission PDF. |
-| Email and phone (leader) | Team to complete privately in the submission PDF; not retained in this repository. |
-| University affiliation(s) | Xiamen University Malaysia, as recorded in the project README. |
-| Number of team members | 4, as recorded in the project README; confirm registration matches. |
+| Team | Pecel Lele |
+| Product | Adept |
+| Domain | The Aiversecity Future-Ready Workforce |
+| Primary SDG | SDG 4, especially target 4.4; supporting targets 4.3, 8.2 and 8.5 |
+| Final live deployment | https://adept-my.replit.app — verify the final revision and snapshot before submission |
+| Codebase | https://github.com/pecel-lelele/adept |
+| Leader | David Kurniawan, per the README; confirm registered details privately |
+| Leader contact | Complete privately in the final PDF; do not commit personal contact information |
+| University | Xiamen University Malaysia |
 
-## 2. Executive summary and problem statement
+## 2. Project description
 
-### 2.1 The problem context
+<!-- answer:start final-2 limit=250 -->
+Adept helps working adults, graduates and career switchers choose skills to develop as AI
+changes work. Learners upload a synthetic demonstration CV or complete an intake, confirm
+their skills, explore dated research signals, compare future roles and choose a sourced
+learning plan. Scores show their components and concrete skills that could improve fit.
+Two parameter-driven AI scenarios expose uncertainty rather than promising employment.
 
-<!-- answer:start proposal-2.1 limit=250 -->
-AI changes the tasks employers value, but workers and training providers often lack a clear
-connection between those changes, a person's existing skills and an affordable next step.
-Working adults facing automation, graduates entering the workforce and career switchers can
-find many courses without knowing which skill gaps those courses address. HR and career
-advisors face the same problem across teams and student cohorts.
+The platform combines public research, occupational references, course catalogues and
+Malaysian job feeds. Published Malaysian labour-survey statistics provide national context;
+they are not presented as occupation-specific vacancy forecasts. Every recommendation
+retains sources, dates and estimate labels. Unknown skills and gaps without catalogue courses
+remain visible instead of being invented.
 
-Hays' 2025 Malaysia findings reported that 56% of professionals used AI tools at work, while
-26% had received training to use them. The 30 percentage-point difference between these
-reported shares illustrates a training challenge; it is not an estimate of how many individual
-AI users lack training. These historical survey findings are context, not a measurement of
-Adept's impact or of the Malaysian workforce in 2026.
+Organisation managers can invite members, plan training within budgets and send programmes
+for members to accept. Skill sharing is optional, and personal plans remain private.
+SDG mappings explain relevant targets and show estimated learning-hour alignment, not measured
+UN indicator achievement. Adi uses checked application facts and validated answer-block IDs.
+Adept supports human judgment and never makes hiring, firing, promotion or admission decisions.
+<!-- answer:end final-2 -->
 
-The practical problem is deciding what to learn next, why it matters and whether the learning
-fits available time and funding. Unexplained rankings and stale course lists make this harder,
-especially for people with limited budgets. Adept addresses that decision with dated evidence,
-an explicit skills gap and a costed reskilling pathway, supporting access to relevant technical
-and vocational learning under SDG 4.
-<!-- answer:end proposal-2.1 -->
+## 3. Upgraded product and technical execution
 
-Source: [Hays Malaysia, 2025 findings](https://www.hays.com.my/press-release/content/future-of-work-malaysia-technology-ai-impact).
+### 3.1 Final system architecture
 
-### 2.2 The proposed AI solution
+Next.js renders the web application and forwards authenticated API requests to a private
+FastAPI process. PostgreSQL stores accounts, memberships, catalogue records, plans, progress,
+evidence and dated snapshots. Server-side membership checks enforce workspace boundaries.
 
-<!-- answer:start proposal-2.2 limit=300 -->
-Adept connects a confirmed skills profile to changing evidence, explainable future-role matches,
-and a personalised learning plan. Learners complete a questionnaire or upload a synthetic
-PDF, DOCX or text CV, review catalogue skills and proficiency, and set interests, learning
-preferences, time and budget. Optional Gemini embeddings suggest catalogue matches for
-unfamiliar skill phrases; users approve additions.
-
-The research pipeline uses pinned all-MiniLM-L6-v2 embeddings on RunPod Serverless, combines
-arXiv research attention with a committed labour baseline, and validates dated snapshots.
-The radar supports moderate and fast scenarios, historical replay and re-planning. Role
-rankings expose skill, trend and interest contributions, gaps and optional SDG weighting.
-These are estimates for decision support, not calibrated employment forecasts.
-
-For a target role, the pathway engine orders sourced courses by prerequisites and learning
-constraints, shows duration and cost, and tracks progress and evidence. Public job feeds
-connect roles and training to current openings; a separate catalogue links relevant paid
-certification exams with dated fees and preparation courses.
-
-Organisation managers inspect shared skills and team gaps, create costed programmes, make
-funding decisions and review completions. Members accept or respond to programme assignments
-in a separate work workspace; personal plans remain separate. Accepted evidence can raise
-effective skill levels across future plans.
-
-Adi optionally uses RunPod GLM-5.3 with Gemini failover to select validated, server-authored
-answer blocks; failures use a deterministic guide. Next.js is the single public server,
-FastAPI stays private, and PostgreSQL stores durable records. Recommendations carry sources,
-dates, scenarios and estimate labels. People make career and learning decisions; Adept
-never makes hiring, firing or admission decisions.
-
-<!-- answer:end proposal-2.2 -->
-
-## 3. Technical architecture and implementation plan
-
-### 3.1 Conceptual tech stack
-
-| Component | Implemented technology | Role |
-|---|---|---|
-| Interface | Next.js 16.4.2, React 19.2.9, TypeScript 5.9.3 | Personal `/app`, employee `/work`, manager/advisor `/org` and internal `/admin` views; server actions and same-origin API routes. |
-| Presentation | Tailwind CSS 4.1.18, next-intl 4.14.9, Lucide | Responsive interface in English, Bahasa Melayu and Chinese. |
-| API | Python 3.11, FastAPI, Pydantic v2, Uvicorn | Validated feature services and OpenAPI contracts. |
-| Persistence | PostgreSQL/pgvector, psycopg 3; Replit integrated PostgreSQL for deployment | Profiles, catalogue, snapshots, plans, evidence and organisations; local/CI PostgreSQL 16. |
-| AI / methods | RunPod MiniLM (384 dimensions); optional Gemini skill embeddings (768 dimensions); Adi GLM-5.3/Gemini; deterministic scoring/pathways | Separate model purposes and credentials; no team fine-tuning; validated catalogue/answer-block IDs. |
-| Data | arXiv cs.AI RSS, committed BLS-derived baseline, official UN SDGs, Microsoft Learn, Coursera, cited provider pages, BNM exchange rates | Research signals, updatable public job postings, catalogue facts, certification fees and source attribution. |
-| Deployment | Replit Autoscale; root `.replit` and Python supervisor | Public prototype hosted on Replit with one public Next.js server and private loopback FastAPI. Optional local Compose runs PostgreSQL only. |
-| Quality / automation | pytest, Ruff, ESLint, TypeScript, contract and locale checks; GitHub Actions | Automated checks; conditional weekly trend refresh and source audit. |
-
-**Architecture appendix A: root deployment with one public server.** The root
-[`.replit`](../.replit) builds and starts through [`src/scripts/replit.py`](../src/scripts/replit.py).
-Next.js serves the interface and proxies `/api/v1/*`; Uvicorn binds privately to loopback.
-The launcher waits for database/API readiness and stops both children on failure. It never
-runs migrations or seed writes at production startup. `/api/healthz` and `/api/v1` are
-readiness aliases. See the [README diagrams](../README.md#diagrams) and
-[offline SVG explorer](diagrams/index.html).
+The trend batch pipeline retrieves public arXiv data, uses the published RunPod MiniLM
+endpoint for embeddings, scores and validates signals, then publishes a snapshot atomically.
+An operator-authorized dashboard control dispatches that pipeline and reports its run and
+served snapshot. Page views read stored results. Source failure retains dated, disclosed
+fallback data. Optional Adi model selection uses GLM on RunPod with separately authenticated
+Gemini failover; displayed answers come from server-authored blocks through the F8 validator.
 
 ```mermaid
-flowchart TB
-  user(["Learner / employee / HR / career advisor<br/>English · Bahasa Melayu · Chinese"])
-  web["ONE public Next.js server<br/>0.0.0.0:3000 → public :80<br/>pages · server actions · API proxy · health checks"]
-  supervisor["Root Python supervisor<br/>build/start · readiness · child cleanup"]
-  api["PRIVATE FastAPI / Uvicorn<br/>127.0.0.1:8000<br/>profiles · trends · matching · pathways<br/>SDGs · jobs · programmes · funding · accounts"]
-  db[("PostgreSQL 16 + pgvector")]
-  adi["RunPod GLM-5.3 / Gemini fallback<br/>validated answer-block selection"]
-  gemini["Optional Gemini skill embeddings<br/>768 dimensions · user confirmation"]
-  job["GitHub Actions<br/>preflight → ingest → embed → score → validate → publish"]
-  minilm["RunPod MiniLM worker<br/>pinned model · 384 dimensions"]
-  feeds["Public research, job feeds, courses,<br/>UN SDGs, BLS baseline and BNM rates"]
-  user --> web
-  supervisor -. "supervises" .-> web
-  supervisor -. "supervises" .-> api
-  web -- "private HTTP /api/v1" --> api
-  api <--> db
-  api -. "sanitised answer blocks" .-> adi
-  api -. "short skill phrases" .-> gemini
-  feeds --> job
-  job <--> minilm
-  job -- "reachable deployment database required" --> db
+flowchart LR
+  Web[Next.js interface] --> API[Private FastAPI]
+  API --> DB[(PostgreSQL)]
+  Admin[Authorized dashboard refresh] --> Workflow[GitHub Actions]
+  Workflow --> Research[Public arXiv data]
+  Research --> Model[Published RunPod MiniLM]
+  Model --> Validate[Score and validate]
+  Validate --> DB
+  Courses[Provider course APIs] --> DB
+  Jobs[Public employer feeds] --> DB
+  DOSM[DOSM monthly public survey] --> DB
+  API --> Gate[Validated answer blocks]
+  Gate --> Adi[Optional RunPod or Gemini selection]
 ```
 
-**Verification boundaries:** the public URL [adept-my.replit.app](https://adept-my.replit.app)
-returned 200 for landing, About and API/database health during read-only checks on
-25 October 2026. This confirms public reachability, not a particular deployed Git revision.
-A historical MiniLM test returned two valid 384-dimensional vectors; the first integrated
-refresh failed on the private development database host `helium`. The latest observed
-refresh run was unsuccessful, so no successful new production snapshot is claimed. Worker
-dependency updates require a separate image rebuild/redeployment.
+### 3.2 Implementation and hackathon deliverables
 
-**Sponsor resources used:** the team uses the sponsor-provided **Replit Core subscription**
-for the public prototype and Replit's integrated PostgreSQL database, plus **US$25 RunPod
-sponsor credits** for Serverless/inference usage. RunPod Serverless hosts the MiniLM research
-encoder, and a separate RunPod endpoint supplies Adi's configured GLM-5.3 model.
-These uses are declared in section 5 of the technical declaration.
-Google Gemini remains a separately declared provider integration; its presence alone is not
-a claim that the team received Google sponsor credits. Aiversecity is the domain alignment,
-not an API/resource usage claim. No mentoring participation or subscription duration is asserted.
+<!-- answer:start final-3.2 limit=300 -->
+The repository implements the six-stage learner journey, organisation programmes and
+multilingual interfaces. The final review improves cold-start handling, snapshot provenance, scenario scaling, low-evidence labels,
+optional sharing, navigation, keyboard controls and error recovery. A dashboard refresh
+control uses the existing published model rather than adding request-time inference.
 
-### 3.2 Design-thinking and deployment strategy
+Database changes add workspace references, a membership lookup index and scoped funding
+policies. Administrator access uses configured stable account IDs. Removing a member clears
+that organisation's private assignments while anonymising audit history. Regional SDG output
+suppresses small groups and rare contributions. Migration history remains append-only.
 
-<!-- answer:start proposal-3.2 limit=200 -->
-We framed the experience around synthetic working-adult, graduate, career-switcher and
-organisation-advisor personas. These are design assumptions, not interview findings. Their
-shared need is an understandable next learning step within time and funding constraints.
+The build includes signed-session browser journeys for desktop and mobile, source-attribution
+checks, generated API contracts and a synthetic CV counterfactual harness. Operational tools
+support local demo preparation and public build identity. Terms, FAQ and Privacy are linked
+from the public interface. Courses and job openings can be refreshed on scheduled workflows.
 
-The journey is to confirm skills, inspect dated signals, compare roles, save a pathway and
-connect learning to job openings. One engine serves personal, employee and manager views.
-Visible score components, source dates, uncertainty labels, three languages and responsive
-layouts support inspection. Programme assignments and evidence review keep people in charge.
+The team must identify which commits and deployments occurred inside the official physical
+sprint; this draft does not infer that every historical commit was made in that window.
+Current check results and remaining external evidence are recorded in the final-round status
+report. Production publication, public asset access and human impact measurements require
+separate evidence before the checklist is signed.
+<!-- answer:end final-3.2 -->
 
-The selected host is Replit Autoscale. The repository retains root docs/submission/src/tests,
-a single public Next.js server and private FastAPI, with PostgreSQL and pgvector. Root build
-and start commands install locked dependencies, prepare standalone assets and supervise
-readiness; production startup performs no migrations or seeding. CI checks the exact public
-startup against disposable PostgreSQL, including health routes, static assets and API forwarding.
+## 4. Environmental and SDG impact verification
 
-The account owner must configure production secrets and origin, prepare the database through
-the approved development-to-production process, verify forwarding trust and publish the
-reviewed revision. Validate signed-in synthetic journeys, recovery and trend publication on
-that deployment. Quantified user-outcome evaluation and final submission recordings remain
-to be completed.
-
-<!-- answer:end proposal-3.2 -->
-
-## 4. Preliminary environmental and SDG impact framework
-
-| Template metric category | Response |
+| Template category | Evidence and current limit |
 |---|---|
-| Target SDG sub-target(s) | **4.4:** relevant employment and entrepreneurship skills; **4.3:** equal access to affordable technical, vocational and tertiary learning. Supporting **8.2:** productivity through technological upgrading, and **8.5:** decent work and equal employment opportunity. These are paraphrases; official wording remains in the UN catalogue. |
-| Current problem baseline | Hays' 2025 Malaysia findings report 56% AI use and 26% training, a 30 percentage-point difference between reported shares. This is a dated external context baseline. **Product baseline:** median time to a valid learning plan has not yet been measured; do not replace it with an invented number. |
-| Core measurable KPI | Median minutes from intake start to a saved, sourced target-role plan, compared on the same synthetic cases with manual use of the same course catalogue. A valid plan must use existing skill/course IDs, respect prerequisites, disclose time/cost constraints and carry source/date metadata. Record valid-plan share alongside time. |
-| Phase 2 impact target | **Proposed target, not achieved:** at least 20% less median planning time than the measured manual baseline, with no decrease in valid-plan share. Compute reduction as `100 × (baseline median − Adept median) / baseline median`; require a positive measured baseline. |
+| Target SDG metric achievement | The Phase 1 target is at least 20% less planning time. Matched manual/Adept human trials remain **not run**. No achieved reduction is claimed. |
+| Verification evidence method | `src/scripts/kpi_time_to_plan.py` calculates paired measurements using `docs/kpi-trials-template.json`; invalid or missing trials are not converted to results. Browser/HTTP tests verify functionality, not human planning speed. |
+| Socio-economic and civic value | Initial channels are career centres, TVET providers and HR/L&D teams. Reach and willingness to pay require a measured pilot; no user count or commercial conversion is asserted. |
+| Deployment and commercial feasibility | One web/API deployment plus scheduled batch jobs. Course budgets are planning inputs; employers buy training directly. Production hosting/model cost per run/user must be taken from actual usage and bills. |
+| Learning cost | Free/paid/HRD labels derive from dated provider records. Report free-step share and plan cost from the exact five saved demo plans; do not reuse obsolete global counts. |
+| Privacy and fairness | Synthetic CV counterfactuals and workspace/privacy regressions provide bounded evidence. They do not prove universal fairness, legal certification or real employment outcomes. |
 
-Measure both workflows using matched synthetic profiles, budgets and target roles; keep the
-catalogue and snapshot fixed and counterbalance workflow order. Report task count, failures
-and medians with the results. No participant identities or real CVs enter the demo dataset.
-This protocol is a proposed evaluation, not evidence of an experiment already conducted.
+### 4.1 Mathematical proof and code logic
 
-The principal contribution is educational decision support. No reductions in carbon emissions,
-national unemployment or income inequality are measured or claimed. SDG contribution scores
-describe catalogue alignment and learning activity, not official UN indicator achievement.
-Role/skill-to-target mappings are team-curated and remain drafts until human review.
+For each valid paired human trial, planning-time reduction is
+`100 * (manual_minutes - adept_minutes) / manual_minutes`. Report sample size, median paired
+reduction and valid-plan share from the calculator output. A zero, absent or negative manual
+baseline is not valid evidence. Do not substitute account age for a stopwatch measurement.
 
-Sources: [UN Goal 4](https://sdgs.un.org/goals/goal4),
-[UN Goal 8](https://sdgs.un.org/goals/goal8),
-[Hays Malaysia](https://www.hays.com.my/press-release/content/future-of-work-malaysia-technology-ai-impact).
+The score remains a documented weighted sum of skill fit, dated trend evidence and interest
+fit, optionally blended with SDG alignment. Scenario velocities share the same robust scale.
+The production implementation and synthetic checks are linked in
+[final-round status](final-round-status.md). Synthetic invariance tests are proof only for the
+listed fixtures and variants. These are functional/code proofs, not a measured social-impact KPI.
 
-## 5. Eligibility and readiness checklist
+## 5. Market viability and future scalability
 
-- [ ] All members completed mandatory GenAI, database and cloud workshops. **Team confirmation required.**
-- [x] The concept connects an evidenced workforce learning problem to SDG 4.
-- [x] The project targets a functional deployed application; the source includes a tested root deployment design with one public server.
-- [ ] Every required field is complete within the limits. **Narrative limits are checked; team and signature fields remain outstanding.**
+<!-- answer:start final-5 limit=250 -->
+Adept would first be piloted with a career centre, TVET provider or employer learning team.
+The pilot should measure time to a valid plan, relevance of selected courses, completion
+follow-through, accessibility and feedback from both learners and advisors. Pricing and
+willingness to pay remain hypotheses until interviews and trials supply evidence.
 
-## 6. IP and originality declaration
+Scaling uses stored public reference data and scheduled batch inference, keeping third-party
+API latency outside the learner's normal journey. Database pooling, bounded operations and
+workspace access checks support concurrent use. Larger deployments need load measurements,
+least-privilege database roles, operational alerts, retention policies and verified provider
+terms. National labour statistics provide context without pretending to describe each role.
 
-### 6.1 Pre-existing / prior-owned work
+Partnerships with education providers, TalentCorp, PERKESO or employers would require actual
+agreements and permitted data access. Course and occupation expansion must preserve source
+records, licensing, human review and honest uncertainty. The platform would remain decision
+support; institutions and employers retain personnel and admission decisions.
+<!-- answer:end final-5 -->
+
+## 6. Final submission checklist
+
+- [ ] Final deployed revision and snapshot match the recorded demonstration.
+- [ ] Judges can access the live application and source repository.
+- [ ] README installation steps have been verified on the selected disposable setup.
+- [ ] Official live-window incremental commits have been identified by the team.
+- [ ] Final pitch deck is exported as a flattened PDF and anonymously accessible.
+- [ ] All final fields, word limits and the measured evidence have been reviewed.
+
+## 7. IP and originality declaration
+
+### 7.1 Pre-existing / prior-owned work
 
 **No, based on the team leader's provenance clarification on 25 October 2026.** The team
 reports that Adept's implementation was created for this hackathon. KerjaCerdas belongs to
@@ -222,10 +161,10 @@ a different team and was consulted for general security concepts, implemented fo
 own APIs and use cases; the team does not declare a reused prior-owned implementation.
 Earlier repository statements describing KerjaCerdas as work by the same team or as imported
 security code were inaccurate; see decision M3-028. Third-party frameworks, public data,
-pre-trained models and development tools remain disclosed separately in section 6.2 and the
+pre-trained models and development tools remain disclosed separately in section 7.2 and the
 technical declaration. The leader must confirm the final form reflects the actual work.
 
-### 6.2 Third-party code, datasets or models
+### 7.2 Third-party code, datasets or models
 
 **Yes.** The main resources are declared below; the
 [technical declaration](submission-technical-declaration.md#22-languages-frameworks-and-libraries)
@@ -283,27 +222,27 @@ provides versions, purposes and a fuller inventory.
 | PyYAML; actionlint; Prettier | code / development tools | MIT |
 | GitHub Container Registry | service | GitHub Terms of Service |
 
-### 6.3 Employment-related IP conflicts
+### 7.3 Employment-related IP conflicts
 
 **Yes / No: each member must confirm privately.** No employment, internship or consulting
 agreement was reviewed. Add any applicable owner/permission details to the final submission;
 do not infer the absence of a conflict from the repository.
 
-## 7. Declaration
 
-**Unsigned draft.** The team leader must review the completed proposal and make the accuracy
-and originality declaration in the supplied template. No signature or attestation is generated.
+## 8. Declaration
 
-| Field | Completion |
-|---|---|
-| Signature | Leader to sign privately after review. |
-| Date | Actual signing date; not the date this draft was generated. |
-| Final filename | `SDC2026_<RegisteredTeamName>_Preliminary.pdf` |
+Unsigned draft. The leader must verify team declarations, fill private contact information,
+and sign/date the final supplied form. Do not infer consent or attestations from this draft.
 
-## Evidence and handoff
+## Evidence references
 
-- [Feature specification and ownership](tasks.md), [decisions](decisions.md), [solution design](solution-design.md).
-- [Scoring implementation](../src/api/app/features/matching/scoring.py), [trend publisher](../src/pipelines/trends/run.py), [pathway engine](../src/api/app/features/pathway/engine.py).
-- [Source catalogue](../src/api/app/features/pathway/catalogue_sources.py), [seed records](../src/data/seed/), [append-only migrations](../src/db/migrations/).
-- Public app: [Adept](https://adept-my.replit.app); source: [GitHub](https://github.com/pecel-lelele/adept).
-- Before PDF export: complete private team declarations, confirm the actual deployed revision and sponsor usage, add deck/video links, inspect diagram exports and recheck the template word limits.
+[Technical tools declaration](submission-technical-declaration.md) ·
+[Official criterion mapping](rubric-check.md) · [Deliverables](submission-deliverables.md) ·
+[Demo source register](demo-script.md#evidence-register) · [KPI protocol](kpi-time-to-plan.md)
+
+Final-round measurement status, **30 October 2026**: **0 human testers and 0 human
+trials**; no measured manual baseline or achieved planning-time reduction. The
+20% figure is a proposed target only. See the [calculator output](kpi-human-summary.json)
+and [separate automated synthetic API measurements](kpi-automated-journeys.md)
+for dated sample sizes, completion/failure counts and methodological limits.
+Automated response timings do not establish human planning speed or impact.

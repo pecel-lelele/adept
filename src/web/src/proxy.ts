@@ -11,6 +11,7 @@ export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   const headers = new Headers(request.headers);
   headers.set("x-adept-path", pathname);
+  headers.set("x-adept-search", search);
   const workspace = /^\/(app|work|org|admin)(\/|$)/.test(pathname);
   const token = request.cookies.get(SESSION_COOKIE)?.value ?? "";
   if (workspace && !token.startsWith("v2.")) {

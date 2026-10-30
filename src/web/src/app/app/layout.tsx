@@ -5,6 +5,7 @@ import { Shell } from "@/components/shell/Shell";
 import { learnerWorkspace } from "@/config/navigation";
 import { fetchPlanStatus } from "@/features/pathway/api";
 import { getAccount } from "@/lib/auth/account";
+import { loginHref } from "@/lib/auth/return-path";
 import { PERSONAL } from "@/lib/auth/workspace";
 import { getWorkspaces } from "@/lib/auth/workspaces";
 
@@ -14,7 +15,7 @@ import { getWorkspaces } from "@/lib/auth/workspaces";
  */
 export default async function Layout({ children }: { children: ReactNode }) {
   const account = await getAccount();
-  if (!account) redirect("/auth/login?next=/app");
+  if (!account) redirect(await loginHref("/app"));
   // Same rule as the Home journey: a profile completes step 1; a saved plan means the learner
   // has seen the radar and chosen a role (steps 2 and 3).
   const [status, workspaces] = await Promise.all([

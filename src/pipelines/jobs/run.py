@@ -20,6 +20,8 @@ Run from the repo root:
     PYTHONPATH=src/api:src .venv/bin/python -m pipelines.jobs.run            # fetch + seed CSV
     PYTHONPATH=src/api:src .venv/bin/python -m pipelines.jobs.run --db       # ... and database
     PYTHONPATH=src/api:src .venv/bin/python -m pipelines.jobs.run --cached   # re-classify only
+    PYTHONPATH=src/api:src .venv/bin/python -m pipelines.jobs.run --refilter-locations
+        # offline: re-apply the current location rule to the seed CSV (no network)
 """
 
 from __future__ import annotations
@@ -57,6 +59,7 @@ from pipelines.jobs.sources import (
     IncompleteRead,
     MissingKey,
     RawPosting,
+    in_malaysia,
 )
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -401,12 +404,77 @@ def to_db(
     print(f"database: {len(rows)} upserted, {active[0] if active else 0} active")
 
 
+def keeps_location(row: dict[str, Any]) -> bool:
+    """The fetch-time rule, applied to a stored row: Malaysian location, or a remote opening
+    with a Malaysia-eligible scope (remote boards set the scope from their own region field)."""
+    if row.get("work_mode") == "remote" and row.get("remote_scope"):
+        return True
+    return in_malaysia(row.get("location"))
+
+
+def refilter_locations(
+    rows: list[dict[str, Any]], log: dict[str, Any], applied_on: date
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """Drop stored openings the current location rule rejects; keep counts consistent.
+
+    Pure: returns the kept rows and an updated fetch log (evaluation recomputed on the kept
+    active rows; per-board `kept` reduced by rows dropped from that board's latest fetch).
+    `fetched_on` is unchanged because no source was read again.
+    """
+    kept = [r for r in rows if keeps_location(r)]
+    dropped = [r for r in rows if not keeps_location(r)]
+    fetched_on = log.get("fetched_on")
+    from_last_fetch = Counter(
+        (r["source"], r["board"]) for r in dropped if r.get("last_seen") == fetched_on
+    )
+    boards_log = []
+    for entry in log.get("boards", []):
+        entry = dict(entry)
+        cut = from_last_fetch.get((entry.get("source"), entry.get("board")), 0)
+        if cut and isinstance(entry.get("kept"), int):
+            entry["kept"] = max(0, entry["kept"] - cut)
+        boards_log.append(entry)
+    updated = {
+        **log,
+        "evaluation": evaluate([r for r in kept if r.get("active") == "true"]),
+        "boards": boards_log,
+        "location_refilter": {
+            "applied_on": applied_on.isoformat(),
+            "rule": (
+                "primary location in Malaysia (a bare Remote/Anywhere counts as missing), or a "
+                "remote opening with a Malaysia-eligible scope"
+            ),
+            "dropped": len(dropped),
+            "dropped_by_source": dict(Counter(r["source"] for r in dropped).most_common()),
+            "network": False,
+        },
+    }
+    return kept, updated
+
+
+def refilter_seed(applied_on: date) -> int:
+    rows = _read_csv(POSTINGS_CSV)
+    log = json.loads(FETCH_LOG.read_text(encoding="utf-8")) if FETCH_LOG.exists() else {}
+    kept, updated = refilter_locations(rows, log, applied_on)
+    _write_csv(POSTINGS_CSV, POSTING_FIELDS, kept)
+    FETCH_LOG.write_text(json.dumps(updated, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    print(f"kept {len(kept)} of {len(rows)} openings; dropped {len(rows) - len(kept)}")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     ap.add_argument("--db", action="store_true", help="also upsert into DATABASE_URL")
     ap.add_argument("--cached", action="store_true", help="re-classify the latest raw fetch")
     ap.add_argument("--only", nargs="*", help="limit to these sources or boards")
+    ap.add_argument(
+        "--refilter-locations",
+        action="store_true",
+        help="offline: drop seed rows the current location rule rejects",
+    )
     args = ap.parse_args()
+    if args.refilter_locations:
+        return refilter_seed(date.today())
 
     if args.cached:
         raw, today = load_raw(None)

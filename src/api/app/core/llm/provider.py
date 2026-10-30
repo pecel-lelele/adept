@@ -3,7 +3,7 @@
 - `none` (default): no model. Features use their deterministic logic.
 - `replit`: Replit AI Integrations (billed to Replit credits). Replit injects an OpenAI-compatible
   base URL and key into apps that run on Replit; set LLM_BASE_URL / LLM_API_KEY to override.
-- `gemini`: Google AI Studio's OpenAI-compatible endpoint with an AI Studio key (LLM_API_KEY).
+- `gemini`: Google AI Studio's OpenAI-compatible endpoint with an AI Studio key (GEMINI_API_KEY).
 - `openai`, `openrouter`: their public OpenAI-compatible APIs with LLM_API_KEY.
 - `runpod`: a Runpod public or Serverless endpoint, LLM_BASE_URL =
   https://api.runpod.ai/v2/<endpoint-id>/openai/v1 and RUNPOD_API_KEY = a Runpod API key.
@@ -284,13 +284,15 @@ def build_provider(settings: Settings) -> LLMProvider:
         key = _replit_value(settings.llm_api_key, "AI_INTEGRATIONS_OPENAI_API_KEY")
     elif name in ("gemini", "openai", "openrouter", "runpod", "openai_compatible"):
         base = settings.llm_base_url or _DEFAULT_BASE.get(name, "")
+        # RunPod and Gemini use only their own key: the generic LLM_API_KEY is never sent to
+        # either endpoint, so one provider's credential cannot leak to another.
         key = (
             settings.runpod_api_key
             if name == "runpod"
             else settings.gemini_api_key
             if name == "gemini"
-            else ""
-        ) or settings.llm_api_key
+            else settings.llm_api_key
+        )
     else:
         raise LLMUnavailableError(f"Unknown LLM_PROVIDER: {settings.llm_provider}")
     fallback_name = settings.llm_fallback_provider.strip().lower()

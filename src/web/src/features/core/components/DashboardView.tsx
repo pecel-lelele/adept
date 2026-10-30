@@ -1,3 +1,5 @@
+import { MalaysiaContextCard } from "@/features/trends/components/MalaysiaContextCard";
+import { AdminTrendRefresh } from "@/features/trends/components/AdminTrendRefresh";
 import { ArrowRight, ArrowUpRight, BookOpen, Building2, Check, Compass, Leaf, Route, Target, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -20,7 +22,7 @@ import { journeyHref } from "@/lib/navigation";
  * numbers → top roles and the learner's skill trends → the plan and the goals it supports.
  * Charts and lists only; illustrations stay on the public pages.
  */
-export async function DashboardView({ scenario, query }: { scenario: ScenarioId; query: URLSearchParams }) {
+export async function DashboardView({ scenario, query, workspaceError = false }: { scenario: ScenarioId; query: URLSearchParams; workspaceError?: boolean }) {
   const account = await getAccount();
   if (account && !account.has_profile) redirect("/app/onboarding");
   const t = await getTranslations("ui.home");
@@ -118,6 +120,8 @@ export async function DashboardView({ scenario, query }: { scenario: ScenarioId;
 
   return (
     <div className="a-view">
+      <AdminTrendRefresh />
+      {workspaceError ? <p className="a-chip" data-tone="warn" role="alert">{(await getTranslations("ui.workspace"))("workspaceError")}</p> : null}
       <section className="a-welcome">
         <div className="a-welcome-main">
           <span className="a-eyebrow">{t("hello", { name: account?.display_name ?? "" })}</span>
@@ -291,6 +295,7 @@ export async function DashboardView({ scenario, query }: { scenario: ScenarioId;
         </section>
       </div>
       {matches.ok ? <MetaBar meta={matches.data.meta} /> : null}
+      <MalaysiaContextCard />
     </div>
   );
 }

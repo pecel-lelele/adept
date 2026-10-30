@@ -33,3 +33,17 @@ plan completion. Account age, returning users and overwritten plans confound tha
 Collect stopwatch trials first; no production SQL, migration or telemetry change is needed.
 
 Test with `python -m unittest discover -s tests/scripts -v` (standard library only).
+
+## Current evidence - 30 October 2026
+
+The user confirmed no human trials have been run. The template remains deliberately
+`not_run`; its [calculator result](kpi-human-summary.json) has 0 attempted human
+trials, 0 valid pairs and null medians/reduction. Do not relabel scripted runs as T1-T3.
+
+Run `python src/scripts/measure_synthetic_journeys.py --run-local-isolated` for
+[separate local API timings](kpi-automated-journeys.md). This calls production
+CV parsing, intake, radar, matching and plan saving using only the five selected
+synthetic PDFs and reviewed skill fixtures, signed synthetic sessions, in-memory
+storage and disabled paid providers. Step times include API execution and automatic
+validation; they exclude human decisions and browser/network overhead. The source
+revision, hashes, fallback snapshot, failures and sample size are retained in JSON.

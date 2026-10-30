@@ -115,13 +115,30 @@ class TestSnapshotEndpoint:
         items2 = {i.skill_id: i.velocity_moderate for i in snap2.items}
         assert items1 != items2, "Expected items to differ between different snapshot dates"
 
-    def test_requesting_unavailable_date_returns_404(self, client: TestClient) -> None:
-        """Requesting a snapshot_date not in available_snapshots must return 404."""
+    def test_requesting_unavailable_date_returns_404(
+        self, client: TestClient, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """A date the (reachable) source does not hold is 404."""
+        from app.features.trends import mocks, repository
+
+        monkeypatch.setattr(
+            repository,
+            "resolve_context",
+            lambda strict=False: repository.ResolvedContext(
+                source="fixture", available_dates=list(mocks.AVAILABLE_MOCK_DATES)
+            ),
+        )
         resp = client.get("/api/v1/trends/snapshot?snapshot_date=1999-01-01")
         assert resp.status_code == 404
         data = resp.json()
         assert "error" in data
         assert data["error"]["code"] == "not_found"
+
+    def test_unheld_date_during_an_outage_returns_503(self, client: TestClient) -> None:
+        """N5: the test database is unreachable, so an unheld replay date is unavailable."""
+        resp = client.get("/api/v1/trends/snapshot?snapshot_date=1999-01-01")
+        assert resp.status_code == 503
+        assert resp.json()["error"]["code"] == "trend_unavailable"
 
     def test_snapshot_default_scenario_is_moderate(self, client: TestClient) -> None:
         """Default scenario when not specified must be 'moderate'."""

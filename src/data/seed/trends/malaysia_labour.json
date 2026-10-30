@@ -1,0 +1,22 @@
+{
+  "observed_month": "2026-08-01",
+  "unemployment_rate": 2.9,
+  "participation_rate": 71.0,
+  "employment_population_ratio": 68.9,
+  "meta": {
+    "sources": [
+      {
+        "name": "Department of Statistics Malaysia: monthly Labour Force Survey",
+        "url": "https://open.dosm.gov.my/data-catalogue/lfs_month",
+        "retrieved_at": "2026-10-30"
+      }
+    ],
+    "snapshot_date": "2026-08-01",
+    "scenario": "moderate",
+    "is_estimate": false,
+    "served_from": null,
+    "is_fallback": false,
+    "observed_from": "2026-08-01",
+    "observed_to": "2026-08-31"
+  }
+}

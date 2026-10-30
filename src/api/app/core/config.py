@@ -1,11 +1,12 @@
 """Application settings, read from environment variables and the root .env."""
 
+import os
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
 from pydantic import Field, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, SettingsConfigDict
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
 
@@ -26,6 +27,7 @@ class Settings(BaseSettings):
     # Largest number of pooled database connections per API process (app.core.db).
     db_pool_max: int = 10
     cors_origins: str = Field(default="http://localhost:3000")
+    web_origin: str = ""
     log_level: str = "INFO"
     llm_provider: str = "none"
     llm_model: str = ""
@@ -73,6 +75,21 @@ class Settings(BaseSettings):
     auth_default_user: str = ""
     # Secret for POST .../sync endpoints that refresh live data; empty = sync disabled.
     sync_token: str = ""
+    # Stable, operator-provisioned account IDs; self-asserted signup email grants no access.
+    admin_user_ids: str = ""
+
+    @classmethod
+    def settings_customise_sources(
+        cls,
+        settings_cls: type[BaseSettings],
+        init_settings: PydanticBaseSettingsSource,
+        env_settings: PydanticBaseSettingsSource,
+        dotenv_settings: PydanticBaseSettingsSource,
+        file_secret_settings: PydanticBaseSettingsSource,
+    ) -> tuple[PydanticBaseSettingsSource, ...]:
+        if os.environ.get("APP_ENV", "").strip().lower() == "production":
+            return init_settings, env_settings, file_secret_settings
+        return init_settings, env_settings, dotenv_settings, file_secret_settings
 
     @field_validator("session_secret")
     @classmethod
@@ -100,6 +117,10 @@ class Settings(BaseSettings):
                 errors.append("CORS_ORIGINS must list exact origins, not '*'.")
             if self.auth_raw_user_ids or self.auth_default_user:
                 errors.append("AUTH_RAW_USER_IDS / AUTH_DEFAULT_USER are test-only settings.")
+            if self.m3_backend != "postgres":
+                errors.append("M3_BACKEND must be postgres; csv is for automated tests only.")
+            if not self.web_origin.strip():
+                errors.append("WEB_ORIGIN must be set to the app's exact public origin.")
             if not self.proxy_shared_secret.strip():
                 errors.append("PROXY_SHARED_SECRET is required on both web and API services.")
             if self.proxy_client_ip_mode == "trusted" and self.trusted_proxy_hops == 0:

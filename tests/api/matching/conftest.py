@@ -52,6 +52,14 @@ def _m1_fixture_snapshots(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(trends_service, "get_snapshot", fixture_snapshot)
 
 
+@pytest.fixture(autouse=True)
+def _no_recorded_trend_outage() -> None:
+    """Each test starts without the trend port's outage back-off from an earlier test."""
+    from app.features.matching import trend_port
+
+    trend_port.reset_down()
+
+
 @pytest.fixture
 def strict_matching(monkeypatch: pytest.MonkeyPatch) -> None:
     """Exercise live matching reads without changing the API's demo identity."""

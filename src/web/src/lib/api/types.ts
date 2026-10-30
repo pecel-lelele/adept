@@ -4,6 +4,23 @@
  */
 
 export interface paths {
+    "/api/v1/meta/version": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Version */
+        get: operations["core_version"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -1392,6 +1409,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/trends/malaysia-context": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Malaysia Context */
+        get: operations["trends_malaysia_context"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/trends/snapshot": {
         parameters: {
             query?: never;
@@ -1444,6 +1478,71 @@ export interface paths {
         get: operations["trends_get_role_trend"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trends/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start Refresh
+         * @description Fetch the latest data: start the trends-refresh GitHub Actions workflow.
+         *
+         *     Returns the run already queued or in progress instead of starting a second one.
+         *     503 refresh_not_configured when GITHUB_DISPATCH_TOKEN / GITHUB_REPOSITORY are unset.
+         */
+        post: operations["trends_start_refresh"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trends/refresh/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Refresh Status
+         * @description Status of a refresh run; a successful run clears the trend caches once.
+         */
+        get: operations["trends_refresh_status"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trends/refresh/rescore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Rescore
+         * @description Re-score the latest stored signals (no ingest, no model call).
+         *
+         *     Publishes only a genuinely new snapshot; otherwise reports no_new_data.
+         */
+        post: operations["trends_rescore"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2002,6 +2101,22 @@ export interface components {
             status: "not_started" | "in_progress" | "completed";
             evidence?: components["schemas"]["CompletionEvidence"] | null;
         };
+        /** CriticalOccupationBadge */
+        CriticalOccupationBadge: {
+            /** Edition */
+            edition: string;
+            /** Masco4D */
+            masco4d: string;
+            /** Occupation Label */
+            occupation_label: string;
+            /** Matched Title */
+            matched_title: string;
+            /** Source Page */
+            source_page: number;
+            /** Pdf Page */
+            pdf_page: number;
+            meta: components["schemas"]["RecommendationMeta"];
+        };
         /** CvExtractionResult */
         CvExtractionResult: {
             /** Skills */
@@ -2529,6 +2644,21 @@ export interface components {
             email: string;
             /** Password */
             password: string;
+        };
+        /** MalaysiaLabourContext */
+        MalaysiaLabourContext: {
+            /**
+             * Observed Month
+             * Format: date
+             */
+            observed_month: string;
+            /** Unemployment Rate */
+            unemployment_rate: number;
+            /** Participation Rate */
+            participation_rate: number;
+            /** Employment Population Ratio */
+            employment_population_ratio: number;
+            meta: components["schemas"]["RecommendationMeta"];
         };
         /** MatchResponse */
         MatchResponse: {
@@ -3389,7 +3519,7 @@ export interface components {
              * Id
              * @enum {string}
              */
-            id: "minilm" | "glm" | "gemini" | "embeddings" | "arxiv" | "bls" | "onet" | "jobs" | "mscert" | "awscert" | "googlecert" | "iibacert" | "iappcert" | "bnm";
+            id: "minilm" | "glm" | "gemini" | "embeddings" | "arxiv" | "bls" | "onet" | "jobs" | "mscert" | "awscert" | "googlecert" | "iibacert" | "iappcert" | "bnm" | "replit" | "fonts";
             /** Name */
             name: string;
             /** Url */
@@ -3526,6 +3656,7 @@ export interface components {
             partial_skills: components["schemas"]["Skill"][];
             /** Sdg Targets */
             sdg_targets: components["schemas"]["SdgTarget"][];
+            critical_occupation?: components["schemas"]["CriticalOccupationBadge"] | null;
             /** Improvements */
             improvements?: components["schemas"]["ScoreImprovement"][];
             /**
@@ -3880,6 +4011,14 @@ export interface components {
             role_ids?: string[];
             /** Target Contributions */
             target_contributions?: components["schemas"]["TargetContribution"][];
+            /**
+             * Aggregation Status
+             * @default available
+             * @enum {string}
+             */
+            aggregation_status: "available" | "suppressed";
+            /** Minimum People */
+            minimum_people?: number | null;
         };
         /**
          * SdgEvidence
@@ -4417,6 +4556,84 @@ export interface components {
             /** Trend Coverage */
             trend_coverage: number;
         };
+        /**
+         * TrendRefreshStatus
+         * @description State of the GitHub Actions trend refresh run (the workflow publishes the snapshot).
+         */
+        TrendRefreshStatus: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "queued" | "in_progress" | "completed";
+            /**
+             * Conclusion
+             * @description GitHub run conclusion once completed, e.g. success, failure.
+             */
+            conclusion?: string | null;
+            /**
+             * Run Id
+             * @description None until GitHub lists the new run.
+             */
+            run_id?: number | null;
+            /** Run Url */
+            run_url?: string | null;
+            /** Created At */
+            created_at?: string | null;
+            /** Updated At */
+            updated_at?: string | null;
+            /**
+             * Dispatched
+             * @description True when this request started the run.
+             * @default false
+             */
+            dispatched: boolean;
+            /**
+             * Already Running
+             * @description True when an earlier run was still queued or in progress.
+             * @default false
+             */
+            already_running: boolean;
+            /**
+             * Caches Cleared
+             * @default false
+             */
+            caches_cleared: boolean;
+            /**
+             * Snapshot Date
+             * @description Latest snapshot the app serves after a completed run.
+             */
+            snapshot_date?: string | null;
+            /** Served From */
+            served_from?: ("db" | "fixture") | null;
+            /**
+             * Is Fallback
+             * @default false
+             */
+            is_fallback: boolean;
+        };
+        /**
+         * TrendRescoreResult
+         * @description Outcome of re-scoring the latest stored signals (no ingest, no model call).
+         */
+        TrendRescoreResult: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "published" | "no_new_data" | "failed";
+            /** Message */
+            message: string;
+            /**
+             * Snapshot Date
+             * @description New snapshot date (published) or the one still live.
+             */
+            snapshot_date?: string | null;
+            /** Observed From */
+            observed_from?: string | null;
+            /** Observed To */
+            observed_to?: string | null;
+        };
         /** TrendSignal */
         TrendSignal: {
             /**
@@ -4444,6 +4661,17 @@ export interface components {
             automation_share: number;
             /** Augmentation Share */
             augmentation_share: number;
+            /**
+             * Trend Coverage
+             * @description Roles only: share of the role's skill importance that has trend data.
+             */
+            trend_coverage?: number | null;
+            /**
+             * Insufficient Evidence
+             * @description Roles only: trend_coverage is below 0.5, so the direction is not reliable.
+             * @default false
+             */
+            insufficient_evidence: boolean;
         };
         /** TrendSnapshotMeta */
         TrendSnapshotMeta: {
@@ -4580,6 +4808,20 @@ export interface components {
             /** Items */
             items: components["schemas"]["VerificationItem"][];
         };
+        /** VersionInfo */
+        VersionInfo: {
+            /** Version */
+            version: string;
+            /** Revision */
+            revision: string | null;
+            /** Dirty */
+            dirty: boolean | null;
+            /**
+             * Environment
+             * @enum {string}
+             */
+            environment: "development" | "production";
+        };
         /**
          * Workspace
          * @description A workspace the signed-in person can switch to.
@@ -4624,6 +4866,26 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    core_version: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VersionInfo"];
+                };
+            };
+        };
+    };
     core_health: {
         parameters: {
             query?: never;
@@ -7101,6 +7363,26 @@ export interface operations {
             };
         };
     };
+    trends_malaysia_context: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MalaysiaLabourContext"];
+                };
+            };
+        };
+    };
     trends_get_snapshot: {
         parameters: {
             query?: {
@@ -7187,6 +7469,105 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RoleTrendResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    trends_start_refresh: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                "x-workspace"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrendRefreshStatus"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    trends_refresh_status: {
+        parameters: {
+            query?: {
+                /** @description GitHub Actions run id. */
+                run_id?: number | null;
+            };
+            header?: {
+                "x-demo-user"?: string | null;
+                "x-workspace"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrendRefreshStatus"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    trends_rescore: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                "x-workspace"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrendRescoreResult"];
                 };
             };
             /** @description Validation Error */

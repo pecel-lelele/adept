@@ -14,7 +14,7 @@ import { currentBudgetYear } from "../funding-year";
  * HR's yearly training budget per member. It is a planning input for comparing team packages;
  * the organisation pays for training directly, so members have no claims or reimbursements.
  */
-export async function FundingView({ year = currentBudgetYear() }: { year?: number }) {
+export async function FundingView({ year = currentBudgetYear(), planQuery = "" }: { year?: number; planQuery?: string }) {
   const t = await getTranslations("org.funding");
   const api = await getApi();
   const result = await call(api.GET("/api/v1/org/funding/{year}", { params: { path: { year } } }));
@@ -27,9 +27,10 @@ export async function FundingView({ year = currentBudgetYear() }: { year?: numbe
   return (
     <div className="a-view">
       <PageHeader title={t("title")} description={t("description")}>
-        <Link className="a-link" href="/org/plan">{t("back")}</Link>
+        <Link className="a-link" href={`/org/plan${planQuery ? `?${planQuery}` : ""}`}>{t("back")}</Link>
       </PageHeader>
       <Form action="/org/funding" className="a-card a-controls">
+        {Array.from(new URLSearchParams(planQuery)).map(([key, value], i) => <input key={`${key}-${i}`} type="hidden" name={key} value={value} />)}
         <label className="a-field">
           {t("budgetYear")}
           <select name="year" defaultValue={year} className="a-select">

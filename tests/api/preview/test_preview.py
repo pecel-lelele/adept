@@ -110,3 +110,38 @@ def test_no_skill_extraction_does_not_rank(client, monkeypatch):
     ).json()
     assert body["top_role"] is None
     assert body["other_role_count"] == 0
+
+
+def test_preview_ranks_on_the_shared_scale_and_discloses_the_fallback(client, monkeypatch):
+    """N2: same reference velocities as matching; served_from/is_fallback reach the meta."""
+    from app.features.matching.scoring import rank_roles
+
+    seen = {}
+
+    def ranked(profile, roles, velocities, *args, **kwargs):
+        seen["reference"] = kwargs.get("reference_velocities")
+        return rank_roles(profile, roles, velocities, *args, **kwargs)
+
+    monkeypatch.setattr(preview, "rank_roles", ranked)
+    monkeypatch.setattr(
+        preview,
+        "fetch_snapshot",
+        lambda scenario: TrendSnapshot(
+            velocities={"python": 0.1},
+            sources=[SOURCE],
+            snapshot_date=SOURCE.retrieved_at,
+            scenario=scenario,
+            is_estimate=True,
+            served_from="fixture",
+            is_fallback=True,
+            reference_velocities={"python": 0.2},
+        ),
+    )
+    body = client.post(
+        "/api/v1/preview/cv",
+        data={"synthetic_consent": "true"},
+        files={"file": ("synthetic.txt", b"Python", "text/plain")},
+    ).json()
+    assert seen["reference"] == {"python": 0.2}
+    assert body["meta"]["served_from"] == "fixture"
+    assert body["meta"]["is_fallback"] is True

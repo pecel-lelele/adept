@@ -43,5 +43,7 @@
   "worthExploring": "Wajar diterokai",
   "worthExploringHint": "Anda memiliki kurang daripada {share}% tahap kemahiran yang diperlukan hari ini: laluan lebih panjang, berbaloi jika peranan ini menarik minat anda.",
   "emptyTitle": "Belum ada padanan untuk dipaparkan",
-  "emptyHint": "Semak kemahiran dan minat anda, kemudian cuba padankan lagi."
+  "emptyHint": "Semak kemahiran dan minat anda, kemudian cuba padankan lagi.",
+  "criticalOccupation": "Pekerjaan kritikal MyCOL {edition}",
+  "criticalOccupationNote": "Penyenaraian pekerjaan bersejarah; bukan kekosongan semasa atau bonus kedudukan."
 }

@@ -99,6 +99,8 @@ def test_matching_uses_the_higher_of_intake_and_evidenced_levels(
 
 
 ROLE = "process-automation-analyst"
+# A real catalogue role (course_progress.role_id references roles) with no saved plan.
+OLD_TARGET = "data-analyst"
 LEARNER = CurrentUser(id="aisyah", display_name="Aisyah", kind="learner")
 
 
@@ -303,7 +305,7 @@ def test_migration_backfills_saved_and_replaced_target_progress(client: TestClie
 
     course, _skill = _complete_and_confirm(client)
     # An older target with no surviving saved plan must use catalogue facts during upgrade.
-    repository.set_course_status("aisyah", "old-target", course.id, "completed")
+    repository.set_course_status("aisyah", OLD_TARGET, course.id, "completed")
     migration = MIGRATIONS / "20261022220000_core_completion_course_snapshots.sql"
     with connection() as conn, conn.transaction(force_rollback=True):
         conn.execute("ALTER TABLE course_progress DROP COLUMN course_snapshot")
@@ -315,8 +317,8 @@ def test_migration_backfills_saved_and_replaced_target_progress(client: TestClie
         ).fetchall()
         facts = {row["role_id"]: Course.model_validate(row["course_snapshot"]) for row in rows}
         assert facts[ROLE] == course
-        assert facts["old-target"].skill_ids == course.skill_ids
-        assert facts["old-target"].level == course.level
+        assert facts[OLD_TARGET].skill_ids == course.skill_ids
+        assert facts[OLD_TARGET].level == course.level
 
 
 def test_replan_preserves_completed_history_badges_and_undo(
@@ -472,9 +474,12 @@ def test_team_learning_excludes_other_organisations_and_unshared_personal_credit
         ],
     )
     monkeypatch.setattr(
-        org_service.profile_service,
-        "get_my_profile",
-        lambda _: SimpleNamespace(skills=[], hours_per_week=4, budget_myr=100, hrd_eligible=False),
+        org_service.profile_repository,
+        "get_profiles",
+        lambda ids: {
+            uid: SimpleNamespace(skills=[], hours_per_week=4, budget_myr=100, hrd_eligible=False)
+            for uid in ids
+        },
     )
     for scope, skill in [
         (repository.org_scope(BANK), "sql"),

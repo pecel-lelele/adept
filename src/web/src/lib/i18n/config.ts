@@ -23,6 +23,7 @@ export const namespaces = [
   "ui",
   "jobs",
   "privacy",
+  "publicPages",
 ] as const;
 
 export function isLocale(value: string | undefined): value is Locale {

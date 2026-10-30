@@ -39,6 +39,16 @@ class ScoreImprovement(BaseModel):
     course_url: str | None = None
 
 
+class CriticalOccupationBadge(BaseModel):
+    edition: str
+    masco4d: str
+    occupation_label: str
+    matched_title: str
+    source_page: int
+    pdf_page: int
+    meta: RecommendationMeta
+
+
 class RoleMatch(BaseModel):
     role_id: str
     label: str
@@ -47,6 +57,7 @@ class RoleMatch(BaseModel):
     missing_skills: list[Skill]
     partial_skills: list[Skill]
     sdg_targets: list[SdgTarget]
+    critical_occupation: CriticalOccupationBadge | None = None
     improvements: list[ScoreImprovement] = Field(default_factory=list)
     profile_note: Literal["add_skills"] | None = Field(
         default=None, description="A sparse-profile notice; translate the code for display."

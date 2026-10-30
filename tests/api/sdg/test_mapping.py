@@ -124,7 +124,9 @@ def test_alignment_ranks_roles_by_chosen_goals(client: TestClient) -> None:
     assert client.get("/api/v1/sdg/roles/data-analyst/alignment?goals=18").status_code == 422
 
 
-def test_org_and_region_contribution_follow_the_selected_role(client: TestClient) -> None:
+def test_org_and_region_contribution_follow_the_selected_role(
+    client: TestClient, monkeypatch
+) -> None:
     """H05: the role chosen on the team plan drives the organisation's impact view."""
     company = {"X-Demo-User": "demo-company"}
     default = client.get("/api/v1/sdg/contribution/org", headers=company).json()
@@ -138,10 +140,22 @@ def test_org_and_region_contribution_follow_the_selected_role(client: TestClient
     ).json()
     assert chosen["role_ids"] == [other]
     assert chosen["role_ids"] != default["role_ids"]
+    from app.features.sdg import service
+
+    seen = []
+    build = service.org_service.member_plans
+
+    def record(org_id, scenario, role_id=None):
+        seen.append(role_id)
+        return build(org_id, scenario, role_id)
+
+    monkeypatch.setattr(service.org_service, "member_plans", record)
     region = client.get(
         "/api/v1/sdg/contribution/region/Kuala Lumpur", params={"role_id": other}, headers=company
     ).json()
-    assert region["role_ids"] == [other]
+    assert seen and all(role == other for role in seen)
+    assert region["aggregation_status"] == "suppressed"
+    assert region["role_ids"] == []
     unknown = client.get(
         "/api/v1/sdg/contribution/org", params={"role_id": "astronaut"}, headers=company
     )

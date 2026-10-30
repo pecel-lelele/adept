@@ -281,6 +281,33 @@
       "source_url": "https://www.onetonline.org/link/summary/13-1041.00",
       "retrieved_at": "2026-10-23",
       "mapping": "Adept curated specialisation; not an official O*NET title or growth forecast"
+    },
+    {
+      "role_id": "retail-salespersons",
+      "label": "Retail Salespersons",
+      "occupation_code": "41-2031.00",
+      "occupation_title": "Retail Salespersons",
+      "source_url": "https://www.onetonline.org/link/summary/41-2031.00",
+      "retrieved_at": "2026-10-30",
+      "mapping": "Official occupation title; available as a current role, not asserted as an emerging role or a growth forecast"
+    },
+    {
+      "role_id": "customer-service-representatives",
+      "label": "Customer Service Representatives",
+      "occupation_code": "43-4051.00",
+      "occupation_title": "Customer Service Representatives",
+      "source_url": "https://www.onetonline.org/link/summary/43-4051.00",
+      "retrieved_at": "2026-10-30",
+      "mapping": "Official occupation title; available as a current role, not asserted as an emerging role or a growth forecast"
+    },
+    {
+      "role_id": "production-workers-all-other",
+      "label": "Production Workers, All Other",
+      "occupation_code": "51-9199.00",
+      "occupation_title": "Production Workers, All Other",
+      "source_url": "https://www.onetonline.org/link/summary/51-9199.00",
+      "retrieved_at": "2026-10-30",
+      "mapping": "Official occupation title; available as a current role, not asserted as an emerging role or a growth forecast"
     }
   ]
 }

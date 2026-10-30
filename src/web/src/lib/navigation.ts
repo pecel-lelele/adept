@@ -2,9 +2,11 @@
 export function journeyHref(
   path: string,
   params: Pick<URLSearchParams, "get">,
+  sourcePath?: string,
 ): string {
   const url = new URL(path, "https://adept.invalid");
   for (const key of ["scenario", "role"]) {
+    if (key === "role" && sourcePath && !/^\/app\/(pathway|progress|sdg|matches)(\/|$)/.test(sourcePath)) continue;
     const value = params.get(key);
     if (value && !url.searchParams.has(key)) url.searchParams.set(key, value);
   }
@@ -15,7 +17,7 @@ export function safeReturn(
   mode: "individual" | "organisation",
 ): string {
   const base = mode === "organisation" ? "/org" : "/app";
-  const roots = mode === "organisation" ? ["/org", "/app", "/work"] : ["/app", "/work"];
+  const roots = mode === "organisation" ? ["/org", "/app", "/work", "/admin"] : ["/app", "/work", "/admin"];
   if (!value || /[\\\r\n]/.test(value)) return base;
   try {
     const url = new URL(value, "https://adept.invalid");
