@@ -137,3 +137,45 @@ class TrendSnapshotMeta(BaseModel):
 class TrendSnapshotResponse(BaseModel):
     meta: TrendSnapshotMeta
     items: list[SkillVelocity]
+
+
+# ---------------------------------------------------------------------------
+# Admin trend refresh (F2): dispatch the trends-refresh workflow, or re-score stored signals
+# ---------------------------------------------------------------------------
+
+RefreshRunStatus = Literal["queued", "in_progress", "completed"]
+
+
+class TrendRefreshStatus(BaseModel):
+    """State of the GitHub Actions trend refresh run (the workflow publishes the snapshot)."""
+
+    status: RefreshRunStatus
+    conclusion: str | None = Field(
+        default=None, description="GitHub run conclusion once completed, e.g. success, failure."
+    )
+    run_id: int | None = Field(default=None, description="None until GitHub lists the new run.")
+    run_url: str | None = None
+    created_at: str | None = None
+    updated_at: str | None = None
+    dispatched: bool = Field(default=False, description="True when this request started the run.")
+    already_running: bool = Field(
+        default=False, description="True when an earlier run was still queued or in progress."
+    )
+    caches_cleared: bool = False
+    snapshot_date: date | None = Field(
+        default=None, description="Latest snapshot the app serves after a completed run."
+    )
+    served_from: Literal["db", "fixture"] | None = None
+    is_fallback: bool = False
+
+
+class TrendRescoreResult(BaseModel):
+    """Outcome of re-scoring the latest stored signals (no ingest, no model call)."""
+
+    status: Literal["published", "no_new_data", "failed"]
+    message: str
+    snapshot_date: date | None = Field(
+        default=None, description="New snapshot date (published) or the one still live."
+    )
+    observed_from: date | None = None
+    observed_to: date | None = None

@@ -25,5 +25,28 @@
   "trendCoverage": "data trend untuk {percent}% kemahirannya",
   "insufficientEvidenceRoles": "Bukti trend tidak mencukupi",
   "insufficientEvidenceHelp": "Kurang daripada separuh wajaran kemahiran peranan ini mempunyai data trend, jadi tiada arah ditunjukkan.",
-  "insufficientEvidence": "Bukti tidak mencukupi"
+  "insufficientEvidence": "Bukti tidak mencukupi",
+  "refresh": {
+    "title": "Muat semula data trend",
+    "help": "Ambil data terkini menjalankan aliran kerja Trends refresh: ia membaca senarai arXiv cs.AI terbaharu, memberi skor dan menerbitkan snapshot bertarikh. Larian yang gagal tidak menerbitkan apa-apa dan snapshot semasa kekal aktif. Skor semula hanya menggunakan isyarat yang telah disimpan dan menerbitkan hanya jika ia mengukur tempoh yang lebih baharu.",
+    "fetch": "Muat semula data trend sekarang",
+    "rescore": "Skor semula isyarat tersimpan",
+    "working": "Sedang diproses…",
+    "queued": "Larian dalam baris gilir GitHub Actions…",
+    "inProgress": "Larian sedang berjalan: mengambil, memberi skor dan mengesahkan…",
+    "succeeded": "Larian selesai dengan jayanya.",
+    "failed": "Larian selesai tanpa menerbitkan ({conclusion}).",
+    "alreadyRunning": "Muat semula sedang berjalan; menunjukkan larian tersebut.",
+    "viewRun": "Lihat larian di GitHub",
+    "newSnapshot": "Aplikasi kini menggunakan snapshot {date}.",
+    "openMatches": "Buka Padanan",
+    "lastGoodStays": "Snapshot terakhir yang diterbitkan kekal aktif.",
+    "rescore_published": "Snapshot {date} diterbitkan daripada isyarat tersimpan.",
+    "rescore_no_new_data": "Tiada data baharu: snapshot {date} sudah merangkumi isyarat tersimpan. Tiada apa-apa diterbitkan.",
+    "rescore_failed": "Skor semula gagal; tiada apa-apa diterbitkan. Snapshot {date} kekal aktif.",
+    "notConfigured": "Pengambilan dari halaman ini belum dikonfigurasi pada pelayan. Jalankan aliran kerja \"Trends refresh\" secara manual dari tab GitHub Actions repositori (Run workflow).",
+    "forbidden": "Hanya pentadbir yang disenaraikan dalam ADMIN_EMAILS boleh memuat semula data trend.",
+    "pollTimeout": "Berhenti menyemak selepas 35 minit. Semak larian di GitHub.",
+    "error": "Permintaan muat semula gagal ({code}). Snapshot semasa kekal aktif."
+  }
 }

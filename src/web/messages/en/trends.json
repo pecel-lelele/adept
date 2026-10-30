@@ -25,5 +25,28 @@
   "trendCoverage": "trend data for {percent}% of its skills",
   "insufficientEvidenceRoles": "Not enough trend evidence",
   "insufficientEvidenceHelp": "Less than half of these roles' skill weight has trend data, so no direction is shown.",
-  "insufficientEvidence": "Insufficient evidence"
+  "insufficientEvidence": "Insufficient evidence",
+  "refresh": {
+    "title": "Refresh trend data",
+    "help": "Fetch latest data runs the Trends refresh workflow: it reads the newest arXiv cs.AI listing, scores it and publishes a dated snapshot. A failed run publishes nothing and the current snapshot stays live. Re-score uses only the signals already stored and publishes only if they measure a newer period.",
+    "fetch": "Refresh trend data now",
+    "rescore": "Re-score stored signals",
+    "working": "Working…",
+    "queued": "Run queued on GitHub Actions…",
+    "inProgress": "Run in progress: ingesting, scoring and validating…",
+    "succeeded": "Run finished successfully.",
+    "failed": "Run finished without publishing ({conclusion}).",
+    "alreadyRunning": "A refresh is already running; showing that run.",
+    "viewRun": "View the run on GitHub",
+    "newSnapshot": "The app now serves snapshot {date}.",
+    "openMatches": "Open Matches",
+    "lastGoodStays": "The last published snapshot stays live.",
+    "rescore_published": "Published snapshot {date} from stored signals.",
+    "rescore_no_new_data": "No new data: snapshot {date} already covers the stored signals. Nothing was published.",
+    "rescore_failed": "Re-score failed; nothing was published. Snapshot {date} stays live.",
+    "notConfigured": "Fetching from this page is not configured on the server. Run the \"Trends refresh\" workflow manually from the repository's GitHub Actions tab (Run workflow).",
+    "forbidden": "Only administrators listed in ADMIN_EMAILS can refresh trend data.",
+    "pollTimeout": "Stopped checking after 35 minutes. Check the run on GitHub.",
+    "error": "The refresh request failed ({code}). The current snapshot stays live."
+  }
 }
