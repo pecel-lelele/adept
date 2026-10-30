@@ -1383,6 +1383,17 @@
 - **Replaces**: M3-036 numeric support rule only
 - **PR / branch**: fix/core-greptile-followups / Fixes #86
 
+### M3-039: Complete Adi question routing and check the rendered answer
+- **Date**: 2026-10-31
+- **Feature**: F8 (guardrails), Core (Adi assistant)
+- **Type**: method | UI
+- **Change**: Complete the partial routing fixes for top-match explanations, weekly hours, progress, freshness, profiles, visibility, capabilities, unsupported actions, career changes and declining jobs in EN/MS/ZH. Keep decision/injection/other-person/invention checks first and off-topic detection before scoring unless a clear career term is present. Require the capability block and restrict model-selected second blocks to routed near ties.
+- **Why**: Correct intent IDs alone hid unrelated answers: profile questions returned only upload instructions, named roles borrowed the top score, and named skills borrowed another plan step. Render own saved skills, resolve named catalogue roles/skills without inventing aliases or scores, state missing data, restrict SDG definitions to the requested goal and send hiring/enrolment questions to the appropriate pages. Keep career specialisations outside the catalogue explicit instead of asserting unrelated matches.
+- **Pipeline**: n/a (deterministic rules and existing F8 validated answer-block selection). Evaluation uses production routing/rendering, synthetic accounts, checked catalogue references and the expanded TSV regression fixture; no live provider or database writes.
+- **Affects**: assistant guide/service, assistant FEATURE.md, routing fixtures and rendered-text/model-selection regressions; local probe gains working rendered-text output and dotenv isolation. No public API/schema, dependency, provider, catalogue or scoring change.
+- **Replaces**: none (refines M3-038 and TEAM-014; existing entries remain unchanged)
+- **PR / branch**: fix/core-adi-routing (M3-039 reserved by the job brief)
+
 ---
 
 ## M4: Core & Organisation (Core, F7)

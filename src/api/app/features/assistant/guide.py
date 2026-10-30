@@ -16,6 +16,17 @@ from app.contracts.assistant import Locale
 from app.core.security.sanitize import find_injection
 from app.features.assistant.context import Context
 
+CAREER_MOVES = (
+    "move into",
+    "switch into",
+    "switch careers",
+    "change careers",
+    "career change",
+    "transition into",
+    "pindah kerjaya",
+    "转行",
+)
+
 # Keywords per intent in English, Malay and Chinese (lower-case; Chinese matched as substrings).
 # A multi-word phrase (or a Chinese phrase of three or more characters) counts as a strong hit;
 # a single word as a weak one. Ambiguous single words ("pay", "source", "what if", "confidence")
@@ -31,6 +42,8 @@ INTENTS: dict[str, tuple[str, ...]] = {
     "off_topic": (),
     "invent": (),
     "sources": (
+        "dikemas kini",
+        "数据更新",
         "sources",
         "where does this data",
         "data come from",
@@ -172,6 +185,7 @@ INTENTS: dict[str, tuple[str, ...]] = {
         "分数如何计算",
     ),
     "profile": (
+        "saya ada kemahiran",
         "don't have a cv",
         "dont have a cv",
         "do not have a cv",
@@ -364,14 +378,7 @@ INTENTS: dict[str, tuple[str, ...]] = {
         "计划",
     ),
     "roles": (
-        "move into",
-        "switch into",
-        "switch careers",
-        "change careers",
-        "career change",
-        "transition into",
-        "pindah kerjaya",
-        "转行",
+        *CAREER_MOVES,
         "hiring",
         "companies",
         "employers",
@@ -470,6 +477,7 @@ PLAN_WORDS = ("plan", "plans", "pelan", "rancangan", "计划")
 # "what if" is a scenario question only when it is about AI pace.
 PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
     "sources": (
+        re.compile(r"(?:数据|趋势).*?(?:更新|新鲜|多久|多旧)|(?:更新).*?(?:数据|趋势)"),
         re.compile(
             r"\bhow\s+(?:old|recent|fresh|current|up[-\s]to[-\s]date)\s+(?:is|are)\b.*"
             r"\b(?:data|trends?|figures?|numbers?|forecasts?|snapshot|estimates?)\b"
@@ -486,20 +494,28 @@ PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         re.compile(r"\btrust\s+(?:the|this|your|these)\s+(?:data|numbers|figures|results)\b"),
     ),
     "score_breakdown": (
+        re.compile(r"\bkenapa\b.*\bpadanan\s+(?:teratas|terbaik)\b"),
+        re.compile(r"为什么.*(?:最匹配|最佳匹配|首选|第一名)"),
         re.compile(
             r"\bwhy\s+(?:is|was|are|am|did|does)\b.*"
             r"\b(?:top|best|first|highest|number\s+one|#1)\s+(?:match|role|job|fit|result)\b"
         ),
     ),
     "profile": (
+        re.compile(r"(?:我|自己).*(?:有哪些|有什么|有哪种).*技能"),
         re.compile(r"\b(?:what|which)\s+skills\s+(?:do\s+i|have\s+i|am\s+i)\b"),
         re.compile(r"\bskills\s+(?:in|on|from)\s+my\s+(?:profile|cv|resume)\b"),
         re.compile(r"\b(?:change|edit|update|fix|correct)\s+(?:my\s+)?(?:skills|profile)\b"),
     ),
     "action_not_supported": (
         re.compile(
-            r"\b(?:book|enrol|enroll|register|sign\s+me\s+up|apply|pay)\b.*\bfor\s+me\b"
+            r"\b(?:can|could|will|would)\s+you\s+(?:please\s+)?(?:book|enrol|enroll|register)\b"
         ),
+        re.compile(
+            r"\b(?:edit|change|update|remove|delete)\b.*\b(?:plan|step|course)\b.*\bfor\s+me\b"
+        ),
+        re.compile(r"(?:帮我|替我).*(?:报名|申请|预订|修改计划)"),
+        re.compile(r"\b(?:book|enrol|enroll|register|sign\s+me\s+up|apply|pay)\b.*\bfor\s+me\b"),
         re.compile(r"\b(?:enrol|enroll|register|sign)\s+me\s+(?:up|in|into|for|on)\b"),
         re.compile(r"\bapply\s+(?:to|for)\s+(?:this|that|a|the)\s+(?:job|role|position)\b"),
     ),
@@ -541,6 +557,8 @@ PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         re.compile(r"(?:哪个城市|工作地点|职位地点)"),
     ),
     "trend_declining": (
+        re.compile(r"\b(?:ai|automasi|robot)\s+(?:akan\s+)?(?:menggantikan|ganti)\b"),
+        re.compile(r"(?:ai|人工智能|自动化).*(?:取代|替代|淘汰)"),
         re.compile(
             r"\b(?:will|can|could|would|is|are)\s+(?:ai|automation|robots?)\s+(?:going\s+to\s+)?"
             r"(?:replace|take\s+over|eliminate|kill)\b"
@@ -558,6 +576,7 @@ PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
     ),
     # Weekly study time stated without the word "plan" still asks about the plan's duration.
     "plan_duration": (
+        re.compile(r"每周.*(?:多少|几).*小时"),
         re.compile(r"\bhow\s+many\s+(?:hours?|hrs?|weeks?)\b"),
         re.compile(r"\bhours?\s+(?:a|per|each|every)\s+week\b"),
         re.compile(r"\bberapa\s+jam\b"),
@@ -638,19 +657,53 @@ _INVENT = (
 _VISIBILITY = (
     re.compile(
         r"\b(?:can|could|will|would|does|do|is|are)\s+(?:my\s+|the\s+|our\s+)?"
-        r"(?:employer|manager|hr|boss|company|team|supervisor)\s+(?:also\s+)?"
+        r"(?:employer|manager|hr|boss|company|team|supervisor)\s+(?:be\s+able\s+to\s+)?(?:also\s+)?"
         r"(?:see|view|access|read|check)\b"
     ),
     re.compile(r"\bwho\s+(?:can|could)\s+(?:see|view|access)\b"),
-    re.compile(r"\b(?:majikan|bos|pengurus)\s+(?:boleh\s+)?(?:lihat|nampak|akses)\b"),
+    re.compile(r"\b(?:majikan|bos|pengurus)\s+(?:saya\s+)?(?:boleh\s+)?(?:lihat|nampak|akses)\b"),
     re.compile(r"(?:雇主|老板|经理|公司|主管)(?:能|可以|会)?(?:看到|看见|查看|访问)"),
 )
 # A question that names careers or learning is about them, whatever else it mentions.
 _CAREER_WORDS = (
-    "role", "roles", "job", "jobs", "career", "careers", "skill", "skills", "course", "courses",
-    "learn", "learning", "plan", "trend", "trends", "salary", "hiring", "cv", "resume", "sdg",
-    "upskill", "reskill", "kerja", "kerjaya", "kemahiran", "kursus", "belajar", "pelan", "gaji",
-    "职位", "工作", "技能", "课程", "学习", "计划", "招聘", "趋势", "薪资",
+    "role",
+    "roles",
+    "job",
+    "jobs",
+    "career",
+    "careers",
+    "skill",
+    "skills",
+    "course",
+    "courses",
+    "learn",
+    "learning",
+    "plan",
+    "trend",
+    "trends",
+    "salary",
+    "hiring",
+    "cv",
+    "resume",
+    "sdg",
+    "upskill",
+    "reskill",
+    "kerja",
+    "kerjaya",
+    "kemahiran",
+    "kursus",
+    "belajar",
+    "pelan",
+    "gaji",
+    "职位",
+    "工作",
+    "技能",
+    "课程",
+    "学习",
+    "计划",
+    "招聘",
+    "趋势",
+    "薪资",
 )
 # Intents whose phrase patterns satisfy the "about my saved plan" requirement on their own.
 PLAN_PATTERN_INTENTS = frozenset({"plan_duration"})
@@ -799,6 +852,9 @@ _MALAY_CUES = frozenset(
         "boleh",
         "jika",
         "kalau",
+        "dikemas",
+        "kini",
+        "bila",
     }
 )
 _ENGLISH_CUES = frozenset(
@@ -828,13 +884,22 @@ T: dict[str, dict[str, str]] = {
         "sdg_unavailable": "Sorry, that SDG target isn't in my catalogue, and I won't make one up. See the full list on [[page:/app/sdg]].",
         "rank_unavailable": "I can't find that rank in your current results, and I won't invent a role. Have a look at [[page:/app/matches]].",
         "rank_context": "That's your number {rank} match. Your top role is [[role:{role}]] at {score} estimated points; roles are ranked by these weighted scores (ties follow catalogue order).",
-        "trend_declining": "Skills cooling off in this snapshot: {skills}. Roles cooling off: {roles}. These are estimates, not a sign that any job will vanish. More on [[page:/app/radar]].",
+        "trend_declining": "I can't predict whether AI will replace a particular occupation or your job. Skills cooling off in this snapshot: {skills}. Roles cooling off: {roles}. These are estimates for the snapshot, not proof that your job or your team's skills are declining. More on [[page:/app/radar]].",
         "score_math": "Here's the maths for [[role:{role}]] (weight × part = points): {parts}. Total: {total} out of 100.",
         "skill_overlap": "skill overlap",
         "trend_outlook": "trend outlook",
         "interest_fit": "interest fit",
         "neutral": " (not provided, neutral value)",
-        "profile": "No CV? No problem! Pick your skills and levels by hand on [[page:/app/onboarding]], or upload a CV (PDF, Word or text). The file isn't stored, and you confirm every skill. Update them any time on [[page:/app/profile]].",
+        "profile": "View and change your skills and levels on [[page:/app/profile]]. No CV? Pick skills by hand on [[page:/app/onboarding]], or upload a CV (PDF, Word or text). The file isn't stored, and you confirm every skill.",
+        "profile_skills": "Your saved skills and levels are: {skills}.",
+        "profile_empty": "Your profile has no saved skills yet.",
+        "profile_unavailable": "I couldn't load your saved skills, so I won't guess them.",
+        "profile_work": "Switch to your personal workspace to view or edit your own skill profile. In your organisation workspace, [[page:/work/skills]] shows what you share.",
+        "match_unavailable": "I couldn't load your match score for [[role:{role}]], so I won't use another role's score. Check [[page:/app/matches]].",
+        "skill_learning": "For [[skill:{skill}]], compare your current level with your chosen role's requirements on [[page:/app/matches]]. Learning it is useful when it closes that gap; I can't promise a career outcome. Browse verified courses on [[page:/app/courses]].",
+        "hiring": "For current vacancies, check [[page:/app/jobs]] and the employer's page. Your matched roles are estimated skill fits, not evidence that an employer is hiring.",
+        "role_exploration": "You can explore a career change using your transferable skills. Keep your profile current on [[page:/app/profile]], then compare catalogue roles, their required skills and dated outlook estimates on [[page:/app/pathway/compare]]. I can't confirm a match or outlook for an occupation outside that catalogue, or promise a career outcome.",
+        "self_enrolment": "Open a course from [[page:/app/pathway]] or [[page:/app/courses]], then follow its provider link to review requirements and enrol on the provider's site. I can't enrol you from chat.",
         "improvement": "Building [[skill:{skill}]] could add about +{gain} points. {course}.",
         "no_closing_course": "There's no catalogue course for it yet",
         "hello": "Hi, I'm Adi! Ask me about your matched roles, what to learn next or how skills are trending. What would you like to know?",
@@ -855,7 +920,7 @@ T: dict[str, dict[str, str]] = {
         "progress_unavailable": "Sorry, I could not load your plan's progress just now, and I won't assume zero. Please try again or check [[page:/app/progress]].",
         "totals_unavailable": "Sorry, I could not load your plan's totals just now, and I won't guess them. Please try again or check [[page:/app/pathway]].",
         "sdg": "Each role and skill links to UN SDG targets, with a reason.{badges} See [[page:/app/sdg]].",
-        "privacy": "Your CV file is read in memory and never stored, and you confirm each skill before it's saved. If AI services are on, cleaned-up chat text and short contact-redacted skill phrases may be processed by RunPod or Google Gemini, never your CV file. You can download or delete your data any time from My skills (or team Settings). Details: [[page:/privacy]]; AI models in use: [[page:/about]].",
+        "privacy": "Your personal plans, matches and chats stay private. An employer sees programme progress and evidence in its own workspace, plus skill levels only with your sharing consent. Your CV file is read in memory and never stored, and you confirm each skill before it's saved. If AI services are on, cleaned-up chat text and short contact-redacted skill phrases may be processed by RunPod or Google Gemini, never your CV file. You can download or delete your data from My skills (or team Settings). Details: [[page:/privacy]]; AI models in use: [[page:/about]].",
         "how": "Adept takes you from today's skills to future roles: your skill profile → Future Skills Radar → matched roles and gaps → a learning plan linked to the UN SDGs. Every estimate shows its source and date. More on [[page:/about]].",
         "team": "Your team: {members} members, {complete} with a complete profile.{gap}",
         "team_gap": " The largest average gap is for [[role:{role}]] ({gap}).",
@@ -904,13 +969,22 @@ T: dict[str, dict[str, str]] = {
         "sdg_unavailable": "Maaf, sasaran SDG itu tiada dalam katalog saya, dan saya tidak akan mereka-rekanya. Lihat senarai penuh di [[page:/app/sdg]].",
         "rank_unavailable": "Saya tidak menemui kedudukan itu dalam hasil semasa anda, dan saya tidak akan mereka-reka peranan. Lihat [[page:/app/matches]].",
         "rank_context": "Itu padanan nombor {rank} anda. Peranan teratas anda ialah [[role:{role}]] dengan anggaran {score} mata; peranan disusun mengikut skor berwajaran ini (skor seri ikut susunan katalog).",
-        "trend_declining": "Kemahiran yang semakin menurun dalam petikan ini: {skills}. Peranan yang menurun: {roles}. Ini anggaran, bukan tanda bahawa sesuatu kerja akan hilang. Lagi di [[page:/app/radar]].",
+        "trend_declining": "Saya tidak boleh meramal sama ada AI akan menggantikan sesuatu pekerjaan atau kerja anda. Kemahiran yang semakin menurun dalam petikan ini: {skills}. Peranan yang menurun: {roles}. Ini anggaran petikan, bukan bukti bahawa kerja anda atau kemahiran pasukan anda menurun. Lagi di [[page:/app/radar]].",
         "score_math": "Ini kiraan untuk [[role:{role}]] (wajaran × komponen = mata): {parts}. Jumlah: {total} daripada 100.",
         "skill_overlap": "pertindihan kemahiran",
         "trend_outlook": "prospek trend",
         "interest_fit": "kesesuaian minat",
         "neutral": " (tidak diberi, nilai neutral)",
-        "profile": "Tiada CV? Tak mengapa! Pilih kemahiran dan tahap anda sendiri di [[page:/app/onboarding]], atau muat naik CV (PDF, Word atau teks). Fail tidak disimpan, dan anda mengesahkan setiap kemahiran. Kemas kini bila-bila masa di [[page:/app/profile]].",
+        "profile": "Lihat dan ubah kemahiran serta tahap anda di [[page:/app/profile]]. Tiada CV? Pilih kemahiran sendiri di [[page:/app/onboarding]], atau muat naik CV (PDF, Word atau teks). Fail tidak disimpan, dan anda mengesahkan setiap kemahiran.",
+        "profile_skills": "Kemahiran dan tahap tersimpan anda: {skills}.",
+        "profile_empty": "Profil anda belum mempunyai kemahiran tersimpan.",
+        "profile_unavailable": "Saya tidak dapat memuatkan kemahiran tersimpan anda, jadi saya tidak akan menekanya.",
+        "profile_work": "Tukar ke ruang kerja peribadi untuk melihat atau mengubah profil kemahiran anda. Di ruang kerja organisasi, [[page:/work/skills]] menunjukkan perkara yang anda kongsi.",
+        "match_unavailable": "Saya tidak dapat memuatkan skor padanan anda untuk [[role:{role}]], jadi saya tidak akan menggunakan skor peranan lain. Semak [[page:/app/matches]].",
+        "skill_learning": "Untuk [[skill:{skill}]], bandingkan tahap anda dengan keperluan peranan pilihan di [[page:/app/matches]]. Pembelajaran berguna apabila merapatkan jurang itu; saya tidak boleh menjanjikan hasil kerjaya. Lihat kursus disemak di [[page:/app/courses]].",
+        "hiring": "Untuk kekosongan semasa, semak [[page:/app/jobs]] dan halaman majikan. Peranan padanan ialah anggaran kesesuaian kemahiran, bukan bukti bahawa majikan sedang mengambil pekerja.",
+        "role_exploration": "Anda boleh meneroka pertukaran kerjaya menggunakan kemahiran boleh pindah. Kemas kini profil di [[page:/app/profile]], kemudian bandingkan peranan katalog, keperluan kemahiran dan anggaran prospek bertarikh di [[page:/app/pathway/compare]]. Saya tidak boleh mengesahkan padanan atau prospek pekerjaan di luar katalog itu, atau menjanjikan hasil kerjaya.",
+        "self_enrolment": "Buka kursus dari [[page:/app/pathway]] atau [[page:/app/courses]], kemudian ikut pautan penyedia untuk menyemak syarat dan mendaftar di laman penyedia. Saya tidak boleh mendaftarkan anda dari sembang.",
         "improvement": "Membina [[skill:{skill}]] boleh menambah kira-kira +{gain} mata. {course}.",
         "no_closing_course": "Belum ada kursus katalog untuknya",
         "hello": "Hai, saya Adi! Tanya saya tentang peranan padanan anda, apa perlu dipelajari seterusnya atau trend kemahiran. Apa yang anda ingin tahu?",
@@ -931,7 +1005,7 @@ T: dict[str, dict[str, str]] = {
         "progress_unavailable": "Maaf, saya tidak dapat memuatkan kemajuan pelan anda sekarang, dan saya tidak akan menganggap sifar. Cuba lagi atau lihat [[page:/app/progress]].",
         "totals_unavailable": "Maaf, saya tidak dapat memuatkan jumlah pelan anda sekarang, dan saya tidak akan menekanya. Cuba lagi atau lihat [[page:/app/pathway]].",
         "sdg": "Setiap peranan dan kemahiran dikaitkan dengan sasaran SDG PBB, beserta sebabnya.{badges} Lihat [[page:/app/sdg]].",
-        "privacy": "Fail CV anda dibaca dalam memori dan tidak pernah disimpan, dan anda mengesahkan setiap kemahiran sebelum disimpan. Jika perkhidmatan AI diaktifkan, teks sembang yang dibersihkan dan frasa kemahiran pendek tanpa maklumat hubungan mungkin diproses oleh RunPod atau Google Gemini, bukan fail CV anda. Anda boleh muat turun atau padam data anda bila-bila masa di Kemahiran saya. Butiran: [[page:/privacy]]; model AI yang digunakan: [[page:/about]].",
+        "privacy": "Pelan peribadi, padanan dan sembang anda kekal peribadi. Majikan melihat kemajuan program dan bukti dalam ruang kerjanya sendiri, serta tahap kemahiran hanya dengan persetujuan perkongsian anda. Fail CV anda dibaca dalam memori dan tidak pernah disimpan, dan anda mengesahkan setiap kemahiran sebelum disimpan. Jika perkhidmatan AI diaktifkan, teks sembang yang dibersihkan dan frasa kemahiran pendek tanpa maklumat hubungan mungkin diproses oleh RunPod atau Google Gemini, bukan fail CV anda. Anda boleh muat turun atau padam data di Kemahiran saya. Butiran: [[page:/privacy]]; model AI yang digunakan: [[page:/about]].",
         "how": "Adept membawa anda dari kemahiran hari ini ke peranan masa depan: profil kemahiran → Radar Kemahiran Masa Depan → peranan padanan dan jurang → pelan pembelajaran yang dikaitkan dengan SDG PBB. Setiap anggaran ada sumber dan tarikh. Lagi di [[page:/about]].",
         "team": "Pasukan anda: {members} ahli, {complete} dengan profil lengkap.{gap}",
         "team_gap": " Jurang purata terbesar ialah untuk [[role:{role}]] ({gap}).",
@@ -980,13 +1054,22 @@ T: dict[str, dict[str, str]] = {
         "sdg_unavailable": "抱歉，我的目录中没有该 SDG 目标，我也不会编造。完整列表见 [[page:/app/sdg]]。",
         "rank_unavailable": "在你当前的结果中找不到这个名次，我也不会编造职位。请看看 [[page:/app/matches]]。",
         "rank_context": "这是你的第 {rank} 名匹配。你的首位职位是 [[role:{role}]]，估计 {score} 分；职位按这些加权分数排序（同分按目录顺序）。",
-        "trend_declining": "此快照中需求降温的技能：{skills}。需求降温的职位：{roles}。这些是估计，并不代表某个工作会消失。详见 [[page:/app/radar]]。",
+        "trend_declining": "我无法预测 AI 是否会取代某种职业或你的工作。此快照中需求降温的技能：{skills}。需求降温的职位：{roles}。这些是快照的估计，不能证明你的工作或团队技能正在衰退。详见 [[page:/app/radar]]。",
         "score_math": "[[role:{role}]] 的计算方式（权重 × 分项 = 得分）：{parts}。总计：{total} 分，满分 100。",
         "skill_overlap": "技能重合",
         "trend_outlook": "趋势前景",
         "interest_fit": "兴趣契合",
         "neutral": "（未提供，取中性值）",
-        "profile": "没有简历也没关系！可以在 [[page:/app/onboarding]] 手动选择技能和水平，或上传简历（PDF、Word 或文本）。文件不会被保存，每项技能都由你确认。之后随时可在 [[page:/app/profile]] 更新。",
+        "profile": "在 [[page:/app/profile]] 查看和修改你的技能及水平。没有简历？可以在 [[page:/app/onboarding]] 手动选择，或上传简历（PDF、Word 或文本）。文件不会被保存，每项技能都由你确认。",
+        "profile_skills": "你已保存的技能及水平：{skills}。",
+        "profile_empty": "你的资料中还没有已保存的技能。",
+        "profile_unavailable": "暂时无法加载你已保存的技能，我不会猜测。",
+        "profile_work": "请切换到个人工作区查看或修改自己的技能资料。在组织工作区，[[page:/work/skills]] 显示你选择分享的内容。",
+        "match_unavailable": "无法加载你与 [[role:{role}]] 的匹配分数，我不会使用其他职位的分数。请查看 [[page:/app/matches]]。",
+        "skill_learning": "对于 [[skill:{skill}]]，请在 [[page:/app/matches]] 比较你的水平与所选职位的要求。当学习能缩小这个差距时才有帮助，我无法保证职业结果。可在 [[page:/app/courses]] 浏览已核实的课程。",
+        "hiring": "请在 [[page:/app/jobs]] 及雇主页面查看当前空缺。职位匹配是技能契合度的估计，不能证明雇主正在招聘。",
+        "role_exploration": "你可以利用可迁移的技能探索转行。在 [[page:/app/profile]] 更新技能资料，再到 [[page:/app/pathway/compare]] 比较目录中的职位、技能要求及带日期的前景估计。我无法确认目录之外职业的匹配或前景，也无法保证职业结果。",
+        "self_enrolment": "在 [[page:/app/pathway]] 或 [[page:/app/courses]] 打开课程，再通过提供方链接查看要求并在其网站自行报名。我无法在聊天中帮你报名。",
         "improvement": "提升 [[skill:{skill}]] 预计可增加约 {gain} 分。{course}。",
         "no_closing_course": "目录中暂时没有对应课程",
         "hello": "你好，我是 Adi！可以问我你的匹配职位、下一步学什么或技能趋势。你想了解什么？",
@@ -1007,7 +1090,7 @@ T: dict[str, dict[str, str]] = {
         "progress_unavailable": "抱歉，暂时无法加载你的计划进度，我不会假设进度为零。请重试或查看 [[page:/app/progress]]。",
         "totals_unavailable": "抱歉，暂时无法加载你的计划总额，我不会猜测。请重试或查看 [[page:/app/pathway]]。",
         "sdg": "每个职位和技能都关联联合国 SDG 具体目标并附有理由。{badges} 详见 [[page:/app/sdg]]。",
-        "privacy": "你的简历文件只在内存中读取，从不保存；每项技能都由你确认后才保存。启用 AI 服务时，经清理的聊天文本和去除联系方式的简短技能短语可能由 RunPod 或 Google Gemini 处理，绝不包括你的简历文件。你可以随时在“我的技能”下载或删除数据。详情：[[page:/privacy]]；所用 AI 模型：[[page:/about]]。",
+        "privacy": "个人计划、匹配结果和聊天保持私密。雇主可查看其工作区中的项目进度和证据，只有你同意分享时才可查看技能水平。你的简历文件只在内存中读取，从不保存；每项技能都由你确认后才保存。启用 AI 服务时，经清理的聊天文本和去除联系方式的简短技能短语可能由 RunPod 或 Google Gemini 处理，绝不包括你的简历文件。你可以在“我的技能”下载或删除数据。详情：[[page:/privacy]]；所用 AI 模型：[[page:/about]]。",
         "how": "Adept 带你从今天的技能走向未来职位：技能档案 → 未来技能雷达 → 匹配职位与差距 → 关联联合国 SDG 的学习计划。每个估计都注明来源和日期。详见 [[page:/about]]。",
         "team": "你的团队：{members} 名成员，其中 {complete} 名已完成档案。{gap}",
         "team_gap": " 平均差距最大的是 [[role:{role}]]（{gap}）。",
@@ -1355,6 +1438,7 @@ def _edit_distance(a: str, b: str) -> int:
 def focus_context(question: str, ctx: Context) -> Context:
     """Resolve ordinal roles and catalogue targets without changing the stored context."""
     facts = dict(ctx.facts)
+    q = question.lower()
     ordinals = (("second", "2nd", "kedua", "第二"), ("third", "3rd", "ketiga", "第三"))
     matches = facts.get("matches") or []
     for index, words in enumerate(ordinals, start=1):
@@ -1362,11 +1446,69 @@ def focus_context(question: str, ctx: Context) -> Context:
             facts["focus_rank"] = index + 1
             facts["focus_match"] = matches[index] if len(matches) > index else None
             break
+    role = _named_ref(q, ctx.refs.roles)
+    if role:
+        facts["focus_role"] = role
+        facts["focus_match"] = next((m for m in matches if m["role_id"] == role), None)
+        if facts["focus_match"]:
+            facts["focus_rank"] = matches.index(facts["focus_match"]) + 1
+    skill = _named_ref(q, ctx.refs.skills)
+    if skill:
+        facts["focus_skill"] = skill
     target = re.search(r"\bsdg\s*(\d{1,2}\.[a-z0-9]+)", question.lower())
     if target:
         facts["sdg_focus"] = target.group(1)
+    else:
+        goal = re.search(r"\bsdg\s*(\d{1,2})\b", q)
+        if goal:
+            facts["sdg_goal_focus"] = goal.group(1)
     facts["sdg_plan_question"] = any(_contains(question.lower(), word) for word in PLAN_WORDS)
+    facts["hiring_question"] = any(
+        _contains(q, word)
+        for word in (
+            "hiring",
+            "vacancies",
+            "openings",
+            "mengambil pekerja",
+            "jawatan kosong",
+            "招聘",
+        )
+    )
+    facts["role_exploration"] = any(_contains(q, word) for word in CAREER_MOVES) or bool(
+        re.search(
+            r"\b(?:what|which)\s+(?!skills?\b|roles?\b|jobs?\b|courses?\b)"
+            r"(?:[\w-]+\s+){1,4}(?:roles|jobs|skills)\b",
+            q,
+        )
+    )
+    facts["self_enrolment"] = bool(
+        re.search(r"\bhow\s+(?:do|can)\s+i\s+(?:enrol|enroll|register|book)\b", q)
+    )
     return replace(ctx, facts=facts)
+
+
+def _named_ref(question: str, labels: dict[str, str]) -> str | None:
+    """Match stored labels or readable catalogue IDs, preferring the longest exact name."""
+    names = sorted(
+        (
+            (name.lower(), key)
+            for key, label in labels.items()
+            for name in (label, key.replace("-", " "))
+        ),
+        key=lambda item: -len(item[0]),
+    )
+    return next(
+        (
+            key
+            for name, key in names
+            if (
+                name in question
+                if re.search(r"[一-鿿]", name)
+                else re.search(rf"(?<!\w){re.escape(name)}(?!\w)", question)
+            )
+        ),
+        None,
+    )
 
 
 def _contains(question: str, word: str) -> bool:
@@ -1419,13 +1561,24 @@ def reply_for_intent(kind: str, ctx: Context, locale: Locale) -> str:
         "action_not_supported",
         "no_data",
         "forecast_accuracy",
-        "profile",
         "thanks",
         "unknown",
     }:
         return t[kind]
     if kind == "greeting":
         return t["hello"]
+    if kind == "profile":
+        if ctx.audience != "learner":
+            return t["profile_work"]
+        skills = f.get("skills")
+        if skills is None:
+            return t["profile_unavailable"] + " " + t["profile"]
+        rows = ", ".join(f"[[skill:{key}]] {level}/5" for key, level in skills.items())
+        return (
+            (t["profile_skills"].format(skills=rows) if rows else t["profile_empty"])
+            + " "
+            + t["profile"]
+        )
     if kind == "sources":
         if ctx.meta is None:
             return t["sources_unavailable"]
@@ -1461,6 +1614,8 @@ def reply_for_intent(kind: str, ctx: Context, locale: Locale) -> str:
         targets = (
             [focus]
             if focus
+            else [key for key in ctx.refs.sdg if key.startswith(f"{f['sdg_goal_focus']}.")]
+            if f.get("sdg_goal_focus")
             else f.get("plan_sdg_targets") or f.get("sdg_targets") or list(ctx.refs.sdg)[:2]
         )
         if not targets:
@@ -1477,13 +1632,15 @@ def reply_for_intent(kind: str, ctx: Context, locale: Locale) -> str:
         and ctx.audience == "learner"
     ):
         matches = f.get("matches") or []
+        if f.get("focus_role") and not f.get("focus_match"):
+            return t["match_unavailable"].format(role=f["focus_role"])
         if not matches:
             return t["no_profile"]
         if kind == "match_detail" and f.get("focus_rank") and not f.get("focus_match"):
             return t["rank_unavailable"]
         top = f.get("focus_match") or matches[0]
         body = _score_math(top, t)
-        if kind == "match_detail":
+        if kind == "match_detail" or f.get("focus_rank"):
             body += " " + t["rank_context"].format(
                 rank=f.get("focus_rank", 1),
                 role=matches[0]["role_id"],
@@ -1506,6 +1663,12 @@ def reply_for_intent(kind: str, ctx: Context, locale: Locale) -> str:
         return t["privacy"]
     if kind == "how":
         return t["how"]
+    if kind == "roles" and f.get("hiring_question"):
+        return t["hiring"]
+    if kind in ("roles", "learn") and f.get("role_exploration"):
+        return t["role_exploration"]
+    if kind == "learn" and f.get("self_enrolment"):
+        return t["self_enrolment"]
     if kind == "trend":
         out = t["trend"].format(skills=_tags("skill", f.get("rising", [])[:5]) or "—")
         mine = f.get("my_trends") or {}
@@ -1586,9 +1749,13 @@ def reply_for_intent(kind: str, ctx: Context, locale: Locale) -> str:
         steps = f.get("plan_steps") or []
         done = set(f.get("done") or [])
         for step in steps:
+            if f.get("focus_skill") and step["skill"] != f["focus_skill"]:
+                continue
             todo = [c for c in step["courses"] if c not in done]
             if todo:
                 return t["plan"].format(role=f["plan_role"], skill=step["skill"], course=todo[0])
+        if f.get("focus_skill"):
+            return t["skill_learning"].format(skill=f["focus_skill"])
         if steps and f.get("plan_role"):
             open_gaps = f.get("plan_gaps", 0)
             if f.get("plan_progress"):
