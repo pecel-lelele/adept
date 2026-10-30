@@ -13,6 +13,7 @@ import {
   fetchRegionContribution,
   fetchRegions,
 } from "../api";
+import { entityLabels } from "./entityLabels";
 
 type Contribution = Schemas["SdgContribution"];
 
@@ -45,12 +46,13 @@ async function GoalGrid({ data }: { data: Contribution }) {
   );
 }
 
-async function LinkList({ links }: { links: Schemas["SdgLink"][] }) {
+async function LinkList({ links, labels }: { links: Schemas["SdgLink"][]; labels: Map<string, string> }) {
   const t = await getTranslations("sdg");
   const via = (v: string) => {
     const [kind, id] = v.split(":");
     const known = kind === "role" || kind === "skill" || kind === "pathway";
-    return known ? `${t(`via.${kind}`)}${id ? `: ${id}` : ""}` : v;
+    // Show the catalogue label; an id without one stays the id (never an invented name).
+    return known ? `${t(`via.${kind}`)}${id ? `: ${labels.get(v) ?? id}` : ""}` : v;
   };
   return (
     <ul className="a-links">
@@ -82,11 +84,21 @@ async function LinkList({ links }: { links: Schemas["SdgLink"][] }) {
   );
 }
 
-async function ContributionBody({ title, result }: { title: string; result: ApiResult<Contribution> }) {
+async function ContributionBody({
+  title,
+  result,
+  scenario,
+}: {
+  title: string;
+  result: ApiResult<Contribution>;
+  scenario: ScenarioId;
+}) {
   const t = await getTranslations("sdg");
   const tp = await getTranslations("ui.page");
   if (!result.ok) return <ErrorState failure={result} />;
   const data = result.data;
+  const labels = await entityLabels(scenario, data.scope === "person");
+  const roleName = (id: string) => labels.get(`role:${id}`) ?? id;
   const linked = data.goals_summary.filter((g) => g.link_count > 0).length;
   const direct = data.links.filter((l) => l.strength === "direct").length;
   const reviewed = data.links.filter((l) => l.reviewed).length;
@@ -97,7 +109,7 @@ async function ContributionBody({ title, result }: { title: string; result: ApiR
       </PageHeader>
       {data.role_ids && data.role_ids.length > 0 ? (
         <p className="a-notice" data-tone="info">
-          {t("forRoles", { roles: data.role_ids.join(", ") })}
+          {t("forRoles", { roles: data.role_ids.map(roleName).join(", ") })}
         </p>
       ) : data.scope === "person" ? (
         <p className="a-notice" data-tone="info">
@@ -140,7 +152,7 @@ async function ContributionBody({ title, result }: { title: string; result: ApiR
           <h2 id="h-links">{t("links")}</h2>
         </div>
         <p className="a-card-sub">{t("strengthHint")}</p>
-        <LinkList links={data.links} />
+        <LinkList links={data.links} labels={labels} />
       </section>
     </div>
   );
@@ -157,7 +169,7 @@ export async function SdgContributionView({
   const t = await getTranslations("sdg");
   return (
     <section>
-      <ContributionBody title={t("title")} result={await fetchMyContribution(roleId, scenario)} />
+      <ContributionBody title={t("title")} result={await fetchMyContribution(roleId, scenario)} scenario={scenario} />
     </section>
   );
 }
@@ -200,6 +212,7 @@ export async function OrgSdgView({
       <ContributionBody
         title={region ? t("regionTitle", { region }) : t("orgTitle")}
         result={result}
+        scenario={scenario}
       />
     </section>
   );

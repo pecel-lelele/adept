@@ -19,7 +19,12 @@ export function AccountDataCard() {
       <h2 id="account-data-title" style={{ marginTop: 0 }}>
         {t("title")}
       </h2>
-      <p className="a-small a-muted">{t("body")}</p>
+      <p className="a-small a-muted">
+        {t("body")}{" "}
+        <a className="a-link" href="/privacy">
+          {t("privacyLink")}
+        </a>
+      </p>
       <div className="a-hero-actions">
         <a className="a-btn is-ghost is-small" href="/api/account/export" download>
           <Download size={15} aria-hidden /> {t("export")}

@@ -1,14 +1,14 @@
 {
   "title": "Privacy notice",
   "footerLink": "Privacy",
-  "intro": "Adept is a career and learning decision-support prototype. Use synthetic CVs and profiles for the competition demonstration. This notice describes the code's data flows; the team must complete the controller and contact details before using it for real personal data.",
+  "intro": "Adept is a career and learning decision-support prototype built as a student project. Use synthetic CVs and profiles for the competition demonstration; please don't upload real personal information. This notice describes the code's data flows.",
   "controller": {
     "title": "Data controller and contact",
-    "body": "Controller: [TEAM TO COMPLETE: legal controller name]. Privacy contact: [TEAM TO COMPLETE: monitored contact address]. These placeholders are not an operational contact channel."
+    "body": "Controller: Team Pecel Lele (SDC XMUM Hackathon 2026 student project). Privacy contact: open an issue in the project's GitHub repository, https://github.com/pecel-lelele/adept/issues. Issues are public, so do not include personal data in them; ask for a private follow-up instead."
   },
   "purposes": {
     "title": "What we process and why",
-    "body": "Account details, password hashes, confirmed skills, learning preferences, plans, progress, evidence links and organisation records support accounts, career guidance and learning administration. Uploads are parsed in memory; raw CV files are not saved by the upload path. Review extracted skills before saving them. Adi processes the conversation and relevant workspace context to select checked answers."
+    "body": "Account details, password hashes, confirmed skills, learning preferences, plans, progress, evidence links and organisation records support accounts, career guidance and learning administration. Uploads are parsed in memory; raw CV files are not saved by the upload path. Skills found by the landing-page CV preview are kept in your browser's localStorage until you finish your profile. Review extracted skills before saving them. Organisation managers see a member's skill levels, current role and course progress only when that member opts in to sharing (or explicitly agrees when accepting an employer programme); joining an organisation does not require sharing, and you can turn it on or off at any time. Adi processes the conversation and relevant workspace context to select checked answers; Adi conversation history is kept in your browser's sessionStorage for the session."
   },
   "providers": {
     "title": "Hosting and AI service providers",
@@ -24,7 +24,7 @@
   },
   "rights": {
     "title": "Access, correction and withdrawal",
-    "body": "You may request access to or correction of your personal data, or withdraw consent for processing, through the controller's privacy contact once it is completed. Signed-in users can export their account data and request account deletion. Withdrawal can affect features that require the relevant data; this notice does not itself implement an automated withdrawal procedure.",
+    "body": "You may request access to or correction of your personal data, or withdraw consent for processing, through the privacy contact above. Signed-in users can export their account data, turn organisation sharing off and delete their account. Withdrawal can affect features that require the relevant data; this notice does not itself implement an automated withdrawal procedure.",
     "reference": "Malaysia Personal Data Protection Department: data subject rights"
   }
 }

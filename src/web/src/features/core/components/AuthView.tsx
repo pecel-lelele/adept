@@ -234,6 +234,13 @@ export function AuthView() {
                 {t("consent")}
               </label>
             ) : null}
+            {page === "signup" ? (
+              <p className="a-small a-muted" style={{ margin: 0 }}>
+                <Link className="a-link" href="/privacy">
+                  {t("privacyLink")}
+                </Link>
+              </p>
+            ) : null}
             {state.error && (state.values?._page ?? page) === page ? (
               <p className="a-notice" data-tone="error" role="alert">
                 {errorMessage(te, state.error)}

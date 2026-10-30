@@ -1,14 +1,14 @@
 {
   "title": "Notis privasi",
   "footerLink": "Privasi",
-  "intro": "Adept ialah prototaip sokongan keputusan kerjaya dan pembelajaran. Gunakan CV dan profil sintetik untuk demonstrasi pertandingan. Notis ini menerangkan aliran data dalam kod; pasukan perlu melengkapkan maklumat pengawal data dan hubungan sebelum menggunakannya untuk data peribadi sebenar.",
+  "intro": "Adept ialah prototaip sokongan keputusan kerjaya dan pembelajaran yang dibina sebagai projek pelajar. Gunakan CV dan profil sintetik untuk demonstrasi pertandingan; jangan muat naik maklumat peribadi sebenar. Notis ini menerangkan aliran data dalam kod.",
   "controller": {
     "title": "Pengawal data dan hubungan",
-    "body": "Pengawal data: [PASUKAN PERLU LENGKAPKAN: nama sah pengawal data]. Hubungan privasi: [PASUKAN PERLU LENGKAPKAN: alamat hubungan yang dipantau]. Ruang ini bukan saluran hubungan yang beroperasi."
+    "body": "Pengawal data: Pasukan Pecel Lele (projek pelajar SDC XMUM Hackathon 2026). Hubungan privasi: buka isu dalam repositori GitHub projek, https://github.com/pecel-lelele/adept/issues. Isu boleh dilihat oleh umum, jadi jangan sertakan data peribadi; minta susulan secara peribadi."
   },
   "purposes": {
     "title": "Data yang diproses dan tujuannya",
-    "body": "Butiran akaun, hash kata laluan, kemahiran yang disahkan, pilihan pembelajaran, pelan, kemajuan, pautan bukti dan rekod organisasi menyokong akaun, panduan kerjaya dan pentadbiran pembelajaran. Muat naik dihuraikan dalam memori; fail CV mentah tidak disimpan oleh laluan muat naik. Semak kemahiran yang diekstrak sebelum menyimpannya. Adi memproses perbualan dan konteks ruang kerja yang berkaitan untuk memilih jawapan yang disemak."
+    "body": "Butiran akaun, hash kata laluan, kemahiran yang disahkan, pilihan pembelajaran, pelan, kemajuan, pautan bukti dan rekod organisasi menyokong akaun, panduan kerjaya dan pentadbiran pembelajaran. Muat naik dihuraikan dalam memori; fail CV mentah tidak disimpan oleh laluan muat naik. Kemahiran yang ditemui oleh pratonton CV di laman utama disimpan dalam localStorage pelayar anda sehingga anda melengkapkan profil. Semak kemahiran yang diekstrak sebelum menyimpannya. Pengurus organisasi hanya melihat tahap kemahiran, peranan semasa dan kemajuan kursus seseorang ahli apabila ahli itu memilih untuk berkongsi (atau bersetuju secara jelas ketika menerima program majikan); menyertai organisasi tidak memerlukan perkongsian, dan anda boleh menghidupkan atau mematikannya pada bila-bila masa. Adi memproses perbualan dan konteks ruang kerja yang berkaitan untuk memilih jawapan yang disemak; sejarah perbualan Adi disimpan dalam sessionStorage pelayar anda sepanjang sesi."
   },
   "providers": {
     "title": "Penyedia pengehosan dan perkhidmatan AI",
@@ -24,7 +24,7 @@
   },
   "rights": {
     "title": "Akses, pembetulan dan penarikan balik persetujuan",
-    "body": "Anda boleh meminta akses atau pembetulan data peribadi, atau menarik balik persetujuan pemprosesan, melalui hubungan privasi pengawal data selepas dilengkapkan. Pengguna yang telah log masuk boleh mengeksport data akaun dan meminta pemadaman akaun. Penarikan balik boleh menjejaskan ciri yang memerlukan data berkaitan; notis ini sendiri tidak melaksanakan prosedur penarikan balik automatik.",
+    "body": "Anda boleh meminta akses atau pembetulan data peribadi, atau menarik balik persetujuan pemprosesan, melalui hubungan privasi di atas. Pengguna yang telah log masuk boleh mengeksport data akaun, mematikan perkongsian dengan organisasi dan memadam akaun. Penarikan balik boleh menjejaskan ciri yang memerlukan data berkaitan; notis ini sendiri tidak melaksanakan prosedur penarikan balik automatik.",
     "reference": "Jabatan Perlindungan Data Peribadi Malaysia: hak subjek data"
   }
 }

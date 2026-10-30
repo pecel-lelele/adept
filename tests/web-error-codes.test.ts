@@ -70,10 +70,11 @@ test("auth and join actions return error codes, preserve form values and never r
   const expired = authActions({ ok: false, status: 401, code: "unauthorized" });
   assert.equal((await expired.deleteAccountAction({}, form)).error, "unauthorized");
   form.set("join_code", "SYNTHETIC");
-  assert.equal((await signupAction({}, form)).error, "sharing_consent_required");
+  // Sharing skill levels is optional, so signup reaches the API without it.
+  assert.equal((await signupAction({}, form)).error, "invalid_credentials");
   assert.equal((await joinOrgAction({}, form)).error, "consent_required");
   form.set("consent", "on");
-  assert.equal((await joinOrgAction({}, form)).error, "sharing_consent_required");
+  assert.equal((await joinOrgAction({}, form)).error, "invalid_credentials");
   form.set("share_skills", "on");
   const denied = authActions({ ok: false, status: 422, code: "bad_join_code" });
   assert.equal((await denied.joinOrgAction({}, form)).error, "bad_join_code");

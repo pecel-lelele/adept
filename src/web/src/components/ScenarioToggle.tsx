@@ -8,6 +8,8 @@ import { useTransition } from "react";
 import { parseScenario, SCENARIO_PARAM, SCENARIOS } from "@/lib/scenario";
 import { useBusy } from "@/components/useBusy";
 
+import { onRadioKeyDown, radioTabIndex } from "./radioGroup";
+
 const ICON = { moderate: Turtle, fast: Rabbit } as const;
 
 /**
@@ -24,7 +26,7 @@ export function ScenarioToggle() {
   const current = parseScenario(params.get(SCENARIO_PARAM) ?? undefined);
 
   function select(scenario: string) {
-    if (scenario === current) return;
+    if (pending || scenario === current) return;
     const next = new URLSearchParams(params.toString());
     next.set(SCENARIO_PARAM, scenario);
     startTransition(() => router.push(`${pathname}?${next.toString()}`, { scroll: false }));
@@ -45,9 +47,12 @@ export function ScenarioToggle() {
                 type="button"
                 role="radio"
                 aria-checked={current === s}
+                // Not `disabled` while the route updates: that would drop keyboard focus.
+                aria-disabled={pending || undefined}
+                tabIndex={radioTabIndex(current === s)}
                 title={t(s)}
-                disabled={pending}
                 onClick={() => select(s)}
+                onKeyDown={(e) => onRadioKeyDown(e, SCENARIOS, current, select)}
               >
                 <Icon size={14} aria-hidden />
                 {t(`${s}Short`)}
