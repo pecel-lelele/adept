@@ -23,6 +23,7 @@ export async function SiteHeader({
   audienceSwitch?: ReactNode;
 }) {
   const t = await getTranslations("ui");
+  const impact = await getTranslations("impact");
   const account = await getAccount();
   const member = account ? await pickOrg(["member", "manager", "advisor"]) : null;
   const home = account ? member?.chosen ? (member.chosen.role === "member" ? "/work" : "/org") : account.kind === "org_admin" ? "/org" : "/app" : null;
@@ -32,6 +33,7 @@ export async function SiteHeader({
       <Link href="/#how">{t("landing.navHow")}</Link>
       <Link href="/faq">{t("landing.navFaq")}</Link>
       <Link href="/about">{t("landing.navAbout")}</Link>
+      <Link href="/impact">{impact("footerLink")}</Link>
     </>
   );
   const homeLink = home ? (
@@ -96,6 +98,7 @@ export async function SiteFooter({ note }: { note?: ReactNode }) {
   const tu = await getTranslations("ui");
   const privacy = await getTranslations("privacy");
   const pages = await getTranslations("publicPages");
+  const impact = await getTranslations("impact");
   const account = await getAccount();
   return (
     <footer className="a-site-foot">
@@ -123,6 +126,7 @@ export async function SiteFooter({ note }: { note?: ReactNode }) {
               {t("footMethods")} <ArrowUpRight size={13} aria-hidden />
             </Link>
             <span>{t("footHuman")}</span>
+            <Link href="/impact">{impact("footerLink")}</Link>
             <Link href="/privacy">{privacy("footerLink")}</Link>
             <Link href="/terms">{pages("terms")}</Link>
             <span>{t("footPlace")}</span>

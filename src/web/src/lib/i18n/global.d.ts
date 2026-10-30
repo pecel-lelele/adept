@@ -1,6 +1,7 @@
 // Type-checks translation keys against the English messages.
 import type common from "../../../messages/en/common.json";
 import type guardrails from "../../../messages/en/guardrails.json";
+import type impact from "../../../messages/en/impact.json";
 import type jobs from "../../../messages/en/jobs.json";
 import type matching from "../../../messages/en/matching.json";
 import type org from "../../../messages/en/org.json";
@@ -32,6 +33,7 @@ declare module "next-intl" {
       jobs: typeof jobs;
       privacy: typeof privacy;
       publicPages: typeof publicPages;
+      impact: typeof impact;
     };
   }
 }

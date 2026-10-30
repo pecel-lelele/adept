@@ -1271,6 +1271,17 @@
 - **Replaces**: M3-031's incomplete plan/credit details and the unused external-service row
 - **PR / branch**: docs/core-submission-accuracy
 
+### M3-035: Verifiable public impact evidence and catalogue coverage
+- **Date**: 2026-10-30
+- **Feature**: F8 (Transparency), F4/F5/F6 evidence
+- **Type**: method
+- **Change**: Add a public impact summary/page with counts from the current canonical catalogue, free learning hours, languages and resolved SDG links. Show production matching/pathway measurements on explicitly synthetic profiles, preserve the actual research observation window, and separate external published context from system results. No cost or budget metric is served.
+- **Why**: There are no human pilot users or measured human outcomes. External claims require short verified quotations, publication/retrieval dates and source links. Both scenario calculations must use the same snapshot; course verification coverage uses its own newest fact date, not a trend label.
+- **Pipeline**: official catalogue/mappings + six sourced public claims + synthetic profiles → validated IDs/dates and distinct counts → course/hour/SDG coverage and production matching/pathway features → production methods and counterfactual name/segment swaps → source/recount/no-cost/fairness regressions (9 API tests passed) → dated public summary, translated page and generated report
+- **Affects**: F8 public pages/navigation, F4 profile-to-matcher whitelist adapter, F5/F6 attribution; no account data or production writes
+- **Replaces**: none
+- **PR / branch**: feat/core-impact-evidence
+
 ---
 
 ## M4: Core & Organisation (Core, F7)

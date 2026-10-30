@@ -93,6 +93,7 @@ def test_sweep_found_the_recommendation_endpoints() -> None:
         "/api/v1/trends/radar",
         "/api/v1/sdg/contribution/me",
         "/api/v1/org/plan",
+        "/api/v1/impact/summary",
     ):
         assert any(p.startswith(expected) for p in paths), expected
 
