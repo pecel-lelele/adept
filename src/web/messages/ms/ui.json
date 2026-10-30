@@ -712,9 +712,9 @@
     "basedOn": "berdasarkan {what}",
     "snapshot": "data setakat {date}",
     "unchecked": "Angka ini tidak dapat disemak dengan data anda: {figures}",
-    "s1": "Apa langkah seterusnya?",
-    "s2": "Kemahiran apa yang meningkat?",
-    "s3": "Bagaimana Adept berfungsi?",
+    "s1": "Dari mana data ini datang?",
+    "s2": "Apa jadi kalau AI bergerak lebih laju?",
+    "s3": "Kemahiran apa yang semakin menurun?",
     "inOrg": "Menjawab di {name}",
     "inPersonal": "Menjawab di ruang kerja peribadi anda"
   },

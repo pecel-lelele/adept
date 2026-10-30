@@ -712,9 +712,9 @@
     "basedOn": "based on {what}",
     "snapshot": "data as of {date}",
     "unchecked": "Couldn’t check these figures against your data: {figures}",
-    "s1": "What should I do next?",
-    "s2": "Which skills are rising?",
-    "s3": "How does Adept work?",
+    "s1": "Where does this data come from?",
+    "s2": "What if AI moves faster?",
+    "s3": "Which skills are declining?",
     "inOrg": "Answering in {name}",
     "inPersonal": "Answering in your personal workspace"
   },
