@@ -31,8 +31,8 @@
     "help": "Mendapatkan arXiv melalui model RunPod yang dikonfigurasi dan menerbitkan petikan bertarikh; inferens mungkin dikenakan bayaran. Pengiraan semula hanya menggunakan isyarat tersimpan. Kegagalan mengekalkan petikan terakhir.",
     "fetch": "Muat semula data trend sekarang",
     "rescore": "Skor semula isyarat tersimpan",
-    "working": "Sedang diprosesâ€¦",
-    "queued": "Larian dalam baris gilir GitHub Actionsâ€¦",
+    "working": "Sedang diproses…",
+    "queued": "Larian dalam baris gilir GitHub Actions…",
     "inProgress": "Aliran kerja sedang berjalan. Buka GitHub untuk langkah semasa.",
     "succeeded": "Larian selesai dengan jayanya.",
     "failed": "Larian selesai tanpa menerbitkan ({conclusion}).",
@@ -50,7 +50,7 @@
     "error": "Permintaan muat semula gagal ({code}). Snapshot semasa kekal aktif."
   },
   "nationalContext": {
-    "title": "Konteks tenaga buruh Malaysia Â· {month}",
+    "title": "Konteks tenaga buruh Malaysia · {month}",
     "description": "Kadar tinjauan kebangsaan yang diterbitkan memberi konteks. Skor peranan menggunakan bukti yang disenaraikan sendiri; jumlah ini bukan ramalan kekosongan jawatan.",
     "unemployment": "Kadar pengangguran",
     "participation": "Penyertaan tenaga buruh",
