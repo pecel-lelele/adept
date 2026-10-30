@@ -466,6 +466,17 @@
 - **Replaces**: none
 - **PR / branch**: `feat/minilm-runpod-deploy`
 
+### M1-012: Review trend scaling, on-demand refresh and source provenance
+- **Date**: 2026-10-30
+- **Feature**: F2, F3 and jobs
+- **Type**: method
+- **Change**: Share robust reference scaling across scenarios and preview/matching, disclose coverage and frozen provenance, bound outages, poll/cancel RunPod asynchronous jobs, and expose workflow refresh/re-score controls. Refilter stored job locations offline before the next fetch; the committed source data stays dated.
+- **Why**: Low coverage must not be confused with decline; source dates and cold-start handling must reflect actual evidence and runtime behaviour. Final integration replaces email-based admins with stable account IDs.
+- **Pipeline**: arXiv/job sources → cleaning/geographic filtering → catalogue embeddings/counts → MiniLM/shared scaling → production scorer/refilter tests → dated stored snapshots and job records
+- **Affects**: F4, F5, preview, dashboard and jobs
+- **Replaces**: none
+- **PR / branch**: worktree-agent-a17103c77ff6e8291
+
 ---
 
 ## M2: Profile Intake & Matching (F1, F4)
