@@ -798,7 +798,6 @@ T: dict[str, dict[str, str]] = {
         "programmes_none": " No programme sent yet: start from a business objective on [[page:/org/programmes/new]].",
         "team_shared": " {shared} of them share their skill levels.",
         "team_suppressed": " Too few members to show team skill gaps.",
-
         "off_topic": "Sorry, I can't help with that one. I'm best at your skills, matched roles and learning plan. Anything else I can do?",
         "invent": "Sorry, I can't make up jobs, courses, skills or figures. Everything I show comes from Adept's checked catalogue and your data. Anything else I can do?",
         "unknown": "Sorry, I'm not sure I can help with that one. I can explain your matches, what to learn next or how skills are trending. Anything else I can do?",
@@ -875,7 +874,6 @@ T: dict[str, dict[str, str]] = {
         "programmes_none": " Belum ada program dihantar: mulakan dari objektif perniagaan di [[page:/org/programmes/new]].",
         "team_shared": " {shared} daripadanya berkongsi tahap kemahiran.",
         "team_suppressed": " Terlalu sedikit ahli untuk memaparkan jurang kemahiran pasukan.",
-
         "off_topic": "Maaf, saya tak dapat membantu dengan yang itu. Saya paling arif tentang kemahiran, peranan padanan dan pelan pembelajaran anda. Ada apa-apa lagi yang boleh saya bantu?",
         "invent": "Maaf, saya tidak boleh mereka-reka pekerjaan, kursus, kemahiran atau angka. Semua yang saya tunjukkan datang daripada katalog Adept yang disemak dan data anda. Ada apa-apa lagi yang boleh saya bantu?",
         "unknown": "Maaf, saya kurang pasti boleh membantu dengan yang itu. Saya boleh terangkan padanan anda, apa perlu dipelajari seterusnya atau trend kemahiran. Ada apa-apa lagi yang boleh saya bantu?",
@@ -952,7 +950,6 @@ T: dict[str, dict[str, str]] = {
         "programmes_none": " 尚未发送项目：可在 [[page:/org/programmes/new]] 从业务目标开始。",
         "team_shared": " 其中 {shared} 人分享了技能水平。",
         "team_suppressed": " 成员人数过少，无法显示团队技能差距。",
-
         "off_topic": "抱歉，这个问题我帮不上忙。我最擅长的是你的技能、匹配职位和学习计划。还有什么我可以帮你的吗？",
         "invent": "抱歉，我不能编造职位、课程、技能或数字。我展示的一切都来自 Adept 核实过的目录和你的数据。还有什么我可以帮你的吗？",
         "unknown": "抱歉，这个问题我不太确定能否帮上忙。我可以解释你的匹配结果、下一步学什么或技能趋势。还有什么我可以帮你的吗？",
