@@ -13,6 +13,7 @@ COPY src/api src/api
 COPY src/pipelines src/pipelines
 COPY src/db src/db
 COPY src/data/seed src/data/seed
+COPY docs/reference docs/reference
 COPY src/docker/boot.py src/docker/boot.py
 RUN useradd --create-home adept
 USER adept

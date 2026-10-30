@@ -240,3 +240,10 @@ and sign/date the final supplied form. Do not infer consent or attestations from
 [Technical tools declaration](submission-technical-declaration.md) ·
 [Official criterion mapping](rubric-check.md) · [Deliverables](submission-deliverables.md) ·
 [Demo source register](demo-script.md#evidence-register) · [KPI protocol](kpi-time-to-plan.md)
+
+Final-round measurement status, **30 October 2026**: **0 human testers and 0 human
+trials**; no measured manual baseline or achieved planning-time reduction. The
+20% figure is a proposed target only. See the [calculator output](kpi-human-summary.json)
+and [separate automated synthetic API measurements](kpi-automated-journeys.md)
+for dated sample sizes, completion/failure counts and methodological limits.
+Automated response timings do not establish human planning speed or impact.

@@ -402,6 +402,19 @@
 - **Replaces**: workflow environment setting in TEAM-030
 - **PR / branch**: fix/core-review-regressions
 
+### TEAM-037: Ground historical MyCOL badges and separate measured API timings from human KPIs
+- **Date**: 2026-10-30
+- **Feature**: F1 / F4 / F8 / Core submission evidence
+- **Type**: contract | method | UI | other
+- **Change**: Add an optional historical MyCOL badge to RoleMatch, with its own RecommendationMeta, edition and page locator. Resolve only an explicit stored role-ID crosswalk; the sole reviewed mapping is data-analyst to MASCO 2524, whose restricted title list explicitly includes Data Analyst. Display the sourced badge on matching list/detail cards in all three locales without changing scoring. Align the About register, README and re-exported technical declaration on RunPod MiniLM, RunPod GLM with Gemini failover, Replit and Google Fonts/Fontsource assets; retain ElevenLabs after the user's actual-use confirmation.
+- **Why**: The reference CSV was disconnected, broad MASCO groups are insufficient evidence for arbitrary title matches, and the declaration export lagged its source. Existing CSS uses system fonts, so installed Inter assets are disclosed without inventing live Google Fonts requests. The user confirmed no human trials exist; preserve the unrun human template and null reduction while recording separate automated synthetic journeys, including failed attempts.
+- **Pipeline**: official MyCOL PDF and five synthetic demo CVs -> visually verify the restricted title list and use existing intake/parser rules -> stored role IDs and reviewed synthetic skill fixtures -> metadata-only badge and production API journeys with signed synthetic sessions -> exact-ID/negative/ranking-invariance/source regressions and recorded step timings -> matching cards and dated submission evidence, with no human speed-up claim
+- **Affects**: additive matching/guardrails contracts and generated clients, matching UI/translations, reference crosswalk, API image reference-file packaging, declaration export and KPI evidence; no ranking formula, migration, runtime provider enablement or deployment change
+- **Validation**: Final full quality gate passed: 1,435 Python tests passed, 34 skipped, 54 subtests passed, and 78 frontend regressions passed. The production frontend build passed. Both fairness reports contain 65 invariant synthetic-CV cases; all 15 final signed-session API journeys completed. The eight-page declaration was exported and visually reviewed; Docker runtime and production deployment remain unverified.
+- **Limits**: Review the published CV-text fairness rewrite from cb8bbf0 using both scenarios, meaningful negative controls and real stored-profile boundary regressions. Passing these finite synthetic cases does not establish universal fairness. Human KPI trials remain 0 testers/0 trials.
+- **Replaces**: none; extends TEAM-015 disclosure and the historical MyCOL reference deliverable
+- **PR / branch**: `fix/core-final-round-integration`, based on fetched `fix/core-review-regressions`
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)
@@ -827,6 +840,17 @@
 - **Validation**: All 215 profile/preview tests and four skill-search client tests passed. Regressions verify that both CV APIs skip suggestion calls when disabled, preserve their default behaviour and return truncation/empty extraction metadata; the resolver scores the catalogue once. The complete quality gate and production web build also passed.
 - **Replaces**: M2-023's unchanged CV UI behaviour; preserves its resolver gates
 - **PR / branch**: `chore/core-replit-database-cleanup`
+
+### M2-025: Index frozen MyCOL reference assets once per worker
+- **Date**: 2026-10-30
+- **Feature**: F4 (Future-Role Matching & Gap)
+- **Type**: method
+- **Change**: Read the frozen crosswalk, occupation CSV and provenance JSON through a cached zero-argument loader and index them by stored role ID and MASCO code. Badge lookups no longer reopen or rescan files, including for unsupported roles; construct fresh scenario-specific response models and source metadata on every call.
+- **Why**: PR #69 review identified repeated reference reads across every ranked role. These are versioned release assets, so a worker restart loads a new reference release; user profiles, role catalogue reads, scores and request metadata are not cached.
+- **Pipeline**: frozen verified MyCOL assets -> parse once per worker -> role-ID and MASCO indexes -> exact ID lookup with unchanged badge attribution -> file-open-count, metadata-isolation and existing badge/source regressions -> matching list/detail responses
+- **Affects**: F4 historical MyCOL badge reads only; no contract, dependency, scoring or source-date change
+- **Replaces**: TEAM-037's per-lookup reference-file loading; preserves M2-015's fresh role catalogue and saved-profile behaviour
+- **PR / branch**: PR #69 / `fix/core-final-round-integration`
 
 ---
 

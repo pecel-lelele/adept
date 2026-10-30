@@ -48,3 +48,10 @@ employment/IP declarations without their confirmation.
   and [statistical evidence register](demo-script.md#evidence-register).
 
 This document does not claim new test results, deployment checks or pipeline refreshes.
+
+Final-round measurement status, **30 October 2026**: **0 human testers and 0 human
+trials**; no measured manual baseline or achieved planning-time reduction. The
+20% figure is a proposed target only. See the [calculator output](kpi-human-summary.json)
+and [separate automated synthetic API measurements](kpi-automated-journeys.md)
+for dated sample sizes, completion/failure counts and methodological limits.
+Automated response timings do not establish human planning speed or impact.

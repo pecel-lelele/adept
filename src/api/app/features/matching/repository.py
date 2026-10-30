@@ -16,6 +16,7 @@ from app.contracts.pathway import Course
 from app.contracts.profile import Skill
 from app.core import refdata, seed
 from app.core.errors import ProfileRequiredError
+from app.features.matching.critical_occupations import badge_for_role
 from app.features.matching.gap_port import fetch_skills_gap
 from app.features.matching.scoring import (
     NEUTRAL,
@@ -261,6 +262,7 @@ def _score_to_contract(
         missing_skills=[_skill_obj(s) for s in gap.get("missing", [])],
         partial_skills=[_skill_obj(s) for s in gap.get("partial", [])],
         sdg_targets=fetch_role_badges(role_id),
+        critical_occupation=badge_for_role(role_id, scenario),
         improvements=improvements,
         profile_note="add_skills" if not user_levels else None,
         trend_coverage=round(role_score.trend_coverage, 4),

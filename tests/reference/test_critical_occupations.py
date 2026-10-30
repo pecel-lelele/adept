@@ -53,7 +53,7 @@ def test_mycol_provenance_matches_saved_reference() -> None:
     assert datetime.fromisoformat(provenance["retrieved_at_utc"]).utcoffset() is not None
     assert re.fullmatch(r"[0-9a-f]{64}", provenance["source_pdf_sha256"])
     assert provenance["publication_date"] is None
-    assert provenance["integration_status"] == "reference_only_not_connected"
+    assert provenance["integration_status"] == "reviewed_role_id_badges_only"
     assert (
         provenance["csv_sha256"]
         == hashlib.sha256((REFERENCE / "critical-occupations.csv").read_bytes()).hexdigest()

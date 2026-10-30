@@ -699,3 +699,17 @@ is not evidence that those newer dependencies are already deployed. Keep all key
 connection strings in secret stores, never in this README or submission PDFs.
 
 Final-round review: [status and responsibilities](docs/final-round-status.md), [refresh and demo runbook](docs/review-runbook.md). Dashboard refresh uses the existing published RunPod MiniLM model through an admin-only workflow dispatch; production configuration and paid-run acceptance remain explicit rollout steps.
+
+### Final-round disclosure and measurement notes (30 October 2026)
+
+The About registry and technical declaration identify RunPod MiniLM, RunPod GLM-5.3
+with separately authenticated Gemini failover, and Replit hosting. Google Fonts'
+Inter assets are available through `@fontsource-variable/inter`; current app styles
+use Arial/system fallbacks, without a live Google Fonts request. ElevenLabs was
+confirmed used for presentation audio, not application recommendations.
+
+The MyCOL 2024/2025 badge uses only the reviewed stored `data-analyst` ID and cites
+TalentCorp's restricted title list; it does not change ranking or claim current vacancies.
+See [mapping evidence](docs/reference/critical-occupations.md).
+Human KPI trials remain unrun (0 testers, 0 trials); automated local API timings
+are separate evidence: [journey measurements](docs/kpi-automated-journeys.md).

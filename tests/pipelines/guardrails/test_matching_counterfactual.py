@@ -41,8 +41,9 @@ def test_variants_change_identity_only() -> None:
 
 
 @pytest.mark.skipif(len(DEMO_CVS) < 2, reason="synthetic demo CVs are not present")
-def test_demo_cvs_keep_skills_and_ranks_under_identity_swaps() -> None:
-    report = harness.check_matching_counterfactual(DEMO_CVS)
+@pytest.mark.parametrize("scenario", ["moderate", "fast"])
+def test_demo_cvs_keep_skills_and_ranks_under_identity_swaps(scenario: str) -> None:
+    report = harness.check_matching_counterfactual(DEMO_CVS, scenario=scenario)
     assert report["invariant"]
     files = {case["file"] for case in report["cases"]}
     assert files == {path.name for path in DEMO_CVS}

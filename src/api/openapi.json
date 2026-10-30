@@ -7231,6 +7231,48 @@
         ],
         "title": "CourseHistoryItem"
       },
+      "CriticalOccupationBadge": {
+        "properties": {
+          "edition": {
+            "type": "string",
+            "title": "Edition"
+          },
+          "masco4d": {
+            "type": "string",
+            "title": "Masco4D"
+          },
+          "occupation_label": {
+            "type": "string",
+            "title": "Occupation Label"
+          },
+          "matched_title": {
+            "type": "string",
+            "title": "Matched Title"
+          },
+          "source_page": {
+            "type": "integer",
+            "title": "Source Page"
+          },
+          "pdf_page": {
+            "type": "integer",
+            "title": "Pdf Page"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RecommendationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "edition",
+          "masco4d",
+          "occupation_label",
+          "matched_title",
+          "source_page",
+          "pdf_page",
+          "meta"
+        ],
+        "title": "CriticalOccupationBadge"
+      },
       "CvExtractionResult": {
         "properties": {
           "skills": {
@@ -10455,7 +10497,9 @@
               "googlecert",
               "iibacert",
               "iappcert",
-              "bnm"
+              "bnm",
+              "replit",
+              "fonts"
             ],
             "title": "Id"
           },
@@ -10793,6 +10837,16 @@
             },
             "type": "array",
             "title": "Sdg Targets"
+          },
+          "critical_occupation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CriticalOccupationBadge"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "improvements": {
             "items": {

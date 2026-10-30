@@ -64,6 +64,27 @@ def _recommendation_gets() -> list[tuple[str, dict[str, str]]]:
 ENDPOINTS = _recommendation_gets()
 
 
+@pytest.mark.parametrize("scenario", ["moderate", "fast"])
+@pytest.mark.parametrize("path", ["/api/v1/matches", "/api/v1/matches/data-analyst"])
+def test_mycol_badge_has_its_own_historical_sources(
+    client: TestClient, path: str, scenario: str
+) -> None:
+    response = client.get(path, params={"scenario": scenario})
+    assert response.status_code == 200
+    data = response.json()
+    matches = data.get("matches", [data])
+    badges = [m["critical_occupation"] for m in matches if m["critical_occupation"]]
+    assert badges, "MyCOL coverage must exercise a non-null badge"
+    for badge in badges:
+        meta = RecommendationMeta.model_validate(badge["meta"])
+        assert meta.snapshot_date.isoformat() == "2026-10-29"
+        assert meta.scenario == scenario
+        assert meta.is_estimate is False
+        assert meta.sources[0].name == "TalentCorp MyCOL 2024/2025"
+        assert meta.sources[0].url.startswith("https://www.talentcorp.com.my/")
+        assert meta.sources[0].retrieved_at.isoformat() == "2026-10-29"
+
+
 def test_sweep_found_the_recommendation_endpoints() -> None:
     paths = {p for p, _ in ENDPOINTS}
     for expected in (
