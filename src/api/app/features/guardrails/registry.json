@@ -12,5 +12,7 @@
   {"id": "googlecert", "name": "Google Cloud certification pages", "url": "https://cloud.google.com/learn/certification/cloud-digital-leader"},
   {"id": "iibacert", "name": "IIBA certification pages", "url": "https://www.iiba.org/business-analysis-certifications/ecba/"},
   {"id": "iappcert", "name": "IAPP certification pages", "url": "https://iapp.org/certify/aigp/"},
-  {"id": "bnm", "name": "Bank Negara Malaysia exchange rates", "url": "https://api.bnm.gov.my/public/exchange-rate/USD"}
+  {"id": "bnm", "name": "Bank Negara Malaysia exchange rates", "url": "https://api.bnm.gov.my/public/exchange-rate/USD"},
+  {"id": "replit", "name": "Replit", "url": "https://replit.com/"},
+  {"id": "fonts", "name": "Google Fonts / Inter via Fontsource", "url": "https://fonts.google.com/specimen/Inter"}
 ]

@@ -1,8 +1,8 @@
 # MyCOL 2024/2025 reference table
 
 This is a manually curated copy of the **66 occupation groups in Table 7** of TalentCorp's
-MyMahir Malaysia Critical Occupations List 2024/2025. It is reference data only: no application,
-seed loader, badge or scoring code reads this directory.
+MyMahir Malaysia Critical Occupations List 2024/2025. Matching reads this frozen reference for a historical badge, using the explicit
+[stored role-ID crosswalk](critical-occupation-roles.csv). It never changes scores.
 
 - Data: [CSV](critical-occupations.csv).
 - Provenance and hashes: [source record](critical-occupations.provenance.json).
@@ -37,7 +37,7 @@ in the provenance record rather than being inferred from the filename or downloa
 These are occupation groups, not a role-ID crosswalk or a list of all included detailed
 job titles. The report's occupation profiles further restrict included titles. Do not
 automatically badge every Adept role under a broad group or infer a forecast, vacancy,
-salary or hiring decision from inclusion. No scoring integration is authorised here.
+salary or hiring decision from inclusion. The mapping adds no scoring integration.
 
 This supersedes the earlier nine-label preparation as the reference deliverable. The
 earlier checkout was left untouched. Public access does not establish an open-data licence;
@@ -55,3 +55,21 @@ Validate locally with:
 
 The tests do not fetch the source or call Adept services. The source PDF SHA-256 records
 the reviewed version; a later source replacement requires reinspection, not a silent refresh.
+
+## Reviewed role mapping (30 October 2026)
+
+Only `data-analyst` is mapped to MASCO **2524, Data Professionals**. The official
+report's printed page **272** (PDF page **137**) explicitly includes **Data Analyst**
+in its restricted title list; printed page 273 (PDF 138) repeats the nomination.
+Both spreads were rendered and visually checked against the saved source checksum.
+No other role has been inferred from a broad group, label similarity or a model.
+
+The badge exposes its own RecommendationMeta, edition, group, title and page locator.
+Its snapshot date is the frozen reference's UTC retrieval date, 2026-10-29, not
+the request date or the separate trend snapshot date. `is_estimate=false` describes
+historical list inclusion, not a forecast. This is not evidence of a current vacancy.
+Deployment must include `docs/reference/critical-occupation*.csv` and the provenance JSON.
+
+Badge pipeline: official PDF -> reviewed restricted title and Table 7 group -> exact
+existing role-ID crosswalk -> metadata-only badge -> positive/negative API and source
+regressions -> matching list/detail cards. New mappings require source-profile review.
