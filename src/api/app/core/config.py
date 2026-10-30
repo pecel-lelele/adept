@@ -75,6 +75,10 @@ class Settings(BaseSettings):
     auth_default_user: str = ""
     # Secret for POST .../sync endpoints that refresh live data; empty = sync disabled.
     sync_token: str = ""
+    # Scheduler-only credential; never accepted as a user session or returned to browsers.
+    data_refresh_token: str = Field(default="", repr=False)
+    trends_stale_days: int = Field(default=10, ge=1, le=365)
+    trends_refresh_cooldown_minutes: int = Field(default=10, ge=1, le=1440)
     # Stable, operator-provisioned account IDs; self-asserted signup email grants no access.
     admin_user_ids: str = ""
 

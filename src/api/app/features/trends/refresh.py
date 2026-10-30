@@ -347,7 +347,7 @@ def _today() -> date:
     return date.today()
 
 
-def rescore() -> TrendRescoreResult:
+def rescore(*, deadline: float | None = None) -> TrendRescoreResult:
     """Re-score the latest two stored weeks; publish only a genuinely new snapshot."""
     if not _rescore_lock.acquire(blocking=False):
         raise AppError(
@@ -364,7 +364,7 @@ def rescore() -> TrendRescoreResult:
                 code="rescore_unavailable",
             ) from exc
         try:
-            return _rescore(pipeline, score, _bounded_db_url())
+            return _rescore(pipeline, score, _bounded_db_url(), deadline=deadline)
         except AppError:
             raise
         except Exception as exc:  # noqa: BLE001 - reported; nothing was published
@@ -380,7 +380,9 @@ def rescore() -> TrendRescoreResult:
         _rescore_lock.release()
 
 
-def _rescore(pipeline: Any, score: Any, db_url: str) -> TrendRescoreResult:
+def _rescore(
+    pipeline: Any, score: Any, db_url: str, *, deadline: float | None = None
+) -> TrendRescoreResult:
     from app.features.trends.provenance import window_from_note
 
     latest = latest_published(db_url)
@@ -401,6 +403,22 @@ def _rescore(pipeline: Any, score: Any, db_url: str) -> TrendRescoreResult:
             message="Signal collection dates are missing; nothing was published.",
             snapshot_date=live,
         )
+    if latest:
+        historical = window_from_note(latest[1])
+        if historical[1] and historical[1] < latest[0] - timedelta(days=60):
+            # Older bootstrap code wrote October 2024 samples under 2026 collection dates.
+            # Do not reinterpret those stored dates as genuine 2026 research observations.
+            if t0_dates[0] <= latest[0] or t1_dates[0] <= latest[0]:
+                return TrendRescoreResult(
+                    status="failed",
+                    message=(
+                        "Historical replay signals cannot be published as fresh evidence. "
+                        "Collect two genuinely new periods after the replay snapshot first."
+                    ),
+                    snapshot_date=live,
+                    observed_from=historical[0],
+                    observed_to=historical[1],
+                )
     sources, note = pipeline.provenance(t0, t1, t0_dates, t1_dates)
     observed = window_from_note(note)
     if latest is not None and latest[1] == note:
@@ -414,12 +432,17 @@ def _rescore(pipeline: Any, score: Any, db_url: str) -> TrendRescoreResult:
             observed_from=observed[0],
             observed_to=observed[1],
         )
-    today = _today()
-    if live is not None and live >= today:
+    measured_day = observed[1]
+    if measured_day is None or measured_day > _today():
+        return TrendRescoreResult(
+            status="failed", message="Measured dates are invalid; nothing published."
+        )
+    if live is not None and live >= measured_day:
         return TrendRescoreResult(
             status="no_new_data",
             message=(
-                f"Snapshot {live.isoformat()} was already published today; it is not replaced "
+                f"Snapshot {live.isoformat()} already covers this measured window; "
+                "it is not replaced "
                 "from stored signals."
             ),
             snapshot_date=live,
@@ -444,12 +467,27 @@ def _rescore(pipeline: Any, score: Any, db_url: str) -> TrendRescoreResult:
             message="Snapshot failed validation and was not published: " + "; ".join(errors[:3]),
             snapshot_date=live,
         )
-    pipeline.publish(evidenced, today, sources, note, db_url)
+    if deadline is not None and time.monotonic() >= deadline:
+        return TrendRescoreResult(
+            status="failed",
+            message="Re-score time budget reached; nothing was published.",
+            snapshot_date=live,
+        )
+    if deadline is not None:
+        from app.features.data_refresh.repository import write_connection
+
+        with write_connection(deadline) as conn:
+            pipeline.publish(evidenced, measured_day, sources, note, db_url, conn=conn)
+    else:
+        pipeline.publish(evidenced, measured_day, sources, note, db_url)
     clear_trend_caches()
     return TrendRescoreResult(
         status="published",
-        message=f"Published snapshot {today.isoformat()} from stored signals ({t1} vs {t0}).",
-        snapshot_date=today,
+        message=(
+            f"Published measured snapshot {measured_day.isoformat()} "
+            f"from stored signals ({t1} vs {t0})."
+        ),
+        snapshot_date=measured_day,
         observed_from=observed[0],
         observed_to=observed[1],
     )

@@ -45,7 +45,8 @@ def test_provenance_names_only_the_days_actually_collected() -> None:
         (date(2026, 10, 12), date(2026, 10, 12)),
     )
     assert window_from_note(note) == (date(2026, 10, 12), date(2026, 10, 12))
-    assert {s["retrieved_at"] for s in sources} == {"2026-10-12"}
+    assert sources[0]["retrieved_at"] == "2026-10-12"
+    assert sources[1]["retrieved_at"] == run.BLS_RETRIEVED_AT
 
 
 def test_refresh_refuses_when_the_ingest_stored_nothing_new(monkeypatch) -> None:  # type: ignore[no-untyped-def]

@@ -22,6 +22,7 @@ def test_csv_read_excludes_stale_openings_even_when_refresh_stops(monkeypatch):
         "source_name": "Demo",
         "employer": "Fictional employer",
         "title": "Data Analyst",
+        "location": "Kuala Lumpur, Malaysia",
         "url": "https://example.test/job",
         "api_url": "https://example.test/feed",
         "first_seen": TODAY.isoformat(),
@@ -30,6 +31,10 @@ def test_csv_read_excludes_stale_openings_even_when_refresh_stops(monkeypatch):
     rows = [
         dict(base, id=str(days), last_seen=(TODAY - timedelta(days=days)).isoformat())
         for days in [0, 14, 15]
+    ]
+    rows += [
+        dict(base, id="worldwide", location="Worldwide", last_seen=TODAY.isoformat()),
+        dict(base, id="singapore", location="Singapore", last_seen=TODAY.isoformat()),
     ]
     monkeypatch.setattr(repository.refdata, "rows", lambda *args, **kwargs: rows)
     assert {p.id for p in repository.openings()} == {"0", "14"}
