@@ -528,6 +528,17 @@
 - **Replaces**: none
 - **PR / branch**: `feat/minilm-runpod-deploy`
 
+### M1-012: Review trend scaling, on-demand refresh and source provenance
+- **Date**: 2026-10-30
+- **Feature**: F2, F3 and jobs
+- **Type**: method
+- **Change**: Share robust reference scaling across scenarios and preview/matching, disclose coverage and frozen provenance, bound outages, poll/cancel RunPod asynchronous jobs, and expose workflow refresh/re-score controls. Refilter stored job locations offline before the next fetch; the committed source data stays dated.
+- **Why**: Low coverage must not be confused with decline; source dates and cold-start handling must reflect actual evidence and runtime behaviour. Final integration replaces email-based admins with stable account IDs.
+- **Pipeline**: arXiv/job sources → cleaning/geographic filtering → catalogue embeddings/counts → MiniLM/shared scaling → production scorer/refilter tests → dated stored snapshots and job records
+- **Affects**: F4, F5, preview, dashboard and jobs
+- **Replaces**: none
+- **PR / branch**: worktree-agent-a17103c77ff6e8291
+
 ---
 
 ## M2: Profile Intake & Matching (F1, F4)
@@ -2058,3 +2069,33 @@
 - **Affects**: Dependabot pull request volume only; no runtime, dependency versions or CI checks change.
 - **Replaces**: none
 - **PR / branch**: chore/core-dependabot-grouping
+
+### M4-083: Ground Adi routing and multilingual explanations
+- **Date**: 2026-10-30
+- **Feature**: Core and F8
+- **Type**: method
+- **Change**: Phrase-level intent routing, scoped people-decision refusal, near-tie suggestions, multilingual replies, explicit fallback sources and validated page/catalogue references replace broad keyword routing. The browser opens with sources, scenario and declining-skill questions.
+- **Why**: Avoid misleading refusals and destination labels while keeping all displayed facts in validated server-authored blocks.
+- **Affects**: associated API, web, tests and deployment configuration
+- **Replaces**: none
+- **PR / branch**: worktree-agent-ae781c8985e0fb4d3
+
+### M4-084: Separate joining consent and clarify the individual journey
+- **Date**: 2026-10-30
+- **Feature**: F1, F4, F7 and Core
+- **Type**: UI
+- **Change**: Joining no longer requires sharing skills; sharing stays an explicit separate choice. Privacy disclosure, session-aware team CTAs, radar-first intake, populated comparison, weighted score bars, accessible wording and Steady/Rapid labels are updated without changing scenario IDs.
+- **Why**: Consent must remain optional and destinations, labels and score bars must match the actual behaviour.
+- **Affects**: associated API, web, tests and deployment configuration
+- **Replaces**: none
+- **PR / branch**: worktree-agent-ab3aa728dfca284ec
+
+### M4-085: Harden production setup and broaden the regression gate
+- **Date**: 2026-10-30
+- **Feature**: Core, F7 and F8
+- **Type**: method
+- **Change**: Make production configuration fail closed; repair frozen-lockfile Docker builds, explicit-origin POST workspace/logout checks, identity-aware rate limits, scheduled job refresh, recommendation-write attribution tests and production-parser counterfactual fairness. Include web regressions in the Python task runner.
+- **Why**: The interrupted infrastructure draft needs a reviewable branch; integrated follow-up fixes and deployment acceptance are handled in the final integration PR.
+- **Affects**: associated API, web, tests and deployment configuration
+- **Replaces**: none
+- **PR / branch**: worktree-agent-a30a3ff3fc8019a74
