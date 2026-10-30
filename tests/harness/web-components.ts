@@ -9,18 +9,19 @@ const webRequire = createRequire(resolve(web, "package.json"));
 const ts = webRequire("typescript");
 
 /** Render production TSX with the existing compiler; replace only framework request hooks. */
-export function loadComponent(path: string, overrides: Record<string, unknown> = {}) {
+export function loadComponent(path: string, overrides: Record<string, unknown> = {}, globals: Record<string, unknown> = {}) {
   const filename = resolve(web, path);
   const module = { exports: {} };
   const code = ts.transpileModule(readFileSync(filename, "utf8"), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022 },
   }).outputText;
   runInNewContext(code, {
+    ...globals,
     module, exports: module.exports, URLSearchParams, URL, File, FormData, AbortSignal, fetch,
     require: (id: string) => {
       if (id in overrides) return overrides[id];
       if (id.startsWith("./")) {
-        return loadComponent(resolve(dirname(filename), `${id}.tsx`), overrides);
+        return loadComponent(resolve(dirname(filename), `${id}.tsx`), overrides, globals);
       }
       return webRequire(id);
     },

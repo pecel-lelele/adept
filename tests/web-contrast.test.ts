@@ -7,6 +7,12 @@ import { loadComponent, React } from "./harness/web-components.ts";
 const css = readFileSync(new URL("../src/web/src/app/adept.css", import.meta.url), "utf8");
 
 function rgb(color: string): number[] {
+  if (color.startsWith("var(")) {
+    const name = color.slice(4, -1);
+    const token = css.match(new RegExp(`${name}:\\s*([^;]+);`))?.[1];
+    assert.ok(token, `Missing CSS token ${name}`);
+    return rgb(token);
+  }
   if (color.startsWith("#")) {
     const hex = color.length === 4 ? color.slice(1).split("").map((digit) => digit + digit).join("") : color.slice(1);
     return [0, 2, 4].map((index) => parseInt(hex.slice(index, index + 2), 16) / 255);

@@ -8,7 +8,7 @@ import { ErrorState } from "@/components/ErrorState";
 import { HistoricalSnapshotBanner } from "@/components/HistoricalSnapshotBanner";
 import { scoreColour } from "@/components/viz";
 import { fetchJobsSummary } from "@/features/jobs";
-import { fetchRadar } from "@/features/trends/api";
+import { Fold } from "@/components/Fold";
 import type { ScenarioId, Schemas } from "@/lib/api";
 
 import { fetchMatches, fetchReplay } from "../api";
@@ -69,9 +69,8 @@ export async function MatchesView({
   const t = await getTranslations("matching");
   const th = await getTranslations("ui.home");
   const tp = await getTranslations("ui.page");
-  const [result, radar, changes, jobs] = await Promise.all([
+  const [result, changes, jobs] = await Promise.all([
     fetchMatches(scenario, snapshotDate, sdgWeight),
-    fetchRadar(scenario),
     snapshotDate ? fetchReplay(scenario, snapshotDate, sdgWeight) : Promise.resolve(null),
     fetchJobsSummary(scenario),
   ]);
@@ -91,9 +90,9 @@ export async function MatchesView({
       <HistoricalSnapshotBanner date={snapshotDate} latestHref={`/app/matches?scenario=${scenario}${sdgWeight > 0 ? `&sdg=${sdgWeight.toFixed(2)}` : ""}`} />
 
       <section className="a-card a-controls" aria-label={tp("rankingOptions")}>
-        {radar.ok ? (
+        {result.ok ? (
           <SnapshotPicker
-            dates={radar.data.meta.available_snapshots}
+            dates={result.data.meta.available_snapshots ?? []}
             value={snapshotDate ?? ""}
             latestLabel={th("latest")}
             label={t("snapshotDate")}
@@ -134,8 +133,7 @@ export async function MatchesView({
               const i = result.data.matches.indexOf(m);
               const pct = (m.score * 100).toFixed(1);
               const detail = `/app/matches/${encodeURIComponent(m.role_id)}?scenario=${scenario}${replay}`;
-              return (
-                <li key={m.role_id}>
+              const card = (
                   <article className="a-card a-rolecard" data-top={i === 0 || undefined}>
                     <header className="a-rolecard-head">
                       <span className="a-rank-num">{i + 1}</span>
@@ -211,6 +209,14 @@ export async function MatchesView({
                       </Link>
                     </footer>
                   </article>
+              );
+              return (
+                <li key={m.role_id}>
+                  {i < 3 ? card : (
+                    <Fold title={`${i + 1}. ${m.label}`} meta={<span className="a-inline">{pct}% <EstimateLabel scenario={scenario} /></span>}>
+                      {card}
+                    </Fold>
+                  )}
                 </li>
               );
             })}

@@ -2339,3 +2339,13 @@
 - **Affects**: submission documentation only
 - **Replaces**: none
 - **PR / branch**: fix/core-greptile-followups / Fixes #86
+
+### M4-093: Keep the learner journey recoverable and compact
+- **Date**: 2026-10-31
+- **Feature**: Core, F1, F2, F4, F5 and F7
+- **Type**: UI
+- **Change**: Add translated route/global error and not-found recovery, retain page headings and scenario context on API errors, expose role/scenario comparison in navigation, and preview the actual best match on request. Show the top three ranked roles in full and fold the remaining cards; split scenario comparison chips, replace snapshot history entries, encode dashboard role IDs, and show a visible heatmap suppression legend using shared colour tokens.
+- **Why**: Issue #85 identified missing recovery paths, overly long mobile screens and lost intake work. Drafts now store only questionnaire fields and catalogue-confirmed skills in account-scoped session storage, tolerate unavailable/corrupt storage, and clear after successful saves before client navigation. Failed saves retain the draft.
+- **Affects**: The additive `MatchMeta.available_snapshots` field passes through dates from the same trend read used for ranking, removing the web's separate radar request; generated OpenAPI/TypeScript contracts are refreshed. The intake server action returns its fixed success destination so the client can clear storage before navigating. No scoring, source dates, privacy thresholds, dependencies or database schema change.
+- **Replaces**: none
+- **PR / branch**: fix/web-ux-gaps / Fixes #85

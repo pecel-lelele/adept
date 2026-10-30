@@ -12,10 +12,14 @@ export function ScenarioDelta({ score, rank, otherScore, otherRank, otherScenari
   const rounded = Math.round((score - otherScore) * 1000) / 10;
   const movement = rank != null && otherRank != null ? otherRank - rank : null;
   return (
-    <span className="a-chip" data-tone={movement != null ? (movement > 0 ? "up" : movement < 0 ? "down" : undefined) : (rounded > 0 ? "up" : rounded < 0 ? "down" : undefined)}>
-      {movement != null ? t("scenarioRankDelta", { movement: `${movement > 0 ? "▲" : movement < 0 ? "▼" : "↔"}${Math.abs(movement)}`, scenario: ts(`${otherScenario}Short`) }) : t("scenarioDelta", { delta: `${rounded > 0 ? "+" : ""}${rounded.toFixed(1)}`, scenario: ts(`${otherScenario}Short`) })}
-      {" · "}{t("otherScenarioScore", { score: (otherScore * 100).toFixed(1) })}
-      {otherRank != null ? ` · ${t("otherScenarioRank", { rank: otherRank })}` : ""}
-    </span>
+    <>
+      <span className="a-chip" data-tone={movement != null ? (movement > 0 ? "up" : movement < 0 ? "down" : undefined) : (rounded > 0 ? "up" : rounded < 0 ? "down" : undefined)}>
+        {movement != null ? t("scenarioRankDelta", { movement: `${movement > 0 ? "▲" : movement < 0 ? "▼" : "↔"}${Math.abs(movement)}`, scenario: ts(`${otherScenario}Short`) }) : t("scenarioDelta", { delta: `${rounded > 0 ? "+" : ""}${rounded.toFixed(1)}`, scenario: ts(`${otherScenario}Short`) })}
+      </span>
+      <span className="a-chip">
+        {t("otherScenarioScore", { score: (otherScore * 100).toFixed(1) })}
+        {otherRank != null ? ` · ${t("otherScenarioRank", { rank: otherRank })}` : ""}
+      </span>
+    </>
   );
 }

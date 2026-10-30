@@ -2,7 +2,7 @@ import { ArrowRight, Building2, Clock3, Layers, Pencil, TrendingUp, Wallet } fro
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
-import { Kpis, PageHeader, TrendPill } from "@/components";
+import { EstimateLabel, Kpis, PageHeader, TrendPill } from "@/components";
 import { journeyStepCount } from "@/config/navigation";
 import { ErrorState } from "@/components/ErrorState";
 import { AccountDataCard } from "@/features/core/components/AccountDataCard";
@@ -30,7 +30,14 @@ export async function ProfileView({ scenario = "moderate" }: { scenario?: Scenar
   ]);
   // A failed lookup must not tell members and admins to join an organisation.
   const org = spaces.ok ? spaces.data.workspaces : [];
-  if (!profile.ok) return <ErrorState failure={profile} />;
+  if (!profile.ok) return (
+    <div className="a-view">
+      <PageHeader eyebrow={tp("stepOf", { step: 1, total: journeyStepCount() })} title={t("title")} description={tp("skillsDesc")}>
+        <EstimateLabel scenario={scenario} />
+      </PageHeader>
+      <ErrorState failure={profile} />
+    </div>
+  );
   const p = profile.data;
   const labels = new Map(catalogue.ok ? catalogue.data.skills.map((s) => [s.id, s.label]) : []);
   const trend = new Map(radar.ok ? radar.data.items.map((i) => [i.skill_id, scenario === "fast" ? i.direction_fast : i.direction_moderate]) : []);

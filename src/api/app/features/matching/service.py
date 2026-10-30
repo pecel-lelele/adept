@@ -14,6 +14,7 @@ from datetime import date
 
 from app.contracts.common import RecommendationMeta, ScenarioId
 from app.contracts.matching import (
+    MatchMeta,
     MatchResponse,
     ReplayDriver,
     ReplayResponse,
@@ -71,7 +72,11 @@ def list_matches(
             match.model_copy(update={"data_provenance_note": snap.data_provenance_note})
             for match in matches
         ]
-    return MatchResponse(matches=matches, meta=meta, data_provenance_note=snap.data_provenance_note)
+    return MatchResponse(
+        matches=matches,
+        meta=MatchMeta(**meta.model_dump(), available_snapshots=snap.available_snapshots),
+        data_provenance_note=snap.data_provenance_note,
+    )
 
 
 def get_match(

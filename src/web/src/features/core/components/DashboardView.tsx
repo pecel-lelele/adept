@@ -218,7 +218,7 @@ export async function DashboardView({ scenario, query, workspaceError = false }:
             <ol className="a-rank">
               {top.map((m, i) => (
                 <li key={m.role_id}>
-                  <Link href={href(`/app/matches/${m.role_id}`)}>
+                  <Link href={href(`/app/matches/${encodeURIComponent(m.role_id)}`)}>
                     <span className="a-rank-num">{i + 1}</span>
                     <span className="a-rank-main">
                       <strong>{m.label}</strong>

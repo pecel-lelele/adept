@@ -2866,11 +2866,53 @@ export interface components {
             employment_population_ratio: number;
             meta: components["schemas"]["RecommendationMeta"];
         };
+        /** MatchMeta */
+        MatchMeta: {
+            /** Sources */
+            sources: components["schemas"]["Source"][];
+            /**
+             * Snapshot Date
+             * Format: date
+             */
+            snapshot_date: string;
+            /**
+             * Scenario
+             * @enum {string}
+             */
+            scenario: "moderate" | "fast";
+            /**
+             * Is Estimate
+             * @default true
+             */
+            is_estimate: boolean;
+            /** Served From */
+            served_from?: ("db" | "fixture") | null;
+            /**
+             * Is Fallback
+             * @default false
+             */
+            is_fallback: boolean;
+            /**
+             * Observed From
+             * @description Start of the period the source data measures; may predate snapshot_date.
+             */
+            observed_from?: string | null;
+            /**
+             * Observed To
+             * @description End of the period the source data measures.
+             */
+            observed_to?: string | null;
+            /**
+             * Available Snapshots
+             * @description Stored snapshot dates supplied by the trend source used for this ranking.
+             */
+            available_snapshots?: string[];
+        };
         /** MatchResponse */
         MatchResponse: {
             /** Matches */
             matches: components["schemas"]["RoleMatch"][];
-            meta: components["schemas"]["RecommendationMeta"];
+            meta: components["schemas"]["MatchMeta"];
             /**
              * Data Provenance Note
              * @description Trend provider's provenance disclosure, including any demo-fixture caveat.

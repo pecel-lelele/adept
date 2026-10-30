@@ -17,6 +17,7 @@ export async function OnboardingView() {
       catalogue={catalogue.data.skills}
       interests={catalogue.data.interests ?? []}
       initial={account?.has_profile && profile.ok ? profile.data : null}
+      userId={account?.id ?? ""}
     />
   );
 }

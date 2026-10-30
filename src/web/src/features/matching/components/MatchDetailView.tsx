@@ -41,7 +41,15 @@ export async function MatchDetailView({
     fetchMatch(roleId, scenario, snapshotDate, sdgWeight),
     fetchMatches(scenario, snapshotDate, sdgWeight),
   ]);
-  if (!result.ok) return <ErrorState failure={result} />;
+  if (!result.ok) return (
+    <div className="a-view">
+      <PageHeader eyebrow={tp("stepOf", { step: 3, total: journeyStepCount() })} title={t("title")} description={t("description")}>
+        <EstimateLabel scenario={scenario} />
+        {snapshotDate ? <span className="a-chip">{tp("asOf", { date: snapshotDate })}</span> : null}
+      </PageHeader>
+      <ErrorState failure={result} />
+    </div>
+  );
   const m = result.data;
   // Compare this role with the next-best matches from the same ranking (three roles in total).
   const compareRoles = [
