@@ -19,7 +19,7 @@ from app.contracts.trends import (
     TrendSignal,
     TrendSnapshotResponse,
 )
-from app.core.errors import NotFoundError
+from app.core.errors import NotFoundError, TrendUnavailableError
 from app.features.trends import repository
 
 # ---------------------------------------------------------------------------
@@ -54,7 +54,7 @@ def get_snapshot(
     ctx = repository.resolve_context(strict=strict)
     try:
         if ctx.source == "fixture" and not strict:
-            snap = last_good_snapshot(snapshot_date, scenario)
+            snap = last_good_snapshot(snapshot_date, scenario, outage=ctx.outage)
         else:
             try:
                 snap = repository.get_snapshot(ctx, snapshot_date, scenario, strict=strict)
@@ -88,8 +88,14 @@ _cache: dict[tuple[date | None, str, bool], tuple[float, TrendSnapshotResponse]]
 _last_good: dict[date, TrendSnapshotResponse] = {}
 
 
-def last_good_snapshot(snapshot_date: date | None, scenario: ScenarioId) -> TrendSnapshotResponse:
-    """One non-I/O serving fallback; never substitute another date for a replay request."""
+def last_good_snapshot(
+    snapshot_date: date | None, scenario: ScenarioId, *, outage: bool = False
+) -> TrendSnapshotResponse:
+    """One non-I/O serving fallback; never substitute another date for a replay request.
+
+    ``outage=True`` means the database could not be read: a replay date we hold no copy of
+    may well exist there, so it is unavailable (503), not unknown (404).
+    """
     from app.features.trends import mocks
 
     with _cache_lock:
@@ -105,6 +111,11 @@ def last_good_snapshot(snapshot_date: date | None, scenario: ScenarioId) -> Tren
         )
     if snap is None:
         if snapshot_date is not None and snapshot_date not in mocks.AVAILABLE_MOCK_DATES:
+            if outage:
+                raise TrendUnavailableError(
+                    f"Trend data for {snapshot_date.isoformat()} is unavailable right now; "
+                    "the trend database could not be read."
+                )
             raise NotFoundError(f"Snapshot for date {snapshot_date.isoformat()} not found")
         snap = mocks.snapshot(scenario, snapshot_date)
     return snap.model_copy(
@@ -129,6 +140,9 @@ def clear_cache() -> None:
 # ---------------------------------------------------------------------------
 
 DIRECTION_BAND = 0.05  # same band as the pipeline's direction(v)
+# Below this share of a role's skill importance with trend data, its direction is shown as
+# "insufficient evidence" rather than as rising or declining.
+MIN_ROLE_COVERAGE = 0.5
 
 
 def _direction(v: float) -> Direction:
@@ -177,10 +191,13 @@ def signals_from_snapshot(snap: TrendSnapshotResponse, scenario: ScenarioId) -> 
     ]
     labels = pathway_data.role_labels()
     for role_id in pathway_data.target_role_ids():
-        covered = [r for r in pathway_data.requirements(role_id) if r.skill_id in by_skill]
+        requirements = pathway_data.requirements(role_id)
+        covered = [r for r in requirements if r.skill_id in by_skill]
         weight = sum(r.importance for r in covered)
-        if weight <= 0:
+        total = sum(r.importance for r in requirements)
+        if weight <= 0 or total <= 0:
             continue
+        coverage = min(1.0, weight / total)
         growth = sum(r.importance * getattr(by_skill[r.skill_id], velocity_key) for r in covered)
         exposure = sum(r.importance * by_skill[r.skill_id].automation_exposure for r in covered)
         growth, exposure = growth / weight, min(1.0, max(0.0, exposure / weight))
@@ -194,6 +211,8 @@ def signals_from_snapshot(snap: TrendSnapshotResponse, scenario: ScenarioId) -> 
                 ai_exposure=round(exposure, 4),
                 automation_share=round(exposure, 4),
                 augmentation_share=round(1.0 - exposure, 4),
+                trend_coverage=round(coverage, 4),
+                insufficient_evidence=coverage < MIN_ROLE_COVERAGE,
             )
         )
     return out

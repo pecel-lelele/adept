@@ -21,5 +21,9 @@
   "augmentation": "增强",
   "sourcesTitle": "趋势数据来源",
   "snapshotsTitle": "快照",
-  "snapshotDate": "最新快照：{date}"
+  "snapshotDate": "最新快照：{date}",
+  "trendCoverage": "{percent}% 的技能有趋势数据",
+  "insufficientEvidenceRoles": "趋势证据不足",
+  "insufficientEvidenceHelp": "这些职位不到一半的技能权重有趋势数据，因此不显示方向。",
+  "insufficientEvidence": "证据不足"
 }

@@ -21,5 +21,9 @@
   "augmentation": "Augmentation",
   "sourcesTitle": "Trend data sources",
   "snapshotsTitle": "Snapshots",
-  "snapshotDate": "Latest snapshot: {date}"
+  "snapshotDate": "Latest snapshot: {date}",
+  "trendCoverage": "trend data for {percent}% of its skills",
+  "insufficientEvidenceRoles": "Not enough trend evidence",
+  "insufficientEvidenceHelp": "Less than half of these roles' skill weight has trend data, so no direction is shown.",
+  "insufficientEvidence": "Insufficient evidence"
 }

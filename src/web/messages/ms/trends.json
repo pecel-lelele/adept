@@ -21,5 +21,9 @@
   "augmentation": "Peningkatan",
   "sourcesTitle": "Sumber data trend",
   "snapshotsTitle": "Snapshot",
-  "snapshotDate": "Snapshot terkini: {date}"
+  "snapshotDate": "Snapshot terkini: {date}",
+  "trendCoverage": "data trend untuk {percent}% kemahirannya",
+  "insufficientEvidenceRoles": "Bukti trend tidak mencukupi",
+  "insufficientEvidenceHelp": "Kurang daripada separuh wajaran kemahiran peranan ini mempunyai data trend, jadi tiada arah ditunjukkan.",
+  "insufficientEvidence": "Bukti tidak mencukupi"
 }

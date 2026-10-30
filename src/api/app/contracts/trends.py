@@ -30,6 +30,16 @@ class TrendSignal(BaseModel):
     ai_exposure: float = Field(ge=0, le=1)
     automation_share: float = Field(ge=0, le=1)
     augmentation_share: float = Field(ge=0, le=1)
+    trend_coverage: float | None = Field(
+        default=None,
+        ge=0,
+        le=1,
+        description="Roles only: share of the role's skill importance that has trend data.",
+    )
+    insufficient_evidence: bool = Field(
+        default=False,
+        description="Roles only: trend_coverage is below 0.5, so the direction is not reliable.",
+    )
 
 
 class RadarResponse(BaseModel):
