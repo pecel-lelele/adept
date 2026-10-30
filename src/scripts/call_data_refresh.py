@@ -53,9 +53,12 @@ def request(path: str, *, method: str = "GET") -> dict:
 
 def main() -> int:
     result = request("/api/v1/data/refresh/run", method="POST")
-    if result.get("status") in ("cooldown", "up_to_date"):
+    if result.get("status") == "up_to_date":
         print("Refresh cadence already satisfied; no model work requested.")
         return 0
+    if result.get("status") == "cooldown":
+        print("Refresh is still due but cooling down; automatic refresh was not completed.")
+        return 1
     run_id = result.get("run_id")
     from uuid import UUID
 

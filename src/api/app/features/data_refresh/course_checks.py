@@ -27,7 +27,7 @@ def checked_rows(rows: list[CourseRow], client: httpx.Client, deadline: float) -
     for row in rows:
         left = deadline - time.monotonic()
         if left <= 0:
-            break
+            raise TimeoutError("Course verification incomplete; previous catalogue retained")
         try:
             with client.stream("GET", row.url, timeout=min(5, left)) as response:
                 response.raise_for_status()

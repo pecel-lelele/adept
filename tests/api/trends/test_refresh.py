@@ -102,7 +102,11 @@ def configured(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @pytest.fixture(autouse=True)
-def _admin_account() -> Any:
+def _admin_account(monkeypatch: pytest.MonkeyPatch) -> Any:
+    from app.features.data_refresh import measurements
+
+    # These fixtures model legacy raw-signal databases, before automatic measured inputs.
+    monkeypatch.setattr(measurements, "load", lambda *args, **kwargs: None)
     refresh.reset_state()
     accounts.create(ADMIN, "")
     yield

@@ -514,6 +514,28 @@ def test_jobs_with_no_openings_writes_nothing(
     assert store.writes == 0
 
 
+def test_incomplete_course_checks_rotate_without_publishing_or_recording_success(
+    client: TestClient, store: FakeStore, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from app.features.data_refresh import course_checks
+
+    payload = _catalog()
+    _courses_world(monkeypatch, store, payload, _known_skills())
+    expected = src.all_rows(payload, STORED_ON, allow_missing=True)
+    visited = []
+    monkeypatch.setattr(service.secrets, "randbelow", lambda size: size - 1)
+
+    def incomplete(rows: list[Any], *args: Any) -> list[Any]:
+        visited.append(rows[0].id)
+        raise TimeoutError("Synthetic exhausted verification budget")
+
+    monkeypatch.setattr(course_checks, "checked_rows", incomplete)
+    body = client.post("/api/v1/data/refresh/courses", headers=AS_ADMIN).json()
+    assert body["status"] == "failed" and body["error_code"] == "incomplete_checks"
+    assert visited == [expected[-1].id] and visited != [expected[0].id]
+    assert store.writes == 0 and store.runs[-1]["status"] == "failed"
+
+
 # ---------------------------------------------------------------------------
 # Freshness
 # ---------------------------------------------------------------------------

@@ -468,6 +468,17 @@
 - **Replaces**: none (legacy workflow retained until automatic publication is proven)
 - **PR / branch**: feat/core-automatic-data-refresh
 
+### TEAM-043: Fence refresh publication and retain reproducible measured inputs
+- **Date**: 2026-10-31
+- **Feature**: Core, F2/F5
+- **Type**: method
+- **Change**: Keep publication on the original advisory-lock session, heartbeat/cancel on lease loss, fence replacement work through the maximum provider lifetime, re-read status under the lock, and check deadlines inside the owning transaction before commit. Persist measured counts/windows/baselines/sample IDs atomically for inference-free reconstruction via an append-only input migration.
+- **Why**: A dropped idle lock must not permit a second paid worker or an unfenced write; a completion race must not turn success into interruption. Partial-source successes must update cards. Incomplete course checks rotate and fail without claiming daily success; due-but-cooling-down scheduler work fails visibly; zero-row DB reads keep their true origin.
+- **Pipeline**: dated arXiv/BLS/catalogue inputs → bounded checks and canonical IDs → retained mention/baseline features → production scoring/reconstruction → mocked race/cancellation/rebuild tests plus two real PostgreSQL lease/rollback regressions (passed) → fenced atomic snapshots, truthful status/freshness and partial-success UI refresh
+- **Affects**: Core worker/clock, F2 publication and stored rescore, F5 course verification, refresh UX
+- **Replaces**: none (hardens TEAM-042)
+- **PR / branch**: feat/core-automatic-data-refresh
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)

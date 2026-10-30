@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hmac
 import threading
+from contextlib import AbstractContextManager, nullcontext
 from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import UUID, uuid4
@@ -11,13 +12,20 @@ from uuid import UUID, uuid4
 import psycopg
 from psycopg.rows import dict_row
 
-from app.contracts.data_refresh import BackgroundRefresh, RefreshStep
+from app.contracts.data_refresh import (
+    BackgroundRefresh,
+    DataRefreshResult,
+    DataSourceId,
+    RefreshStep,
+)
 from app.core.config import get_settings
 from app.core.errors import AppError
 from app.features.data_refresh import repository, service
 
 SOURCES = ("trends", "jobs", "courses", "labour")
 MAX_JOB_SECONDS = 840
+LEASE_GRACE_SECONDS = 15
+HEARTBEAT_SECONDS = 1.0
 _active: dict[str, tuple[threading.Thread, threading.Event]] = {}
 _state_lock = threading.Lock()
 _seen_completed: set[str] = set()
@@ -74,7 +82,7 @@ def _response(row: dict[str, Any], *, shared: bool = False) -> BackgroundRefresh
 def _latest(conn: Any, *, running: bool = False) -> dict[str, Any] | None:
     condition = "AND status IN ('queued','running')" if running else ""
     return conn.execute(
-        "SELECT run_id,status,started_at,finished_at,steps FROM data_refresh_runs "
+        "SELECT run_id,status,started_at,finished_at,steps,error_code FROM data_refresh_runs "
         f"WHERE source='automatic' {condition} ORDER BY started_at DESC LIMIT 1"
     ).fetchone()
 
@@ -116,12 +124,12 @@ def start(*, bypass_cooldown: bool = False) -> BackgroundRefresh:
             raise AppError(
                 "A refresh is starting; retry shortly.", status_code=409, code="refresh_in_progress"
             )
-        # Owning the advisory lock proves any old queued/running row has lost its worker.
-        conn.execute(
-            "UPDATE data_refresh_runs SET status='failed',finished_at=now(),"
-            "error_code='interrupted',detail='Worker interrupted; previous data retained' "
-            "WHERE source='automatic' AND status IN ('queued','running')"
-        )
+        # Owning the advisory lock proves an old active row lost its DB session, but
+        # external work might still be cancelling. Fence replacements until its bounded
+        # provider/job lifetime expires; administrator cooldown bypass cannot waive this.
+        orphan = _latest(conn, running=True)
+        if orphan:
+            _interrupt(conn, orphan)
         latest = _latest(conn)
         retry = (
             latest["started_at"] + timedelta(minutes=get_settings().trends_refresh_cooldown_minutes)
@@ -137,12 +145,20 @@ def start(*, bypass_cooldown: bool = False) -> BackgroundRefresh:
                 data_as_of=service._trends().data_as_of,
                 next_scheduled_at=next_schedule(moment),
             )
-        if retry and moment < retry and not bypass_cooldown:
+        fence = (
+            latest["started_at"] + timedelta(seconds=MAX_JOB_SECONDS + LEASE_GRACE_SECONDS)
+            if latest and latest.get("error_code") == "interrupted"
+            else None
+        )
+        blocked = fence is not None and moment < fence
+        if blocked or (retry and moment < retry and not bypass_cooldown):
             return BackgroundRefresh(
                 status="cooldown",
                 started_at=moment,
                 checked_at=moment,
-                retry_at=retry,
+                retry_at=max(
+                    day for day in (fence, None if bypass_cooldown else retry) if day is not None
+                ),
                 data_as_of=service._trends().data_as_of,
                 next_scheduled_at=next_schedule(moment),
             )
@@ -174,7 +190,12 @@ def start(*, bypass_cooldown: bool = False) -> BackgroundRefresh:
         )
         with _state_lock:
             _active[str(run_id)] = (thread, stop)
-        thread.start()
+        try:
+            thread.start()
+        except Exception:
+            with _state_lock:
+                _active.pop(str(run_id), None)
+            raise
         transferred = True
         return _response(row)
     finally:
@@ -183,21 +204,68 @@ def start(*, bypass_cooldown: bool = False) -> BackgroundRefresh:
 
 
 def _save(
-    conn: Any, run_id: UUID, steps: list[RefreshStep], status: str, *, finished: bool = False
+    conn: Any,
+    run_id: UUID,
+    steps: list[RefreshStep],
+    status: str,
+    *,
+    finished: bool = False,
+    error_code: str | None = None,
 ) -> None:
     from psycopg.types.json import Jsonb
 
     conn.execute(
         "UPDATE data_refresh_runs SET status=%s,steps=%s,"
-        "finished_at=CASE WHEN %s THEN now() ELSE NULL END,rows_upserted=%s WHERE run_id=%s",
+        "finished_at=CASE WHEN %s THEN now() ELSE NULL END,rows_upserted=%s,"
+        "error_code=coalesce(%s,error_code) WHERE run_id=%s",
         (
             status,
             Jsonb([s.model_dump() for s in steps]),
             finished,
             sum(s.rows for s in steps),
+            error_code,
             run_id,
         ),
     )
+
+
+def _interrupt(conn: Any, row: dict[str, Any]) -> dict[str, Any]:
+    steps = [RefreshStep.model_validate(step) for step in row["steps"]]
+    for step in steps:
+        if step.status in ("running", "pending"):
+            step.status = "failed"
+            step.error_code = "interrupted"
+    _save(conn, row["run_id"], steps, "failed", finished=True, error_code="interrupted")
+    return {
+        **row,
+        "status": "failed",
+        "finished_at": now(),
+        "error_code": "interrupted",
+        "steps": [step.model_dump() for step in steps],
+    }
+
+
+def _heartbeat(
+    conn: Any,
+    stop: threading.Event,
+    finished: threading.Event,
+    deadline: float,
+    guard: AbstractContextManager[Any] | None = None,
+) -> None:
+    import time
+
+    while not finished.wait(HEARTBEAT_SECONDS):
+        try:
+            if time.monotonic() >= deadline:
+                stop.set()
+                return
+            with guard if guard is not None else nullcontext():
+                if finished.is_set():
+                    return
+                conn.execute("SELECT 1").fetchone()
+        except Exception:
+            stop.set()  # MiniLM observes this and cancels; publication uses this lost session.
+            return
 
 
 def _run(
@@ -205,10 +273,17 @@ def _run(
 ) -> None:
     import time
 
-    from app.features.data_refresh import automatic_trends
-
     deadline = time.monotonic() + MAX_JOB_SECONDS
+    finished = threading.Event()
+    guard = threading.RLock()
+    heartbeat = threading.Thread(
+        target=_heartbeat,
+        args=(conn, stop, finished, deadline, guard),
+        daemon=True,
+        name=f"refresh-lease-{run_id}",
+    )
     try:
+        heartbeat.start()
         _save(conn, run_id, steps, "running")
         for step in steps:
             if step.source not in due:
@@ -220,20 +295,8 @@ def _run(
             step.status = "running"
             _save(conn, run_id, steps, "running")
             try:
-                if step.source == "trends":
-
-                    def runner(started: float, budget: float) -> service.Outcome:
-                        return automatic_trends.run(
-                            started, min(budget, deadline - time.monotonic()), stop
-                        )
-
-                    result = service._execute(
-                        "trends", runner=runner, limit=min(600, deadline - time.monotonic())
-                    )
-                else:
-                    result = service._execute(
-                        step.source, limit=min(90, deadline - time.monotonic())
-                    )
+                with repository.use_lease(conn, stop, guard):
+                    result = _source_step(step.source, deadline, stop)
                 step.status = "done" if result.status == "ok" else "failed"
                 step.rows = result.rows_upserted
                 step.error_code = result.error_code
@@ -253,9 +316,29 @@ def _run(
         # A lost DB session releases the lock; the next run marks this one interrupted.
         pass
     finally:
+        finished.set()
+        if heartbeat.ident is not None:
+            heartbeat.join(timeout=3)
+        stop.set()
         conn.close()
         with _state_lock:
             _active.pop(str(run_id), None)
+
+
+def _source_step(source: DataSourceId, deadline: float, stop: threading.Event) -> DataRefreshResult:
+    import time
+
+    from app.features.data_refresh import automatic_trends
+
+    if source == "trends":
+
+        def runner(started: float, budget: float) -> service.Outcome:
+            return automatic_trends.run(started, min(budget, deadline - time.monotonic()), stop)
+
+        return service._execute(
+            "trends", runner=runner, limit=min(600, deadline - time.monotonic())
+        )
+    return service._execute(source, limit=min(90, deadline - time.monotonic()))
 
 
 def status(run_id: UUID) -> BackgroundRefresh:
@@ -263,7 +346,7 @@ def status(run_id: UUID) -> BackgroundRefresh:
 
     with connection() as conn:
         row = conn.execute(
-            "SELECT run_id,status,started_at,finished_at,steps FROM data_refresh_runs "
+            "SELECT run_id,status,started_at,finished_at,steps,error_code FROM data_refresh_runs "
             "WHERE run_id=%s AND source='automatic'",
             (run_id,),
         ).fetchone()
@@ -274,18 +357,14 @@ def status(run_id: UUID) -> BackgroundRefresh:
                 "SELECT pg_try_advisory_xact_lock(hashtext('adept.data_refresh')) AS held"
             ).fetchone()["held"]
             if held:
-                steps = [RefreshStep.model_validate(step) for step in row["steps"]]
-                for step in steps:
-                    if step.status in ("running", "pending"):
-                        step.status = "failed"
-                        step.error_code = "interrupted"
-                _save(conn, run_id, steps, "failed", finished=True)
-                row = {
-                    **row,
-                    "status": "failed",
-                    "finished_at": now(),
-                    "steps": [step.model_dump() for step in steps],
-                }
+                # The worker may have finished between our initial read and lock probe.
+                row = conn.execute(
+                    "SELECT run_id,status,started_at,finished_at,steps,error_code "
+                    "FROM data_refresh_runs WHERE run_id=%s AND source='automatic' FOR UPDATE",
+                    (run_id,),
+                ).fetchone()
+                if row and row["status"] in ("queued", "running"):
+                    row = _interrupt(conn, row)
     if not row:
         raise AppError("Refresh run not found.", status_code=404, code="not_found")
     return _response(row)

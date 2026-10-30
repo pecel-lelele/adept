@@ -5,6 +5,7 @@ from dataclasses import replace
 from datetime import date
 
 import httpx
+import pytest
 
 from app.features.data_refresh.course_checks import checked_rows, price_present
 from app.features.pathway.catalogue_sources import MANUAL
@@ -43,3 +44,11 @@ def test_fee_check_rejects_an_unrelated_number() -> None:
     assert price_present("Harga: MYR 1,500.00", 1500)
     assert price_present("Kursus percuma", 0)
     assert not price_present("149 learners · RM 1490.00", 149)
+
+
+def test_exhausted_budget_is_incomplete_not_a_successful_partial_catalogue() -> None:
+    with httpx.Client(
+        transport=httpx.MockTransport(lambda request: pytest.fail("late network"))
+    ) as client:
+        with pytest.raises(TimeoutError, match="incomplete"):
+            checked_rows([MANUAL[0]], client, time.monotonic() - 1)

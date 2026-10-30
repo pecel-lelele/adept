@@ -23,9 +23,12 @@ import re
 import threading
 import time
 from datetime import UTC, date, datetime, timedelta
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import httpx
+
+if TYPE_CHECKING:
+    from app.features.data_refresh.measurements import MeasuredInputs
 
 from app.contracts.trends import TrendRefreshStatus, TrendRescoreResult
 from app.core.admin import require_admin as require_admin
@@ -383,12 +386,16 @@ def rescore(*, deadline: float | None = None) -> TrendRescoreResult:
 def _rescore(
     pipeline: Any, score: Any, db_url: str, *, deadline: float | None = None
 ) -> TrendRescoreResult:
+    from app.features.data_refresh import measurements
     from app.features.trends.provenance import window_from_note
 
     latest = latest_published(db_url)
     live = latest[0] if latest else None
+    stored = measurements.load()
     periods = score.list_available_periods(db_url)
     if len(periods) < 2:
+        if stored:
+            return _rescore_measured(stored, live, deadline)
         return TrendRescoreResult(
             status="no_new_data",
             message="Fewer than two weeks of arXiv signals are stored; nothing to re-score.",
@@ -397,6 +404,8 @@ def _rescore(
     t0, t1 = periods[-2], periods[-1]
     t0_dates = pipeline.collected_dates(db_url, t0)
     t1_dates = pipeline.collected_dates(db_url, t1)
+    if stored and (t1_dates is None or stored.current[1] >= t1_dates[1]):
+        return _rescore_measured(stored, live, deadline)
     if t0_dates is None or t1_dates is None:
         return TrendRescoreResult(
             status="failed",
@@ -490,4 +499,33 @@ def _rescore(
         snapshot_date=measured_day,
         observed_from=observed[0],
         observed_to=observed[1],
+    )
+
+
+def _rescore_measured(
+    inputs: MeasuredInputs, live: date | None, deadline: float | None
+) -> TrendRescoreResult:
+    from app.features.data_refresh import measurements, repository
+
+    day = inputs.current[1]
+    if live is not None and live >= day:
+        return TrendRescoreResult(
+            status="no_new_data",
+            message="Stored measured inputs are already published; no inference called.",
+            snapshot_date=live,
+            observed_from=inputs.current[0],
+            observed_to=day,
+        )
+    rows = measurements.rows(inputs)
+    with repository.write_connection(
+        deadline if deadline is not None else time.monotonic() + 90
+    ) as conn:
+        measurements.publish(conn, inputs, rows)
+    clear_trend_caches()
+    return TrendRescoreResult(
+        status="published",
+        message="Rebuilt the measured week from stored counts; no inference called.",
+        snapshot_date=day,
+        observed_from=inputs.current[0],
+        observed_to=day,
     )

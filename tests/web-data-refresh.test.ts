@@ -79,6 +79,33 @@ test("the date line uses the selected snapshot's observations, not a newer globa
   assert.doesNotMatch(html, /Data as of 2026-10-25/);
 });
 
+test("a partially failed run refreshes successful cards and retains its failed state", async () => {
+  const phases: string[] = [];
+  let refreshed = 0;
+  const hooks = {
+    ...React,
+    useState: (initial: unknown) => {
+      let value = initial;
+      return [value, (update: unknown) => {
+        value = typeof update === "function" ? update(value) : update;
+        if (value && typeof value === "object" && "phase" in value) phases.push(String(value.phase));
+      }];
+    },
+    useRef: (value: unknown) => ({ current: value }),
+    useCallback: (callback: unknown) => callback,
+    useEffect() {},
+    useTransition: () => [false, (callback: () => void) => callback()],
+  };
+  const { RefreshDataButton } = loadComponent("src/features/trends/components/RefreshDataButton.tsx", {
+    react: hooks, "next/navigation": { useRouter: () => ({ refresh() { refreshed += 1; } }) },
+    "../refresh-actions": { checkRefresh: async () => ({ ok: true, data: { ...run, status: "failed" } }) },
+  });
+  const element = RefreshDataButton({ dataAsOf: "2026-10-25" });
+  await element.props.onRefresh();
+  assert.deepEqual(phases, ["checking", "failed"]);
+  assert.equal(refreshed, 1);
+});
+
 // Optional local screenshots use these exact production renders, never hand-drawn mockups.
 if (process.env.REFRESH_SCREENSHOT_HTML) {
   mkdirSync("src/data/raw/refresh-screenshots", { recursive: true });

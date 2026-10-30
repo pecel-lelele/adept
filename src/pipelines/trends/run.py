@@ -132,7 +132,9 @@ def publish(
     import psycopg  # type: ignore[import]
 
     managed = nullcontext(conn) if conn is not None else psycopg.connect(db_url)
-    with managed as conn, conn.transaction(), conn.cursor() as cur:
+    # An injected connection's caller owns the transaction and its deadline/lease checks.
+    # A standalone connection commits at its outer context exit after all statements.
+    with managed as conn, conn.cursor() as cur:
         # Snapshot cleanup: remove any stale rows from a previous run on this date.
         cur.execute(
             "DELETE FROM trend_snapshots WHERE snapshot_date = %s",

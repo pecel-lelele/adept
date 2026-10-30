@@ -286,7 +286,18 @@ def _courses_with(client: httpx.Client, deadline: float, src: Any, sync: Any) ->
     # never refreshes a manual fee/duration verification date; those facts remain dated.
     from app.features.data_refresh.course_checks import checked_rows
 
-    rows = checked_rows(rows, client, deadline)
+    fetched = len(rows)
+    if rows:
+        offset = secrets.randbelow(len(rows))
+        rows = rows[offset:] + rows[:offset]  # later providers get a turn after a bounded retry
+    try:
+        rows = checked_rows(rows, client, deadline)
+    except TimeoutError as exc:
+        raise RefreshFailed(
+            "incomplete_checks",
+            "Course checks did not finish; no rows written. Retry rotates the checking order.",
+            rows_fetched=fetched,
+        ) from exc
     if not rows:
         raise RefreshFailed(
             "fetch_failed", "No course URL could be verified; previous catalogue retained."
@@ -304,9 +315,9 @@ def _courses_with(client: httpx.Client, deadline: float, src: Any, sync: Any) ->
             rows_rejected=len(rows),
         ) from exc
     return Outcome(
-        rows_fetched=len(rows),
+        rows_fetched=fetched,
         rows_upserted=records,
-        rows_rejected=max(0, len(rows) - records),
+        rows_rejected=max(0, fetched - records),
         message=f"{records} courses refreshed; {retired} retired.",
     )
 

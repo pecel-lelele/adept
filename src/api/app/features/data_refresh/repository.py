@@ -9,13 +9,15 @@ from __future__ import annotations
 import threading
 import time
 from collections.abc import Iterator
-from contextlib import contextmanager
+from contextlib import AbstractContextManager, contextmanager, nullcontext
+from contextvars import ContextVar
 from dataclasses import dataclass
 from datetime import date, datetime
 from typing import Any
 
 import psycopg
 from psycopg.conninfo import make_conninfo
+from psycopg.rows import tuple_row
 
 from app.contracts.data_refresh import RefreshRunSummary
 from app.core.config import get_settings
@@ -27,6 +29,28 @@ log = get_logger("app.data_refresh.repository")
 
 CONNECT_TIMEOUT_S = 5
 STATEMENT_TIMEOUT_MS = 15000
+
+
+@dataclass(frozen=True)
+class Lease:
+    conn: Any
+    stop: threading.Event
+    guard: AbstractContextManager[Any]
+
+
+_lease: ContextVar[Lease | None] = ContextVar("data_refresh_lease", default=None)
+
+
+@contextmanager
+def use_lease(
+    conn: Any, stop: threading.Event, guard: AbstractContextManager[Any] | None = None
+) -> Iterator[None]:
+    """Publish only on the original session that owns the shared advisory lock."""
+    token = _lease.set(Lease(conn, stop, guard if guard is not None else threading.RLock()))
+    try:
+        yield
+    finally:
+        _lease.reset(token)
 
 
 @dataclass(frozen=True)
@@ -50,8 +74,30 @@ def write_connection(deadline: float) -> Iterator[psycopg.Connection[tuple[Any, 
     """Cancel active database I/O at the run deadline and roll back instead of committing."""
     if time.monotonic() >= deadline:
         raise TimeoutError("refresh deadline reached")
-    with psycopg.connect(bounded_db_url()) as conn:
+    lease = _lease.get()
+    # Heartbeats cannot run inside a publishing transaction's temporarily failed state.
+    with lease.guard if lease else nullcontext():
+        with _write_connection(deadline, lease) as conn:
+            yield conn
+
+
+@contextmanager
+def _write_connection(deadline: float, lease: Lease | None) -> Iterator[Any]:
+    if time.monotonic() >= deadline:
+        raise TimeoutError("refresh deadline reached while awaiting the lease guard")
+    if lease:
+        if lease.stop.is_set():
+            raise TimeoutError("refresh lease lost or cancelled")
+        try:
+            lease.conn.execute("SELECT 1")  # never reconnect a lost lock-owning session
+        except psycopg.Error:
+            lease.stop.set()
+            raise
+    managed = nullcontext(lease.conn) if lease else psycopg.connect(bounded_db_url())
+    with managed as conn:
         expired = threading.Event()
+        previous_factory = conn.row_factory
+        conn.row_factory = tuple_row  # pipeline functions use tuple rows, unlike audit queries
 
         def cancel() -> None:
             expired.set()
@@ -64,12 +110,20 @@ def write_connection(deadline: float) -> Iterator[psycopg.Connection[tuple[Any, 
         timer.daemon = True
         timer.start()
         try:
-            yield conn
-            if expired.is_set() or time.monotonic() >= deadline:
-                raise TimeoutError("refresh deadline reached; transaction rolled back")
+            # Own the transaction: the check must run BEFORE commit, not after a nested
+            # pipeline publisher has already committed an otherwise idle connection.
+            with conn.transaction():
+                yield conn
+                if (
+                    expired.is_set()
+                    or time.monotonic() >= deadline
+                    or (lease and lease.stop.is_set())
+                ):
+                    raise TimeoutError("refresh deadline or lease lost; transaction rolled back")
         finally:
             timer.cancel()
             timer.join(timeout=2)
+            conn.row_factory = previous_factory
 
 
 _FRESHNESS_SQL = {
@@ -103,7 +157,7 @@ def stored_freshness(source: str) -> StoredFreshness | None:
     except psycopg.Error as exc:
         log.warning("freshness read for %s failed: %s", source, type(exc).__name__)
         return None
-    if not row or not row["n"]:
+    if row is None:
         return None
     return StoredFreshness(int(row["n"]), row["fetched"], row["as_of"])
 
@@ -192,7 +246,8 @@ def advisory_lock(source: str) -> Iterator[bool]:
         ).fetchone()
         held = bool(row and row[0])
         try:
-            yield held
+            with use_lease(conn, threading.Event()):
+                yield held
         finally:
             if held:
                 conn.execute("SELECT pg_advisory_unlock(hashtext(%s))", ("adept.data_refresh",))

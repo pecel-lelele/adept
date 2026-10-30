@@ -5,13 +5,14 @@ database. `.github/workflows/automatic-data-refresh.yml` runs daily at 03:41 UTC
 manual dispatch. GitHub needs only **secret `DATA_REFRESH_TOKEN`** and **repository variable
 `DATA_REFRESH_APP_URL`** (the public HTTPS origin). It receives no database/model credential.
 The stdlib caller retries cold starts with backoff, polls short requests, and fails visibly
-on HTTP errors, failed sources or timeout. It never prints response bodies or credentials.
+on HTTP errors, failed sources, due-but-cooling-down work, or timeout. It never prints response bodies or credentials.
 
 ## Activation and verification
 
 1. Review and apply `20261030160000_data_refresh_runs.sql`,
-   `20261030220000_data_refresh_trends.sql` and
-   `20261030221000_background_data_refresh.sql` to the intended production database through
+   `20261030220000_data_refresh_trends.sql`,
+   `20261030221000_background_data_refresh.sql` and
+   `20261031010000_measured_trend_inputs.sql` to the intended production database through
    the owner's migration procedure. Replit build/start never migrates or seeds.
 2. Provision a new random `DATA_REFRESH_TOKEN` in Replit Secrets and GitHub Actions secrets.
    Configure GitHub repository variable `DATA_REFRESH_APP_URL` with the public HTTPS origin.
@@ -53,6 +54,27 @@ source failures preserve that source's previous data while other steps can succe
 operations have time/size limits; redirect forwarding is disabled; database deadline timers
 actively cancel SQL and roll back; MiniLM deadline/shutdown cancellation cancels its RunPod job.
 Total budget is 840 seconds, trends up to 600, other steps up to 90 each within that total.
+
+Heartbeat checks are serialized with publication, so a handled transaction rollback does
+not masquerade as loss of the session. The worker heartbeats its original lock-owning
+database session and cancels model work if
+that session fails. Every publication uses that same session; it cannot reconnect and publish
+after losing ownership. A lost-session run is marked interrupted after a locked re-read, so
+a concurrently completed successful run is never overwritten. Replacement paid work waits
+until the old run's maximum lifetime plus 15 seconds has expired (up to 14 minutes 15 seconds
+from its start), even for an administrator. This safety fence is distinct from normal cooldown.
+The existing RunPod execution/TTL policy bounds orphan inference if cancellation loses its
+acknowledgement. Each publishing transaction owns its pre-commit deadline check.
+
+Measured inputs are saved atomically beside each snapshot: exact week ranges, mention counts,
+paper denominators, skill IDs, BLS values/provenance, exposure values, model revision and the
+sample's public paper identifiers/publication dates. Authors and abstract text are not stored.
+Both automatic recovery and the stored-signal rescore can rebuild from these inputs without
+arXiv or RunPod calls, preserving the original retrieval dates. Missing input schema prevents
+new paid work. An exhausted catalogue-check budget fails without publishing or setting daily
+success; retries rotate the course order. A successful zero-row database read stays labelled
+as database data, rather than substituting nonzero seed counts. Partial-source failures still
+refresh successful page regions while retaining the failed state.
 
 ## Datasets and method
 

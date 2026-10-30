@@ -29,6 +29,7 @@ export function RefreshProgressView({ state, onRefresh }: { state: RefreshView; 
         {state.phase === "checking" ? t("checking") : state.phase === "running" ? t("refreshing") : state.phase === "failed" ? t("retry") : t("title")}
       </button>
       <div role="status" aria-live="polite" aria-atomic="true" className="a-small a-muted">
+        {state.phase === "checking" ? <span className="a-sr">{t("checking")}</span> : null}
         {state.phase === "up_to_date" ? <p>{t("latest", { date: day })}</p> : null}
         {state.phase === "done" ? <p>{t("done", { date: day })}</p> : null}
         {state.phase === "failed" ? <p>{t("failed", { date: day })}</p> : null}
@@ -64,7 +65,7 @@ export function RefreshDataButton({ dataAsOf }: { dataAsOf?: string }) {
   const receive = useCallback((run: RefreshRun) => {
     const phase: RefreshPhase = run.status === "ok" ? "done" : run.status === "failed" ? "failed" : run.status === "up_to_date" ? "up_to_date" : run.status === "cooldown" ? "cooldown" : "running";
     setState((previous) => ({ ...previous, run, phase, checkedAt: Date.now(), elapsed: Math.max(0, Math.floor((Date.now() - Date.parse(run.started_at)) / 1000)) }));
-    if (phase === "done" && completed.current !== run.run_id) {
+    if ((phase === "done" || phase === "failed") && run.run_id && completed.current !== run.run_id) {
       completed.current = run.run_id ?? null;
       transition(() => router.refresh());
     }

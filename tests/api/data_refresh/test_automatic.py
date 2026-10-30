@@ -42,6 +42,12 @@ def state(monkeypatch: pytest.MonkeyPatch) -> dict[str, Any]:
                 held = db["held"] is None
                 if held:
                     db["held"] = self.identity
+                if held and "xact" in sql and db.get("finish_on_probe"):
+                    db["row"].update(
+                        status="ok",
+                        finished_at=NOW,
+                        steps=[{"source": "jobs", "status": "done", "rows": 7}],
+                    )
                 return Cursor({"held": held})
             if sql.startswith("SELECT run_id"):
                 row = db["row"]
@@ -51,7 +57,7 @@ def state(monkeypatch: pytest.MonkeyPatch) -> dict[str, Any]:
                     and row["status"] not in ("queued", "running")
                 ):
                     row = None
-                return Cursor(row)
+                return Cursor(dict(row) if row else None)
             if sql.startswith("INSERT INTO data_refresh_runs"):
                 rid, started, steps = params
                 db["row"] = dict(
@@ -62,9 +68,12 @@ def state(monkeypatch: pytest.MonkeyPatch) -> dict[str, Any]:
                     steps=steps.obj,
                 )
             if sql.startswith("UPDATE data_refresh_runs SET status=%s"):
-                status, steps, finished, _count, _rid = params
+                status, steps, finished, _count, code, _rid = params
                 db["row"].update(
-                    status=status, steps=steps.obj, finished_at=NOW if finished else None
+                    status=status,
+                    steps=steps.obj,
+                    finished_at=NOW if finished else None,
+                    error_code=code or db["row"].get("error_code"),
                 )
             return Cursor(None)
 
@@ -264,14 +273,22 @@ def test_new_snapshot_uses_measured_week_not_execution_date(
 
     @contextmanager
     def connection(deadline: float) -> Any:
-        yield object()
+        yield SimpleNamespace(execute=lambda *args: None)
 
     monkeypatch.setattr(automatic_trends.refresh, "latest_published", lambda _url: None)
+    monkeypatch.setattr(automatic_trends.measurements, "load", lambda *args, **kwargs: None)
     monkeypatch.setattr(automatic_trends, "RunPodEncoder", Encoder)
     monkeypatch.setattr(
         automatic_trends,
         "fetch_window",
-        lambda *args: [{"title": "Synthetic test paper", "abstract": "Synthetic sample only."}],
+        lambda *args: [
+            {
+                "title": "Synthetic test paper",
+                "abstract": "Synthetic sample only.",
+                "arxiv_id": "https://arxiv.org/abs/synthetic-fixture",
+                "published_at": args[0].isoformat() + "T00:00:00Z",
+            }
+        ],
     )
     monkeypatch.setattr(repository, "write_connection", connection)
     monkeypatch.setattr(
@@ -298,6 +315,10 @@ def test_database_deadline_cancels_operation_and_prevents_commit(
 
     class Conn:
         committed = False
+        row_factory = None
+
+        def transaction(self) -> Any:
+            return self
 
         def __enter__(self) -> Any:
             return self
@@ -328,3 +349,107 @@ def test_completion_invalidates_the_polling_instances_caches_once(
     jobs._response(row)
     jobs._response(row)
     assert calls == ["trend", "catalogue"]
+
+
+def test_completion_between_status_read_and_lock_probe_is_never_overwritten(
+    state: dict[str, Any], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from contextlib import contextmanager
+
+    monkeypatch.setattr(jobs, "due_sources", lambda moment: ["jobs"])
+    result = jobs.start()
+    state["held"] = None
+    state["finish_on_probe"] = True
+
+    @contextmanager
+    def connection() -> Any:
+        conn = state["Conn"]()
+        try:
+            yield conn
+        finally:
+            conn.close()
+
+    monkeypatch.setattr("app.core.db.connection", connection)
+    observed = jobs.status(result.run_id)
+    assert observed.status == "ok" and observed.steps[0].rows == 7
+    assert state["row"]["status"] == "ok" and not state["row"].get("error_code")
+
+
+def test_lost_session_fences_even_admin_replacement_until_paid_job_policy_expires(
+    state: dict[str, Any], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(jobs, "due_sources", lambda moment: ["trends"])
+    jobs.start()
+    state["held"] = None
+    result = jobs.start(bypass_cooldown=True)
+    assert result.status == "cooldown"
+    assert result.retry_at == NOW + timedelta(
+        seconds=jobs.MAX_JOB_SECONDS + jobs.LEASE_GRACE_SECONDS
+    )
+    assert state["launches"] == 1 and state["row"]["error_code"] == "interrupted"
+
+
+def test_heartbeat_loss_signals_cancellation(monkeypatch: pytest.MonkeyPatch) -> None:
+    import time
+
+    import psycopg
+
+    class Lost:
+        def execute(self, *args: Any) -> None:
+            raise psycopg.OperationalError("Synthetic disconnected lease")
+
+    monkeypatch.setattr(jobs, "HEARTBEAT_SECONDS", 0.001)
+    stop, finished = threading.Event(), threading.Event()
+    jobs._heartbeat(Lost(), stop, finished, time.monotonic() + 1)
+    assert stop.is_set()
+
+
+def test_publication_never_reconnects_a_lost_lease(monkeypatch: pytest.MonkeyPatch) -> None:
+    import time
+
+    import psycopg
+
+    class Lost:
+        def execute(self, *args: Any) -> None:
+            raise psycopg.OperationalError("Synthetic disconnected lease")
+
+    monkeypatch.setattr(repository.psycopg, "connect", lambda *a, **k: pytest.fail("reconnected"))
+    stop = threading.Event()
+    with repository.use_lease(Lost(), stop):
+        with pytest.raises(psycopg.OperationalError):
+            with repository.write_connection(time.monotonic() + 1):
+                pytest.fail("lost lease published")
+    assert stop.is_set()
+
+
+def test_heartbeat_waits_until_a_failed_transaction_has_rolled_back(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import time
+
+    import psycopg
+
+    checked = threading.Event()
+    state = {"in_error": True}
+
+    class Conn:
+        def execute(self, *args: Any) -> Any:
+            if state["in_error"]:
+                raise psycopg.errors.InFailedSqlTransaction("Synthetic rollback in progress")
+            checked.set()
+            return SimpleNamespace(fetchone=lambda: (1,))
+
+    monkeypatch.setattr(jobs, "HEARTBEAT_SECONDS", 0.001)
+    stop, finished, guard = threading.Event(), threading.Event(), threading.RLock()
+    with guard:
+        heartbeat = threading.Thread(
+            target=jobs._heartbeat, args=(Conn(), stop, finished, time.monotonic() + 2, guard)
+        )
+        heartbeat.start()
+        assert not stop.wait(0.02)
+        state["in_error"] = False
+    try:
+        assert checked.wait(1) and not stop.is_set()
+    finally:
+        finished.set()
+        heartbeat.join(timeout=2)

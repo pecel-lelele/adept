@@ -14,7 +14,7 @@ from datetime import UTC, date, datetime, timedelta
 from urllib.parse import urlencode
 
 from app.core import refdata
-from app.features.data_refresh import repository, service
+from app.features.data_refresh import measurements, repository, service
 from app.features.trends import refresh
 from app.features.trends.provenance import window_from_note
 from pipelines.trends import arxiv_ingest, score
@@ -101,6 +101,15 @@ def run(started: float, budget: float, stop: threading.Event) -> service.Outcome
         return service.Outcome(
             0, 0, 0, "The newest complete measured ISO week is already stored; no inference called."
         )
+    stored = measurements.load(current[1], required_schema=True)
+    if stored:
+        scored = measurements.rows(stored)
+        with repository.write_connection(started + budget) as conn:
+            measurements.publish(conn, stored, scored)
+        refresh.clear_trend_caches()
+        return service.Outcome(
+            0, len(scored), 0, "Rebuilt stored measured inputs; no inference called."
+        )
     if os.environ.get("TRENDS_EMBEDDING_BACKEND", "runpod") != "runpod":
         raise service.RefreshFailed(
             "refresh_not_configured",
@@ -127,13 +136,15 @@ def run(started: float, budget: float, stop: threading.Event) -> service.Outcome
     )
     before = arxiv_ingest.count_mentions(first, ids, vectors, model)
     after = arxiv_ingest.count_mentions(second, ids, vectors, model)
+    labor = score.load_labor_decay()
+    exposure = score.load_automation_exposure()
     rows = score.score_rows(
         before,
         len(first),
         after,
         len(second),
-        score.load_labor_decay(),
-        score.load_automation_exposure(),
+        labor,
+        exposure,
         skill_ids=set(ids),
     )
     evidenced = [row for row in rows if row.get("has_evidence", True)]
@@ -159,9 +170,25 @@ def run(started: float, budget: float, stop: threading.Event) -> service.Outcome
         "BLS 2023-2033 remains a static baseline retrieved 2026-10-20."
     )
     with repository.write_connection(started + budget) as conn:
-        pipeline.publish(
-            evidenced, current[1], sources, note, repository.bounded_db_url(), conn=conn
+        inputs = measurements.MeasuredInputs(
+            previous=previous,
+            current=current,
+            fetched=today,
+            counts_before=before,
+            counts_after=after,
+            total_before=len(first),
+            total_after=len(second),
+            skill_ids=ids,
+            labor_decay=labor,
+            automation_exposure=exposure,
+            sources=sources,
+            note=note,
+            sample=[
+                {"id": paper["arxiv_id"], "published_at": paper["published_at"]}
+                for paper in first + second
+            ],
         )
+        measurements.publish(conn, inputs, evidenced)
     refresh.clear_trend_caches()
     return service.Outcome(
         len(first) + len(second), len(evidenced), 0, f"Published measured week ending {current[1]}."
