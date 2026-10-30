@@ -203,8 +203,9 @@ Check current signatures and adapters before editing callers; this table is a na
 
 ## 5. Working Agreements & Anti-Conflict Rules
 
-1. **Focused Scope**:
-   - Work mainly in the requested feature; follow a bug or dependency across feature boundaries when necessary for the requested result. Avoid unrelated refactors and preserve established interfaces unless the task requires changing them.
+1. **Focused Scope (final debugging and integration phase)**:
+   - Feature ownership does not restrict who fixes what. Any member or agent may fix bugs, regressions and integration problems in any feature (F1–F8 or Core) without waiting for that feature's owner; M1 is not limited to M1 work, and so on. Owners are reviewers, not gatekeepers.
+   - Keep each change focused on the fix, avoid unrelated refactors, and preserve established interfaces unless the fix requires changing them (then follow §4 and §7).
 
 2. **Shared Things Protocol** — assess impact and coordinate these changes:
    - Shared API contracts (`src/api/app/contracts/`)
@@ -264,7 +265,7 @@ Use repository manifests, lockfiles, and current runtime configuration for exact
 - Preserve the API security middleware and existing sanitisation/redaction at applicable input and LLM boundaries. Prompt filters are defence in depth; they do not replace structured validation, authorization, or output grounding.
 - CV uploads support PDF, DOCX, and plain text under the existing parser contract. Check declared/inferred type and actual bytes, enforce `MAX_UPLOAD_BYTES` plus parser/page/decompression limits, and offload blocking parsing with `asyncio.to_thread` or the existing bounded mechanism. Do not store raw CVs or log extracted personal text.
 - Preserve production startup checks, session security, exact CORS origins, admin restrictions, and fail-closed authentication. Local/demo auth and test bypasses must not become production defaults.
-- Trust forwarded client-IP headers only across the configured, verified proxy boundary (`PROXY_SHARED_SECRET` on both web and API; `TRUSTED_PROXY_HOPS=1` in Replit production, `0` for local dev, or `PROXY_CLIENT_IP_MODE=best-effort` to extract the edge-stamped right-most entry). Do not accept a caller's `X-Real-IP`, forwarded identity, or workspace header as authority.
+- Trust forwarded client-IP headers only across the configured, verified proxy boundary (`PROXY_SHARED_SECRET` on both web and API). Both modes need a positive, verified `TRUSTED_PROXY_HOPS` before any client IP is forwarded; with `0` hops (local dev, or Replit until the chain is verified with `docs/replit-proxy-verification.md`) anonymous visitors share one rate-limit bucket (TEAM-030). Do not accept a caller's `X-Real-IP`, forwarded identity, or workspace header as authority.
 - Validate external fetch destinations and redirects against existing SSRF protections; restrict protocols/hosts as appropriate and bound response size/time. Keep provider credentials scoped to the correct destination, including on failover and redirects.
 
 ---
@@ -275,7 +276,7 @@ Use repository manifests, lockfiles, and current runtime configuration for exact
 
 ### Rules for Logging Decisions
 
-1. Write cross-cutting decisions in the **Team** section. For isolated changes, use the existing member section associated with the feature (M1: F2/F3, M2: F1/F4, M3: F5/F6/F8, M4: Core/F7); this routes the entry, not the agent's identity or permission to work.
+1. Write cross-cutting decisions in the **Team** section. For isolated changes, use the member section associated with the feature (M1: F2/F3, M2: F1/F4, M3: F5/F6/F8, M4: Core/F7). Sections only route entries by feature: anyone may add an entry to any section, whoever made the change.
 2. Add new entries at the **bottom** of the relevant section (above the next `---`).
 3. Never edit or overwrite previous entries. If superseding an old decision, add a new entry referencing `Replaces: <OLD-ID>`.
 4. Preserve the log's actual ID scheme: `TEAM-NNN` for Team and `M1-NNN` through `M4-NNN` for the existing member sections. Choose the next unused number by inspecting the whole section, not just its last entry. Do not renumber history or invent feature sections.
