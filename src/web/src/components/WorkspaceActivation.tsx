@@ -16,7 +16,8 @@ export function WorkspaceActivation({ to, next }: { to: string; next: string }) 
   const t = useTranslations("ui.workspace");
   const note = useRef<HTMLParagraphElement>(null);
   useEffect(() => {
-    const key = `adept-activate:${to}`;
+    // A real loop repeats the same workspace and destination; a different page is a new activation.
+    const key = `adept-activate:${to}:${next}`;
     let looping = false;
     try {
       const last = Number(window.sessionStorage.getItem(key));
@@ -29,7 +30,7 @@ export function WorkspaceActivation({ to, next }: { to: string; next: string }) 
       if (note.current) note.current.hidden = false;
     }
     else form.current?.requestSubmit();
-  }, [to]);
+  }, [to, next]);
   return <main className="a-page"><form ref={form} method="post" action="/api/workspace">
     <input type="hidden" name="to" value={to} />
     <input type="hidden" name="next" value={next} />
