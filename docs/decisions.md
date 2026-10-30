@@ -318,6 +318,18 @@
 - **Replaces**: none
 - **PR / branch**: `fix/core-review-upgrades-clean` / PR #29
 
+### TEAM-029: Preserve PDF overflow detection and run static privacy/asset checks in CI
+- **Date**: 2026-10-30
+- **Feature**: F1 / Core verification
+- **Type**: method
+- **Change**: Charge PDF page separators only when joining a subsequent page, retaining the extra character used to detect truncation at the text limit. Include `privacy-page.test.mjs` and `dead-assets.test.mjs` explicitly in the frontend CI regression command; the HTTP suite remains separate because this step does not start a server.
+- **Why**: PR #30 review identified silent PDF truncation when a page ends exactly at the retained-text limit and static regression files omitted by the TypeScript-only CI glob.
+- **Pipeline**: synthetic PDF page text in memory → bounded extraction and existing cleaning → existing catalogue aliases → deterministic extraction with an overflow character → boundary regressions against production extraction/truncation → existing CV response warning
+- **Affects**: PDF truncation metadata and frontend CI; no dependencies, database, API contracts or model settings change
+- **Validation**: Both exact-limit omission cases failed before the fix. All six boundary cases and 40 targeted parser tests now pass; the expanded frontend command passes 62 tests. The full quality gate passes (1189 tests passed, 32 environment/opt-in skips, 54 subtests passed), including source attribution and contract drift checks, with database/model providers isolated. The initial sandbox run was blocked by npm, temporary-file and subprocess permissions; the approved rerun passed.
+- **Replaces**: none
+- **PR / branch**: `feat/core-hardening-and-submission-evidence` / PR #30
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)

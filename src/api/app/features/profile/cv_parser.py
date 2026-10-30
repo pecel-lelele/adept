@@ -294,9 +294,12 @@ def _extract_pdf(data: bytes) -> str:
         pages: list[str] = []
         remaining = MAX_TEXT_CHARS + 1
         for page in islice(doc, MAX_PDF_PAGES):
+            if pages:
+                # Count only separators that will be present in the joined text.
+                remaining -= 1
             text = str(page.get_text())[:remaining]
             pages.append(text)
-            remaining -= len(text) + 1
+            remaining -= len(text)
             if remaining <= 0:
                 break
     except AppError:

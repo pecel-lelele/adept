@@ -91,6 +91,43 @@ def test_only_the_first_pages_of_a_long_pdf_are_read() -> None:
     assert page.get_text.call_count == cv_parser.MAX_PDF_PAGES
 
 
+@pytest.mark.parametrize(
+    ("page_texts", "truncated", "pages_read"),
+    [
+        pytest.param(["a" * 10, "SQL"], True, 2, id="exact-limit-then-text"),
+        pytest.param(["aaaa", "bbbbb", "SQL"], True, 3, id="joined-limit-then-text"),
+        pytest.param(["a" * 9, "SQL"], True, 2, id="separator-at-limit"),
+        pytest.param(["a" * 10], False, 1, id="exact-limit-at-end"),
+        pytest.param(["aaaa", "bbbbb"], False, 2, id="joined-limit-at-end"),
+        pytest.param(["a" * 11, "SQL"], True, 1, id="stop-after-overflow"),
+    ],
+)
+def test_pdf_text_budget_preserves_truncation_detection(
+    page_texts: list[str], truncated: bool, pages_read: int
+) -> None:
+    pages = [MagicMock() for _ in page_texts]
+    for page, text in zip(pages, page_texts, strict=True):
+        page.get_text.return_value = text
+    doc = MagicMock(needs_pass=False)
+    doc.__len__.return_value = len(pages)
+    doc.__iter__.return_value = iter(pages)
+    fitz = MagicMock()
+    fitz.open.return_value = doc
+    with (
+        patch.object(cv_parser, "_HAS_FITZ", True),
+        patch.object(cv_parser, "fitz", fitz),
+        patch.object(cv_parser, "MAX_TEXT_CHARS", 10),
+    ):
+        raw = extract_text(b"%PDF-1.7 synthetic", "application/pdf")
+        retained, was_truncated = cv_parser._truncate_text(raw)
+
+    assert raw == "\n".join(page_texts)[:11]
+    assert retained == "\n".join(page_texts)[:10]
+    assert was_truncated is truncated
+    assert sum(page.get_text.call_count for page in pages) == pages_read
+    doc.close.assert_called_once()
+
+
 def test_level_words_match_whole_words_only() -> None:
     # "leadership" used to read as "lead" (expert); now it is no level cue at all.
     assert _levels("Python programming, leadership of a small team")["python"] == 2
