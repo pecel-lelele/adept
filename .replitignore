@@ -6,3 +6,10 @@
 __pycache__
 .pytest_cache
 generated-artifacts
+
+# Never ship developer configuration or local secrets in a deployment image; production
+# reads its settings from Replit Secrets (and the API skips .env when APP_ENV=production).
+.env
+.env.*
+!.env.example
+.session-secret

@@ -34,6 +34,8 @@ def test_production_starts_and_serves_with_zero_proxy_hops(monkeypatch: pytest.M
         session_secret="synthetic-session-secret-32-characters",
         proxy_shared_secret="synthetic-proxy-secret",
         proxy_client_ip_mode="best-effort",
+        m3_backend="postgres",
+        web_origin="https://adept.example.test",
         auth_raw_user_ids=False,
         auth_default_user="",
     )
