@@ -5,7 +5,7 @@ template. Its stated deadline is **1 November 2026**. Sections 1-8 follow that t
 This document records repository evidence and explicit unknowns, not a signed compliance claim.
 Personal contact details belong in the private submission PDF, not in this public repository.
 
-Updated 24 October 2026 for the root-only, single-public-server source revision, current dependency locks, live-data connectors and separate AI services. A source pin is not a claim about the inventory of an older deployed image.
+Updated 30 October 2026 for the root-only, single-public-server source revision, current dependency locks, live-data connectors and separate AI services. A source pin is not a claim about the inventory of an older deployed image.
 
 ## 1. Team and project overview
 
@@ -72,7 +72,7 @@ be retained with distribution.
 | lucide-react ^1.61.0 | Interface icons | ISC |
 | class-variance-authority 0.7.1 | Component variants | Apache-2.0 |
 | clsx 2.1.1; tailwind-merge 3.3.1 | CSS class composition | MIT |
-| @fontsource-variable/inter ^5.3.0 | Installed font dependency; current global UI styling uses Arial | MIT package; SIL OFL 1.1 font |
+| Google Fonts: Inter via @fontsource-variable/inter ^5.3.0 | Installed Inter font assets; current global UI styling uses system Arial, not a live Google Fonts request | MIT package; SIL OFL 1.1 font |
 | openapi-fetch 0.14.1; openapi-typescript 7.9.1 | Typed API client and generated contracts | MIT |
 | @types/node 22.20.5; @types/react 19.2.18; @types/react-dom 19.2.7; @types/three 0.180.0 | Development type definitions | MIT |
 | FastAPI >=0.161.1 | HTTP API and OpenAPI | MIT |
@@ -197,8 +197,8 @@ of every deployed database. No model was fine-tuned on these fixtures.
 | Certification and exam-pricing extract (14 exams) | [Microsoft, AWS, Google Cloud, IIBA and IAPP sources](../src/data/seed/jobs/certifications.csv) | Public / curated | Issuer site terms; dated prices | No |
 | Exchange rates | [BNM OpenAPI](https://api.bnm.gov.my/) | Public | BNM terms and attribution | No |
 | Synthetic personas, organisations, regions and CVs | [Five selected demo CVs/profiles](demo-cvs/), [regression fixtures](../tests/api/profile/fixtures/cvs/), [seeds](../src/data/seed/personas/) | Synthetic | Team-created evaluation/test data. Selected CVs: Imran, Sofia, Meera, Adrian and Nur Hana; additional intake settings are editable demo assumptions, not extracted qualifications. | No real identities |
-
 | OpenDOSM monthly Labour Force Survey | [Official catalogue](https://open.dosm.gov.my/data-catalogue/lfs_month) | Public national aggregates | CC BY 4.0; retain DOSM attribution; monthly observation dates differ from retrieval dates | No |
+| MyCOL 2024/2025 occupation groups and reviewed role crosswalk | [TalentCorp source and mapping evidence](reference/critical-occupations.md) | Public-derived / curated | TalentCorp publication terms; no open-data licence inferred. 66 source groups, one reviewed stored role-ID mapping; historical badge only, no ranking effect | No |
 
 ### 4.3 AI-assisted development tools
 
@@ -250,7 +250,7 @@ These tools are used for presentation production, not career recommendations in 
 | [Google Fonts](https://fonts.google.com/) | Presentation typography where used | Confirm the exact exported font families and retain their applicable font licence notices. |
 | [Remotion](https://www.remotion.dev/) 4.0.538 | Motion graphics and demo-film composition | Version supplied in the task brief; the local video workspace is gitignored and not evidence of a reproducible application dependency. |
 | [Mixkit](https://mixkit.co/license/) | Presentation media, music / sound effects as applicable | Record the exact downloaded asset pages and applicable item licences in final credits; these are not supplied in the tracked repository. |
-| [ElevenLabs](https://elevenlabs.io/) | Demo/walkthrough video voiceover narration only (`submission/demo-video`) | Team confirmed used strictly for demo video audio production with stock voice `21m00Tcm4TlvDq8ikWAM` (Rachel); no voice cloning; not integrated into or used by the Adept web application or recommendation runtime. |
+| [ElevenLabs](https://elevenlabs.io/) | Demo/walkthrough video voiceover narration only (`submission/demo-video`) | User reconfirmed use on 30 October 2026. Team recorded use strictly for demo video audio production with stock voice `21m00Tcm4TlvDq8ikWAM` (Rachel); no voice cloning; not integrated into or used by the Adept web application or recommendation runtime. |
 
 The demo's statistical context and dates are listed in the
 [demo evidence register](demo-script.md#evidence-register). WEF forecasts are global estimates;
@@ -359,3 +359,19 @@ accuracy declaration. A repository-generated draft cannot attest on the leader's
 [trend workflow](../.github/workflows/trends-refresh.yml) ·
 [source audit](../.github/workflows/data-sources.yml) ·
 [catalogue sources](../src/api/app/features/pathway/catalogue_sources.py).
+
+## Final-round evidence update - 30 October 2026
+
+The source declaration and this export distinguish runtime services from presentation
+tools. RunPod hosts the pinned all-MiniLM-L6-v2 encoder and the separate GLM-5.3
+endpoint; Gemini is the separately authenticated Adi failover. Replit hosts the
+prototype and PostgreSQL. Google Fonts' Inter is distributed through the declared
+Fontsource package; current app styling uses Arial/system fallbacks. ElevenLabs
+was confirmed used by the user in this session, so it is declared as presentation
+audio tooling, not an Adept runtime model. See section 4.4 for the team's stock-voice record; the synthesis model is unrecorded.
+
+Human planning-time KPI: **0 testers, 0 measured human trials**, as confirmed by the
+user on 30 October 2026. No achieved planning-time reduction is claimed. Automated
+local API measurements are reported separately in `docs/kpi-automated-journeys.md`;
+they exclude human review, browser interaction, network and a manual baseline.
+This remains an unsigned draft, with private team fields reserved for completion.
