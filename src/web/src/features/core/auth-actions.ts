@@ -23,13 +23,14 @@ function keep(form: FormData): Record<string, string> {
   return out;
 }
 
-function destination(next: string, apiNext: string): string {
+function destination(next: string, apiNext: string, signup = false): string {
   // Keep valid personal/employee deep links. Workspace layouts check the membership/role.
   if (!next) return apiNext;
   const mode = apiNext.startsWith("/org") ? "organisation" : "individual";
   const safe = safeReturn(next, mode);
+  if (signup && apiNext.startsWith("/org") && !(safe === "/org" || safe.startsWith("/org/"))) return apiNext;
   // New learners must finish intake first.
-  return apiNext === "/app/onboarding" ? apiNext : safe;
+  return apiNext === "/app/onboarding" && !safe.startsWith("/app/join") ? apiNext : safe;
 }
 
 export async function signupAction(_: AuthState, form: FormData): Promise<AuthState> {
@@ -63,7 +64,7 @@ export async function signupAction(_: AuthState, form: FormData): Promise<AuthSt
   );
   if (!result.ok) return { error: result.code, values: keep(form) };
   await setSessionToken(result.data.token);
-  redirect(destination(text(form, "next", 300), result.data.next_path));
+  redirect(destination(text(form, "next", 300), result.data.next_path, true));
 }
 
 export async function loginAction(_: AuthState, form: FormData): Promise<AuthState> {

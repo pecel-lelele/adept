@@ -46,7 +46,7 @@ def to_contract(account: accounts.Account) -> Account:
 
 def next_path(account: accounts.Account) -> str:
     if account.kind == "org_admin":
-        return "/org" if account.org_id else "/org/setup"
+        return "/org" if account.org_id else "/app"
     return "/app" if profile_service.has_profile(account.id) else "/app/onboarding"
 
 

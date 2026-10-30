@@ -29,7 +29,9 @@ export async function WorkspaceSwitcher({
       <ul>
         {workspaces.map((w) => (
           <li key={w.id}>
-            <a href={`/api/workspace?to=${encodeURIComponent(w.id)}`} aria-current={w.id === active.id || undefined}>
+            <form method="post" action="/api/workspace">
+            <input type="hidden" name="to" value={w.id} />
+            <button type="submit" aria-current={w.id === active.id || undefined}>
               <span className="a-wsswitch-icon" aria-hidden>
                 {w.kind === "personal" ? <User size={14} /> : <Building2 size={14} />}
               </span>
@@ -38,7 +40,7 @@ export async function WorkspaceSwitcher({
                 <small>{role(w)}</small>
               </span>
               {w.id === active.id ? <Check size={14} aria-hidden /> : null}
-            </a>
+            </button></form>
           </li>
         ))}
         <li>

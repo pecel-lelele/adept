@@ -8,7 +8,6 @@ export default async function Page({ searchParams }: { searchParams: Promise<Sea
   const code = firstParam((await searchParams).code) ?? "";
   const account = await getAccount();
   const query = code ? `?code=${encodeURIComponent(code)}` : "";
-  if (!account) redirect(`/auth/signup${query}`);
-  if (account.kind === "org_admin") redirect("/org");
+  if (!account) redirect(`/auth/signup?${new URLSearchParams({ code, next: `/app/join${query}` })}`);
   redirect(`/app/join${query}`);
 }
