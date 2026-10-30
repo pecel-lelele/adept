@@ -97,9 +97,34 @@ test("logout refuses GET and cross-origin POST; successful revocation clears bot
     assert.equal(redirected.headers.get("location"), expected);
     assert.equal(new URL(redirected.headers.get("location"), url).origin, url.origin);
   }
-  for (const file of ["components/shell/Shell.tsx", "components/shell/Nav.tsx", "components/ErrorState.tsx"]) {
+  for (const file of ["components/shell/Shell.tsx", "components/shell/Nav.tsx"]) {
     const source = readFileSync(new URL(`../src/web/src/${file}`, import.meta.url), "utf8");
     assert.match(source, /<form method="post" action="\/auth\/logout">/);
     assert.doesNotMatch(source, /href="\/auth\/logout"/);
   }
+  const errorState = readFileSync(new URL("../src/web/src/components/ErrorState.tsx", import.meta.url), "utf8");
+  assert.match(errorState, /<SignInAgainButton /);
+  assert.doesNotMatch(errorState, /href="\/auth\/logout"/);
+});
+
+test("sign in again posts logout and returns to the current page after login", () => {
+  const { SignInAgainButton } = loadComponent("src/components/SignInAgainButton.tsx", {
+    "next/navigation": {
+      usePathname: () => "/app/pathway",
+      useSearchParams: () => new URLSearchParams("role=data_analyst&scenario=fast"),
+    },
+  });
+  const { renderToStaticMarkup } = require("react-dom/server");
+  const React = require("react");
+  const html = renderToStaticMarkup(React.createElement(SignInAgainButton, { label: "Sign in again" }));
+  assert.match(html, /<form[^>]*method="post"/);
+  assert.doesNotMatch(html, /href="\/auth\/logout"/);
+  const action = html.match(/action="([^"]+)"/)?.[1].replaceAll("&amp;", "&") ?? "";
+  const url = new URL(action, "https://adept.example.test");
+  assert.equal(url.pathname, "/auth/logout");
+  const login = url.searchParams.get("next") ?? "";
+  assert.equal(getSafeRedirectPath(login, "https://adept.example.test"), login);
+  const back = new URL(login, "https://adept.example.test");
+  assert.equal(back.pathname, "/auth/login");
+  assert.equal(back.searchParams.get("next"), "/app/pathway?role=data_analyst&scenario=fast");
 });

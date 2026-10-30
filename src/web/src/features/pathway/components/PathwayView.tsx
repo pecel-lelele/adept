@@ -145,6 +145,10 @@ export async function PathwayView({
     !snapshotDate && saved && saved.role_id === roleId && saved.scenario === scenario ? saved : null;
   const plan = savedHere ? savedHere.pathway : result.data;
   const query = `?role=${encodeURIComponent(roleId)}&scenario=${scenario}`;
+  // Same role, other scenario: point back to the saved plan rather than implying none exists.
+  const savedOtherScenario =
+    !snapshotDate && saved && saved.role_id === roleId && saved.scenario !== scenario ? saved : null;
+  const ts = await getTranslations("common.scenario");
 
   const action = snapshotDate ? (
     <Link href={`/app/pathway${query}`} className="a-btn is-ghost is-small">
@@ -169,6 +173,14 @@ export async function PathwayView({
         <MetaBar meta={plan.meta} />
       </PageHeader>
       <HistoricalSnapshotBanner date={snapshotDate} latestHref={`/app/pathway${query}`} />
+      {savedOtherScenario ? (
+        <p className="a-notice" data-tone="info">
+          {t("plan.savedOtherScenario", { scenario: ts(savedOtherScenario.scenario) })} ·{" "}
+          <Link className="a-link" href={`/app/pathway?role=${encodeURIComponent(roleId)}&scenario=${savedOtherScenario.scenario}`}>
+            {t("plan.viewSaved")}
+          </Link>
+        </p>
+      ) : null}
       {!savedHere && !snapshotDate ? <p className="a-notice" data-tone="info">{t("plan.decide")}</p> : null}
       {status.ok && savedHere ? <ReplanBanner status={status.data} /> : null}
       <Summary plan={plan} />

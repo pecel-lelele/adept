@@ -165,9 +165,16 @@ export async function DashboardView({ scenario, query }: { scenario: ScenarioId;
         items={[
           {
             label: tp("kBestFit"),
-            value: best ? <>{Math.round(best.score * 100)}% <EstimateLabel scenario={scenario} /></> : "—",
+            value: best ? `${Math.round(best.score * 100)}%` : "—",
             icon: <Compass size={15} />,
-            note: best ? best.label : tp("kNone"),
+            // The estimate label sits with the note: the value cell does not wrap.
+            note: best ? (
+              <>
+                {best.label} · <EstimateLabel scenario={scenario} />
+              </>
+            ) : (
+              tp("kNone")
+            ),
           },
           {
             label: tp("kSkillsRising"),

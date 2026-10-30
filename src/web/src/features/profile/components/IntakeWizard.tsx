@@ -263,7 +263,11 @@ export function IntakeWizard({
               type="file"
               accept=".pdf,.docx,.txt,application/pdf,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
               hidden
-              onChange={(e) => onFile(e.target.files?.[0])}
+              onChange={(e) => {
+                onFile(e.target.files?.[0]);
+                // Clear the input so re-uploading the same file still fires a change.
+                e.target.value = "";
+              }}
             />
             {cvStatus && (cvStatus.empty || cvStatus.truncated) ? (
               <div className="a-notice" role="status">
