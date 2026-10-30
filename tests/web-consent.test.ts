@@ -17,9 +17,14 @@ test("join has separate, initially unticked membership and skill-sharing checkbo
     for (const name of ["consent", "share_skills"]) {
       const input = html.match(new RegExp(`<input[^>]*name="${name}"[^>]*>`))?.[0] ?? "";
       assert.match(input, /type="checkbox"/);
-      assert.match(input, /required=""/);
+      // Joining needs consent; sharing skill levels is optional and never pre-ticked.
+      if (name === "consent") assert.match(input, /required=""/);
+      else assert.doesNotMatch(input, /required=""/);
     }
     assert.doesNotMatch(html, /checked=""/);
+    assert.match(html, /href="\/privacy"/);
+    const signOut = translations(locale).useTranslations("ui.join")("teamAccountSignOut");
+    assert.ok(html.includes(signOut.replaceAll("'", "&#x27;")), "creating a team account says it signs you out");
     const signup = html.match(/<form[^>]*action="([^"]*\/auth\/logout[^"]*)"[^>]*>/);
     assert.ok(signup, "team signup submits the POST-only logout handler");
     assert.match(signup[0], /method="post"/);
@@ -47,11 +52,16 @@ test("joining never infers skill sharing from membership consent", async () => {
   const form = new FormData();
   form.set("code", "SYNTHETIC");
   form.set("consent", "on");
-  const missing = await joinOrgAction({}, form);
-  assert.ok(missing.error);
-  assert.equal(calls, 0);
+  // Not ticking the sharing box joins without sharing: false is sent, never inferred as true.
+  const unshared = await joinOrgAction({}, form);
+  assert.equal(unshared.error, undefined);
+  assert.equal(calls, 1);
+  assert.equal(submitted.share_skills, false);
   form.set("share_skills", "on");
   await joinOrgAction({}, form);
-  assert.equal(calls, 1);
+  assert.equal(calls, 2);
   assert.equal(submitted.share_skills, true);
+  form.delete("consent");
+  assert.equal((await joinOrgAction({}, form)).error, "consent_required");
+  assert.equal(calls, 2);
 });

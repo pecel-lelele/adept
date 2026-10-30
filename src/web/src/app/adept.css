@@ -1445,8 +1445,10 @@ html[data-locale-switching] .a-page, html[data-locale-switching] .a-shell { opac
 @media (max-width: 640px) {
   .a-shell .a-rolecard { padding: 18px; }
   .a-shell .a-rolecard-head { grid-template-columns: auto minmax(0, 1fr); }
-  .a-shell .a-fit { grid-column: 1 / -1; grid-template-columns: auto auto minmax(0, 1fr); justify-items: start; align-items: center; gap: 10px; }
-  .a-shell .a-fit-track { width: 100%; margin: 0; }
+  /* Phones: score, "fit" and the estimate label wrap on one line; the track takes its own row. */
+  .a-shell .a-fit { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; min-width: 0; }
+  .a-shell .a-fit .a-estimate-label { min-width: 0; overflow-wrap: anywhere; }
+  .a-shell .a-fit-track { flex: 1 0 100%; width: 100%; margin: 4px 0 0; }
   .a-shell .a-rolecard-body { grid-template-columns: minmax(0, 1fr); gap: 20px; }
   .a-shell .a-rolecard-foot > * { flex: 1; }
 }
@@ -1924,7 +1926,7 @@ html[data-busy] .a-main::after { content: ""; }
   /* Single choice in the grid — span both columns so the button isn't marooned at half-width. */
   .a-authpage[data-role-team] .a-auth-form .a-choice-grid { grid-template-columns: minmax(0, 1fr); }
 }
-/* All signup pages now remove the title, so the form fits without scroll.
+/* Signup pages show no visible title (a hidden heading names the form), so it fits without scroll.
    overflow: visible also un-clips the box-shadow border on the selected choice button. */
 @media (min-width: 861px) {
   .a-authpage .a-auth-card[data-page="signup"] { height: auto; }

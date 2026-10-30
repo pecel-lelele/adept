@@ -97,7 +97,7 @@
     "neverTitle": "Never shared",
     "never1": "Personal plans, role matches and comparisons",
     "never2": "Learning you do in your personal workspace, unless you share a course",
-    "never3": "Your conversations with Adi",
+    "never3": "Your conversations with Adi are never shared with your organisation",
     "fundedLabel": "Employer-funded programme",
     "status": {
       "assigned": "Waiting for you",
@@ -179,7 +179,7 @@
     "colStatus": "Answer",
     "formerMember": "Former member",
     "emptyTitle": "No programme yet",
-    "emptyDesc": "Create one from a business objective: Adept matches people to roles and builds each person's route.",
+    "emptyDesc": "Create one from a business objective: Adept suggests learning routes towards roles; people choose.",
     "newTitle": "New learning programme",
     "newDesc": "Tell Adept what the business needs. It proposes a personal route for each person; you review before anything is sent.",
     "objective": {
@@ -194,7 +194,7 @@
       "digital_health": "Digital health",
       "people_learning": "People and learning",
       "digital_marketing": "Digital marketing",
-      "redeploy_at_risk": "Redeploy at-risk roles"
+      "redeploy_at_risk": "Prepare roles that are changing"
     },
     "route": {
       "foundation": "Foundation",

@@ -97,7 +97,7 @@
     "neverTitle": "Tidak pernah dikongsi",
     "never1": "Pelan peribadi, padanan dan perbandingan peranan",
     "never2": "Pembelajaran di ruang kerja peribadi, kecuali kursus yang anda kongsi",
-    "never3": "Perbualan anda dengan Adi",
+    "never3": "Perbualan anda dengan Adi tidak pernah dikongsi dengan organisasi anda",
     "fundedLabel": "Program dibiayai majikan",
     "status": {
       "assigned": "Menunggu anda",
@@ -179,7 +179,7 @@
     "colStatus": "Jawapan",
     "formerMember": "Bekas ahli",
     "emptyTitle": "Belum ada program",
-    "emptyDesc": "Cipta satu dari objektif perniagaan: Adept memadankan orang dengan peranan dan membina laluan setiap orang.",
+    "emptyDesc": "Cipta satu daripada objektif perniagaan: Adept mencadangkan laluan pembelajaran ke arah peranan; setiap orang membuat pilihan.",
     "newTitle": "Program pembelajaran baharu",
     "newDesc": "Beritahu Adept keperluan perniagaan. Ia mencadangkan laluan peribadi untuk setiap orang; anda menyemak sebelum dihantar.",
     "objective": {
@@ -194,7 +194,7 @@
       "digital_health": "Kesihatan digital",
       "people_learning": "Manusia dan pembelajaran",
       "digital_marketing": "Pemasaran digital",
-      "redeploy_at_risk": "Tempatkan semula peranan berisiko"
+      "redeploy_at_risk": "Sediakan peranan yang sedang berubah"
     },
     "route": {
       "foundation": "Asas",

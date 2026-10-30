@@ -7,6 +7,7 @@ import { useRef, useState, type DragEvent, type FormEvent } from "react";
 
 import { Ring, scoreColour } from "@/components/viz/Ring";
 import { EstimateLabel } from "@/components/EstimateLabel";
+import { MetaBar } from "@/components/MetaBar";
 import type { Schemas } from "@/lib/api";
 
 type Preview = Schemas["GuestPreview"];
@@ -122,7 +123,11 @@ export function CvPreview() {
           </span>
           <h2>{file ? file.name : t("dropTitle")}</h2>
           <p className="a-muted a-small">{t("dropBody")}</p>
-          <input ref={input} type="file" accept=".pdf,.docx,.txt,application/pdf,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden onChange={(e) => pick(e.target.files?.[0])} />
+          <input ref={input} type="file" accept=".pdf,.docx,.txt,application/pdf,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden onChange={(e) => {
+            pick(e.target.files?.[0]);
+            // Clear the input so choosing the same file again still fires a change.
+            e.target.value = "";
+          }} />
           <label className="a-check" style={{ maxWidth: 440, textAlign: "left" }}>
             <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
             {t("consentCv")}
@@ -217,13 +222,18 @@ export function CvPreview() {
           </div> : (
             <Link className="a-btn" href="/app/onboarding">{t("manualSkills")} <ArrowRight size={16} aria-hidden /></Link>
           )}
+          <MetaBar meta={result.meta} />
           <button type="button" className="a-link" style={{ border: 0, background: "none", cursor: "pointer", justifySelf: "start" }} onClick={() => { setResult(null); setFile(null); }}>
             {t("tryAgain")}
           </button>
         </div>
       )}
       <footer className="a-upload-foot">
-        <ShieldCheck size={14} aria-hidden /> {t("safe")}
+        <ShieldCheck size={14} aria-hidden /> {t("safe")}{" "}
+        <Link className="a-link" href="/privacy">
+          {t("privacyLink")}
+        </Link>
+        <span style={{ display: "block" }}>{t("sampleNote")}</span>
       </footer>
     </section>
   );

@@ -11,7 +11,8 @@ import { joinOrgAction, type AuthState } from "../auth-actions";
 
 /**
  * A signed-in learner joins an organisation with the code their manager or career centre
- * shared, consenting to share their profile and learning progress with the organisation.
+ * shared. Joining needs consent; sharing skill levels with managers is a separate, optional
+ * choice that starts unticked and can be changed later.
  */
 export function JoinView({ code = "" }: { code?: string }) {
   const t = useTranslations("ui.join");
@@ -77,12 +78,17 @@ export function JoinView({ code = "" }: { code?: string }) {
                 </span>
               </label>
               <label className="a-check">
-                <input type="checkbox" name="share_skills" required defaultChecked={state.values?.share_skills === "on"} />
+                <input type="checkbox" name="share_skills" defaultChecked={state.values?.share_skills === "on"} />
                 <span>
                   <strong>{t("shareSkills")}</strong>
                   <small>{t("shareSkillsHint")}</small>
                 </span>
               </label>
+              <p className="a-small a-muted" style={{ margin: 0 }}>
+                <Link className="a-link" href="/privacy">
+                  {t("privacyLink")}
+                </Link>
+              </p>
               {state.error ? (
                 <p className="a-notice" data-tone="error" role="alert">
                   {errorMessage(te, state.error)}
@@ -117,6 +123,8 @@ export function JoinView({ code = "" }: { code?: string }) {
           <button type="submit" className="a-link">
             {t("teamAccountCta")}
           </button>
+          <br />
+          {t("teamAccountSignOut")}
         </form>
       ) : null}
     </div>

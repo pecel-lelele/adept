@@ -41,7 +41,9 @@
     "saved": "已保存为您的计划（{date}）",
     "decide": "由您决定。保存不代表任何承诺，可随时更改。",
     "sdgLink": "这条路径对 SDG 的贡献",
-    "progressLink": "跟踪进度"
+    "progressLink": "跟踪进度",
+    "savedOtherScenario": "您已保存的计划使用 {scenario}",
+    "viewSaved": "查看该计划"
   },
   "replan": {
     "title": "新的趋势数据改变了您的计划",

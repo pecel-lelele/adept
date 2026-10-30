@@ -27,5 +27,6 @@
   },
   "evidence": "Evidence",
   "noRoleYet": "You have not chosen a target role yet, so there is no contribution to show.",
-  "compareRoles": "Compare roles and choose one"
+  "compareRoles": "Compare roles and choose one",
+  "whyLinked": "Why these goals"
 }
