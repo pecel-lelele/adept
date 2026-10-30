@@ -1,18 +1,43 @@
+# Dependabot version updates.
+# Each ecosystem sends at most ONE grouped pull request at a time, so a run
+# never opens a pile of separate bump PRs. Security alerts are a separate
+# repository setting (Settings -> Code security) and are not limited here.
+# To pause routine bumps entirely (e.g. during the final), set
+# open-pull-requests-limit to 0 on each entry.
 version: 2
 updates:
   - package-ecosystem: uv
     directory: /
     schedule:
       interval: weekly
+    open-pull-requests-limit: 1
+    groups:
+      python:
+        patterns: ["*"]
+
   - package-ecosystem: pip
     directory: /src/pipelines/trends/runpod
     schedule:
       interval: weekly
+    open-pull-requests-limit: 1
+    groups:
+      runpod-image:
+        patterns: ["*"]
+
   - package-ecosystem: npm
     directory: /
     schedule:
       interval: weekly
+    open-pull-requests-limit: 1
+    groups:
+      javascript:
+        patterns: ["*"]
+
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+    open-pull-requests-limit: 1
+    groups:
+      ci-actions:
+        patterns: ["*"]

@@ -1986,3 +1986,13 @@
 - **Affects**: Database CI and local verification documentation; no runtime, schema, dependencies or fixture changes.
 - **Replaces**: none
 - **PR / branch**: feat/core-sidebar-home-button
+
+### M4-082: Group Dependabot updates into one pull request per ecosystem
+- **Date**: 2026-10-30
+- **Feature**: Core (CI and dependency maintenance)
+- **Type**: dependency
+- **Change**: Each Dependabot ecosystem (uv, RunPod pip, npm, GitHub Actions) now sends one grouped pull request with `open-pull-requests-limit: 1`.
+- **Why**: The ungrouped config used the defaults (one PR per package, up to five open per ecosystem). Its first run opened 12 separate bump PRs (#31–#43) at once. Options considered: delete the config (stops version PRs entirely), set the limit to 0 (pause), or group. Grouping keeps dependency auditing at no more than 4 open PRs. Security alerts remain a separate repository setting.
+- **Affects**: Dependabot pull request volume only; no runtime, dependency versions or CI checks change.
+- **Replaces**: none
+- **PR / branch**: chore/core-dependabot-grouping
