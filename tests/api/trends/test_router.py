@@ -14,9 +14,42 @@ Coverage:
   - meta.available_snapshots is populated
 """
 
+import pytest
 from fastapi.testclient import TestClient
 
 from app.contracts.trends import RadarResponse, RoleTrendResponse, TrendSnapshotResponse
+
+
+@pytest.mark.parametrize("scenario", ["moderate", "fast"])
+def test_public_role_directions_need_no_personal_profile_and_support_replay(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch, scenario: str
+) -> None:
+    from app.features.pathway import service as pathway_service
+    from app.features.profile import service as profile_service
+    from app.features.trends import service
+
+    def no_intake(*args: object, **kwargs: object) -> None:
+        raise AssertionError("Public directions must not load a personal profile or plan")
+
+    monkeypatch.setattr(pathway_service, "learner_for", no_intake)
+    monkeypatch.setattr(profile_service, "get_my_profile", no_intake)
+    snapshot = client.get("/api/v1/trends/snapshot").json()
+    for day in snapshot["meta"]["available_snapshots"]:
+        response = client.get(
+            "/api/v1/trends/radar", params={"scenario": scenario, "snapshot_date": day}
+        )
+        assert response.status_code == 200, response.text
+        body = RadarResponse.model_validate(response.json())
+        assert body.meta.snapshot_date.isoformat() == day
+        assert body.meta.scenario == scenario
+        assert body.meta.sources and body.meta.is_estimate
+        roles = [item for item in body.items if item.entity_type == "role"]
+        assert roles
+        expected = service.signals_from_snapshot(
+            service.get_snapshot(body.meta.snapshot_date, scenario), scenario
+        )
+        assert roles == [item for item in expected if item.entity_type == "role"]
+
 
 # ---------------------------------------------------------------------------
 # New: GET /api/v1/trends/snapshot

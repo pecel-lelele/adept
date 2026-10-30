@@ -6,10 +6,8 @@ Design:
 - A cache miss reads PostgreSQL on a small shared thread pool and is bounded by
   SNAPSHOT_TIMEOUT_S, so a slow database cannot hold a request open. Different users and
   scenarios read in parallel (an earlier single-worker lock queued every request behind one).
-- On any failure or timeout, raise TrendUnavailable -> 503. Never swallow errors
-  or invent a date/source.
-- Demo mode uses M1's documented fixture fallback. Other auth modes require a
-  database snapshot, so an unavailable M1 source returns 503.
+- On a read failure or timeout, use M1's shared disclosed last good snapshot.
+  Explicit unknown dates and malformed snapshots remain errors; never invent a date/source.
 
 In tests: patch ``fetch_snapshot`` in ``app.features.matching.service`` to inject a
 fake without touching the real trends module.
@@ -27,6 +25,7 @@ from app.contracts.common import ScenarioId, Source
 from app.contracts.trends import TrendSnapshotResponse
 from app.core.config import get_settings
 from app.core.errors import NotFoundError, TrendUnavailableError
+from app.features.trends.repository import SourceType
 
 # Public alias so tests import from one place.
 TrendUnavailable = TrendUnavailableError
@@ -59,17 +58,23 @@ class TrendSnapshot:
     data_provenance_note: str | None = None  # preserve M1's historical/fixture disclosure
     observed_from: date | None = None  # period the source data measures (H09)
     observed_to: date | None = None
+    served_from: SourceType = "db"
+    is_fallback: bool = False
+    reference_velocities: dict[str, float] | None = None
 
 
 def fetch_snapshot(scenario: ScenarioId, snapshot_date: date | None = None) -> TrendSnapshot:
     """Return a ``TrendSnapshot`` from M1's trends service with a bounded wait.
 
-    Raises ``TrendUnavailable`` if:
-    - the call takes longer than SNAPSHOT_TIMEOUT_S (hung DB connect)
-    - M1's service raises any exception
-    - the snapshot contains no items or no source attribution
+    Read failures and bounded waits use the central last good snapshot. Empty snapshots or
+    missing attribution still raise ``TrendUnavailable``; unknown replay dates stay 404.
     """
-    snap = _call_with_timeout(scenario, snapshot_date)
+    try:
+        snap = _call_with_timeout(scenario, snapshot_date)
+    except TrendUnavailable:
+        from app.features.trends import service as trends_service
+
+        snap = trends_service.last_good_snapshot(snapshot_date, scenario)
 
     if snap.meta.scenario != scenario or (
         snapshot_date is not None and snap.meta.snapshot_date != snapshot_date
@@ -103,6 +108,14 @@ def fetch_snapshot(scenario: ScenarioId, snapshot_date: date | None = None) -> T
         data_provenance_note=snap.meta.data_provenance_note,
         observed_from=snap.meta.observed_from,
         observed_to=snap.meta.observed_to,
+        served_from=snap.meta.served_from,
+        is_fallback=snap.meta.is_fallback,
+        reference_velocities={
+            item.skill_id: float(
+                getattr(item, "velocity_fast" if scenario == "moderate" else "velocity_moderate")
+            )
+            for item in snap.items
+        },
     )
 
 

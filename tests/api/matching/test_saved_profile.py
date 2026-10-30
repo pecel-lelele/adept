@@ -72,6 +72,32 @@ def test_score_updates_when_saved_profile_changes(client: TestClient) -> None:
     )
 
 
+@pytest.mark.parametrize("scenario", ["moderate", "fast"])
+def test_zero_skill_profile_gets_ranked_matches_and_an_add_skills_note(
+    client: TestClient, scenario: str
+) -> None:
+    profile_repo._store["weijie"] = profile_repo._store["weijie"].model_copy(update={"skills": []})
+    response = client.get("/api/v1/matches", params={"scenario": scenario}, headers=USER_HEADER)
+    assert response.status_code == 200, response.text
+    matches = response.json()["matches"]
+    assert matches
+    assert all(match["profile_note"] == "add_skills" for match in matches)
+    assert matches == sorted(matches, key=lambda match: (-match["score"], match["role_id"]))
+    assert len({match["score"] for match in matches}) > 1
+    for match in matches:
+        components = {component["name"]: component for component in match["components"]}
+        assert components["skill_overlap"]["value"] == 0
+        assert match["score"] == pytest.approx(
+            sum(c["weight"] * c["value"] for c in components.values())
+        )
+    detail = client.get(
+        f"/api/v1/matches/{matches[0]['role_id']}",
+        params={"scenario": scenario},
+        headers=USER_HEADER,
+    )
+    assert detail.status_code == 200 and detail.json()["profile_note"] == "add_skills"
+
+
 def test_user_with_no_saved_profile_gets_clear_error(client: TestClient) -> None:
     """A user who has not completed/saved a profile must get a 4xx profile-required error."""
     # "demo-institution" is in DEMO_USERS but has no profile in the profile store

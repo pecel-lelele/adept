@@ -114,6 +114,8 @@ def test_snapshot_meta_with_frozen_today(
         "snapshot_date": "2026-10-20",
         "scenario": "fast",
         "is_estimate": False,
+        "served_from": "db",
+        "is_fallback": False,
         "sources": [source.model_dump(mode="json") for source in snap.sources],
         # H09: observation window (none recorded on this stub snapshot).
         "observed_from": None,
@@ -121,12 +123,28 @@ def test_snapshot_meta_with_frozen_today(
     }
     assert response.json()["meta"] == expected
     from app.features.pathway import data
+    from app.features.sdg import repository as sdg_repository
 
     card_meta = {
         **expected,
-        "sources": [*expected["sources"], data.taxonomy_source().model_dump(mode="json")],
+        "sources": [
+            *expected["sources"],
+            data.taxonomy_source().model_dump(mode="json"),
+            sdg_repository.un_source().model_dump(mode="json"),
+            sdg_repository.mapping_source().model_dump(mode="json"),
+        ],
     }
-    assert all(match["meta"] == card_meta for match in response.json()["matches"])
+    courses = {course.id: course for course in data.catalogue()}
+    for match in response.json()["matches"]:
+        assert {**match["meta"], "sources": card_meta["sources"]} == card_meta
+        expected_sources = [*card_meta["sources"]]
+        for item in match["improvements"]:
+            course = courses.get(item["course_id"])
+            if course and course.source:
+                expected_sources.append(course.source.model_dump(mode="json"))
+        assert {tuple(s.items()) for s in match["meta"]["sources"]} == {
+            tuple(s.items()) for s in expected_sources
+        }
 
 
 @pytest.mark.parametrize("user_id", ["aisyah", "weijie", "ravi"])

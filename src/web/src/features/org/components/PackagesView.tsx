@@ -1,7 +1,7 @@
 import Form from "next/form";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { ApiError, MetaBar, PageHeader } from "@/components";
+import { ErrorState, MetaBar, PageHeader } from "@/components";
 import { CertificationsCard, RoleOpeningsCard } from "@/features/jobs";
 import { ActionForm } from "@/features/pathway/components/ActionForm";
 import { currentWorkspace } from "@/lib/auth/workspace";
@@ -40,7 +40,7 @@ export async function PackagesView({ scenario, roleId, memberIds }: {
       <input type="hidden" name="cohort" value="selected" />
       <button className="a-btn" type="submit">{t("compare")}</button>
     </Form>
-    {!result.ok ? <ApiError message={result.message} /> : <div className="a-coursegrid">{result.data.packages.map(p => <section className="a-card" key={p.kind}>
+    {!result.ok ? <ErrorState failure={result} /> : <div className="a-coursegrid">{result.data.packages.map(p => <section className="a-card" key={p.kind}>
       <h2>{t(`kind.${p.kind}`)}</h2>
       <h3>{p.role_label}</h3>
       <p>{t("summary", { cost: p.total_cost_myr.toLocaleString("en-MY"), weeks: p.max_weeks, gaps: p.unmet_skills })}</p>

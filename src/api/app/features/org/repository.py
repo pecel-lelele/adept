@@ -108,12 +108,17 @@ def create_org(org: Organization, owner_id: str, owner_role: MembershipRole) -> 
 
 def list_members(org_id: str) -> list[Member]:
     if not use_postgres():
-        return list(_members.get(org_id, []))
+        return [
+            member if member.skills_shared else member.model_copy(update={"current_role_id": None})
+            for member in _members.get(org_id, [])
+        ]
     rows = _db(
         "load the members",
         lambda c: c.execute(
             """
-            SELECT u.id, u.display_name, p.current_role_id, m.intake_status,
+            SELECT u.id, u.display_name,
+                   CASE WHEN m.share_skills THEN p.current_role_id ELSE NULL END AS current_role_id,
+                   m.intake_status,
                    m.share_skills AS skills_shared
             FROM memberships m
             JOIN users u ON u.id = m.user_id

@@ -31,29 +31,32 @@ export function ScenarioToggle() {
   }
 
   return (
-    <div className="a-pace" aria-busy={pending} title={t("hint")}>
-      <span className="a-pace-label">
-        <Gauge size={15} aria-hidden /> {t("pace")}
-      </span>
-      <div role="radiogroup" aria-label={t("label")} className="a-pace-seg">
-        {SCENARIOS.map((s) => {
-          const Icon = ICON[s];
-          return (
-            <button
-              key={s}
-              type="button"
-              role="radio"
-              aria-checked={current === s}
-              title={t(s)}
-              disabled={pending}
-              onClick={() => select(s)}
-            >
-              <Icon size={14} aria-hidden />
-              {t(`${s}Short`)}
-            </button>
-          );
-        })}
+    <div className="a-stack" style={{ gap: 4, alignItems: "flex-end" }}>
+      <div className="a-pace" aria-busy={pending} title={t("hint")}>
+        <span className="a-pace-label">
+          <Gauge size={15} aria-hidden /> {t("pace")}
+        </span>
+        <div role="radiogroup" aria-label={t("label")} className="a-pace-seg">
+          {SCENARIOS.map((s) => {
+            const Icon = ICON[s];
+            return (
+              <button
+                key={s}
+                type="button"
+                role="radio"
+                aria-checked={current === s}
+                title={t(s)}
+                disabled={pending}
+                onClick={() => select(s)}
+              >
+                <Icon size={14} aria-hidden />
+                {t(`${s}Short`)}
+              </button>
+            );
+          })}
+        </div>
       </div>
+      <small className="a-small a-muted" style={{ maxWidth: 320, textAlign: "right" }}>{t("hint")}</small>
     </div>
   );
 }

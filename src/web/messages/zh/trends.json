@@ -1,4 +1,8 @@
 {
+  "roleDirections": "需求上升和下降的职位",
+  "risingRoles": "需求上升的职位",
+  "decliningRoles": "需求下降的职位",
+  "noDirectionalRoles": "所选快照中没有此趋势方向的职位。",
   "title": "未来技能雷达",
   "description": "哪些职位和技能正在上升、稳定或下降。",
   "orgTitle": "您所在行业的未来技能雷达",

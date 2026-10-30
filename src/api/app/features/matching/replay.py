@@ -38,13 +38,20 @@ def replay(
     velocities_before: dict[str, float],
     velocities_after: dict[str, float],
     w: Weights = _DEFAULT_WEIGHTS,
+    *,
+    reference_before: dict[str, float] | None = None,
+    reference_after: dict[str, float] | None = None,
 ) -> list[RoleMovement]:
     """Return role movements sorted by ``rank_after`` (best match first)."""
     before = {
         r.role_id: (i + 1, r.score)
-        for i, r in enumerate(rank_roles(profile, roles, velocities_before, w))
+        for i, r in enumerate(
+            rank_roles(profile, roles, velocities_before, w, reference_velocities=reference_before)
+        )
     }
-    after_ranked = rank_roles(profile, roles, velocities_after, w)
+    after_ranked = rank_roles(
+        profile, roles, velocities_after, w, reference_velocities=reference_after
+    )
     movements = []
     for i, r in enumerate(after_ranked):
         rank_b, score_b = before[r.role_id]

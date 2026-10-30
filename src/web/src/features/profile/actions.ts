@@ -30,7 +30,7 @@ const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, M
 
 /** Save the questionnaire, then the confirmed skills. Both land in PostgreSQL. */
 export async function saveIntakeAction(input: IntakeInput): Promise<IntakeResult> {
-  if (!input.skills.length) return { error: "Add at least one skill." };
+  if (!input.skills.length) return { error: "skill_required" };
   const api = await getApi();
   const profile = await call(
     api.POST("/api/v1/profile/questionnaire", {
@@ -44,7 +44,7 @@ export async function saveIntakeAction(input: IntakeInput): Promise<IntakeResult
       },
     }),
   );
-  if (!profile.ok) return { error: profile.message };
+  if (!profile.ok) return { error: profile.code };
   const skills = await call(
     api.PUT("/api/v1/profile/skills/confirm", {
       body: {
@@ -58,7 +58,7 @@ export async function saveIntakeAction(input: IntakeInput): Promise<IntakeResult
       },
     }),
   );
-  if (!skills.ok) return { error: skills.message };
+  if (!skills.ok) return { error: skills.code };
   revalidatePath("/app", "layout");
   revalidatePath("/org", "layout");
   redirect("/app/matches");
@@ -67,8 +67,8 @@ export async function saveIntakeAction(input: IntakeInput): Promise<IntakeResult
 /** Forward a CV to the parser. The file is processed in memory by the API and never stored. */
 export async function uploadCvAction(form: FormData): Promise<CvResult> {
   const file = form.get("file");
-  if (!(file instanceof File) || file.size === 0) return { error: "Choose a PDF, Word (.docx) or text file." };
-  if (file.size > 5 * 1024 * 1024) return { error: "Use a file under 5 MB." };
+  if (!(file instanceof File) || file.size === 0) return { error: "choose_file" };
+  if (file.size > 5 * 1024 * 1024) return { error: "payload_too_large" };
   const token = await getSessionToken();
   const body = new FormData();
   body.set("file", file, file.name);
@@ -81,10 +81,10 @@ export async function uploadCvAction(form: FormData): Promise<CvResult> {
       cache: "no-store",
     });
     const json: unknown = await response.json().catch(() => null);
-    if (!response.ok) return { error: errorBody(json, response.status).message };
+    if (!response.ok) return { error: errorBody(json, response.status).code };
     const parsed = json as Schemas["CvExtractionResult"];
     return { skills: parsed.skills, unmatched_terms: parsed.unmatched_terms, suggestions: parsed.suggestions, truncated: parsed.truncated };
   } catch {
-    return { error: "We couldn’t read that file right now. Please try again." };
+    return { error: "cv_read_failed" };
   }
 }

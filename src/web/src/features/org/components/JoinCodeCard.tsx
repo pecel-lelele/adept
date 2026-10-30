@@ -4,11 +4,14 @@ import { Check, Copy, RefreshCw } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 
+import { errorMessage } from "@/lib/api/error-message";
+
 import { rotateCodeAction } from "../actions";
 
 /** The organisation's join code with copy-link and rotate actions (managers only). */
 export function JoinCodeCard({ code, orgId }: { code: string; orgId?: string }) {
   const t = useTranslations("ui.org");
+  const te = useTranslations("ui.apiErrors");
   const [copied, setCopied] = useState(false);
   const [pending, start] = useTransition();
   const [error, setError] = useState("");
@@ -40,7 +43,7 @@ export function JoinCodeCard({ code, orgId }: { code: string; orgId?: string }) 
           onClick={() =>
             start(async () => {
               const result = await rotateCodeAction(orgId);
-              if (result.error) setError(result.error);
+              if (result.error) setError(errorMessage(te, result.error));
             })
           }
         >

@@ -2,7 +2,9 @@ import { isIP } from "node:net";
 
 import { proxyConfig } from "./proxy-config.ts";
 
-type ProxyOptions = ReturnType<typeof proxyConfig> & { apiUrl: string; timeoutMs?: number };
+type ProxyOptions = Omit<ReturnType<typeof proxyConfig>, "clientIpMode"> & {
+  clientIpMode?: "trusted" | "best-effort"; apiUrl: string; timeoutMs?: number;
+};
 const FORWARDED_HEADERS = [
   "content-type", "accept", "authorization", "x-demo-user", "x-workspace", "x-sync-token",
   "origin", "access-control-request-method", "access-control-request-headers",
@@ -12,18 +14,17 @@ const HOP_HEADERS = new Set([
   "proxy-authenticate", "proxy-authorization", "te", "trailer", "upgrade",
 ]);
 
-/** Select only the address recorded by the configured trusted forwarding chain. */
-export function trustedClientIp(forwardedFor: string | null, hops: number): string | undefined {
-  if (!forwardedFor || hops <= 0) return undefined;
+/** Use only the right-most entry; never accept a caller-prepended left-most identity. */
+export function trustedClientIp(forwardedFor: string | null, hops: number, mode: "trusted" | "best-effort" = "trusted"): string | undefined {
+  if (!forwardedFor || (hops <= 0 && mode === "trusted")) return undefined;
   const chain = forwardedFor.split(",").map((part) => part.trim());
-  if (chain.length < hops) return undefined;
-  const address = chain[chain.length - hops];
+  const address = chain.at(-1);
   return address && isIP(address) ? address : undefined;
 }
 
 /** Next.js is the only public HTTP server; FastAPI remains bound to loopback. */
 export async function proxyRequest(request: Request, options?: ProxyOptions): Promise<Response> {
-  const config = options ?? { ...proxyConfig(), apiUrl: process.env.API_URL ?? "http://127.0.0.1:8000" };
+  const config: ProxyOptions = options ?? { ...proxyConfig(), apiUrl: process.env.API_URL ?? "http://127.0.0.1:8000" };
   const url = new URL(request.url);
   const health = ["/api/healthz", "/api/v1"].includes(url.pathname)
     && ["GET", "HEAD"].includes(request.method);
@@ -32,10 +33,10 @@ export async function proxyRequest(request: Request, options?: ProxyOptions): Pr
     const value = request.headers.get(key);
     if (value) headers.set(key, value);
   }
-  const address = trustedClientIp(request.headers.get("x-forwarded-for"), config.trustedHops);
+  const address = trustedClientIp(request.headers.get("x-forwarded-for"), config.trustedHops, config.clientIpMode);
   // Platform health probes need no client identity and must not share auth rate buckets.
-  if (!health && config.trustedHops > 0 && !address) {
-    return Response.json({ error: { code: "invalid_proxy_chain", message: "Client address unavailable." } }, { status: 400 });
+  if (!health && !address) {
+    console.warn("Client address unavailable; forwarding without X-Real-IP.");
   }
   if (config.secret && address) {
     headers.set("x-real-ip", address);

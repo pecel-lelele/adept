@@ -12,10 +12,61 @@ from __future__ import annotations
 from datetime import date
 from unittest.mock import MagicMock, patch
 
+import pytest
 from fastapi.testclient import TestClient
 
 from app.contracts.trends import TrendSnapshotResponse
 from app.features.trends import repository
+
+
+@pytest.mark.parametrize("read_fails", [True, False])
+def test_freshness_discloses_database_failure_or_empty_database(
+    client: TestClient, read_fails: bool
+) -> None:
+    repository._reset_db_cache()
+    with (
+        patch.object(repository, "_get_connection", return_value=MagicMock()),
+        patch.object(
+            repository,
+            "_list_snapshot_dates_db",
+            side_effect=RuntimeError("synthetic outage") if read_fails else None,
+            return_value=[],
+        ),
+    ):
+        response = client.get("/api/v1/meta/data-freshness")
+        assert response.status_code == 200
+        assert response.json()["served_from"] == "fixture"
+        assert response.json()["is_fallback"] is True
+        assert response.json()["is_mock"] is True
+        snapshot = client.get("/api/v1/trends/snapshot").json()["meta"]
+        assert snapshot["served_from"] == "fixture"
+        assert snapshot["is_fallback"] is True
+
+
+def test_trend_consumers_preserve_fallback_metadata(client: TestClient) -> None:
+    from app.features.assistant.context import Context, _trends
+    from app.features.pathway import trend_port
+
+    repository._reset_db_cache()
+    trend_port.reset_cache()
+    try:
+        with patch.object(repository, "_get_connection", side_effect=OSError("synthetic outage")):
+            for path in (
+                "/trends/radar",
+                "/matches",
+                "/pathway?role_id=data-analyst",
+                "/scenarios/outlook",
+            ):
+                response = client.get(f"/api/v1{path}", headers={"X-Demo-User": "aisyah"})
+                assert response.status_code == 200, response.text
+                assert response.json()["meta"]["served_from"] == "fixture", path
+                assert response.json()["meta"]["is_fallback"] is True, path
+            ctx = Context(audience="learner")
+            _trends(ctx, "moderate", set())
+            assert ctx.meta is not None and ctx.meta.is_fallback
+    finally:
+        repository._reset_db_cache()
+        trend_port.reset_cache()
 
 
 def test_db_availability_recovers_after_short_ttl(client: TestClient) -> None:

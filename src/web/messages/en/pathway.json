@@ -179,7 +179,9 @@
     "choose": "Choose this role",
     "snapshot": "Trend snapshot {version}.",
     "seeMatches": "See your ranked matches",
-    "humanInCharge": "This comparison supports your decision; it does not rank or select roles for you."
+    "humanInCharge": "This comparison supports your decision; it does not rank or select roles for you.",
+    "emptyTitle": "No roles to compare yet",
+    "emptyHint": "Return to matches to choose a target role."
   },
   "badge": {
     "first": "First course done",

@@ -1,4 +1,7 @@
 {
+  "weightedTitle": "与 SDG 目标相关的计划学习时间",
+  "weightedHint": "按计划学习时间和技能映射加权的估计，并非联合国目标的实测进展。目标可能重叠，因此占比之和不一定为 100%。",
+  "hoursShare": "计划时间的 {share}%（{hours} 小时）",
   "title": "您的路径对 SDG 的贡献",
   "orgTitle": "贵机构的 SDG 贡献",
   "regionTitle": "{region} 的 SDG 贡献",

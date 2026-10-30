@@ -1,4 +1,9 @@
 {
+  "addSkillsNote": "Tambah kemahiran untuk padanan lebih tepat. Anggaran ini kini menggunakan minat dan isyarat trend anda; pertindihan kemahiran belum dikreditkan.",
+  "improvementsTitle": "Cara meningkatkan skor anda",
+  "scenarioDelta": "{delta} mata berbanding {scenario}",
+  "scoreGain": "Anggaran +{gain} mata skor apabila jurang ini ditutup",
+  "noClosingCourse": "Belum ada kursus katalog yang menutup jurang ini",
   "title": "Padanan peranan masa depan anda",
   "description": "Disusun mengikut skor yang boleh dijelaskan. Anda memilih peranan sasaran.",
   "score": "Padanan {score}",
@@ -36,5 +41,7 @@
   "readyNow": "Sedia sekarang",
   "readyNowHint": "Anda sudah memiliki sekurang-kurangnya {share}% tahap kemahiran yang diperlukan: pelan yang singkat boleh membawa anda ke sana.",
   "worthExploring": "Wajar diterokai",
-  "worthExploringHint": "Anda memiliki kurang daripada {share}% tahap kemahiran yang diperlukan hari ini: laluan lebih panjang, berbaloi jika peranan ini menarik minat anda."
+  "worthExploringHint": "Anda memiliki kurang daripada {share}% tahap kemahiran yang diperlukan hari ini: laluan lebih panjang, berbaloi jika peranan ini menarik minat anda.",
+  "emptyTitle": "Belum ada padanan untuk dipaparkan",
+  "emptyHint": "Semak kemahiran dan minat anda, kemudian cuba padankan lagi."
 }

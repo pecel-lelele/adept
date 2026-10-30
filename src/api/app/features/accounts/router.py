@@ -27,6 +27,11 @@ def login(body: LoginIn) -> SessionResponse:
     return service.login(body)
 
 
+@router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
+def logout(user: CurrentUserDep) -> None:
+    service.logout(user)
+
+
 @router.get("/me")
 def me(user: CurrentUserDep) -> Account:
     return service.me(user)

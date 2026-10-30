@@ -14,8 +14,10 @@ import {
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
-import { ApiError, Kpis, MetaBar, PageHeader } from "@/components";
+import { ErrorState, Kpis, MetaBar, PageHeader } from "@/components";
+import { journeyStepCount } from "@/config/navigation";
 import { Fold } from "@/components/Fold";
+import { HistoricalSnapshotBanner } from "@/components/HistoricalSnapshotBanner";
 import { CareerRoadmap, CertificationsCard, RoleOpeningsCard } from "@/features/jobs";
 import type { ScenarioId, Schemas } from "@/lib/api";
 
@@ -134,7 +136,8 @@ export async function PathwayView({
   const d = await getTranslations("common.design");
   const tp = await getTranslations("ui.page");
   const [result, status] = await Promise.all([fetchPathway(roleId, scenario, snapshotDate), fetchPlanStatus()]);
-  if (!result.ok) return <ApiError message={result.message} />;
+  const tm = await getTranslations("matching");
+  if (!result.ok) return <ErrorState failure={result} />;
   const saved = status.ok ? status.data.saved : null;
   // The saved plan is the one progress is tracked against; show it (not a fresh rebuild)
   // whenever it is for this role and scenario. Changes are offered by the re-plan banner.
@@ -145,7 +148,7 @@ export async function PathwayView({
 
   const action = snapshotDate ? (
     <Link href={`/app/pathway${query}`} className="a-btn is-ghost is-small">
-      {d("continue")} <ArrowUpRight size={15} aria-hidden />
+      {tm("viewLatestPathway")} <ArrowUpRight size={15} aria-hidden />
     </Link>
   ) : savedHere ? (
     <span className="a-chip" data-tone="up">
@@ -158,13 +161,14 @@ export async function PathwayView({
   return (
     <div className="a-view">
       <PageHeader
-        eyebrow={tp("stepOf", { step: 4 })}
+        eyebrow={tp("stepOf", { step: 4, total: journeyStepCount() })}
         title={plan.role_label || plan.role_id}
         description={`${t("totalWeeks", { weeks: plan.total_weeks })} · ${d("pathBody")}`}
         actions={action}
       >
         <MetaBar meta={plan.meta} />
       </PageHeader>
+      <HistoricalSnapshotBanner date={snapshotDate} latestHref={`/app/pathway${query}`} />
       {!savedHere && !snapshotDate ? <p className="a-notice" data-tone="info">{t("plan.decide")}</p> : null}
       {status.ok && savedHere ? <ReplanBanner status={status.data} /> : null}
       <Summary plan={plan} />

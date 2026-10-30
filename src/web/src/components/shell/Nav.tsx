@@ -233,9 +233,11 @@ export function TabBar({ ws, tools }: { ws: Workspace; tools: ReactNode }) {
             </div>
             <div className="a-sheet-row">
               {tools}
-              <a href="/auth/logout" className="a-link">
-                <LogOut size={16} aria-hidden /> {t("signOut")}
-              </a>
+              <form method="post" action="/auth/logout">
+                <button type="submit" className="a-link">
+                  <LogOut size={16} aria-hidden /> {t("signOut")}
+                </button>
+              </form>
             </div>
             <button
               type="button"

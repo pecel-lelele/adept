@@ -4,11 +4,14 @@ import { Download, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useActionState, useState } from "react";
 
+import { errorMessage } from "@/lib/api/error-message";
+
 import { deleteAccountAction, type AuthState } from "../auth-actions";
 
 /** "Your data": download everything stored about you, or delete the account for good. */
 export function AccountDataCard() {
   const t = useTranslations("ui.account");
+  const te = useTranslations("ui.apiErrors");
   const [open, setOpen] = useState(false);
   const [state, action, pending] = useActionState<AuthState, FormData>(deleteAccountAction, {});
   return (
@@ -39,7 +42,7 @@ export function AccountDataCard() {
           </label>
           {state.error ? (
             <p className="a-notice" data-tone="error" role="alert">
-              {state.error}
+              {errorMessage(te, state.error)}
             </p>
           ) : null}
           <button type="submit" className="a-btn is-dark is-small" disabled={pending}>

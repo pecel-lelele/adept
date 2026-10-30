@@ -2,7 +2,7 @@ import { ArrowUpRight, CircleCheck, ClipboardCheck, Inbox } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
-import { ApiError, Badge, EmptyState, Kpis, PageHeader } from "@/components";
+import { Badge, EmptyState, ErrorState, Kpis, PageHeader } from "@/components";
 import { call, getApi } from "@/lib/api";
 
 import { reviewCompletionAction } from "../actions";
@@ -30,7 +30,7 @@ export async function VerificationQueueView() {
         {t("verify.hrdHint")}
       </p>
       {!result.ok ? (
-        <ApiError message={result.message} />
+        <ErrorState failure={result} />
       ) : result.data.items.length === 0 ? (
         <EmptyState title={t("verify.empty")} />
       ) : (

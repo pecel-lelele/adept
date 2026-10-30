@@ -1,4 +1,7 @@
 {
+  "weightedTitle": "Jam pembelajaran dirancang yang berkait dengan sasaran SDG",
+  "weightedHint": "Anggaran berwajaran jam belajar dan pemetaan kemahiran, bukan kemajuan terukur ke arah sasaran PBB. Sasaran boleh bertindih; jumlah bahagian tidak semestinya 100%.",
+  "hoursShare": "{share}% jam dirancang ({hours} j)",
   "title": "Sumbangan laluan anda kepada SDG",
   "orgTitle": "Sumbangan SDG organisasi anda",
   "regionTitle": "Sumbangan SDG di {region}",

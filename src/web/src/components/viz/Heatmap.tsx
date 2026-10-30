@@ -2,10 +2,18 @@ export type HeatRow = { id: string; label: string; cells: { id: string; value: n
 
 function tone(value: number): { background: string; color: string } {
   const v = Math.max(0, Math.min(1, value));
-  if (v === 0) return { background: "#eef1e7", color: "#6b766e" };
+  if (v === 0) return { background: "#eef1e7", color: "#33443a" };
   // light peach -> brick as the share of the team missing the skill grows
   const l = 92 - v * 42;
-  return { background: `hsl(10 60% ${l}%)`, color: v > 0.55 ? "#fff" : "#5b2618" };
+  // Relative luminance of this HSL(10, 60%, l) cell. Choose the stronger WCAG contrast.
+  const chroma = (1 - Math.abs(2 * l / 100 - 1)) * 0.6;
+  const minimum = l / 100 - chroma / 2;
+  const linear = (channel: number): number =>
+    channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+  const luminance = 0.2126 * linear(minimum + chroma)
+    + 0.7152 * linear(minimum + chroma / 6) + 0.0722 * linear(minimum);
+  const color = (luminance + 0.05) / 0.05 >= 1.05 / (luminance + 0.05) ? "#000" : "#fff";
+  return { background: `hsl(10 60% ${l}%)`, color };
 }
 
 /** Roles × skills grid; each cell is the share of the team below the required level. */

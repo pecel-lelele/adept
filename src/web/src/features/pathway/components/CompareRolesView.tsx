@@ -2,7 +2,7 @@ import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
-import { ApiError, Badge, MetaBar, PageHeader, SdgBadge } from "@/components";
+import { Badge, EmptyState, ErrorState, MetaBar, PageHeader, SdgBadge } from "@/components";
 import type { ScenarioId, Schemas } from "@/lib/api";
 
 import { savePlanAction } from "../actions";
@@ -118,9 +118,14 @@ export async function CompareRolesView({
         {result.ok ? <MetaBar meta={result.data.meta} /> : null}
       </PageHeader>
       {!result.ok ? (
-        <ApiError message={result.message} />
+        <ErrorState failure={result} />
       ) : (
         <>
+          {result.data.options.length === 0 ? (
+            <EmptyState title={t("compare.emptyTitle")} description={t("compare.emptyHint")} action={
+              <Link href={`/app/matches?scenario=${scenario}`} className="a-btn is-small">{t("compare.seeMatches")}</Link>
+            } />
+          ) : null}
           <div className="a-grid a-options">
             {result.data.options.map((o) => (
               <div key={o.role_id} className="a-span-6">

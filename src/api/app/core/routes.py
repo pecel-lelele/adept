@@ -32,7 +32,9 @@ def data_freshness() -> DataFreshness:
         sources=[
             Source(name=s.name, url=s.url, retrieved_at=s.retrieved_at) for s in snap.meta.sources
         ],
-        is_mock=False,
+        is_mock=snap.meta.served_from == "fixture",
+        served_from=snap.meta.served_from,
+        is_fallback=snap.meta.is_fallback,
     )
 
 

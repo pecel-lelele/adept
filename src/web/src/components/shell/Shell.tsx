@@ -95,9 +95,11 @@ export async function Shell({
               <strong>{name}</strong>
               <small>{orgName ?? t(space)}</small>
             </span>
-            <a className="a-iconlink" href="/auth/logout" title={t("nav.signOut")} aria-label={t("nav.signOut")}>
-              <LogOut size={15} aria-hidden />
-            </a>
+            <form method="post" action="/auth/logout">
+              <button type="submit" className="a-iconlink" title={t("nav.signOut")} aria-label={t("nav.signOut")}>
+                <LogOut size={15} aria-hidden />
+              </button>
+            </form>
           </div>
           <LocaleSwitcher />
         </div>

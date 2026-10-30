@@ -39,7 +39,7 @@ export async function signupAction(_: AuthState, form: FormData): Promise<AuthSt
   const shareSkills = workspace === "individual" && Boolean(joinCode) && form.get("share_skills") === "on";
   if (joinCode && !shareSkills) {
     return {
-      error: "Consent to share your skill profile with the organisation is required when signing up with a join code.",
+      error: "sharing_consent_required",
       values: keep(form),
     };
   }
@@ -66,7 +66,7 @@ export async function signupAction(_: AuthState, form: FormData): Promise<AuthSt
       },
     }),
   );
-  if (!result.ok) return { error: result.message, values: keep(form) };
+  if (!result.ok) return { error: result.code, values: keep(form) };
   await setSessionToken(result.data.token);
   redirect(destination(text(form, "next", 300), result.data.next_path));
 }
@@ -81,23 +81,24 @@ export async function loginAction(_: AuthState, form: FormData): Promise<AuthSta
       },
     }),
   );
-  if (!result.ok) return { error: result.message, values: keep(form) };
+  if (!result.ok) return { error: result.code, values: keep(form) };
   await setSessionToken(result.data.token);
   redirect(destination(text(form, "next", 300), result.data.next_path));
 }
 
 export async function joinOrgAction(_: AuthState, form: FormData): Promise<AuthState> {
   const consent = form.get("consent") === "on";
-  if (!consent) {
-    return { error: "Please consent to join the organisation and share your profile.", values: keep(form) };
+  const shareSkills = form.get("share_skills") === "on";
+  if (!consent || !shareSkills) {
+    return { error: !consent ? "consent_required" : "sharing_consent_required", values: keep(form) };
   }
   const api = await getApi();
   const result = await call(
     api.POST("/api/v1/org/join", {
-      body: { code: text(form, "code", 16), share_skills: true, consent: true },
+      body: { code: text(form, "code", 16), share_skills: shareSkills, consent },
     }),
   );
-  if (!result.ok) return { error: result.message, values: keep(form) };
+  if (!result.ok) return { error: result.code, values: keep(form) };
   revalidatePath("/app", "layout");
   return { values: { joined: result.data.name, org_id: result.data.id } };
 }
@@ -110,10 +111,10 @@ export async function signOutAction(): Promise<void> {
 /** Permanently delete the signed-in account after the API re-checks the password. */
 export async function deleteAccountAction(_: AuthState, form: FormData): Promise<AuthState> {
   const password = typeof form.get("password") === "string" ? String(form.get("password")).slice(0, 128) : "";
-  if (form.get("confirm") !== "on") return { error: "Tick the box to confirm." };
+  if (form.get("confirm") !== "on") return { error: "confirmation_required" };
   const api = await getApi();
   const result = await call(api.POST("/api/v1/auth/me/delete", { body: { password } }));
-  if (!result.ok) return { error: result.message };
+  if (!result.ok) return { error: result.code };
   await clearSession();
   redirect("/?deleted=1");
 }

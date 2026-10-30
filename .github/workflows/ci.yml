@@ -101,11 +101,8 @@ jobs:
       - name: TypeScript
         run: pnpm typecheck
 
-      - name: Public proxy regressions
-        run: pnpm test:proxy
-
-      - name: Navigation regressions
-        run: node --experimental-strip-types --test tests/web-navigation.test.ts tests/web-api-recovery.test.ts tests/web-safe-redirect.test.ts
+      - name: Web component, proxy and navigation regressions
+        run: node --experimental-strip-types --test tests/web-*.test.ts
 
       # Stdlib-only script: no virtualenv needed.
       - name: Translation keys match English

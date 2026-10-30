@@ -124,7 +124,7 @@ def _meta(
             retrieved_at=oldest,
         )
     if snapshot:
-        snapshot_date = snapshot.source.retrieved_at
+        snapshot_date = snapshot.snapshot_date or snapshot.source.retrieved_at
     else:
         snapshot_date = min(s.retrieved_at for s in sources.values())
     return RecommendationMeta(
@@ -132,6 +132,8 @@ def _meta(
         snapshot_date=snapshot_date,
         scenario=scenario,
         is_estimate=True,
+        served_from=snapshot.served_from if snapshot else None,
+        is_fallback=snapshot.is_fallback if snapshot else False,
     )
 
 
@@ -494,10 +496,12 @@ def evidenced_levels(user_id: str) -> dict[str, int]:
     return evidenced_levels_many([user_id])[user_id]
 
 
-def evidenced_levels_many(user_ids: list[str]) -> dict[str, dict[str, int]]:
+def evidenced_levels_many(
+    user_ids: list[str], scopes: list[str] | None = None
+) -> dict[str, dict[str, int]]:
     """All requested learners' accepted levels, with one batch read regardless of history."""
     out: dict[str, dict[str, int]] = {uid: {} for uid in user_ids}
-    for row in repository.learning_records(user_ids):
+    for row in repository.learning_records(user_ids, scopes):
         if row.status != "completed" or row.course is None:
             continue
         if verification.evidence_strength(row.evidence) not in EARNED_EVIDENCE:

@@ -6,6 +6,8 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useActionState, useState } from "react";
 
+import { errorMessage } from "@/lib/api/error-message";
+
 import { BrandMark } from "@/components/shell/Brand";
 import { FeatureArt } from "@/components/viz/FeatureArt";
 import { OrgScene } from "@/components/viz/OrgScene";
@@ -18,6 +20,7 @@ type Page = "login" | "signup";
 /** Real sign-up and sign-in. Every account and organisation is stored in PostgreSQL. */
 export function AuthView() {
   const t = useTranslations("ui.auth");
+  const te = useTranslations("ui.apiErrors");
   const params = useSearchParams();
   const next = params.get("next") ?? "";
   // Rendered by the shared (entry) layout, so it stays mounted between /auth/login and
@@ -233,7 +236,7 @@ export function AuthView() {
             ) : null}
             {state.error && (state.values?._page ?? page) === page ? (
               <p className="a-notice" data-tone="error" role="alert">
-                {state.error}
+                {errorMessage(te, state.error)}
               </p>
             ) : null}
             <button className="a-btn is-block" type="submit" disabled={pending} aria-busy={pending}>

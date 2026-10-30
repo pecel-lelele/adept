@@ -125,10 +125,7 @@ def test_role_badges_equal_sdg_service_output(client: TestClient) -> None:
     for role_id in ("data-analyst", "ai-operations-specialist"):
         assert role_id in matches, f"Role {role_id} missing from matches"
         match_sdgs = matches[role_id]["sdg_targets"]
-        expected_sdgs = [
-            {"goal": t.goal, "target": t.target, "label": t.label}
-            for t in sdg_service.role_badges(role_id)
-        ]
+        expected_sdgs = [t.model_dump(mode="json") for t in sdg_service.role_badges(role_id)]
 
         assert match_sdgs == expected_sdgs, (
             f"SDG targets mismatch for {role_id}:\n"

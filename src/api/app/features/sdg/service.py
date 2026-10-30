@@ -31,6 +31,7 @@ from app.contracts.sdg import (
     SdgLink,
     SdgScope,
     SdgTarget,
+    TargetContribution,
 )
 from app.core.auth import CurrentUser
 from app.core.errors import NotFoundError
@@ -155,8 +156,11 @@ def plan_links(plan: Pathway) -> list[SdgLink]:
 
 def links_for_plan(plan: Pathway) -> list[SdgLink]:
     links = repository.role_links(plan.role_id)
-    for step in plan.steps:
-        links += repository.skill_links(step.skill_id)
+    skills = {step.skill_id for step in plan.steps} | {
+        skill for step in plan.steps for course in step.courses for skill in course.skill_ids
+    }
+    for skill in sorted(skills):
+        links += repository.skill_links(skill)
     return links + plan_links(plan)
 
 
@@ -195,25 +199,74 @@ def contribution_for_plans(
     """plans: person id -> that person's plan (or their part of a group plan)."""
     links: list[SdgLink] = []
     contributors: dict[int, set[str]] = {}
+    target_hours: dict[str, float] = {}
+    goal_hours: dict[int, float] = {}
+    total_hours = 0.0
+    known = repository.targets()
     for person, plan in plans.items():
         mine = links_for_plan(plan)
         links += mine
         for link in mine:
             contributors.setdefault(link.target.goal, set()).add(person)
+        for step in plan.steps:
+            hours = step.est_hours
+            total_hours += hours
+            skills = {step.skill_id} | {
+                skill for course in step.courses for skill in course.skill_ids
+            }
+            targets = {
+                link.target.target for skill in skills for link in repository.skill_links(skill)
+            }
+            for target in targets:
+                target_hours[target] = target_hours.get(target, 0) + hours
+            for goal in {known[target].goal for target in targets}:
+                goal_hours[goal] = goal_hours.get(goal, 0) + hours
     unique = _dedupe(links)
     meta = _meta(scenario, is_estimate=True)
     plan_sources = [s for p in plans.values() for s in p.meta.sources]
     for src in plan_sources:
         if src.name not in {s.name for s in meta.sources}:
             meta.sources.append(src)
+    if plans:
+        fallback = any(plan.meta.is_fallback for plan in plans.values())
+        served_from = {plan.meta.served_from for plan in plans.values()}
+        meta = meta.model_copy(
+            update={
+                "snapshot_date": min(plan.meta.snapshot_date for plan in plans.values()),
+                "is_fallback": fallback,
+                "served_from": "fixture"
+                if "fixture" in served_from
+                else "db"
+                if served_from == {"db"}
+                else None,
+            }
+        )
     role_ids = sorted({p.role_id for p in plans.values()})
+    summaries = [
+        goal.model_copy(
+            update={
+                "planned_hours": goal_hours.get(goal.goal, 0),
+                "hours_share": min(1.0, goal_hours.get(goal.goal, 0) / total_hours)
+                if total_hours
+                else 0,
+            }
+        )
+        for goal in summarise(unique, contributors if scope != "person" else None)
+    ]
     return SdgContribution(
-        goals_summary=summarise(unique, contributors if scope != "person" else None),
+        goals_summary=summaries,
         links=unique,
         meta=meta,
         scope=scope,
         scope_id=scope_id,
         role_ids=role_ids,
+        target_contributions=[
+            TargetContribution(
+                target=known[target], planned_hours=hours, hours_share=min(1.0, hours / total_hours)
+            )
+            for target, hours in sorted(target_hours.items(), key=lambda item: (-item[1], item[0]))
+            if hours > 0 and total_hours > 0
+        ],
     )
 
 

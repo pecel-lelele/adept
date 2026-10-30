@@ -68,7 +68,12 @@ def _links(table: str, key: str, entity_id: str, via: str) -> list[SdgLink]:
         strength: SdgStrength = "direct" if r.get("strength") == "direct" else "enabling"
         out.append(
             SdgLink(
-                target=known[r["sdg_target_id"]],
+                target=known[r["sdg_target_id"]].model_copy(
+                    update={
+                        "reason": r["reason"],
+                        "strength": strength,
+                    }
+                ),
                 reason=r["reason"],
                 strength=strength,
                 via=f"{via}:{entity_id}",

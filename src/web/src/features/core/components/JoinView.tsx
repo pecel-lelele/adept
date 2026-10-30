@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useActionState } from "react";
 
+import { errorMessage } from "@/lib/api/error-message";
+
 import { joinOrgAction, type AuthState } from "../auth-actions";
 
 /**
@@ -13,6 +15,7 @@ import { joinOrgAction, type AuthState } from "../auth-actions";
  */
 export function JoinView({ code = "" }: { code?: string }) {
   const t = useTranslations("ui.join");
+  const te = useTranslations("ui.apiErrors");
   const tp = useTranslations("ui.page");
   const [state, action, pending] = useActionState<AuthState, FormData>(joinOrgAction, {});
   const joined = state.values?.joined;
@@ -73,9 +76,16 @@ export function JoinView({ code = "" }: { code?: string }) {
                   <small>{t("consentHint")}</small>
                 </span>
               </label>
+              <label className="a-check">
+                <input type="checkbox" name="share_skills" required defaultChecked={state.values?.share_skills === "on"} />
+                <span>
+                  <strong>{t("shareSkills")}</strong>
+                  <small>{t("shareSkillsHint")}</small>
+                </span>
+              </label>
               {state.error ? (
                 <p className="a-notice" data-tone="error" role="alert">
-                  {state.error}
+                  {errorMessage(te, state.error)}
                 </p>
               ) : null}
               <button className="a-btn is-block" disabled={pending}>
@@ -102,15 +112,12 @@ export function JoinView({ code = "" }: { code?: string }) {
         </aside>
       </div>
       {!joined ? (
-        <p className="a-small a-muted" style={{ marginTop: "1.5rem", textAlign: "center" }}>
+        <form method="post" action="/auth/logout?next=%2Fauth%2Fsignup%3Fmode%3Dorganisation%26role%3Dteam" className="a-small a-muted" style={{ marginTop: "1.5rem", textAlign: "center" }}>
           {t("teamAccountPrompt")}{" "}
-          <Link
-            className="a-link"
-            href="/auth/logout?next=/auth/signup?mode=organisation%26role=team"
-          >
+          <button type="submit" className="a-link">
             {t("teamAccountCta")}
-          </Link>
-        </p>
+          </button>
+        </form>
       ) : null}
     </div>
   );

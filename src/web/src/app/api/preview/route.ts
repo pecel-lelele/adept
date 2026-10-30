@@ -3,7 +3,7 @@ import { trustedClientIp } from "@/lib/api/proxy";
 import { proxyConfig } from "@/lib/api/proxy-config";
 
 const MAX_BYTES = 5 * 1024 * 1024;
-const { secret: PROXY_SECRET, trustedHops: TRUSTED_PROXY_HOPS } = proxyConfig();
+const { secret: PROXY_SECRET, trustedHops: TRUSTED_PROXY_HOPS, clientIpMode } = proxyConfig();
 
 /** Anonymous CV preview from the landing page, relayed to the API from this origin only. */
 export async function POST(request: Request) {
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
       );
     // Rate limits apply per visitor, not per web server: forward the client address.
     const headers: Record<string, string> = {};
-    const ip = trustedClientIp(request.headers.get("x-forwarded-for"), TRUSTED_PROXY_HOPS);
+    const ip = trustedClientIp(request.headers.get("x-forwarded-for"), TRUSTED_PROXY_HOPS, clientIpMode);
     if (PROXY_SECRET && ip) {
       headers["X-Real-IP"] = ip;
       headers["X-Internal-Proxy-Secret"] = PROXY_SECRET;

@@ -10,8 +10,8 @@ export type NavItem = {
   key: NavKey;
   href: string;
   icon: IconName;
-  /** Handbook journey step (1-4). */
-  step?: 1 | 2 | 3 | 4;
+  /** Journey stage: six for learners, four for organisations. */
+  step?: 1 | 2 | 3 | 4 | 5 | 6;
   /** Pages that show the AI-scenario switch. */
   scenario?: boolean;
 };
@@ -32,9 +32,9 @@ const learnerItems = {
   radar: { key: "radar", href: "/app/radar", icon: "radar", step: 2, scenario: true },
   roles: { key: "roles", href: "/app/matches", icon: "roles", step: 3, scenario: true },
   plan: { key: "plan", href: "/app/pathway", icon: "plan", step: 4, scenario: true },
-  progress: { key: "progress", href: "/app/progress", icon: "progress", scenario: true },
+  progress: { key: "progress", href: "/app/progress", icon: "progress", step: 5, scenario: true },
   courses: { key: "courses", href: "/app/courses", icon: "courses" },
-  impact: { key: "impact", href: "/app/sdg", icon: "impact", scenario: true },
+  impact: { key: "impact", href: "/app/sdg", icon: "impact", step: 6, scenario: true },
   jobs: { key: "jobs", href: "/app/jobs", icon: "jobs", scenario: true },
 } satisfies Record<string, NavItem>;
 
@@ -44,9 +44,9 @@ export const learnerWorkspace: Workspace = {
   groups: [
     {
       label: "journey",
-      items: [learnerItems.home, learnerItems.skills, learnerItems.radar, learnerItems.roles, learnerItems.plan],
+      items: [learnerItems.home, learnerItems.skills, learnerItems.radar, learnerItems.roles, learnerItems.plan, learnerItems.progress, learnerItems.impact],
     },
-    { label: "track", items: [learnerItems.progress, learnerItems.jobs, learnerItems.courses, learnerItems.impact] },
+    { label: "track", items: [learnerItems.jobs, learnerItems.courses] },
   ],
   tabs: ["home", "radar", "roles", "plan"],
 };
@@ -118,6 +118,10 @@ export const adminWorkspace: Workspace = {
 
 export function allItems(ws: Workspace): NavItem[] {
   return ws.groups.flatMap((g) => g.items);
+}
+
+export function journeyStepCount(ws: Workspace = learnerWorkspace): number {
+  return allItems(ws).filter((item) => item.step !== undefined).length;
 }
 
 /** The nav item a pathname belongs to (longest matching prefix wins). */

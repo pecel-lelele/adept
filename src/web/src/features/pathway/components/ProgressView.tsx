@@ -1,7 +1,8 @@
 import { ArrowUpRight, Award, BookOpen, Building2, Check, Layers, ShieldCheck, Target } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
-import { ApiError, Kpis, MetaBar, PageHeader } from "@/components";
+import { ErrorState, Kpis, MetaBar, PageHeader } from "@/components";
+import { journeyStepCount } from "@/config/navigation";
 import type { ScenarioId } from "@/lib/api";
 
 import { shareCompletionAction, submitEvidenceAction, updateProgressAction } from "../actions";
@@ -29,7 +30,7 @@ export async function ProgressView({
   const d = await getTranslations("common.design");
   const tp = await getTranslations("ui.page");
   const progress = await fetchProgress(roleId, scenario);
-  if (!progress.ok) return <ApiError message={progress.message} />;
+  if (!progress.ok) return <ErrorState failure={progress} />;
   const p = progress.data;
   const isWork = p.workspace !== "personal";
   const elsewhere = p.completed_elsewhere ?? {};
@@ -54,7 +55,7 @@ export async function ProgressView({
   return (
     <div className="a-view">
       <PageHeader
-        eyebrow={p.pathway.role_label || d("progress")}
+        eyebrow={isWork ? p.pathway.role_label || d("progress") : tp("stepOf", { step: 5, total: journeyStepCount() })}
         title={isWork ? tw("progressTitle") : t("progressTitle")}
         description={isWork ? tw("progressDesc", { org: orgName ?? "" }) : tp("progressDesc")}
       >

@@ -1,7 +1,7 @@
 import { Check, ShieldCheck, X } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
-import { ApiError, Badge } from "@/components";
+import { Badge, ErrorState } from "@/components";
 import { SiteFooter, SiteHeader } from "@/components/shell/Site";
 import { call, getApi } from "@/lib/api";
 
@@ -28,9 +28,10 @@ export async function AboutView() {
           <section className="a-card">
             <h2>{t("llmTitle")}</h2>
             {!disclosure.ok ? (
-              <ApiError message={disclosure.message} />
+              <ErrorState failure={disclosure} />
             ) : (
               <>
+                <p>{t("llmSummary")}</p>
                 <p>
                   {disclosure.data.llm_enabled
                     ? t("llmProvider", { provider: disclosure.data.provider, model: disclosure.data.model })
@@ -63,10 +64,26 @@ export async function AboutView() {
             </section>
           ) : null}
 
+          {disclosure.ok ? (
+            <section className="a-card is-wide">
+              <h2>{t("registryTitle")}</h2>
+              <div className="a-source-rows">
+                {disclosure.data.registry.map((entry) => (
+                  <div key={entry.id}>
+                    <a href={entry.url} className="a-link" target="_blank" rel="noreferrer">
+                      {entry.name}
+                    </a>
+                    <small>{t(`registryPurpose.${entry.id}`)}</small>
+                  </div>
+                ))}
+              </div>
+            </section>
+          ) : null}
+
           <section className="a-card is-wide">
             <h2>{t("sourcesTitle")}</h2>
             {!sources.ok ? (
-              <ApiError message={sources.message} />
+              <ErrorState failure={sources} />
             ) : (
               <div className="a-source-rows">
                 {sources.data.sources.map((s) => (
@@ -94,7 +111,7 @@ export async function AboutView() {
           <section className="a-card">
             <h2>{t("fairnessTitle")}</h2>
             {!fairness.ok ? (
-              <ApiError message={fairness.message} />
+              <ErrorState failure={fairness} />
             ) : (
               <>
                 <Badge variant={fairness.data.passed ? "success" : "danger"}>

@@ -370,6 +370,8 @@ def _load_snapshot_db(
             observed_to=observed_to,
             scenario=scenario,  # type: ignore[arg-type]
             is_estimate=True,
+            served_from="db",
+            is_fallback=False,
             weights={"research_velocity": 0.6, "labor_decay": 0.4},
             labor_decay_is_static=True,
             available_snapshots=all_dates,

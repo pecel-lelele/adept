@@ -2,7 +2,7 @@
 
 Rules tested:
 1. No HTTP library (httpx / requests) is ever called during a match request.
-2. A slow snapshot getter (sleeps past the timeout) returns 503 quickly.
+2. A slow snapshot getter (sleeps past the timeout) serves a disclosed fallback quickly.
 3. 30 concurrent match requests with a fake getter all complete without deadlock.
 """
 
@@ -67,7 +67,7 @@ def test_no_http_call_during_match_request(client: TestClient) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Test 2: Slow snapshot getter times out and returns 503 quickly
+# Test 2: Slow snapshot getter times out and serves a disclosed fallback quickly
 # ---------------------------------------------------------------------------
 
 _TIMEOUT_S = 2.0  # must match SNAPSHOT_TIMEOUT_S in trend_port.py
@@ -84,8 +84,10 @@ def _slow_trends_get_snapshot(snapshot_date, scenario, strict=False):  # noqa: A
     _SLOW_FINISHED.set()
 
 
-def test_slow_snapshot_returns_503_quickly(client: TestClient, strict_matching: None) -> None:
-    """A snapshot getter that sleeps past the timeout must cause a 503 within
+def test_slow_snapshot_returns_disclosed_fallback_quickly(
+    client: TestClient, strict_matching: None
+) -> None:
+    """A snapshot getter that sleeps past the timeout must serve a disclosed fallback within
     SNAPSHOT_TIMEOUT_S + a small buffer, not hang the server.
     """
     _SLOW_RELEASE.clear()
@@ -100,12 +102,14 @@ def test_slow_snapshot_returns_503_quickly(client: TestClient, strict_matching: 
 
     _SLOW_RELEASE.set()
     assert _SLOW_FINISHED.wait(timeout=1)
-    assert resp.status_code == 503, f"Expected 503 on timeout, got {resp.status_code}: {resp.text}"
+    assert resp.status_code == 200, resp.text
     assert elapsed < _FAST_DEADLINE, (
         f"Request took {elapsed:.2f}s — should have timed out in ~{_TIMEOUT_S}s"
     )
     body = resp.json()
-    assert body["error"]["code"] == "trend_unavailable"
+    assert body["meta"]["is_fallback"] is True
+    assert body["meta"]["served_from"] == "fixture"
+    assert body["meta"]["snapshot_date"] == str(trends_mocks.AVAILABLE_MOCK_DATES[-1])
 
 
 # ---------------------------------------------------------------------------
@@ -188,7 +192,9 @@ def test_timed_out_read_does_not_block_other_requests(strict_matching: None) -> 
             release.set()
 
 
-def test_m1_strict_timeout_maps_to_matching_503(client: TestClient, strict_matching: None) -> None:
+def test_m1_strict_failure_uses_shared_serving_fallback(
+    client: TestClient, strict_matching: None
+) -> None:
     from app.features.trends import repository as trends_repository
 
     unavailable_error = trends_repository.TrendsUnavailableError
@@ -200,8 +206,9 @@ def test_m1_strict_timeout_maps_to_matching_503(client: TestClient, strict_match
     with patch("app.features.trends.service.get_snapshot", side_effect=fail_closed):
         response = client.get("/api/v1/matches", params={"scenario": "moderate"})
 
-    assert response.status_code == 503, response.text
-    assert response.json()["error"]["code"] == "trend_unavailable"
+    assert response.status_code == 200, response.text
+    assert response.json()["meta"]["is_fallback"] is True
+    assert response.json()["meta"]["served_from"] == "fixture"
 
 
 def test_identical_reads_are_shared() -> None:

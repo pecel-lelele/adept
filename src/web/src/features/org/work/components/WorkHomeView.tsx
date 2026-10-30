@@ -2,7 +2,7 @@ import { ArrowRight, Building2, CalendarClock, ClipboardCheck, EyeOff, Share2 } 
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
-import { ApiError, Kpis, PageHeader } from "@/components";
+import { ErrorState, Kpis, PageHeader } from "@/components";
 import type { WorkspaceOption } from "@/lib/auth/workspaces";
 
 import { byStatus, fetchMyProgrammes } from "../api";
@@ -11,7 +11,7 @@ import { byStatus, fetchMyProgrammes } from "../api";
 export async function WorkHomeView({ org }: { org: WorkspaceOption }) {
   const t = await getTranslations("org.work");
   const result = await fetchMyProgrammes();
-  if (!result.ok) return <ApiError message={result.message} />;
+  if (!result.ok) return <ErrorState failure={result} />;
   const { pending, accepted } = byStatus(result.data.assignments);
   return (
     <div className="a-view">

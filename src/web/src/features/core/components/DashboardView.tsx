@@ -3,7 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
-import { Kpis, MetaBar } from "@/components";
+import { EstimateLabel, Kpis, MetaBar } from "@/components";
 import { ErrorState } from "@/components/ErrorState";
 import { ScoreBar, SdgTiles, StepTrack, TrendBars, type TrackStep, type TrendBar } from "@/components/viz";
 import { fetchMatches } from "@/features/matching/api";
@@ -73,15 +73,17 @@ export async function DashboardView({ scenario, query }: { scenario: ScenarioId;
     };
   }
 
-  // The four journey steps, done in order.
+  // Six journey stages. Reviewing impact has no stored completion event.
   const complete = p ? p.percent_complete >= 1 : false;
-  const journeyDone = [Boolean(profile.ok && profile.data.skills.length), Boolean(saved), Boolean(saved), complete];
+  const journeyDone = [Boolean(profile.ok && profile.data.skills.length), Boolean(saved), Boolean(saved), complete, complete, false];
   const firstOpen = journeyDone.findIndex((d) => !d);
   const journey = [
     { key: "jSkills", to: "/app/profile" },
     { key: "jRadar", to: href("/app/radar") },
     { key: "jRoles", to: href("/app/matches") },
     { key: "jPlan", to: saved ? `/app/pathway${planQuery}` : href("/app/matches") },
+    { key: "jProgress", to: href("/app/progress") },
+    { key: "jImpact", to: href("/app/sdg") },
   ] as const;
 
   // The learner's own skills on the radar: rising right, declining left.
@@ -163,7 +165,7 @@ export async function DashboardView({ scenario, query }: { scenario: ScenarioId;
         items={[
           {
             label: tp("kBestFit"),
-            value: best ? `${Math.round(best.score * 100)}%` : "—",
+            value: best ? <>{Math.round(best.score * 100)}% <EstimateLabel scenario={scenario} /></> : "—",
             icon: <Compass size={15} />,
             note: best ? best.label : tp("kNone"),
           },
@@ -212,6 +214,7 @@ export async function DashboardView({ scenario, query }: { scenario: ScenarioId;
                       <small>{t("gaps", { count: m.missing_skills.length + m.partial_skills.length })}</small>
                     </span>
                     <ScoreBar value={m.score} label={t("fit")} />
+                    <EstimateLabel scenario={scenario} />
                   </Link>
                 </li>
               ))}

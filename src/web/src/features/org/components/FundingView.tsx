@@ -3,7 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
-import { ApiError, PageHeader } from "@/components";
+import { ErrorState, PageHeader } from "@/components";
 import { ActionForm } from "@/features/pathway/components/ActionForm";
 import { call, getApi } from "@/lib/api";
 
@@ -18,7 +18,7 @@ export async function FundingView({ year = currentBudgetYear() }: { year?: numbe
   const t = await getTranslations("org.funding");
   const api = await getApi();
   const result = await call(api.GET("/api/v1/org/funding/{year}", { params: { path: { year } } }));
-  if (!result.ok) return <ApiError message={result.message} />;
+  if (!result.ok) return <ErrorState failure={result} />;
   const ledger = result.data;
   if (!ledger.manager) redirect("/work/plan");
   const names = await call(api.GET("/api/v1/org/members"));

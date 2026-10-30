@@ -153,6 +153,65 @@
         }
       }
     },
+    "/api/v1/auth/logout": {
+      "post": {
+        "tags": [
+          "accounts"
+        ],
+        "summary": "Logout",
+        "operationId": "accounts_logout",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/auth/me": {
       "get": {
         "tags": [
@@ -5648,6 +5707,23 @@
               "default": "moderate",
               "title": "Scenario"
             }
+          },
+          {
+            "name": "snapshot_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Snapshot Date"
+            }
           }
         ],
         "responses": {
@@ -6952,13 +7028,27 @@
           "is_mock": {
             "type": "boolean",
             "title": "Is Mock"
+          },
+          "served_from": {
+            "type": "string",
+            "enum": [
+              "db",
+              "fixture"
+            ],
+            "title": "Served From"
+          },
+          "is_fallback": {
+            "type": "boolean",
+            "title": "Is Fallback"
           }
         },
         "type": "object",
         "required": [
           "snapshot_date",
           "sources",
-          "is_mock"
+          "is_mock",
+          "served_from",
+          "is_fallback"
         ],
         "title": "DataFreshness"
       },
@@ -7047,7 +7137,7 @@
           "provider": {
             "type": "string",
             "title": "Provider",
-            "description": "Configured LLM provider ('none' = no model is used)."
+            "description": "Configured Adi provider ('none' = built-in Adi guide)."
           },
           "model": {
             "type": "string",
@@ -7059,6 +7149,13 @@
             },
             "type": "array",
             "title": "Purpose"
+          },
+          "registry": {
+            "items": {
+              "$ref": "#/components/schemas/RegisterEntry"
+            },
+            "type": "array",
+            "title": "Registry"
           },
           "rules": {
             "items": {
@@ -7085,6 +7182,7 @@
           "provider",
           "model",
           "purpose",
+          "registry",
           "rules",
           "calls_logged",
           "rejected_ids"
@@ -7654,6 +7752,19 @@
             "title": "Contributors",
             "description": "People whose plan links to this goal.",
             "default": 0
+          },
+          "planned_hours": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Planned Hours",
+            "default": 0
+          },
+          "hours_share": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Hours Share",
+            "default": 0
           }
         },
         "type": "object",
@@ -8047,19 +8158,19 @@
           "consent": {
             "type": "boolean",
             "title": "Consent",
-            "description": "Explicit consent to join and share the skills profile with managers. Required: a join without it is refused (M4-055).",
+            "description": "Explicit consent to join this organisation. Required: a join without it is refused (M4-055).",
             "default": false
           },
           "share_skills": {
             "type": "boolean",
             "title": "Share Skills",
-            "description": "Share skill levels with this organisation's managers.",
-            "default": true
+            "description": "Explicit consent to share skill levels with this organisation's managers."
           }
         },
         "type": "object",
         "required": [
-          "code"
+          "code",
+          "share_skills"
         ],
         "title": "JoinOrgIn",
         "description": "A signed-in learner joins an organisation with the code their manager shared."
@@ -9953,6 +10064,26 @@
             "title": "Is Estimate",
             "default": true
           },
+          "served_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "db",
+                  "fixture"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Served From"
+          },
+          "is_fallback": {
+            "type": "boolean",
+            "title": "Is Fallback",
+            "default": false
+          },
           "observed_from": {
             "anyOf": [
               {
@@ -10004,6 +10135,45 @@
           "regions"
         ],
         "title": "RegionListResponse"
+      },
+      "RegisterEntry": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "enum": [
+              "minilm",
+              "glm",
+              "gemini",
+              "embeddings",
+              "arxiv",
+              "bls",
+              "onet",
+              "jobs",
+              "mscert",
+              "awscert",
+              "googlecert",
+              "iibacert",
+              "iappcert",
+              "bnm"
+            ],
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "url"
+        ],
+        "title": "RegisterEntry"
       },
       "ReplanStatus": {
         "properties": {
@@ -10083,19 +10253,19 @@
           "position_before": {
             "type": "number",
             "title": "Position Before",
-            "description": "Percentile of the skill's velocity among all skills, earlier snapshot.",
+            "description": "Skill velocity on the shared min-max scale, earlier snapshot.",
             "default": 0.0
           },
           "position_after": {
             "type": "number",
             "title": "Position After",
-            "description": "Percentile of the skill's velocity among all skills, later snapshot.",
+            "description": "Skill velocity on the shared min-max scale, later snapshot.",
             "default": 0.0
           },
           "effect": {
             "type": "number",
             "title": "Effect",
-            "description": "Score points this skill moved the role: change in its percentile position times its share of the role's importance times the trend weight; > 0 pushed up."
+            "description": "Score points this skill moved the role: change on the shared min-max scale times its share of the role's importance times the trend weight; > 0 pushed up."
           }
         },
         "type": "object",
@@ -10322,6 +10492,26 @@
             },
             "type": "array",
             "title": "Sdg Targets"
+          },
+          "improvements": {
+            "items": {
+              "$ref": "#/components/schemas/ScoreImprovement"
+            },
+            "type": "array",
+            "title": "Improvements"
+          },
+          "profile_note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "add_skills"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Note",
+            "description": "A sparse-profile notice; translate the code for display."
           },
           "trend_coverage": {
             "anyOf": [
@@ -10952,6 +11142,64 @@
         ],
         "title": "ScoreComponent"
       },
+      "ScoreImprovement": {
+        "properties": {
+          "skill": {
+            "type": "string",
+            "title": "Skill"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "score_gain": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Score Gain"
+          },
+          "course_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Course Id"
+          },
+          "course_title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Course Title"
+          },
+          "course_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Course Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "skill",
+          "label",
+          "score_gain"
+        ],
+        "title": "ScoreImprovement"
+      },
       "SdgAlignment": {
         "properties": {
           "role_id": {
@@ -11038,6 +11286,13 @@
             },
             "type": "array",
             "title": "Role Ids"
+          },
+          "target_contributions": {
+            "items": {
+              "$ref": "#/components/schemas/TargetContribution"
+            },
+            "type": "array",
+            "title": "Target Contributions"
           }
         },
         "type": "object",
@@ -11204,6 +11459,33 @@
           "label": {
             "type": "string",
             "title": "Label"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "strength": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "direct",
+                  "enabling"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Strength"
           }
         },
         "type": "object",
@@ -12034,6 +12316,32 @@
         "title": "SyncReport",
         "description": "Result of refreshing reference data from its live source."
       },
+      "TargetContribution": {
+        "properties": {
+          "target": {
+            "$ref": "#/components/schemas/SdgTarget"
+          },
+          "planned_hours": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Planned Hours"
+          },
+          "hours_share": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Hours Share",
+            "description": "Share of planned learning hours linked to this target; not measured SDG impact. Targets may overlap."
+          }
+        },
+        "type": "object",
+        "required": [
+          "target",
+          "planned_hours",
+          "hours_share"
+        ],
+        "title": "TargetContribution"
+      },
       "TeamPackage": {
         "properties": {
           "kind": {
@@ -12243,6 +12551,20 @@
             "type": "boolean",
             "title": "Is Estimate",
             "default": true
+          },
+          "served_from": {
+            "type": "string",
+            "enum": [
+              "db",
+              "fixture"
+            ],
+            "title": "Served From",
+            "default": "db"
+          },
+          "is_fallback": {
+            "type": "boolean",
+            "title": "Is Fallback",
+            "default": false
           },
           "weights": {
             "additionalProperties": {

@@ -1,5 +1,10 @@
 {
   "title": "Your future-role matches",
+  "addSkillsNote": "Add skills for a sharper match. This estimate currently uses your interests and trend signals; no skill overlap is credited yet.",
+  "improvementsTitle": "What would raise your score",
+  "scenarioDelta": "{delta} points vs {scenario}",
+  "scoreGain": "Estimated +{gain} score points when this gap is closed",
+  "noClosingCourse": "No catalogue course closes this gap yet",
   "description": "Ranked by an explainable score. You choose the target role.",
   "score": "Match {score}",
   "missing": "Missing skills",
@@ -36,5 +41,7 @@
   "readyNow": "Ready now",
   "readyNowHint": "You already hold at least {share}% of these roles' required skill levels: a short plan can get you there.",
   "worthExploring": "Worth exploring",
-  "worthExploringHint": "You hold less than {share}% of the required skill levels today: a longer pathway, worth it if the role excites you."
+  "worthExploringHint": "You hold less than {share}% of the required skill levels today: a longer pathway, worth it if the role excites you.",
+  "emptyTitle": "No matches to show yet",
+  "emptyHint": "Review your skills and interests, then try matching again."
 }

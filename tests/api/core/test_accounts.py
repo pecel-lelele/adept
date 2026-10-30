@@ -1,5 +1,6 @@
 """Local accounts: sign-up, sign-in, signed sessions, organisation join codes."""
 
+import time
 import uuid
 
 import pytest
@@ -38,6 +39,42 @@ def test_signup_then_login_returns_a_working_session(client: TestClient) -> None
     assert me.json()["id"] == created["account"]["id"]
 
 
+def test_post_logout_revokes_existing_sessions_and_allows_a_fresh_login(client: TestClient) -> None:
+    created = _signup(client)
+    other = _signup(client)
+    earlier = session.issue(created["account"]["id"], now=time.time() - 10)
+    token = created["token"]
+    assert session.verify(earlier) == created["account"]["id"]
+    assert client.get("/api/v1/auth/logout").status_code == 405
+    assert client.post("/api/v1/auth/logout", headers={"X-Demo-User": token}).status_code == 204
+    for old in (token, earlier):
+        assert session.verify(old) is None
+        assert client.get("/api/v1/auth/me", headers={"X-Demo-User": old}).status_code == 401
+    assert session.verify(other["token"]) == other["account"]["id"]
+    login = client.post(
+        "/api/v1/auth/login", json={"email": created["email"], "password": created["password"]}
+    )
+    assert login.status_code == 200
+    assert session.verify(login.json()["token"]) == created["account"]["id"]
+
+
+def test_session_check_outage_fails_closed_in_the_rate_limiter(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from app.core import accounts
+    from app.core.refdata import StorageUnavailableError
+
+    token = _signup(client)["token"]
+
+    def unavailable(_: str) -> None:
+        raise StorageUnavailableError("could not check your session")
+
+    monkeypatch.setattr(accounts, "session_version", unavailable)
+    response = client.get("/api/v1/auth/me", headers={"X-Demo-User": token})
+    assert response.status_code == 503
+    assert response.json()["error"]["code"] == "storage_unavailable"
+
+
 def test_wrong_password_and_duplicate_email_are_rejected(client: TestClient) -> None:
     created = _signup(client)
     bad = client.post("/api/v1/auth/login", json={"email": created["email"], "password": "nope"})
@@ -53,6 +90,30 @@ def test_wrong_password_and_duplicate_email_are_rejected(client: TestClient) -> 
         },
     )
     assert dup.status_code == 409
+
+
+def test_password_failure_codes_do_not_misclassify_expired_sessions(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from app.core.config import get_settings
+
+    created = _signup(client)
+    monkeypatch.setattr(get_settings(), "auth_default_user", "")
+    monkeypatch.setattr(get_settings(), "auth_raw_user_ids", False)
+    login = client.post("/api/v1/auth/login", json={"email": created["email"], "password": "wrong"})
+    assert login.status_code == 401 and login.json()["error"]["code"] == "invalid_credentials"
+    deleted = client.post(
+        "/api/v1/auth/me/delete",
+        json={"password": "wrong"},
+        headers={"X-Demo-User": created["token"]},
+    )
+    assert deleted.status_code == 401 and deleted.json()["error"]["code"] == "incorrect_password"
+    expired = client.post(
+        "/api/v1/auth/me/delete",
+        json={"password": "wrong"},
+        headers={"X-Demo-User": session.issue(created["account"]["id"], now=0)},
+    )
+    assert expired.status_code == 401 and expired.json()["error"]["code"] == "unauthorized"
 
 
 def test_tampered_or_expired_tokens_are_refused(client: TestClient) -> None:
@@ -144,7 +205,7 @@ def test_signup_with_join_code_requires_sharing_consent(client: TestClient) -> N
             "share_skills": False,
         },
     )
-    assert bad.status_code == 400
+    assert bad.status_code == 422
     assert bad.json()["error"]["code"] == "sharing_consent_required"
 
     good = client.post(
@@ -176,9 +237,17 @@ def test_one_account_can_belong_to_several_organisations(client: TestClient) -> 
     _, second_code = _org(client, "Second Co")
     learner = _signup(client, join_code=first_code)
     lh = {"X-Demo-User": learner["token"]}
-    again = client.post("/api/v1/org/join", json={"code": first_code, "consent": True}, headers=lh)
+    again = client.post(
+        "/api/v1/org/join",
+        json={"code": first_code, "consent": True, "share_skills": True},
+        headers=lh,
+    )
     assert again.status_code == 200  # rejoining the same organisation is harmless
-    other = client.post("/api/v1/org/join", json={"code": second_code, "consent": True}, headers=lh)
+    other = client.post(
+        "/api/v1/org/join",
+        json={"code": second_code, "consent": True, "share_skills": True},
+        headers=lh,
+    )
     assert other.status_code == 200, other.text
     assert other.json()["join_code"] is None
 

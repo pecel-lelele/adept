@@ -2,9 +2,11 @@ import { ArrowRight, CircleDashed, Circle } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
-import { MetaBar, PageHeader } from "@/components";
+import { EmptyState, EstimateLabel, MetaBar, PageHeader } from "@/components";
+import { journeyStepCount } from "@/config/navigation";
 import { ErrorState } from "@/components/ErrorState";
-import { scoreColour, SdgTiles } from "@/components/viz";
+import { HistoricalSnapshotBanner } from "@/components/HistoricalSnapshotBanner";
+import { scoreColour } from "@/components/viz";
 import { fetchJobsSummary } from "@/features/jobs";
 import { fetchRadar } from "@/features/trends/api";
 import type { ScenarioId, Schemas } from "@/lib/api";
@@ -14,9 +16,13 @@ import { ReplayChanges } from "./ReplayChanges";
 import { SdgWeightSlider } from "./SdgWeightSlider";
 import { componentLabels } from "./labels";
 import { SnapshotPicker } from "./SnapshotPicker";
+import { MatchImprovements } from "./MatchImprovements";
+import { ScenarioDelta } from "./ScenarioDelta";
+import { MatchSdgTargets } from "./MatchSdgTargets";
+import { ProfileNote } from "./ProfileNote";
 
 /** One horizontal bar per score part: how much each part contributed to the fit. */
-function ScoreParts({ parts, labels }: { parts: Schemas["ScoreComponent"][]; labels: Record<string, string> }) {
+function ScoreParts({ parts, labels, score }: { parts: Schemas["ScoreComponent"][]; labels: Record<string, string>; score: number }) {
   return (
     <div className="a-bars">
       {parts.map((c) => (
@@ -25,9 +31,11 @@ function ScoreParts({ parts, labels }: { parts: Schemas["ScoreComponent"][]; lab
           <span className="a-bar-track">
             <span className="a-bar-fill" style={{ width: `${Math.round(c.value * 100)}%`, opacity: c.provided ? 1 : 0.35 }} />
           </span>
-          <span className="a-bar-value">{Math.round(c.value * 100)}%</span>
+          <span className="a-bar-value">{(c.weight * c.value * 100).toFixed(1)}</span>
+          <span className="a-small a-muted" style={{ gridColumn: "1 / -1" }}>{Math.round(c.weight * 100)}% × {(c.value * 100).toFixed(1)}% = {(c.weight * c.value * 100).toFixed(1)}</span>
         </div>
       ))}
+      <div className="a-breakdown-total"><span>=</span><strong>{(score * 100).toFixed(1)}</strong></div>
     </div>
   );
 }
@@ -55,12 +63,15 @@ export async function MatchesView({
   const t = await getTranslations("matching");
   const th = await getTranslations("ui.home");
   const tp = await getTranslations("ui.page");
-  const [result, radar, changes, jobs] = await Promise.all([
+  const otherScenario = scenario === "fast" ? "moderate" : "fast";
+  const [result, radar, changes, jobs, alternative] = await Promise.all([
     fetchMatches(scenario, snapshotDate, sdgWeight),
     fetchRadar(scenario),
     snapshotDate ? fetchReplay(scenario, snapshotDate, sdgWeight) : Promise.resolve(null),
     fetchJobsSummary(scenario),
+    fetchMatches(otherScenario, snapshotDate, sdgWeight),
   ]);
+  const otherScores = new Map(alternative.ok ? alternative.data.matches.map((match) => [match.role_id, match.score]) : []);
   const tj = await getTranslations("jobs");
   const openings = new Map(jobs.ok ? jobs.data.roles.map((r) => [r.role_id, r.open_count]) : []);
   const labels = await componentLabels();
@@ -71,9 +82,10 @@ export async function MatchesView({
 
   return (
     <div className="a-view">
-      <PageHeader eyebrow={tp("stepOf", { step: 3 })} title={t("title")} description={t("description")}>
+      <PageHeader eyebrow={tp("stepOf", { step: 3, total: journeyStepCount() })} title={t("title")} description={t("description")}>
         {result.ok ? <MetaBar meta={result.data.meta} /> : null}
       </PageHeader>
+      <HistoricalSnapshotBanner date={snapshotDate} latestHref={`/app/matches?scenario=${scenario}${sdgWeight > 0 ? `&sdg=${sdgWeight.toFixed(2)}` : ""}`} />
 
       <section className="a-card a-controls" aria-label={tp("rankingOptions")}>
         {radar.ok ? (
@@ -92,6 +104,12 @@ export async function MatchesView({
         <ErrorState failure={result} />
       ) : (
         <>
+          <ProfileNote note={result.data.matches[0]?.profile_note} />
+          {result.data.matches.length === 0 ? (
+            <EmptyState title={t("emptyTitle")} description={t("emptyHint")} action={
+              <Link className="a-btn is-small" href="/app/profile">{tp("jSkills")}</Link>
+            } />
+          ) : null}
           {(
             [
               ["ready", result.data.matches.filter((m) => overlapOf(m) >= READY_OVERLAP)],
@@ -111,8 +129,7 @@ export async function MatchesView({
           <ol className="a-rolecards">
             {matches.map((m) => {
               const i = result.data.matches.indexOf(m);
-              const goals = [...new Map(m.sdg_targets.map((s) => [s.goal, { goal: s.goal, title: s.label }])).values()];
-              const pct = Math.round(m.score * 100);
+              const pct = (m.score * 100).toFixed(1);
               const detail = `/app/matches/${encodeURIComponent(m.role_id)}?scenario=${scenario}${replay}`;
               return (
                 <li key={m.role_id}>
@@ -125,6 +142,7 @@ export async function MatchesView({
                           <Link href={detail}>{m.label}</Link>
                         </h2>
                         <span className="a-chips">
+                          <ScenarioDelta score={m.score} otherScore={otherScores.get(m.role_id)} otherScenario={otherScenario} />
                           <span className="a-chip" data-tone={m.missing_skills.length ? "down" : "up"}>
                             {tp("toLearn", { count: m.missing_skills.length })}
                           </span>
@@ -141,6 +159,7 @@ export async function MatchesView({
                       <div className="a-fit" style={{ color: scoreColour(m.score) }}>
                         <strong>{pct}%</strong>
                         <small>{tp("fit")}</small>
+                        <EstimateLabel scenario={scenario} />
                         <span className="a-fit-track" aria-hidden>
                           <i style={{ width: `${pct}%`, background: scoreColour(m.score) }} />
                         </span>
@@ -149,7 +168,7 @@ export async function MatchesView({
                     <div className="a-rolecard-body">
                       <div>
                         <h3>{tp("drivers")}</h3>
-                        <ScoreParts parts={m.components} labels={labels} />
+                        <ScoreParts parts={m.components} labels={labels} score={m.score} />
                       </div>
                       <div>
                         <h3>{tp("gapTitle")}</h3>
@@ -172,9 +191,10 @@ export async function MatchesView({
                       </div>
                       <div>
                         <h3>{tp("goals")}</h3>
-                        {goals.length ? <SdgTiles goals={goals.slice(0, 4)} /> : <p className="a-muted a-small">—</p>}
+                        {m.sdg_targets.length ? <MatchSdgTargets targets={m.sdg_targets} /> : <p className="a-muted a-small">—</p>}
                       </div>
                     </div>
+                    <MatchImprovements items={m.improvements ?? []} />
                     <footer className="a-rolecard-foot">
                       <Link className="a-btn is-ghost is-small" href={detail}>
                         {t("viewDetail")}

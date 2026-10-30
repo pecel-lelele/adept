@@ -5,6 +5,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from app.core.security import session
 from app.core.security.rate_limit import (
     DEFAULT_BUCKET,
     PostgresCounter,
@@ -92,6 +93,40 @@ def test_real_ip_is_trusted_with_the_proxy_secret() -> None:
     for ip in ("9.9.9.1", "9.9.9.2"):
         headers = {"X-Real-IP": ip, "X-Internal-Proxy-Secret": "s3cret"}
         assert client.get("/api/v1/a", headers=headers).status_code == 200
+
+
+def test_verified_users_have_independent_limits_at_the_same_address() -> None:
+    client = _app(default=(1, 60), route_limits={})
+    first = {"X-Demo-User": session.issue("aisyah")}
+    second = {"X-Demo-User": session.issue("weijie")}
+    assert client.get("/api/v1/profile", headers=first).status_code == 200
+    assert client.get("/api/v1/profile", headers=first).status_code == 429
+    assert client.get("/api/v1/profile", headers=second).status_code == 200
+    assert client.get("/api/v1/profile", headers=second).status_code == 429
+
+
+@pytest.mark.parametrize(
+    "path", ["/api/v1/auth/login", "/api/v1/auth/signup", "/api/v1/preview/cv"]
+)
+def test_tokens_cannot_bypass_public_ip_limits(path: str) -> None:
+    client = _app(default=(1, 60), route_limits={})
+    assert (
+        client.get(path, headers={"X-Demo-User": session.issue("synthetic-first")}).status_code
+        == 200
+    )
+    assert (
+        client.get(path, headers={"X-Demo-User": session.issue("synthetic-second")}).status_code
+        == 429
+    )
+
+
+@pytest.mark.parametrize(
+    "token", ["synthetic-first", session.issue("expired", now=0), "v1.forged.9999999999.bad"]
+)
+def test_unverified_user_headers_cannot_create_a_personal_bucket(token: str) -> None:
+    client = _app(default=(1, 60), route_limits={})
+    assert client.get("/api/v1/profile").status_code == 200
+    assert client.get("/api/v1/profile", headers={"X-Demo-User": token}).status_code == 429
 
 
 def test_concurrent_outage_uses_the_supplied_fallback(monkeypatch: pytest.MonkeyPatch) -> None:

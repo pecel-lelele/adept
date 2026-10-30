@@ -86,7 +86,7 @@ def test_saved_profile_to_ranked_match_http_pipeline(client: TestClient) -> None
         assert any(skill["id"] == "sql" for skill in match["partial_skills"])
         assert match["sdg_targets"]
 
-        # A strict M1 database failure must fail quickly as 503, not hang or use a mock.
+        # A strict DB failure uses the same disclosed serving fallback without hanging.
         from app.features.matching import trend_port
         from app.features.trends import repository as trend_repository
 
@@ -111,8 +111,12 @@ def test_saved_profile_to_ranked_match_http_pipeline(client: TestClient) -> None
             unavailable = client.get(
                 "/api/v1/matches", headers=headers, params={"scenario": "moderate"}
             )
-        assert unavailable.status_code == 503, unavailable.text
-        assert unavailable.json()["error"]["code"] == "trend_unavailable"
+        assert unavailable.status_code == 200, unavailable.text
+        fallback = unavailable.json()["meta"]
+        assert fallback["is_fallback"] is True
+        assert fallback["served_from"] == "fixture"
+        assert fallback["snapshot_date"] == "2026-10-20"
+        assert fallback["sources"]
         assert time.monotonic() - started < 2.5
     finally:
         if previous is None:

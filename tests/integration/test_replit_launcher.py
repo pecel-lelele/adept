@@ -37,6 +37,15 @@ def test_runtime_uses_private_api_and_production_mode(deployment_env: dict[str, 
     assert "APP_ENV" not in deployment_env
 
 
+def test_production_zero_hops_uses_explicit_best_effort_mode(
+    deployment_env: dict[str, str],
+) -> None:
+    env = replit.production_env(dict(deployment_env, TRUSTED_PROXY_HOPS="0"))
+    assert env["PROXY_CLIENT_IP_MODE"] == "best-effort"
+    with pytest.raises(replit.DeploymentError, match="positive"):
+        replit.production_env(dict(env, PROXY_CLIENT_IP_MODE="trusted"))
+
+
 def test_custom_private_port_stays_loopback_and_cannot_equal_public_port(
     deployment_env: dict[str, str],
 ) -> None:

@@ -14,6 +14,8 @@ class SdgTarget(BaseModel):
     goal: int = Field(ge=1, le=17)
     target: str = Field(examples=["4.4"])
     label: str
+    reason: str | None = Field(default=None, min_length=1)
+    strength: SdgStrength | None = None
 
 
 class SdgEvidence(BaseModel):
@@ -52,6 +54,21 @@ class GoalSummary(BaseModel):
     enabling_count: int = 0
     is_focus: bool = Field(default=False, description="One of the domain focus goals.")
     contributors: int = Field(default=0, description="People whose plan links to this goal.")
+    planned_hours: float = Field(default=0, ge=0)
+    hours_share: float = Field(default=0, ge=0, le=1)
+
+
+class TargetContribution(BaseModel):
+    target: SdgTarget
+    planned_hours: float = Field(ge=0)
+    hours_share: float = Field(
+        ge=0,
+        le=1,
+        description=(
+            "Share of planned learning hours linked to this target; "
+            "not measured SDG impact. Targets may overlap."
+        ),
+    )
 
 
 class SdgContribution(BaseModel):
@@ -61,6 +78,7 @@ class SdgContribution(BaseModel):
     scope: SdgScope = "person"
     scope_id: str = ""
     role_ids: list[str] = Field(default_factory=list)
+    target_contributions: list[TargetContribution] = Field(default_factory=list)
 
 
 class SdgGoal(BaseModel):

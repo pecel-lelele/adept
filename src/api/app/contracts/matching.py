@@ -1,5 +1,7 @@
 """F4 Future-role matching (owner M2)."""
 
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 from app.contracts.common import RecommendationMeta
@@ -28,6 +30,15 @@ class ScoreComponent(BaseModel):
     explanation: str
 
 
+class ScoreImprovement(BaseModel):
+    skill: str
+    label: str
+    score_gain: float = Field(ge=0, le=1)
+    course_id: str | None = None
+    course_title: str | None = None
+    course_url: str | None = None
+
+
 class RoleMatch(BaseModel):
     role_id: str
     label: str
@@ -36,6 +47,10 @@ class RoleMatch(BaseModel):
     missing_skills: list[Skill]
     partial_skills: list[Skill]
     sdg_targets: list[SdgTarget]
+    improvements: list[ScoreImprovement] = Field(default_factory=list)
+    profile_note: Literal["add_skills"] | None = Field(
+        default=None, description="A sparse-profile notice; translate the code for display."
+    )
     trend_coverage: float | None = Field(
         default=None,
         ge=0,
@@ -67,14 +82,14 @@ class ReplayDriver(BaseModel):
     velocity_before: float
     velocity_after: float
     position_before: float = Field(
-        0.0, description="Percentile of the skill's velocity among all skills, earlier snapshot."
+        0.0, description="Skill velocity on the shared min-max scale, earlier snapshot."
     )
     position_after: float = Field(
-        0.0, description="Percentile of the skill's velocity among all skills, later snapshot."
+        0.0, description="Skill velocity on the shared min-max scale, later snapshot."
     )
     effect: float = Field(
         description=(
-            "Score points this skill moved the role: change in its percentile position times "
+            "Score points this skill moved the role: change on the shared min-max scale times "
             "its share of the role's importance times the trend weight; > 0 pushed up."
         )
     )

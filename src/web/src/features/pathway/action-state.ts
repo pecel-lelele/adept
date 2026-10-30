@@ -1,12 +1,9 @@
-/** Result of a pathway server action; `error` is shown next to the button that failed. */
+import { errorBody } from "@/lib/api/client";
+
+/** Result of a pathway server action; `error` is a translated-on-display code. */
 export type ActionState = { error?: string; done?: number };
 
-/** Turn an openapi-fetch error result into a short message (API body first, then status). */
+/** Use the same error-code parser as all other API callers. */
 export function actionError(error: unknown, status: number): string {
-  if (error && typeof error === "object" && "error" in error) {
-    const body = (error as { error?: { message?: string } }).error;
-    if (body?.message) return body.message;
-  }
-  if (status === 429) return "Too many requests. Please wait a minute and try again.";
-  return `Request failed (${status}).`;
+  return errorBody(error, status).code;
 }

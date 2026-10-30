@@ -16,15 +16,14 @@ export function SignalExplorer({
   items,
   scenario,
   dates,
-  date,
 }: {
   items: Schemas["SkillVelocity"][];
   scenario: ScenarioId;
   dates: string[];
-  date: string;
 }) {
   const t = useTranslations("common.design");
   const tp = useTranslations("ui.page");
+  const th = useTranslations("ui.home");
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -59,14 +58,16 @@ export function SignalExplorer({
           {t("snapshot")}
           <select
             className="a-select is-small"
-            value={date}
+            value={params.get("snapshot_date") ?? ""}
             disabled={pending}
             onChange={(e) => {
               const next = new URLSearchParams(params);
-              next.set("snapshot_date", e.target.value);
+              if (e.target.value) next.set("snapshot_date", e.target.value);
+              else next.delete("snapshot_date");
               startTransition(() => router.push(`${pathname}?${next.toString()}`, { scroll: false }));
             }}
           >
+            <option value="">{th("latest")}</option>
             {[...dates].reverse().map((d) => (
               <option key={d} value={d}>
                 {d}

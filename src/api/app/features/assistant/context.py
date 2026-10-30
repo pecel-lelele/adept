@@ -29,6 +29,7 @@ PAGES: dict[str, str] = {
     "/app/pathway/compare": "Compare roles",
     "/app/progress": "Progress and badges",
     "/app/courses": "Course catalogue",
+    "/app/jobs": "Job openings",
     "/app/sdg": "SDG impact",
     "/app/join": "Join an organisation",
     "/work": "Organisation home",
@@ -72,6 +73,7 @@ class Context:
     facts: dict[str, Any] = field(default_factory=dict)
     meta: RecommendationMeta | None = None
     plan_meta: RecommendationMeta | None = None
+    matches_meta: RecommendationMeta | None = None
 
     def text(self) -> str:
         return "\n".join(self.lines)
@@ -140,6 +142,12 @@ def _trends(ctx: Context, scenario: ScenarioId, own: set[str]) -> None:
             )
         )
     ctx.facts["rising"] = [i.skill_id for i in rising]
+    ctx.facts["declining"] = [i.skill_id for i in declining]
+    ctx.facts["declining_roles"] = [
+        signal.entity_id
+        for signal in trends_service.signals_from_snapshot(snap, scenario)
+        if signal.entity_type == "role" and signal.direction == "declining"
+    ]
     ctx.facts["my_trends"] = {i.skill_id: getattr(i, f"direction_{scenario}") for i in mine}
     ctx.grounded_on.append("trend snapshot")
     ctx.meta = RecommendationMeta(
@@ -149,6 +157,8 @@ def _trends(ctx: Context, scenario: ScenarioId, own: set[str]) -> None:
         is_estimate=True,
         observed_from=m.observed_from,
         observed_to=m.observed_to,
+        served_from=m.served_from,
+        is_fallback=m.is_fallback,
     )
 
 
@@ -182,6 +192,7 @@ def _learner(ctx: Context, user: CurrentUser, scenario: ScenarioId) -> None:
 
         matches = _try("matches", lambda: matching_service.list_matches(user, scenario))
         if matches is not None and matches.matches:
+            ctx.matches_meta = matches.meta
             top = matches.matches[:5]
             ctx.facts["matches"] = [
                 {
@@ -190,6 +201,8 @@ def _learner(ctx: Context, user: CurrentUser, scenario: ScenarioId) -> None:
                     "missing": [s.id for s in m.missing_skills],
                     "partial": [s.id for s in m.partial_skills],
                     "parts": {c.name: c.value for c in m.components},
+                    "components": [c.model_dump() for c in m.components],
+                    "improvements": [item.model_dump() for item in m.improvements],
                 }
                 for m in top
             ]
@@ -216,6 +229,12 @@ def _learner(ctx: Context, user: CurrentUser, scenario: ScenarioId) -> None:
         p = plan.pathway
         ctx.plan_meta = getattr(p, "meta", None)
         ctx.facts["plan_role"] = plan.role_id
+        ctx.facts["plan_sdg_targets"] = list(
+            dict.fromkeys(
+                link.target.target
+                for link in (_try("plan SDG links", lambda: sdg_service.links_for_plan(p)) or [])
+            )
+        )
         ctx.facts["plan_totals"] = {
             "weeks": p.total_weeks,
             "hours_per_week": p.hours_per_week,
@@ -265,6 +284,47 @@ def _learner(ctx: Context, user: CurrentUser, scenario: ScenarioId) -> None:
             )
         ctx.grounded_on.append("your plan")
     _trends(ctx, scenario, own)
+
+
+def add_scenario_comparison(ctx: Context, user: CurrentUser | None, scenario: ScenarioId) -> None:
+    """Compare the same person's profile on both stored scenarios at one snapshot date."""
+    if user is None or ctx.audience != "learner" or ctx.matches_meta is None:
+        return
+    from app.features.matching import service as matching_service
+
+    other: ScenarioId = "fast" if scenario == "moderate" else "moderate"
+    snapshot_date = ctx.matches_meta.snapshot_date
+    original = _try(
+        "original scenario", lambda: matching_service.list_matches(user, scenario, snapshot_date)
+    )
+    alternative = _try(
+        "other scenario", lambda: matching_service.list_matches(user, other, snapshot_date)
+    )
+    if (
+        original is None
+        or alternative is None
+        or original.meta.snapshot_date != snapshot_date
+        or alternative.meta.snapshot_date != snapshot_date
+    ):
+        return
+    after = {
+        match.role_id: (rank, match.score)
+        for rank, match in enumerate(alternative.matches, start=1)
+    }
+    rows = [
+        {
+            "role_id": match.role_id,
+            "before": match.score,
+            "after": after[match.role_id][1],
+            "rank_before": rank,
+            "rank_after": after[match.role_id][0],
+        }
+        for rank, match in enumerate(original.matches[:5], start=1)
+        if match.role_id in after
+    ]
+    if rows:
+        ctx.meta = original.meta
+        ctx.facts["scenario_comparison"] = {"before": scenario, "after": other, "roles": rows}
 
 
 def _org_name(ctx: Context, user: CurrentUser) -> bool:

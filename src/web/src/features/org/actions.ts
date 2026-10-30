@@ -26,7 +26,7 @@ export async function updateOrgAction(_: OrgActionState, form: FormData): Promis
       },
     }),
   );
-  if (!result.ok) return { error: result.message };
+  if (!result.ok) return { error: result.code };
   revalidatePath("/org", "layout");
   return { done: Date.now() };
 }
@@ -38,7 +38,7 @@ export async function rotateCodeAction(expectedOrg?: string): Promise<OrgActionS
       params: expectedOrg ? { query: { expected_org: expectedOrg } } : undefined,
     }),
   );
-  if (!result.ok) return { error: result.message };
+  if (!result.ok) return { error: result.code };
   revalidatePath("/org", "layout");
   return { done: Date.now() };
 }
@@ -53,7 +53,7 @@ export async function removeMemberAction(memberId: string, expectedOrg?: string)
       },
     }),
   );
-  if (!result.ok) return { error: result.message };
+  if (!result.ok) return { error: result.code };
   revalidatePath("/org", "layout");
   return { done: Date.now() };
 }

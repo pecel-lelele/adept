@@ -3,6 +3,8 @@
 import { useTranslations } from "next-intl";
 import { useActionState } from "react";
 
+import { errorMessage } from "@/lib/api/error-message";
+
 import { Button } from "@/components/ui/button";
 
 import type { ActionState } from "../action-state";
@@ -15,6 +17,7 @@ type Props = {
 /** HR / advisor confirms or rejects one completion, with an optional note to the learner. */
 export function ReviewForm({ action, fields }: Props) {
   const t = useTranslations("pathway");
+  const te = useTranslations("ui.apiErrors");
   const [state, formAction, pending] = useActionState(action, {});
   return (
     <form action={formAction} className="a-inline-form">
@@ -38,7 +41,7 @@ export function ReviewForm({ action, fields }: Props) {
       <span aria-live="polite" className="a-form-msg">
         {state.error ? (
           <span role="alert" className="a-error">
-            {t("actionFailed", { message: state.error })}
+            {t("actionFailed", { message: errorMessage(te, state.error) })}
           </span>
         ) : null}
       </span>

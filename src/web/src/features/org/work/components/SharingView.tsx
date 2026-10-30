@@ -2,7 +2,7 @@ import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
-import { ApiError, PageHeader } from "@/components";
+import { ErrorState, PageHeader } from "@/components";
 import { ActionForm } from "@/features/pathway/components/ActionForm";
 import { fetchMyProfile, fetchSkillCatalogue } from "@/features/profile/api";
 import type { WorkspaceOption } from "@/lib/auth/workspaces";
@@ -16,8 +16,8 @@ import { setSharingAction } from "../actions";
 export async function SharingView({ org }: { org: WorkspaceOption }) {
   const t = await getTranslations("org.work");
   const [profile, catalogue] = await Promise.all([fetchMyProfile(), fetchSkillCatalogue()]);
-  if (!profile.ok) return <ApiError message={profile.message} />;
-  if (!catalogue.ok) return <ApiError message={catalogue.message} />;
+  if (!profile.ok) return <ErrorState failure={profile} />;
+  if (!catalogue.ok) return <ErrorState failure={catalogue} />;
   const labels = new Map(catalogue.ok ? catalogue.data.skills.map((s) => [s.id, s.label]) : []);
   const skills = profile.ok ? [...profile.data.skills].sort((a, b) => b.level - a.level) : [];
   const shared = org.skills_shared;

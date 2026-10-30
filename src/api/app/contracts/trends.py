@@ -96,6 +96,8 @@ class TrendSnapshotMeta(BaseModel):
     snapshot_date: date
     scenario: Literal["moderate", "fast"]
     is_estimate: bool = True
+    served_from: Literal["db", "fixture"] = "db"
+    is_fallback: bool = False
     weights: dict[str, float]
     labor_decay_is_static: bool = Field(
         default=True,

@@ -5,8 +5,8 @@ One place decides which trend data the pathway, re-plan, SDG contribution and th
 1. M1's snapshot (`trends.service.get_snapshot`, in process, no HTTP self-call). Its
    `velocity_<scenario>` already models the scenario, so the engine must not weight it again
    (`scenario_weighted=True`).
-2. Fallback: the legacy seed CSVs (`trends/snapshots.csv` + `trend_signals.csv`), used only when
-   M1 has no snapshot. Their growth is scenario-neutral, so the engine applies its own weight.
+2. Fallback: M1's shared last good database snapshot or committed fixture, with its actual
+   date, sources and is_fallback flag. These velocities also already model the scenario.
 
 Skills that M1 does not score (e.g. excel, rpa, sql today) get no signal: the engine treats them
 as neutral and the pathway lists them in a warning instead of inventing a value.
@@ -24,15 +24,16 @@ from app.contracts.common import ScenarioId, Source
 from app.contracts.trends import TrendSnapshotResponse
 from app.core.errors import NotFoundError
 from app.features.pathway import data
+from app.features.trends import service as trends_service
 
 log = logging.getLogger(__name__)
 
 M1_PREFIX = "m1-"
 CACHE_TTL_S = 30.0
 # A slow or hung trend layer must never freeze a pathway request: wait this long, then use the
-# seed fallback and skip M1 for a minute before trying again.
+# shared fallback and retry after the central fallback TTL.
 M1_TIMEOUT_S = 3.0
-M1_RETRY_AFTER_S = 60.0
+M1_RETRY_AFTER_S = trends_service.FALLBACK_TTL_S
 
 
 @dataclass(frozen=True)
@@ -65,11 +66,14 @@ def current(scenario: ScenarioId, snapshot_date: date | None = None) -> TrendVie
     """Trend view for `scenario`: the latest snapshot, or `snapshot_date` to replay an older one."""
     key = (scenario, snapshot_date)
     hit = _cache.get(key)
-    if hit and time.monotonic() - hit[0] < CACHE_TTL_S:
+    ttl = (
+        trends_service.FALLBACK_TTL_S
+        if hit and hit[1] and hit[1].snapshot.is_fallback
+        else CACHE_TTL_S
+    )
+    if hit and time.monotonic() - hit[0] < ttl:
         return hit[1]
     view = _from_m1(scenario, snapshot_date)
-    if view is None and snapshot_date is None:
-        view = _from_seed()
     _cache[key] = (time.monotonic(), view)
     return view
 
@@ -82,16 +86,21 @@ def latest_version() -> str:
 
 def _from_m1(scenario: ScenarioId, snapshot_date: date | None) -> TrendView | None:
     global _m1_down_until
-    if time.monotonic() < _m1_down_until:
-        return None
     try:
-        snap = _call_with_timeout(scenario, snapshot_date)
+        snap = (
+            trends_service.last_good_snapshot(snapshot_date, scenario)
+            if time.monotonic() < _m1_down_until
+            else _call_with_timeout(scenario, snapshot_date)
+        )
     except NotFoundError:
         return None  # M1 is up but has no snapshot for that date
-    except Exception as exc:  # noqa: BLE001 - any outage falls back to the seed snapshot
+    except Exception:  # noqa: BLE001 - serving fallback is shared with radar and matching
         _m1_down_until = time.monotonic() + M1_RETRY_AFTER_S
-        log.warning("M1 trend snapshot unavailable (%r); using the seed snapshot", exc)
-        return None
+        log.warning("Trend snapshot unavailable; serving the shared last good snapshot")
+        try:
+            snap = trends_service.last_good_snapshot(snapshot_date, scenario)
+        except NotFoundError:
+            return None
     if not snap.items or not snap.meta.sources:
         return None
     sources = tuple(
@@ -105,6 +114,9 @@ def _from_m1(scenario: ScenarioId, snapshot_date: date | None) -> TrendView | No
             version=f"{M1_PREFIX}{day.isoformat()}",
             source=sources[0],
             sources=sources,
+            snapshot_date=day,
+            served_from=snap.meta.served_from,
+            is_fallback=snap.meta.is_fallback,
         ),
         growth={item.skill_id: float(getattr(item, key)) for item in snap.items},
         scenario_weighted=True,
@@ -134,15 +146,3 @@ def _call_with_timeout(scenario: ScenarioId, snapshot_date: date | None) -> Tren
     if "error" in box:
         raise box["error"]  # type: ignore[misc]
     return box["value"]  # type: ignore[return-value]
-
-
-def _from_seed() -> TrendView | None:
-    snapshot = data.latest_snapshot()
-    if snapshot is None:
-        return None
-    return TrendView(
-        snapshot=snapshot,
-        growth=data.skill_growth(snapshot.id),
-        scenario_weighted=False,
-        available_dates=tuple(s.source.retrieved_at for s in data.snapshots()),
-    )

@@ -179,7 +179,9 @@
     "choose": "Pilih peranan ini",
     "snapshot": "Petikan trend {version}.",
     "seeMatches": "Lihat padanan anda mengikut kedudukan",
-    "humanInCharge": "Perbandingan ini menyokong keputusan anda; ia tidak menyusun atau memilih peranan untuk anda."
+    "humanInCharge": "Perbandingan ini menyokong keputusan anda; ia tidak menyusun atau memilih peranan untuk anda.",
+    "emptyTitle": "Belum ada peranan untuk dibandingkan",
+    "emptyHint": "Kembali ke padanan untuk memilih peranan sasaran."
   },
   "badge": {
     "first": "Kursus pertama selesai",

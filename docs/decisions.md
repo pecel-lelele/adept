@@ -86,6 +86,238 @@
 - **Replaces**: TEAM-002's alternate auth stub, M3-003's external JWT integration and stale provider guidance in the project context
 - **PR / branch**: `chore/core-replit-database-cleanup`
 
+### TEAM-006: Disclose trend fallback throughout recommendations (review 1.1)
+- **Date**: 2026-10-29
+- **Feature**: F2/F3/F4/F5/F8 and Core
+- **Type**: contract
+- **Change**: Snapshot and freshness responses identify database versus fixture serving and fallback status. Trend-derived recommendation metadata preserves these fields; the shared metadata bar shows a translated, visible last-good-snapshot notice. Pathways retain the snapshot date separately from source retrieval dates.
+- **Why**: Database failure or an empty snapshot table must not appear to be fresh live data. Existing strict reads still reject unavailable authoritative data.
+- **Affects**: Trend, scenario, match, pathway, overview and assistant metadata; generated API client
+- **Replaces**: none
+- **PR / branch**: `fix/core-review-upgrades`
+
+### TEAM-007: Keep historical replay explicit in navigation (review 1.2)
+- **Date**: 2026-10-29
+- **Feature**: F2/F4/F5 and Core
+- **Type**: UI
+- **Change**: Radar offers Latest by removing the snapshot query parameter. Journey links carry only scenario and role; explicit historical match/detail/pathway views display a translated banner returning to latest while preserving their role, scenario and SDG weight.
+- **Why**: Exploring an old radar snapshot must not silently disable saving a current learning plan.
+- **Affects**: Journey navigation, radar picker, matches and pathway UI
+- **Replaces**: none
+- **PR / branch**: `fix/core-review-upgrades`
+
+### TEAM-008: Explicit best-effort proxy identity and per-session limits (review 1.3)
+- **Date**: 2026-10-29
+- **Feature**: Core/F8
+- **Type**: method
+- **Change**: Add `PROXY_CLIENT_IP_MODE=trusted|best-effort`; best-effort permits zero hops in production while preserving the shared proxy secret. All forwarding paths select only the right-most valid address. Missing addresses warn and forward without X-Real-IP. Protected-route rate limits use session-verified user IDs; anonymous login/signup/preview retain IP buckets.
+- **Why**: Zero-hop deployments must start deliberately without making every authenticated user share the loopback allowance or rejecting requests lacking forwarded headers. Missing anonymous addresses necessarily share the direct-peer bucket; this limitation is documented.
+- **Affects**: Configuration validation, private proxy, server clients, rate limits and startup regressions; no infrastructure settings changed
+- **Replaces**: none
+- **PR / branch**: `fix/core-review-upgrades`
+
+### TEAM-009: Catalogue-grounded score improvements (review 2.1)
+- **Date**: 2026-10-29
+- **Feature**: F4/F5/F8
+- **Type**: formula
+- **Change**: Return each open skill's score gain from closing its remaining importance-weighted overlap, using the existing 0.45 skill weight, plus the cheapest catalogue course reaching the required level (otherwise null). SDG-weighted scores scale those gains too. Cards show the top three; Adi and cards expose weighted arithmetic and actual catalogue links.
+- **Why**: Learners need concrete, traceable changes that would improve fit without inventing a course or promising a partial course closes a full gap.
+- **Affects**: Matching contracts/client, card/detail UI, Adi context and score answer blocks
+- **Replaces**: none
+- **PR / branch**: `fix/core-review-upgrades`
+
+### TEAM-010: Share the scenario reference range without forcing rank changes (review 2.2)
+- **Date**: 2026-10-29
+- **Feature**: F2/F4 and Core
+- **Type**: formula
+- **Change**: Normalize skill velocity with min-max bounds over both stored scenarios in each snapshot; matching, detail and replay use those same bounds. Preserve full score-component precision so API ordering matches its scores. Show each card's score difference from the other scenario's API response. Weights remain 0.45/0.25/0.30.
+- **Why**: Independent percentiles erased magnitude changes. Existing Fast velocities already encode scenario effects, so applying another multiplier would double-count them. Following the user's delegated choice, real-profile regressions require a change above 0.005: the observed maximum is 0.0084866, below the initially requested 0.01. A separate synthetic near-tie applies k=1.5 before the same shared normalization and proves a rank flip. No profiles, reference data or weights were changed to force results.
+- **Pipeline**: stored scenario snapshots → preserve raw velocities → shared union bounds → min-max/weighted score → all four fixture profiles plus synthetic rank-flip and old-normalizer failure checks → match/detail/replay API and score delta chip
+- **Affects**: F4 score and replay adapters/contracts, match UI, synthetic regressions
+- **Replaces**: M2-001 percentile normalization only
+- **PR / branch**: `fix/core-review-upgrades`
+
+### TEAM-011: Require a separate explicit sharing choice on join (review 2.3)
+- **Date**: 2026-10-29
+- **Feature**: Core/F7
+- **Type**: contract
+- **Change**: Remove the join payload's true sharing default; require a strict boolean and reject missing or false sharing consent with 422 before joining. Join UI has separate, initially unticked membership and skill-sharing checkboxes. Actions submit the actual checkbox value, and signup checks sharing before creating an account. Existing per-organisation sharing revocation remains available.
+- **Why**: General membership consent must never silently authorize manager access to skill levels, study hours or budgets. A revoked member remains excluded from manager learning inputs.
+- **Affects**: Join/signup validation and actions, translated join flow, generated client and privacy regressions
+- **Replaces**: M4-055 bundled join disclosure and default sharing only
+- **PR / branch**: `fix/core-review-upgrades`
+
+### TEAM-012: Visible attribution and hour-weighted SDG learning links (review 2.4)
+- **Date**: 2026-10-29
+- **Feature**: F4/F5/F6 and Core
+- **Type**: formula
+- **Change**: Show source names inline, place estimate labels beside fit percentages, and preserve catalogue mapping reasons/strengths on SDG badges and match-card tooltips. SDG contribution sums each step's planned hours once per distinct mapped target/goal, including its course skills, divided by all planned hours across people. Role-wide and plan-wide links remain available as supporting explanations. Source metadata includes SDG references and preserves pathway fallback status.
+- **Why**: Unequal learning plans should not contribute as equal-sized sets. The UI labels these as estimated learning-hour shares, allows overlapping targets and explicitly distinguishes them from measured progress toward UN targets.
+- **Affects**: Recommendation metadata UI, match/preview/dashboard fit labels, SDG contracts and aggregation, generated client
+- **Replaces**: M3-006 unweighted contribution display only
+- **PR / branch**: `fix/core-review-upgrades`
+
+### TEAM-013: Show role directions and ground declining answers separately (review 2.5)
+- **Date**: 2026-10-29
+- **Feature**: F2/F5/F8
+- **Type**: UI
+- **Change**: Radar shows rising and declining roles from the existing RoleOption comparison for the selected scenario/date. Adi stores separate declining skill/role facts from the snapshot and routes declining questions to a grounded multilingual block. A model selection cannot replace that requested block with rising advice.
+- **Why**: Skill trends alone hid role directions, and declining questions previously reused the rising list. Directions remain estimates, not claims that jobs will disappear.
+- **Affects**: Radar role card, Adi context/routing, translated headings and regression cases
+- **Replaces**: none
+- **PR / branch**: `fix/core-review-upgrades`
+
+### TEAM-014: Scored, grounded Adi intent routing and the review matrix (review 2.6)
+- **Date**: 2026-10-29
+- **Feature**: Core/F8
+- **Type**: method
+- **Change**: Score keyword hits across intents with conservative difflib typo tolerance and low generic weights, while keeping people decisions, injection refusal and other-person privacy ahead of scoring. Safety replies load no private context and invoke no provider. Add grounded source, scenario, SDG-definition, forecast-limit, unsupported-action and missing-data answers; resolve ordinal roles against current rankings. Specific intents cannot be replaced by generic model selections.
+- **Why**: First-match overlap sent realistic questions to unrelated blocks. Facts come from the catalogue, current user's plans/matches and source metadata; scenario comparison calls the production matcher at the same snapshot. Missing facts are stated rather than guessed.
+- **Affects**: Adi guide, context and answer selection; the user's verbatim 40-row EN/MS/ZH matrix, guard precedence, typo and missing-context regressions
+- **Replaces**: none
+- **PR / branch**: `fix/core-review-upgrades`
+
+### TEAM-015: Complete model and data disclosure register (review 2.7)
+- **Date**: 2026-10-29
+- **Feature**: F8 / Core
+- **Type**: contract, UI
+- **Change**: Serve one versioned public register of trend and Adi models, job feeds, certification sources, BNM rates and O*NET 31.0 through the disclosure contract and render every entry on About with EN/MS/ZH purposes. Disclose MiniLM's background research encoding and GLM-5.3's validated block selection even when this instance uses the built-in Adi guide; keep active provider disclosure separate.
+- **Why**: Disabling Adi does not erase models used to prepare trend snapshots. The register describes system roles without fabricating retrieval dates or claiming a live provider check. Existing dated source and sync records remain separate.
+- **Affects**: Guardrails disclosure, generated API contracts, About page and registry completeness tests
+- **Replaces**: none
+- **PR / branch**: `fix/core-review-upgrades`
+
+### TEAM-016: Scope team learning credit to the current organisation (review 3.1)
+- **Date**: 2026-10-29
+- **Feature**: F5 / F7
+- **Type**: method
+- **Change**: Filter team earned-learning reads to the current organisation's scope and, only for consenting members, personal learning. Preserve the learner's own cross-workspace credit and the existing single batch query.
+- **Why**: A member's work in another organisation must not affect the current team's gaps or plans. Shared profile skills do not authorize disclosure of another organisation's learning records.
+- **Affects**: Team skill inputs, memory and PostgreSQL learning reads
+- **Replaces**: none
+- **PR / branch**: `fix/core-review-upgrades`
+
+### TEAM-017: Protect current role with membership sharing consent (review 3.2)
+- **Date**: 2026-10-29
+- **Feature**: F7
+- **Type**: method
+- **Change**: Return null for a member's current role unless that organisation's skill-sharing consent is active, in both PostgreSQL and the fixture store. Keep the stored profile unchanged when consent is revoked.
+- **Why**: A role is profile data and must follow the same explicit consent boundary as skill levels.
+- **Affects**: Organisation member responses
+- **Replaces**: none
+- **PR / branch**: `fix/core-review-upgrades`
+
+### TEAM-018: Revoke signed sessions with an uncached account version (review 3.3)
+- **Date**: 2026-10-29
+- **Feature**: Core / F8
+- **Type**: schema, contract, method
+- **Change**: Append a users.session_version migration, sign the current version into v2 session tokens, and check it without the account cache on every verification. POST logout increments the version for all sessions of that account. Next.js requires a same-origin POST, revokes through FastAPI before clearing cookies, and rejects GET with 405; sign-out controls submit forms. Rate-limit identity checks move blocking verification to a worker and fail closed on storage outages.
+- **Why**: Cookie deletion alone cannot invalidate a copied token, and GET links allow cross-site logout. Existing v1 sessions intentionally require a fresh sign-in after this upgrade. Revocation storage is shared across instances.
+- **Affects**: Local-account sessions, auth/logout, sign-out controls, rate-limit verification and generated contracts. Apply the migration before deploying code; rollback drops revocation state and requires coordinated code rollback and fresh sign-in.
+- **Replaces**: none
+- **PR / branch**: `fix/core-review-upgrades`
+
+### TEAM-019: Apply security headers to Next.js responses (review 3.4)
+- **Date**: 2026-10-29
+- **Feature**: Core / F8
+- **Type**: method
+- **Change**: Add a global Next.js header rule for CSP with frame-ancestors none, frame denial, nosniff and one-year HSTS. Restrict script and connection origins to self in production; retain inline hydration scripts and existing inline styles. Permit eval and WebSocket connections only in development.
+- **Why**: FastAPI headers do not protect HTML served by Next.js. The existing static pages and inline JSX styles require inline allowances; nonce enforcement would require a separate rendering change. Bundled three.js needs no remote script origin or production eval.
+- **Affects**: Page, static and API response headers; Next.js configuration-response regression
+- **Replaces**: none
+- **PR / branch**: `fix/core-review-upgrades`
+
+### TEAM-020: Share the last good trend serving fallback (review 3.5)
+- **Date**: 2026-10-29
+- **Feature**: F2 / F4 / F5
+- **Type**: contract, method
+- **Change**: Keep a bounded store of successfully read public database snapshots in the trend service. One non-I/O fallback returns the requested cached date or the newest cached database snapshot, otherwise the committed date-aware fixture, always marked is_fallback. Radar, matching read failures/timeouts and pathway outages use it. Remove the pathway-only legacy CSV fallback and its separate scenario weighting; retry fallback reads on the shared short TTL.
+- **Why**: Serving callers must agree on dates, velocities and provenance during outages. Both scenario velocities are already present in each saved snapshot, so Fast fallback must not be weighted again. Unknown replay dates remain 404 and available dates list only servable snapshots. Strict database-only diagnostics still raise; production matching explicitly uses disclosed serving fallback after strict-read failure.
+- **Affects**: Trend serving and adapter fallback metadata, cache bounds, timeout and replay regressions
+- **Replaces**: M2-020 (production matching outage behavior only; bounded strict reads remain)
+- **PR / branch**: `fix/core-review-upgrades`
+
+### TEAM-021: Return preliminary matches for saved zero-skill profiles (review 3.6)
+- **Date**: 2026-10-29
+- **Feature**: F4
+- **Type**: contract, UI
+- **Change**: Allow a saved profile without confirmed or earned skills through the existing scorer. Skill overlap contributes zero; trend and interest determine ranking under the unchanged 0.45/0.25/0.30 weights. Return an add_skills notice code and render its EN/MS/ZH explanation on match list and detail views.
+- **Why**: An empty skill list should offer a usable first ranking and a clear next step. Keeping the existing score scale preserves explainability and improvement deltas rather than fabricating skill credit. Profiles with no saved intake still receive profile_required.
+- **Affects**: Matching profile loader and role response, generated contracts, match notices
+- **Replaces**: none
+- **PR / branch**: `fix/core-review-upgrades`
+
+### TEAM-022: Actionable empty states, saving feedback and consistent journey totals (review 3.7)
+- **Date**: 2026-10-30
+- **Feature**: Core / F1 / F4 / F5
+- **Type**: UI
+- **Change**: Render existing EmptyState components for empty matches and comparisons, show a busy Saving label during intake submission, and derive page totals from navigation. Personal navigation and its home journey include skills, radar, roles, plan, progress and SDG links; the organisation journey retains four stages. Show the existing scenario hint visibly. Replace all raw ApiError call sites with ErrorState using the full failure object and remove the unused renderer.
+- **Why**: Empty or failed results need a next action; disabled submission needs visible feedback. Navigation and page counts must agree. Existing retry, sign-in and missing-profile actions remain the shared recovery path; impact review has no fabricated completion event.
+- **Affects**: Shared error rendering, learner navigation and affected page headings, intake feedback, EN/MS/ZH copy and DOM regressions
+- **Replaces**: none
+- **PR / branch**: `fix/core-review-upgrades`
+
+### TEAM-023: Contrast-safe muted text and heatmap labels (review 3.8)
+- **Date**: 2026-10-30
+- **Feature**: Core / F1 / F7
+- **Type**: UI
+- **Change**: Darken the existing muted green-grey token, including its registered default and team override; use it for disclaimer text. Keep heatmap background hues and calculate the higher-contrast black/white label from relative luminance. Add a visible deep-green focus outline around intake radio cards.
+- **Why**: Small text must reach 4.5:1 on white and sage surfaces. A fixed heatmap value threshold selected white text before the background was dark enough. Regression checks measure the actual rendered cell styles over the entire clamped range.
+- **Affects**: Muted copy, disclaimer, team heatmap labels and keyboard intake focus
+- **Replaces**: none
+- **PR / branch**: `fix/core-review-upgrades`
+
+### TEAM-024: Reserve mobile clearance for the Adi launcher (review 3.9)
+- **Date**: 2026-10-30
+- **Feature**: Core
+- **Type**: UI
+- **Change**: Give mobile main content and the final disclaimer bottom padding equal to tab-bar height plus 80px and the device safe-area inset. Keep the existing 52px launcher and its position.
+- **Why**: The final content must scroll above both fixed controls, including on devices with a bottom safe area. Padding the disclaimer too prevents it remaining covered at the end of the page.
+- **Affects**: Workspace mobile spacing; clearance regression reads actual CSS dimensions
+- **Replaces**: none
+- **PR / branch**: `fix/core-review-upgrades`
+
+### TEAM-025: Translate error codes at the rendering boundary (review 3.10)
+- **Date**: 2026-10-30
+- **Feature**: Core / F1 / F5 / F7
+- **Type**: contract, UI
+- **Change**: API failures carry status and validated machine codes without raw backend prose. Profile/auth actions return codes for local validation and request failures; auth preserves non-password form values. One typed EN/MS/ZH lookup renders codes in ErrorState and affected client forms, with a translated fallback for unfamiliar codes. Existing pathway action adapters reuse the common parser, and organisation adapters forward codes.
+- **Why**: English fallback text and backend messages bypassed locale selection. Updating the consuming forms together avoids exposing codes to users. Distinct server password-failure codes preserve the difference between wrong credentials and an expired session while retaining HTTP 401 and the existing exception type. Preserve specific file, consent, stale programme, evidence and budget recovery instructions without passing backend details into the UI.
+- **Affects**: ApiFailure internal TypeScript shape, auth/profile actions, shared action errors, organisation forms, localization and parser/action/DOM regressions
+- **Replaces**: none
+- **PR / branch**: `fix/core-review-upgrades`
+
+### TEAM-026: Reconcile scoped review commits with current main and gate all web regressions
+- **Date**: 2026-10-30
+- **Feature**: Core / all
+- **Type**: method, other
+- **Change**: Reconstruct the 20 numbered review commits on main at `55bf2d0`, preserving its team-account copy, auth branding and safe logout redirects while applying explicit consent, translated errors and POST-only revocation. Run every `tests/web-*.test.ts` regression in CI, including the component suites previously omitted; align the auth stub with BrandMark and exercise the production redirect helper through POST logout.
+- **Why**: The earlier instruction, profile resolver and provider-removal work is already merged through PRs #26/#27 and must contribute no new diff here. The broader web run exposed two harness integration failures despite the previous CI selection passing. The user authorized a separate compatibility commit after the 20 scoped commits instead of rewriting the pushed draft branch. Defer deploying review 3.3 until after judging: v2 rejects all existing v1 sessions, logout revokes every session for the account, and the session-version migration must precede the corresponding application release. Keep it in the draft for review without authorizing production changes.
+- **Affects**: Review integration, web regression CI and session rollout planning; no changes to resolver files, submission PDFs or lockfiles
+- **Replaces**: none
+- **PR / branch**: `fix/core-review-upgrades-clean` / PR #29
+
+
+### TEAM-027: Keep streamed score text under React ownership during scenario navigation
+- **Date**: 2026-10-30
+- **Feature**: Core / F3 / F4
+- **Type**: UI, method
+- **Change**: Remove the imperative number count-up from PageEnter while retaining its CSS page entrance. The parent no longer rewrites server-rendered KPI/fit text during child hydration or scenario navigation. Add a production-component regression that runs the mount effects before descendant hydration and preserves the server score text.
+- **Why**: The old effect changed a server score from 41 to 0 before its descendant could hydrate, reproducing a concrete text mismatch consistent with React error 418. A streamed parent effect is not proof that every descendant has hydrated. The synthetic PostgreSQL-backed scenario endpoints returned in 41?141 ms during investigation; that does not verify browser transition latency or prove this is the only cause of the reported hang. The existing Docker web image showed the older four-stage UI, so it must not be confused with the clean review branch. Browser automation stopped on an address/document URL confidence check; no successful manual toggle is claimed.
+- **Affects**: Shared page entrance and recommendation metric rendering; scores, attribution, session rollout and provider configuration are unchanged
+- **Replaces**: none
+- **PR / branch**: `fix/core-review-upgrades-clean` / PR #29
+
+### TEAM-028: Correct signup, public role directions and recommendation provenance after PR review
+- **Date**: 2026-10-30
+- **Feature**: Core / F2 / F3 / F6 / F7 / F8
+- **Type**: UI, contract, method
+- **Change**: Submit JoinView's team-account switch through POST logout, preserving both signup query parameters. Read radar role directions through the public trend-signals endpoint with an additive optional snapshot date, pinned to the displayed skill snapshot, without loading personal intake or plans. Keep the original match metadata separately from Adi's trend metadata, re-read both scenarios at that match date, and reject mismatched responses. Aggregate SDG plan origins independently of fallback status: cached database plans remain database-sourced; any fixture input marks the aggregate fixture-sourced, and otherwise incomplete origin metadata remains unknown.
+- **Why**: The review found a GET caller left behind by POST-only logout, an inappropriate learner-profile dependency for managers, comparison dates that could diverge across strict/non-strict caches, and database fallback mislabeled as fixture data.
+- **Affects**: Team signup entry, learner/organisation radar, generated OpenAPI/TypeScript bindings, Adi scenario answers and SDG attribution. Existing radar callers remain compatible. Session-version production rollout remains deferred until after judging.
+- **Replaces**: none
+- **PR / branch**: `fix/core-review-upgrades-clean` / PR #29
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)

@@ -59,6 +59,8 @@ def _parse_meta(raw_meta: dict, scenario: str) -> TrendSnapshotMeta:
         snapshot_date=date.fromisoformat(raw_meta["snapshot_date"]),
         scenario=scenario,  # type: ignore[arg-type]
         is_estimate=raw_meta.get("is_estimate", True),
+        served_from="fixture",
+        is_fallback=True,
         weights=raw_meta.get("weights", {"research_velocity": 0.6, "labor_decay": 0.4}),
         labor_decay_is_static=raw_meta.get("labor_decay_is_static", True),
         available_snapshots=[

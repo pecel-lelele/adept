@@ -84,7 +84,9 @@ class Store(Protocol):
     def progress_of(
         self, user_ids: list[str], scope: str | None = None
     ) -> list[tuple[str, str, str, CourseStatus]]: ...
-    def learning_records(self, user_ids: list[str]) -> list[LearningRecord]: ...
+    def learning_records(
+        self, user_ids: list[str], scopes: list[str] | None = None
+    ) -> list[LearningRecord]: ...
     def reset(self) -> None: ...
 
 
@@ -188,7 +190,9 @@ class MemoryStore:
             for cid, status in statuses.items()
         ]
 
-    def learning_records(self, user_ids: list[str]) -> list[LearningRecord]:
+    def learning_records(
+        self, user_ids: list[str], scopes: list[str] | None = None
+    ) -> list[LearningRecord]:
         wanted = set(user_ids)
         return [
             LearningRecord(
@@ -198,7 +202,7 @@ class MemoryStore:
                 sc,
             )
             for (uid, sc, rid), statuses in self._progress.items()
-            if uid in wanted
+            if uid in wanted and (scopes is None or sc in scopes)
             for cid, status in statuses.items()
         ]  # fmt: skip
 
@@ -446,7 +450,9 @@ class PostgresStore:
         )
         return [(str(u), str(r), str(c), s) for u, r, c, s in rows]  # type: ignore[misc]
 
-    def learning_records(self, user_ids: list[str]) -> list[LearningRecord]:
+    def learning_records(
+        self, user_ids: list[str], scopes: list[str] | None = None
+    ) -> list[LearningRecord]:
         if not user_ids:
             return []
         rows = self._run(
@@ -455,8 +461,9 @@ class PostgresStore:
             "FROM course_progress p LEFT JOIN course_evidence e "
             "ON (e.user_id, e.scope, e.role_id, e.course_id) "
             "= (p.user_id, p.scope, p.role_id, p.course_id) "
-            "WHERE p.user_id = ANY(%s) ORDER BY p.user_id, p.scope, p.role_id, p.course_id",
-            (user_ids,),
+            "WHERE p.user_id = ANY(%s) AND (%s::text[] IS NULL OR p.scope = ANY(%s)) "
+            "ORDER BY p.user_id, p.scope, p.role_id, p.course_id",
+            (user_ids, scopes, scopes),
         )
         return [
             LearningRecord(
@@ -551,9 +558,9 @@ def progress_of(
     return store().progress_of(user_ids, scope)
 
 
-def learning_records(user_ids: list[str]) -> list[LearningRecord]:
+def learning_records(user_ids: list[str], scopes: list[str] | None = None) -> list[LearningRecord]:
     """Batch progress, immutable course facts and evidence in one store read."""
-    return store().learning_records(user_ids)
+    return store().learning_records(user_ids, scopes)
 
 
 def reset() -> None:

@@ -2,10 +2,10 @@
 
 Ranks the same profile on two snapshot dates (``replay.replay``) and, for every role, names
 the required skills that moved its score most. The scorer does not use raw velocity: it uses
-each skill's percentile position among all skills in the snapshot (``scoring.trend_scores``).
+each skill's position on the shared min-max scale (``scoring.trend_scores``).
 So a driver's effect is the change in that position times the skill's share of the role's
 importance times the trend weight: exactly how many score points that skill added or removed.
-A skill whose velocity rose while other skills rose faster therefore shows as a fall.
+Each dated snapshot supplies one range shared by both of its scenarios.
 
 An optional UN Goals weight (``sdg_weight``) blends each role's SDG impact into both scores
 the same way as the matches list, so replay explains the ranking the learner selected.
@@ -24,8 +24,8 @@ class Driver:
     skill_id: str
     velocity_before: float
     velocity_after: float
-    position_before: float  # percentile 0..1 among all skills in the earlier snapshot
-    position_after: float  # percentile 0..1 among all skills in the later snapshot
+    position_before: float  # normalized velocity 0..1 in the earlier snapshot
+    position_after: float  # normalized velocity 0..1 in the later snapshot
     effect: float  # score points this skill moved the role; sign = direction of the push
 
 
@@ -40,7 +40,7 @@ def drivers(
     pos_before: dict[str, float] | None = None,
     pos_after: dict[str, float] | None = None,
 ) -> list[Driver]:
-    """The required skills whose percentile position moved this role's score most.
+    """The required skills whose shared-scale velocity moved this role's score most.
 
     ``scale`` shrinks the effect when the UN Goals weight takes part of the score.
     ``pos_before`` / ``pos_after`` may be passed in to avoid re-ranking per role.
@@ -112,11 +112,25 @@ def compare(
     *,
     impact: dict[str, float] | None = None,
     sdg_weight: float = 0.0,
+    reference_before: dict[str, float] | None = None,
+    reference_after: dict[str, float] | None = None,
 ) -> list[tuple[RoleMovement, list[Driver]]]:
     by_id = {r.role_id: r for r in roles}
     weight = min(1.0, max(0.0, sdg_weight)) if impact is not None else 0.0
-    movements = _blend(replay(profile, roles, before, after, w), impact or {}, weight)
-    pb, pa = trend_scores(before), trend_scores(after)
+    movements = _blend(
+        replay(
+            profile,
+            roles,
+            before,
+            after,
+            w,
+            reference_before=reference_before,
+            reference_after=reference_after,
+        ),
+        impact or {},
+        weight,
+    )
+    pb, pa = trend_scores(before, reference_before), trend_scores(after, reference_after)
     return [
         (
             m,

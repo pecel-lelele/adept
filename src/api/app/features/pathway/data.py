@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date, datetime
+from typing import Literal
 
 from app.contracts.common import Source
 from app.contracts.pathway import Course
@@ -30,6 +31,9 @@ class Snapshot:
     version: str
     source: Source
     sources: tuple[Source, ...] = ()  # every source behind the snapshot (M1 has two)
+    snapshot_date: date | None = None
+    served_from: Literal["db", "fixture"] | None = None
+    is_fallback: bool = False
 
     def all_sources(self) -> tuple[Source, ...]:
         return self.sources or (self.source,)

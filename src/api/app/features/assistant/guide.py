@@ -8,12 +8,125 @@ Replies use the same [[kind:id]] tags, resolved to official labels by the servic
 from __future__ import annotations
 
 import re
+from dataclasses import replace
+from difflib import SequenceMatcher
 
 from app.contracts.assistant import Locale
+from app.core.security.sanitize import find_injection
 from app.features.assistant.context import Context
 
 # Keywords per intent in English, Malay and Chinese (lower-case; Chinese matched as substrings).
 INTENTS: dict[str, tuple[str, ...]] = {
+    "decision": (
+        "hire",
+        "hiring",
+        "fire",
+        "firing",
+        "promote",
+        "promotion",
+        "admission",
+        "admit",
+        "lay off",
+        "let go",
+        "pecat",
+        "ambil bekerja",
+        "naik pangkat",
+        "录用",
+        "解雇",
+        "晋升",
+        "录取",
+    ),
+    "other_person": ("colleague", "coworker", "someone else", "rakan sekerja", "同事", "别人的"),
+    "injection": ("hidden instructions", "system prompt", "ignore previous instructions"),
+    "sources": (
+        "sources",
+        "source",
+        "where does this data",
+        "data come from",
+        "course real",
+        "listing real",
+        "dari mana data",
+        "sumber data",
+        "数据来源",
+    ),
+    "scenario": (
+        "scenario",
+        "what if",
+        "moves faster",
+        "ai bergerak",
+        "lebih laju",
+        "senario",
+        "情景",
+        "更快",
+    ),
+    "forecast_accuracy": (
+        "how accurate",
+        "how confident",
+        "confidence",
+        "forecast accuracy",
+        "prediction",
+        "ketepatan",
+        "准确",
+        "置信",
+    ),
+    "sdg_explain": (
+        "what is sdg",
+        "apa itu sdg",
+        "sdg是什么",
+        "sdgs",
+        "sdg",
+        "plan connect",
+        "sdg definitions",
+    ),
+    "action_not_supported": (
+        "delete a course",
+        "remove this step",
+        "edit my plan",
+        "delete this step",
+        "remove a course",
+        "padam kursus",
+        "ubah pelan",
+        "删除课程",
+        "修改计划",
+    ),
+    "match_detail": (
+        "second role",
+        "ranked third",
+        "ranked second",
+        "role ranked",
+        "ranked lower",
+        "peranan kedua",
+        "第二",
+        "第三",
+    ),
+    "no_data": (
+        "salary",
+        "salaries",
+        "pay",
+        "location",
+        "jobs in",
+        "gaji",
+        "lokasi",
+        "薪资",
+        "工资",
+        "地点",
+    ),
+    "trend_declining": (
+        "declining",
+        "losing demand",
+        "kurang diperlukan",
+        "menurun",
+        "消失",
+        "下降",
+    ),
+    "score_improvement": (
+        "improve my match",
+        "raise my score",
+        "improve my score",
+        "tingkatkan skor",
+        "提高匹配分数",
+    ),
+    "score_breakdown": ("why is my score", "why did i get this score", "kenapa skor"),
     "privacy": (
         "privacy",
         "employer see",
@@ -202,10 +315,48 @@ INTENTS: dict[str, tuple[str, ...]] = {
 }
 
 PERSONAL_PLAN_INTENTS = frozenset({"plan_progress", "plan_duration", "plan_cost"})
+SAFETY_INTENTS = frozenset({"decision", "other_person", "injection"})
+FACT_INTENTS = (
+    frozenset(
+        {
+            "sources",
+            "scenario",
+            "forecast_accuracy",
+            "sdg_explain",
+            "action_not_supported",
+            "match_detail",
+            "no_data",
+            "score_improvement",
+            "score_breakdown",
+            "trend_declining",
+        }
+    )
+    | PERSONAL_PLAN_INTENTS
+)
 PLAN_WORDS = ("plan", "plans", "pelan", "rancangan", "计划")
 
 T: dict[str, dict[str, str]] = {
     "en": {
+        "decision": "Adept supports your judgement, it never makes hiring, firing, promotion, or admission decisions.",
+        "other_person": "I can discuss only your own data in this conversation. I cannot reveal another person's CV, skills, scores or private plans.",
+        "injection": "I cannot follow requests to override the rules or reveal hidden instructions. I can help explain your Adept results.",
+        "action_not_supported": "Chat cannot edit or delete courses or plan steps. Review your plan on [[page:/app/pathway]], or choose a different target using [[page:/app/pathway/compare]].",
+        "no_data": "I do not have verified salary figures or location-specific job results in this conversation. I will not guess. Browse [[page:/app/jobs]] and check the employer's posting.",
+        "forecast_accuracy": "These forecasts are scenario estimates from dated research attention and labour projections, not calibrated probabilities or guarantees. Adept has no verified predictive-accuracy figure for your outcome. Sparse coverage, old observation windows and fixture fallback can limit the results. Check the source dates on [[page:/app/radar]].",
+        "sources": "Snapshot {date}. Stored sources: {sources}. Courses in your plan: {courses}. Course links open provider pages; check employer postings for jobs. Chat cannot confirm current availability or prices.",
+        "sources_unavailable": "I could not load source records for this answer. Check [[page:/about]]; I will not invent a citation.",
+        "scenario": "Estimated scores under {before} → {after}, using the same profile and dated snapshot: {rows}. Ranks are relative and may stay unchanged. This compares scenarios; it does not change your selected scenario. Use the AI pace toggle on [[page:/app/matches]].",
+        "scenario_unavailable": "I could not load a comparable second scenario for your profile. Both scenarios are estimates, not guarantees. Use the AI pace toggle on [[page:/app/radar]] to compare available data.",
+        "pace_moderate": "Moderate",
+        "pace_fast": "Fast",
+        "sdg_explain": "The UN Sustainable Development Goals link learning and work to public targets. Official target wording from Adept's SDG catalogue: {targets}. Plan links are enabling hypotheses, not measured UN-target progress. See [[page:/app/sdg]].",
+        "sdg_unavailable": "That SDG definition is not available in my catalogue context. I will not invent it; check [[page:/app/sdg]].",
+        "rank_unavailable": "That rank is not available in your current results. Check [[page:/app/matches]]; I will not invent a role.",
+        "rank_context": "This is rank {rank}. The leading role is [[role:{role}]] at {score} estimated points. Rankings use the weighted components; tied scores use catalogue ID order.",
+        "trend_declining": "Declining skills in this snapshot: {skills}. Declining roles: {roles}. These are estimates from research attention and labour projections, not a prediction that a job will disappear. See [[page:/app/radar]].",
+        "score_math": "Estimated fit for [[role:{role}]]: {parts}. Total = {total} points out of 100. Weights are skill overlap, trend outlook and interest fit, in that order.",
+        "improvement": "Close [[skill:{skill}]] for an estimated +{gain} score points. {course}.",
+        "no_closing_course": "No catalogue course closes this gap yet",
         "hello": "Hi, I'm Adi! I can explain your matched roles, what to learn next, how skills "
         "are trending, course costs and HRD Corp claims, and how your path links to the UN SDGs.",
         "no_profile": "First, tell me your skills: it takes two minutes on [[page:/app/onboarding]]. "
@@ -263,6 +414,26 @@ T: dict[str, dict[str, str]] = {
         "team_shared": " {shared} of them share their skill levels.",
     },
     "ms": {
+        "decision": "Adept menyokong pertimbangan anda; ia tidak membuat keputusan pengambilan, pemecatan, kenaikan pangkat atau kemasukan.",
+        "other_person": "Saya hanya boleh membincangkan data anda sendiri dalam perbualan ini. Saya tidak boleh mendedahkan CV, kemahiran, skor atau pelan peribadi orang lain.",
+        "injection": "Saya tidak boleh mengikut permintaan untuk mengetepikan peraturan atau mendedahkan arahan tersembunyi. Saya boleh membantu menerangkan hasil Adept anda.",
+        "action_not_supported": "Sembang tidak boleh mengedit atau memadam kursus atau langkah pelan. Semak pelan di [[page:/app/pathway]], atau pilih sasaran lain melalui [[page:/app/pathway/compare]].",
+        "no_data": "Saya tiada angka gaji yang disahkan atau hasil pekerjaan mengikut lokasi dalam perbualan ini. Saya tidak akan meneka. Lihat [[page:/app/jobs]] dan semak iklan majikan.",
+        "forecast_accuracy": "Unjuran ini ialah anggaran senario berdasarkan perhatian penyelidikan bertarikh dan unjuran tenaga kerja, bukan kebarangkalian terkalibrasi atau jaminan. Adept tiada ukuran ketepatan ramalan yang disahkan untuk hasil anda. Liputan terhad, tempoh pemerhatian lama dan data sandaran boleh mengehadkan hasil. Semak tarikh sumber di [[page:/app/radar]].",
+        "sources": "Petikan {date}. Sumber tersimpan: {sources}. Kursus dalam pelan anda: {courses}. Pautan kursus membuka halaman penyedia; semak iklan majikan bagi pekerjaan. Sembang tidak dapat mengesahkan ketersediaan atau harga semasa.",
+        "sources_unavailable": "Saya tidak dapat memuatkan rekod sumber untuk jawapan ini. Semak [[page:/about]]; saya tidak akan mereka-reka rujukan.",
+        "scenario": "Anggaran skor {before} → {after}, menggunakan profil dan petikan bertarikh yang sama: {rows}. Kedudukan adalah relatif dan mungkin kekal. Ini perbandingan senario, bukan perubahan pilihan anda. Gunakan suis kadar AI di [[page:/app/matches]].",
+        "scenario_unavailable": "Saya tidak dapat memuatkan senario kedua yang setanding untuk profil anda. Kedua-duanya anggaran, bukan jaminan. Gunakan suis kadar AI di [[page:/app/radar]] untuk membandingkan data tersedia.",
+        "pace_moderate": "Sederhana",
+        "pace_fast": "Pantas",
+        "sdg_explain": "Matlamat Pembangunan Mampan PBB mengaitkan pembelajaran dan pekerjaan dengan sasaran awam. Takrif sasaran rasmi daripada katalog SDG Adept: {targets}. Pautan pelan ialah hipotesis sokongan, bukan kemajuan terukur sasaran PBB. Lihat [[page:/app/sdg]].",
+        "sdg_unavailable": "Takrif SDG itu tiada dalam konteks katalog saya. Saya tidak akan mereka-rekanya; semak [[page:/app/sdg]].",
+        "rank_unavailable": "Kedudukan itu tiada dalam hasil semasa anda. Semak [[page:/app/matches]]; saya tidak akan mereka-reka peranan.",
+        "rank_context": "Ini kedudukan {rank}. Peranan teratas ialah [[role:{role}]] dengan anggaran {score} mata. Kedudukan menggunakan komponen berwajaran; skor seri disusun mengikut ID katalog.",
+        "trend_declining": "Kemahiran yang menurun dalam petikan ini: {skills}. Peranan yang menurun: {roles}. Ini anggaran berdasarkan perhatian penyelidikan dan unjuran tenaga kerja, bukan ramalan bahawa kerja akan hilang. Lihat [[page:/app/radar]].",
+        "score_math": "Anggaran padanan untuk [[role:{role}]]: {parts}. Jumlah = {total} mata daripada 100. Wajaran mengikut susunan pertindihan kemahiran, prospek trend dan kesesuaian minat.",
+        "improvement": "Tutup jurang [[skill:{skill}]] untuk anggaran +{gain} mata skor. {course}.",
+        "no_closing_course": "Belum ada kursus katalog yang menutup jurang ini",
         "hello": "Hai, saya Adi! Saya boleh terangkan peranan padanan anda, apa perlu dipelajari, "
         "tren kemahiran, kos kursus dan tuntutan HRD Corp, serta kaitan laluan anda dengan SDG PBB.",
         "no_profile": "Mula-mula, beritahu kemahiran anda: dua minit di [[page:/app/onboarding]]. "
@@ -319,6 +490,26 @@ T: dict[str, dict[str, str]] = {
         "team_shared": " {shared} daripadanya berkongsi tahap kemahiran.",
     },
     "zh": {
+        "decision": "Adept 为您的判断提供支持，绝不作出招聘、解雇、晋升或录取决定。",
+        "other_person": "我只能在此对话中讨论您自己的数据，不能透露他人的简历、技能、分数或私人计划。",
+        "injection": "我不能遵循绕过规则或泄露隐藏指令的请求。我可以帮助解释您的 Adept 结果。",
+        "action_not_supported": "聊天无法编辑或删除课程及计划步骤。请到 [[page:/app/pathway]] 查看计划，或通过 [[page:/app/pathway/compare]] 选择其他目标。",
+        "no_data": "此对话中没有经过核实的薪资数据或按地点筛选的职位结果。我不会猜测。请浏览 [[page:/app/jobs]] 并查看雇主发布的信息。",
+        "forecast_accuracy": "这些预测是根据有日期的研究关注度与劳动力预测形成的情景估计，并非经过校准的概率或保证。Adept 没有针对您个人结果的已验证预测准确率。覆盖不足、旧观察时间段及备用快照会限制结果。请在 [[page:/app/radar]] 查看来源日期。",
+        "sources": "快照日期：{date}。已存来源：{sources}。您的计划课程：{courses}。课程链接指向提供方页面；职位请核对雇主信息。聊天无法确认当前供应情况或价格。",
+        "sources_unavailable": "无法加载此回答的来源记录。请查看 [[page:/about]]；我不会编造引用。",
+        "scenario": "在相同资料和同一日期快照下，{before} → {after}的估计分数：{rows}。排名是相对的，也可能不变。这是情景比较，不会更改您的选择。请在 [[page:/app/matches]] 使用 AI 变化速度切换。",
+        "scenario_unavailable": "无法加载适合您资料的第二个可比情景。两种情景都是估计，并非保证。请在 [[page:/app/radar]] 使用 AI 变化速度切换来比较可用数据。",
+        "pace_moderate": "适度",
+        "pace_fast": "快速",
+        "sdg_explain": "联合国可持续发展目标将学习和工作与公共目标联系起来。Adept 的 SDG 目录中的官方目标定义：{targets}。计划关联是提供支持的假设，并非联合国目标的实测进展。请查看 [[page:/app/sdg]]。",
+        "sdg_unavailable": "当前目录上下文中没有该 SDG 定义。我不会编造，请查看 [[page:/app/sdg]]。",
+        "rank_unavailable": "当前结果中没有该名次。请查看 [[page:/app/matches]]；我不会编造职位。",
+        "rank_context": "这是第 {rank} 名。领先职位为 [[role:{role}]]，估计得分 {score}。排名由加权分数组成，同分时按目录 ID 排序。",
+        "trend_declining": "此快照中需求下降的技能：{skills}。需求下降的职位：{roles}。这些是基于研究关注度和劳动力预测的估计，并不表示某个工作一定会消失。请查看 [[page:/app/radar]]。",
+        "score_math": "[[role:{role}]] 的估计匹配度：{parts}。总计 = {total} 分，满分 100。权重依次对应技能重合、趋势前景和兴趣契合。",
+        "improvement": "弥补 [[skill:{skill}]] 差距，预计提高 {gain} 分。{course}。",
+        "no_closing_course": "目录中暂时没有能完全弥补此差距的课程",
         "hello": "你好，我是 Adi！我可以解释你的匹配职位、下一步该学什么、技能趋势、课程费用与 HRD Corp "
         "补贴，以及你的路径如何关联联合国可持续发展目标。",
         "no_profile": "先告诉我你的技能：在 [[page:/app/onboarding]] 只需两分钟。之后我就能为你排序未来职位并显示差距。",
@@ -415,7 +606,24 @@ SUGGESTIONS: dict[str, dict[str, list[str]]] = {
 
 def intent(question: str, audience: str = "learner") -> str:
     q = question.lower()
+    # People decisions take precedence even when combined with other topics.
+    if any(_keyword_hit(q, word) for word in INTENTS["decision"]):
+        return "decision"
+    if find_injection(q) or any(_contains(q, word) for word in INTENTS["injection"]):
+        return "injection"
+    possessive = re.search(
+        r"\b([a-z][a-z'-]*)[’']s\s+(?:cv|resume|skills?|score|profile|plan)\b", q
+    )
+    if any(_contains(q, word) for word in INTENTS["other_person"]) or (
+        possessive
+        and possessive.group(1)
+        not in {"profile", "plan", "course", "role", "job", "company", "organisation"}
+    ):
+        return "other_person"
+    scores: dict[str, float] = {}
     for name, words in INTENTS.items():
+        if name in SAFETY_INTENTS:
+            continue
         if name in PERSONAL_PLAN_INTENTS and audience not in ("learner", "employee"):
             continue
         # Saved-plan totals answer only questions about the plan itself: "Which courses can I
@@ -426,9 +634,58 @@ def intent(question: str, audience: str = "learner") -> str:
             continue
         if name == "team" and audience != "manager":
             continue
-        if any(_contains(q, word) for word in words):
-            return name
-    return "next"
+        hits = sum(_contains(q, word) for word in words)
+        if not hits:
+            hits = int(any(_keyword_hit(q, word) for word in words))
+        weight = 3.0 if name in FACT_INTENTS else 0.15 if name in {"how", "next"} else 1.0
+        scores[name] = hits * weight
+    specific = {
+        name: value for name, value in scores.items() if name not in {"how", "next"} and value >= 1
+    }
+    return (
+        max(specific, key=specific.get)
+        if specific
+        else max(scores, key=scores.get)
+        if any(scores.values())
+        else "next"
+    )
+
+
+def _keyword_hit(question: str, word: str) -> bool:
+    if _contains(question, word):
+        return True
+    if re.search(r"[一-鿿]", word):
+        return False
+    tokens = re.findall(r"[a-z]+", question)
+    parts = word.split()
+    for start in range(len(tokens) - len(parts) + 1):
+        if all(
+            left == right
+            or (
+                min(len(left), len(right)) >= 5
+                and SequenceMatcher(None, left, right).ratio() >= 0.84
+            )
+            for left, right in zip(parts, tokens[start : start + len(parts)], strict=True)
+        ):
+            return True
+    return False
+
+
+def focus_context(question: str, ctx: Context) -> Context:
+    """Resolve ordinal roles and catalogue targets without changing the stored context."""
+    facts = dict(ctx.facts)
+    ordinals = (("second", "2nd", "kedua", "第二"), ("third", "3rd", "ketiga", "第三"))
+    matches = facts.get("matches") or []
+    for index, words in enumerate(ordinals, start=1):
+        if any(_contains(question.lower(), word) for word in words):
+            facts["focus_rank"] = index + 1
+            facts["focus_match"] = matches[index] if len(matches) > index else None
+            break
+    target = re.search(r"\bsdg\s*(\d{1,2}\.[a-z0-9]+)", question.lower())
+    if target:
+        facts["sdg_focus"] = target.group(1)
+    facts["sdg_plan_question"] = any(_contains(question.lower(), word) for word in PLAN_WORDS)
+    return replace(ctx, facts=facts)
 
 
 def _contains(question: str, word: str) -> bool:
@@ -446,13 +703,103 @@ def _tags(kind: str, ids: list[str]) -> str:
 
 
 def reply(question: str, ctx: Context, locale: Locale) -> str:
-    return reply_for_intent(intent(question, ctx.audience), ctx, locale)
+    return reply_for_intent(intent(question, ctx.audience), focus_context(question, ctx), locale)
 
 
 def reply_for_intent(kind: str, ctx: Context, locale: Locale) -> str:
     """Render one server-authored answer from checked application facts."""
     t = T[locale]
     f = ctx.facts
+    if kind in SAFETY_INTENTS or kind in {"action_not_supported", "no_data", "forecast_accuracy"}:
+        return t[kind]
+    if kind == "sources":
+        if ctx.meta is None:
+            return t["sources_unavailable"]
+        sources = "; ".join(
+            f"{source.name} ({source.url}; {source.retrieved_at})" for source in ctx.meta.sources
+        )
+        courses = list(
+            dict.fromkeys(course for step in f.get("plan_steps", []) for course in step["courses"])
+        )[:3]
+        return t[kind].format(
+            date=ctx.meta.snapshot_date, sources=sources, courses=_tags("course", courses) or "—"
+        )
+    if kind == "scenario":
+        comparison = f.get("scenario_comparison")
+        if comparison is None:
+            return t["scenario_unavailable"]
+        rows = "; ".join(
+            f"[[role:{item['role_id']}]]: {item['before'] * 100:.1f} → {item['after'] * 100:.1f} ({item['rank_before']} → {item['rank_after']})"
+            for item in comparison["roles"]
+        )
+        return t[kind].format(
+            before=t[f"pace_{comparison['before']}"],
+            after=t[f"pace_{comparison['after']}"],
+            rows=rows,
+        )
+    if kind == "sdg_explain":
+        focus = f.get("sdg_focus")
+        if focus and focus not in ctx.refs.sdg:
+            return t["sdg_unavailable"]
+        targets = (
+            [focus]
+            if focus
+            else f.get("plan_sdg_targets") or f.get("sdg_targets") or list(ctx.refs.sdg)[:2]
+        )
+        if not targets:
+            return t["sdg_unavailable"]
+        prefix = t["no_plan"] + " " if f.get("sdg_plan_question") and not f.get("plan_role") else ""
+        return prefix + t[kind].format(targets=_tags("sdg", targets[:4]))
+    if kind == "trend_declining":
+        return t[kind].format(
+            skills=_tags("skill", f.get("declining", [])[:5]) or "—",
+            roles=_tags("role", f.get("declining_roles", [])[:5]) or "—",
+        )
+    if (
+        kind in ("score_improvement", "score_breakdown", "match_detail")
+        and ctx.audience == "learner"
+    ):
+        matches = f.get("matches") or []
+        if not matches:
+            return t["no_profile"]
+        if kind == "match_detail" and f.get("focus_rank") and not f.get("focus_match"):
+            return t["rank_unavailable"]
+        top = f.get("focus_match") or matches[0]
+        from app.features.matching.scoring import Weights
+
+        weights = Weights()
+        components = top.get("components") or [
+            {"value": top["parts"].get(name, 0), "weight": weight}
+            for name, weight in (
+                ("skill_overlap", weights.skill),
+                ("trend_outlook", weights.trend),
+                ("interest_fit", weights.interest),
+            )
+        ]
+        arithmetic = " + ".join(
+            f"{c['weight'] * 100:g}% × {c['value'] * 100:.1f}% = {c['weight'] * c['value'] * 100:.1f}"
+            for c in components
+        )
+        body = t["score_math"].format(
+            role=top["role_id"], parts=arithmetic, total=f"{top['score'] * 100:.1f}"
+        )
+        if kind == "match_detail":
+            body += " " + t["rank_context"].format(
+                rank=f.get("focus_rank", 1),
+                role=matches[0]["role_id"],
+                score=f"{matches[0]['score'] * 100:.1f}",
+            )
+        if kind == "score_improvement":
+            for item in top.get("improvements", [])[:3]:
+                course = (
+                    f"[[course:{item['course_id']}]]"
+                    if item.get("course_id")
+                    else t["no_closing_course"]
+                )
+                body += "\n" + t["improvement"].format(
+                    skill=item["skill"], gain=f"{item['score_gain'] * 100:.1f}", course=course
+                )
+        return body
     if ctx.audience == "employee":
         return _employee_reply(kind, ctx, t)
     if kind == "privacy":

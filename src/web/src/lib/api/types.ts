@@ -98,6 +98,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Logout */
+        post: operations["accounts_logout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/me": {
         parameters: {
             query?: never;
@@ -2017,6 +2034,13 @@ export interface components {
             sources: components["schemas"]["Source"][];
             /** Is Mock */
             is_mock: boolean;
+            /**
+             * Served From
+             * @enum {string}
+             */
+            served_from: "db" | "fixture";
+            /** Is Fallback */
+            is_fallback: boolean;
         };
         /** DataSourceInfo */
         DataSourceInfo: {
@@ -2058,13 +2082,15 @@ export interface components {
             llm_enabled: boolean;
             /**
              * Provider
-             * @description Configured LLM provider ('none' = no model is used).
+             * @description Configured Adi provider ('none' = built-in Adi guide).
              */
             provider: string;
             /** Model */
             model: string;
             /** Purpose */
             purpose: string[];
+            /** Registry */
+            registry: components["schemas"]["RegisterEntry"][];
             /** Rules */
             rules: string[];
             /** Calls Logged */
@@ -2302,6 +2328,16 @@ export interface components {
              * @default 0
              */
             contributors: number;
+            /**
+             * Planned Hours
+             * @default 0
+             */
+            planned_hours: number;
+            /**
+             * Hours Share
+             * @default 0
+             */
+            hours_share: number;
         };
         /** GroupPlan */
         GroupPlan: {
@@ -2477,14 +2513,13 @@ export interface components {
             code: string;
             /**
              * Consent
-             * @description Explicit consent to join and share the skills profile with managers. Required: a join without it is refused (M4-055).
+             * @description Explicit consent to join this organisation. Required: a join without it is refused (M4-055).
              * @default false
              */
             consent: boolean;
             /**
              * Share Skills
-             * @description Share skill levels with this organisation's managers.
-             * @default true
+             * @description Explicit consent to share skill levels with this organisation's managers.
              */
             share_skills: boolean;
         };
@@ -3325,6 +3360,13 @@ export interface components {
              * @default true
              */
             is_estimate: boolean;
+            /** Served From */
+            served_from?: ("db" | "fixture") | null;
+            /**
+             * Is Fallback
+             * @default false
+             */
+            is_fallback: boolean;
             /**
              * Observed From
              * @description Start of the period the source data measures; may predate snapshot_date.
@@ -3340,6 +3382,18 @@ export interface components {
         RegionListResponse: {
             /** Regions */
             regions: string[];
+        };
+        /** RegisterEntry */
+        RegisterEntry: {
+            /**
+             * Id
+             * @enum {string}
+             */
+            id: "minilm" | "glm" | "gemini" | "embeddings" | "arxiv" | "bls" | "onet" | "jobs" | "mscert" | "awscert" | "googlecert" | "iibacert" | "iappcert" | "bnm";
+            /** Name */
+            name: string;
+            /** Url */
+            url: string;
         };
         /** ReplanStatus */
         ReplanStatus: {
@@ -3367,19 +3421,19 @@ export interface components {
             velocity_after: number;
             /**
              * Position Before
-             * @description Percentile of the skill's velocity among all skills, earlier snapshot.
+             * @description Skill velocity on the shared min-max scale, earlier snapshot.
              * @default 0
              */
             position_before: number;
             /**
              * Position After
-             * @description Percentile of the skill's velocity among all skills, later snapshot.
+             * @description Skill velocity on the shared min-max scale, later snapshot.
              * @default 0
              */
             position_after: number;
             /**
              * Effect
-             * @description Score points this skill moved the role: change in its percentile position times its share of the role's importance times the trend weight; > 0 pushed up.
+             * @description Score points this skill moved the role: change on the shared min-max scale times its share of the role's importance times the trend weight; > 0 pushed up.
              */
             effect: number;
         };
@@ -3472,6 +3526,13 @@ export interface components {
             partial_skills: components["schemas"]["Skill"][];
             /** Sdg Targets */
             sdg_targets: components["schemas"]["SdgTarget"][];
+            /** Improvements */
+            improvements?: components["schemas"]["ScoreImprovement"][];
+            /**
+             * Profile Note
+             * @description A sparse-profile notice; translate the code for display.
+             */
+            profile_note?: "add_skills" | null;
             /**
              * Trend Coverage
              * @description Share of the role's skill importance that had a trend value in the snapshot; None for mock responses. Low coverage means many skills fell back to neutral.
@@ -3765,6 +3826,21 @@ export interface components {
             /** Explanation */
             explanation: string;
         };
+        /** ScoreImprovement */
+        ScoreImprovement: {
+            /** Skill */
+            skill: string;
+            /** Label */
+            label: string;
+            /** Score Gain */
+            score_gain: number;
+            /** Course Id */
+            course_id?: string | null;
+            /** Course Title */
+            course_title?: string | null;
+            /** Course Url */
+            course_url?: string | null;
+        };
         /** SdgAlignment */
         SdgAlignment: {
             /** Role Id */
@@ -3802,6 +3878,8 @@ export interface components {
             scope_id: string;
             /** Role Ids */
             role_ids?: string[];
+            /** Target Contributions */
+            target_contributions?: components["schemas"]["TargetContribution"][];
         };
         /**
          * SdgEvidence
@@ -3872,6 +3950,10 @@ export interface components {
             target: string;
             /** Label */
             label: string;
+            /** Reason */
+            reason?: string | null;
+            /** Strength */
+            strength?: ("direct" | "enabling") | null;
         };
         /** SessionResponse */
         SessionResponse: {
@@ -4284,6 +4366,17 @@ export interface components {
              */
             detail: string;
         };
+        /** TargetContribution */
+        TargetContribution: {
+            target: components["schemas"]["SdgTarget"];
+            /** Planned Hours */
+            planned_hours: number;
+            /**
+             * Hours Share
+             * @description Share of planned learning hours linked to this target; not measured SDG impact. Targets may overlap.
+             */
+            hours_share: number;
+        };
         /** TeamPackage */
         TeamPackage: {
             /**
@@ -4371,6 +4464,17 @@ export interface components {
              * @default true
              */
             is_estimate: boolean;
+            /**
+             * Served From
+             * @default db
+             * @enum {string}
+             */
+            served_from: "db" | "fixture";
+            /**
+             * Is Fallback
+             * @default false
+             */
+            is_fallback: boolean;
             /** Weights */
             weights: {
                 [key: string]: number;
@@ -4634,6 +4738,36 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SessionResponse"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    accounts_logout: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                "x-workspace"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -7005,6 +7139,7 @@ export interface operations {
         parameters: {
             query?: {
                 scenario?: "moderate" | "fast";
+                snapshot_date?: string | null;
             };
             header?: never;
             path?: never;

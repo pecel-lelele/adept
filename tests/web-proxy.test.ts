@@ -55,7 +55,7 @@ test("forged internal headers are discarded; only the trusted chain is signed", 
     "x-real-ip": "192.0.2.123", "x-internal-proxy-secret": "forged",
   } }), { apiUrl, secret, trustedHops: 2 });
   const headers = await response.json();
-  assert.equal(headers["x-real-ip"], "203.0.113.7");
+  assert.equal(headers["x-real-ip"], "198.51.100.5");
   assert.equal(headers["x-internal-proxy-secret"], secret);
   assert.equal(headers["x-forwarded-for"], undefined);
 });
@@ -91,15 +91,23 @@ test("one visitor cannot exhaust another visitor's login allowance", async (t) =
   await other.arrayBuffer();
 });
 
-test("missing or malformed proxy chains fail closed on normal API routes", async () => {
+test("missing or malformed proxy addresses warn and forward without a signed identity", async (t) => {
+  const warning = t.mock.method(console, "warn", () => {});
+  const apiUrl = await serve(t, (req, res) => res.end(JSON.stringify(req.headers)));
   for (const value of [null, "spoofed", "203.0.113.1,"]) {
     const req = request();
     if (value === null) req.headers.delete("x-forwarded-for");
     else req.headers.set("x-forwarded-for", value);
-    const response = await proxyRequest(req, { apiUrl: "http://127.0.0.1:1", secret, trustedHops: 1 });
-    assert.equal(response.status, 400);
+    const response = await proxyRequest(req, { apiUrl, secret, trustedHops: 1 });
+    assert.equal(response.status, 200);
+    const headers = await response.json();
+    assert.equal(headers["x-real-ip"], undefined);
+    assert.equal(headers["x-internal-proxy-secret"], undefined);
   }
-  assert.equal(trustedClientIp("203.0.113.1", 2), undefined);
+  assert.equal(warning.mock.calls.length, 3);
+  assert.equal(trustedClientIp("203.0.113.1", 2), "203.0.113.1");
+  assert.equal(trustedClientIp("192.0.2.123, invalid", 1), undefined);
+  assert.equal(trustedClientIp("forged, 2001:db8::1", 2), "2001:db8::1");
 });
 
 test("upload bodies, response cookies and status are preserved without hop headers", async (t) => {
@@ -171,12 +179,24 @@ test("unavailable or timed-out upstreams return bounded, sanitized errors", asyn
   assert(!JSON.stringify(await response.json()).includes(secret));
 });
 
-test("production still requires the shared secret and an explicit trusted hop count", () => {
+test("production requires the shared secret and validates the explicit client IP mode", () => {
   for (const env of [
     { APP_ENV: "production", TRUSTED_PROXY_HOPS: "1" },
-    { APP_ENV: "production", PROXY_SHARED_SECRET: secret },
+    { APP_ENV: "production", PROXY_SHARED_SECRET: secret, PROXY_CLIENT_IP_MODE: "trusted", TRUSTED_PROXY_HOPS: "0" },
     { APP_ENV: "production", PROXY_SHARED_SECRET: "   ", TRUSTED_PROXY_HOPS: "1" },
     { TRUSTED_PROXY_HOPS: "-1" },
+    { PROXY_CLIENT_IP_MODE: "unknown" },
   ]) assert.throws(() => proxyConfig(env));
   assert.equal(proxyConfig({ APP_ENV: "production", PROXY_SHARED_SECRET: secret, TRUSTED_PROXY_HOPS: "1" }).trustedHops, 1);
+});
+
+test("production best-effort mode serves requests with zero trusted proxy hops", async (t) => {
+  const apiUrl = await serve(t, (req, res) => res.end(JSON.stringify(req.headers)));
+  const config = proxyConfig({ APP_ENV: "production", PROXY_SHARED_SECRET: secret, TRUSTED_PROXY_HOPS: "0", PROXY_CLIENT_IP_MODE: "best-effort" });
+  assert.equal(config.clientIpMode, "best-effort");
+  const response = await proxyRequest(request(undefined, { headers: { "x-forwarded-for": "192.0.2.123, 203.0.113.7" } }), { ...config, apiUrl });
+  assert.equal(response.status, 200);
+  const headers = await response.json();
+  assert.equal(headers["x-real-ip"], "203.0.113.7");
+  assert.equal(headers["x-internal-proxy-secret"], secret);
 });

@@ -64,25 +64,21 @@ class _RoleScore:
     trend_coverage: float = 1.0  # share of role skill weight that had trend data
 
 
-def trend_scores(velocities: dict[str, float]) -> dict[str, float]:
-    """Percentile rank of each skill's velocity inside one snapshot (0..1, ties averaged).
+def trend_scores(
+    velocities: dict[str, float], reference_velocities: dict[str, float] | None = None
+) -> dict[str, float]:
+    """Min-max over both scenarios' raw velocities, using one shared reference range.
 
-    Rank-based on purpose: one outlier (for example ai-agents at 0.17) cannot
-    squash every other skill to ~0, and the scale does not depend on the scenario.
+    A snapshot already contains both scenarios; its adapter supplies the other one.
+    Pure offline callers may supply one set only. A constant range is neutral.
     """
-    items = sorted(velocities.items(), key=lambda kv: kv[1])
-    n = len(items)
-    out: dict[str, float] = {}
-    i = 0
-    while i < n:
-        j = i
-        while j + 1 < n and items[j + 1][1] == items[i][1]:
-            j += 1
-        pct = ((i + j) / 2) / (n - 1) if n > 1 else NEUTRAL
-        for k in range(i, j + 1):
-            out[items[k][0]] = pct
-        i = j + 1
-    return out
+    values = [*velocities.values(), *(reference_velocities or {}).values()]
+    if not values:
+        return {}
+    low, high = min(values), max(values)
+    if high == low:
+        return {skill: NEUTRAL for skill in velocities}
+    return {skill: (value - low) / (high - low) for skill, value in velocities.items()}
 
 
 def gap_state(user_level: float | int, required_level: int = 1) -> str:
@@ -187,8 +183,10 @@ def rank_roles(
     roles: list[Role],
     velocities: dict[str, float],
     w: Weights = _DEFAULT_WEIGHTS,
+    *,
+    reference_velocities: dict[str, float] | None = None,
 ) -> list[_RoleScore]:
     """Score and rank roles. Tie-break on role_id for determinism (M2-13)."""
-    scores = trend_scores(velocities)
+    scores = trend_scores(velocities, reference_velocities)
     matches = [score_role(profile, r, scores, w) for r in roles]
     return sorted(matches, key=lambda m: (-m.score, m.role_id))

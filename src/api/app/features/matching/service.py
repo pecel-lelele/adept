@@ -36,6 +36,8 @@ def _build_meta(snap, scenario: ScenarioId) -> RecommendationMeta:
         is_estimate=snap.is_estimate,  # bool from snapshot meta
         observed_from=snap.observed_from,
         observed_to=snap.observed_to,
+        served_from=snap.served_from,
+        is_fallback=snap.is_fallback,
     )
 
 
@@ -56,7 +58,9 @@ def list_matches(
 ) -> MatchResponse:
     snap = fetch_snapshot(scenario, snapshot_date) if snapshot_date else fetch_snapshot(scenario)
     meta = _build_meta(snap, scenario)
-    matches = repository.list_matches(user.id, scenario, snap.velocities, meta)
+    matches = repository.list_matches(
+        user.id, scenario, snap.velocities, meta, snap.reference_velocities
+    )
     if snap.data_provenance_note:
         matches = [
             match.model_copy(update={"data_provenance_note": snap.data_provenance_note})
@@ -77,12 +81,16 @@ def get_match(
     meta = _build_meta(snap, scenario)
     if sdg_weight_value > 0:
         # Impact is relative to the strongest role, so score the full list and pick one.
-        everyone = repository.list_matches(user.id, scenario, snap.velocities, meta)
+        everyone = repository.list_matches(
+            user.id, scenario, snap.velocities, meta, snap.reference_velocities
+        )
         match = next(
             (m for m in _weighted(everyone, sdg_weight_value) if m.role_id == role_id), None
         )
     else:
-        match = repository.get_match(user.id, role_id, scenario, snap.velocities, meta)
+        match = repository.get_match(
+            user.id, role_id, scenario, snap.velocities, meta, snap.reference_velocities
+        )
     if match is None:
         raise NotFoundError(f"No match for role {role_id}")
     return match.model_copy(update={"data_provenance_note": snap.data_provenance_note})
@@ -120,6 +128,8 @@ def replay(
         Weights(),
         impact=impact,
         sdg_weight=sdg_weight_value,
+        reference_before=before.reference_velocities,
+        reference_after=after.reference_velocities,
     )
     movements = [
         RoleMovement(

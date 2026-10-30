@@ -2,13 +2,15 @@ import { Bot, Minus, Radar, TrendingDown, TrendingUp } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
 import { Kpis, MetaBar, PageHeader, TrendPill } from "@/components";
+import { journeyStepCount } from "@/config/navigation";
 import { ErrorState } from "@/components/ErrorState";
 import { TrendBars } from "@/components/viz";
 import { fetchMyProfile } from "@/features/profile/api";
 import type { ScenarioId } from "@/lib/api";
 
-import { fetchRadar } from "../api";
+import { fetchRadar, fetchRoleDirections } from "../api";
 import { SignalExplorer } from "./SignalExplorer";
+import { RoleDirectionsCard } from "./RoleDirectionsCard";
 
 /**
  * Step 2, the Future Skills Radar. Hierarchy: how many skills rise / hold / decline → the
@@ -33,6 +35,7 @@ export async function RadarView({
   ]);
   if (!result.ok) return <ErrorState failure={result} />;
   const { items, meta } = result.data;
+  const directions = await fetchRoleDirections(scenario, meta.snapshot_date);
   const v = scenario === "fast" ? "velocity_fast" : "velocity_moderate";
   const dir = scenario === "fast" ? "direction_fast" : "direction_moderate";
   const count = (x: string) => items.filter((i) => i[dir] === x).length;
@@ -51,7 +54,7 @@ export async function RadarView({
   return (
     <div className="a-view">
       <PageHeader
-        eyebrow={context === "organisation" ? tp("radarEyebrowOrg") : tp("stepOf", { step: 2 })}
+        eyebrow={context === "organisation" ? tp("radarEyebrowOrg") : tp("stepOf", { step: 2, total: journeyStepCount() })}
         title={context === "organisation" ? t("orgTitle") : t("title")}
         description={tp("radarDesc")}
       >
@@ -128,11 +131,12 @@ export async function RadarView({
         )}
       </div>
 
+      {directions.ok ? <RoleDirectionsCard signals={directions.data.items} meta={directions.data.meta} organisation={context === "organisation"} snapshotDate={snapshotDate} /> : <ErrorState failure={directions} />}
       <section className="a-card" aria-labelledby="h-all">
         <div className="a-card-head">
           <h2 id="h-all">{tp("allSkills")}</h2>
         </div>
-        <SignalExplorer items={items} scenario={scenario} dates={meta.available_snapshots} date={meta.snapshot_date} />
+        <SignalExplorer items={items} scenario={scenario} dates={meta.available_snapshots} />
       </section>
       {meta.data_provenance_note ? <p className="a-small a-muted">{meta.data_provenance_note}</p> : null}
     </div>

@@ -65,7 +65,7 @@ def test_resolution_failure_defaults_to_fixture_but_strict_raises(error: Excepti
 
 
 @pytest.mark.parametrize("error", ERRORS)
-def test_snapshot_read_failure_preserves_default_not_found_but_strict_raises(
+def test_snapshot_read_failure_serves_disclosed_fallback_but_strict_raises(
     error: Exception,
 ) -> None:
     conn, cur = connection()
@@ -77,13 +77,17 @@ def test_snapshot_read_failure_preserves_default_not_found_but_strict_raises(
         execute(query, params)
 
     cur.execute.side_effect = fail_on_rows
-    with patch("psycopg.connect", return_value=conn), patch.object(mocks, "snapshot") as fixture:
-        with pytest.raises(NotFoundError):
-            service.get_snapshot(DAY, "moderate")
+    with (
+        patch("psycopg.connect", return_value=conn),
+        patch.object(mocks, "snapshot", wraps=mocks.snapshot) as fixture,
+    ):
+        snap = service.get_snapshot(DAY, "moderate")
+        assert snap.meta.snapshot_date == DAY
+        assert snap.meta.is_fallback and snap.meta.served_from == "fixture"
         with pytest.raises(TrendsUnavailableError) as caught:
             service.get_snapshot(DAY, "moderate", strict=True)
         assert caught.value.__cause__ is error
-        fixture.assert_not_called()
+        fixture.assert_called_once_with("moderate", DAY)
         assert conn.close.call_count == 2
 
 

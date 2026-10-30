@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useRef, useState, type DragEvent, type FormEvent } from "react";
 
 import { Ring, scoreColour } from "@/components/viz/Ring";
+import { EstimateLabel } from "@/components/EstimateLabel";
 import type { Schemas } from "@/lib/api";
 
 type Preview = Schemas["GuestPreview"];
@@ -157,6 +158,7 @@ export function CvPreview() {
               {result.top_role ? (
                 <>
                   <Ring value={result.top_role.score} size={104} stroke={9} caption={t("fit")} colour={scoreColour(result.top_role.score)} />
+                  <EstimateLabel scenario={result.meta.scenario} />
                   <div style={{ minWidth: 0 }}>
                     <span className="a-eyebrow">{t("bestFit")}</span>
                     <h3>{result.top_role.label}</h3>

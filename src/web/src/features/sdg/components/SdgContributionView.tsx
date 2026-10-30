@@ -2,7 +2,8 @@ import { Globe2, Link2, ShieldCheck, Target } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
-import { ApiError, Badge, Kpis, MetaBar, PageHeader, SdgBadge } from "@/components";
+import { Badge, ErrorState, Kpis, MetaBar, PageHeader, SdgBadge } from "@/components";
+import { journeyStepCount } from "@/config/navigation";
 import type { ApiResult, ScenarioId, Schemas } from "@/lib/api";
 import { SDG_COLOURS } from "@/components/viz";
 
@@ -18,7 +19,7 @@ type Contribution = Schemas["SdgContribution"];
 async function GoalGrid({ data }: { data: Contribution }) {
   const t = await getTranslations("sdg");
   const showPeople = data.scope !== "person";
-  const goals = [...data.goals_summary].sort((a, b) => b.link_count - a.link_count || a.goal - b.goal);
+  const goals = [...data.goals_summary].sort((a, b) => (b.hours_share ?? 0) - (a.hours_share ?? 0) || a.goal - b.goal);
   return (
     <div className="a-goalgrid">
       {goals.map((g) => (
@@ -31,6 +32,7 @@ async function GoalGrid({ data }: { data: Contribution }) {
         >
           <b>{g.goal}</b>
           <span>{g.label}</span>
+          {g.planned_hours ? <small>{t("hoursShare", { share: Math.round((g.hours_share ?? 0) * 100), hours: g.planned_hours })}</small> : null}
           {g.link_count > 0 ? (
             <small>
               {t("linkCount", { count: g.link_count })} · {g.direct_count ?? 0} {t("direct")}
@@ -83,14 +85,14 @@ async function LinkList({ links }: { links: Schemas["SdgLink"][] }) {
 async function ContributionBody({ title, result }: { title: string; result: ApiResult<Contribution> }) {
   const t = await getTranslations("sdg");
   const tp = await getTranslations("ui.page");
-  if (!result.ok) return <ApiError message={result.message} />;
+  if (!result.ok) return <ErrorState failure={result} />;
   const data = result.data;
   const linked = data.goals_summary.filter((g) => g.link_count > 0).length;
   const direct = data.links.filter((l) => l.strength === "direct").length;
   const reviewed = data.links.filter((l) => l.reviewed).length;
   return (
     <div className="a-view">
-      <PageHeader eyebrow={t("goals")} title={title} description={t("description")}>
+      <PageHeader eyebrow={data.scope === "person" ? tp("stepOf", { step: 6, total: journeyStepCount() }) : t("goals")} title={title} description={t("description")}>
         <MetaBar meta={data.meta} />
       </PageHeader>
       {data.role_ids && data.role_ids.length > 0 ? (
@@ -113,6 +115,19 @@ async function ContributionBody({ title, result }: { title: string; result: ApiR
           { label: tp("kReviewed"), value: reviewed, unit: `/ ${data.links.length}`, icon: <ShieldCheck size={15} />, note: tp("kReviewedNote") },
         ]}
       />
+      {data.target_contributions?.length ? (
+        <section className="a-card a-pad">
+          <h2>{t("weightedTitle")}</h2>
+          <p className="a-small a-muted">{t("weightedHint")}</p>
+          <ul className="a-notes">
+            {data.target_contributions.map((item) => (
+              <li key={item.target.target}>
+                <SdgBadge target={item.target} /> {t("hoursShare", { share: Math.round(item.hours_share * 100), hours: item.planned_hours })}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
       <section className="a-card" aria-labelledby="h-goals">
         <div className="a-card-head">
           <h2 id="h-goals">{t("goals")}</h2>
