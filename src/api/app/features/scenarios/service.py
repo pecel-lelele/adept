@@ -142,7 +142,7 @@ def get_outlook(role_id: str | None, snapshot_date: date | None = None) -> Outlo
         reqs = [(r.skill_id, r.importance) for r in repository.role_requirements(rid)]
 
         # Mixed skill signals can cancel differently under fast adoption. Report each
-        # scenario's own aggregate, even when fast is less extreme (M1-015).
+        # scenario's own aggregate, even when fast is less extreme (M1-016).
         for sid in SCENARIO_IDS:
             latest_v = history[sid][-1]
             signal, coverage = role_signal(reqs, latest_v)

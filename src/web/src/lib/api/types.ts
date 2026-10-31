@@ -209,6 +209,119 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/data/freshness": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Data Freshness
+         * @description When each data source was last fetched (from stored data or run logs) and where it is
+         *     served from. Page requests never fetch upstream data.
+         */
+        get: operations["data_data_freshness"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/data/refresh/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Scheduled Run */
+        post: operations["data_scheduled_run"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/data/refresh/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** User Refresh */
+        post: operations["data_user_refresh"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/data/refresh/status/{run_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Run Status */
+        get: operations["data_run_status"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/data/refresh/recent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Recent Runs */
+        get: operations["data_recent_runs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/data/refresh/{source}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Refresh Source
+         * @description Fetch, validate and upsert one source into the app database (admin only).
+         *
+         *     409 refresh_in_progress while that source is running; 501 refresh_not_supported when the
+         *     pipeline is not installed here; 503 when the database is not available. A failed run
+         *     (status "failed") wrote nothing and the last good data stays served.
+         */
+        post: operations["data_refresh_source"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/guardrails/disclosure": {
         parameters: {
             query?: never;
@@ -1830,6 +1943,41 @@ export interface components {
              */
             workspace_name: string;
         };
+        /** BackgroundRefresh */
+        BackgroundRefresh: {
+            /** Run Id */
+            run_id?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "queued" | "running" | "ok" | "failed" | "up_to_date" | "cooldown";
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /** Finished At */
+            finished_at?: string | null;
+            /**
+             * Checked At
+             * Format: date-time
+             */
+            checked_at: string;
+            /** Data As Of */
+            data_as_of?: string | null;
+            /** Retry At */
+            retry_at?: string | null;
+            /** Next Scheduled At */
+            next_scheduled_at?: string | null;
+            /**
+             * Shared
+             * @default false
+             */
+            shared: boolean;
+            /** Steps */
+            steps?: components["schemas"]["RefreshStep"][];
+        };
         /** Badge */
         Badge: {
             /** Id */
@@ -2221,13 +2369,34 @@ export interface components {
         };
         /** DataFreshness */
         DataFreshness: {
+            /** Observation Window Start */
+            observation_window_start?: string | null;
+            /** Observation Window End */
+            observation_window_end?: string | null;
+            /** Retrieved At */
+            retrieved_at?: string | null;
+            /**
+             * Retrieved At Basis
+             * @default unknown
+             * @enum {string}
+             */
+            retrieved_at_basis: "pipeline_fetch" | "fetch_log" | "git_commit_date" | "unknown";
+            /** Retrieval Evidence */
+            retrieval_evidence?: string | null;
+            /** Is Replay */
+            is_replay?: boolean | null;
+            /** Observed From */
+            observed_from?: string | null;
+            /** Observed To */
+            observed_to?: string | null;
             /**
              * Snapshot Date
              * Format: date
+             * @description Snapshot version/slot label; see observation_window_* for the measured period.
              */
             snapshot_date: string;
             /** Sources */
-            sources: components["schemas"]["Source"][];
+            sources: components["schemas"]["TrendSource"][];
             /** Is Mock */
             is_mock: boolean;
             /**
@@ -2237,6 +2406,117 @@ export interface components {
             served_from: "db" | "fixture";
             /** Is Fallback */
             is_fallback: boolean;
+        };
+        /** DataFreshnessResponse */
+        DataFreshnessResponse: {
+            /** Sources */
+            sources: components["schemas"]["DataSourceFreshness"][];
+        };
+        /**
+         * DataRefreshResult
+         * @description Outcome of one admin refresh. A failed run wrote nothing; the last good data stays.
+         */
+        DataRefreshResult: {
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "courses" | "catalogue" | "jobs" | "labour" | "trends";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "failed";
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /**
+             * Finished At
+             * Format: date-time
+             */
+            finished_at: string;
+            /** Rows Fetched */
+            rows_fetched: number;
+            /** Rows Upserted */
+            rows_upserted: number;
+            /** Rows Rejected */
+            rows_rejected: number;
+            /** Error Code */
+            error_code?: string | null;
+            /** Message */
+            message: string;
+            /** Boards Run */
+            boards_run?: string[];
+            /** Boards Skipped */
+            boards_skipped?: string[];
+            freshness?: components["schemas"]["DataSourceFreshness"] | null;
+        };
+        /**
+         * DataSourceFreshness
+         * @description How fresh the data behind one page is, from stored data or run logs (never the clock).
+         */
+        DataSourceFreshness: {
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "trends" | "courses" | "jobs" | "labour";
+            /** Source Name */
+            source_name: string;
+            /** Source Url */
+            source_url?: string | null;
+            /**
+             * Last Fetched At
+             * @description Date the stored data was last fetched/observed from its source.
+             */
+            last_fetched_at?: string | null;
+            /**
+             * Data As Of
+             * @description Period the data describes (snapshot date, observed month), if distinct.
+             */
+            data_as_of?: string | null;
+            /** Snapshot Date */
+            snapshot_date?: string | null;
+            /** Observed From */
+            observed_from?: string | null;
+            /** Observed To */
+            observed_to?: string | null;
+            /**
+             * Is Historical Replay
+             * @default false
+             */
+            is_historical_replay: boolean;
+            /** Last Success */
+            last_success?: string | null;
+            /** Last Checked At */
+            last_checked_at?: string | null;
+            /** Age Days */
+            age_days?: number | null;
+            /**
+             * Is Stale
+             * @default false
+             */
+            is_stale: boolean;
+            /** Rows */
+            rows: number;
+            /**
+             * Served From
+             * @enum {string}
+             */
+            served_from: "database" | "seed";
+            /**
+             * Is Fallback
+             * @description True when the frozen seed export is being served.
+             */
+            is_fallback: boolean;
+            /**
+             * Refreshable
+             * @description An administrator can refresh this source in the app.
+             */
+            refreshable: boolean;
+            last_run?: components["schemas"]["RefreshRunSummary"] | null;
         };
         /** DataSourceInfo */
         DataSourceInfo: {
@@ -2798,6 +3078,18 @@ export interface components {
              * Format: date
              */
             first_seen: string;
+            /**
+             * Last Seen
+             * Format: date
+             * @description Last day a source read still listed the ad.
+             */
+            last_seen: string;
+            /**
+             * Is Stale
+             * @description Not re-seen by a source read in the last 14 days; it may have closed. Shown labelled, never counted as open.
+             * @default false
+             */
+            is_stale: boolean;
             /**
              * Role Method
              * @description How the opening was matched to the role: its job title, or its skills.
@@ -3734,7 +4026,7 @@ export interface components {
         RadarResponse: {
             /** Items */
             items: components["schemas"]["TrendSignal"][];
-            meta: components["schemas"]["RecommendationMeta"];
+            meta: components["schemas"]["TrendRecommendationMeta"];
         };
         /**
          * RecommendationMeta
@@ -3775,6 +4067,69 @@ export interface components {
              * @description End of the period the source data measures.
              */
             observed_to?: string | null;
+        };
+        /** RefreshCheck */
+        RefreshCheck: {
+            /**
+             * Bypass Cooldown
+             * @default false
+             */
+            bypass_cooldown: boolean;
+        };
+        /** RefreshHistory */
+        RefreshHistory: {
+            /** Runs */
+            runs: components["schemas"]["BackgroundRefresh"][];
+            /**
+             * Next Scheduled At
+             * Format: date-time
+             */
+            next_scheduled_at: string;
+        };
+        /**
+         * RefreshRunSummary
+         * @description The most recent in-app refresh of one source (no secrets, no raw error text).
+         */
+        RefreshRunSummary: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "failed";
+            /**
+             * Finished At
+             * Format: date-time
+             */
+            finished_at: string;
+            /** Rows Fetched */
+            rows_fetched: number;
+            /** Rows Upserted */
+            rows_upserted: number;
+            /** Rows Rejected */
+            rows_rejected: number;
+            /** Error Code */
+            error_code?: string | null;
+        };
+        /** RefreshStep */
+        RefreshStep: {
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "trends" | "courses" | "jobs" | "labour";
+            /**
+             * Status
+             * @default pending
+             * @enum {string}
+             */
+            status: "pending" | "running" | "done" | "failed" | "skipped";
+            /**
+             * Rows
+             * @default 0
+             */
+            rows: number;
+            /** Error Code */
+            error_code?: string | null;
         };
         /** RegionListResponse */
         RegionListResponse: {
@@ -4157,7 +4512,7 @@ export interface components {
         /** RoleTrendResponse */
         RoleTrendResponse: {
             signal: components["schemas"]["TrendSignal"];
-            meta: components["schemas"]["RecommendationMeta"];
+            meta: components["schemas"]["TrendRecommendationMeta"];
         };
         /** SavePlanIn */
         SavePlanIn: {
@@ -4734,17 +5089,34 @@ export interface components {
              */
             retrieved_at: string;
         };
-        /** SourceRef */
+        /**
+         * SourceRef
+         * @description Source retrieval basis is part of the trend response, not just its export.
+         */
         SourceRef: {
-            /** Name */
+            /**
+             * Name
+             * @example MOCK DATA
+             */
             name: string;
-            /** Url */
+            /**
+             * Url
+             * @description Empty only for mock data.
+             */
             url: string;
             /**
              * Retrieved At
              * Format: date
              */
             retrieved_at: string;
+            /**
+             * Retrieved At Basis
+             * @default unknown
+             * @enum {string}
+             */
+            retrieved_at_basis: "pipeline_fetch" | "fetch_log" | "git_commit_date" | "unknown";
+            /** Retrieval Evidence */
+            retrieval_evidence?: string | null;
         };
         /** SourcesResponse */
         SourcesResponse: {
@@ -4839,6 +5211,62 @@ export interface components {
             score: number;
             /** Trend Coverage */
             trend_coverage: number;
+        };
+        /**
+         * TrendRecommendationMeta
+         * @description Legacy trend endpoints retain the same explicit origin as snapshot/freshness.
+         */
+        TrendRecommendationMeta: {
+            /** Observation Window Start */
+            observation_window_start?: string | null;
+            /** Observation Window End */
+            observation_window_end?: string | null;
+            /** Retrieved At */
+            retrieved_at?: string | null;
+            /**
+             * Retrieved At Basis
+             * @default unknown
+             * @enum {string}
+             */
+            retrieved_at_basis: "pipeline_fetch" | "fetch_log" | "git_commit_date" | "unknown";
+            /** Retrieval Evidence */
+            retrieval_evidence?: string | null;
+            /** Is Replay */
+            is_replay?: boolean | null;
+            /**
+             * Observed From
+             * @description Start of the period the source data measures; may predate snapshot_date.
+             */
+            observed_from?: string | null;
+            /**
+             * Observed To
+             * @description End of the period the source data measures.
+             */
+            observed_to?: string | null;
+            /** Sources */
+            sources: components["schemas"]["TrendSource"][];
+            /**
+             * Snapshot Date
+             * Format: date
+             */
+            snapshot_date: string;
+            /**
+             * Scenario
+             * @description Scenario of the result; 'both' identifies a moderate/fast comparison.
+             */
+            scenario: ("moderate" | "fast") | "both";
+            /**
+             * Is Estimate
+             * @default true
+             */
+            is_estimate: boolean;
+            /** Served From */
+            served_from?: ("db" | "fixture") | null;
+            /**
+             * Is Fallback
+             * @default false
+             */
+            is_fallback: boolean;
         };
         /**
          * TrendRefreshStatus
@@ -4959,11 +5387,32 @@ export interface components {
         };
         /** TrendSnapshotMeta */
         TrendSnapshotMeta: {
+            /** Observation Window Start */
+            observation_window_start?: string | null;
+            /** Observation Window End */
+            observation_window_end?: string | null;
+            /** Retrieved At */
+            retrieved_at?: string | null;
+            /**
+             * Retrieved At Basis
+             * @default unknown
+             * @enum {string}
+             */
+            retrieved_at_basis: "pipeline_fetch" | "fetch_log" | "git_commit_date" | "unknown";
+            /** Retrieval Evidence */
+            retrieval_evidence?: string | null;
+            /** Is Replay */
+            is_replay?: boolean | null;
+            /** Observed From */
+            observed_from?: string | null;
+            /** Observed To */
+            observed_to?: string | null;
             /** Sources */
             sources: components["schemas"]["SourceRef"][];
             /**
              * Snapshot Date
              * Format: date
+             * @description Snapshot version/slot label, not its observation or retrieval date.
              */
             snapshot_date: string;
             /**
@@ -5004,22 +5453,38 @@ export interface components {
              * @description Optional explanation of data provenance, e.g. for historical arXiv date-window pulls or demo calibration.
              */
             data_provenance_note?: string | null;
-            /**
-             * Observed From
-             * @description Start of the period the source data measures; may predate snapshot_date.
-             */
-            observed_from?: string | null;
-            /**
-             * Observed To
-             * @description End of the period the source data measures.
-             */
-            observed_to?: string | null;
         };
         /** TrendSnapshotResponse */
         TrendSnapshotResponse: {
             meta: components["schemas"]["TrendSnapshotMeta"];
             /** Items */
             items: components["schemas"]["SkillVelocity"][];
+        };
+        /** TrendSource */
+        TrendSource: {
+            /**
+             * Name
+             * @example MOCK DATA
+             */
+            name: string;
+            /**
+             * Url
+             * @description Empty only for mock data.
+             */
+            url: string;
+            /**
+             * Retrieved At
+             * Format: date
+             */
+            retrieved_at: string;
+            /**
+             * Retrieved At Basis
+             * @default unknown
+             * @enum {string}
+             */
+            retrieved_at_basis: "pipeline_fetch" | "fetch_log" | "git_commit_date" | "unknown";
+            /** Retrieval Evidence */
+            retrieval_evidence?: string | null;
         };
         /** UnmetSkill */
         UnmetSkill: {
@@ -5447,6 +5912,194 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AssistantReply"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    data_data_freshness: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DataFreshnessResponse"];
+                };
+            };
+        };
+    };
+    data_scheduled_run: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-data-refresh-token"?: string | null;
+                "x-demo-user"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackgroundRefresh"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    data_user_refresh: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                "x-workspace"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RefreshCheck"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackgroundRefresh"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    data_run_status: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-data-refresh-token"?: string | null;
+                "x-demo-user"?: string | null;
+            };
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackgroundRefresh"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    data_recent_runs: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                "x-workspace"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RefreshHistory"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    data_refresh_source: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                "x-workspace"?: string | null;
+            };
+            path: {
+                source: "courses" | "catalogue" | "jobs" | "labour" | "trends";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DataRefreshResult"];
                 };
             };
             /** @description Validation Error */

@@ -362,7 +362,7 @@ def test_fallback_models_share_one_deadline() -> None:
 @pytest.mark.parametrize(
     "question,expected",
     [
-        ("Why is Data Analyst my top match?", "roles"),
+        ("Why is Data Analyst my top match?", "score_breakdown"),
         ("Which database skills should I learn?", "learn"),
         ("Is my personal data stored?", "privacy"),
         ("哪些数据库技能值得学习？", "learn"),

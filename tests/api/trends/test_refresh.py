@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import threading
 from datetime import date, timedelta
+from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 
@@ -102,7 +103,11 @@ def configured(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @pytest.fixture(autouse=True)
-def _admin_account() -> Any:
+def _admin_account(monkeypatch: pytest.MonkeyPatch) -> Any:
+    from app.features.data_refresh import measurements
+
+    # These fixtures model legacy raw-signal databases, before automatic measured inputs.
+    monkeypatch.setattr(measurements, "load", lambda *args, **kwargs: None)
     refresh.reset_state()
     accounts.create(ADMIN, "")
     yield
@@ -311,6 +316,17 @@ def test_new_snapshot_reaches_replan_and_radar_after_success(
 # ---------------------------------------------------------------------------
 
 
+def _live_facts() -> dict[str, object]:
+    return {
+        "is_replay": False,
+        "observation_window_start": date(2026, 10, 26),
+        "observation_window_end": date(2026, 10, 29),
+        "retrieved_at": date(2026, 10, 29),
+        "retrieved_at_basis": "pipeline_fetch",
+        "retrieval_evidence": "synthetic fetch log for admin rescore test",
+    }
+
+
 def _fake_pipeline(
     published: list[tuple[date, str]],
     periods: list[str] | None = None,
@@ -325,11 +341,28 @@ def _fake_pipeline(
         "2026-W43": (date(2026, 10, 19), date(2026, 10, 25)),
         "2026-W44": (date(2026, 10, 26), date(2026, 10, 29)),
     }
+
+    def publish(
+        rows: list[dict],
+        day: date,
+        sources: list[dict],
+        note: str,
+        _url: str,
+        *,
+        provenance: dict[str, object],
+    ) -> None:
+        # The admin path must retain the same evidence as a scheduled publication.
+        assert provenance == _live_facts()
+        assert sources[0]["retrieved_at"] == provenance["retrieved_at"]
+        assert sources[0]["retrieval_evidence"] == provenance["retrieval_evidence"]
+        published.append((day, note))
+
     pipeline = SimpleNamespace(
         provenance=real_run.provenance,
         validate=real_run.validate,
         collected_dates=lambda _url, period: week.get(period),
-        publish=lambda rows, day, sources, note, _url: published.append((day, note)),
+        live_provenance=lambda _url, period: _live_facts(),
+        publish=publish,
     )
     score = SimpleNamespace(
         list_available_periods=lambda _url: periods if periods is not None else list(week),
@@ -353,9 +386,9 @@ def test_rescore_publishes_a_genuinely_new_window(monkeypatch: pytest.MonkeyPatc
     monkeypatch.setattr(refresh, "clear_trend_caches", lambda: cleared.append(1))
     pipeline, score = _fake_pipeline(published)
     result = refresh._rescore(pipeline, score, "synthetic")
-    assert result.status == "published" and result.snapshot_date == date(2026, 10, 30)
+    assert result.status == "published" and result.snapshot_date == date(2026, 10, 29)
     assert (result.observed_from, result.observed_to) == (date(2026, 10, 26), date(2026, 10, 29))
-    assert [day for day, _ in published] == [date(2026, 10, 30)] and cleared == [1]
+    assert [day for day, _ in published] == [date(2026, 10, 29)] and cleared == [1]
 
 
 def test_rescore_of_already_published_signals_is_no_new_data(
@@ -369,6 +402,7 @@ def test_rescore_of_already_published_signals_is_no_new_data(
         "2026-W44",
         (date(2026, 10, 19), date(2026, 10, 25)),
         (date(2026, 10, 26), date(2026, 10, 29)),
+        retrieval=_live_facts(),
     )
     monkeypatch.setattr(refresh, "latest_published", lambda _url: (date(2026, 10, 29), note))
     monkeypatch.setattr(refresh, "clear_trend_caches", lambda: pytest.fail("cleared caches"))
@@ -378,12 +412,76 @@ def test_rescore_of_already_published_signals_is_no_new_data(
     assert published == []
 
 
+def test_rescore_uses_shipped_bls_evidence_without_git(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    import shutil
+
+    from pipelines.trends import provenance
+    from pipelines.trends import run as real_run
+
+    seed_dir = tmp_path / "src/data/seed"
+    seed_dir.mkdir(parents=True)
+    source = real_run.REPO_ROOT / "src/data/seed/labor_decay.csv"
+    shutil.copyfile(source, seed_dir / source.name)
+    manifest = source.with_suffix(".provenance.json")
+    shutil.copyfile(manifest, seed_dir / manifest.name)
+    assert not (tmp_path / ".git").exists()
+    monkeypatch.setattr(real_run, "REPO_ROOT", tmp_path)
+    monkeypatch.setattr(provenance, "ROOT", tmp_path)
+
+    def no_git(*args: Any, **kwargs: Any) -> Any:
+        raise FileNotFoundError("Git is not installed in the production API image")
+
+    monkeypatch.setattr(provenance.subprocess, "run", no_git)
+    monkeypatch.setattr(refresh, "latest_published", lambda _url: None)
+    monkeypatch.setattr(refresh, "_today", lambda: date(2026, 10, 30))
+    monkeypatch.setattr(refresh, "clear_trend_caches", lambda: None)
+    published: list[tuple[date, str]] = []
+    pipeline, score = _fake_pipeline(published)
+    original_publish = pipeline.publish
+
+    def publish(*args: Any, **kwargs: Any) -> None:
+        bls = args[2][1]
+        assert bls["retrieved_at_basis"] == "git_commit_date"
+        assert bls["retrieved_at"] == "2026-10-20"
+        assert "fetch time unverified" in bls["retrieval_evidence"]
+        original_publish(*args, **kwargs)
+
+    pipeline.publish = publish
+    result = refresh._rescore(pipeline, score, "synthetic")
+    assert result.status == "published"
+    assert [day for day, _ in published] == [date(2026, 10, 29)]
+
+
 def test_rescore_needs_two_weeks(monkeypatch: pytest.MonkeyPatch) -> None:
     published: list[tuple[date, str]] = []
     monkeypatch.setattr(refresh, "latest_published", lambda _url: None)
     pipeline, score = _fake_pipeline(published, periods=["2026-W44"])
     assert refresh._rescore(pipeline, score, "synthetic").status == "no_new_data"
     assert published == []
+
+
+def test_rescore_cannot_relabel_historical_signals_as_current(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    published: list[tuple[date, str]] = []
+    note = "Historical arXiv window 2024-10-13..2024-10-19 replayed under 2026 dates."
+    monkeypatch.setattr(refresh, "latest_published", lambda _url: (date(2026, 10, 20), note))
+    pipeline, score = _fake_pipeline(published)
+    result = refresh._rescore(pipeline, score, "synthetic")
+    assert result.status == "failed" and published == []
+    assert result.observed_to == date(2024, 10, 19)
+    assert "Historical replay" in result.message
+
+
+def test_expired_rescore_budget_does_not_publish(monkeypatch: pytest.MonkeyPatch) -> None:
+    published: list[tuple[date, str]] = []
+    monkeypatch.setattr(refresh, "latest_published", lambda _url: (date(2026, 10, 20), "older"))
+    pipeline, score = _fake_pipeline(published)
+    result = refresh._rescore(pipeline, score, "synthetic", deadline=0)
+    assert result.status == "failed" and published == []
 
 
 def test_rescore_invalid_snapshot_is_not_published(monkeypatch: pytest.MonkeyPatch) -> None:

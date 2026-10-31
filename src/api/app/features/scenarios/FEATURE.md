@@ -16,7 +16,7 @@ forecasts. See `service.py` and `tests/api/scenarios/`.
 
 Each scenario reports its own importance-weighted skill signal, clipped to the demand
 index band. Mixed positive/negative skill signals can cancel differently, so fast is
-not forced to be more extreme than moderate (M1-015). Comparison responses use
+not forced to be more extreme than moderate (M1-016). Comparison responses use
 `RecommendationMeta.scenario = "both"`; individual outlook rows retain `moderate` or
 `fast`. Snapshot/source dates and fallback disclosures are preserved.
 

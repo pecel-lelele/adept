@@ -32,7 +32,10 @@ import json
 import os
 import re
 import sys
+import time
 from collections import Counter, defaultdict
+from collections.abc import Sequence
+from contextlib import nullcontext
 from dataclasses import asdict
 from datetime import date, timedelta
 from pathlib import Path
@@ -40,6 +43,7 @@ from statistics import median
 from typing import Any
 
 import httpx
+import psycopg
 
 from app.core import seed as seed_rows
 from app.features.pathway.catalogue_sources import (
@@ -90,26 +94,37 @@ def requirements() -> dict[str, list[RoleReq]]:
     return dict(out)
 
 
-def fetch(only: set[str] | None) -> tuple[list[RawPosting], list[dict[str, Any]]]:
-    fetcher = Fetcher()
+def fetch(
+    only: set[str] | None,
+    *,
+    selected: Sequence[boards.Board] | None = None,
+    fetcher: Fetcher | None = None,
+    deadline: float | None = None,
+) -> tuple[list[RawPosting], list[dict[str, Any]]]:
+    """Read the boards. The in-app refresh passes `selected` (the boards to run), a bounded
+    `fetcher` and a monotonic `deadline`; boards not reached by then are logged as skipped."""
+    fetcher = fetcher or Fetcher()
     postings: dict[str, RawPosting] = {}
     log: list[dict[str, Any]] = []
-    for b in boards.ALL:
+    for b in selected if selected is not None else boards.ALL:
         if only and b.source not in only and b.board not in only:
             continue
         entry: dict[str, Any] = {"source": b.source, "board": b.board, "employer": b.employer}
         found: list[RawPosting] = []
+        if deadline is not None and time.monotonic() >= deadline:
+            log.append(entry | {"status": "skipped", "kept": 0, "detail": "time budget reached"})
+            continue
         try:
             found.extend(CONNECTORS[b.source](fetcher, b))
             entry |= {"status": "ok", "kept": len(found)}
         except IncompleteRead as exc:
-            entry |= {"status": "partial", "kept": len(found), "detail": str(exc)}
+            entry |= {"status": "partial", "kept": len(found), "detail": type(exc).__name__}
         except MissingKey as exc:
             entry |= {"status": "skipped", "kept": 0, "detail": f"set {exc} to enable"}
         except PermissionError as exc:
-            entry |= {"status": "blocked", "kept": 0, "detail": str(exc)}
+            entry |= {"status": "blocked", "kept": 0, "detail": type(exc).__name__}
         except (httpx.HTTPError, ValueError, KeyError) as exc:
-            entry |= {"status": "error", "kept": 0, "detail": f"{type(exc).__name__}: {exc}"[:300]}
+            entry |= {"status": "error", "kept": 0, "detail": type(exc).__name__}
         for p in found:
             if p.title and p.url:
                 postings.setdefault(f"{p.source}:{p.board}:{p.source_id}", p)
@@ -343,13 +358,17 @@ def load_raw(today: date | None) -> tuple[list[RawPosting], date]:
 
 
 def to_db(
-    rows: list[dict[str, Any]], certs: list[dict[str, Any]], log: list[dict[str, Any]], today: date
-) -> None:
-    import psycopg
-
-    url = os.environ.get("DATABASE_URL", "postgresql://adept:adept@127.0.0.1:5433/adept")
+    rows: list[dict[str, Any]],
+    certs: list[dict[str, Any]],
+    log: list[dict[str, Any]],
+    today: date,
+    url: str | None = None,
+    conn: psycopg.Connection[tuple[Any, ...]] | None = None,
+) -> int:
+    """Upsert in one transaction (all or nothing); returns the active openings afterwards."""
+    url = url or os.environ.get("DATABASE_URL", "postgresql://adept:adept@127.0.0.1:5433/adept")
     ok_boards = {(e["source"], e["board"]) for e in log if e["status"] == "ok"}
-    with psycopg.connect(url) as conn:
+    with nullcontext(conn) if conn is not None else psycopg.connect(url) as conn:
         roles = {r[0] for r in conn.execute("SELECT id FROM roles").fetchall()}
         cols = ", ".join(CERT_FIELDS)
         marks = ", ".join(["%s"] * len(CERT_FIELDS))
@@ -401,7 +420,9 @@ def to_db(
                 ],
             )
         active = conn.execute("SELECT count(*) FROM job_postings WHERE active").fetchone()
-    print(f"database: {len(rows)} upserted, {active[0] if active else 0} active")
+    count = int(active[0]) if active else 0  # type: ignore[call-overload]
+    print(f"database: {len(rows)} upserted, {count} active")
+    return count
 
 
 def keeps_location(row: dict[str, Any]) -> bool:

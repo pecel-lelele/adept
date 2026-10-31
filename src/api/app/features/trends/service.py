@@ -11,11 +11,12 @@ import threading
 import time
 from datetime import date
 
-from app.contracts.common import RecommendationMeta, ScenarioId, Source
+from app.contracts.common import ScenarioId, TrendSource
 from app.contracts.trends import (
     Direction,
     RadarResponse,
     RoleTrendResponse,
+    TrendRecommendationMeta,
     TrendSignal,
     TrendSnapshotResponse,
 )
@@ -153,11 +154,11 @@ def _direction(v: float) -> Direction:
     return "stable"
 
 
-def _meta(snap: TrendSnapshotResponse, scenario: ScenarioId) -> RecommendationMeta:
-    return RecommendationMeta(
-        sources=[
-            Source(name=s.name, url=s.url, retrieved_at=s.retrieved_at) for s in snap.meta.sources
-        ],
+def _meta(snap: TrendSnapshotResponse, scenario: ScenarioId) -> TrendRecommendationMeta:
+    from app.features.trends.provenance import PROVENANCE_FIELDS
+
+    return TrendRecommendationMeta(
+        sources=[TrendSource.model_validate(s.model_dump()) for s in snap.meta.sources],
         snapshot_date=snap.meta.snapshot_date,
         scenario=scenario,
         is_estimate=True,
@@ -165,6 +166,7 @@ def _meta(snap: TrendSnapshotResponse, scenario: ScenarioId) -> RecommendationMe
         is_fallback=snap.meta.is_fallback,
         observed_from=snap.meta.observed_from,
         observed_to=snap.meta.observed_to,
+        **{key: getattr(snap.meta, key) for key in PROVENANCE_FIELDS},
     )
 
 

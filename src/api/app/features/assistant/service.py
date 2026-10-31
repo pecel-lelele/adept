@@ -25,7 +25,7 @@ log = get_logger("app.assistant")
 _TAG = re.compile(r"\[\[(role|skill|course|sdg|page):([^\]\s]{1,100})\]\]")
 _INTENTS = tuple(guide.INTENTS)
 # Broad questions where the model may pick any checked block ("unknown": nothing matched).
-_OPEN_INTENTS = frozenset({"next", "how", "unknown"})
+_OPEN_INTENTS = frozenset({"next", "unknown"})
 # Selection instructions. The model only returns block IDs; it never writes the answer.
 _SELECTION_RULES = (
     "You are Adi, Adept's friendly career and reskilling guide in Malaysia. "
@@ -162,9 +162,9 @@ def _blocks(kinds: list[str], ctx: ctx_mod.Context, locale: Locale) -> dict[str,
 def _accept(selected: list[str], kinds: list[str]) -> list[str] | None:
     """Apply the routing rules to a validated model selection; None means use the guide.
 
-    The model may freely choose for generic questions ("next", "how"). For a specific question
+    The model may freely choose for generic questions ("next", "unknown"). For a specific question
     its selection must include the routed block; a second block is kept only when the question
-    was a near tie between two intents (the model's other pick, else the runner-up).
+    was a near tie between two intents (a routed model pick, else the runner-up).
     """
     if not 1 <= len(selected) <= 2:
         return None
@@ -175,7 +175,7 @@ def _accept(selected: list[str], kinds: list[str]) -> list[str] | None:
         return None
     if len(kinds) == 1:
         return [primary]
-    other = next((key for key in selected if key != primary), kinds[1])
+    other = next((key for key in selected if key != primary and key in kinds), kinds[1])
     return [primary, other]
 
 
@@ -219,7 +219,7 @@ def answer(
         ctx_mod.add_scenario_comparison(ctx, user, body.scenario)
     blocks = _blocks(kinds, ctx, locale)
     keys = list(blocks)
-    text = "\n\n".join(blocks.values())
+    text = "\n\n".join(dict.fromkeys(blocks.values()))
     used_llm = False
     model, name = "", "none"
     # Context can exhaust the request budget. Never start paid work for an expired request.
@@ -251,7 +251,7 @@ def answer(
                 )
             else:
                 keys = chosen
-                text = "\n\n".join(candidates[key] for key in chosen)
+                text = "\n\n".join(dict.fromkeys(candidates[key] for key in chosen))
                 used_llm = True
                 name = getattr(provider, "last_provider", provider.name)
                 model = getattr(provider, "last_model", provider.model)
