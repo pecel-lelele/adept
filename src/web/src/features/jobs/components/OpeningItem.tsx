@@ -79,7 +79,7 @@ export async function placeCounts(places: Schemas["OpeningPlaceCounts"]) {
 const RELEVANCE_TONE = {
   in_malaysia: "up",
   remote_explicit_my: undefined,
-  remote_assumed_worldwide: "quiet",
+  remote_assumed_worldwide: "warn",
 } as const;
 
 /**

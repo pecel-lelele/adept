@@ -57,7 +57,7 @@ test("Malaysia focus shows the raw location, a separate badge per state, and the
   const cases = [
     ["in_malaysia", "Kuala Lumpur", "up", "In Malaysia"],
     ["remote_explicit_my", "Remote", null, "Remote · open to Malaysia"],
-    ["remote_assumed_worldwide", "Remote", "quiet", "Remote · worldwide"],
+    ["remote_assumed_worldwide", "Remote", "warn", "Remote · worldwide"],
   ];
   for (const [state, location, tone, label] of cases) {
     const o = { ...opening, location, malaysia_relevance: state };
