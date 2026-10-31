@@ -1,6 +1,7 @@
 # src/pipelines/trends (F2, M1)
 
-Weekly trend refresh: ingest → score → validate → publish one dated snapshot.
+Legacy manual trend snapshot pipeline: ingest → score → validate → publish one dated snapshot.
+The in-app daily refresh uses `app.features.data_refresh` instead.
 
 ```bash
 PYTHONPATH=src/api:src python -m pipelines.trends.run              # full run
