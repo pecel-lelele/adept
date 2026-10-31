@@ -40,6 +40,17 @@ class Learner:
     hours_per_week: float
     budget_myr: float
     hrd_eligible: bool
+    learning_style: str = "mixed"
+
+
+#: Course delivery formats a learning style prefers. Courses record only how they are
+#: delivered, so "classroom" prefers taught formats and "video"/"reading" prefer self-paced
+#: online; "hands-on" and "mixed" have no format the catalogue can honour, so no preference.
+PREFERRED_FORMATS: dict[str, frozenset[str]] = {
+    "classroom": frozenset({"in_person", "live_online", "hybrid"}),
+    "video": frozenset({"self_paced"}),
+    "reading": frozenset({"self_paced"}),
+}
 
 
 @dataclass
@@ -159,6 +170,7 @@ def select_courses(
     budget_left: float,
     hrd_eligible: bool,
     booked: set[str],
+    prefer: frozenset[str] = frozenset(),
 ) -> Selection:
     # Subscriptions unlock courses rather than teach a skill: never booked as a step.
     candidates = [
@@ -171,8 +183,17 @@ def select_courses(
         # need a certificate filter them out of the catalogue first (HR planning brief).
         and c.price_status in ("listed", "certificate_price_unknown")
     ]
+    # At each level: the learner's preferred delivery format first, then cheapest, shortest.
+    # The budget check below still applies, so a preference never exceeds the budget.
     by_cost = sorted(
-        candidates, key=lambda c: (c.level, out_of_pocket(c, hrd_eligible), c.hours, c.id)
+        candidates,
+        key=lambda c: (
+            c.level,
+            bool(prefer) and c.format not in prefer,
+            out_of_pocket(c, hrd_eligible),
+            c.hours,
+            c.id,
+        ),
     )
     level = current
     new: list[Course] = []
@@ -297,6 +318,7 @@ def build(
             budget_left,
             learner.hrd_eligible,
             set(booked),
+            PREFERRED_FORMATS.get(learner.learning_style, frozenset()),
         )
         # Earlier multi-skill courses can already cover this gap. Keep their links
         # for progress/explanations without buying lower-level foundations again.
