@@ -42,6 +42,8 @@ function fixtures(locale: string) {
     "./CriticalOccupationBadge": { CriticalOccupationBadge: nothing }, "./PathwaySteps": { PathwaySteps: nothing },
     "./ActionForm": { ActionForm: nothing }, "../actions": {},
     "./SignalExplorer": { SignalExplorer: nothing }, "./RoleDirectionsCard": { RoleDirectionsCard: nothing },
+    "@/components/DataAsOf": { DataAsOf: nothing }, "@/lib/auth/account": { getAccount: async () => null },
+    "./RefreshDataButton": { RefreshDataButton: nothing },
   };
 }
 
