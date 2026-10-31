@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { MetaBar } from "@/components";
 import type { ScenarioId, Schemas } from "@/lib/api";
 
-import { formatChange, formatValue, HORIZONS, KIND_OF_VIEW, PRESETS, rangeHref, VIEWS, type TrendRange } from "../range";
+import { DEFAULT_HORIZON, formatChange, formatValue, HORIZONS, KIND_OF_VIEW, PRESETS, rangeHref, VIEWS, type TrendRange } from "../range";
 import { TrendLinesChart, type TrendLine } from "./TrendLinesChart";
 
 type Compare = Schemas["TrendCompareResponse"];
@@ -89,67 +89,72 @@ export async function TrendRangeCard({
         {custom ? <span className="a-range-toggle" aria-current="true">{t("presets.custom")}</span> : null}
       </div>
 
-      <form className="a-range-form" action={`${pathname}#trend`} method="get">
-        <input type="hidden" name="scenario" value={scenario} />
-        <input type="hidden" name="view" value={range.view} />
-        {snapshotDate ? <input type="hidden" name="snapshot_date" value={snapshotDate} /> : null}
-        {range.mode === "raw" ? <input type="hidden" name="mode" value="raw" /> : null}
-        {range.horizon !== 90 ? <input type="hidden" name="horizon" value={range.horizon} /> : null}
-        <label className="a-range-field">
-          <span>{t("from")}</span>
-          <input type="date" name="from" defaultValue={start} min={data.available_from ?? undefined} max={data.available_to ?? undefined} />
-        </label>
-        <label className="a-range-field">
-          <span>{t("to")}</span>
-          <input type="date" name="to" defaultValue={end} min={data.available_from ?? undefined} max={data.available_to ?? undefined} />
-        </label>
-        <fieldset className="a-range-skills">
-          <legend>{t(`legend.${range.view}`)}</legend>
-          {chartLines.map((line) => (
-            <label key={line.entity} className="a-range-chip" style={{ borderColor: line.color }}>
-              <input type="checkbox" name="entity" value={line.entity} defaultChecked />
-              {line.label}
+      <details className="a-range-editor" open={custom || rejected || range.entities.length > 0 || range.mode === "raw" || range.horizon !== DEFAULT_HORIZON}>
+        <summary className="a-range-editor-summary">{t("adjust")}</summary>
+        <div className="a-range-editor-body">
+          <form className="a-range-form" action={`${pathname}#trend`} method="get">
+            <input type="hidden" name="scenario" value={scenario} />
+            <input type="hidden" name="view" value={range.view} />
+            {snapshotDate ? <input type="hidden" name="snapshot_date" value={snapshotDate} /> : null}
+            {range.mode === "raw" ? <input type="hidden" name="mode" value="raw" /> : null}
+            {range.horizon !== 90 ? <input type="hidden" name="horizon" value={range.horizon} /> : null}
+            <label className="a-range-field">
+              <span>{t("from")}</span>
+              <input type="date" name="from" defaultValue={start} min={data.available_from ?? undefined} max={data.available_to ?? undefined} />
             </label>
-          ))}
-          {chartLines.length < MAX_LINES ? (
-            <select name="entity" defaultValue="" aria-label={t("add")}>
-              <option value="">{t("add")}</option>
-              {skillOptions.map((o) => <option key={o.entity} value={o.entity}>{o.label}</option>)}
-              {categoryOptions.length ? (
-                <optgroup label={t("views.categories")}>
-                  {categoryOptions.map((o) => <option key={o.entity} value={o.entity}>{o.label}</option>)}
-                </optgroup>
-              ) : null}
-              {roleOptions.length ? (
-                <optgroup label={t("views.roles")}>
-                  {roleOptions.map((o) => <option key={o.entity} value={o.entity}>{o.label}</option>)}
-                </optgroup>
-              ) : null}
-            </select>
-          ) : (
-            <small className="a-muted">{t("limit", { max: MAX_LINES })}</small>
-          )}
-        </fieldset>
-        <div className="a-range-actions">
-          <button type="submit" className="a-btn">{t("show")}</button>
-          <a className="a-btn is-ghost" href={href({ entities: [], from: undefined, to: undefined, preset: "3M" })}>{t("reset")}</a>
-        </div>
-      </form>
+            <label className="a-range-field">
+              <span>{t("to")}</span>
+              <input type="date" name="to" defaultValue={end} min={data.available_from ?? undefined} max={data.available_to ?? undefined} />
+            </label>
+            <fieldset className="a-range-skills">
+              <legend>{t(`legend.${range.view}`)}</legend>
+              {chartLines.map((line) => (
+                <label key={line.entity} className="a-range-chip" style={{ borderColor: line.color }}>
+                  <input type="checkbox" name="entity" value={line.entity} defaultChecked />
+                  {line.label}
+                </label>
+              ))}
+              {chartLines.length < MAX_LINES ? (
+                <select name="entity" defaultValue="" aria-label={t("add")}>
+                  <option value="">{t("add")}</option>
+                  {skillOptions.map((o) => <option key={o.entity} value={o.entity}>{o.label}</option>)}
+                  {categoryOptions.length ? (
+                    <optgroup label={t("views.categories")}>
+                      {categoryOptions.map((o) => <option key={o.entity} value={o.entity}>{o.label}</option>)}
+                    </optgroup>
+                  ) : null}
+                  {roleOptions.length ? (
+                    <optgroup label={t("views.roles")}>
+                      {roleOptions.map((o) => <option key={o.entity} value={o.entity}>{o.label}</option>)}
+                    </optgroup>
+                  ) : null}
+                </select>
+              ) : (
+                <small className="a-muted">{t("limit", { max: MAX_LINES })}</small>
+              )}
+            </fieldset>
+            <div className="a-range-actions">
+              <button type="submit" className="a-btn">{t("show")}</button>
+              <a className="a-btn is-ghost" href={href({ entities: [], from: undefined, to: undefined, preset: "3M" })}>{t("reset")}</a>
+            </div>
+          </form>
 
-      <div className="a-range-controls">
-        <div className="a-range-group" role="group" aria-label={t("modeLabel")}>
-          <a className="a-range-toggle" aria-current={range.mode === "indexed" ? "true" : undefined} href={href({ mode: "indexed" })}>{t("modeIndexed")}</a>
-          <a className="a-range-toggle" aria-current={range.mode === "raw" ? "true" : undefined} href={href({ mode: "raw" })}>{t("modeRaw")}</a>
+          <div className="a-range-controls">
+            <div className="a-range-group" role="group" aria-label={t("modeLabel")}>
+              <a className="a-range-toggle" aria-current={range.mode === "indexed" ? "true" : undefined} href={href({ mode: "indexed" })}>{t("modeIndexed")}</a>
+              <a className="a-range-toggle" aria-current={range.mode === "raw" ? "true" : undefined} href={href({ mode: "raw" })}>{t("modeRaw")}</a>
+            </div>
+            <div className="a-range-group" role="group" aria-label={t("horizonLabel")}>
+              <span className="a-small a-muted">{t("horizonLabel")}</span>
+              {HORIZONS.map((horizon) => (
+                <a key={horizon} className="a-range-toggle" aria-current={horizon === data.horizon_days ? "true" : undefined} href={href({ horizon })}>
+                  {t(`horizons.h${horizon}`)}
+                </a>
+              ))}
+            </div>
+          </div>
         </div>
-        <div className="a-range-group" role="group" aria-label={t("horizonLabel")}>
-          <span className="a-small a-muted">{t("horizonLabel")}</span>
-          {HORIZONS.map((horizon) => (
-            <a key={horizon} className="a-range-toggle" aria-current={horizon === data.horizon_days ? "true" : undefined} href={href({ horizon })}>
-              {t(`horizons.h${horizon}`)}
-            </a>
-          ))}
-        </div>
-      </div>
+      </details>
 
       {!lines.length ? (
         <p className="a-muted a-small">{!data.available_to ? t("empty") : !data.available_from ? t("emptyShort", { days: data.window_days }) : t("emptyRange")}</p>

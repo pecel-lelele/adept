@@ -131,7 +131,8 @@
   },
   "range": {
     "title": "Trend over time",
-    "hint": "Each skill line is the share of sampled AI research papers mentioning it in the {days} days up to that day. Pick a range and lines, or compare roles and categories.",
+    "hint": "Trend lines summarize sampled research over each {days}-day window. Compare skills, roles or categories.",
+    "adjust": "Adjust chart",
     "from": "From",
     "to": "To",
     "skills": "Skills",

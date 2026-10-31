@@ -96,7 +96,9 @@ settled-day replacement cannot mix versions or inflate a displayed sample share.
 The "Trend over time" card uses `GET /trends/compare` (`comparison.py`): a Skills | Roles |
 Categories switch, presets 1W/1M/3M/6M or custom dates, rebased to 100 or raw, up to 8 lines, and
 a stats table with start, end, change and both projected endpoints. All state is in the URL
-(`?view=&preset=&from=&to=&entity=&mode=&horizon=`). `TrendMoversCard` on home deep-links in.
+(`?view=&preset=&from=&to=&entity=&mode=&horizon=`). Presets and chart stay visible; the
+native "Adjust chart" disclosure holds dates, line choices, mode and horizon, opening on a
+custom or rejected request. `TrendMoversCard` on home deep-links in.
 
 Role and category lines are derived from arXiv skill signals, not observed role demand. The
 dashed projection reuses the radar's moderate and fast velocities and is labelled "pace

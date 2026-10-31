@@ -901,6 +901,17 @@
 - **Replaces**: none; extends M1-028 range validation
 - **PR / branch**: feat/trends-calendar-projection / PR #105
 
+
+### M1-034: Reveal trend-chart controls only when needed
+- **Date**: 2026-10-31
+- **Feature**: F2 (Trend radar UI)
+- **Type**: UI
+- **Change**: Keep chart type, quick time ranges, the visualization and dated attribution visible; fold date, line, mode and horizon controls into a native, keyboard-accessible disclosure. Open it automatically for custom, rejected or non-default choices and shorten the multilingual introductory copy.
+- **Why**: An always-expanded form, several button rows and a long explanation pushed the evidence chart below the fold and added unnecessary first-visit cognitive load. Hiding the chart or attribution would be worse, so only advanced controls move.
+- **Affects**: individual/organisation radar trend card and its EN/MS/ZH copy; no calculation, API contract or source change
+- **Replaces**: none; refines M1-025 radar UI
+- **PR / branch**: fix/core-dashboard-clarity
+
 ---
 
 ## M2: Profile Intake & Matching (F1, F4)

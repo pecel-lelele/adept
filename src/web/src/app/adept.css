@@ -2479,7 +2479,15 @@ html[data-busy] .a-main::after { content: ""; }
 @keyframes a-refresh-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .a-refresh-spinner { animation: none; } }
 
-/* Trend over time (TrendRangeCard): date range + skills form and labelled line chart. */
+/* Trend over time: preset range is immediate; advanced controls open when needed. */
+.a-range-editor { margin: 2px 0 18px; border: 1px solid var(--a-line); border-radius: var(--a-radius-sm); background: var(--a-sunken); }
+.a-range-editor-summary { list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; color: var(--a-ink-2); font-size: 13px; font-weight: 600; cursor: pointer; }
+.a-range-editor-summary::-webkit-details-marker { display: none; }
+.a-range-editor-summary::after { content: ""; width: 8px; height: 8px; border: solid currentColor; border-width: 0 2px 2px 0; transform: rotate(45deg); transition: transform var(--a-fast) var(--a-ease); }
+.a-range-editor[open] > .a-range-editor-summary::after { transform: rotate(225deg); }
+.a-range-editor-body { border-top: 1px solid var(--a-line); padding: 16px; }
+.a-range-editor-summary:hover { background: var(--a-soft); }
+@media (prefers-reduced-motion: reduce) { .a-range-editor-summary::after { transition: none; } }
 .a-range-form { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 16px; margin: 4px 0 16px; }
 .a-range-field { display: grid; gap: 4px; font-size: 12px; color: var(--a-muted); }
 .a-range-field input, .a-range-skills select { min-height: 40px; padding: 0 10px; border: 1px solid var(--a-line); border-radius: 10px; background: var(--a-surface); font: inherit; font-size: 13px; color: var(--a-ink); }

@@ -27,6 +27,11 @@ test("synthetic CV reaches radar, an explained match and a saved sourced plan", 
   await page.getByRole("button", { name: "Save and see my skills outlook", exact: true }).click();
   await expect(page).toHaveURL(/\/app\/radar/);
   await expect(page.getByText(/snapshot|data as of|showing.*snapshot/i).first()).toBeVisible();
+  const adjust = page.locator(".a-range-editor > summary");
+  await expect(adjust).toBeVisible();
+  await expect(page.locator(".a-range-editor input[name=from]")).toBeHidden();
+  await adjust.click();
+  await expect(page.locator(".a-range-editor input[name=from]")).toBeVisible();
   await page.goto("/app");
   await expect(page.locator(".a-welcome-main [data-source=trends]")).toBeVisible();
   await expect(page.locator(".a-view > [data-source=trends]")).toHaveCount(0);
