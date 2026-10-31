@@ -890,6 +890,17 @@
 - **Replaces**: none; hardens M1-018/M1-024 day replacement
 - **PR / branch**: feat/trends-calendar-projection / PR #105
 
+### M1-033: Reject out-of-store comparison dates before applying presets
+- **Date**: 2026-10-31
+- **Feature**: F2 (Trend comparison)
+- **Type**: method
+- **Change**: Validate the requested end date against stored bounds before subtracting a preset window.
+- **Why**: A valid ISO date near year one previously underflowed Python date arithmetic and returned HTTP 500 instead of an actionable invalid-range response.
+- **Pipeline**: stored paper bounds + requested date → early range validation → unchanged comparison/projection → extreme-year API regression → HTTP 422 for unsupported dates
+- **Affects**: F2 compare endpoint; no method scoring, provider or schema change
+- **Replaces**: none; extends M1-028 range validation
+- **PR / branch**: feat/trends-calendar-projection / PR #105
+
 ---
 
 ## M2: Profile Intake & Matching (F1, F4)

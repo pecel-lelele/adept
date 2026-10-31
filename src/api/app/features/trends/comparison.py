@@ -230,6 +230,10 @@ def _resolve_range(
         return start, end, None, None
     end = end or newest
     assert end is not None and newest is not None
+    # Reject an out-of-store date before subtracting a preset span: a year-one query
+    # must be a 422, not a date-underflow 500.
+    if end < stored[0] or end > newest:
+        raise _invalid(f"Choose dates between {available_from or stored[0]} and {newest}.")
     if preset:
         floor = available_from or stored[0]
         start = max(end - timedelta(days=PRESET_DAYS[preset] - 1), floor)

@@ -193,6 +193,7 @@ def test_presets_stay_inside_stored_data(client: TestClient, stored: dict[str, A
         {"start": "2025-12-01", "end": "2026-02-01"},  # before stored data
         {"start": "2026-02-01", "end": "2026-12-01"},  # after stored data
         {"start": "2026-03-01", "end": "2026-02-01"},
+        {"end": "0001-01-01", "preset": "6M"},  # reject before preset subtraction
         {"entities": ["role:not-a-role"]},
         {"entities": [f"skill:s{i}" for i in range(9)]},
         {"entities": ["skill:python", "role:data-analyst"]},
