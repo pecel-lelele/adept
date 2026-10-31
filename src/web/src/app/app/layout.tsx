@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import type { ReactNode } from "react";
 
 import { Shell } from "@/components/shell/Shell";
@@ -16,6 +17,12 @@ import { getWorkspaces } from "@/lib/auth/workspaces";
 export default async function Layout({ children }: { children: ReactNode }) {
   const account = await getAccount();
   if (!account) redirect(await loginHref("/app"));
+  // All analytics need a saved profile. Keep the intake and profile routes reachable while
+  // unfinished, but never show zero-personalisation analytics as a completed demo journey.
+  const path = (await headers()).get("x-adept-path");
+  if (!account.has_profile && path && !["/app/onboarding", "/app/profile", "/app/join"].some((route) => path === route || path.startsWith(`${route}/`))) {
+    redirect("/app/onboarding");
+  }
   // Same rule as the Home journey: a profile completes step 1; a saved plan means the learner
   // has seen the radar and chosen a role (steps 2 and 3).
   const [status, workspaces] = await Promise.all([

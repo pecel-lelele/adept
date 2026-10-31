@@ -1,13 +1,13 @@
-import { MalaysiaContextCard } from "@/features/trends/components/MalaysiaContextCard";
 import { AdminTrendRefresh } from "@/features/trends/components/AdminTrendRefresh";
 import { ArrowRight, ArrowUpRight, Check, Grid3x3, Leaf, Route, Target, UserCheck, Users } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
-import { Kpis, MetaBar } from "@/components";
+import { Kpis } from "@/components";
 import { ErrorState } from "@/components/ErrorState";
 import { Heatmap, SdgTiles, StackBar, StepTrack } from "@/components/viz";
 import { fetchOrgContribution } from "@/features/sdg/api";
+import { SdgLinkCards } from "@/features/sdg/components/SdgLinkCards";
 import { fetchProgrammes } from "../programmes/api";
 import type { ScenarioId, Schemas } from "@/lib/api";
 
@@ -69,6 +69,11 @@ export async function OrgDashboardView({ scenario }: { scenario: ScenarioId }) {
     .sort((a, b) => b.link_count - a.link_count)
     .slice(0, 6)
     .map((g) => ({ goal: g.goal, title: g.label, count: g.link_count }));
+  const spotlight = impact?.ok ? impact.data.links.find((link) => link.target.goal === goals[0]?.goal) : null;
+  const sdgLabels = new Map<string, string>([
+    ...(plan?.ok && plan.data.target_role_id ? [[`role:${plan.data.target_role_id}`, plan.data.target_role_label] as const] : []),
+    ...(gaps.ok ? gaps.data.skills.map((skill) => [`skill:${skill.id}`, skill.label] as const) : []),
+  ]);
   const steps = plan?.ok
     ? plan.data.steps.slice(0, 6).map((s, i) => ({
         id: s.skill_id,
@@ -249,12 +254,10 @@ export async function OrgDashboardView({ scenario }: { scenario: ScenarioId }) {
               {tn("impact")} <ArrowUpRight size={13} aria-hidden />
             </Link>
           </div>
-          {goals.length ? <SdgTiles goals={goals} /> : <p className="a-muted a-small">{t("noGaps")}</p>}
+          {spotlight ? <div className="a-home-sdg-card"><SdgLinkCards links={[spotlight]} labels={sdgLabels} /></div> : goals.length ? <SdgTiles goals={goals} /> : <p className="a-muted a-small">{t("noGaps")}</p>}
         </section>
       </div>
-      {gaps.ok ? <MetaBar meta={gaps.data.meta} /> : null}
       {gaps.ok ? <TeamLearningProgress rows={gaps.data.learning_progress ?? []} /> : null}
-      <MalaysiaContextCard />
     </div>
   );
 }

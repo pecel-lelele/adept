@@ -14,7 +14,6 @@
   "enabling": "促进",
   "strengthHint": "直接：这项工作本身推进该具体目标。促进：它建立该目标所需的能力。",
   "contributors": "{count} 人",
-  "draft": "草稿，待审核",
   "forRoles": "职位：{roles}",
   "via": {
     "role": "职位",

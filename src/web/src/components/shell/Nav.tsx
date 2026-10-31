@@ -88,11 +88,7 @@ export function SideNav({ ws, doneSteps, roleChosen = true }: { ws: Workspace; d
         <Icon size={18} strokeWidth={1.8} aria-hidden />
         <span className="a-navlink-text">{t(item.key)}</span>
         {locked ? <LockKeyhole size={14} aria-hidden /> : null}
-        {item.step ? (
-          <span className="a-step" data-done={done} title={t("journey")}>
-            {done ? <Check size={11} strokeWidth={3} aria-hidden /> : item.step}
-          </span>
-        ) : null}
+        {done ? <Check className="a-nav-complete" size={14} strokeWidth={2.5} aria-hidden /> : null}
         {done ? <span className="a-sr">{th("state.done")}</span> : null}
       </Link>
     );

@@ -14,7 +14,6 @@
   "enabling": "enabling",
   "strengthHint": "Direct: the work itself advances the target. Enabling: it builds capacity the target needs.",
   "contributors": "{count} people",
-  "draft": "draft, pending review",
   "forRoles": "For role: {roles}",
   "via": {
     "role": "role",

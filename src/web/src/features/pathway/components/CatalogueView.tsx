@@ -3,8 +3,7 @@ import Link from "next/link";
 import { ArrowUpRight, BadgeCheck, BookOpen, Clock3, Gift, SlidersHorizontal } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
-import { ErrorState, Kpis, MetaBar, PageHeader } from "@/components";
-import { DataAsOf } from "@/components/DataAsOf";
+import { ErrorState, Kpis, PageHeader } from "@/components";
 import { call, getApi, type Schemas } from "@/lib/api";
 import { journeyHref } from "@/lib/navigation";
 
@@ -124,9 +123,7 @@ export async function CatalogueView({
   return (
     <div className="a-view">
       <PageHeader eyebrow={d("options")} title={t("catalogue.title")} description={t("catalogue.description")}>
-        {result.ok ? <MetaBar meta={result.data.meta} /> : null}
       </PageHeader>
-      <DataAsOf source="courses" />
       <Kpis
         items={[
           { label: tp("kCourses"), value: every.length, icon: <BookOpen size={15} />, note: tp("kProviders", { count: new Set(every.map((c) => c.provider)).size }) },

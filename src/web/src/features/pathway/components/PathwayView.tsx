@@ -1,10 +1,8 @@
-import { DataAsOf } from "@/components/DataAsOf";
 import {
   ArrowRight,
   ArrowUpRight,
   BookOpen,
   CalendarRange,
-  Check,
   Clock3,
   Hourglass,
   Leaf,
@@ -14,10 +12,8 @@ import {
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
-import { ErrorState, EstimateLabel, Kpis, MetaBar, PageHeader } from "@/components";
-import { journeyStepCount } from "@/config/navigation";
+import { ErrorState, Kpis, PageHeader } from "@/components";
 import { Fold } from "@/components/Fold";
-import { HistoricalSnapshotBanner } from "@/components/HistoricalSnapshotBanner";
 import { CareerRoadmap, CertificationsCard, RoleOpeningsCard } from "@/features/jobs";
 import type { ScenarioId, Schemas } from "@/lib/api";
 
@@ -138,14 +134,11 @@ export async function PathwayView({
 }) {
   const t = await getTranslations("pathway");
   const d = await getTranslations("common.design");
-  const tp = await getTranslations("ui.page");
   const [result, status] = await Promise.all([fetchPathway(roleId, scenario, snapshotDate), fetchPlanStatus()]);
   const tm = await getTranslations("matching");
   if (!result.ok) return (
     <div className="a-view">
-      <PageHeader eyebrow={tp("stepOf", { step: 4, total: journeyStepCount() })} title={t("title")} description={d("pathBody")}>
-        <EstimateLabel scenario={scenario} />
-        {snapshotDate ? <span className="a-chip">{tp("asOf", { date: snapshotDate })}</span> : null}
+      <PageHeader title={t("title")} description={d("pathBody")}>
       </PageHeader>
       <ErrorState failure={result} />
     </div>
@@ -180,9 +173,7 @@ export async function PathwayView({
       {tm("viewLatestPathway")} <ArrowUpRight size={15} aria-hidden />
     </Link>
   ) : savedHere ? (
-    <span className="a-chip" data-tone="up">
-      <Check size={13} aria-hidden /> {t("plan.saved", { date: savedHere.saved_at.slice(0, 10) })}
-    </span>
+    <Link href={`/app/progress${query}`} className="a-btn is-small">{t("plan.progressLink")} <ArrowUpRight size={15} aria-hidden /></Link>
   ) : (
     <ActionForm action={savePlanAction} fields={{ role_id: roleId, scenario }} label={t("plan.save")} className="a-inline-form" />
   );
@@ -190,15 +181,11 @@ export async function PathwayView({
   return (
     <div className="a-view">
       <PageHeader
-        eyebrow={tp("stepOf", { step: 4, total: journeyStepCount() })}
         title={plan.role_label || plan.role_id}
-        description={`${t("totalWeeks", { weeks: plan.total_weeks })} · ${d("pathBody")}`}
+        description={t("totalWeeks", { weeks: plan.total_weeks })}
         actions={action}
       >
-        <MetaBar meta={plan.meta} />
       </PageHeader>
-      <DataAsOf source="trends" meta={plan.meta} />
-      <HistoricalSnapshotBanner date={snapshotDate} latestHref={`/app/pathway${query}`} />
       {savedOtherScenario ? (
         <p className="a-notice" data-tone="info">
           {t("plan.savedOtherScenario", { scenario: ts(savedOtherScenario.scenario) })} ·{" "}
@@ -207,7 +194,6 @@ export async function PathwayView({
           </Link>
         </p>
       ) : null}
-      {!savedHere && !snapshotDate ? <p className="a-notice" data-tone="info">{t("plan.decide")}</p> : null}
       {status.ok && savedHere ? <ReplanBanner status={status.data} /> : null}
       <Summary plan={plan} />
       {!snapshotDate ? <CareerRoadmap plan={plan} scenario={scenario} /> : null}

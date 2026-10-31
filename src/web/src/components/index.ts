@@ -8,7 +8,6 @@ export { LocaleSwitcher } from "./LocaleSwitcher";
 export { MetaBar } from "./MetaBar";
 export { PageHeader } from "./PageHeader";
 export { ScenarioToggle } from "./ScenarioToggle";
-export { ScoreBreakdown } from "./ScoreBreakdown";
 export { SdgBadge } from "./SdgBadge";
 export { SourceBadge } from "./SourceBadge";
 export { StubBanner } from "./StubBanner";

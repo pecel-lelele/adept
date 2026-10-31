@@ -39,27 +39,24 @@ function fixtures(locale: string) {
     "@/features/core/components/AccountDataCard": { AccountDataCard: nothing },
     "@/lib/auth/workspaces": { getWorkspaceResult: async () => failure },
     "@/features/scenarios/components/RoleOutlookPanel": { RoleOutlookPanel: nothing },
-    "./labels": { componentLabels: async () => ({}) },
     "./ReplayChanges": { ReplayChanges: nothing }, "./SdgWeightSlider": { SdgWeightSlider: nothing },
-    "./MatchImprovements": { MatchImprovements: nothing }, "./ScenarioDelta": { ScenarioDelta: nothing },
+    "./MatchImprovements": { MatchImprovements: nothing },
     "./MatchSdgTargets": { MatchSdgTargets: nothing }, "./ProfileNote": { ProfileNote: nothing },
     "./CriticalOccupationBadge": { CriticalOccupationBadge: nothing }, "./PathwaySteps": { PathwaySteps: nothing },
     "./ActionForm": { ActionForm: nothing }, "../actions": {},
     "@/features/pathway/actions": { savePlanAction: nothing },
     "@/features/pathway/components/ActionForm": { ActionForm: nothing },
     "./SignalExplorer": { SignalExplorer: nothing }, "./RoleDirectionsCard": { RoleDirectionsCard: nothing },
-    "./TrendRangeCard": { TrendRangeCard: nothing },
-    "../range": loadComponent("src/features/trends/range.ts"),
     "@/components/DataAsOf": { DataAsOf: nothing }, "@/components/SnapshotPicker": { SnapshotPicker: nothing },
     "@/lib/auth/account": { getAccount: async () => null },
   };
 }
 
-test("failed journey screens keep their translated heading, stage and scenario before the error", async () => {
+test("failed journey screens keep their translated heading before the error", async () => {
   for (const locale of ["en", "ms", "zh"]) {
     const common = fixtures(locale);
     const cases = [
-      ["trends/components/RadarView", "RadarView", 2, { fetchRadar: async () => failure, fetchCompare: async () => failure }],
+      ["trends/components/RadarView", "RadarView", 2, { fetchRadar: async () => failure }],
       ["profile/components/ProfileView", "ProfileView", 1, { fetchMyProfile: async () => failure, fetchSkillCatalogue: async () => failure }],
       ["pathway/components/PathwayView", "PathwayView", 4, { fetchPathway: async () => failure, fetchPlanStatus: async () => failure }],
       ["matching/components/MatchDetailView", "MatchDetailView", 3, { fetchMatch: async () => failure, fetchMatches: async () => failure }],
@@ -68,8 +65,6 @@ test("failed journey screens keep their translated heading, stage and scenario b
       const component = loadComponent(`src/features/${path}.tsx`, { ...common, "../api": api, "@/features/trends/api": { fetchRadar: async () => failure } })[name];
       const html = renderToStaticMarkup(await resolveTree(await component({ scenario: "fast", roleId: "synthetic", snapshotDate: "2026-10-13" })));
       assert.ok(html.indexOf("<h1") < html.indexOf("data-error"));
-      assert.ok(html.includes(translations(locale).useTranslations("ui.page")("stepOf", { step: String(step), total: "6" })));
-      assert.ok(html.includes(translations(locale).useTranslations("common.scenario")("fast")));
       if (path === "trends/components/RadarView") {
         assert.match(html, /href="\/app\/radar\?scenario=fast"/);
         assert.ok(html.includes(translations(locale).useTranslations("common.freshness")("backToLatest")));

@@ -91,15 +91,12 @@
   "design": {
     "more": "更多",
     "signOut": "退出登录",
-    "details": "详情与来源",
     "filters": "筛选课程",
     "courseDetails": "课程详情",
     "continue": "继续学习",
     "progress": "你的进度",
-    "evidence": "来源与方法",
     "options": "学习选项",
     "pathBody": "清晰的顺序，适合你的节奏。",
-    "snapshot": "数据版本",
     "rising": "上升",
     "stable": "稳定",
     "declining": "下降",
@@ -120,6 +117,8 @@
     "review": "审核",
     "moreSkills": "显示另外 {count} 项技能",
     "addSkills": "查看你的技能",
-    "observed": "数据测量期 {from} 至 {to}"
+    "observed": "数据测量期 {from} 至 {to}",
+    "sources": "来源",
+    "proof": "完成证明"
   }
 }

@@ -65,6 +65,7 @@ test("an API-reported untracked role sends the learner to choose it", async () =
     "@/components": { ErrorState: () => null, Kpis: () => null, MetaBar: () => null, PageHeader: () => null },
     "@/config/navigation": navigation,
     "../actions": {}, "./ActionForm": {}, "./EvidenceBadge": {}, "./EvidenceForm": {},
+    "./MarkDoneFlow": { MarkDoneFlow: () => null }, "./ProgressToast": { ProgressToast: () => null },
     "../api": { fetchProgress: async () => ({ ok: true, data: { trackable: false } }) },
   });
   await assert.rejects(() => ProgressView({ roleId: "synthetic-role", scenario: "fast" }), /Redirect/);
@@ -82,7 +83,7 @@ test("the current target replaces the choose button so re-plan review is not byp
       "next-intl/server": { getTranslations: async (ns) => intl.useTranslations(ns) },
       "next/link": link,
       "@/components": {
-        EstimateLabel: nothing, MetaBar: nothing, ScoreBreakdown: nothing,
+        EstimateLabel: nothing, MetaBar: nothing,
         PageHeader: ({ actions, children }) => React.createElement("header", {}, actions, children),
       },
       "@/components/ErrorState": { ErrorState: nothing },
@@ -95,7 +96,6 @@ test("the current target replaces the choose button so re-plan review is not byp
       "@/features/pathway/actions": { savePlanAction: nothing },
       "@/features/pathway/components/ActionForm": { ActionForm: ({ label }) => React.createElement("button", {}, label) },
       "../api": { fetchMatch: async () => ({ ok: true, data: m }) },
-      "./labels": { componentLabels: async () => ({}) },
       "./MatchImprovements": { MatchImprovements: nothing }, "./MatchSdgTargets": { MatchSdgTargets: nothing },
       "./ProfileNote": { ProfileNote: nothing }, "./CriticalOccupationBadge": { CriticalOccupationBadge: nothing },
     });

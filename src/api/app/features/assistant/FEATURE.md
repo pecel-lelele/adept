@@ -69,3 +69,12 @@ context/rendering changes, with no public contract or catalogue changes.
 Model selection must retain the capability (`how`) answer as well as other specific answers.
 For near ties, a second block must be one of the routed intents. The TSV routing regressions
 and rendered-text tests cover these rules with providers disabled and synthetic accounts.
+
+## How-to help blocks
+
+`help_topics.py` holds fixed, linked how-to answers (CV upload, target role, matches, plan,
+progress, jobs, courses, impact, data and AI use, organisation mode, join code, workspaces,
+sharing, languages, account, radar, feature index) with member and manager variants. They are
+routed by keywords, phrase patterns and a typo-tolerant vocabulary fallback, carry no figures
+and so need no attribution, and a model may only select their IDs. `tests/api/assistant/test_help_topics.py`
+covers many paraphrases, including "where to upload cv".

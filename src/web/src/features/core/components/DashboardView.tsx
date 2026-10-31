@@ -1,18 +1,16 @@
-import { MalaysiaContextCard } from "@/features/trends/components/MalaysiaContextCard";
-import { TrendMoversCard } from "@/features/trends/components/TrendMoversCard";
-import { DataAsOf } from "@/components/DataAsOf";
 import { ArrowRight, ArrowUpRight, BookOpen, Building2, Check, Compass, Leaf, Route, Target, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
-import { EstimateLabel, Kpis, MetaBar } from "@/components";
+import { Kpis } from "@/components";
 import { ErrorState } from "@/components/ErrorState";
 import { ScoreBar, SdgTiles, StepTrack, TrendBars, type TrackStep, type TrendBar } from "@/components/viz";
 import { fetchMatches } from "@/features/matching/api";
 import { fetchPlanStatus, fetchProgress } from "@/features/pathway/api";
 import { fetchMyProfile } from "@/features/profile/api";
 import { fetchMyContribution } from "@/features/sdg/api";
+import { SdgLinkCards } from "@/features/sdg/components/SdgLinkCards";
 import { fetchRadar } from "@/features/trends/api";
 import type { ScenarioId } from "@/lib/api";
 import { getAccount } from "@/lib/auth/account";
@@ -126,6 +124,11 @@ export async function DashboardView({ scenario, query, workspaceError = false }:
         .slice(0, 6)
         .map((g) => ({ goal: g.goal, title: g.label, count: g.link_count }))
     : [];
+  const spotlight = impact?.ok ? impact.data.links.find((link) => link.target.goal === goals[0]?.goal) : null;
+  const sdgLabels = new Map<string, string>([
+    ...(saved ? [[`role:${saved.role_id}`, saved.pathway.role_label] as const] : []),
+    ...mineTracked.map((item) => [`skill:${item.skill_id}`, item.skill_label] as const),
+  ]);
 
   return (
     <div className="a-view">
@@ -150,11 +153,6 @@ export async function DashboardView({ scenario, query, workspaceError = false }:
               </Link>
             ) : null}
           </div>
-          {radar.ok ? (
-            <div className="a-welcome-data">
-              <DataAsOf source="trends" meta={radar.data.meta} />
-            </div>
-          ) : null}
         </div>
         <nav className="a-journey" aria-label={tp("journey")}>
           <span className="a-eyebrow">{tp("journey")}</span>
@@ -186,9 +184,7 @@ export async function DashboardView({ scenario, query, workspaceError = false }:
             icon: <Compass size={15} />,
             // The estimate label sits with the note: the value cell does not wrap.
             note: best ? (
-              <>
-                {best.label} · <EstimateLabel scenario={scenario} />
-              </>
+              best.label
             ) : (
               tp("kNone")
             ),
@@ -238,7 +234,6 @@ export async function DashboardView({ scenario, query, workspaceError = false }:
                       <small>{t("gaps", { count: m.missing_skills.length + m.partial_skills.length })}</small>
                     </span>
                     <ScoreBar value={m.score} label={t("fit")} />
-                    <EstimateLabel scenario={scenario} />
                   </Link>
                 </li>
               ))}
@@ -258,17 +253,6 @@ export async function DashboardView({ scenario, query, workspaceError = false }:
           {bars.length ? <TrendBars items={bars} /> : <p className="a-muted a-small">{t("yourSkillsEmpty")}</p>}
         </section>
       </div>
-
-      <TrendMoversCard
-        scenario={scenario}
-        preset={query.get("preset") ?? undefined}
-        radarHref={href("/app/radar")}
-        homeHref={(preset) => {
-          const next = new URLSearchParams(query);
-          next.set("preset", preset);
-          return `/app?${next.toString()}`;
-        }}
-      />
 
       <div className="a-split">
         <section className="a-card" aria-labelledby="h-path">
@@ -315,11 +299,9 @@ export async function DashboardView({ scenario, query, workspaceError = false }:
               {t("seeAll")} <ArrowUpRight size={13} aria-hidden />
             </Link>
           </div>
-          {goals.length ? <SdgTiles goals={goals} /> : <p className="a-muted a-small">{t("noImpact")}</p>}
+          {spotlight ? <div className="a-home-sdg-card"><SdgLinkCards links={[spotlight]} labels={sdgLabels} /></div> : goals.length ? <SdgTiles goals={goals} /> : <p className="a-muted a-small">{t("noImpact")}</p>}
         </section>
       </div>
-      {matches.ok ? <MetaBar meta={matches.data.meta} /> : null}
-      <MalaysiaContextCard />
     </div>
   );
 }

@@ -2,8 +2,7 @@ import { ArrowRight, Grid3x3, Layers, Target } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
-import { Kpis, MetaBar, PageHeader } from "@/components";
-import { journeyStepCount, orgWorkspace } from "@/config/navigation";
+import { Kpis, PageHeader } from "@/components";
 import { ErrorState } from "@/components/ErrorState";
 import { Heatmap } from "@/components/viz";
 import type { ScenarioId } from "@/lib/api";
@@ -33,8 +32,7 @@ export async function GapsView({ scenario }: { scenario: ScenarioId }) {
 
   return (
     <div className="a-view">
-      <PageHeader eyebrow={tp("stepOf", { step: 3, total: journeyStepCount(orgWorkspace) })} title={t("gapsTitle")} description={tp("gapsDesc")}>
-        <MetaBar meta={data.meta} />
+      <PageHeader title={t("gapsTitle")} description={tp("gapsDesc")}>
       </PageHeader>
       <Kpis
         items={[

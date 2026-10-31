@@ -36,10 +36,9 @@ test("zero matches render actionable empty states in every locale", async () => 
       "@/features/trends/api": { fetchRadar: async () => ({ ok: false }) },
       "@/features/matching/api": { fetchMatches: async () => ({ ok: false }) },
       "@/components/Fold": { Fold: nothing },
-      "./labels": { componentLabels: async () => ({}) },
       "./SnapshotPicker": { SnapshotPicker: nothing }, "./SdgWeightSlider": { SdgWeightSlider: nothing },
       "./ReplayChanges": { ReplayChanges: nothing }, "./MatchImprovements": { MatchImprovements: nothing },
-      "./ScenarioDelta": { ScenarioDelta: nothing }, "./MatchSdgTargets": { MatchSdgTargets: nothing },
+      "./MatchSdgTargets": { MatchSdgTargets: nothing },
       "./ProfileNote": { ProfileNote: nothing }, "./ActionForm": { ActionForm: nothing },
       "../actions": { savePlanAction: nothing },
       "@/features/pathway/actions": { savePlanAction: nothing },
@@ -53,7 +52,7 @@ test("zero matches render actionable empty states in every locale", async () => 
     const matches = renderToStaticMarkup(await resolveTree(await MatchesView({ scenario: "fast" })));
     assert.ok(matches.includes(intl.useTranslations("matching")("emptyTitle")));
     assert.match(matches, /href="\/app\/profile"/);
-    assert.ok(matches.includes(intl.useTranslations("ui.page")("stepOf", { step: "3", total: "6" })));
+    
     result = { ok: false, status: 0, code: "network", message: "synthetic failure" };
     const failed = renderToStaticMarkup(await resolveTree(await MatchesView({ scenario: "fast" })));
     assert.ok(failed.includes(intl.useTranslations("ui.error")("retry")));

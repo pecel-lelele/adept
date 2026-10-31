@@ -2,8 +2,7 @@ import { ArrowUpRight, Award, BookOpen, Building2, Check, Layers, Target } from 
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
-import { ErrorState, Kpis, MetaBar, PageHeader } from "@/components";
-import { journeyStepCount } from "@/config/navigation";
+import { ErrorState, Kpis, PageHeader } from "@/components";
 import type { ScenarioId } from "@/lib/api";
 
 import { shareCompletionAction, submitEvidenceAction, updateProgressAction } from "../actions";
@@ -61,7 +60,7 @@ export async function ProgressView({
     <div className="a-view">
       <ProgressToast />
       <PageHeader
-        eyebrow={isWork ? p.pathway.role_label || d("progress") : tp("stepOf", { step: 5, total: journeyStepCount() })}
+        eyebrow={isWork ? p.pathway.role_label || d("progress") : undefined}
         title={isWork ? tw("progressTitle") : t("progressTitle")}
         description={isWork ? tw("progressDesc", { org: orgName ?? "" }) : tp("progressDesc")}
       >
@@ -70,7 +69,6 @@ export async function ProgressView({
             <Building2 size={13} aria-hidden /> {tw("assignedByTeam", { org: orgName ?? "" })}
           </span>
         ) : null}
-        <MetaBar meta={p.meta} />
       </PageHeader>
 
       <Kpis
@@ -162,7 +160,7 @@ export async function ProgressView({
                     </small>
                     {complete ? (
                       <details className="a-disclosure">
-                        <summary>{d("details")}</summary>
+                        <summary>{d("proof")}</summary>
                         <div>
                           <EvidenceBadge evidence={ev ?? null} />
                           {ev?.review_note ? <p className="a-small a-muted">{t("evidence.reviewNote", { note: ev.review_note })}</p> : null}
@@ -260,7 +258,7 @@ export async function ProgressView({
                     <a href={c.url} target="_blank" rel="noreferrer">{c.title} <ArrowUpRight size={13} aria-hidden /></a>
                     <small>{c.provider} · {t("hours", { hours: c.hours })} · {item.role_label}</small>
                     <details className="a-disclosure">
-                      <summary>{d("details")}</summary>
+                      <summary>{d("proof")}</summary>
                       <div>
                         <EvidenceBadge evidence={ev ?? null} />
                         {ev?.review_note ? <p className="a-small a-muted">{t("evidence.reviewNote", { note: ev.review_note })}</p> : null}

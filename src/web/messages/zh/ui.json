@@ -675,8 +675,6 @@
     "kDirectNote": "工作本身服务于该目标",
     "kEnabling": "促成关联",
     "kEnablingNote": "该技能帮助他人实现目标",
-    "kReviewed": "经人工审核",
-    "kReviewedNote": "经过核查，而非仅由系统生成",
     "goalsHint": "彩色目标由你的路径支持",
     "backToRoles": "所有职位",
     "sdgWeighted": "联合国目标权重 {weight}%",

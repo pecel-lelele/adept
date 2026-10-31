@@ -1,11 +1,11 @@
 {
   "eyebrow": "How we measure",
-  "title": "Impact evidence",
-  "footerLink": "Impact evidence",
-  "aboutLink": "See catalogue coverage and sourced evidence",
-  "basis": "Computed on {count} synthetic personas from the live catalogue and trend snapshot; no human trials.",
-  "honest": "Measured on synthetic personas; no human pilot has been run.",
-  "estimate": "Catalogue counts describe stored reference records. Plans and scenarios are estimates on synthetic profiles. HRD Corp eligibility is not approved funding.",
+  "title": "What the evidence shows",
+  "footerLink": "Impact & evidence",
+  "aboutLink": "Explore our data and methods",
+  "basis": "We tested {count} example profiles against the course catalogue and career engine. These are modelled pathways, not measured career outcomes.",
+  "honest": "Evidence for the approach—not a claim of proven personal impact.",
+  "estimate": "Catalogue figures count stored courses and links. The pathways and scores are modelled guidance, not human outcomes, approved funding or hiring decisions.",
   "retrieved": "retrieved {date}",
   "source": {
     "catalogue": "Source: Adept course catalogue, verified {date}",
@@ -18,7 +18,7 @@
   },
   "hours": {
     "label": "Median pathway hours",
-    "note": "Moderate scenario. Fast scenario: {fast} hours.",
+    "note": "At the faster pace: {fast} hours.",
     "formula": "Sum of hours of the distinct courses the pathway engine selects; median across personas."
   },
   "sdg": {
@@ -28,24 +28,24 @@
   },
   "scenario": {
     "label": "Roles that change with the scenario",
-    "note": "Median count of top-5 roles that differ between Moderate and Fast. Top role changed for {count} personas.",
+    "note": "Comparing two AI scenarios; the top role changed for {count} example profiles.",
     "formula": "Roles in the Moderate top 5 that are not in the Fast top 5, same profile and scorer."
   },
   "fairness": {
     "label": "Largest rank change when identity is swapped",
-    "note": "{variants} name and segment swaps re-ranked. Guardrail report passed: {passed}.",
+    "note": "{variants} synthetic name and career-stage swaps checked whether the ranking changed.",
     "formula": "Largest change in any role's rank after swapping name and segment, run through the production matcher now."
   },
   "coverage": {
     "label": "Courses in the catalogue",
-    "note": "{roles} roles, {skills} skills. {fresh} of courses verified within {days} days before the catalogue date {date}.",
+    "note": "{roles} roles and {skills} skills. {fresh} of courses were verified within {days} days of the latest catalogue check.",
     "formula": "Counts resolve to stored records. The verification window ends at the newest course verification date, separate from the trend snapshot.",
-    "title": "Catalogue coverage",
+    "title": "What the catalogue covers",
     "language": "By language",
     "provider": "By provider type"
   },
   "personas": {
-    "title": "Per-persona results (Moderate scenario)",
+    "title": "What the example pathways offer",
     "persona": "Persona",
     "role": "Top role",
     "hours": "Hours",
@@ -56,8 +56,8 @@
     "note": "Personas are the synthetic demo profiles in the repository. Each is run through the real matching and pathway functions."
   },
   "why": {
-    "title": "Why this matters",
-    "lead": "Figures quoted from public pages, with publisher and date.",
+    "title": "The wider picture",
+    "lead": "Read the source and context",
     "labour": "Labour context (DOSM Labour Force Survey, {month}): unemployment {rate}%. Retrieved {date}."
   },
   "feature": {
@@ -70,6 +70,7 @@
     "org": "Team plans show which courses may be HRD Corp-claimable; eligibility is not approved funding."
   },
   "published": "published {date}",
+  "historicalLabel": "Historical replay",
   "historical": "Scenario calculations use historical arXiv observations from {from} to {to}, replayed under demo snapshot labels; they are not current research.",
   "catalogueFree": {
     "label": "Free catalogue coverage",
@@ -80,5 +81,6 @@
     "label": "SDG targets linked",
     "note": "{links} role-to-target links · {targets} target roles.",
     "formula": "Distinct official targets resolved through draft role and skill mappings pending human review; alignment is not a measured development outcome."
-  }
+  },
+  "basisArchived": "We tested {count} example profiles using archived research and the course catalogue. These are modelled pathways, not measured career outcomes or current labour-market statistics."
 }

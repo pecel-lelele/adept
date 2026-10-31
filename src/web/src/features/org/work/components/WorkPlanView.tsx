@@ -2,7 +2,7 @@ import { Building2, CalendarDays, Clock3, Wallet } from "lucide-react";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 
-import { EmptyState, ErrorState, MetaBar, PageHeader } from "@/components";
+import { EmptyState, ErrorState, PageHeader } from "@/components";
 import { AssignedPackageView } from "@/features/org/components/AssignedPackageView";
 import { ActionForm } from "@/features/pathway/components/ActionForm";
 import { PathwaySteps } from "@/features/pathway/components/PathwaySteps";
@@ -78,7 +78,6 @@ async function AgreementCard({ a, org, orgId, shared, roles }: { a: Assignment; 
           <p className="a-small a-muted">{t("unmet", { skills: (a.pathway.unmet ?? []).map((u) => u.label).join(", ") })}</p>
         ) : null}
       </details> : null}
-      <MetaBar meta={a.pathway.meta} />
       {a.status === "accepted" ? (
         <>
           <PathwaySteps steps={a.pathway.steps} />

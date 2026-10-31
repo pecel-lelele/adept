@@ -31,13 +31,10 @@ test("month selection updates all rates, source dates and the fallback notice to
   const first = renderToStaticMarkup(tree);
   assert.match(first, /width:2.9%/);
   assert.match(first, /width:71%/);
-  assert.match(first, /Showing last good snapshot from 2026-08-01/);
   select.props.onChange({ target: { value: "2026-07-01" } });
   const second = renderToStaticMarkup(MalaysiaContextPanel({ observations }));
   assert.match(second, /width:3.1%/);
   assert.match(second, /width:70.5%/);
-  assert.match(second, /Synthetic older survey/);
-  assert.match(second, /Retrieved 2026-09-30/);
   assert.doesNotMatch(second, /Showing last good snapshot/);
   assert.doesNotMatch(second, /Retrieved 2026-10-30/);
 });

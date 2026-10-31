@@ -2,8 +2,7 @@ import { ArrowRight, Building2, Clock3, Layers, Pencil, TrendingUp, Wallet } fro
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
-import { EstimateLabel, Kpis, PageHeader, TrendPill } from "@/components";
-import { journeyStepCount } from "@/config/navigation";
+import { Kpis, PageHeader, TrendPill } from "@/components";
 import { ErrorState } from "@/components/ErrorState";
 import { AccountDataCard } from "@/features/core/components/AccountDataCard";
 import { LevelPips } from "@/components/viz";
@@ -32,8 +31,7 @@ export async function ProfileView({ scenario = "moderate" }: { scenario?: Scenar
   const org = spaces.ok ? spaces.data.workspaces : [];
   if (!profile.ok) return (
     <div className="a-view">
-      <PageHeader eyebrow={tp("stepOf", { step: 1, total: journeyStepCount() })} title={t("title")} description={tp("skillsDesc")}>
-        <EstimateLabel scenario={scenario} />
+      <PageHeader title={t("title")} description={tp("skillsDesc")}>
       </PageHeader>
       <ErrorState failure={profile} />
     </div>
@@ -48,7 +46,6 @@ export async function ProfileView({ scenario = "moderate" }: { scenario?: Scenar
   return (
     <div className="a-view">
       <PageHeader
-        eyebrow={tp("stepOf", { step: 1, total: journeyStepCount() })}
         title={t("title")}
         description={tp("skillsDesc")}
         actions={
@@ -82,7 +79,6 @@ export async function ProfileView({ scenario = "moderate" }: { scenario?: Scenar
         <section className="a-card a-flush" aria-labelledby="h-levels">
           <div className="a-card-head a-pad">
             <h2 id="h-levels">{tp("skillLevels")}</h2>
-            <span className="a-muted a-small">{tp("trendSource", { date: radar.ok ? radar.data.meta.snapshot_date : "—" })}</span>
           </div>
           <table className="a-table">
             <thead>

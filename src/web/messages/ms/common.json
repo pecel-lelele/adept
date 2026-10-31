@@ -91,15 +91,12 @@
   "design": {
     "more": "Lagi",
     "signOut": "Log keluar",
-    "details": "Butiran & sumber",
     "filters": "Tapis kursus",
     "courseDetails": "Butiran kursus",
     "continue": "Teruskan belajar",
     "progress": "Kemajuan anda",
-    "evidence": "Sumber & kaedah",
     "options": "Pilihan pembelajaran",
     "pathBody": "Urutan yang jelas. Rentak yang sesuai dengan anda.",
-    "snapshot": "Edisi data",
     "rising": "Meningkat",
     "stable": "Stabil",
     "declining": "Menurun",
@@ -120,6 +117,8 @@
     "review": "Semak",
     "moreSkills": "Tunjuk {count} lagi kemahiran",
     "addSkills": "Semak kemahiran anda",
-    "observed": "data diukur {from} hingga {to}"
+    "observed": "data diukur {from} hingga {to}",
+    "sources": "Sumber",
+    "proof": "Bukti penyelesaian"
   }
 }

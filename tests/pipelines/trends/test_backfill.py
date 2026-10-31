@@ -231,3 +231,57 @@ def test_equivalence_aborts_if_a_concurrent_run_saved_a_different_threshold(
     with pytest.raises(SystemExit, match="Stored calibration changed"):
         backfill.run_equivalence(28)
     assert not backfill.REPORT.exists(), "a racing threshold must not produce a passing report"
+
+
+def test_portable_export_rejects_unmeasured_or_inconsistent_history() -> None:
+    from datetime import UTC, datetime
+
+    first = backfill.automatic_trends.START_DAY
+    last = datetime.now(UTC).date() - timedelta(days=backfill.automatic_trends.ARXIV_LAG_DAYS)
+    days = [
+        {
+            "day": first + timedelta(days=i),
+            "method": backfill.trend_store.GEMINI_METHOD,
+            "papers": 1,
+        }
+        for i in range((last - first).days + 1)
+    ]
+    papers = [
+        {"arxiv_id": f"synthetic-{i}", "published_on": row["day"], "method": row["method"]}
+        for i, row in enumerate(days)
+    ]
+    assert backfill.validate_export(days, papers, backfill.trend_store.GEMINI_METHOD) == (
+        first,
+        last,
+    )
+    with pytest.raises(ValueError, match="No measured"):
+        backfill.validate_export([], [], backfill.trend_store.GEMINI_METHOD)
+    assert backfill.validate_export(days[:1], papers[:1], backfill.trend_store.GEMINI_METHOD) == (
+        first,
+        first,
+    )
+    assert backfill.validate_export(days[:-1], papers[:-1], backfill.trend_store.GEMINI_METHOD) == (
+        first,
+        last - timedelta(days=1),
+    ), "a partial but measured range stays usable without claiming full history"
+    with pytest.raises(ValueError, match="missing or out-of-order"):
+        backfill.validate_export(
+            days[:1] + days[2:], papers[:1] + papers[2:], backfill.trend_store.GEMINI_METHOD
+        )
+    with pytest.raises(ValueError, match="total differs"):
+        backfill.validate_export(days, papers[:-1], backfill.trend_store.GEMINI_METHOD)
+    with pytest.raises(ValueError, match="mix matching methods"):
+        backfill.validate_export(
+            days,
+            [{**papers[0], "method": "other"}, *papers[1:]],
+            backfill.trend_store.GEMINI_METHOD,
+        )
+
+
+def test_export_command_checks_explicit_database_before_read(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(backfill, "resolved_target", lambda: "localhost:5433/disposable")
+    monkeypatch.setattr(backfill, "export_seed", lambda: pytest.fail("export read started"))
+    with pytest.raises(SystemExit, match="Refusing to write"):
+        backfill.main(["export-seed"])

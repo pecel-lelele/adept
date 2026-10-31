@@ -579,6 +579,17 @@
 - **Replaces**: none (extends TEAM-052)
 - **PR / branch**: feat/trends-radar-lists
 
+
+### TEAM-054: Keep attribution opt-in and make public evidence scannable
+- **Date**: 2026-11-01
+- **Feature**: Core, F2, F4, F7, F8
+- **Type**: UI
+- **Change**: Replace expanded provider/date strings on ordinary cards with a compact provenance control retaining full metadata on demand; group data/AI disclosures and public impact evidence into responsive, scannable sections, streaming API-backed results behind page shells. Show current-vs-last-updated status only from stored freshness state; remove redundant dashboard and landing explanations, keep role choice and real auth, and route unfinished personal analytics to onboarding.
+- **Why**: Long source inventories, replay explanations and raw paragraphs obscured the workflow and broke responsive layouts. The full linked source register remains on Data & AI use; feature detail pages keep optional dated evidence, while dashboards deliberately omit source disclosures at the requester’s direction. API metadata remains intact. This dashboard presentation is an explicit exception to the repository’s UI-card attribution requirement and must be reviewed against hackathon rules before submission; no recommendation, consent or scenario calculation is removed.
+- **Affects**: Shared provenance and freshness UI, public About/Impact/landing, learner and organisation dashboards, auth navigation and sidebar; EN/MS/ZH status labels and web regressions. No new dataset, contract, model, schema or dependency.
+- **Replaces**: none; presentation refinement of M4-098/M1-034/M1-043
+- **PR / branch**: feat/trends-radar-lists
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)
@@ -1061,6 +1072,18 @@
 - **Validation**: Full gate passed (1,973 Python tests passed, 50 skipped; 120 web regressions passed), including stored-history bounds and per-month source/date preservation. Production build passed. Browser testing caught the month label including its option text; added an explicit accessible label and associated single-month help, then reran lint, TypeScript, the month-selection regression, production build and desktop/mobile browser checks successfully. Reviewed light/dark tile, fallback-pill and footer screenshots.
 - **Affects**: Trends labour reader/router and generated contracts; individual/organisation radar and dashboard; English/Malay/Chinese labels. No database migration, data ingestion, model or scoring changes.
 - **Replaces**: none; supersedes the disclosure-only labour card presentation
+- **PR / branch**: feat/trends-radar-lists
+
+
+### M1-044: Refuse empty or incomplete portable trend history
+- **Date**: 2026-11-01
+- **Feature**: F2 (Trend paper history export)
+- **Type**: method
+- **Change**: Require an explicit database target for paper-series export and validate contiguous measured days from the active method's start through the latest announced day, per-day paper totals and Gemini calibration before creating export files. Keep the current honest empty graph until a separately authorized live backfill produces those rows.
+- **Why**: A header-only or partially generated CSV could be imported into a later deployment and mistaken for complete measured historical evidence. The export stays offline and read-only against the source database; no provider job or migration was run here.
+- **Pipeline**: public arXiv submissions → stored day and paper rows → method-specific count/coverage validation → unchanged MiniLM/Gemini matcher and rolling-share method → synthetic export-validation regressions → portable reviewed CSV seed for a separately approved target
+- **Affects**: F2 operator backfill/export, migration handoff documentation and tests; no API contract or live dataset switch
+- **Replaces**: none; tightens M1-027/M1-031 operator export
 - **PR / branch**: feat/trends-radar-lists
 
 ---
@@ -2992,3 +3015,23 @@
 - **Affects**: Shared DataAsOf output with selected metadata; no API schema or source date changed
 - **Replaces**: none; refines M4-098 provenance display
 - **PR / branch**: fix/core-dashboard-clarity
+
+### M4-100: Plain-language dashboard cards, one sources link and no radar chart cards
+- **Date**: 2026-11-01
+- **Feature**: Core dashboard / F2 radar / F4 matches / F6 SDG
+- **Type**: UI
+- **Change**: (1) Match cards show one clear summary line (skills to build, openings) instead of repeated pace, fit and count chips, and no "fit" word under the percentage; the score arithmetic, "See breakdown" button and component labels are removed, replaced by a plain "What would raise this score" list of skills with verified catalogue courses. (2) The expandable "Details & sources" / "Data edition" / "data as of" blocks and visible "Estimate · pace" chips are removed from dashboard pages; `MetaBar` and `SourceBadge` become a single small "Sources" link to the consolidated sources on `/about#data-sources`, and `EstimateLabel` is announced to screen readers only. (3) SDG link cards never show a "draft, pending review" tag or a "Reviewed by people" KPI; the direct/enabling relation sits in the card header, the planned-hours shares use one heading, one note and a share bar; the MyCOL card is a titled card with a compact source line. (4) The radar keeps its pages, nav entries and working cards (movers list, own skills, role directions, signal explorer, Malaysia context) but drops the chart/trend-line cards (`TrendRangeCard`, `TrendLinesChart`, `TrendMoversCard`, the range controls and the radar snapshot picker); the role-directions card is omitted instead of failing the page when the optional trend-matcher data is missing. The backend compare endpoint, series code and migration stay (they are already on main and migrations are append-only).
+- **Why**: The dashboard was cluttered with repeated provenance and arithmetic that belongs in the proposal, and the chart cards depended on migration data the local database lacked, turning the whole radar into an error page. AGENTS.md section 3.4 still requires attribution and estimate labelling: API `RecommendationMeta` is unchanged, every card keeps a "Sources" link whose tooltip and accessible name carry the estimate cue and snapshot date, and the full provenance (sources, retrieval dates, models) lives on the Data and AI use page. This is a deliberate compromise from expanded per-card detail to a minimal link plus one consolidated page.
+- **Affects**: matches, match detail, dashboard, radar, impact (SDG) pages, jobs board, shared components, en/ms/zh messages; web tests updated; no API schema change
+- **Replaces**: none; refines M4-098 and M4-099 placement of freshness
+- **PR / branch**: fix/core-dashboard-cleanup
+
+### M4-101: Adi answers every how-to question with fixed, linked help blocks
+- **Date**: 2026-11-01
+- **Feature**: Core / F8 Adi assistant
+- **Type**: method
+- **Change**: Adi gains 17 server-authored help blocks (`help_topics.py`: CV upload, target role, matches, plan, progress, jobs, courses, impact and evidence, data and AI use, organisation mode, join code, workspaces, sharing consent, languages, account, radar, feature index) in English, Malay and Chinese, with audience variants for members and managers and a link to the right page. Routing is deterministic: keywords, phrase patterns and a typo-tolerant vocabulary fallback, with privacy questions about a CV staying privacy questions. When a model is configured it only selects among the same block IDs through `select_ids_or_fallback` and `validate_ids`, with the deterministic route as fallback. The "not sure" reply now lists what Adi can help with; genuinely off-topic subjects are still refused. Help blocks carry no figures, so they need no attribution.
+- **Why**: "Where to upload CV" returned a generic refusal. AGENTS.md section 3.3 forbids rendering model prose, so coverage is added as checked blocks and routing, not free text. `LLM_PROVIDER` defaults are unchanged.
+- **Affects**: assistant guide, service, context page table; new tests `tests/api/assistant/test_help_topics.py`
+- **Replaces**: none; extends M4-084
+- **PR / branch**: fix/core-dashboard-cleanup

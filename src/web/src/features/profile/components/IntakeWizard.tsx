@@ -7,7 +7,6 @@ import { startTransition, useEffect, useMemo, useRef, useState, useTransition, t
 
 import { errorMessage } from "@/lib/api/error-message";
 
-import { SourceBadge } from "@/components/SourceBadge";
 import type { ApiResult, Schemas } from "@/lib/api";
 
 import { resolveSkillAction, saveIntakeAction, uploadCvAction, type IntakeInput } from "../actions";
@@ -449,7 +448,6 @@ export function IntakeWizard({
                         {t("addSuggestion", { label: candidate.label })} · {t(`resolverMethod.${candidate.method}`)}
                       </button>
                     )) : <p className="a-small a-muted" role="status">{t("noSuggestions")}</p>}
-                    <SourceBadge sources={resolved.data.meta.sources} snapshotDate={resolved.data.meta.snapshot_date} />
                   </>
                 ) : <p className="a-notice" role="alert">{errorMessage(te, resolved.code)}</p>}
               </div>

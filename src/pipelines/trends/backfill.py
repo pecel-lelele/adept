@@ -7,8 +7,8 @@ Never called by the API or a page. Commands, in order:
                stores the threshold; a failure means the switch does not happen.
   run          Fetch, match and commit every missing day from START_DAY in resumable chunks,
                then publish the rolling snapshot. Refuses to start without a passing report.
-  export-seed  Write the stored series to src/data/seed/trends/paper_store/ so another database
-               can load it with `make seed`, with no arXiv or model call.
+  export-seed  Check the measured store and write a portable seed to
+               src/data/seed/trends/paper_store/ for later migration. Refuses an empty store.
 
 Every command that writes needs `--target host:port/database`, matching the resolved database,
 so nothing ever writes through an ambient connection by accident.
@@ -29,6 +29,7 @@ import json
 import sys
 import threading
 import time
+from collections import Counter
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
@@ -428,10 +429,36 @@ def run_backfill() -> int:
     return 0
 
 
+def validate_export(
+    days: Sequence[Mapping[str, object]], papers: Sequence[Mapping[str, object]], method: str
+) -> tuple[date, date]:
+    """Refuse a header-only or internally inconsistent seed before touching existing files."""
+    if not days or not papers:
+        raise ValueError("No measured paper history to export; run the backfill first.")
+    first = days[0]["day"]
+    last = days[-1]["day"]
+    if not isinstance(first, date) or not isinstance(last, date):
+        raise ValueError("Stored paper days have invalid dates.")
+    if first > last or len(days) != (last - first).days + 1:
+        raise ValueError("Series has missing or out-of-order dates; export refused.")
+    if last > datetime.now(UTC).date() - timedelta(days=automatic_trends.ARXIV_LAG_DAYS):
+        raise ValueError("Series includes unannounced future dates; export refused.")
+    counts = Counter(p["published_on"] for p in papers)
+    stored_dates = {row["day"] for row in days}
+    for index, row in enumerate(days):
+        day = row["day"]
+        if day != first + timedelta(days=index) or row["method"] != method:
+            raise ValueError("Paper-store days are out of order or mix matching methods.")
+        if counts[day] != row["papers"]:
+            raise ValueError(f"Paper total differs from stored rows on {day}; export refused.")
+    if any(p["method"] != method or p["published_on"] not in stored_dates for p in papers):
+        raise ValueError("Paper-store records mix matching methods or dates.")
+    return first, last
+
+
 def export_seed() -> int:
     """Deterministic CSVs of the active series; public IDs and labels only, no abstract text."""
     method = trend_store.series_method()
-    SEED_DIR.mkdir(parents=True, exist_ok=True)
     # One MVCC snapshot keeps the exported day denominators and paper rows together
     # even if a settled day is replaced while these three reads run.
     with connection() as conn, conn.transaction():
@@ -450,6 +477,17 @@ def export_seed() -> int:
             "SELECT model, threshold, rule, reference_rate, reference_papers, calibrated_on "
             "FROM trend_matcher_calibration ORDER BY model"
         ).fetchall()
+
+    first, last = validate_export(days, papers, method)
+    if method == trend_store.GEMINI_METHOD and not any(
+        row["model"] == trend_fallback.model_label() for row in calibrations
+    ):
+        raise ValueError("Gemini calibration is missing; export refused.")
+    SEED_DIR.mkdir(parents=True, exist_ok=True)
+    print(
+        f"Validated {len(days)} measured days ({first}..{last}), "
+        f"{len(papers)} papers, method {method}."
+    )
 
     def write(name: str, header: list[str], rows: list[list[object]]) -> None:
         with (SEED_DIR / f"{name}.csv").open("w", encoding="utf-8", newline="") as fh:
@@ -519,13 +557,14 @@ def main(argv: list[str] | None = None) -> int:
     equivalent.add_argument("--days", type=int, default=DEFAULT_EQUIVALENCE_DAYS)
     backfill = commands.add_parser("run")
     backfill.add_argument("--target")
-    commands.add_parser("export-seed")
+    exported = commands.add_parser("export-seed")
+    exported.add_argument("--target")
     args = parser.parse_args(argv)
     if args.command == "estimate":
         return print_estimate()
+    require_target(args.target)
     if args.command == "export-seed":
         return export_seed()
-    require_target(args.target)
     return run_equivalence(args.days) if args.command == "equivalence" else run_backfill()
 
 
