@@ -53,12 +53,16 @@ def _unit(v: Sequence[float]) -> list[float]:
 
 
 def embed(
-    texts: Sequence[str], task: Task = "SEMANTIC_SIMILARITY", patient: bool = False
+    texts: Sequence[str],
+    task: Task = "SEMANTIC_SIMILARITY",
+    patient: bool = False,
+    timeout_s: float | None = None,
 ) -> list[list[float]]:
     """Unit vectors for `texts`, in order. Raises EmbeddingsUnavailable on any problem.
 
     `patient` (catalogue indexing only, never a user request) waits out rate limits (HTTP 429)
-    in small batches instead of failing at once."""
+    in small batches instead of failing at once. `timeout_s` caps the HTTP timeout below the
+    configured one (callers with their own deadline pass the time they have left)."""
     global _down_until  # noqa: PLW0603
     if not texts:
         return []
@@ -70,7 +74,10 @@ def embed(
     url = GEMINI_URL.format(model=s.embeddings_model)
     out: list[list[float]] = []
     try:
-        with httpx.Client(timeout=s.embeddings_timeout_s) as client:
+        timeout = (
+            s.embeddings_timeout_s if timeout_s is None else min(s.embeddings_timeout_s, timeout_s)
+        )
+        with httpx.Client(timeout=timeout) as client:
             size = 20 if patient else BATCH
             for i in range(0, len(texts), size):
                 chunk = [redact_text(t)[:2000] for t in texts[i : i + size]]

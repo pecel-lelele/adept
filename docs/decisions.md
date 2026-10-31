@@ -691,6 +691,17 @@
 - **Replaces**: M1-009 (magnitude guard and compensating range clamp only)
 - **PR / branch**: fix/matching-interest-and-fast-scenario / Fixes #80
 
+### M1-017: On-demand trend refresh with a calibrated Gemini fallback; weekly workflow unscheduled
+- **Date**: 2026-10-31
+- **Feature**: F2 (Trends), data refresh, Core workflow
+- **Type**: method | model | other
+- **Change**: The app's own trend refresh (`automatic_trends.run`) no longer depends on RunPod. It tries the MiniLM worker first, holding back 90 s of the run budget; if the worker is missing or fails and Gemini embeddings are enabled, it measures the same two arXiv weeks with `gemini-embedding-001` (one vector per paper). MiniLM's 0.55 threshold is not reused: one threshold is calibrated so the previous week reproduces the mentions per paper of the stored MiniLM measurement, then applied to both weeks. Stored inputs record method `M1-017`, the model, and the note says "fallback". With no stored measurement to calibrate against, the refresh fails and the last snapshot stays live. `trends-refresh.yml` loses its Monday schedule and stays as a manual backup.
+- **Why**: Judges may refresh on the demo day; the refresh must work on demand inside the app, finish within its budget, and never wait on a weekly GitHub job or a cold RunPod worker. Reusing the MiniLM threshold on another model's cosine scale would inflate or deflate mention counts; rate calibration keeps counts on the stored evidence's scale, and a shared threshold keeps week-over-week velocity comparable.
+- **Pipeline**: arXiv cs.AI API (two completed ISO weeks) → title + abstract per paper → Gemini 768-d unit vectors, cosine to skill labels → threshold from stored MiniLM mentions-per-paper → existing scorer and validation (unchanged) → atomic snapshot publish with method/model in the stored inputs and note. Evaluation: unit tests for calibration, deadline, both fallback triggers, the uncalibratable case and the not-configured case. Not yet compared against MiniLM on the same live weeks (needs paid inference).
+- **Affects**: F2 snapshots and everything that reads them (F3–F7 estimates), /about disclosure, README, `trends-refresh.yml`
+- **Replaces**: none (extends M1-015)
+- **PR / branch**: fix/trends-ondemand-refresh-fallback
+
 ---
 
 ## M2: Profile Intake & Matching (F1, F4)

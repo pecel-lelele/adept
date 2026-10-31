@@ -24,3 +24,11 @@ the most recent successful feed read. `JOBS_STALE_DAYS` controls labelled stale 
 counts consistently; daily automatic work includes jobs. Static trend runtime evidence comes
 only from committed/fetched byte-bound sidecars. A course deadline reached on the final page
 also reports incomplete checks and retains the previous catalogue.
+
+## Trend fallback (2026-10-31, M1-017)
+
+The trends step tries RunPod MiniLM first and keeps 90 s of its budget back. If the worker is
+missing or fails and Gemini embeddings are enabled, `trend_fallback` measures the same weeks with a
+threshold calibrated to the stored MiniLM mention rate. The method and model are stored with the
+inputs and named in the snapshot note. No stored measurement means no calibration: the refresh
+fails and the last snapshot stays live. `trends-refresh.yml` is a manual backup, not scheduled.

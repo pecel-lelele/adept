@@ -22,7 +22,8 @@ ARXIV_API = "https://export.arxiv.org/api/query"
 
 
 class MeasuredInputs(BaseModel):
-    method: Literal["M1-014"] = "M1-014"
+    # M1-014: RunPod MiniLM; M1-017: calibrated Gemini fallback (trend_fallback).
+    method: Literal["M1-014", "M1-017"] = "M1-014"
     model: str = MODEL_ID
     model_revision: str = MODEL_REVISION
     previous: tuple[date, date]
@@ -56,6 +57,23 @@ def load(day: date | None = None, *, required_schema: bool = False) -> MeasuredI
                 "refresh_not_configured", "Apply the measured-input migration before inference."
             ) from exc
         return None  # legacy rescore remains available before activation
+    return MeasuredInputs.model_validate(row["payload"]) if row else None
+
+
+def load_minilm_reference(day: date) -> MeasuredInputs | None:
+    """Stored MiniLM (M1-014) inputs to calibrate the Gemini fallback, never a fallback run.
+
+    Prefers the week ending on `day`, otherwise the latest MiniLM week."""
+    try:
+        with connection() as conn:
+            row = conn.execute(
+                "SELECT payload FROM measured_trend_inputs "
+                "WHERE COALESCE(payload->>'method', 'M1-014') = 'M1-014' "
+                "ORDER BY (measured_date = %s) DESC, measured_date DESC LIMIT 1",
+                (day,),
+            ).fetchone()
+    except psycopg.errors.UndefinedTable:
+        return None
     return MeasuredInputs.model_validate(row["payload"]) if row else None
 
 

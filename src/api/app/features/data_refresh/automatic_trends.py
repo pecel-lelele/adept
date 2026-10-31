@@ -1,5 +1,9 @@
 """Current arXiv submission weeks -> bounded MiniLM -> production scorer -> atomic snapshot.
 
+When the RunPod MiniLM worker is missing or fails, a calibrated Gemini fallback measures the
+same weeks (`trend_fallback`, M1-017), so an on-demand refresh does not depend on RunPod or
+the weekly GitHub workflow.
+
 A dated sample is never moved to a newer ISO week. Inference is skipped before any network
 operation when that measured week already exists. BLS remains a dated, static baseline.
 """
@@ -14,17 +18,22 @@ from datetime import UTC, date, datetime, timedelta
 from urllib.parse import urlencode
 
 from app.core import refdata
-from app.features.data_refresh import measurements, repository, service
+from app.core.logging import get_logger
+from app.features.data_refresh import measurements, repository, service, trend_fallback
 from app.features.trends import refresh
 from app.features.trends.provenance import window_from_note
 from pipelines.trends import arxiv_ingest, score
 from pipelines.trends import run as pipeline
-from pipelines.trends.encoder import RunPodEncoder
+from pipelines.trends.encoder import MODEL_ID, MODEL_REVISION, RunPodEncoder
+
+log = get_logger("app.data_refresh.trends")
 
 ARXIV_API = measurements.ARXIV_API
 MAX_PAPERS = 350
 MAX_BYTES = 8_000_000
 NS = {"a": "http://www.w3.org/2005/Atom"}
+# Time held back from RunPod so the Gemini fallback can still finish inside the run budget.
+FALLBACK_RESERVE_S = 90.0
 
 
 def periods(today: date) -> tuple[tuple[date, date], tuple[date, date]]:
@@ -110,18 +119,18 @@ def run(started: float, budget: float, stop: threading.Event) -> service.Outcome
         return service.Outcome(
             0, len(scored), 0, "Rebuilt stored measured inputs; no inference called."
         )
-    if os.environ.get("TRENDS_EMBEDDING_BACKEND", "runpod") != "runpod":
+    endpoint = os.environ.get("TRENDS_RUNPOD_ENDPOINT_ID", "")
+    api_key = os.environ.get("TRENDS_RUNPOD_API_KEY", "")
+    runpod_ready = (
+        os.environ.get("TRENDS_EMBEDDING_BACKEND", "runpod") == "runpod"
+        and bool(endpoint)
+        and bool(api_key)
+    )
+    if not runpod_ready and not trend_fallback.enabled():
         raise service.RefreshFailed(
             "refresh_not_configured",
-            "Automatic trend refresh requires the dedicated MiniLM worker.",
+            "Automatic trend refresh needs the MiniLM worker or the Gemini embedding fallback.",
         )
-    model = RunPodEncoder(
-        os.environ.get("TRENDS_RUNPOD_ENDPOINT_ID", ""),
-        os.environ.get("TRENDS_RUNPOD_API_KEY", ""),
-        timeout=max(1, min(600, budget)),
-        deadline=deadline,
-        cancelled=stop.is_set,
-    )
     first = fetch_window(*previous, deadline)
     if deadline - time.monotonic() < 3.5:
         raise TimeoutError("refresh time budget reached")
@@ -131,11 +140,37 @@ def run(started: float, budget: float, stop: threading.Event) -> service.Outcome
     second = fetch_window(*current, deadline)
     skills = [(r["id"], r["label"]) for r in refdata.rows("taxonomy", "skills")]
     ids = [sid for sid, _label in skills]
-    vectors = dict(
-        zip(ids, model.encode([label for _sid, label in skills], batch_size=64), strict=True)
-    )
-    before = arxiv_ingest.count_mentions(first, ids, vectors, model)
-    after = arxiv_ingest.count_mentions(second, ids, vectors, model)
+    counted: tuple[dict[str, int], dict[str, int]] | None = None
+    method, model_id, revision = "M1-014", MODEL_ID, MODEL_REVISION
+    if runpod_ready:
+        reserve = FALLBACK_RESERVE_S if trend_fallback.enabled() else 0.0
+        try:
+            model = RunPodEncoder(
+                endpoint,
+                api_key,
+                timeout=max(1, min(600, budget)),
+                deadline=deadline - reserve,
+                cancelled=stop.is_set,
+            )
+            vectors = dict(
+                zip(
+                    ids,
+                    model.encode([label for _sid, label in skills], batch_size=64),
+                    strict=True,
+                )
+            )
+            counted = (
+                arxiv_ingest.count_mentions(first, ids, vectors, model),
+                arxiv_ingest.count_mentions(second, ids, vectors, model),
+            )
+        except Exception as exc:  # noqa: BLE001 - any worker failure may use the fallback
+            if stop.is_set() or not trend_fallback.enabled():
+                raise
+            log.warning("MiniLM worker unavailable (%s); using Gemini fallback", type(exc).__name__)
+    if counted is None:
+        counted = gemini_counts(first, second, skills, previous, deadline, stop)
+        method, model_id, revision = "M1-017", trend_fallback.model_label(), "api"
+    before, after = counted
     labor = score.load_labor_decay()
     exposure = score.load_automation_exposure()
     rows = score.score_rows(
@@ -174,11 +209,19 @@ def run(started: float, budget: float, stop: threading.Event) -> service.Outcome
     note = (
         f"Observed arXiv submissions {current[0]}..{current[1]} against "
         f"{previous[0]}..{previous[1]}; fetched {today}. "
-        f"Bounded sample up to {MAX_PAPERS} papers per week; MiniLM cosine method. "
-        f"BLS 2023-2033 remains a static baseline retrieved {bls['retrieved_at']}."
+        f"Bounded sample up to {MAX_PAPERS} papers per week; "
+        + (
+            "MiniLM cosine method. "
+            if method == "M1-014"
+            else f"{model_id} fallback, threshold calibrated to the stored MiniLM mention rate. "
+        )
+        + f"BLS 2023-2033 remains a static baseline retrieved {bls['retrieved_at']}."
     )
     with repository.write_connection(started + budget) as conn:
         inputs = measurements.MeasuredInputs(
+            method=method,
+            model=model_id,
+            model_revision=revision,
             previous=previous,
             current=current,
             fetched=today,
@@ -201,3 +244,38 @@ def run(started: float, budget: float, stop: threading.Event) -> service.Outcome
     return service.Outcome(
         len(first) + len(second), len(evidenced), 0, f"Published measured week ending {current[1]}."
     )
+
+
+def gemini_counts(
+    first: list[dict[str, str]],
+    second: list[dict[str, str]],
+    skills: list[tuple[str, str]],
+    previous: tuple[date, date],
+    deadline: float,
+    stop: threading.Event,
+) -> tuple[dict[str, int], dict[str, int]]:
+    """Mention counts for both weeks with the calibrated Gemini fallback (M1-017)."""
+    reference = measurements.load_minilm_reference(previous[1])
+    if reference is None:
+        raise service.RefreshFailed(
+            "refresh_not_supported",
+            "No stored MiniLM measurement to calibrate the fallback; the last snapshot is kept.",
+        )
+    rate = trend_fallback.mentions_per_paper(reference.counts_after, reference.total_after)
+    try:
+        labels = trend_fallback.embed_bounded(
+            [label for _sid, label in skills], deadline, stop.is_set
+        )
+        vectors = dict(zip([sid for sid, _label in skills], labels, strict=True))
+        texts = [trend_fallback.paper_text(p) for p in first + second]
+        papers = trend_fallback.embed_bounded(texts, deadline, stop.is_set)
+    except trend_fallback.FallbackUnavailable as exc:
+        raise service.RefreshFailed(
+            "fetch_failed",
+            "Trend embeddings are unavailable; the last good snapshot is retained.",
+            rows_fetched=len(first) + len(second),
+        ) from exc
+    before_sims = trend_fallback.similarities(papers[: len(first)], vectors)
+    after_sims = trend_fallback.similarities(papers[len(first) :], vectors)
+    threshold = trend_fallback.calibrated_threshold(before_sims, rate)
+    return trend_fallback.count(before_sims, threshold), trend_fallback.count(after_sims, threshold)
