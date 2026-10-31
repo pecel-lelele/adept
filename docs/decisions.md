@@ -836,6 +836,17 @@
 - **Replaces**: none; corrects M1-025 range/sampling details
 - **PR / branch**: feat/trends-calendar-projection / PR #105
 
+### M1-029: Reuse calibration and keep complete Gemini days during equivalence
+- **Date**: 2026-10-31
+- **Feature**: F2 (Trend backfill)
+- **Type**: method
+- **Change**: Equivalence reuses the model's stored threshold, compares only papers with common MiniLM evidence, but matches and writes every fetched paper for Gemini. A concurrent threshold conflict aborts before storing any Gemini day or writing a passing report.
+- **Why**: Recalibrating on a new sample changed live scoring despite an immutable stored threshold. Writing the filtered comparison intersection as a production day silently deleted valid rows and reduced denominators.
+- **Pipeline**: public arXiv daily samples + stored MiniLM evidence → shared-paper intersection for evaluation, full samples for Gemini → stable persisted threshold → existing rank/label pass bar → mocked partial-day, rerun and concurrent-conflict regressions → complete method-specific paper rows
+- **Affects**: F2 operator equivalence tool and backfill guide; no migration, provider switch or paid verification in this change
+- **Replaces**: none; corrects M1-024 equivalence persistence
+- **PR / branch**: feat/trends-calendar-projection / PR #105
+
 ---
 
 ## M2: Profile Intake & Matching (F1, F4)

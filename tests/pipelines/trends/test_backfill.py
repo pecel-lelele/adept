@@ -105,3 +105,110 @@ def test_backfill_resumes_after_a_failed_chunk(monkeypatch: pytest.MonkeyPatch) 
     assert backfill.run_backfill() == 0
     assert [c[0] for c in calls] == [day, day + timedelta(days=1), day + timedelta(days=1)]
     assert len(published) == 1
+
+
+def test_equivalence_reuses_threshold_and_saves_only_complete_gemini_days(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    from contextlib import contextmanager
+    from types import SimpleNamespace
+    from typing import Any
+
+    day = date(2026, 10, 20)
+    shared = {"arxiv_id": "synthetic-shared"}
+    newer = {"arxiv_id": "synthetic-new"}
+    sample = backfill.Sample(
+        {day: [shared]}, {shared["arxiv_id"]: ["python"]}, {day: [shared, newer]}
+    )
+    monkeypatch.setattr(backfill.trend_fallback, "enabled", lambda: True)
+    monkeypatch.setattr(backfill.trend_fallback, "model_label", lambda: "synthetic-model")
+    monkeypatch.setattr(backfill.trend_store, "calibration", lambda _model: 0.5)
+    monkeypatch.setattr(
+        backfill.trend_fallback, "calibrated_threshold", lambda *_: pytest.fail("recalibrated")
+    )
+    monkeypatch.setattr(backfill, "load_sample", lambda *_: sample)
+    monkeypatch.setattr(backfill, "_skills", lambda: [("python", "Python")])
+
+    def similarities(papers: list[dict[str, str]], *_: Any, **__: Any) -> list[dict[str, float]]:
+        assert papers == [shared, newer], "all fetched papers must be matched"
+        return [{"python": 0.8}, {"python": 0.2}]
+
+    monkeypatch.setattr(backfill.automatic_trends, "gemini_similarities", similarities)
+
+    def compare(
+        sample_arg: backfill.Sample, matched: dict[str, list[str]], threshold: float, *_: Any
+    ) -> dict[str, object]:
+        assert sample_arg.days == {day: [shared]}, "equivalence only compares common evidence"
+        assert threshold == 0.5 and matched == {"synthetic-shared": ["python"], "synthetic-new": []}
+        return {"passed": True, "model": "synthetic-model"}
+
+    monkeypatch.setattr(backfill, "compare", compare)
+    calls: list[tuple[dict[date, list[dict[str, str]]], dict[str, list[str]]]] = []
+    monkeypatch.setattr(backfill.trend_store, "save_calibration", lambda *_: None)
+    monkeypatch.setattr(
+        backfill.trend_store,
+        "save_days",
+        lambda _conn, days, found, *_: calls.append((days, found)),
+    )
+
+    class Connection:
+        def execute(self, _statement: str, _params: tuple[str]) -> Any:
+            return SimpleNamespace(fetchone=lambda: (0.5,))
+
+    @contextmanager
+    def write_connection(_deadline: float):
+        yield Connection()
+
+    monkeypatch.setattr(backfill.repository, "write_connection", write_connection)
+    monkeypatch.setattr(backfill, "SEED_DIR", tmp_path)
+    monkeypatch.setattr(backfill, "REPORT", tmp_path / "equivalence.json")
+    assert backfill.run_equivalence(28) == 0
+    assert calls == [
+        ({day: [shared, newer]}, {"synthetic-shared": ["python"], "synthetic-new": []})
+    ]
+    assert backfill.REPORT.is_file()
+
+
+def test_equivalence_aborts_if_a_concurrent_run_saved_a_different_threshold(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    from contextlib import contextmanager
+    from types import SimpleNamespace
+    from typing import Any
+
+    day = date(2026, 10, 20)
+    paper = {"arxiv_id": "synthetic-paper"}
+    monkeypatch.setattr(backfill.trend_fallback, "enabled", lambda: True)
+    monkeypatch.setattr(backfill.trend_fallback, "model_label", lambda: "synthetic-model")
+    monkeypatch.setattr(backfill.trend_store, "calibration", lambda _model: None)
+    monkeypatch.setattr(
+        backfill,
+        "load_sample",
+        lambda *_: backfill.Sample({day: [paper]}, {paper["arxiv_id"]: ["python"]}, {day: [paper]}),
+    )
+    monkeypatch.setattr(backfill, "_skills", lambda: [("python", "Python")])
+    monkeypatch.setattr(
+        backfill.automatic_trends, "gemini_similarities", lambda *_a, **_k: [{"python": 0.7}]
+    )
+    monkeypatch.setattr(backfill.trend_fallback, "calibrated_threshold", lambda *_: 0.7)
+    monkeypatch.setattr(
+        backfill, "compare", lambda *_: {"passed": True, "model": "synthetic-model"}
+    )
+    monkeypatch.setattr(backfill.trend_store, "save_calibration", lambda *_: None)
+    monkeypatch.setattr(
+        backfill.trend_store, "save_days", lambda *_: pytest.fail("partial day saved")
+    )
+
+    class Connection:
+        def execute(self, _statement: str, _params: tuple[str]) -> Any:
+            return SimpleNamespace(fetchone=lambda: (0.6,))
+
+    @contextmanager
+    def write_connection(_deadline: float):
+        yield Connection()
+
+    monkeypatch.setattr(backfill.repository, "write_connection", write_connection)
+    monkeypatch.setattr(backfill, "REPORT", tmp_path / "equivalence.json")
+    with pytest.raises(SystemExit, match="Stored calibration changed"):
+        backfill.run_equivalence(28)
+    assert not backfill.REPORT.exists(), "a racing threshold must not produce a passing report"

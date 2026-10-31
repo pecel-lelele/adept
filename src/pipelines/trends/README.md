@@ -8,17 +8,18 @@ PYTHONPATH=src/api:src python -m pipelines.trends.run --skip-ingest # rescore st
 PYTHONPATH=src/api:src python -m pipelines.trends.run --dry-run     # validate, publish nothing
 ```
 
-Scheduled by `.github/workflows/trends-refresh.yml` (Mondays) when the `TREND_DATABASE_URL`
-repository secret points at a production database reachable by the GitHub-hosted runner.
+The app's automatic refresh is scheduled by `.github/workflows/automatic-data-refresh.yml`;
+`trends-refresh.yml` is a manual backup only. That backup requires `TREND_DATABASE_URL`
+pointing at a database reachable by the GitHub-hosted runner.
 The workflow maps this secret to process `DATABASE_URL`; naming the secret `DATABASE_URL`
 alone does not configure it. Replit's development `helium` host cannot be used externally.
 Publish Replit to provision its production database, then use its production connection
 details. Also configure secret `TRENDS_RUNPOD_API_KEY` and repository variable
 `TRENDS_RUNPOD_ENDPOINT_ID=ta14jd0by2ijl2`. No model weights are installed in Actions.
 
-The schedule is Mondays 03:41 UTC (11:41 WITA), with manual dispatch through
-**Actions → Trends refresh → Run workflow**. Missing settings skip work and can leave a
-green run. Preflight checks database connectivity before ingestion or paid inference.
+The daily in-app refresh uses a separate scheduler credential. The backup is manually
+started through **Actions → Trends refresh → Run workflow** from the reviewed main ref.
+Missing settings fail a manual backup run. Preflight checks database connectivity before ingestion or paid inference.
 Require the actual `Published snapshot YYYY-MM-DD.` log and verify the date in the app.
 A live inference test passed on 24 October 2026; the first integrated refresh fetched 366
 papers but failed saving to private host `helium`. Inference readiness does not establish
@@ -51,7 +52,9 @@ with `PYTHONPATH=src/api:src` and the provider settings for that process only:
 2. `... equivalence --target host:port/db` compares Gemini with MiniLM on the same papers and
    writes `src/data/seed/trends/paper_store/equivalence.json`. The pass bar is in M1-024. MiniLM
    rows come from the database if stored; otherwise the encoder selected by
-   `TRENDS_EMBEDDING_BACKEND` (`local` needs no paid call) produces and stores them.
+   `TRENDS_EMBEDDING_BACKEND` (`local` needs no paid call) produces and stores them. An existing
+   threshold is reused for the same model; the comparison uses only papers with MiniLM evidence,
+   while Gemini storage uses every fully fetched paper in each day.
 3. `... run --target host:port/db` stores every missing day from 2026-01-01 in resumable 14-day
    chunks, then publishes the rolling snapshot. Run it again to resume. It refuses to start
    without a passing report. Committing that report is what switches `TRENDS_MATCHER=auto` to

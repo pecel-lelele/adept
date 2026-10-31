@@ -187,8 +187,9 @@ def _skills() -> list[tuple[str, str]]:
 
 @dataclass(frozen=True)
 class Sample:
-    days: dict[date, list[dict[str, str]]]
+    days: dict[date, list[dict[str, str]]]  # common comparison papers
     minilm: dict[str, list[str]]
+    fetched_days: dict[date, list[dict[str, str]]]  # complete days for Gemini storage
 
 
 def _stored_minilm(start: date, end: date) -> dict[str, list[str]]:
@@ -211,7 +212,7 @@ def load_sample(start: date, end: date, stop: threading.Event, today: date) -> S
             day: [p for p in papers if p["arxiv_id"] in stored] for day, papers in fetched.items()
         }
         print(f"MiniLM evidence: {len(stored)} stored M1-014 rows.")
-        return Sample(kept, stored)
+        return Sample(kept, stored, fetched)
     papers = [p for day in fetched.values() for p in day]
     print(f"MiniLM evidence: none stored; encoding {len(papers)} papers now.")
     encoder = get_encoder()
@@ -224,7 +225,7 @@ def load_sample(start: date, end: date, stop: threading.Event, today: date) -> S
     minilm = {p["arxiv_id"]: f for p, f in zip(papers, found, strict=True)}
     with repository.write_connection(time.monotonic() + 300) as conn:
         trend_store.save_days(conn, fetched, minilm, trend_store.MINILM_METHOD, MODEL_ID, today)
-    return Sample(fetched, minilm)
+    return Sample(fetched, minilm, fetched)
 
 
 def _counts(
@@ -323,37 +324,45 @@ def run_equivalence(days: int) -> int:
         return 1
     mentions_total = sum(len(sample.minilm.get(p["arxiv_id"], [])) for p in papers)
     rate = mentions_total / len(papers)
+    # Compare only papers with MiniLM evidence, but match and save every fetched paper.
+    # Replacing a Gemini day with the intersection would shrink its denominator.
+    fetched = [p for day in sample.fetched_days.values() for p in day]
     sims = automatic_trends.gemini_similarities(
-        papers, _skills(), time.monotonic() + BACKFILL_BUDGET_S, stop, patient=True
+        fetched, _skills(), time.monotonic() + BACKFILL_BUDGET_S, stop, patient=True
     )
-    threshold = trend_fallback.calibrated_threshold(sims, rate)
+    by_id = {p["arxiv_id"]: row for p, row in zip(fetched, sims, strict=True)}
+    model = trend_fallback.model_label()
+    threshold = trend_store.calibration(model)
+    if threshold is None:
+        threshold = trend_fallback.calibrated_threshold(
+            [by_id[p["arxiv_id"]] for p in papers], rate
+        )
     found = trend_fallback.mentions(sims, threshold)
-    gemini = {p["arxiv_id"]: f for p, f in zip(papers, found, strict=True)}
+    gemini = {p["arxiv_id"]: f for p, f in zip(fetched, found, strict=True)}
     report = compare(sample, gemini, threshold, rate, start, end, today)
+    if report["passed"]:
+        with repository.write_connection(time.monotonic() + 300) as conn:
+            trend_store.save_calibration(
+                conn, model, threshold, trend_fallback.RULE_MINILM, rate, len(papers), today
+            )
+            row = conn.execute(
+                "SELECT threshold FROM trend_matcher_calibration WHERE model = %s", (model,)
+            ).fetchone()
+            if row is None or float(row[0]) != threshold:
+                # A concurrent equivalence run stored a different threshold. Retry against it;
+                # never label rows scored with one threshold as using another.
+                raise SystemExit(
+                    "Stored calibration changed; rerun equivalence before saving days."
+                )
+            trend_store.save_days(
+                conn, sample.fetched_days, gemini, trend_store.GEMINI_METHOD, model, today
+            )
     SEED_DIR.mkdir(parents=True, exist_ok=True)
     REPORT.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(report, indent=2))
     if not report["passed"]:
         print("Equivalence FAILED: the series stays on MiniLM.", file=sys.stderr)
         return 1
-    with repository.write_connection(time.monotonic() + 300) as conn:
-        trend_store.save_calibration(
-            conn,
-            trend_fallback.model_label(),
-            threshold,
-            trend_fallback.RULE_MINILM,
-            rate,
-            len(papers),
-            today,
-        )
-        trend_store.save_days(
-            conn,
-            sample.days,
-            gemini,
-            trend_store.GEMINI_METHOD,
-            trend_fallback.model_label(),
-            today,
-        )
     return 0
 
 
