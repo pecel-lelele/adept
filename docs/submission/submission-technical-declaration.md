@@ -63,7 +63,7 @@ Docker Compose is **local development tooling**, not a cloud host; Docker Deskto
 | Careerjet, Jooble, Web3.career | Optional keyed job connectors; historical fetch log marks keys/skips; not needed for automatic path | Keyed; terms and price/activation unverified |
 | OpenDOSM monthly LFS | Malaysian national labour context only, not role-level vacancy demand | Public CC BY 4.0 |
 | RunPod Serverless (separate Adi GLM-5.3 endpoint and MiniLM worker) | Optional chat answer selection; batch research embeddings | Sponsor credits apply temporarily; usage billed per applicable service |
-| Google Gemini API (3.5 Flash Lite; 3.6 Flash; 3.1 Flash Lite; embedding-001) | Optional Adi failover, unfamiliar-skill suggestions; trend matcher gated on method equivalence | Free/paid tier depends on account; activation unverified |
+| Google Gemini API (3.5 Flash Lite; 3.6 Flash; 3.1 Flash Lite; embedding-001) | Optional Adi failover and unfamiliar-skill suggestions; `auto` trend-matcher selection waits for an equivalence report, but explicit Gemini override does not | Free/paid tier depends on account; activation unverified |
 
 The **US BLS 2023–2033 baseline** is a committed dated extract, not an API called per user. Model weights are downloaded from Hugging Face during the worker build; the service runs on RunPod. Public reachability does not grant unlimited redistribution rights. No API keys are listed.
 
@@ -90,7 +90,7 @@ The Replit proof PDF shows historical hosting/database screens and **US$6.38 acc
 | Gemini 3.5 Flash Lite; 3.6 Flash; 3.1 Flash Lite | Google optional failover chain | Pre-trained hosted Adi inference; configured does not establish live invocation | Gemini API Terms |
 | `gemini-embedding-001` | Google optional embedding path | Pre-trained 768-dimensional suggestions and gated trend matcher; no team fine-tuning | Gemini API Terms |
 
-**Trend method:** source arXiv submissions + dated US BLS extract → cleaning/bounded sampling → sentence embeddings/mention counts → heuristic research velocity and Moderate/Fast scoring → coverage/date/ID validation → stored snapshot. An equivalence report is required before a series switches from MiniLM to Gemini; no cross-method mixing. Research attention is **not** observed Malaysian labour demand, and scenario bands are **not** calibrated confidence intervals.
+**Trend method:** source arXiv submissions + dated US BLS extract → cleaning/bounded sampling → sentence embeddings/mention counts → heuristic research velocity and Moderate/Fast scoring → coverage/date/ID validation → stored snapshot. In the default `auto` mode, a passing model-specific equivalence report is required before choosing Gemini. An operator can explicitly set `TRENDS_MATCHER=gemini` **without that gate**; that override must not be represented as equivalence-validated. Stored windows still keep methods separate. Research attention is **not** observed Malaysian labour demand, and scenario bands are **not** calibrated confidence intervals.
 
 ### 4.2 Datasets
 
