@@ -123,16 +123,19 @@ def save_days(
     methods' rows for the same day are left alone.
     """
     for day, papers in days.items():
-        conn.execute(
-            "DELETE FROM trend_paper_mentions WHERE published_on = %s AND method = %s",
-            (day, method),
-        )
+        # Acquire the (day, method) row lock before deleting mentions. This also serializes
+        # two first-time inserts on the unique key: the later writer must wait, then delete
+        # the earlier writer's papers instead of combining both samples under one total.
         conn.execute(
             "INSERT INTO trend_fetched_days(day, method, papers, fetched_on) "
             "VALUES (%s, %s, %s, %s) "
             "ON CONFLICT (day, method) DO UPDATE SET papers = EXCLUDED.papers, "
             "fetched_on = EXCLUDED.fetched_on",
             (day, method, len(papers), fetched_on),
+        )
+        conn.execute(
+            "DELETE FROM trend_paper_mentions WHERE published_on = %s AND method = %s",
+            (day, method),
         )
         for paper in papers:
             conn.execute(

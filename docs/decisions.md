@@ -879,6 +879,17 @@
 - **Replaces**: M1-024's pass-bar definition only (recorded before a live equivalence run)
 - **PR / branch**: feat/trends-calendar-projection / PR #105
 
+### M1-032: Serialize trend day replacement before deleting papers
+- **Date**: 2026-10-31
+- **Feature**: F2 (Trend paper store)
+- **Type**: method
+- **Change**: Upsert and lock the `(day, method)` row first, then delete and replace its paper mentions inside the caller's transaction, including on the first insertion of a day.
+- **Why**: Two writers could both delete before the other committed, then insert disjoint paper sets under only the later writer's denominator, producing impossible shares.
+- **Pipeline**: matched public paper batches → day-key row lock → method-specific paper replacement → existing rolling-share calculation → opt-in concurrent PostgreSQL first-day regression → one consistent final day sample
+- **Affects**: F2 manual backfill and automatic refresh publication; no migration, provider or API contract change
+- **Replaces**: none; hardens M1-018/M1-024 day replacement
+- **PR / branch**: feat/trends-calendar-projection / PR #105
+
 ---
 
 ## M2: Profile Intake & Matching (F1, F4)

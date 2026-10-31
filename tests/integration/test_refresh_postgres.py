@@ -422,3 +422,72 @@ def test_export_uses_one_snapshot_during_concurrent_day_replacement(
             ).fetchone()[0]
             == 3
         ), "writer really did replace the day between export reads"
+
+
+def test_concurrent_first_day_writers_do_not_combine_papers_under_one_total(pg: Any) -> None:
+    day = date(2026, 10, 9)
+    method = trend_store.MINILM_METHOD
+    first_saved = threading.Event()
+    second_started = threading.Event()
+    errors: list[Exception] = []
+    first = [{"arxiv_id": "synthetic-race-first"}]
+    second = [{"arxiv_id": f"synthetic-race-last-{i}"} for i in range(3)]
+
+    def first_writer() -> None:
+        try:
+            with pg.connect(pg.url) as conn:
+                trend_store.save_days(
+                    conn,
+                    {day: first},
+                    {first[0]["arxiv_id"]: ["python"]},
+                    method,
+                    "synthetic-model",
+                    day,
+                )
+                first_saved.set()  # insert is uncommitted while the second writer begins
+                if not second_started.wait(timeout=3):
+                    raise TimeoutError("second synthetic writer did not start")
+                time.sleep(0.2)
+        except Exception as exc:
+            errors.append(exc)
+            first_saved.set()
+
+    def second_writer() -> None:
+        try:
+            if not first_saved.wait(timeout=3):
+                raise TimeoutError("first synthetic writer did not start")
+            second_started.set()
+            with pg.connect(pg.url) as conn:
+                trend_store.save_days(
+                    conn,
+                    {day: second},
+                    {p["arxiv_id"]: ["sql"] for p in second},
+                    method,
+                    "synthetic-model",
+                    day,
+                )
+        except Exception as exc:
+            errors.append(exc)
+
+    threads = [threading.Thread(target=first_writer), threading.Thread(target=second_writer)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(timeout=7)
+    assert all(not thread.is_alive() for thread in threads), (
+        "synthetic writers must release their connections"
+    )
+    assert not errors
+    with pg.connect(pg.url, row_factory=dict_row) as check:
+        total = check.execute(
+            "SELECT papers FROM trend_fetched_days WHERE day = %s AND method = %s", (day, method)
+        ).fetchone()["papers"]
+        paper_ids = {
+            row["arxiv_id"]
+            for row in check.execute(
+                "SELECT arxiv_id FROM trend_paper_mentions WHERE published_on = %s AND method = %s",
+                (day, method),
+            ).fetchall()
+        }
+    assert total == len(second) == len(paper_ids)
+    assert paper_ids == {p["arxiv_id"] for p in second}

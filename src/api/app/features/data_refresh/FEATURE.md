@@ -52,5 +52,7 @@ This replaces the fallback and the cap above. `TRENDS_MATCHER` picks one matcher
 `auto` (default) is MiniLM until a passing equivalence report is committed, then Gemini. A failure
 keeps the last snapshot and never mixes models. The Gemini history starts 2026-01-01; MiniLM keeps
 2026-10-06. Catch-up commits every 14 days with no per-run cap, so an interrupted
-run resumes, and publishes a snapshot only once complete. `POST /data/refresh/check` is admin
-only: people see "Data through <date>", and the button lives on the admin data page.
+run resumes, and publishes a snapshot only once complete. Day replacements acquire the
+`(day, method)` row lock before deleting papers, so a manual backfill and daily job cannot
+mix samples under one denominator. `POST /data/refresh/check` is admin only: people see
+"Data through <date>", and the button lives on the admin data page.
