@@ -57,12 +57,14 @@ def embed(
     task: Task = "SEMANTIC_SIMILARITY",
     patient: bool = False,
     timeout_s: float | None = None,
+    dims: int = DIMS,
 ) -> list[list[float]]:
     """Unit vectors for `texts`, in order. Raises EmbeddingsUnavailable on any problem.
 
     `patient` (catalogue indexing only, never a user request) waits out rate limits (HTTP 429)
     in small batches instead of failing at once. `timeout_s` caps the HTTP timeout below the
-    configured one (callers with their own deadline pass the time they have left)."""
+    configured one (callers with their own deadline pass the time they have left). `dims` sets the
+    Matryoshka output size (trend fallback uses 384, MiniLM's size)."""
     global _down_until  # noqa: PLW0603
     if not texts:
         return []
@@ -91,7 +93,7 @@ def embed(
                                     "model": f"models/{s.embeddings_model}",
                                     "content": {"parts": [{"text": t}]},
                                     "taskType": task,
-                                    "outputDimensionality": DIMS,
+                                    "outputDimensionality": dims,
                                 }
                                 for t in chunk
                             ]
@@ -109,7 +111,7 @@ def embed(
         # Never log the response body or headers: they could echo the key.
         log.warning("embeddings call failed: %s", type(exc).__name__)
         raise EmbeddingsUnavailable(str(type(exc).__name__)) from exc
-    if len(out) != len(texts) or any(len(v) != DIMS for v in out):
+    if len(out) != len(texts) or any(len(v) != dims for v in out):
         raise EmbeddingsUnavailable("Unexpected embedding response shape.")
     return out
 
