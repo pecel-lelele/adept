@@ -1027,6 +1027,17 @@
 - **Replaces**: none
 - **PR / branch**: fix/core-privacy-and-trust
 
+### M2-032: Preserve career experience and exclude entire future-learning lists
+- **Date**: 2026-10-31
+- **Feature**: F1 (Skills Profile Intake)
+- **Type**: method
+- **Change**: Require explicit future-learning wording in the aspiration filter, preserving career objectives that state existing experience. Exclude learning-list entries using their original clause context so comma-separated items cannot leak into unmatched review terms; retain sentence, semicolon and separate-entry boundaries. Preserve future-intent exclusion specifically for inferred leadership actions.
+- **Why**: PR #94 review found that "Seeking to apply five years of Python experience" lost Python, while "Want to learn Rust, Kubernetes" still offered Kubernetes for review. Preserve existing Malay/Chinese learning phrases and cover interested-in-learning and aspiring-to-learn wording.
+- **Pipeline**: synthetic CV text -> existing bounded in-memory cleaning -> catalogue aliases and original list context -> explicit future-learning exclusion -> multilingual parser and upload-response regressions -> current-skill review and human confirmation
+- **Affects**: F1 CV intake/guest preview skills and unmatched terms; no contract, catalogue, provider or dependency change
+- **Replaces**: M2-031 aspiration filtering details only; leadership catalogue resolution unchanged
+- **PR / branch**: fix/core-privacy-and-trust (PR #94)
+
 ---
 
 ## M3: Pathway, SDG & Guardrails (F5, F6, F8)

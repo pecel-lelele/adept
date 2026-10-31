@@ -609,9 +609,17 @@ _NEGATION_RE = re.compile(
 # Aspirations describe future learning, including lists joined by commas/conjunctions.
 # Sentence and line boundaries keep an aspiration from suppressing later actual experience.
 _ASPIRATION_RE = re.compile(
-    r"\b(?:seeking to|want(?:ing)? to|hope to|hoping to|wish to|planning to|"
-    r"would like to|aim(?:ing)? to)\b|\bingin belajar\b|\bmahu belajar\b|"
+    r"\b(?:(?:seeking|want(?:ing)?|hop(?:e|ing)|wish|plan(?:ning)?|"
+    r"aim(?:ing)?|aspiring) to learn|would like to learn|interested in learning)\b|"
+    r"\bingin belajar\b|\bmahu belajar\b|"
     r"希望(?:学习|学会|掌握)|想(?:要)?(?:学习|学会|掌握)|计划学习",
+    re.IGNORECASE,
+)
+# Inferred action aliases require an actual action, not an intention to perform it.
+# Apply this only to action aliases so career objectives can still name existing skills.
+_FUTURE_ACTION_RE = re.compile(
+    r"\b(?:seeking to|want(?:ing)? to|hop(?:e|ing) to|wish to|plan(?:ning)? to|"
+    r"would like to|aim(?:ing)? to|aspiring to|interested in)\s+\Z",
     re.IGNORECASE,
 )
 
@@ -697,6 +705,8 @@ def extract_skills(text: str) -> list[ParsedSkill]:
                 continue
             if _is_negated(normed, s) or _is_aspiration(normed, s):
                 continue
+            if not entry.phrase and _FUTURE_ACTION_RE.search(normed, 0, s):
+                continue
             if sid not in spans:
                 spans[sid] = existing
             existing.append((s, e))
@@ -778,7 +788,8 @@ def skills_section_entries(text: str) -> list[str]:
     A section starts at a skills heading and ends at the next heading of any kind. Its lines
     are joined first, so an entry broken over two lines ("exception" / "handling.") stays one
     entry, and a word hyphenated at a line break ("val-" / "idation") is rejoined. Sub-labels
-    such as "Tools: Excel, SQL" keep only the list after the colon.
+    such as "Tools: Excel, SQL" keep only the list after the colon. Future-learning entries
+    are excluded with their original clause context before list separators discard it.
     """
     entries: list[str] = []
     block: list[str] = []
@@ -800,7 +811,14 @@ def skills_section_entries(text: str) -> list[str]:
             else:
                 joined = f"{joined} {part}"  # a wrapped line of a comma-separated list
             prev = part
+        offset = 0
         for item in _LIST_SEPARATOR.split(joined):
+            item_start = offset
+            offset += len(item) + 1  # separators are single characters
+            # Keep the original clause context: commas must not turn the later
+            # items of "Want to learn Rust, Kubernetes" into current-skill hints.
+            if _is_aspiration(joined, item_start) or _ASPIRATION_RE.search(item):
+                continue
             item = item.split(":", 1)[1] if re.match(r"^[^:]{2,30}:\s", item.strip()) else item
             item = re.sub(r"\s+", " ", item).strip(_TRAILING)
             if item:
