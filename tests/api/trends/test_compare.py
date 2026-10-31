@@ -66,7 +66,10 @@ def test_projection_reuses_the_radar_scenarios_and_stays_a_possible_share() -> N
 def test_long_ranges_are_weekly_counted_back_from_the_last_day() -> None:
     assert comparison.sampled_indexes(120) == list(range(120))
     weekly = comparison.sampled_indexes(300)
-    assert weekly[-1] == 299 and {b - a for a, b in zip(weekly, weekly[1:], strict=False)} == {7}
+    assert weekly[0] == 0 and weekly[-1] == 299
+    assert {b - a for a, b in zip(weekly[1:], weekly[2:], strict=False)} == {7}
+    assert 0 < weekly[1] - weekly[0] <= 7
+    assert comparison.sampled_indexes(180)[0] == 0
     assert comparison.horizon_days(90)[-1] == 90
     assert comparison.horizon_days(365)[-1] == 365
 
@@ -117,6 +120,7 @@ def test_the_whole_stored_year_works_for_role_vs_category(
     assert any(o["entity"] == "role:machine-learning-engineer" for o in body["options"])
     # Rebased to 100 at the base date.
     assert body["lines"][0]["start_value"] == 100.0
+    assert body["lines"][0]["points"][0] == {"day": "2026-01-07", "value": 100.0}
 
 
 def test_every_plottable_role_and_category_can_be_charted(
@@ -212,6 +216,34 @@ def test_empty_store_shows_no_invented_history(
     assert body["projection_meta"] is None
     assert body["meta"]["sources"][0]["url"] == series.EMPTY_SOURCE.url
     assert body["meta"]["observed_from"] is None
+
+
+@pytest.mark.parametrize(
+    "params",
+    [
+        {"start": "0001-01-01", "end": "9999-12-31"},
+        {"start": "2025-01-01", "end": "2026-01-02"},
+        {"start": "2026-02-01", "end": "2026-01-01"},
+    ],
+)
+def test_empty_store_rejects_unbounded_or_reversed_ranges(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch, params: dict[str, str]
+) -> None:
+    monkeypatch.setattr(trend_store, "stored_range", lambda: None)
+    monkeypatch.setattr(trend_store, "daily", lambda *a: pytest.fail("no store to read"))
+    assert client.get(COMPARE, params=params).status_code == 422
+
+
+def test_180_day_series_includes_the_reported_baseline(
+    client: TestClient, stored: dict[str, Any]
+) -> None:
+    body = client.get(
+        COMPARE, params={"start": "2026-01-07", "end": "2026-07-05", "entities": ["skill:python"]}
+    ).json()
+    line = body["lines"][0]
+    assert body["mode"] == "indexed" and body["base_date"] == "2026-01-07"
+    assert line["points"][0] == {"day": body["base_date"], "value": line["start_value"]}
+    assert line["points"][-1]["day"] == body["end"]
 
 
 def test_movers_lead_with_risers_then_fallers(client: TestClient, stored: dict[str, Any]) -> None:

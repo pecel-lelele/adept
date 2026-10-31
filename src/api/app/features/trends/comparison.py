@@ -131,7 +131,8 @@ def sampled_indexes(length: int) -> list[int]:
     """Every day up to DAILY_POINTS_UP_TO, else weekly counted back from the last day."""
     if length <= DAILY_POINTS_UP_TO:
         return list(range(length))
-    return sorted(range(length - 1, -1, -WEEKLY_STEP))
+    # Keep the first observed value even when weekly points align from the last day.
+    return sorted({0, *range(length - 1, -1, -WEEKLY_STEP)})
 
 
 def horizon_days(horizon: int) -> list[int]:
@@ -221,7 +222,12 @@ def _resolve_range(
     if stored is None:
         # Nothing stored: nothing is plotted and no date is claimed as data.
         end = end or EMPTY_SOURCE.retrieved_at
-        return start or end, end, None, None
+        start = start or end
+        if start > end:
+            raise _invalid("The start date must be on or before the end date.")
+        if (end - start).days + 1 > MAX_DAYS:
+            raise _invalid(f"Choose a range of at most {MAX_DAYS} days.")
+        return start, end, None, None
     end = end or newest
     assert end is not None and newest is not None
     if preset:

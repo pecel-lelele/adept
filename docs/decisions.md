@@ -824,6 +824,18 @@
 - **Replaces**: none
 - **PR / branch**: feat/trends-calendar-projection
 
+
+### M1-028: Bound empty history and retain the chart baseline
+- **Date**: 2026-10-31
+- **Feature**: F2 (Trend comparison)
+- **Type**: method
+- **Change**: Apply the 366-day and date-order checks even without a stored series, before allocating dates; weekly samples include the first day of the selected range along with points counted back from the end.
+- **Why**: Empty storage previously permitted an unbounded public allocation. Long charts could omit the baseline date even as the API reported that day's rebased start value.
+- **Pipeline**: stored paper dates or explicit empty store → bounded range validation → unchanged rolling-share calculation → baseline-preserving weekly selection → extreme-date, empty-store and 180/300-day regression tests → dated chart points
+- **Affects**: F2 comparison API; no provider, catalogue or schema change
+- **Replaces**: none; corrects M1-025 range/sampling details
+- **PR / branch**: feat/trends-calendar-projection / PR #105
+
 ---
 
 ## M2: Profile Intake & Matching (F1, F4)
