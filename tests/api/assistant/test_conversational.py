@@ -98,7 +98,7 @@ ROUTES = [
     ("Which skills are falling in demand?", "trend_declining"),
     ("What roles are going away?", "trend_declining"),
     ("Which course should I start with?", "learn"),
-    ("Why is this my top match?", "roles"),
+    ("Why is this my top match?", "score_breakdown"),
     ("hello", "greeting"),
     ("thanks!", "thanks"),
     ("Thanks! What should I do next?", "next"),
