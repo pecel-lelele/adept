@@ -4,6 +4,7 @@ import test from "node:test";
 import * as draft from "../src/web/src/features/profile/intake-draft.ts";
 import * as navigation from "../src/web/src/config/navigation.ts";
 import * as skillSearch from "../src/web/src/features/profile/skill-search.ts";
+import * as cvHandoff from "../src/web/src/features/profile/cv-handoff.ts";
 import { loadComponent, React, renderToStaticMarkup, translations } from "./harness/web-components.ts";
 
 function find(node: unknown, predicate: (element: React.ReactElement) => boolean): React.ReactElement | undefined {
@@ -35,7 +36,7 @@ function wizard(initialStep: number) {
     react, "next-intl": translations("en"), "next/navigation": { useRouter: () => ({ replace() {} }), useSearchParams: () => new URLSearchParams() },
     "@/lib/api/error-message": { errorMessage: (_t: unknown, code: string) => code },
     "@/components/SourceBadge": {}, "@/features/core/components/CvPreview": { CV_SKILLS_KEY: "preview" },
-    "../skill-search": skillSearch, "../intake-draft": draft,
+    "../skill-search": skillSearch, "../intake-draft": draft, "../cv-handoff": cvHandoff,
     "../actions": { uploadCvAction: async () => { uploads++; return { skills: [] }; } },
   });
   const render = () => { stateIndex = refIndex = 0; return IntakeWizard({ userId: "synthetic-test", catalogue: [], interests: [], initial: null }); };

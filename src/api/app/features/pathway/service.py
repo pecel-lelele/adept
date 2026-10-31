@@ -27,8 +27,6 @@ from app.contracts.pathway import (
     ProgressUpdate,
     ReplanStatus,
     ReviewDecision,
-    RoleComparison,
-    RoleOption,
     SavedPlan,
     SavePlanIn,
     ShareCompletionIn,
@@ -40,6 +38,7 @@ from app.contracts.sdg import SdgTarget
 from app.core import taxonomy
 from app.core.auth import CurrentUser
 from app.core.errors import AppError, NotFoundError, ProfileRequiredError
+from app.features.matching.scoring import MatchProfile, Role, RoleSkill, skill_overlap
 from app.features.org import repository as org_repository
 from app.features.pathway import (
     data,
@@ -78,7 +77,7 @@ def resolve_role(user: CurrentUser, role_id: str | None) -> str:
     saved = repository.get_plan(user.id)
     if saved is None:
         raise AppError(
-            "Choose a target role first: compare your matches and save a plan.",
+            "Choose a target role first: view your matches and save a plan.",
             status_code=409,
             code="role_required",
         )
@@ -221,84 +220,6 @@ def get_pathway(
     plan = build_pathway(learner, role_id, scenario, snapshot_date=snapshot_date)
     # Attached after building, so the segment can only change guidance text, never the plan.
     return plan.model_copy(update={"segment": profile.segment})
-
-
-# --- comparing roles before choosing ----------------------------------------------------
-
-DIRECTION_BAND = 0.05  # same thresholds as M1's direction_<scenario> labels
-
-
-def role_trend(
-    reqs: Sequence[data.Requirement], trend: trend_port.TrendView | None
-) -> tuple[float | None, float]:
-    """Importance-weighted trend signal of a role's skills and the share of weight covered."""
-    total = sum(r.importance for r in reqs)
-    if not trend or total == 0:
-        return None, 0.0
-    covered = [r for r in reqs if r.skill_id in trend.growth]
-    weight = sum(r.importance for r in covered)
-    if weight == 0:
-        return None, 0.0
-    signal = sum(r.importance * trend.growth[r.skill_id] for r in covered) / weight
-    return round(signal, 4), round(weight / total, 3)
-
-
-def _direction(signal: float | None) -> str:
-    if signal is None:
-        return "unknown"
-    if signal > DIRECTION_BAND:
-        return "rising"
-    if signal < -DIRECTION_BAND:
-        return "declining"
-    return "stable"
-
-
-def compare_roles(
-    user: CurrentUser,
-    role_ids: Sequence[str],
-    scenario: ScenarioId,
-    snapshot_date: date | None = None,
-) -> RoleComparison:
-    """What each candidate role would take for this learner, side by side, before they choose."""
-    learner = learner_for(user)
-    trend = trend_port.current(scenario, snapshot_date)
-    if trend is None and snapshot_date is not None:
-        raise NotFoundError(f"No trend snapshot for {snapshot_date.isoformat()}")
-    saved = repository.get_plan(user.id)
-    known = data.target_role_ids()
-    chosen = [r for r in dict.fromkeys(role_ids) if r in known] if role_ids else known
-    options: list[RoleOption] = []
-    plans: list[Pathway] = []
-    for role_id in chosen:
-        plan = build_pathway(learner, role_id, scenario, trend=trend)
-        plans.append(plan)
-        signal, coverage = role_trend(data.requirements(role_id), trend)
-        options.append(
-            RoleOption(
-                role_id=role_id,
-                role_label=plan.role_label,
-                total_weeks=plan.total_weeks,
-                total_hours=plan.total_hours,
-                out_of_pocket_myr=plan.out_of_pocket_myr,
-                within_budget=plan.within_budget,
-                skills_to_close=sum(1 for g in plan.gaps if g.status != "have"),
-                unmet_skills=len(plan.unmet),
-                trend_signal=signal,
-                trend_direction=_direction(signal),  # type: ignore[arg-type]
-                trend_coverage=coverage,
-                sdg_targets=[link.target for link in sdg_repository.role_links(role_id)],
-                is_saved_choice=bool(saved and saved.role_id == role_id),
-            )
-        )
-    snapshot = trend.snapshot if trend else None
-    meta = _meta([step for p in plans for step in p.steps], snapshot, scenario)
-    return RoleComparison(
-        options=options,
-        saved_role_id=saved.role_id if saved else None,
-        snapshot_version=snapshot.version if snapshot else "",
-        available_snapshots=list(trend.available_dates) if trend else [],
-        meta=meta,
-    )
 
 
 def skills_gap(levels: Mapping[str, int], role_id: str) -> dict[str, list[str]]:
@@ -458,7 +379,41 @@ def _plan_for_progress(user: CurrentUser, role_id: str, scenario: ScenarioId) ->
     saved = repository.get_plan(user.id)
     if saved and saved.role_id == role_id and saved.scenario == scenario:
         return saved.pathway
+    previous = [
+        item
+        for item in repository.plan_history(user.id)
+        if item.role_id == role_id and item.scenario == scenario
+    ]
+    if previous:
+        return max(previous, key=lambda item: item.saved_at).pathway
     return get_pathway(user, role_id, scenario)
+
+
+def _role_is_chosen(user: CurrentUser, role_id: str) -> bool:
+    """A role in a request is only a selector. Tracking needs an explicit decision: a saved or
+    previously saved target, an accepted employer programme, or learning already recorded for
+    this role, which stays reachable after the target changes."""
+    if _is_work(user):
+        return True  # _plan_for_progress already requires the accepted programme
+    saved = repository.get_plan(user.id)
+    if saved is not None and saved.role_id == role_id:
+        return True
+    if any(item.role_id == role_id for item in repository.plan_history(user.id)):
+        return True
+    if any(row.role_id == role_id for row in repository.learning_records([user.id])):
+        return True
+    from app.features.org import programmes
+
+    return programmes.accepted_pathway(user, role_id) is not None
+
+
+def _require_chosen(user: CurrentUser, role_id: str) -> None:
+    if not _role_is_chosen(user, role_id):
+        raise AppError(
+            "Choose this role before tracking progress on it.",
+            status_code=409,
+            code="role_required",
+        )
 
 
 def _badge_label(
@@ -657,10 +612,28 @@ def get_progress(user: CurrentUser, role_id: str, scenario: ScenarioId) -> Progr
         for cid in elsewhere:
             completed_hours.setdefault(cid, courses[cid].hours)
     personal_records = [r for r in records if r.scope == repository.PERSONAL]
+    # This preview includes self-reported study. Only the existing evidence gate can change
+    # the learner's actual matching inputs. A work preview never reads other workspaces.
+    estimated_levels = {gap.skill_id: gap.current_level for gap in plan.gaps}
+    for row in records:
+        if row.course is not None and _accepted(row):
+            for sid in row.course.skill_ids:
+                estimated_levels[sid] = max(estimated_levels.get(sid, 0), row.course.level)
+    fit_role = Role(
+        role_id,
+        tuple(
+            RoleSkill(r.skill_id, r.importance, r.required_level)
+            for r in data.requirements(role_id)
+        ),
+    )
     return Progress(
         role_id=role_id,
         course_status=raw,
         percent_complete=progress.percent_complete(plan, statuses, completed_hours),
+        trackable=_role_is_chosen(user, role_id),
+        estimated_skill_fit=skill_overlap(
+            MatchProfile(taxonomy.levels(estimated_levels)), fit_role
+        ),
         skills=skills,
         gap_closed=sum(1 for s in skills if s.closed),
         gap_total=len(skills),
@@ -687,6 +660,7 @@ def _require_planned(plan: Pathway, role_id: str, course_id: str) -> Course:
 
 
 def update_progress(user: CurrentUser, body: ProgressUpdate, scenario: ScenarioId) -> Progress:
+    _require_chosen(user, body.role_id)
     plan = _plan_for_progress(user, body.role_id, scenario)
     scope = user.scope
     course = repository.course_facts(user.id, body.role_id, scope).get(
@@ -718,6 +692,7 @@ def submit_evidence(
 ) -> Progress:
     """Attach a certificate link; marks the course done. A new link resets any review."""
     check = check or verification.probe  # looked up per call, not frozen at import
+    _require_chosen(user, body.role_id)
     plan = _plan_for_progress(user, body.role_id, scenario)
     scope = user.scope
     course = repository.course_facts(user.id, body.role_id, scope).get(

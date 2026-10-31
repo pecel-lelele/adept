@@ -34,7 +34,14 @@ Route = Literal["foundation", "applied", "advanced"]
 DeliveryFormat = Literal["self_paced", "live_online", "in_person", "hybrid"]
 AssignmentStatus = Literal["assigned", "accepted", "declined", "change_requested"]
 ChangeReason = Literal[
-    "already_have_skill", "pace", "language", "accessibility", "schedule", "upfront_cost", "other"
+    "already_have_skill",
+    "pace",
+    "language",
+    "accessibility",
+    "schedule",
+    "upfront_cost",
+    "target_role",
+    "other",
 ]
 
 
@@ -164,6 +171,8 @@ class ProgrammeAssignment(BaseModel):
     decided_at: datetime | None = None
     change_reason: ChangeReason | None = None
     note: str = Field(default="", max_length=500)
+    proposed_role_id: str | None = None
+    proposed_role_label: str | None = None
 
 
 class ProgrammeRecord(BaseModel):
@@ -187,16 +196,19 @@ class ProgrammeStatus(BaseModel):
 
 class ProgrammeList(BaseModel):
     programmes: list[ProgrammeStatus]
+    package_assignments: list[ProgrammeAssignment] = Field(default_factory=list)
 
 
 class MyProgrammes(BaseModel):
     assignments: list[ProgrammeAssignment]
+    role_labels: dict[str, str] = Field(default_factory=dict)
 
 
 class AssignmentDecision(BaseModel):
     decision: Literal["accept", "decline", "request_change"]
     reason: ChangeReason | None = None
     note: str = Field(default="", max_length=500)
+    proposed_role_id: str | None = Field(default=None, max_length=80)
     consent: bool = Field(
         default=False,
         description=(

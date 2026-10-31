@@ -53,3 +53,7 @@ class AssignedPackage(BaseModel):
 
 class AcceptPackage(BaseModel):
     token: str = Field(min_length=64, max_length=64)
+
+
+class PackageRoleProposal(AcceptPackage):
+    proposed_role_id: str = Field(min_length=1, max_length=80)

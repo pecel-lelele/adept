@@ -13,7 +13,7 @@ export const API_ERROR_CODES = [
   "trend_unavailable",
   "ceiling_exceeded", "mandatory", "reason_required", "role_required", "unknown_member",
   "stale_package", "stale_programme", "evidence_changed", "workspace_changed",
-  "funding_conflict", "disallowed_content", "unknown_course",
+  "funding_conflict", "disallowed_content", "unknown_course", "invalid_role_proposal",
 ] as const satisfies readonly ErrorKey[];
 
 const codes: ReadonlySet<string> = new Set(API_ERROR_CODES);

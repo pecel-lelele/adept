@@ -45,14 +45,15 @@ async function render(OpeningItem, props) {
   return renderToStaticMarkup(await resolveTree(await OpeningItem(props)));
 }
 
-test("opening cards are unchanged unless Malaysia focus is on", async () => {
+test("opening cards keep the employer and external action without feed clutter", async () => {
   const { OpeningItem } = jobsComponents();
   const html = await render(OpeningItem, { o: opening });
-  assert.match(html, /Synthetic Employer, Remote \(Worldwide\)/);
+  assert.match(html, /Synthetic Employer · Remote \(Worldwide\)/);
   assert.doesNotMatch(html, /a-chip|via Synthetic Board/);
+  assert.match(html, /href="https:\/\/example.test\/job"/);
 });
 
-test("Malaysia focus shows the raw location, a separate badge per state, and the source", async () => {
+test("Malaysia focus highlights work eligibility without dumping feed names", async () => {
   const { OpeningItem } = jobsComponents();
   const cases = [
     ["in_malaysia", "Kuala Lumpur", "up", "In Malaysia"],
@@ -62,10 +63,10 @@ test("Malaysia focus shows the raw location, a separate badge per state, and the
   for (const [state, location, tone, label] of cases) {
     const o = { ...opening, location, malaysia_relevance: state };
     const html = await render(OpeningItem, { o, malaysiaFocus: true });
-    assert.ok(html.includes(`Synthetic Employer, ${location}`), state);
+    assert.ok(html.includes(`Synthetic Employer · ${location}`), state);
     assert.ok(html.includes(label), state);
     assert.ok(html.includes(tone ? `class="a-chip" data-tone="${tone}"` : `class="a-chip">`), state);
-    assert.ok(html.includes("via Synthetic Board"), state);
+    assert.doesNotMatch(html, /via Synthetic Board/);
     assert.ok(html.includes('href="https://example.test/job"'), state);
   }
 });

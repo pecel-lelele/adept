@@ -27,7 +27,6 @@ def main() -> None:
                     "/app/radar",
                     "/app/matches",
                     "/app/matches/data-analyst",
-                    "/app/pathway/compare",
                     "/app/pathway?role=data-analyst",
                     "/app/progress?role=data-analyst",
                     "/app/courses",

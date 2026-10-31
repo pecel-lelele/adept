@@ -9,7 +9,7 @@ from fastapi import APIRouter, Form, UploadFile
 from pydantic import BaseModel, Field
 
 from app.contracts.common import RecommendationMeta, ScenarioId
-from app.contracts.profile import ExtractedSkill, SkillSuggestion
+from app.contracts.profile import CvExtractionResult, ExtractedSkill, SkillSuggestion
 from app.core.config import get_settings
 from app.core.errors import AppError
 from app.features.matching.repository import load_roles, role_label
@@ -17,7 +17,7 @@ from app.features.matching.scoring import MatchProfile, rank_roles
 from app.features.matching.trend_port import fetch_snapshot
 from app.features.profile.cv_parser import extract_pdf_bounded
 from app.features.profile.router import check_cv_type, read_capped
-from app.features.profile.service import extract_cv
+from app.features.profile.service import extract_cv, skill_catalogue
 
 router = APIRouter(prefix="/preview", tags=["preview"])
 
@@ -46,7 +46,17 @@ class GuestPreview(BaseModel):
     other_role_count: int
     meta: RecommendationMeta
     truncated: bool
-    requires_skill_confirmation: Literal[True] = True
+    requires_skill_confirmation: bool = True
+
+
+class ConfirmedPreviewSkill(BaseModel):
+    skill_id: str = Field(min_length=1, max_length=100)
+    level: int = Field(ge=1, le=5, strict=True)
+
+
+class ConfirmedPreview(BaseModel):
+    skills: list[ConfirmedPreviewSkill] = Field(min_length=1, max_length=200)
+    scenario: ScenarioId = "moderate"
 
 
 DIRECTION_BAND = 0.05  # same band as the trend pipeline
@@ -63,13 +73,14 @@ def build_preview(
     scenario: ScenarioId,
     *,
     include_suggestions: bool = True,
+    extract_only: bool = False,
 ) -> GuestPreview:
     extraction = extract_cv(
         filename, content, content_type, include_suggestions=include_suggestions
     )
-    if not extraction.skills:
+    if not extraction.skills or extract_only:
         return GuestPreview(
-            skills=[],
+            skills=extraction.skills,
             unmatched_terms=extraction.unmatched_terms,
             suggestions=extraction.suggestions,
             top_role=None,
@@ -77,9 +88,20 @@ def build_preview(
             meta=extraction.meta,
             truncated=extraction.truncated,
         )
+    return rank_preview(extraction.skills, scenario, extraction=extraction)
+
+
+def rank_preview(
+    skills: list[ExtractedSkill],
+    scenario: ScenarioId,
+    *,
+    extraction: CvExtractionResult | None = None,
+    requires_skill_confirmation: bool = True,
+) -> GuestPreview:
+    """Score confirmed levels with the same catalogue matching engine as the app."""
     snap = fetch_snapshot(scenario)
     ranked = rank_roles(
-        MatchProfile(skills={s.skill_id: float(s.level) for s in extraction.skills}),
+        MatchProfile(skills={s.skill_id: float(s.level) for s in skills}),
         load_roles(),
         snap.velocities,
         reference_velocities=snap.reference_velocities,
@@ -89,13 +111,13 @@ def build_preview(
         SkillTrend(
             skill_id=s.skill_id, label=s.label, direction=_direction(snap.velocities[s.skill_id])
         )
-        for s in extraction.skills
+        for s in skills
         if s.skill_id in snap.velocities
     ]
     return GuestPreview(
-        skills=extraction.skills,
-        unmatched_terms=extraction.unmatched_terms,
-        suggestions=extraction.suggestions,
+        skills=skills,
+        unmatched_terms=extraction.unmatched_terms if extraction else [],
+        suggestions=extraction.suggestions if extraction else [],
         skill_trends=trends,
         top_role=TopRole(
             role_id=top.role_id,
@@ -116,7 +138,8 @@ def build_preview(
             observed_from=snap.observed_from,
             observed_to=snap.observed_to,
         ),
-        truncated=extraction.truncated,
+        truncated=extraction.truncated if extraction else False,
+        requires_skill_confirmation=requires_skill_confirmation,
     )
 
 
@@ -126,6 +149,7 @@ async def preview_cv(
     synthetic_consent: Annotated[bool, Form()],
     scenario: ScenarioId = "moderate",
     include_suggestions: bool = True,
+    extract_only: bool = False,
 ) -> GuestPreview:
     if not synthetic_consent:
         raise AppError(
@@ -145,4 +169,22 @@ async def preview_cv(
         content_type,
         scenario,
         include_suggestions=include_suggestions,
+        extract_only=extract_only,
     )
+
+
+@router.post("/cv/confirm")
+def confirm_preview(data: ConfirmedPreview) -> GuestPreview:
+    """Anonymous, stateless self-assessment; no CV, profile writes or model calls."""
+    catalogue = {s.id: s.label for s in skill_catalogue().skills}
+    ids = [s.skill_id for s in data.skills]
+    if len(set(ids)) != len(ids) or any(skill_id not in catalogue for skill_id in ids):
+        raise AppError("Choose distinct catalogue skills.", status_code=422, code="unknown_skill")
+    # Confidence here denotes confirmed catalogue membership, not inferred proficiency.
+    skills = [
+        ExtractedSkill(
+            skill_id=s.skill_id, label=catalogue[s.skill_id], level=s.level, confidence=1
+        )
+        for s in data.skills
+    ]
+    return rank_preview(skills, data.scenario, requires_skill_confirmation=False)

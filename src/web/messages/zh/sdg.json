@@ -14,7 +14,6 @@
   "enabling": "促进",
   "strengthHint": "直接：这项工作本身推进该具体目标。促进：它建立该目标所需的能力。",
   "contributors": "{count} 人",
-  "draft": "草稿，待审核",
   "forRoles": "职位：{roles}",
   "via": {
     "role": "职位",
@@ -27,9 +26,9 @@
   },
   "evidence": "依据",
   "noRoleYet": "你尚未选择目标职位，因此暂无可显示的贡献。",
-  "compareRoles": "比较职位并选择一个",
   "whyLinked": "为何关联这些目标",
   "tooFewMembers": "至少有 {count} 位不同成员可安全纳入时，才会显示地区汇总结果。",
   "tooFewMembersUnknown": "在有足够多的不同成员可安全纳入之前，地区汇总结果不会显示。",
-  "freeLearningReason": "此计划中的每门课程均可免费学习（证书可能另收费）。"
+  "freeLearningReason": "此计划中的每门课程均可免费学习（证书可能另收费）。",
+  "chooseRole": "查看并选择职位"
 }

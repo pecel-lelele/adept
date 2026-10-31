@@ -49,7 +49,8 @@
     "funding_conflict": "无法完成资助请求，请联系管理员检查当前状态。",
     "disallowed_content": "请移除输入中不受支持的内容后继续。",
     "unknown_course": "请从当前计划或目录选择课程。",
-    "insufficient_cohort": "已完成档案并同意分享技能的成员太少。请选择更大的知情同意群组，或等待更多成员完成档案。"
+    "insufficient_cohort": "已完成档案并同意分享技能的成员太少。请选择更大的知情同意群组，或等待更多成员完成档案。",
+    "invalid_role_proposal": "从目录中选择岗位"
   },
   "nav": {
     "home": "首页",
@@ -84,7 +85,7 @@
     "myWork": "我的组织",
     "programmes": "项目",
     "jobs": "职位",
-    "compare": "比较岗位与情景"
+    "chooseRoleFirst": "请先选择目标岗位。"
   },
   "shell": {
     "disclaimer": "预测是基于公开数据的估计。决定权在你：Adept 从不做招聘决定。",
@@ -236,7 +237,7 @@
     "startEyebrow": "现在就试，无需账户",
     "startTitle": "上传简历。",
     "startTitleMuted": "查看你的初步结果。",
-    "startBody": "无需账户。我们会显示找到的技能、它们的趋势，以及最适合你的未来职位。其余结果用免费账户解锁。",
+    "startBody": "上传简历，确认每项技能的等级，再查看技能前景及最匹配的未来职位。注册免费账户即可查看更多结果。",
     "howEyebrow": "运作方式",
     "howTitleA": "从你的简历",
     "howTitleB": "到本周就能开始的计划。",
@@ -374,7 +375,23 @@
     "sampleNote": "请使用示例简历，不要上传真实的个人信息。",
     "tCtaJoin": "用代码加入你的团队",
     "tCtaOpen": "打开团队工作区",
-    "tCtaCreate": "创建团队账户"
+    "tCtaCreate": "创建团队账户",
+    "rateTitle": "评估您的技能水平",
+    "rateHelp": "请为每项技能选择等级。1 = 初学者，5 = 专家。没有预选等级。",
+    "ratedCount": "已评估 {rated}/{total} 项",
+    "rateLevel": "等级 {level}",
+    "rateRequired": "请先评估所有技能再保存。",
+    "saveOutlook": "保存并查看我的技能前景",
+    "savingOutlook": "正在计算您的技能前景…",
+    "outlookTitle": "您的技能前景",
+    "editLevels": "修改技能等级",
+    "outlookError": "暂时无法计算技能前景。您的评分已保留，请重试。",
+    "strengths": "您的技能优势",
+    "gaps": "待提升的技能",
+    "strengthsHelp": "您的自我评估：等级 3–5。",
+    "gapsHelp": "您的自我评估：等级 1–2。具体职位的要求可能不同。",
+    "noStrengths": "尚无等级 3–5 的技能。学习计划可以帮助您提升。",
+    "noGaps": "没有等级 1–2 的技能。完整结果仍可能显示与具体职位要求的差距。"
   },
   "intake": {
     "title": "建立你的资料",
@@ -427,7 +444,11 @@
       "semantic": "相近含义"
     },
     "saving": "正在保存…",
-    "uploadTypeError": "请使用 5 MB 以内的 PDF、Word (.docx) 或文本文件。"
+    "uploadTypeError": "请使用 5 MB 以内的 PDF、Word (.docx) 或文本文件。",
+    "cvLoadedHint": "您的简历技能和已确认等级已准备好。您可以在下方修改或添加技能。",
+    "cvReady": "简历已处理",
+    "cvFileNote": "技能已从此文件导入。原始文件内容不会被保存。",
+    "replaceCv": "更换简历"
   },
   "home": {
     "hello": "你好，{name}",
@@ -459,7 +480,6 @@
     "replan": "新的趋势数据改变了你的计划。",
     "review": "查看",
     "gaps": "{count, plural, =0 {无差距} other {# 个差距}}",
-    "compare": "比较",
     "latest": "最新快照",
     "progressErrorTitle": "暂时无法加载你的进度",
     "progressErrorBody": "你的计划已保存。打开它再试一次。",
@@ -496,7 +516,8 @@
     "saved": "已保存",
     "gapsLow": "已具备",
     "gapsHigh": "最缺乏",
-    "tooFewMembers": "成员人数过少，无法显示"
+    "tooFewMembers": "成员人数过少，无法显示",
+    "assignRole": "分配目标岗位"
   },
   "skills": {
     "title": "我的技能",
@@ -654,8 +675,6 @@
     "kDirectNote": "工作本身服务于该目标",
     "kEnabling": "促成关联",
     "kEnablingNote": "该技能帮助他人实现目标",
-    "kReviewed": "经人工审核",
-    "kReviewedNote": "经过核查，而非仅由系统生成",
     "goalsHint": "彩色目标由你的路径支持",
     "backToRoles": "所有职位",
     "sdgWeighted": "联合国目标权重 {weight}%",

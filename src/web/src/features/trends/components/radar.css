@@ -1,0 +1,78 @@
+/* Radar-only surfaces use the shared theme tokens in both colour modes. */
+.a-shell :is(.radar-role-directions, .radar-skills-card) { background: var(--a-surface); color: var(--a-ink); }
+.a-shell .radar-skills-card .a-card-head h2 { color: var(--a-ink); }
+.a-shell .radar-role-meta .a-estimate-label { color: var(--a-muted); }
+.a-shell .radar-role-directions { display: grid; gap: 24px; }
+.a-shell .radar-role-directions > h2 { margin: 0; }
+.a-shell .radar-role-meta { display: grid; gap: 12px; }
+.a-shell .radar-role-meta .a-notice { display: block; margin: 0 0 12px; padding: 14px 16px; border: 1px solid var(--a-line); border-radius: 12px; background: var(--a-sunken); color: var(--a-ink-2); }
+.a-shell .radar-role-meta .a-notice p { margin: 0; }
+.a-shell .radar-role-meta .a-notice p + p { margin-top: 6px; }
+.a-shell .radar-role-meta .a-metabar-body { background: var(--a-sunken); border-color: var(--a-line); }
+.a-shell .radar-source-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.a-shell .radar-source-chips > * { max-width: 100%; padding: 5px 9px; border: 1px solid var(--a-line); border-radius: 7px; background: var(--a-sunken); color: var(--a-muted); font-size: 11px; overflow-wrap: anywhere; }
+.a-shell .radar-source-chips a:hover { border-color: var(--a-up); color: var(--a-up); }
+.a-shell .a-radar-view { width: 100%; max-width: 1200px; margin-inline: auto; }
+.a-shell .radar-role-columns { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; align-items: stretch; }
+.a-shell .radar-role-group { min-width: 0; display: flex; flex-direction: column; }
+.a-shell .radar-role-group h3 { display: flex; align-items: center; gap: 6px; min-height: 36px; margin: 0 0 10px; font-size: 13px; }
+.a-shell .radar-role-group h3 > svg { flex: none; }
+.a-shell .radar-role-group[data-direction="rising"] h3 > svg { color: var(--a-up); }
+.a-shell .radar-role-group[data-direction="declining"] h3 > svg { color: var(--a-down); }
+.a-shell .radar-count { display: inline-flex; justify-content: center; min-width: 22px; padding: 2px 6px; border: 1px solid var(--a-line); border-radius: 6px; background: var(--a-sunken); color: var(--a-muted); font-size: 10px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.a-shell .radar-role-list { list-style: none; padding: 0; margin: 0; }
+.a-shell .radar-role-row { padding: 9px 0 7px; border-top: 1px solid var(--a-line); }
+.a-shell .radar-role-row:hover { background: var(--a-sunken); }
+.a-shell .radar-role-line { display: flex; align-items: center; gap: 6px; min-height: 22px; }
+.a-shell .radar-role-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--a-ink); font-size: 12px; font-weight: 500; text-decoration: none; }
+.a-shell .radar-role-name:hover { color: var(--a-up); text-decoration: underline; text-underline-offset: 3px; }
+.a-shell .radar-role-percent { color: var(--a-muted); font-size: 10px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.a-shell .radar-role-line .a-trend { flex: none; font-size: 9px; padding: 2px 5px; }
+.a-shell .radar-coverage-track { display: block; width: 100%; height: 2px; margin-top: 4px; border-radius: 4px; overflow: hidden; background: var(--a-line); }
+.a-shell .radar-coverage-track i { display: block; height: 100%; border-radius: inherit; background: var(--a-up); }
+.a-shell [data-direction="declining"] .radar-coverage-track i { background: var(--a-down); }
+.a-shell [data-direction="insufficient"] .radar-coverage-track i { background: var(--a-flat); }
+.a-shell .radar-role-reveal { position: relative; padding-bottom: 26px; }
+.a-shell .radar-role-preview { position: absolute; top: 0; left: 0; right: 0; height: 26px; overflow: hidden; opacity: .45; mask-image: linear-gradient(#000, transparent); pointer-events: none; user-select: none; }
+.a-shell .radar-role-extra { display: grid; grid-template-rows: 0fr; visibility: hidden; transition: grid-template-rows 260ms ease, visibility 260ms; }
+.a-shell .radar-role-extra > div { min-height: 0; overflow: hidden; }
+.a-shell .radar-role-group[data-expanded="true"] .radar-role-extra { grid-template-rows: 1fr; visibility: visible; }
+.a-shell .radar-evidence-note { margin: 10px 0 14px; font-size: 11px; line-height: 1.5; overflow-wrap: anywhere; }
+.a-shell .radar-role-footer { margin-top: auto; padding-top: 12px; }
+.a-shell .radar-role-toggle { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 6px 12px; border: 1px solid var(--a-line); border-radius: 999px; color: var(--a-ink-2); background: var(--a-sunken); font: inherit; font-size: 11px; cursor: pointer; }
+.a-shell .radar-role-toggle:hover { border-color: var(--a-up); background: var(--a-soft); }
+.a-shell .radar-role-toggle svg { transition: transform 260ms ease; }
+.a-shell .radar-role-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+.a-shell .radar-pagination { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; padding-top: 14px; border-top: 1px solid var(--a-line); font-size: 12px; color: var(--a-muted); }
+.a-shell .radar-pagination nav { display: flex; align-items: center; gap: 12px; }
+.a-shell .radar-pagination button { display: inline-grid; place-items: center; flex: none; width: 34px; height: 34px; border: 1px solid var(--a-line); border-radius: 50%; background: var(--a-surface); color: var(--a-ink); cursor: pointer; }
+.a-shell .radar-pagination button:hover:not(:disabled) { border-color: var(--a-up); background: var(--a-soft); }
+.a-shell .radar-pagination button:disabled { opacity: .35; cursor: not-allowed; }
+.a-shell .radar-skills .a-explorer-tools { scroll-margin-top: 90px; }
+@media (max-width: 999px) {
+  .a-shell .radar-role-columns { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+  .a-shell .radar-role-footer { margin-top: 0; }
+}
+@media (max-width: 640px) {
+  .a-shell .radar-role-columns { grid-template-columns: minmax(0, 1fr); }
+  .a-shell .radar-pagination { justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .a-shell .radar-role-extra, .a-shell .radar-role-toggle svg { transition: none; }
+}
+.a-shell .radar-skills .a-explorer-tools { gap: 10px; padding-bottom: 4px; }
+.a-shell .radar-skills .a-search { flex: 1 1 180px; min-width: 140px; background: var(--a-surface); border-color: var(--a-line); }
+.a-shell .radar-skills .a-filterseg { background: var(--a-sunken); }
+.a-shell .radar-skills .a-filterseg button { padding: 0 9px; color: var(--a-muted); }
+.a-shell .radar-skills .a-filterseg button span { color: var(--a-muted); font-variant-numeric: tabular-nums; }
+.a-shell .radar-skills .a-filterseg button[aria-checked="true"] { background: var(--a-surface); color: var(--a-ink); font-weight: 600; box-shadow: var(--a-shadow); }
+.a-shell .radar-skills .a-rows-head { color: var(--a-muted); }
+.a-shell .radar-skills .a-row > summary:hover, .a-shell .radar-skills .a-row[open] > summary { background: var(--a-sunken); }
+.a-shell .radar-skills .a-signal-track { background: var(--a-sunken); }
+.a-shell .radar-skills .a-signal-track::before { background: var(--a-muted); }
+@media (max-width: 760px) {
+  .a-shell .radar-skills .a-explorer-tools > * { flex: 1 1 100%; }
+  .a-shell .radar-skills .a-filterseg { flex-wrap: nowrap; }
+  .a-shell .radar-skills .a-filterseg button { min-width: 0; padding: 0 5px; gap: 4px; font-size: 11.5px; }
+  .a-shell .radar-skills .a-row-title { white-space: normal; }
+}

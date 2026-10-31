@@ -1,8 +1,8 @@
 {
   "title": "Tentang Adept",
   "llmTitle": "Pendedahan AI",
-  "llmNone": "Adi kini menggunakan panduan terbina dalam. Skor, pelan dan pautan SDG menggunakan peraturan yang deterministik dan boleh dijelaskan.",
-  "llmSummary": "MiniLM mengekod penyelidikan awam untuk isyarat trend, sehingga pembenaman Gemini lulus ujian kesetaraan dan mengambil alih. Adi boleh menggunakan GLM-5.3 untuk memilih blok jawapan yang disahkan; ia tidak menulis skor atau pelan. Konfigurasi Adi yang aktif dipaparkan di bawah.",
+  "llmNone": "Adi menggunakan panduan terbina dalam. Skor kerjaya dan pelan pembelajaran datang daripada peraturan yang didokumenkan, bukan prosa yang dijana.",
+  "llmSummary": "Padanan penyelidikan berlaku di latar belakang; membuka halaman tidak menghantar profil anda kepada model trend. Adi boleh menggunakan model bahasa untuk memilih jawapan yang telah disemak, tetapi tidak boleh mereka peranan, kursus atau skor.",
   "registryTitle": "Daftar model dan data",
   "registryPurpose": {
     "minilm": "Melalui RunPod: mengaitkan ayat penyelidikan awam dengan kemahiran katalog semasa pengingesan trend latar belakang. Halaman menggunakan petikan tersimpan.",
@@ -25,7 +25,7 @@
   "llmProvider": "Penyedia: {provider} · model: {model}",
   "llmCalls": "{calls} panggilan model direkodkan; {rejected} ID rekaan ditolak.",
   "methodTitle": "Metodologi",
-  "methodBody": "Petikan data trend menyuap prospek peranan di bawah senario gangguan AI sederhana dan pantas. Padanan menggabungkan pertindihan kemahiran, prospek trend dan minat. Laluan menutup jurang kemahiran anda dengan kursus daripada katalog kami sahaja, disusun mengikut prasyarat dan keutamaan berwajaran trend, dan dijadualkan mengikut jam seminggu anda. Setiap peranan dan kemahiran dipautkan kepada sasaran SDG rasmi beserta sebab.",
+  "methodBody": "Adept menggabungkan katalog kemahiran, isyarat penyelidikan bertarikh dan rekod kursus yang diterbitkan untuk mencadangkan langkah seterusnya. Lihat data, AI yang digunakan dan batas bukti tersebut.",
   "rulesTitle": "Pagar keselamatan",
   "sourcesTitle": "Sumber data",
   "sourceKind": {
@@ -41,6 +41,6 @@
   "fairnessFailed": "Satu semakan keadilan gagal",
   "protectedTitle": "Tidak pernah diterima sebagai input",
   "limitsTitle": "Had",
-  "limitsBody": "Semua ramalan ialah anggaran daripada data awam. CV anda dibaca dalam memori dan tidak pernah disimpan. Pautan SDG ialah draf sehingga disemak. Tahap kursus ialah anggaran kami. Adept menyokong keputusan anda dan tidak pernah membuat keputusan pengambilan pekerja.",
+  "limitsBody": "Perhatian penyelidikan bukan permintaan pekerjaan, dan pelan yang dicadangkan bukan hasil yang dijamin. Tahap kursus dan unjuran masa depan ialah anggaran. Anda memilih hala tuju; Adept tidak membuat keputusan mengambil, menolak atau menerima sesiapa.",
   "lastSynced": "kali terakhir disegerak {date} UTC"
 }

@@ -1,0 +1,29 @@
+.a-shell .labour-context { display: grid; gap: 18px; color: var(--a-ink); background: var(--a-surface); }
+.a-shell .labour-heading { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px; }
+.a-shell .labour-heading > div:first-child { flex: 1 1 340px; }
+.a-shell .labour-heading h2 { margin: 0 0 7px; color: var(--a-ink); font-size: 16px; }
+.a-shell .labour-heading p { margin: 0; max-width: 650px; color: var(--a-muted); font-size: 12px; line-height: 1.6; }
+.a-shell .labour-month { display: grid; gap: 5px; }
+.a-shell .labour-month label { display: flex; align-items: center; gap: 8px; color: var(--a-muted); font-size: 11px; }
+.a-shell .labour-month select { min-height: 36px; padding: 6px 28px 6px 10px; border: 1px solid var(--a-line); border-radius: 8px; font: inherit; color: var(--a-ink); background-color: var(--a-sunken); }
+.a-shell .labour-month select:disabled { opacity: .75; cursor: default; }
+.a-shell .labour-month small { color: var(--a-muted); font-size: 10px; }
+.a-shell .labour-snapshot { display: inline-flex; justify-self: start; align-items: center; flex-wrap: wrap; gap: 6px; margin: 0; padding: 5px 10px; border: 1px solid var(--a-chip-warn-border); border-radius: 999px; background: var(--a-kpi-warn-bg); color: var(--a-chip-warn-ink); font-size: 11px; line-height: 1.5; }
+.a-shell .labour-snapshot svg { flex: none; }
+.a-shell .labour-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 0; }
+.a-shell .labour-stat { display: grid; gap: 12px; min-width: 0; padding: 18px; border: 1px solid var(--a-line); border-radius: 12px; background: var(--a-sunken); }
+.a-shell .labour-stat dt { color: var(--a-muted); font-size: 11px; line-height: 1.5; }
+.a-shell .labour-stat dd { margin: 0; color: var(--a-ink); font-size: clamp(28px, 3vw, 38px); font-weight: 600; letter-spacing: -1px; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.a-shell .labour-stat dd span { margin-left: 3px; font-size: 18px; font-weight: 400; color: var(--a-muted); }
+.a-shell .labour-stat-track { display: block; height: 3px; border-radius: 3px; background: var(--a-line); overflow: hidden; }
+.a-shell .labour-stat-track i { display: block; height: 100%; border-radius: inherit; background: var(--a-up); }
+.a-shell .labour-footer { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; padding-top: 14px; border-top: 1px solid var(--a-line); color: var(--a-muted); font-size: 11px; line-height: 1.6; }
+.a-shell .labour-footer > span { overflow-wrap: anywhere; }
+.a-shell .labour-sources { flex: 1 1 auto; }
+.a-shell .labour-sources summary { width: fit-content; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.a-shell .labour-sources > div { margin-top: 10px; }
+.a-shell .labour-sources ul { margin: 0; padding-left: 18px; }
+.a-shell .labour-sources li { padding: 4px 0; overflow-wrap: anywhere; }
+.a-shell .labour-sources li span { display: block; }
+.a-shell .labour-sources a { color: var(--a-ink-2); text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 640px) { .a-shell .labour-stats { grid-template-columns: minmax(0, 1fr); } }

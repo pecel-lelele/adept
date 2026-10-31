@@ -2,7 +2,7 @@
 
 import { Search } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import type { ScenarioId, Schemas } from "@/lib/api";
 
@@ -30,6 +30,7 @@ export function SignalExplorer({
   const [search, setSearch] = useState("");
   const [direction, setDirection] = useState<Dir>("all");
   const [requestedPage, setRequestedPage] = useState(1);
+  const controls = useRef<HTMLDivElement>(null);
   const key = scenario === "fast" ? "direction_fast" : "direction_moderate";
   const velocity = scenario === "fast" ? "velocity_fast" : "velocity_moderate";
   const top = Math.max(0.01, ...items.map((i) => Math.abs(i[velocity])));
@@ -39,10 +40,17 @@ export function SignalExplorer({
     .filter((i) => direction === "all" || i[key] === direction)
     .sort((a, b) => b[velocity] - a[velocity]);
   const { items: pageRows, page, pages } = pageItems(visible, requestedPage);
+  const changePage = (next: number) => {
+    setRequestedPage(next);
+    controls.current?.scrollIntoView({
+      block: "start",
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+    });
+  };
 
   return (
-    <div className="a-explorer">
-      <div className="a-explorer-tools">
+    <div className="a-explorer radar-skills">
+      <div className="a-explorer-tools" ref={controls}>
         <label className="a-search">
           <Search size={15} aria-hidden />
           <input aria-label={t("search")} placeholder={t("search")} value={search} onChange={(e) => { setSearch(e.target.value); setRequestedPage(1); }} />
@@ -67,7 +75,7 @@ export function SignalExplorer({
           const v = i[velocity];
           const dir = i[key];
           return (
-            <details className="a-row" key={i.skill_id} role="row">
+            <details className="a-row" key={`${page}:${direction}:${search}:${i.skill_id}`} role="row">
               <summary>
                 <span role="cell" className="a-row-title">
                   {i.skill_label}
@@ -98,10 +106,10 @@ export function SignalExplorer({
       {pages > 1 ? (
         <nav className="a-list-pager" aria-label={tp("allSkills")}>
           <button type="button" className="a-btn is-ghost is-small" disabled={page === 1}
-            onClick={() => setRequestedPage(page - 1)}>{tp("previousPage")}</button>
+            onClick={() => changePage(page - 1)}>{tp("previousPage")}</button>
           <span role="status" aria-live="polite">{tp("pageOf", { page, pages })}</span>
           <button type="button" className="a-btn is-ghost is-small" disabled={page === pages}
-            onClick={() => setRequestedPage(page + 1)}>{tp("nextPage")}</button>
+            onClick={() => changePage(page + 1)}>{tp("nextPage")}</button>
         </nav>
       ) : null}
     </div>

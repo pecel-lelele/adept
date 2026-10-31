@@ -4,6 +4,7 @@ import test from "node:test";
 
 import * as navigation from "../src/web/src/config/navigation.ts";
 import * as draft from "../src/web/src/features/profile/intake-draft.ts";
+import * as cvHandoff from "../src/web/src/features/profile/cv-handoff.ts";
 import * as skillSearch from "../src/web/src/features/profile/skill-search.ts";
 import * as i18n from "../src/web/src/lib/i18n/config.ts";
 import { loadComponent, React, renderToStaticMarkup, resolveTree, translations } from "./harness/web-components.ts";
@@ -20,6 +21,8 @@ function fixtures(locale: string) {
   const { EstimateLabel } = loadComponent("src/components/EstimateLabel.tsx", { "next-intl": intl });
   const ErrorState = () => React.createElement("section", { "data-error": true }, intl.useTranslations("ui.error")("title"));
   return {
+    "./radar.css": {},
+    "./MalaysiaContextCard": { MalaysiaContextCard: () => null },
     "next-intl": intl,
     "next-intl/server": { getTranslations: async (ns: string) => intl.useTranslations(ns) },
     "next/link": link,
@@ -30,30 +33,30 @@ function fixtures(locale: string) {
     "@/config/navigation": navigation,
     "@/components/viz": { scoreColour: () => "inherit" },
     "@/features/jobs": { fetchJobsSummary: async () => failure },
+    "@/features/pathway/api": { fetchPlanStatus: async () => failure },
     "@/features/profile/api": { fetchMyProfile: async () => failure },
     "@/features/trends/api": { fetchRadar: async () => { throw new Error("No separate radar read"); } },
     "@/features/core/components/AccountDataCard": { AccountDataCard: nothing },
     "@/lib/auth/workspaces": { getWorkspaceResult: async () => failure },
     "@/features/scenarios/components/RoleOutlookPanel": { RoleOutlookPanel: nothing },
-    "./labels": { componentLabels: async () => ({}) },
     "./ReplayChanges": { ReplayChanges: nothing }, "./SdgWeightSlider": { SdgWeightSlider: nothing },
-    "./MatchImprovements": { MatchImprovements: nothing }, "./ScenarioDelta": { ScenarioDelta: nothing },
+    "./MatchImprovements": { MatchImprovements: nothing },
     "./MatchSdgTargets": { MatchSdgTargets: nothing }, "./ProfileNote": { ProfileNote: nothing },
     "./CriticalOccupationBadge": { CriticalOccupationBadge: nothing }, "./PathwaySteps": { PathwaySteps: nothing },
     "./ActionForm": { ActionForm: nothing }, "../actions": {},
+    "@/features/pathway/actions": { savePlanAction: nothing },
+    "@/features/pathway/components/ActionForm": { ActionForm: nothing },
     "./SignalExplorer": { SignalExplorer: nothing }, "./RoleDirectionsCard": { RoleDirectionsCard: nothing },
-    "./TrendRangeCard": { TrendRangeCard: nothing },
-    "../range": loadComponent("src/features/trends/range.ts"),
     "@/components/DataAsOf": { DataAsOf: nothing }, "@/components/SnapshotPicker": { SnapshotPicker: nothing },
     "@/lib/auth/account": { getAccount: async () => null },
   };
 }
 
-test("failed journey screens keep their translated heading, stage and scenario before the error", async () => {
+test("failed journey screens keep their translated heading before the error", async () => {
   for (const locale of ["en", "ms", "zh"]) {
     const common = fixtures(locale);
     const cases = [
-      ["trends/components/RadarView", "RadarView", 2, { fetchRadar: async () => failure, fetchCompare: async () => failure }],
+      ["trends/components/RadarView", "RadarView", 2, { fetchRadar: async () => failure }],
       ["profile/components/ProfileView", "ProfileView", 1, { fetchMyProfile: async () => failure, fetchSkillCatalogue: async () => failure }],
       ["pathway/components/PathwayView", "PathwayView", 4, { fetchPathway: async () => failure, fetchPlanStatus: async () => failure }],
       ["matching/components/MatchDetailView", "MatchDetailView", 3, { fetchMatch: async () => failure, fetchMatches: async () => failure }],
@@ -62,8 +65,6 @@ test("failed journey screens keep their translated heading, stage and scenario b
       const component = loadComponent(`src/features/${path}.tsx`, { ...common, "../api": api, "@/features/trends/api": { fetchRadar: async () => failure } })[name];
       const html = renderToStaticMarkup(await resolveTree(await component({ scenario: "fast", roleId: "synthetic", snapshotDate: "2026-10-13" })));
       assert.ok(html.indexOf("<h1") < html.indexOf("data-error"));
-      assert.ok(html.includes(translations(locale).useTranslations("ui.page")("stepOf", { step: String(step), total: "6" })));
-      assert.ok(html.includes(translations(locale).useTranslations("common.scenario")("fast")));
       if (path === "trends/components/RadarView") {
         assert.match(html, /href="\/app\/radar\?scenario=fast"/);
         assert.ok(html.includes(translations(locale).useTranslations("common.freshness")("backToLatest")));
@@ -118,22 +119,6 @@ test("snapshot selection replaces history and preserves scenario and ranking fil
   assert.equal(targets[1], "/app/matches?scenario=fast&sdg=0.25");
 });
 
-test("comparison's best-match shortcut uses matching order and the selected snapshot without saving", async () => {
-  for (const locale of ["en", "ms", "zh"]) {
-    const calls: unknown[][] = [];
-    const { CompareRolesView } = loadComponent("src/features/pathway/components/CompareRolesView.tsx", {
-      ...fixtures(locale),
-      "../api": { fetchCompare: async () => failure },
-      "@/features/matching/api": { fetchMatches: async (...args: unknown[]) => {
-        calls.push(args); return { ok: true, data: { matches: [{ role_id: "synthetic/best" }] } };
-      } },
-    });
-    const html = renderToStaticMarkup(await resolveTree(await CompareRolesView({ scenario: "fast", snapshotDate: "2026-10-13" })));
-    assert.ok(html.includes(translations(locale).useTranslations("pathway")("compare.useBestMatch")));
-    assert.match(html, /role=synthetic%2Fbest&amp;scenario=fast&amp;snapshot_date=2026-10-13/);
-    assert.deepEqual(calls, [["fast", "2026-10-13"]]);
-  }
-});
 
 test("route and global recovery render translated safe text, retry and a home link", async () => {
   for (const locale of i18n.locales) {
@@ -228,6 +213,7 @@ test("intake restores on reload, retains failed saves and clears before successf
     "@/components/SourceBadge": {}, "@/features/core/components/CvPreview": { CV_SKILLS_KEY: "preview" },
     "../actions": { saveIntakeAction: async (input) => { assert.equal(input.hours_per_week, 12); assert.equal(input.budget_myr, 250); assert.equal(input.skills[0].level, 4); return saveResult; } },
     "../skill-search": skillSearch, "../intake-draft": draft,
+    "../cv-handoff": cvHandoff,
   }, { window: { sessionStorage: storage, localStorage: { removeItem: nothing } } });
   const props = { userId: "synthetic-account", catalogue: [{ id: "known", label: "Synthetic skill" }], interests: ["data"], initial: null };
   const render = () => {

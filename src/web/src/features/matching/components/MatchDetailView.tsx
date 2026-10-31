@@ -1,18 +1,18 @@
-import { ArrowRight, Circle, CircleCheck, CircleDashed, Leaf } from "lucide-react";
+import { Circle, CircleCheck, CircleDashed, Leaf } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
-import { EstimateLabel, MetaBar, PageHeader, ScoreBreakdown } from "@/components";
-import { journeyStepCount } from "@/config/navigation";
+import { MetaBar, PageHeader } from "@/components";
 import { ErrorState } from "@/components/ErrorState";
-import { HistoricalSnapshotBanner } from "@/components/HistoricalSnapshotBanner";
 import { scoreColour } from "@/components/viz";
 import { RoleOpeningsCard } from "@/features/jobs";
 import { RoleOutlookPanel } from "@/features/scenarios/components/RoleOutlookPanel";
 import type { ScenarioId } from "@/lib/api";
+import { savePlanAction } from "@/features/pathway/actions";
+import { fetchPlanStatus } from "@/features/pathway/api";
+import { ActionForm } from "@/features/pathway/components/ActionForm";
 
-import { fetchMatch, fetchMatches } from "../api";
-import { componentLabels } from "./labels";
+import { fetchMatch } from "../api";
 import { MatchImprovements } from "./MatchImprovements";
 import { MatchSdgTargets } from "./MatchSdgTargets";
 import { ProfileNote } from "./ProfileNote";
@@ -34,28 +34,20 @@ export async function MatchDetailView({
   sdgWeight?: number;
 }) {
   const t = await getTranslations("matching");
-  const th = await getTranslations("ui.home");
   const tp = await getTranslations("ui.page");
   const tsc = await getTranslations("scenarios");
-  const [result, list] = await Promise.all([
+  const [result, status] = await Promise.all([
     fetchMatch(roleId, scenario, snapshotDate, sdgWeight),
-    fetchMatches(scenario, snapshotDate, sdgWeight),
+    fetchPlanStatus(),
   ]);
+  const saved = status.ok ? status.data.saved : null;
   if (!result.ok) return (
     <div className="a-view">
-      <PageHeader eyebrow={tp("stepOf", { step: 3, total: journeyStepCount() })} title={t("title")} description={t("description")}>
-        <EstimateLabel scenario={scenario} />
-        {snapshotDate ? <span className="a-chip">{tp("asOf", { date: snapshotDate })}</span> : null}
-      </PageHeader>
+      <PageHeader title={t("title")} description={t("description")} />
       <ErrorState failure={result} />
     </div>
   );
   const m = result.data;
-  // Compare this role with the next-best matches from the same ranking (three roles in total).
-  const compareRoles = [
-    m.role_id,
-    ...(list.ok ? list.data.matches.map((x) => x.role_id).filter((id) => id !== m.role_id) : []),
-  ].slice(0, 3);
   const pct = (m.score * 100).toFixed(1);
   const back =
     `/app/matches?scenario=${scenario}` +
@@ -65,16 +57,18 @@ export async function MatchDetailView({
   return (
     <div className="a-view">
       <PageHeader
-        eyebrow={tp("stepOf", { step: 3, total: journeyStepCount() })}
         title={m.label}
         actions={
           <>
-            <Link className="a-btn is-ghost" href={`/app/pathway/compare?scenario=${scenario}&roles=${compareRoles.map(encodeURIComponent).join(",")}`}>
-              {th("compare")}
-            </Link>
-            <Link className="a-btn" href={`/app/pathway?role=${encodeURIComponent(m.role_id)}&scenario=${scenario}`}>
-              {t(snapshotDate ? "viewLatestPathway" : "viewPathway")} <ArrowRight size={16} aria-hidden />
-            </Link>
+            {saved?.role_id === m.role_id ? (
+              <Link className="a-btn" href={`/app/pathway?role=${encodeURIComponent(m.role_id)}&scenario=${saved.scenario}`}>
+                {t("currentTarget")} · {t("openPlan")}
+              </Link>
+            ) : status.ok ? (
+              <ActionForm action={savePlanAction} fields={{ role_id: m.role_id, scenario }} label={t("chooseRole")} />
+            ) : (
+              <p className="a-muted a-small" role="status">{t("planStatusUnavailable")}</p>
+            )}
           </>
         }
       >
@@ -82,7 +76,6 @@ export async function MatchDetailView({
           <Link className="a-chip" href={back}>
             ← {tp("backToRoles")}
           </Link>
-          {snapshotDate ? <span className="a-chip">{tp("asOf", { date: snapshotDate })}</span> : null}
           {sdgWeight > 0 ? (
             <span className="a-chip" data-tone="up">
               <Leaf size={12} aria-hidden /> {tp("sdgWeighted", { weight: Math.round(sdgWeight * 100) })}
@@ -91,22 +84,17 @@ export async function MatchDetailView({
           <MetaBar meta={m.meta} />
         </div>
       </PageHeader>
-      <HistoricalSnapshotBanner date={snapshotDate} latestHref={`/app/matches/${encodeURIComponent(roleId)}?scenario=${scenario}${sdgWeight > 0 ? `&sdg=${sdgWeight.toFixed(2)}` : ""}`} />
-
       <ProfileNote note={m.profile_note} />
       <CriticalOccupationBadge badge={m.critical_occupation} />
       <div className="a-split">
-        <section className="a-card" aria-labelledby="h-breakdown">
+        <section className="a-card" aria-labelledby="h-raise">
           <div className="a-card-head">
-            <h2 id="h-breakdown">{t("breakdown")}</h2>
-            <span className="a-fit is-inline" style={{ color: scoreColour(m.score) }}>
+            <h2 id="h-raise">{t("improvementsTitle")}</h2>
+            <span className="a-fit is-inline" style={{ color: scoreColour(m.score) }} role="img" aria-label={`${pct}% ${tp("fit")}`}>
               <strong>{pct}%</strong>
-              <small>{tp("fit")}</small>
-              <EstimateLabel scenario={scenario} />
             </span>
           </div>
-          <ScoreBreakdown score={m.score} components={m.components} labels={await componentLabels()} />
-          <MatchImprovements items={m.improvements ?? []} />
+          <MatchImprovements items={m.improvements ?? []} hideTitle fallback={t("raiseFallback")} />
         </section>
 
         <aside className="a-aside">

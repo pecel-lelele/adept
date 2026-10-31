@@ -134,7 +134,8 @@
       "accessibility": "Keperluan kebolehcapaian",
       "schedule": "Pertembungan jadual",
       "upfront_cost": "Saya tidak dapat bayar dahulu",
-      "other": "Lain-lain"
+      "other": "Lain-lain",
+      "target_role": "Peranan sasaran"
     },
     "noteLabel": "Nota untuk HR (pilihan)",
     "planTitle": "Pelan program",
@@ -153,7 +154,13 @@
     "noAccepted": "Belum ada program diterima",
     "noAcceptedHint": "Terima perjanjian program untuk menjejak kemajuannya di sini.",
     "programmesNav": "Program anda",
-    "acceptConsent": "Gunakan tahap kemahiran semasa saya untuk menyesuaikan laluan ini. {org} akan melihat pelan kursus yang terhasil, bukan tahap kemahiran anda."
+    "acceptConsent": "Gunakan tahap kemahiran semasa saya untuk menyesuaikan laluan ini. {org} akan melihat pelan kursus yang terhasil, bukan tahap kemahiran anda.",
+    "assignedByTeam": "Ditugaskan oleh pasukan anda · {org}",
+    "proposeRole": "Cadangkan peranan lain",
+    "proposalHint": "HR akan menyemak cadangan anda. Sasaran peribadi dan kemajuan tersimpan anda kekal milik anda.",
+    "alternativeRole": "Peranan sasaran pilihan",
+    "selectRole": "Pilih peranan daripada katalog",
+    "proposedRole": "Peranan yang dicadangkan: {role}"
   },
   "programmes": {
     "eyebrow": "Program",
@@ -272,6 +279,18 @@
     "hrdOnlyHint": "Kelayakan tuntutan bukan kelulusan pembiayaan: sahkan dengan HRD Corp.",
     "back": "Kembali",
     "next": "Seterusnya",
-    "generate": "Jana program"
+    "generate": "Jana program",
+    "packageDecisions": "Maklum balas pelan pasukan",
+    "reviewProposal": "Semak peranan yang dicadangkan",
+    "memberNotEligible": "Ahli ini tidak boleh dipilih awal kerana mereka tidak berkongsi tahap kemahiran atau belum melengkapkan profil. Tiada sesiapa dipilih. Minta mereka menghidupkan perkongsian, atau pilih orang di bawah."
+  },
+  "learning": {
+    "title": "Kemajuan pembelajaran pasukan",
+    "description": "Penyelesaian kursus bagi program pasukan yang diterima, mengikut kemahiran. Hanya ahli yang berkongsi data dikira. Penyelesaian yang dilaporkan sendiri berasingan daripada peningkatan kemahiran berasaskan bukti dalam peta haba.",
+    "skill": "Kemahiran",
+    "courses": "Kursus selesai / dirancang",
+    "completion": "Penyelesaian",
+    "suppressed": "Terlalu sedikit ahli berkongsi untuk kemahiran ini",
+    "empty": "Belum ada program yang diterima oleh ahli yang berkongsi."
   }
 }

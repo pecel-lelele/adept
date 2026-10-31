@@ -2,7 +2,6 @@ import {
   ArrowRight,
   ArrowUpRight,
   BookOpen,
-  Check,
   Compass,
   Grid3x3,
   KeyRound,
@@ -10,7 +9,6 @@ import {
   Radar,
   Route,
   ScanLine,
-  ShieldCheck,
   Users,
 } from "lucide-react";
 import Link from "next/link";
@@ -18,6 +16,7 @@ import { getTranslations } from "next-intl/server";
 import type { CSSProperties, ReactNode } from "react";
 
 import { SiteFooter, SiteHeader } from "@/components/shell/Site";
+import { MetaBar } from "@/components/MetaBar";
 import { FeatureArt, type FeatureArtVariant } from "@/components/viz/FeatureArt";
 import { OrgScene } from "@/components/viz/OrgScene";
 import { PathScene } from "@/components/viz/PathScene";
@@ -101,12 +100,7 @@ function Stat({ value, label }: { value: number; label: string }) {
 /** Live data for each "how it works" step, from GET /meta/overview. */
 function visuals(t: T, o: Overview | null, team: boolean): ReactNode[] {
   if (!o) return [];
-  const live = (
-    <p className="a-live-foot">
-      <ShieldCheck size={13} aria-hidden />
-      {t("vLive", { date: o.meta.snapshot_date, sources: o.meta.sources.map((s) => s.name).join(", ") })}
-    </p>
-  );
+  const live = <MetaBar meta={o.meta} />;
   const bank = (
     <div className="a-live">
       <div className="a-live-big">
@@ -210,8 +204,6 @@ export async function LandingView({ audience }: { audience: Audience }) {
     art: <FeatureArt variant={teamArt[i] ?? "invite"} />,
     data: teamData[i],
   }));
-  const faqs = [1, 2, 3, 4, 5, 6].map((n) => ({ q: t(`q${n}` as "q1"), a: t(`a${n}` as "a1") }));
-  const teamFaqs = [1, 2, 3, 4, 5].map((n) => ({ q: t(`tq${n}` as "tq1"), a: t(`ta${n}` as "ta1") }));
 
   const signup = (
     <>
@@ -338,9 +330,7 @@ export async function LandingView({ audience }: { audience: Audience }) {
                 </div>
               ))}
             </div>
-            <p className="a-statband-foot">
-              {t("sFoot", { date: o.meta.snapshot_date, sources: o.meta.sources.map((x) => x.name).join(", ") })}
-            </p>
+            <MetaBar meta={o.meta} />
           </section>
         ) : null}
       </div>
@@ -397,73 +387,6 @@ export async function LandingView({ audience }: { audience: Audience }) {
         </div>
       </section>
 
-      <section className="a-wrap a-section a-explain" data-reveal>
-        <div>
-          <span className="a-eyebrow is-square">{t("explainEyebrow")}</span>
-          <h2 className="a-section-title">
-            {t("explainTitleA")}
-            <br />
-            <span>{t("explainTitleB")}</span>
-          </h2>
-          <p className="a-explain-body">{t("explainBody")}</p>
-          <ul className="a-checklist">
-            {[t("explain1"), t("explain2"), t("explain3")].map((line) => (
-              <li key={line}>
-                <Check size={15} aria-hidden /> {line}
-              </li>
-            ))}
-          </ul>
-          <Link className="a-link" href="/about">
-            {t("navAbout")} <ArrowUpRight size={16} aria-hidden />
-          </Link>
-        </div>
-        <figure className="a-fig is-sage">
-          <FeatureArt variant="match" className="is-hero" />
-        </figure>
-      </section>
-
-      <section id="faq" className="a-section a-band" aria-labelledby="faq-heading">
-        <div className="a-wrap a-faq" data-reveal>
-          <div>
-            <span className="a-eyebrow is-square">{t("faqEyebrow")}</span>
-            <h2 id="faq-heading" className="a-section-title">
-              {t("faqTitleA")}
-              <br />
-              <span>{t("faqTitleB")}</span>
-            </h2>
-            <p className="a-faq-body">
-              <Link className="a-link" href="/about">
-                {t("faqBody")} <ArrowUpRight size={16} aria-hidden />
-              </Link>
-            </p>
-          </div>
-          <div className="a-faq-list a-for-me">
-            {faqs.map((f, i) => (
-              <details key={f.q} className="a-faq-item">
-                <summary>
-                  <span className="a-num">0{i + 1}</span>
-                  <span>{f.q}</span>
-                  <span className="a-faq-plus" aria-hidden />
-                </summary>
-                <p>{f.a}</p>
-              </details>
-            ))}
-          </div>
-          <div className="a-faq-list a-for-team">
-            {teamFaqs.map((f, i) => (
-              <details key={f.q} className="a-faq-item">
-                <summary>
-                  <span className="a-num">0{i + 1}</span>
-                  <span>{f.q}</span>
-                  <span className="a-faq-plus" aria-hidden />
-                </summary>
-                <p>{f.a}</p>
-              </details>
-            ))}
-          </div>
-        </div>
-      </section>
-
       <section className="a-wrap a-closing" data-reveal>
         <div>
           <span className="a-eyebrow is-square">{t("closeEyebrow")}</span>
@@ -487,9 +410,7 @@ export async function LandingView({ audience }: { audience: Audience }) {
       </section>
 
       </main>
-      <SiteFooter
-        note={o ? <span>{t("estimate", { date: o.meta.snapshot_date })}</span> : null}
-      />
+      <SiteFooter />
     </AudienceRoot>
   );
 }

@@ -1,19 +1,17 @@
 import { Bot, Minus, Radar, TrendingDown, TrendingUp } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
-import { EstimateLabel, Kpis, MetaBar, PageHeader, TrendPill } from "@/components";
-import { journeyStepCount } from "@/config/navigation";
+import { Kpis, MetaBar, PageHeader, TrendPill } from "@/components";
 import { ErrorState } from "@/components/ErrorState";
 import { TrendBars } from "@/components/viz";
 import { fetchMyProfile } from "@/features/profile/api";
-import { SnapshotPicker } from "@/components/SnapshotPicker";
 import type { ScenarioId } from "@/lib/api";
 
-import { fetchCompare, fetchRadar, fetchRoleDirections } from "../api";
-import { DEFAULT_HORIZON, DEFAULT_PRESET, KIND_OF_VIEW, type TrendRange } from "../range";
+import { fetchRadar, fetchRoleDirections } from "../api";
 import { SignalExplorer } from "./SignalExplorer";
 import { RoleDirectionsCard } from "./RoleDirectionsCard";
-import { TrendRangeCard } from "./TrendRangeCard";
+import "./radar.css";
+import { MalaysiaContextCard } from "./MalaysiaContextCard";
 
 /**
  * Step 2, the Future Skills Radar. Hierarchy: how many skills rise / hold / decline → the
@@ -24,37 +22,23 @@ export async function RadarView({
   scenario,
   snapshotDate,
   context = "individual",
-  range = { view: "skills", preset: DEFAULT_PRESET, entities: [], mode: "indexed", horizon: DEFAULT_HORIZON },
 }: {
   scenario: ScenarioId;
   snapshotDate?: string;
   context?: "individual" | "organisation";
-  /** Trend over time: every choice comes from the URL (see `parseTrendRange`). */
-  range?: TrendRange;
 }) {
   const t = await getTranslations("trends");
   const d = await getTranslations("common.design");
   const tp = await getTranslations("ui.page");
-  const th = await getTranslations("ui.home");
   const tf = await getTranslations("common.freshness");
-  const compare = (chosen: TrendRange) =>
-    fetchCompare({ kind: KIND_OF_VIEW[chosen.view], entities: chosen.entities, preset: chosen.preset, start: chosen.from, end: chosen.to, scenario, horizon: chosen.horizon, mode: chosen.mode });
-  const [result, profile, series] = await Promise.all([
+  const [result, profile] = await Promise.all([
     fetchRadar(scenario, snapshotDate),
     context === "individual" ? fetchMyProfile() : Promise.resolve(null),
-    compare(range),
   ]);
-  // A rejected date or line choice (422) falls back to this view's movers, so the form and its
-  // reset stay usable and the card explains what was refused.
-  const rejected = !series.ok && series.status === 422;
-  const shownRange: TrendRange = rejected ? { ...range, preset: DEFAULT_PRESET, from: undefined, to: undefined, entities: [] } : range;
-  const rangeSeries = rejected ? await compare(shownRange) : series;
   if (!result.ok) return (
-    <div className="a-view">
-      <PageHeader eyebrow={context === "organisation" ? tp("radarEyebrowOrg") : tp("stepOf", { step: 2, total: journeyStepCount() })}
+    <div className="a-view a-radar-view">
+      <PageHeader eyebrow={context === "organisation" ? tp("radarEyebrowOrg") : undefined}
         title={context === "organisation" ? t("orgTitle") : t("title")} description={tp("radarDesc")}>
-        <EstimateLabel scenario={scenario} />
-        {snapshotDate ? <span className="a-chip">{tp("asOf", { date: snapshotDate })}</span> : null}
       </PageHeader>
       <ErrorState failure={result} />
       {snapshotDate ? (
@@ -82,26 +66,14 @@ export async function RadarView({
   const exposed = [...items].sort((a, b) => b.automation_exposure - a.automation_exposure).slice(0, 8);
 
   return (
-    <div className="a-view">
+    <div className="a-view a-radar-view">
       <PageHeader
-        eyebrow={context === "organisation" ? tp("radarEyebrowOrg") : tp("stepOf", { step: 2, total: journeyStepCount() })}
+        eyebrow={context === "organisation" ? tp("radarEyebrowOrg") : undefined}
         title={context === "organisation" ? t("orgTitle") : t("title")}
         description={tp("radarDesc")}
-        actions={
-          <div className="a-radar-edition">
-            <SnapshotPicker dates={meta.available_snapshots} value={snapshotDate ?? ""}
-              latestLabel={th("latest")} label={t("range.pageDateLabel")} />
-            <p className="a-small a-muted">{t("range.pageDateHint")}</p>
-          </div>
-        }
       >
         <MetaBar meta={meta} />
       </PageHeader>
-      {meta.is_replay !== true && meta.observed_to && Date.parse(meta.snapshot_date) - Date.parse(meta.observed_to) > 60 * 864e5 ? (
-        <p className="a-notice" role="note">
-          {tp("historical", { from: meta.observed_from ?? meta.observed_to, to: meta.observed_to, date: meta.snapshot_date })}
-        </p>
-      ) : null}
 
       <Kpis
         items={[
@@ -112,10 +84,6 @@ export async function RadarView({
             label: tp("kTracked"),
             value: items.length,
             icon: <Radar size={15} />,
-            note:
-              meta.observed_from && meta.observed_to
-                ? d("observed", { from: meta.observed_from, to: meta.observed_to })
-                : tp("asOf", { date: meta.snapshot_date }),
           },
         ]}
       />
@@ -167,32 +135,16 @@ export async function RadarView({
         )}
       </div>
 
-      {rangeSeries.ok ? (
-        <TrendRangeCard
-          data={rangeSeries.data}
-          range={shownRange}
-          rejected={rejected}
-          scenario={scenario}
-          snapshotDate={snapshotDate}
-          pathname={context === "organisation" ? "/org/radar" : "/app/radar"}
-        />
-      ) : (
-        <>
-          <ErrorState failure={rangeSeries} />
-          {rejected ? (
-            <a className="a-btn is-ghost" href={`${context === "organisation" ? "/org/radar" : "/app/radar"}?scenario=${scenario}`}>{t("range.reset")}</a>
-          ) : null}
-        </>
-      )}
-
-      {directions.ok ? <RoleDirectionsCard signals={directions.data.items} meta={directions.data.meta} organisation={context === "organisation"} snapshotDate={snapshotDate} /> : <ErrorState failure={directions} />}
-      <section className="a-card" aria-labelledby="h-all">
+      {/* Role directions need the optional trend-matcher data; without it the card is left out
+          rather than turning the whole radar into an error page. */}
+      {directions.ok ? <RoleDirectionsCard signals={directions.data.items} meta={directions.data.meta} organisation={context === "organisation"} snapshotDate={snapshotDate} /> : null}
+      <section className="a-card radar-skills-card" aria-labelledby="h-all">
         <div className="a-card-head">
           <h2 id="h-all">{tp("allSkills")}</h2>
         </div>
         <SignalExplorer key={`${scenario}:${meta.snapshot_date}`} items={items} scenario={scenario} />
       </section>
-      {meta.data_provenance_note ? <p className="a-small a-muted">{meta.data_provenance_note}</p> : null}
+      <MalaysiaContextCard />
     </div>
   );
 }

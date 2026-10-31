@@ -31,7 +31,6 @@ const learnerItems = {
   skills: { key: "skills", href: "/app/profile", icon: "skills", step: 1, scenario: true },
   radar: { key: "radar", href: "/app/radar", icon: "radar", step: 2, scenario: true },
   roles: { key: "roles", href: "/app/matches", icon: "roles", step: 3, scenario: true },
-  compare: { key: "compare", href: "/app/pathway/compare", icon: "roles", scenario: true },
   plan: { key: "plan", href: "/app/pathway", icon: "plan", step: 4, scenario: true },
   progress: { key: "progress", href: "/app/progress", icon: "progress", step: 5, scenario: true },
   courses: { key: "courses", href: "/app/courses", icon: "courses" },
@@ -45,7 +44,7 @@ export const learnerWorkspace: Workspace = {
   groups: [
     {
       label: "journey",
-      items: [learnerItems.home, learnerItems.skills, learnerItems.radar, learnerItems.roles, learnerItems.compare, learnerItems.plan, learnerItems.progress, learnerItems.impact],
+      items: [learnerItems.home, learnerItems.skills, learnerItems.radar, learnerItems.roles, learnerItems.plan, learnerItems.progress, learnerItems.impact],
     },
     { label: "track", items: [learnerItems.jobs, learnerItems.courses] },
   ],

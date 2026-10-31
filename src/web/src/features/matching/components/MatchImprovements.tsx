@@ -1,25 +1,26 @@
+import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 
 import type { Schemas } from "@/lib/api";
 
-export function MatchImprovements({ items }: { items: Schemas["ScoreImprovement"][] }) {
+/** Only actionable skills and verified catalogue-course links, not counterfactual arithmetic. */
+export function MatchImprovements({ items, hideTitle = false, fallback }: { items: Schemas["ScoreImprovement"][]; hideTitle?: boolean; fallback?: string }) {
   const t = useTranslations("matching");
-  if (!items.length) return null;
+  if (!items.length) return fallback ? <p className="a-muted a-small">{fallback}</p> : null;
   return (
-    <div className="a-pad">
-      <h3>{t("improvementsTitle")}</h3>
-      <ul className="a-notes">
+    <section className="a-improve" aria-label={t("improvementsTitle")}>
+      {hideTitle ? null : <h3>{t("improvementsTitle")}</h3>}
+      <ul>
         {items.slice(0, 3).map((item) => (
           <li key={item.skill}>
-            {item.label} · {t("scoreGain", { gain: (item.score_gain * 100).toFixed(1) })}{" "}
-            {item.new_rank != null ? <span>{t("newRank", { rank: item.new_rank })} </span> : null}
+            <strong>{item.label}</strong>
             {item.course_url && item.course_title ? (
-              <Link href={item.course_url} target="_blank" rel="noreferrer">{item.course_title}</Link>
-            ) : <span className="a-muted">{t("noClosingCourse")}</span>}
+              <Link href={item.course_url} target="_blank" rel="noreferrer">{item.course_title}<ArrowUpRight size={14} aria-hidden /></Link>
+            ) : <span className="a-improve-none">{t("noClosingCourse")}</span>}
           </li>
         ))}
       </ul>
-    </div>
+    </section>
   );
 }

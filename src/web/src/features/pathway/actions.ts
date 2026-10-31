@@ -53,7 +53,7 @@ export async function savePlanAction(
   _: ActionState,
   form: FormData,
 ): Promise<ActionState> {
-  const api = await getApi();
+  const api = await getApi({ workspace: PERSONAL });
   const outcome = await settle(
     api.POST("/api/v1/pathway/plans", {
       body: {
@@ -62,7 +62,7 @@ export async function savePlanAction(
       },
     }),
     "/app/pathway",
-    "layout", // also refreshes /app/pathway/compare, where the learner can choose a role
+    "layout", // refresh the saved plan and its dependent views
   );
   if (outcome.error) return outcome;
   redirect(
@@ -71,7 +71,7 @@ export async function savePlanAction(
 }
 
 export async function acceptReplanAction(): Promise<ActionState> {
-  const api = await getApi();
+  const api = await getApi({ workspace: PERSONAL });
   return settle(
     api.POST("/api/v1/pathway/plans/me/accept-replan"),
     "/app/pathway",

@@ -1,8 +1,8 @@
 {
   "title": "About Adept",
   "llmTitle": "AI disclosure",
-  "llmNone": "Adi currently uses the built-in guide. Scores, plans and SDG links use deterministic, explainable rules.",
-  "llmSummary": "MiniLM encodes public research for trend signals, until Gemini embeddings pass their equivalence test and take over. Adi can use GLM-5.3 to select validated answer blocks; it does not write scores or plans. The active Adi configuration is shown below.",
+  "llmNone": "Adi is using the built-in guide. Career scores and learning plans come from documented rules, not generated prose.",
+  "llmSummary": "Research matching happens in the background; opening a page does not send your profile to a trend model. Adi may use a language model to choose from checked answers, but it cannot invent a role, course or score.",
   "registryTitle": "Model and data register",
   "registryPurpose": {
     "minilm": "Through RunPod: relates public research sentences to catalogue skills during background trend ingestion. Page loads serve stored snapshots.",
@@ -25,7 +25,7 @@
   "llmProvider": "Provider: {provider} · model: {model}",
   "llmCalls": "{calls} model calls logged; {rejected} invented IDs rejected.",
   "methodTitle": "Methodology",
-  "methodBody": "Trend snapshots feed role outlooks under a moderate and a fast AI-disruption scenario. Matches combine skill overlap, trend outlook and interest fit. Pathways close your skills gap with courses from our catalogue only, ordered by prerequisites and trend-weighted priority, and timed from your hours per week. Every role and skill links to official SDG targets with a reason.",
+  "methodBody": "Adept combines a skills catalogue, dated research signals and published course records to suggest a next step. See the data behind those suggestions, the AI we use and where the evidence stops.",
   "rulesTitle": "Guardrails",
   "sourcesTitle": "Data sources",
   "sourceKind": {
@@ -41,6 +41,6 @@
   "fairnessFailed": "A fairness check failed",
   "protectedTitle": "Never accepted as input",
   "limitsTitle": "Limitations",
-  "limitsBody": "All predictions are estimates from public data. Your CV is read in memory and never stored. SDG links are drafts until a reviewer signs them off. Course levels are our estimate. Adept supports your decisions and never makes hiring decisions.",
+  "limitsBody": "Research attention is not job demand, and a recommended plan is not a guaranteed outcome. Course levels and future outlooks are estimates. You choose your direction; Adept never hires, rejects or admits anyone.",
   "lastSynced": "last synced {date} UTC"
 }

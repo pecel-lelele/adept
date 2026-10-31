@@ -14,7 +14,6 @@
   "enabling": "enabling",
   "strengthHint": "Direct: the work itself advances the target. Enabling: it builds capacity the target needs.",
   "contributors": "{count} people",
-  "draft": "draft, pending review",
   "forRoles": "For role: {roles}",
   "via": {
     "role": "role",
@@ -27,9 +26,9 @@
   },
   "evidence": "Evidence",
   "noRoleYet": "You have not chosen a target role yet, so there is no contribution to show.",
-  "compareRoles": "Compare roles and choose one",
   "whyLinked": "Why these goals",
   "tooFewMembers": "Regional results are hidden until at least {count} distinct members can be included safely.",
   "tooFewMembersUnknown": "Regional results are hidden until enough distinct members can be included safely.",
-  "freeLearningReason": "Every course in this plan is free to learn (certificate fees may apply)."
+  "freeLearningReason": "Every course in this plan is free to learn (certificate fees may apply).",
+  "chooseRole": "View roles and choose one"
 }

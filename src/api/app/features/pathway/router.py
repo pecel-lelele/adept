@@ -15,7 +15,6 @@ from app.contracts.pathway import (
     ProviderType,
     ReplanStatus,
     ReviewDecision,
-    RoleComparison,
     SavedPlan,
     SavePlanIn,
     ShareCompletionIn,
@@ -44,18 +43,6 @@ def get_pathway(
 ) -> Pathway:
     """The plan for `role_id`; without it, the learner's saved target role."""
     return service.get_pathway(user, service.resolve_role(user, role_id), scenario, snapshot_date)
-
-
-@router.get("/compare")
-def compare_roles(
-    user: CurrentUserDep,
-    role_ids: Annotated[list[str] | None, Query(max_length=20)] = None,
-    scenario: ScenarioId = "moderate",
-    snapshot_date: SnapshotDate = None,
-) -> RoleComparison:
-    """Time, cost, gap, trend outlook and SDG links of candidate roles, side by side, so the
-    learner can compare before choosing. Omit `role_ids` to compare every target role."""
-    return service.compare_roles(user, role_ids or [], scenario, snapshot_date)
 
 
 @router.get("/catalogue")
