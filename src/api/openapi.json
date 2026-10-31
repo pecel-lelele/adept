@@ -5,6 +5,27 @@
     "version": "0.1.0"
   },
   "paths": {
+    "/api/v1/meta/version": {
+      "get": {
+        "tags": [
+          "core"
+        ],
+        "summary": "Version",
+        "operationId": "core_version",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/health": {
       "get": {
         "tags": [
@@ -492,6 +513,393 @@
         }
       }
     },
+    "/api/v1/data/freshness": {
+      "get": {
+        "tags": [
+          "data"
+        ],
+        "summary": "Data Freshness",
+        "description": "When each data source was last fetched (from stored data or run logs) and where it is\nserved from. Page requests never fetch upstream data.",
+        "operationId": "data_data_freshness",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataFreshnessResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/data/refresh/run": {
+      "post": {
+        "tags": [
+          "data"
+        ],
+        "summary": "Scheduled Run",
+        "operationId": "data_scheduled_run",
+        "parameters": [
+          {
+            "name": "x-data-refresh-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Data-Refresh-Token"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackgroundRefresh"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/data/refresh/check": {
+      "post": {
+        "tags": [
+          "data"
+        ],
+        "summary": "User Refresh",
+        "operationId": "data_user_refresh",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshCheck"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackgroundRefresh"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/data/refresh/status/{run_id}": {
+      "get": {
+        "tags": [
+          "data"
+        ],
+        "summary": "Run Status",
+        "operationId": "data_run_status",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "x-data-refresh-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Data-Refresh-Token"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackgroundRefresh"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/data/refresh/recent": {
+      "get": {
+        "tags": [
+          "data"
+        ],
+        "summary": "Recent Runs",
+        "operationId": "data_recent_runs",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefreshHistory"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/data/refresh/{source}": {
+      "post": {
+        "tags": [
+          "data"
+        ],
+        "summary": "Refresh Source",
+        "description": "Fetch, validate and upsert one source into the app database (admin only).\n\n409 refresh_in_progress while that source is running; 501 refresh_not_supported when the\npipeline is not installed here; 503 when the database is not available. A failed run\n(status \"failed\") wrote nothing and the last good data stays served.",
+        "operationId": "data_refresh_source",
+        "parameters": [
+          {
+            "name": "source",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "courses",
+                "catalogue",
+                "jobs",
+                "labour",
+                "trends"
+              ],
+              "type": "string",
+              "title": "Source"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataRefreshResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/guardrails/disclosure": {
       "get": {
         "tags": [
@@ -551,6 +959,28 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/FairnessReport"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/impact/summary": {
+      "get": {
+        "tags": [
+          "impact"
+        ],
+        "summary": "Get Summary",
+        "description": "Public, read-only impact evidence computed on request from the catalogue, the trend\nsnapshot and the production matching and pathway engines, on synthetic personas.",
+        "operationId": "impact_get_summary",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImpactSummary"
                 }
               }
             }
@@ -5617,6 +6047,27 @@
         }
       }
     },
+    "/api/v1/trends/malaysia-context": {
+      "get": {
+        "tags": [
+          "trends"
+        ],
+        "summary": "Malaysia Context",
+        "operationId": "trends_malaysia_context",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MalaysiaLabourContext"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/trends/snapshot": {
       "get": {
         "tags": [
@@ -5669,6 +6120,101 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/TrendSnapshotResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/trends/series": {
+      "get": {
+        "tags": [
+          "trends"
+        ],
+        "summary": "Get Series",
+        "description": "Observed 7-day rolling share per skill for each day in [start, end] (max 120 days).\n\nCounted from stored papers (no model call). Without `skill_ids`, the three biggest risers\nand fallers in the range are returned. 422 invalid_range for bad dates or skills.",
+        "operationId": "trends_get_series",
+        "parameters": [
+          {
+            "name": "start",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Start"
+            }
+          },
+          {
+            "name": "end",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "End"
+            }
+          },
+          {
+            "name": "skill_ids",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": [],
+              "title": "Skill Ids"
+            }
+          },
+          {
+            "name": "scenario",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "moderate",
+                "fast"
+              ],
+              "type": "string",
+              "default": "moderate",
+              "title": "Scenario"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrendSeriesResponse"
                 }
               }
             }
@@ -5789,6 +6335,226 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/RoleTrendResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/trends/refresh": {
+      "post": {
+        "tags": [
+          "trends"
+        ],
+        "summary": "Start Refresh",
+        "description": "Fetch the latest data: start the trends-refresh GitHub Actions workflow.\n\nReturns the run already queued or in progress instead of starting a second one.\n503 refresh_not_configured when GITHUB_DISPATCH_TOKEN / GITHUB_REPOSITORY are unset.",
+        "operationId": "trends_start_refresh",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrendRefreshStatus"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/trends/refresh/status": {
+      "get": {
+        "tags": [
+          "trends"
+        ],
+        "summary": "Refresh Status",
+        "description": "Status of a refresh run; a successful run clears the trend caches once.",
+        "operationId": "trends_refresh_status",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "GitHub Actions run id.",
+              "title": "Run Id"
+            },
+            "description": "GitHub Actions run id."
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrendRefreshStatus"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/trends/refresh/rescore": {
+      "post": {
+        "tags": [
+          "trends"
+        ],
+        "summary": "Rescore",
+        "description": "Re-score the latest stored signals (no ingest, no model call).\n\nPublishes only a genuinely new snapshot; otherwise reports no_new_data.",
+        "operationId": "trends_rescore",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrendRescoreResult"
                 }
               }
             }
@@ -6280,8 +7046,18 @@
               "type": "string"
             },
             "type": "array",
+            "maxItems": 3,
             "title": "Suggestions",
-            "description": "Follow-up questions."
+            "description": "Up to three server-authored follow-up questions; tapping one asks it."
+          },
+          "suggestion_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 3,
+            "title": "Suggestion Ids",
+            "description": "Catalogue IDs of the follow-up questions, in the same order."
           },
           "used_llm": {
             "type": "boolean",
@@ -6343,6 +7119,111 @@
           "model"
         ],
         "title": "AssistantReply"
+      },
+      "BackgroundRefresh": {
+        "properties": {
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "running",
+              "ok",
+              "failed",
+              "up_to_date",
+              "cooldown"
+            ],
+            "title": "Status"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "checked_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Checked At"
+          },
+          "data_as_of": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data As Of"
+          },
+          "retry_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retry At"
+          },
+          "next_scheduled_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Scheduled At"
+          },
+          "shared": {
+            "type": "boolean",
+            "title": "Shared",
+            "default": false
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/RefreshStep"
+            },
+            "type": "array",
+            "title": "Steps"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "started_at",
+          "checked_at"
+        ],
+        "title": "BackgroundRefresh"
       },
       "Badge": {
         "properties": {
@@ -6436,6 +7317,110 @@
           "file"
         ],
         "title": "Body_profile_upload_cv"
+      },
+      "CatalogueCoverage": {
+        "properties": {
+          "course_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Course Count"
+          },
+          "role_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Role Count"
+          },
+          "target_role_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Target Role Count"
+          },
+          "skill_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Skill Count"
+          },
+          "free_course_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Free Course Count"
+          },
+          "free_course_share": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Free Course Share"
+          },
+          "free_hours": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Free Hours"
+          },
+          "sdg_target_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Sdg Target Count"
+          },
+          "role_sdg_link_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Role Sdg Link Count"
+          },
+          "by_language": {
+            "items": {
+              "$ref": "#/components/schemas/CountBucket"
+            },
+            "type": "array",
+            "title": "By Language"
+          },
+          "by_provider_type": {
+            "items": {
+              "$ref": "#/components/schemas/CountBucket"
+            },
+            "type": "array",
+            "title": "By Provider Type"
+          },
+          "verified_recent_share": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Verified Recent Share"
+          },
+          "verified_window_days": {
+            "type": "integer",
+            "title": "Verified Window Days"
+          },
+          "verified_since": {
+            "type": "string",
+            "format": "date",
+            "title": "Verified Since"
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date",
+            "title": "As Of",
+            "description": "Newest stored course verification date; not the clock."
+          }
+        },
+        "type": "object",
+        "required": [
+          "course_count",
+          "role_count",
+          "target_role_count",
+          "skill_count",
+          "free_course_count",
+          "free_course_share",
+          "free_hours",
+          "sdg_target_count",
+          "role_sdg_link_count",
+          "by_language",
+          "by_provider_type",
+          "verified_recent_share",
+          "verified_window_days",
+          "verified_since",
+          "as_of"
+        ],
+        "title": "CatalogueCoverage"
       },
       "CatalogueResponse": {
         "properties": {
@@ -6645,6 +7630,7 @@
             "type": "string",
             "enum": [
               "not_submitted",
+              "submitted",
               "provider_verified",
               "unreachable",
               "not_provider_page"
@@ -6727,6 +7713,25 @@
           "submitted_at"
         ],
         "title": "CompletionEvidence"
+      },
+      "CountBucket": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "count"
+        ],
+        "title": "CountBucket"
       },
       "CounterfactualResult": {
         "properties": {
@@ -6908,6 +7913,26 @@
             "title": "Price Status",
             "default": "listed"
           },
+          "certificate_status": {
+            "type": "string",
+            "enum": [
+              "unknown",
+              "included"
+            ],
+            "title": "Certificate Status",
+            "description": "Completion certificate verified as included in the listed learning price.",
+            "default": "unknown"
+          },
+          "certificate_source": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Source"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "certificate_note": {
             "type": "string",
             "title": "Certificate Note",
@@ -6969,6 +7994,48 @@
         ],
         "title": "CourseHistoryItem"
       },
+      "CriticalOccupationBadge": {
+        "properties": {
+          "edition": {
+            "type": "string",
+            "title": "Edition"
+          },
+          "masco4d": {
+            "type": "string",
+            "title": "Masco4D"
+          },
+          "occupation_label": {
+            "type": "string",
+            "title": "Occupation Label"
+          },
+          "matched_title": {
+            "type": "string",
+            "title": "Matched Title"
+          },
+          "source_page": {
+            "type": "integer",
+            "title": "Source Page"
+          },
+          "pdf_page": {
+            "type": "integer",
+            "title": "Pdf Page"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RecommendationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "edition",
+          "masco4d",
+          "occupation_label",
+          "matched_title",
+          "source_page",
+          "pdf_page",
+          "meta"
+        ],
+        "title": "CriticalOccupationBadge"
+      },
       "CvExtractionResult": {
         "properties": {
           "skills": {
@@ -7013,14 +8080,108 @@
       },
       "DataFreshness": {
         "properties": {
+          "observation_window_start": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observation Window Start"
+          },
+          "observation_window_end": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observation Window End"
+          },
+          "retrieved_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieved At"
+          },
+          "retrieved_at_basis": {
+            "type": "string",
+            "enum": [
+              "pipeline_fetch",
+              "fetch_log",
+              "git_commit_date",
+              "unknown"
+            ],
+            "title": "Retrieved At Basis",
+            "default": "unknown"
+          },
+          "retrieval_evidence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieval Evidence"
+          },
+          "is_replay": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Replay"
+          },
+          "observed_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed From"
+          },
+          "observed_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed To"
+          },
           "snapshot_date": {
             "type": "string",
             "format": "date",
-            "title": "Snapshot Date"
+            "title": "Snapshot Date",
+            "description": "Snapshot version/slot label; see observation_window_* for the measured period."
           },
           "sources": {
             "items": {
-              "$ref": "#/components/schemas/Source"
+              "$ref": "#/components/schemas/TrendSource"
             },
             "type": "array",
             "title": "Sources"
@@ -7051,6 +8212,303 @@
           "is_fallback"
         ],
         "title": "DataFreshness"
+      },
+      "DataFreshnessResponse": {
+        "properties": {
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/DataSourceFreshness"
+            },
+            "type": "array",
+            "title": "Sources"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sources"
+        ],
+        "title": "DataFreshnessResponse"
+      },
+      "DataRefreshResult": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "enum": [
+              "courses",
+              "catalogue",
+              "jobs",
+              "labour",
+              "trends"
+            ],
+            "title": "Source"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At"
+          },
+          "finished_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Finished At"
+          },
+          "rows_fetched": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Rows Fetched"
+          },
+          "rows_upserted": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Rows Upserted"
+          },
+          "rows_rejected": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Rows Rejected"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "boards_run": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Boards Run"
+          },
+          "boards_skipped": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Boards Skipped"
+          },
+          "freshness": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DataSourceFreshness"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "source",
+          "status",
+          "started_at",
+          "finished_at",
+          "rows_fetched",
+          "rows_upserted",
+          "rows_rejected",
+          "message"
+        ],
+        "title": "DataRefreshResult",
+        "description": "Outcome of one admin refresh. A failed run wrote nothing; the last good data stays."
+      },
+      "DataSourceFreshness": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "enum": [
+              "trends",
+              "courses",
+              "jobs",
+              "labour"
+            ],
+            "title": "Source"
+          },
+          "source_name": {
+            "type": "string",
+            "title": "Source Name"
+          },
+          "source_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Url"
+          },
+          "last_fetched_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Fetched At",
+            "description": "Date the stored data was last fetched/observed from its source."
+          },
+          "data_as_of": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data As Of",
+            "description": "Period the data describes (snapshot date, observed month), if distinct."
+          },
+          "snapshot_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snapshot Date"
+          },
+          "observed_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed From"
+          },
+          "observed_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed To"
+          },
+          "is_historical_replay": {
+            "type": "boolean",
+            "title": "Is Historical Replay",
+            "default": false
+          },
+          "last_success": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Success"
+          },
+          "last_checked_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Checked At"
+          },
+          "age_days": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age Days"
+          },
+          "is_stale": {
+            "type": "boolean",
+            "title": "Is Stale",
+            "default": false
+          },
+          "rows": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Rows"
+          },
+          "served_from": {
+            "type": "string",
+            "enum": [
+              "database",
+              "seed"
+            ],
+            "title": "Served From"
+          },
+          "is_fallback": {
+            "type": "boolean",
+            "title": "Is Fallback",
+            "description": "True when the frozen seed export is being served."
+          },
+          "refreshable": {
+            "type": "boolean",
+            "title": "Refreshable",
+            "description": "An administrator can refresh this source in the app."
+          },
+          "last_run": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RefreshRunSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "source",
+          "source_name",
+          "rows",
+          "served_from",
+          "is_fallback",
+          "refreshable"
+        ],
+        "title": "DataSourceFreshness",
+        "description": "How fresh the data behind one page is, from stored data or run logs (never the clock)."
       },
       "DataSourceInfo": {
         "properties": {
@@ -7223,6 +8681,95 @@
         ],
         "title": "EntitySdgLinks"
       },
+      "EvidenceItem": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "figure": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Figure"
+          },
+          "value": {
+            "type": "number",
+            "title": "Value"
+          },
+          "unit": {
+            "type": "string",
+            "title": "Unit"
+          },
+          "scope": {
+            "type": "string",
+            "title": "Scope"
+          },
+          "claim": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Claim"
+          },
+          "quote": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Quote",
+            "description": "Short verbatim phrase from the page."
+          },
+          "publisher": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Publisher"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "url": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Url"
+          },
+          "retrieved_at": {
+            "type": "string",
+            "format": "date",
+            "title": "Retrieved At"
+          },
+          "published_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published At"
+          },
+          "feature": {
+            "type": "string",
+            "title": "Feature",
+            "description": "Key of the Adept feature that addresses it."
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "figure",
+          "value",
+          "unit",
+          "scope",
+          "claim",
+          "quote",
+          "publisher",
+          "title",
+          "url",
+          "retrieved_at",
+          "feature"
+        ],
+        "title": "EvidenceItem",
+        "description": "A figure quoted from a public page that was fetched and checked, with its source."
+      },
       "EvidenceSubmit": {
         "properties": {
           "role_id": {
@@ -7282,6 +8829,57 @@
           "confidence"
         ],
         "title": "ExtractedSkill"
+      },
+      "FairnessEvidence": {
+        "properties": {
+          "variants_tested": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Variants Tested"
+          },
+          "personas_tested": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Personas Tested"
+          },
+          "max_rank_change": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Max Rank Change",
+            "description": "Largest role-position change across swaps."
+          },
+          "guardrail_report_passed": {
+            "type": "boolean",
+            "title": "Guardrail Report Passed"
+          },
+          "api_inputs_checked": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Api Inputs Checked"
+          },
+          "protected_inputs_found": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Protected Inputs Found"
+          },
+          "method": {
+            "type": "string",
+            "title": "Method"
+          }
+        },
+        "type": "object",
+        "required": [
+          "variants_tested",
+          "personas_tested",
+          "max_rank_change",
+          "guardrail_report_passed",
+          "api_inputs_checked",
+          "protected_inputs_found",
+          "method"
+        ],
+        "title": "FairnessEvidence"
       },
       "FairnessReport": {
         "properties": {
@@ -7648,11 +9246,23 @@
             "title": "Skill Id"
           },
           "gap": {
-            "type": "number",
-            "maximum": 1.0,
-            "minimum": 0.0,
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Gap",
-            "description": "Share of members missing the skill."
+            "description": "Share below required level; null when suppressed."
+          },
+          "suppressed": {
+            "type": "boolean",
+            "title": "Suppressed",
+            "default": false
           }
         },
         "type": "object",
@@ -7694,13 +9304,39 @@
             "type": "array",
             "title": "Cells"
           },
+          "cohort_size": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Cohort Size",
+            "default": 0
+          },
+          "min_cohort": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Min Cohort",
+            "default": 3
+          },
+          "role_suppressed": {
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "type": "object",
+            "title": "Role Suppressed"
+          },
           "role_gaps": {
             "additionalProperties": {
-              "type": "number"
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             },
             "type": "object",
             "title": "Role Gaps",
-            "description": "role_id -> average gap over that role's required skills only. Cells for skills a role does not require are 0 and must not be averaged."
+            "description": "role_id -> average gap over that role's required skills only. Suppressed rows are null. Unsuppressed cells for unrequired skills are 0 and must not be averaged."
           },
           "meta": {
             "$ref": "#/components/schemas/RecommendationMeta"
@@ -7941,6 +9577,128 @@
         ],
         "title": "HealthResponse"
       },
+      "ImpactAggregate": {
+        "properties": {
+          "scenario": {
+            "type": "string",
+            "enum": [
+              "moderate",
+              "fast"
+            ],
+            "title": "Scenario"
+          },
+          "persona_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Persona Count"
+          },
+          "median_free_course_share": {
+            "type": "number",
+            "title": "Median Free Course Share"
+          },
+          "median_free_hours_share": {
+            "type": "number",
+            "title": "Median Free Hours Share"
+          },
+          "median_hrd_course_share": {
+            "type": "number",
+            "title": "Median Hrd Course Share"
+          },
+          "median_total_hours": {
+            "type": "number",
+            "title": "Median Total Hours"
+          },
+          "median_sdg_target_count": {
+            "type": "number",
+            "title": "Median Sdg Target Count"
+          },
+          "median_top5_changed": {
+            "type": "number",
+            "title": "Median Top5 Changed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "scenario",
+          "persona_count",
+          "median_free_course_share",
+          "median_free_hours_share",
+          "median_hrd_course_share",
+          "median_total_hours",
+          "median_sdg_target_count",
+          "median_top5_changed"
+        ],
+        "title": "ImpactAggregate"
+      },
+      "ImpactSummary": {
+        "properties": {
+          "personas": {
+            "items": {
+              "$ref": "#/components/schemas/PersonaImpact"
+            },
+            "type": "array",
+            "title": "Personas"
+          },
+          "aggregates": {
+            "items": {
+              "$ref": "#/components/schemas/ImpactAggregate"
+            },
+            "type": "array",
+            "title": "Aggregates"
+          },
+          "catalogue": {
+            "$ref": "#/components/schemas/CatalogueCoverage"
+          },
+          "fairness": {
+            "$ref": "#/components/schemas/FairnessEvidence"
+          },
+          "public_evidence": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceItem"
+            },
+            "type": "array",
+            "title": "Public Evidence"
+          },
+          "labour_context": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MalaysiaLabourContext"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Stored DOSM labour force snapshot, with its real dates."
+          },
+          "formulas": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Formulas",
+            "description": "How each displayed figure is derived."
+          },
+          "persona_note": {
+            "type": "string",
+            "title": "Persona Note"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RecommendationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "personas",
+          "aggregates",
+          "catalogue",
+          "fairness",
+          "public_evidence",
+          "formulas",
+          "persona_note",
+          "meta"
+        ],
+        "title": "ImpactSummary"
+      },
       "JobBoardPage": {
         "properties": {
           "openings": {
@@ -8078,6 +9836,18 @@
             "format": "date",
             "title": "First Seen"
           },
+          "last_seen": {
+            "type": "string",
+            "format": "date",
+            "title": "Last Seen",
+            "description": "Last day a source read still listed the ad."
+          },
+          "is_stale": {
+            "type": "boolean",
+            "title": "Is Stale",
+            "description": "Not re-seen by a source read in the last 14 days; it may have closed. Shown labelled, never counted as open.",
+            "default": false
+          },
           "role_method": {
             "type": "string",
             "enum": [
@@ -8142,6 +9912,7 @@
           "url",
           "source_name",
           "first_seen",
+          "last_seen",
           "role_method",
           "skills"
         ],
@@ -8197,6 +9968,146 @@
         ],
         "title": "LoginIn"
       },
+      "MalaysiaLabourContext": {
+        "properties": {
+          "observed_month": {
+            "type": "string",
+            "format": "date",
+            "title": "Observed Month"
+          },
+          "unemployment_rate": {
+            "type": "number",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Unemployment Rate"
+          },
+          "participation_rate": {
+            "type": "number",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Participation Rate"
+          },
+          "employment_population_ratio": {
+            "type": "number",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Employment Population Ratio"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RecommendationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "observed_month",
+          "unemployment_rate",
+          "participation_rate",
+          "employment_population_ratio",
+          "meta"
+        ],
+        "title": "MalaysiaLabourContext"
+      },
+      "MatchMeta": {
+        "properties": {
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/Source"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Sources"
+          },
+          "snapshot_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Snapshot Date"
+          },
+          "scenario": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "moderate",
+                  "fast"
+                ]
+              },
+              {
+                "type": "string",
+                "const": "both"
+              }
+            ],
+            "title": "Scenario",
+            "description": "Scenario of the result; 'both' identifies a moderate/fast comparison."
+          },
+          "is_estimate": {
+            "type": "boolean",
+            "title": "Is Estimate",
+            "default": true
+          },
+          "served_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "db",
+                  "fixture"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Served From"
+          },
+          "is_fallback": {
+            "type": "boolean",
+            "title": "Is Fallback",
+            "default": false
+          },
+          "observed_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed From",
+            "description": "Start of the period the source data measures; may predate snapshot_date."
+          },
+          "observed_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed To",
+            "description": "End of the period the source data measures."
+          },
+          "available_snapshots": {
+            "items": {
+              "type": "string",
+              "format": "date"
+            },
+            "type": "array",
+            "title": "Available Snapshots",
+            "description": "Stored snapshot dates supplied by the trend source used for this ranking."
+          }
+        },
+        "type": "object",
+        "required": [
+          "sources",
+          "snapshot_date",
+          "scenario"
+        ],
+        "title": "MatchMeta"
+      },
       "MatchResponse": {
         "properties": {
           "matches": {
@@ -8207,7 +10118,7 @@
             "title": "Matches"
           },
           "meta": {
-            "$ref": "#/components/schemas/RecommendationMeta"
+            "$ref": "#/components/schemas/MatchMeta"
           },
           "data_provenance_note": {
             "anyOf": [
@@ -8873,6 +10784,12 @@
             "title": "Hrd Eligible",
             "default": false
           },
+          "learning_style": {
+            "type": "string",
+            "title": "Learning Style",
+            "description": "Learning style used to prefer course delivery formats within budget.",
+            "default": "mixed"
+          },
           "gaps": {
             "items": {
               "$ref": "#/components/schemas/SkillGap"
@@ -8925,6 +10842,90 @@
           "meta"
         ],
         "title": "Pathway"
+      },
+      "PathwayImpact": {
+        "properties": {
+          "scenario": {
+            "type": "string",
+            "enum": [
+              "moderate",
+              "fast"
+            ],
+            "title": "Scenario"
+          },
+          "top_role_id": {
+            "type": "string",
+            "title": "Top Role Id"
+          },
+          "top_role_label": {
+            "type": "string",
+            "title": "Top Role Label"
+          },
+          "course_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Course Count"
+          },
+          "total_hours": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Total Hours"
+          },
+          "free_course_share": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Free Course Share",
+            "description": "Courses with cost_myr == 0."
+          },
+          "free_hours_share": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Free Hours Share"
+          },
+          "hrd_course_share": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Hrd Course Share",
+            "description": "Courses flagged HRD Corp claimable."
+          },
+          "hrd_hours_share": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Hrd Hours Share"
+          },
+          "sdg_target_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Sdg Target Count",
+            "description": "Distinct SDG targets the path contributes to."
+          },
+          "sdg_targets": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Sdg Targets"
+          }
+        },
+        "type": "object",
+        "required": [
+          "scenario",
+          "top_role_id",
+          "top_role_label",
+          "course_count",
+          "total_hours",
+          "free_course_share",
+          "free_hours_share",
+          "hrd_course_share",
+          "hrd_hours_share",
+          "sdg_target_count"
+        ],
+        "title": "PathwayImpact",
+        "description": "One persona's pathway towards their top-ranked role in one scenario."
       },
       "PathwayStep": {
         "properties": {
@@ -9043,6 +11044,62 @@
         ],
         "title": "PathwayStep"
       },
+      "PersonaImpact": {
+        "properties": {
+          "persona_id": {
+            "type": "string",
+            "title": "Persona Id"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "skill_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Skill Count"
+          },
+          "hours_per_week": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Hours Per Week"
+          },
+          "hrd_eligible": {
+            "type": "boolean",
+            "title": "Hrd Eligible"
+          },
+          "moderate": {
+            "$ref": "#/components/schemas/PathwayImpact"
+          },
+          "fast": {
+            "$ref": "#/components/schemas/PathwayImpact"
+          },
+          "top5_changed": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 0.0,
+            "title": "Top5 Changed",
+            "description": "Roles in the Moderate top 5 that are absent from the Fast top 5."
+          },
+          "top_role_changed": {
+            "type": "boolean",
+            "title": "Top Role Changed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "persona_id",
+          "source",
+          "skill_count",
+          "hours_per_week",
+          "hrd_eligible",
+          "moderate",
+          "fast",
+          "top5_changed",
+          "top_role_changed"
+        ],
+        "title": "PersonaImpact"
+      },
       "PlanChange": {
         "properties": {
           "kind": {
@@ -9051,13 +11108,17 @@
               "added",
               "removed",
               "reordered",
-              "courses_changed"
+              "courses_changed",
+              "schedule_changed",
+              "cost_changed",
+              "style_changed"
             ],
             "title": "Kind"
           },
           "skill_id": {
             "type": "string",
-            "title": "Skill Id"
+            "title": "Skill Id",
+            "description": "Empty for whole-plan changes (schedule, cost, style)."
           },
           "detail": {
             "type": "string",
@@ -10026,7 +12087,7 @@
             "title": "Items"
           },
           "meta": {
-            "$ref": "#/components/schemas/RecommendationMeta"
+            "$ref": "#/components/schemas/TrendRecommendationMeta"
           }
         },
         "type": "object",
@@ -10052,12 +12113,21 @@
             "title": "Snapshot Date"
           },
           "scenario": {
-            "type": "string",
-            "enum": [
-              "moderate",
-              "fast"
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "moderate",
+                  "fast"
+                ]
+              },
+              {
+                "type": "string",
+                "const": "both"
+              }
             ],
-            "title": "Scenario"
+            "title": "Scenario",
+            "description": "Scenario of the result; 'both' identifies a moderate/fast comparison."
           },
           "is_estimate": {
             "type": "boolean",
@@ -10120,6 +12190,139 @@
         "title": "RecommendationMeta",
         "description": "Attached to every response that contains a recommendation, score or trend."
       },
+      "RefreshCheck": {
+        "properties": {
+          "bypass_cooldown": {
+            "type": "boolean",
+            "title": "Bypass Cooldown",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "RefreshCheck"
+      },
+      "RefreshHistory": {
+        "properties": {
+          "runs": {
+            "items": {
+              "$ref": "#/components/schemas/BackgroundRefresh"
+            },
+            "type": "array",
+            "title": "Runs"
+          },
+          "next_scheduled_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Next Scheduled At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "runs",
+          "next_scheduled_at"
+        ],
+        "title": "RefreshHistory"
+      },
+      "RefreshRunSummary": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "finished_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Finished At"
+          },
+          "rows_fetched": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Rows Fetched"
+          },
+          "rows_upserted": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Rows Upserted"
+          },
+          "rows_rejected": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Rows Rejected"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "finished_at",
+          "rows_fetched",
+          "rows_upserted",
+          "rows_rejected"
+        ],
+        "title": "RefreshRunSummary",
+        "description": "The most recent in-app refresh of one source (no secrets, no raw error text)."
+      },
+      "RefreshStep": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "enum": [
+              "trends",
+              "courses",
+              "jobs",
+              "labour"
+            ],
+            "title": "Source"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "running",
+              "done",
+              "failed",
+              "skipped"
+            ],
+            "title": "Status",
+            "default": "pending"
+          },
+          "rows": {
+            "type": "integer",
+            "title": "Rows",
+            "default": 0
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source"
+        ],
+        "title": "RefreshStep"
+      },
       "RegionListResponse": {
         "properties": {
           "regions": {
@@ -10154,7 +12357,9 @@
               "googlecert",
               "iibacert",
               "iappcert",
-              "bnm"
+              "bnm",
+              "replit",
+              "fonts"
             ],
             "title": "Id"
           },
@@ -10253,19 +12458,19 @@
           "position_before": {
             "type": "number",
             "title": "Position Before",
-            "description": "Skill velocity on the shared min-max scale, earlier snapshot.",
+            "description": "Skill trend position (0-1, median-scaled log-tanh), earlier snapshot.",
             "default": 0.0
           },
           "position_after": {
             "type": "number",
             "title": "Position After",
-            "description": "Skill velocity on the shared min-max scale, later snapshot.",
+            "description": "Skill trend position (0-1, median-scaled log-tanh), later snapshot.",
             "default": 0.0
           },
           "effect": {
             "type": "number",
             "title": "Effect",
-            "description": "Score points this skill moved the role: change on the shared min-max scale times its share of the role's importance times the trend weight; > 0 pushed up."
+            "description": "Score points this skill moved the role: change in trend position times its share of the role's importance times the trend weight; > 0 pushed up."
           }
         },
         "type": "object",
@@ -10465,6 +12670,59 @@
             "title": "Score",
             "description": "Sum of weight * value over components."
           },
+          "rank": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rank"
+          },
+          "other_scenario": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "moderate",
+                  "fast"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Other Scenario"
+          },
+          "other_score": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Other Score"
+          },
+          "other_rank": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Other Rank",
+            "description": "Other-scenario rank for the same profile, snapshot and SDG weight."
+          },
           "components": {
             "items": {
               "$ref": "#/components/schemas/ScoreComponent"
@@ -10492,6 +12750,16 @@
             },
             "type": "array",
             "title": "Sdg Targets"
+          },
+          "critical_occupation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CriticalOccupationBadge"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "improvements": {
             "items": {
@@ -10973,7 +13241,7 @@
             "$ref": "#/components/schemas/TrendSignal"
           },
           "meta": {
-            "$ref": "#/components/schemas/RecommendationMeta"
+            "$ref": "#/components/schemas/TrendRecommendationMeta"
           }
         },
         "type": "object",
@@ -11158,6 +13426,19 @@
             "minimum": 0.0,
             "title": "Score Gain"
           },
+          "new_rank": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "New Rank",
+            "description": "Estimated rank after raising this skill and reranking all roles."
+          },
           "course_id": {
             "anyOf": [
               {
@@ -11293,6 +13574,27 @@
             },
             "type": "array",
             "title": "Target Contributions"
+          },
+          "aggregation_status": {
+            "type": "string",
+            "enum": [
+              "available",
+              "suppressed"
+            ],
+            "title": "Aggregation Status",
+            "default": "available"
+          },
+          "minimum_people": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 2.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Minimum People"
           }
         },
         "type": "object",
@@ -12226,16 +14528,42 @@
         "properties": {
           "name": {
             "type": "string",
-            "title": "Name"
+            "title": "Name",
+            "examples": [
+              "MOCK DATA"
+            ]
           },
           "url": {
             "type": "string",
-            "title": "Url"
+            "title": "Url",
+            "description": "Empty only for mock data."
           },
           "retrieved_at": {
             "type": "string",
             "format": "date",
             "title": "Retrieved At"
+          },
+          "retrieved_at_basis": {
+            "type": "string",
+            "enum": [
+              "pipeline_fetch",
+              "fetch_log",
+              "git_commit_date",
+              "unknown"
+            ],
+            "title": "Retrieved At Basis",
+            "default": "unknown"
+          },
+          "retrieval_evidence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieval Evidence"
           }
         },
         "type": "object",
@@ -12244,7 +14572,8 @@
           "url",
           "retrieved_at"
         ],
-        "title": "SourceRef"
+        "title": "SourceRef",
+        "description": "Source retrieval basis is part of the trend response, not just its export."
       },
       "SourcesResponse": {
         "properties": {
@@ -12461,6 +14790,487 @@
         ],
         "title": "TopRole"
       },
+      "TrendRecommendationMeta": {
+        "properties": {
+          "observation_window_start": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observation Window Start"
+          },
+          "observation_window_end": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observation Window End"
+          },
+          "retrieved_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieved At"
+          },
+          "retrieved_at_basis": {
+            "type": "string",
+            "enum": [
+              "pipeline_fetch",
+              "fetch_log",
+              "git_commit_date",
+              "unknown"
+            ],
+            "title": "Retrieved At Basis",
+            "default": "unknown"
+          },
+          "retrieval_evidence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieval Evidence"
+          },
+          "is_replay": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Replay"
+          },
+          "observed_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed From",
+            "description": "Start of the period the source data measures; may predate snapshot_date."
+          },
+          "observed_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed To",
+            "description": "End of the period the source data measures."
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/TrendSource"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Sources"
+          },
+          "snapshot_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Snapshot Date"
+          },
+          "scenario": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "moderate",
+                  "fast"
+                ]
+              },
+              {
+                "type": "string",
+                "const": "both"
+              }
+            ],
+            "title": "Scenario",
+            "description": "Scenario of the result; 'both' identifies a moderate/fast comparison."
+          },
+          "is_estimate": {
+            "type": "boolean",
+            "title": "Is Estimate",
+            "default": true
+          },
+          "served_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "db",
+                  "fixture"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Served From"
+          },
+          "is_fallback": {
+            "type": "boolean",
+            "title": "Is Fallback",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "sources",
+          "snapshot_date",
+          "scenario"
+        ],
+        "title": "TrendRecommendationMeta",
+        "description": "Legacy trend endpoints retain the same explicit origin as snapshot/freshness."
+      },
+      "TrendRefreshStatus": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "in_progress",
+              "completed"
+            ],
+            "title": "Status"
+          },
+          "conclusion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conclusion",
+            "description": "GitHub run conclusion once completed, e.g. success, failure."
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id",
+            "description": "None until GitHub lists the new run."
+          },
+          "run_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Url"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          },
+          "dispatched": {
+            "type": "boolean",
+            "title": "Dispatched",
+            "description": "True when this request started the run.",
+            "default": false
+          },
+          "already_running": {
+            "type": "boolean",
+            "title": "Already Running",
+            "description": "True when an earlier run was still queued or in progress.",
+            "default": false
+          },
+          "caches_cleared": {
+            "type": "boolean",
+            "title": "Caches Cleared",
+            "default": false
+          },
+          "snapshot_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snapshot Date",
+            "description": "Latest snapshot the app serves after a completed run."
+          },
+          "served_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "db",
+                  "fixture"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Served From"
+          },
+          "is_fallback": {
+            "type": "boolean",
+            "title": "Is Fallback",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "TrendRefreshStatus",
+        "description": "State of the GitHub Actions trend refresh run (the workflow publishes the snapshot)."
+      },
+      "TrendRescoreResult": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "published",
+              "no_new_data",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "snapshot_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snapshot Date",
+            "description": "New snapshot date (published) or the one still live."
+          },
+          "observed_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed From"
+          },
+          "observed_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed To"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "message"
+        ],
+        "title": "TrendRescoreResult",
+        "description": "Outcome of re-scoring the latest stored signals (no ingest, no model call)."
+      },
+      "TrendSeriesLine": {
+        "properties": {
+          "skill_id": {
+            "type": "string",
+            "title": "Skill Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/TrendSeriesPoint"
+            },
+            "type": "array",
+            "title": "Points"
+          },
+          "change": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change",
+            "description": "Last minus first available share in the range."
+          }
+        },
+        "type": "object",
+        "required": [
+          "skill_id",
+          "label",
+          "points",
+          "change"
+        ],
+        "title": "TrendSeriesLine"
+      },
+      "TrendSeriesPoint": {
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date",
+            "title": "Day"
+          },
+          "share": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Share",
+            "description": "Share of sampled arXiv papers in the 7 days ending on `day` that mention the skill; null when that window is not fully stored."
+          }
+        },
+        "type": "object",
+        "required": [
+          "day",
+          "share"
+        ],
+        "title": "TrendSeriesPoint"
+      },
+      "TrendSeriesResponse": {
+        "properties": {
+          "start": {
+            "type": "string",
+            "format": "date",
+            "title": "Start"
+          },
+          "end": {
+            "type": "string",
+            "format": "date",
+            "title": "End"
+          },
+          "window_days": {
+            "type": "integer",
+            "title": "Window Days",
+            "default": 7
+          },
+          "available_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Available From",
+            "description": "First day a full window is stored."
+          },
+          "available_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Available To",
+            "description": "Newest stored day."
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/TrendSeriesLine"
+            },
+            "type": "array",
+            "title": "Lines"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RecommendationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "start",
+          "end",
+          "available_from",
+          "available_to",
+          "lines",
+          "meta"
+        ],
+        "title": "TrendSeriesResponse",
+        "description": "Observed rolling shares per skill over a chosen date range (M1-018 paper store)."
+      },
       "TrendSignal": {
         "properties": {
           "entity_type": {
@@ -12510,6 +15320,26 @@
             "maximum": 1.0,
             "minimum": 0.0,
             "title": "Augmentation Share"
+          },
+          "trend_coverage": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trend Coverage",
+            "description": "Roles only: share of the role's skill importance that has trend data."
+          },
+          "insufficient_evidence": {
+            "type": "boolean",
+            "title": "Insufficient Evidence",
+            "description": "Roles only: trend_coverage is below 0.5, so the direction is not reliable.",
+            "default": false
           }
         },
         "type": "object",
@@ -12527,6 +15357,99 @@
       },
       "TrendSnapshotMeta": {
         "properties": {
+          "observation_window_start": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observation Window Start"
+          },
+          "observation_window_end": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observation Window End"
+          },
+          "retrieved_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieved At"
+          },
+          "retrieved_at_basis": {
+            "type": "string",
+            "enum": [
+              "pipeline_fetch",
+              "fetch_log",
+              "git_commit_date",
+              "unknown"
+            ],
+            "title": "Retrieved At Basis",
+            "default": "unknown"
+          },
+          "retrieval_evidence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieval Evidence"
+          },
+          "is_replay": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Replay"
+          },
+          "observed_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed From"
+          },
+          "observed_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed To"
+          },
           "sources": {
             "items": {
               "$ref": "#/components/schemas/SourceRef"
@@ -12537,7 +15460,8 @@
           "snapshot_date": {
             "type": "string",
             "format": "date",
-            "title": "Snapshot Date"
+            "title": "Snapshot Date",
+            "description": "Snapshot version/slot label, not its observation or retrieval date."
           },
           "scenario": {
             "type": "string",
@@ -12598,32 +15522,6 @@
             ],
             "title": "Data Provenance Note",
             "description": "Optional explanation of data provenance, e.g. for historical arXiv date-window pulls or demo calibration."
-          },
-          "observed_from": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Observed From",
-            "description": "Start of the period the source data measures; may predate snapshot_date."
-          },
-          "observed_to": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Observed To",
-            "description": "End of the period the source data measures."
           }
         },
         "type": "object",
@@ -12655,6 +15553,56 @@
           "items"
         ],
         "title": "TrendSnapshotResponse"
+      },
+      "TrendSource": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "examples": [
+              "MOCK DATA"
+            ]
+          },
+          "url": {
+            "type": "string",
+            "title": "Url",
+            "description": "Empty only for mock data."
+          },
+          "retrieved_at": {
+            "type": "string",
+            "format": "date",
+            "title": "Retrieved At"
+          },
+          "retrieved_at_basis": {
+            "type": "string",
+            "enum": [
+              "pipeline_fetch",
+              "fetch_log",
+              "git_commit_date",
+              "unknown"
+            ],
+            "title": "Retrieved At Basis",
+            "default": "unknown"
+          },
+          "retrieval_evidence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieval Evidence"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "url",
+          "retrieved_at"
+        ],
+        "title": "TrendSource"
       },
       "UnmetSkill": {
         "properties": {
@@ -12845,6 +15793,52 @@
           "items"
         ],
         "title": "VerificationQueue"
+      },
+      "VersionInfo": {
+        "properties": {
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "revision": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revision"
+          },
+          "dirty": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dirty"
+          },
+          "environment": {
+            "type": "string",
+            "enum": [
+              "development",
+              "production"
+            ],
+            "title": "Environment"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version",
+          "revision",
+          "dirty",
+          "environment"
+        ],
+        "title": "VersionInfo"
       },
       "Workspace": {
         "properties": {

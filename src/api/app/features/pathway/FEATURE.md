@@ -31,6 +31,10 @@ with intake skills for matching, individual plans/comparisons/re-planning and te
 Undo and rejected evidence still revoke the corresponding credit. Migration `20261022220000`
 backfills existing records from the surviving saved plan, or otherwise the current catalogue.
 
+Only `org_confirmed` completions earn skill credit. A reachable certificate URL is `submitted`,
+pending review of both learner and course; old `provider_verified` links also remain unearned.
+Direct pathway previews require a saved profile, using the same `learner_for` gate as matching.
+
 ## Integration points (M1, M2, M4)
 
 Completed course facts and evidence are read independently of the remaining plan.
@@ -107,3 +111,10 @@ URLs, durations and crosswalks while preserving existing records → estimated r
 and prerequisites → F4 scoring and F5 budgeted topological plans → graph, coverage,
 prerequisite and finance concurrency regressions → shared reference loader, append-only
 role-scope migration, reference-only seed upserts and API/UI.
+
+## Settings drive the plan (2026-10-31, M3-044)
+
+Hours per week set the weeks; budget filters paid courses; learning style prefers delivery
+formats within budget (classroom → taught formats, video/reading → self-paced). A saved plan
+proposes `schedule_changed` / `cost_changed` re-plans when these settings change.
+Measure with `.claude/toolbox/onboarding_effects.py` (production code, seed data).

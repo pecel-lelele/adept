@@ -16,6 +16,17 @@ from app.contracts.assistant import Locale
 from app.core.security.sanitize import find_injection
 from app.features.assistant.context import Context
 
+CAREER_MOVES = (
+    "move into",
+    "switch into",
+    "switch careers",
+    "change careers",
+    "career change",
+    "transition into",
+    "pindah kerjaya",
+    "转行",
+)
+
 # Keywords per intent in English, Malay and Chinese (lower-case; Chinese matched as substrings).
 # A multi-word phrase (or a Chinese phrase of three or more characters) counts as a strong hit;
 # a single word as a weak one. Ambiguous single words ("pay", "source", "what if", "confidence")
@@ -26,12 +37,20 @@ INTENTS: dict[str, tuple[str, ...]] = {
     "decision": (),
     "other_person": ("colleague", "coworker", "someone else", "rakan sekerja", "同事", "别人的"),
     "injection": ("hidden instructions", "system prompt", "ignore previous instructions"),
+    # Off-topic and "make something up" requests: detected in `intents` (see `_OFF_TOPIC`,
+    # `_INVENT`); a friendly refusal with follow-up chips, never a guess.
+    "off_topic": (),
+    "invent": (),
     "sources": (
+        "dikemas kini",
+        "数据更新",
         "sources",
         "where does this data",
         "data come from",
         "course real",
         "listing real",
+        "course fake",
+        "listing fake",
         "dari mana data",
         "sumber data",
         "数据来源",
@@ -79,8 +98,13 @@ INTENTS: dict[str, tuple[str, ...]] = {
         "apply for me",
         "padam kursus",
         "ubah pelan",
+        "daftarkan saya",
+        "tempahkan kursus",
         "删除课程",
         "修改计划",
+        "帮我报名",
+        "帮我申请",
+        "帮我预订",
     ),
     "match_detail": (
         "second role",
@@ -113,19 +137,37 @@ INTENTS: dict[str, tuple[str, ...]] = {
         "losing demand",
         "lose my job",
         "replaced by ai",
+        "shrinking",
+        "going away",
+        "falling",
+        "fading",
+        "decreasing",
+        "less in demand",
+        "dying out",
+        "phased out",
         "kurang diperlukan",
+        "berkurangan",
+        "merosot",
         "menurun",
         "hilang",
         "消失",
         "下降",
         "淘汰",
         "被取代",
+        "萎缩",
+        "减少",
     ),
     "score_improvement": (
         "improve my match",
         "raise my score",
         "improve my score",
+        "boost my score",
+        "increase my score",
+        "better match",
+        "higher score",
+        "better score",
         "tingkatkan skor",
+        "naikkan skor",
         "提高匹配分数",
     ),
     "score_breakdown": (
@@ -143,6 +185,7 @@ INTENTS: dict[str, tuple[str, ...]] = {
         "分数如何计算",
     ),
     "profile": (
+        "saya ada kemahiran",
         "don't have a cv",
         "dont have a cv",
         "do not have a cv",
@@ -153,6 +196,12 @@ INTENTS: dict[str, tuple[str, ...]] = {
         "add my skills",
         "update my skills",
         "edit my skills",
+        "my profile",
+        "change my skills",
+        "profil saya",
+        "tukar kemahiran",
+        "我的资料",
+        "修改技能",
         "tiada cv",
         "tak ada cv",
         "muat naik cv",
@@ -225,6 +274,12 @@ INTENTS: dict[str, tuple[str, ...]] = {
         "how does",
         "how do",
         "what is adept",
+        "what can you do",
+        "what can adi do",
+        "how can you help",
+        "what do you do",
+        "apa yang boleh anda buat",
+        "你能做什么",
         "how it works",
         "method",
         "methods",
@@ -280,6 +335,7 @@ INTENTS: dict[str, tuple[str, ...]] = {
         "permintaan",
         "趋势",
         "上升",
+        "增长",
         "雷达",
         "未来",
     ),
@@ -322,6 +378,7 @@ INTENTS: dict[str, tuple[str, ...]] = {
         "计划",
     ),
     "roles": (
+        *CAREER_MOVES,
         "hiring",
         "companies",
         "employers",
@@ -357,10 +414,44 @@ INTENTS: dict[str, tuple[str, ...]] = {
         "为什么",
     ),
     "next": ("next", "start", "what should", "begin", "seterusnya", "mula", "下一步", "开始"),
+    # Small talk: answered warmly, never with someone's data. Generic like "how" and "next".
+    "greeting": (
+        "hi",
+        "hello",
+        "hey",
+        "help",
+        "good morning",
+        "good afternoon",
+        "good evening",
+        "hai",
+        "helo",
+        "selamat pagi",
+        "tolong",
+        "你好",
+        "您好",
+        "嗨",
+        "帮帮我",
+    ),
+    "thanks": (
+        "thanks",
+        "thank you",
+        "thx",
+        "cheers",
+        "terima kasih",
+        "谢谢",
+        "多谢",
+    ),
+    # Nothing matched: a friendly "not sure" reply; a configured model may pick a better block.
+    "unknown": (),
 }
 
 PERSONAL_PLAN_INTENTS = frozenset({"plan_progress", "plan_duration", "plan_cost"})
-SAFETY_INTENTS = frozenset({"decision", "other_person", "injection"})
+# Refusals: answered without loading anyone's data and without a model.
+SAFETY_INTENTS = frozenset({"decision", "other_person", "injection", "off_topic", "invent"})
+# Broad intents: the model may choose another block for some of them (see service._accept).
+GENERIC_INTENTS = frozenset({"how", "next", "greeting", "thanks", "unknown"})
+# Model-selectable blocks that carry no data, so they need no attribution.
+CHAT_INTENTS = frozenset({"greeting", "thanks", "unknown"})
 FACT_INTENTS = (
     frozenset(
         {
@@ -386,6 +477,13 @@ PLAN_WORDS = ("plan", "plans", "pelan", "rancangan", "计划")
 # "what if" is a scenario question only when it is about AI pace.
 PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
     "sources": (
+        re.compile(r"(?:数据|趋势).*?(?:更新|新鲜|多久|多旧)|(?:更新).*?(?:数据|趋势)"),
+        re.compile(
+            r"\bhow\s+(?:old|recent|fresh|current|up[-\s]to[-\s]date)\s+(?:is|are)\b.*"
+            r"\b(?:data|trends?|figures?|numbers?|forecasts?|snapshot|estimates?)\b"
+        ),
+        re.compile(r"\bwhen\s+(?:was|were|is|are)\b.*\b(?:updated|refreshed)\b"),
+        re.compile(r"\blast\s+(?:updated|refreshed)\b"),
         re.compile(r"\b(?:your|the|data|stored|which|what|cite|show)\s+sources\b"),
         re.compile(r"\bdata\s+sources?\b"),
         re.compile(
@@ -393,13 +491,51 @@ PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
             r"(?:data|trends?|figures?|numbers?|forecasts?|snapshot|estimates?)\b"
         ),
         re.compile(r"\bwhere\s+(?:does|do|did)\s+(?:the|this|these|your)\s+\w+\s+come\s+from\b"),
+        re.compile(r"\btrust\s+(?:the|this|your|these)\s+(?:data|numbers|figures|results)\b"),
+    ),
+    "score_breakdown": (
+        re.compile(r"\bkenapa\b.*\bpadanan\s+(?:teratas|terbaik)\b"),
+        re.compile(r"为什么.*(?:最匹配|最佳匹配|首选|第一名)"),
+        re.compile(
+            r"\bwhy\s+(?:is|was|are|am|did|does)\b.*"
+            r"\b(?:top|best|first|highest|number\s+one|#1)\s+(?:match|role|job|fit|result)\b"
+        ),
+    ),
+    "profile": (
+        re.compile(r"(?:我|自己).*(?:有哪些|有什么|有哪种).*技能"),
+        re.compile(r"\b(?:what|which)\s+skills\s+(?:do\s+i|have\s+i|am\s+i)\b"),
+        re.compile(r"\bskills\s+(?:in|on|from)\s+my\s+(?:profile|cv|resume)\b"),
+        re.compile(r"\b(?:change|edit|update|fix|correct)\s+(?:my\s+)?(?:skills|profile)\b"),
+    ),
+    "action_not_supported": (
+        re.compile(
+            r"\b(?:can|could|will|would)\s+you\s+(?:please\s+)?(?:book|enrol|enroll|register)\b"
+        ),
+        re.compile(
+            r"\b(?:edit|change|update|remove|delete)\b.*\b(?:plan|step|course)\b.*\bfor\s+me\b"
+        ),
+        re.compile(r"(?:帮我|替我).*(?:报名|申请|预订|修改计划)"),
+        re.compile(r"\b(?:book|enrol|enroll|register|sign\s+me\s+up|apply|pay)\b.*\bfor\s+me\b"),
+        re.compile(r"\b(?:enrol|enroll|register|sign)\s+me\s+(?:up|in|into|for|on)\b"),
+        re.compile(r"\bapply\s+(?:to|for)\s+(?:this|that|a|the)\s+(?:job|role|position)\b"),
+    ),
+    "score_improvement": (
+        re.compile(
+            r"\b(?:improve|boost|raise|increase|lift|strengthen)\s+(?:my\s+|the\s+|this\s+)?"
+            r"(?:\w+\s+)?(?:match|score|fit)\b"
+        ),
+        re.compile(
+            r"\b(?:get|reach)\s+(?:a\s+)?(?:better|higher|stronger)\s+(?:\w+\s+)?(?:match|score|fit)\b"
+        ),
     ),
     "scenario": (
         re.compile(
-            r"\bwhat\s+if\s+(?:the\s+)?(?:ai|automation|adoption)\b.*"
-            r"\b(?:fast|faster|slow|slower|quick|quicker|speeds?|accelerat\w*|moves?)\b"
+            r"\b(?:what\s+if|what\s+happens\s+if|if|when)\s+(?:the\s+)?(?:ai|automation|adoption)\b.*"
+            r"\b(?:fast|faster|slow|slows|slower|slowing|quick|quicker|speeds?|accelerat\w*|moves?)\b"
         ),
+        re.compile(r"\b(?:moderate|fast)\s+(?:and|vs\.?|versus|or)\s+(?:moderate|fast)\b"),
         re.compile(r"\bkalau\s+ai\b"),
+        re.compile(r"如果\s*ai"),
     ),
     "forecast_accuracy": (
         re.compile(
@@ -421,20 +557,154 @@ PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         re.compile(r"(?:哪个城市|工作地点|职位地点)"),
     ),
     "trend_declining": (
+        re.compile(r"\b(?:ai|automasi|robot)\s+(?:akan\s+)?(?:menggantikan|ganti)\b"),
+        re.compile(r"(?:ai|人工智能|自动化).*(?:取代|替代|淘汰)"),
+        re.compile(
+            r"\b(?:will|can|could|would|is|are)\s+(?:ai|automation|robots?)\s+(?:going\s+to\s+)?"
+            r"(?:replace|take\s+over|eliminate|kill)\b"
+        ),
+        re.compile(r"\breplace[ds]?\s+(?:(?:my|our)\s+)?jobs?\b"),
         re.compile(r"\b(?:at\s+risk|risk\s+of|be\s+replaced|being\s+replaced|replaced\s+by)\b"),
         re.compile(r"\b(?:let\s+go|laid\s+off|lose\s+(?:my|our)\s+jobs?)\b.*\b(?:ai|automation)\b"),
     ),
     # Funding: who pays for courses. "Will my employer pay..." also hits course advice.
     "cost": (re.compile(r"\bpay\s+for\b"),),
     # "How much of my plan have I finished?" asks about progress, not price.
-    "plan_progress": (re.compile(r"\bhow\s+much\s+of\s+(?:my|the|this)\b"),),
+    "plan_progress": (
+        re.compile(r"\bhow\s+much\s+of\s+(?:my|the|this)\b"),
+        re.compile(r"\bhow\s+far\b"),
+    ),
     # Weekly study time stated without the word "plan" still asks about the plan's duration.
     "plan_duration": (
+        re.compile(r"每周.*(?:多少|几).*小时"),
+        re.compile(r"\bhow\s+many\s+(?:hours?|hrs?|weeks?)\b"),
+        re.compile(r"\bhours?\s+(?:a|per|each|every)\s+week\b"),
+        re.compile(r"\bberapa\s+jam\b"),
         re.compile(r"\b\d+\s*(?:hours?|hrs?|h)\s+(?:a|per|each|every)\s+week\b"),
         re.compile(r"\b\d+\s*jam\s+(?:seminggu|setiap\s+minggu)\b"),
         re.compile(r"每周[^，。？]{0,4}?\d+\s*(?:个)?小时"),
     ),
 }
+# Clearly off-topic subjects. They count only when nothing about careers or learning matched,
+# so "game developer roles" or "stock analyst skills" still route normally.
+_OFF_TOPIC = (
+    "weather",
+    "joke",
+    "jokes",
+    "election",
+    "elections",
+    "politics",
+    "political",
+    "religion",
+    "recipe",
+    "recipes",
+    "cooking",
+    "football",
+    "movie",
+    "movies",
+    "song",
+    "songs",
+    "lyrics",
+    "poem",
+    "poems",
+    "crypto",
+    "bitcoin",
+    "stocks",
+    "lottery",
+    "horoscope",
+    "dating",
+    "girlfriend",
+    "boyfriend",
+    "cuaca",
+    "lawak",
+    "jenaka",
+    "pilihan raya",
+    "politik",
+    "resipi",
+    "bola sepak",
+    "filem",
+    "lagu",
+    "puisi",
+    "saham",
+    "天气",
+    "笑话",
+    "选举",
+    "政治",
+    "菜谱",
+    "足球",
+    "电影",
+    "歌词",
+    "写诗",
+    "股票",
+    "比特币",
+    "彩票",
+    "星座",
+)
+# Requests to make up entities or figures (AGENTS §3.2): refused, whatever the topic.
+_INVENT = (
+    re.compile(
+        r"\b(?:make\s+up|made[-\s]up|invent|fabricate|fake|pretend)\s+"
+        r"(?:a\s+|an\s+|some\s+|me\s+|the\s+)?(?:\w+\s+)?"
+        r"(?:jobs?|roles?|courses?|skills?|stats?|statistics|numbers?|figures?|data"
+        r"|titles?|salary|salaries|certificates?|qualifications?|sources?)\b"
+    ),
+    re.compile(
+        r"\b(?:reka|mereka|rekaan|palsu)\b.*\b(?:kerja|kursus|kemahiran|statistik|angka|data)\b"
+    ),
+    re.compile(r"(?:编造|捏造|虚构|瞎编)"),
+)
+# Who may see a learner's data is a privacy question even when it names progress or skills.
+_VISIBILITY = (
+    re.compile(
+        r"\b(?:can|could|will|would|does|do|is|are)\s+(?:my\s+|the\s+|our\s+)?"
+        r"(?:employer|manager|hr|boss|company|team|supervisor)\s+(?:be\s+able\s+to\s+)?(?:also\s+)?"
+        r"(?:see|view|access|read|check)\b"
+    ),
+    re.compile(r"\bwho\s+(?:can|could)\s+(?:see|view|access)\b"),
+    re.compile(r"\b(?:majikan|bos|pengurus)\s+(?:saya\s+)?(?:boleh\s+)?(?:lihat|nampak|akses)\b"),
+    re.compile(r"(?:雇主|老板|经理|公司|主管)(?:能|可以|会)?(?:看到|看见|查看|访问)"),
+)
+# A question that names careers or learning is about them, whatever else it mentions.
+_CAREER_WORDS = (
+    "role",
+    "roles",
+    "job",
+    "jobs",
+    "career",
+    "careers",
+    "skill",
+    "skills",
+    "course",
+    "courses",
+    "learn",
+    "learning",
+    "plan",
+    "trend",
+    "trends",
+    "salary",
+    "hiring",
+    "cv",
+    "resume",
+    "sdg",
+    "upskill",
+    "reskill",
+    "kerja",
+    "kerjaya",
+    "kemahiran",
+    "kursus",
+    "belajar",
+    "pelan",
+    "gaji",
+    "职位",
+    "工作",
+    "技能",
+    "课程",
+    "学习",
+    "计划",
+    "招聘",
+    "趋势",
+    "薪资",
+)
 # Intents whose phrase patterns satisfy the "about my saved plan" requirement on their own.
 PLAN_PATTERN_INTENTS = frozenset({"plan_duration"})
 # Two answer blocks are shown when the runner-up intent scores at least this share of the top.
@@ -582,6 +852,9 @@ _MALAY_CUES = frozenset(
         "boleh",
         "jika",
         "kalau",
+        "dikemas",
+        "kini",
+        "bila",
     }
 )
 _ENGLISH_CUES = frozenset(
@@ -590,76 +863,72 @@ _ENGLISH_CUES = frozenset(
 
 T: dict[str, dict[str, str]] = {
     "en": {
-        "decision": "Adept supports your judgement, it never makes hiring, firing, promotion, or admission decisions.",
-        "other_person": "I can discuss only your own data in this conversation. I cannot reveal another person's CV, skills, scores or private plans.",
-        "injection": "I cannot follow requests to override the rules or reveal hidden instructions. I can help explain your Adept results.",
-        "action_not_supported": "Chat cannot edit or delete courses or plan steps. Review your plan on [[page:/app/pathway]], or choose a different target using [[page:/app/pathway/compare]].",
-        "no_data": "I do not have verified salary figures or location-specific job results in this conversation. I will not guess. Browse [[page:/app/jobs]] and check the employer's posting.",
-        "forecast_accuracy": "These forecasts are scenario estimates from dated research attention and labour projections, not calibrated probabilities or guarantees. Adept has no verified predictive-accuracy figure for your outcome. Sparse coverage, old observation windows and fixture fallback can limit the results. Check the source dates on [[page:/app/radar]].",
-        "sources": "Snapshot {date}. Stored sources: {sources}. Courses in your plan: {courses}. Course links open provider pages; check employer postings for jobs. Chat cannot confirm current availability or prices.",
-        "sources_fallback": "Showing the last good snapshot from {date} (fallback data: the latest trend data could not be loaded). ",
-        "unavailable_busy": "I'm still working on your previous question. Please wait for that answer, then ask again.",
-        "unavailable_overloaded": "Adi is answering many questions right now. Please try again in a moment.",
-        "unavailable_timeout": "I could not load your results in time. Please try again shortly. See [[page:/about]].",
-        "unavailable_catalogue": "I could not check every reference in this answer against the catalogue, so I will not show it. Please try again. See [[page:/about]].",
-        "sources_unavailable": "I could not load source records for this answer. Check [[page:/about]]; I will not invent a citation.",
-        "scenario": "Estimated scores under {before} → {after}, using the same profile and dated snapshot: {rows}. Ranks are relative and may stay unchanged. This compares scenarios; it does not change your selected scenario. Use the AI pace toggle on [[page:/app/matches]].",
-        "scenario_unavailable": "I could not load a comparable second scenario for your profile. Both scenarios are estimates, not guarantees. Use the AI pace toggle on [[page:/app/radar]] to compare available data.",
+        "decision": "Sorry, that's not a call I can make. Hiring, firing, promotion and admission decisions belong to people: Adept supports human judgement and never makes those decisions. I can show skills data that helps you decide fairly.",
+        "other_person": "Sorry, I can only talk about your own data. I can't share anyone else's CV, skills, scores or plans.",
+        "injection": "Sorry, I can't change my rules or share hidden instructions. I'm happy to explain your own Adept results, though.",
+        "action_not_supported": "Sorry, I can't enrol you, book courses, apply to jobs or change your plan from the chat. Open a course from [[page:/app/pathway]] to sign up on the provider's site, and apply on the employer's own page from [[page:/app/jobs]].",
+        "no_data": "I don't have checked salary or location data, so I won't guess. For pay and places, check real postings on [[page:/app/jobs]].",
+        "forecast_accuracy": "Good question! These forecasts are estimates for each AI-pace scenario, built from dated research and labour projections. They aren't guarantees, and Adept has no verified accuracy figure for your own outcome. Check the source dates on [[page:/app/radar]].",
+        "sources": "Here's where it comes from. Data snapshot: {date}. Stored sources: {sources}. Courses in your plan: {courses}. Prices and openings change, so check the provider or employer page too.",
+        "sources_fallback": "Heads-up: this is the last good snapshot from {date} (fallback data, because the latest trend data could not load). ",
+        "unavailable_busy": "One moment! I'm still answering your last question. Ask again once that answer is in.",
+        "unavailable_overloaded": "Lots of people are asking me things right now. Please try again in a moment.",
+        "unavailable_timeout": "Sorry, I couldn't load your results in time. Please try again shortly. More on [[page:/about]].",
+        "unavailable_catalogue": "Sorry, I couldn't check every link in that answer against the catalogue, so I won't show it. Please try again. More on [[page:/about]].",
+        "sources_unavailable": "Sorry, I couldn't load the source records just now, and I won't invent a citation. You can see them on [[page:/about]].",
+        "scenario": "Here's how your estimated scores change from {before} to {after} AI pace, with the same profile and data snapshot: {rows}. This only compares; your selected scenario stays the same. Try the AI pace toggle on [[page:/app/matches]].",
+        "scenario_unavailable": "Sorry, I couldn't load a second scenario to compare for you. Both are estimates, not guarantees. Try the AI pace toggle on [[page:/app/radar]].",
         "pace_moderate": "Moderate",
         "pace_fast": "Fast",
-        "sdg_explain": "The UN Sustainable Development Goals link learning and work to public targets. Official target wording from Adept's SDG catalogue: {targets}. Plan links are enabling hypotheses, not measured UN-target progress. See [[page:/app/sdg]].",
-        "sdg_unavailable": "That SDG definition is not available in my catalogue context. I will not invent it; check [[page:/app/sdg]].",
-        "rank_unavailable": "That rank is not available in your current results. Check [[page:/app/matches]]; I will not invent a role.",
-        "rank_context": "This is rank {rank}. The leading role is [[role:{role}]] at {score} estimated points. Rankings use the weighted components; tied scores use catalogue ID order.",
-        "trend_declining": "Declining skills in this snapshot: {skills}. Declining roles: {roles}. These are estimates from research attention and labour projections, not a prediction that a job will disappear. See [[page:/app/radar]].",
-        "score_math": "Estimated fit for [[role:{role}]] (weight × component = points): {parts}. Total = {total} points out of 100.",
+        "sdg_explain": "The UN Sustainable Development Goals (SDGs) are shared global targets, including quality learning and decent work. Official wording from Adept's catalogue: {targets}. Links to your plan are hoped-for contributions, not measured UN progress. More on [[page:/app/sdg]].",
+        "sdg_unavailable": "Sorry, that SDG target isn't in my catalogue, and I won't make one up. See the full list on [[page:/app/sdg]].",
+        "rank_unavailable": "I can't find that rank in your current results, and I won't invent a role. Have a look at [[page:/app/matches]].",
+        "rank_context": "That's your number {rank} match. Your top role is [[role:{role}]] at {score} estimated points; roles are ranked by these weighted scores (ties follow catalogue order).",
+        "trend_declining": "I can't predict whether AI will replace a particular occupation or your job. Skills cooling off in this snapshot: {skills}. Roles cooling off: {roles}. These are estimates for the snapshot, not proof that your job or your team's skills are declining. More on [[page:/app/radar]].",
+        "score_math": "Here's the maths for [[role:{role}]] (weight × part = points): {parts}. Total: {total} out of 100.",
         "skill_overlap": "skill overlap",
         "trend_outlook": "trend outlook",
         "interest_fit": "interest fit",
         "neutral": " (not provided, neutral value)",
-        "profile": "No CV? No problem: on [[page:/app/onboarding]] you can pick your skills and levels by hand, or upload a CV (PDF, Word or text). The file is read in memory and not stored, and you confirm every skill before it is saved. Update them later on [[page:/app/profile]].",
-        "improvement": "Close [[skill:{skill}]] for an estimated +{gain} score points. {course}.",
-        "no_closing_course": "No catalogue course closes this gap yet",
-        "hello": "Hi, I'm Adi! I can explain your matched roles, what to learn next, how skills "
-        "are trending, course costs and HRD Corp claims, and how your path links to the UN SDGs.",
-        "no_profile": "First, tell me your skills: it takes two minutes on [[page:/app/onboarding]]. "
-        "Then I can rank future roles for you and show the gap.",
-        "visitor_next": "Try the free CV preview on the home page, or [[page:/auth/signup]] to see "
-        "your matched roles, skills gap and a learning plan.",
-        "top": "Your strongest match is [[role:{role}]] with an estimated fit of {score}.",
-        "others": "Next: {roles}.",
+        "profile": "View and change your skills and levels on [[page:/app/profile]]. No CV? Pick skills by hand on [[page:/app/onboarding]], or upload a CV (PDF, Word or text). The file isn't stored, and you confirm every skill.",
+        "profile_skills": "Your saved skills and levels are: {skills}.",
+        "profile_empty": "Your profile has no saved skills yet.",
+        "profile_unavailable": "I couldn't load your saved skills, so I won't guess them.",
+        "profile_work": "Switch to your personal workspace to view or edit your own skill profile. In your organisation workspace, [[page:/work/skills]] shows what you share.",
+        "match_unavailable": "I couldn't load your match score for [[role:{role}]], so I won't use another role's score. Check [[page:/app/matches]].",
+        "skill_learning": "For [[skill:{skill}]], compare your current level with your chosen role's requirements on [[page:/app/matches]]. Learning it is useful when it closes that gap; I can't promise a career outcome. Browse verified courses on [[page:/app/courses]].",
+        "hiring": "For current vacancies, check [[page:/app/jobs]] and the employer's page. Your matched roles are estimated skill fits, not evidence that an employer is hiring.",
+        "role_exploration": "You can explore a career change using your transferable skills. Keep your profile current on [[page:/app/profile]], then compare catalogue roles, their required skills and dated outlook estimates on [[page:/app/pathway/compare]]. I can't confirm a match or outlook for an occupation outside that catalogue, or promise a career outcome.",
+        "self_enrolment": "Open a course from [[page:/app/pathway]] or [[page:/app/courses]], then follow its provider link to review requirements and enrol on the provider's site. I can't enrol you from chat.",
+        "improvement": "Building [[skill:{skill}]] could add about +{gain} points. {course}.",
+        "no_closing_course": "There's no catalogue course for it yet",
+        "hello": "Hi, I'm Adi! Ask me about your matched roles, what to learn next or how skills are trending. What would you like to know?",
+        "no_profile": "Let's start with your skills! It takes about two minutes on [[page:/app/onboarding]]. Then I can match you to future roles and show your gaps.",
+        "visitor_next": "Try the free CV preview on the home page, or [[page:/auth/signup]] to see your matched roles, skills gap and a learning plan.",
+        "top": "Your strongest match right now is [[role:{role}]] at an estimated {score}.",
         "gap": "To close the gap, focus on {skills}.",
-        "no_gap": "You already meet its required skills; your plan can deepen them.",
-        "why": "It is an estimate, not a guarantee.",
-        "plan": "Your saved plan for [[role:{role}]] starts with [[skill:{skill}]] through "
-        "[[course:{course}]]. Track it on [[page:/app/progress]].",
-        "no_plan": "Pick a role and save a plan on [[page:/app/pathway]]; I'll then walk you "
-        "through it step by step.",
-        "trend": "In the latest snapshot these skills are rising: {skills}. Trends are estimates "
-        "from research attention and labour projections; see [[page:/app/radar]].",
+        "no_gap": "You already have its required skills, so your plan can help you go deeper.",
+        "why": "It's an estimate, not a guarantee.",
+        "plan": "Your next step toward [[role:{role}]] is [[skill:{skill}]], with [[course:{course}]]. Track it on [[page:/app/progress]].",
+        "no_plan": "You haven't saved a plan yet. Pick a role and save a plan on [[page:/app/pathway]], and I'll guide you step by step.",
+        "trend": "Skills rising in the latest snapshot: {skills}. These are estimates from research and labour projections; explore them on [[page:/app/radar]].",
         "my_trend": "Your own skills: {skills}.",
-        "cost": "Every course shows hours, its dated list price and HRD Corp claimability. "
-        "Eligibility does not guarantee funding: confirm certificate fees, taxes and employer "
-        "approval before buying. Browse [[page:/app/courses]].",
-        "plan_progress": "For your saved plan toward [[role:{role}]], {share} of tracked learning hours are recorded complete; {courses} courses are recorded complete and {closed} of {total} skill gaps are closed. Course completion does not guarantee all role skills are met. See [[page:/app/progress]].",
-        "plan_duration": "Your saved plan toward [[role:{role}]] estimates {weeks} weeks at {weekly} hours per week, with {hours} study hours in total. These are learning estimates, not a completion guarantee. See [[page:/app/pathway]].",
-        "plan_cost": "Your saved plan toward [[role:{role}]] records an estimated list price of RM {listed} and learner cost of RM {learner} under its saved funding assumptions. Confirm certificate fees, taxes, current prices and employer approval before purchase. See [[page:/app/pathway]].",
-        "progress_unavailable": "I could not load your saved plan's progress. Please retry or check [[page:/app/progress]]; I cannot assume zero completion.",
-        "totals_unavailable": "I could not load the totals for your saved plan. Please retry or check [[page:/app/pathway]]; I cannot estimate missing figures.",
-        "sdg": "Each role and skill links to UN SDG targets with a cited reason.{badges} See "
-        "[[page:/app/sdg]].",
-        "privacy": "Your CV file is read in memory and not stored; you confirm the extracted skills before they are saved. When AI services are enabled, sanitised chat text and candidate answers may be processed by RunPod or Google Gemini, and optional skill matching sends short contact-redacted skill phrases to Gemini, never the CV file. You can download or delete your data from My skills (or team Settings). Details: [[page:/privacy]]; AI models in use: [[page:/about]].",
-        "how": "Adept takes you from today's skills to future roles: skill profile → Future "
-        "Skills Radar → matched roles with a skills gap → an ordered learning plan linked to the "
-        "UN SDGs. Every estimate shows its source and date. [[page:/about]]",
+        "cost": "Each course shows its hours, a dated price and whether HRD Corp claims may apply. Eligibility isn't guaranteed funding, so check fees, taxes and employer approval before you buy. Browse [[page:/app/courses]].",
+        "plan_progress": "On your plan toward [[role:{role}]], {share} of the learning hours are done: {courses} courses complete and {closed} of {total} skill gaps closed. Finishing courses doesn't guarantee every role skill. See [[page:/app/progress]].",
+        "plan_duration": "Your plan toward [[role:{role}]] should take about {weeks} weeks at {weekly} hours per week, {hours} study hours in total. That's an estimate, not a promise. See [[page:/app/pathway]].",
+        "plan_cost": "Your plan toward [[role:{role}]] lists about RM {listed}, and about RM {learner} for you under its saved funding assumptions. Check fees, taxes, current prices and employer approval before you buy. See [[page:/app/pathway]].",
+        "progress_unavailable": "Sorry, I could not load your plan's progress just now, and I won't assume zero. Please try again or check [[page:/app/progress]].",
+        "totals_unavailable": "Sorry, I could not load your plan's totals just now, and I won't guess them. Please try again or check [[page:/app/pathway]].",
+        "sdg": "Each role and skill links to UN SDG targets, with a reason.{badges} See [[page:/app/sdg]].",
+        "privacy": "Your personal plans, matches and chats stay private. An employer sees programme progress and evidence in its own workspace, plus skill levels only with your sharing consent. Your CV file is read in memory and never stored, and you confirm each skill before it's saved. If AI services are on, cleaned-up chat text and short contact-redacted skill phrases may be processed by RunPod or Google Gemini, never your CV file. You can download or delete your data from My skills (or team Settings). Details: [[page:/privacy]]; AI models in use: [[page:/about]].",
+        "how": "Adept takes you from today's skills to future roles: your skill profile → Future Skills Radar → matched roles and gaps → a learning plan linked to the UN SDGs. Every estimate shows its source and date. More on [[page:/about]].",
         "team": "Your team: {members} members, {complete} with a complete profile.{gap}",
         "team_gap": " The largest average gap is for [[role:{role}]] ({gap}).",
         "team_plan": " The team plan targets [[role:{role}]]: see [[page:/org/plan]].",
-        "team_none": "Share your join code from [[page:/org/members]] so your people can add "
-        "their skills; then I can show the gaps.",
-        "plan_done": "You have completed every course in your saved plan toward [[role:{role}]]. {gaps} Compare other roles on [[page:/app/pathway/compare]] or check your skills on [[page:/app/progress]].",
-        "plan_done_gaps": "{open} required skill(s) still need practice or courses the catalogue does not yet cover.",
-        "plan_done_closed": "Its listed skill gaps are closed.",
+        "team_none": "Share your join code from [[page:/org/members]] so your people can add their skills; then I can show the gaps.",
+        "plan_done": "Well done, you've completed every course in your plan toward [[role:{role}]]! {gaps} Compare other roles on [[page:/app/pathway/compare]] or check your skills on [[page:/app/progress]].",
+        "plan_done_gaps": "{open} required skill(s) still need practice or a course the catalogue doesn't cover yet.",
+        "plan_done_closed": "Its listed skill gaps are all closed.",
         "work_pending": "In {org}, the programme “{title}” toward [[role:{role}]] is waiting for your answer. Review the learning agreement on [[page:/work/plan]]: accept it, or ask for a change.",
         "work_active": "In {org}, your programme “{title}” builds toward [[role:{role}]] by {date}, with {hours} hours a week of paid learning time and up to RM {budget} from your employer. {share} of its course hours are recorded complete.",
         "work_next": " Next: [[course:{course}]]. Track it on [[page:/work/progress]].",
@@ -672,78 +941,79 @@ T: dict[str, dict[str, str]] = {
         "programmes": " Programmes: {count} sent; {accepted} accepted, {pending} waiting, {changes} asked for changes, {declined} declined. See [[page:/org/programmes]].",
         "programmes_none": " No programme sent yet: start from a business objective on [[page:/org/programmes/new]].",
         "team_shared": " {shared} of them share their skill levels.",
+        "team_suppressed": " Too few members to show team skill gaps.",
+        "off_topic": "Sorry, I can't help with that one. I'm best at your skills, matched roles and learning plan. Anything else I can do?",
+        "invent": "Sorry, I can't make up jobs, courses, skills or figures. Everything I show comes from Adept's checked catalogue and your data. Anything else I can do?",
+        "unknown": "Sorry, I'm not sure I can help with that one. I can explain your matches, what to learn next or how skills are trending. Anything else I can do?",
+        "thanks": "You're welcome! Anything else I can help with?",
     },
     "ms": {
-        "decision": "Adept menyokong pertimbangan anda; ia tidak membuat keputusan pengambilan, pemecatan, kenaikan pangkat atau kemasukan.",
-        "other_person": "Saya hanya boleh membincangkan data anda sendiri dalam perbualan ini. Saya tidak boleh mendedahkan CV, kemahiran, skor atau pelan peribadi orang lain.",
-        "injection": "Saya tidak boleh mengikut permintaan untuk mengetepikan peraturan atau mendedahkan arahan tersembunyi. Saya boleh membantu menerangkan hasil Adept anda.",
-        "action_not_supported": "Sembang tidak boleh mengedit atau memadam kursus atau langkah pelan. Semak pelan di [[page:/app/pathway]], atau pilih sasaran lain melalui [[page:/app/pathway/compare]].",
-        "no_data": "Saya tiada angka gaji yang disahkan atau hasil pekerjaan mengikut lokasi dalam perbualan ini. Saya tidak akan meneka. Lihat [[page:/app/jobs]] dan semak iklan majikan.",
-        "forecast_accuracy": "Unjuran ini ialah anggaran senario berdasarkan perhatian penyelidikan bertarikh dan unjuran tenaga kerja, bukan kebarangkalian terkalibrasi atau jaminan. Adept tiada ukuran ketepatan ramalan yang disahkan untuk hasil anda. Liputan terhad, tempoh pemerhatian lama dan data sandaran boleh mengehadkan hasil. Semak tarikh sumber di [[page:/app/radar]].",
-        "sources": "Petikan {date}. Sumber tersimpan: {sources}. Kursus dalam pelan anda: {courses}. Pautan kursus membuka halaman penyedia; semak iklan majikan bagi pekerjaan. Sembang tidak dapat mengesahkan ketersediaan atau harga semasa.",
-        "sources_fallback": "Memaparkan petikan baik terakhir bertarikh {date} (data sandaran: data trend terkini tidak dapat dimuatkan). ",
-        "unavailable_busy": "Saya masih menjawab soalan anda sebelum ini. Tunggu jawapan itu, kemudian tanya lagi.",
-        "unavailable_overloaded": "Adi sedang menjawab banyak soalan. Cuba lagi sebentar.",
-        "unavailable_timeout": "Saya tidak dapat memuatkan hasil anda tepat pada masanya. Cuba lagi sebentar. Lihat [[page:/about]].",
-        "unavailable_catalogue": "Saya tidak dapat menyemak setiap rujukan dalam jawapan ini dengan katalog, jadi saya tidak akan memaparkannya. Cuba lagi. Lihat [[page:/about]].",
-        "sources_unavailable": "Saya tidak dapat memuatkan rekod sumber untuk jawapan ini. Semak [[page:/about]]; saya tidak akan mereka-reka rujukan.",
-        "scenario": "Anggaran skor {before} → {after}, menggunakan profil dan petikan bertarikh yang sama: {rows}. Kedudukan adalah relatif dan mungkin kekal. Ini perbandingan senario, bukan perubahan pilihan anda. Gunakan suis kadar AI di [[page:/app/matches]].",
-        "scenario_unavailable": "Saya tidak dapat memuatkan senario kedua yang setanding untuk profil anda. Kedua-duanya anggaran, bukan jaminan. Gunakan suis kadar AI di [[page:/app/radar]] untuk membandingkan data tersedia.",
+        "decision": "Maaf, itu bukan keputusan yang boleh saya buat. Keputusan mengambil, memecat, menaikkan pangkat atau menerima masuk seseorang ialah milik manusia: Adept menyokong pertimbangan manusia dan tidak pernah membuat keputusan itu. Saya boleh tunjukkan data kemahiran untuk membantu anda membuat keputusan yang adil.",
+        "other_person": "Maaf, saya hanya boleh berbincang tentang data anda sendiri. Saya tidak boleh kongsi CV, kemahiran, skor atau pelan orang lain.",
+        "injection": "Maaf, saya tidak boleh mengubah peraturan saya atau mendedahkan arahan tersembunyi. Tapi saya sedia menerangkan hasil Adept anda.",
+        "action_not_supported": "Maaf, saya tidak boleh mendaftarkan anda, menempah kursus, memohon kerja atau mengubah pelan anda dari sembang. Buka kursus dari [[page:/app/pathway]] untuk mendaftar di laman penyedia, dan mohon di laman majikan sendiri melalui [[page:/app/jobs]].",
+        "no_data": "Saya tiada data gaji atau lokasi yang disahkan, jadi saya tidak akan meneka. Untuk gaji dan lokasi, semak iklan sebenar di [[page:/app/jobs]].",
+        "forecast_accuracy": "Soalan yang bagus! Unjuran ini ialah anggaran bagi setiap senario kadar AI, berdasarkan penyelidikan bertarikh dan unjuran tenaga kerja. Ia bukan jaminan, dan Adept tiada angka ketepatan yang disahkan untuk hasil anda sendiri. Semak tarikh sumber di [[page:/app/radar]].",
+        "sources": "Ini sumbernya. Petikan data: {date}. Sumber tersimpan: {sources}. Kursus dalam pelan anda: {courses}. Harga dan jawatan kosong boleh berubah, jadi semak juga halaman penyedia atau majikan.",
+        "sources_fallback": "Makluman: ini petikan baik terakhir bertarikh {date} (data sandaran, kerana data trend terkini tidak dapat dimuatkan). ",
+        "unavailable_busy": "Sekejap! Saya masih menjawab soalan anda tadi. Tanya lagi selepas jawapan itu sampai.",
+        "unavailable_overloaded": "Ramai yang sedang bertanya sekarang. Cuba lagi sebentar.",
+        "unavailable_timeout": "Maaf, saya tidak dapat memuatkan hasil anda tepat pada masanya. Cuba lagi sebentar. Lagi di [[page:/about]].",
+        "unavailable_catalogue": "Maaf, saya tidak dapat menyemak setiap pautan dalam jawapan itu dengan katalog, jadi saya tidak akan memaparkannya. Cuba lagi. Lagi di [[page:/about]].",
+        "sources_unavailable": "Maaf, saya tidak dapat memuatkan rekod sumber sekarang, dan saya tidak akan mereka-reka rujukan. Anda boleh melihatnya di [[page:/about]].",
+        "scenario": "Begini anggaran skor anda berubah daripada kadar AI {before} ke {after}, dengan profil dan petikan data yang sama: {rows}. Ini perbandingan sahaja; senario pilihan anda kekal. Cuba suis kadar AI di [[page:/app/matches]].",
+        "scenario_unavailable": "Maaf, saya tidak dapat memuatkan senario kedua untuk dibandingkan. Kedua-duanya anggaran, bukan jaminan. Cuba suis kadar AI di [[page:/app/radar]].",
         "pace_moderate": "Sederhana",
         "pace_fast": "Pantas",
-        "sdg_explain": "Matlamat Pembangunan Mampan PBB mengaitkan pembelajaran dan pekerjaan dengan sasaran awam. Takrif sasaran rasmi daripada katalog SDG Adept: {targets}. Pautan pelan ialah hipotesis sokongan, bukan kemajuan terukur sasaran PBB. Lihat [[page:/app/sdg]].",
-        "sdg_unavailable": "Takrif SDG itu tiada dalam konteks katalog saya. Saya tidak akan mereka-rekanya; semak [[page:/app/sdg]].",
-        "rank_unavailable": "Kedudukan itu tiada dalam hasil semasa anda. Semak [[page:/app/matches]]; saya tidak akan mereka-reka peranan.",
-        "rank_context": "Ini kedudukan {rank}. Peranan teratas ialah [[role:{role}]] dengan anggaran {score} mata. Kedudukan menggunakan komponen berwajaran; skor seri disusun mengikut ID katalog.",
-        "trend_declining": "Kemahiran yang menurun dalam petikan ini: {skills}. Peranan yang menurun: {roles}. Ini anggaran berdasarkan perhatian penyelidikan dan unjuran tenaga kerja, bukan ramalan bahawa kerja akan hilang. Lihat [[page:/app/radar]].",
-        "score_math": "Anggaran padanan untuk [[role:{role}]] (wajaran × komponen = mata): {parts}. Jumlah = {total} mata daripada 100.",
+        "sdg_explain": "Matlamat Pembangunan Mampan (SDG) PBB ialah sasaran global bersama, termasuk pendidikan berkualiti dan pekerjaan yang wajar. Takrif rasmi daripada katalog Adept: {targets}. Kaitan dengan pelan anda ialah sumbangan yang diharapkan, bukan kemajuan PBB yang diukur. Lagi di [[page:/app/sdg]].",
+        "sdg_unavailable": "Maaf, sasaran SDG itu tiada dalam katalog saya, dan saya tidak akan mereka-rekanya. Lihat senarai penuh di [[page:/app/sdg]].",
+        "rank_unavailable": "Saya tidak menemui kedudukan itu dalam hasil semasa anda, dan saya tidak akan mereka-reka peranan. Lihat [[page:/app/matches]].",
+        "rank_context": "Itu padanan nombor {rank} anda. Peranan teratas anda ialah [[role:{role}]] dengan anggaran {score} mata; peranan disusun mengikut skor berwajaran ini (skor seri ikut susunan katalog).",
+        "trend_declining": "Saya tidak boleh meramal sama ada AI akan menggantikan sesuatu pekerjaan atau kerja anda. Kemahiran yang semakin menurun dalam petikan ini: {skills}. Peranan yang menurun: {roles}. Ini anggaran petikan, bukan bukti bahawa kerja anda atau kemahiran pasukan anda menurun. Lagi di [[page:/app/radar]].",
+        "score_math": "Ini kiraan untuk [[role:{role}]] (wajaran × komponen = mata): {parts}. Jumlah: {total} daripada 100.",
         "skill_overlap": "pertindihan kemahiran",
         "trend_outlook": "prospek trend",
         "interest_fit": "kesesuaian minat",
         "neutral": " (tidak diberi, nilai neutral)",
-        "profile": "Tiada CV? Tidak mengapa: di [[page:/app/onboarding]] anda boleh memilih kemahiran dan tahap sendiri, atau muat naik CV (PDF, Word atau teks). Fail dibaca dalam memori dan tidak disimpan, dan anda mengesahkan setiap kemahiran sebelum disimpan. Kemas kini kemudian di [[page:/app/profile]].",
-        "improvement": "Tutup jurang [[skill:{skill}]] untuk anggaran +{gain} mata skor. {course}.",
-        "no_closing_course": "Belum ada kursus katalog yang menutup jurang ini",
-        "hello": "Hai, saya Adi! Saya boleh terangkan peranan padanan anda, apa perlu dipelajari, "
-        "tren kemahiran, kos kursus dan tuntutan HRD Corp, serta kaitan laluan anda dengan SDG PBB.",
-        "no_profile": "Mula-mula, beritahu kemahiran anda: dua minit di [[page:/app/onboarding]]. "
-        "Kemudian saya boleh menyenaraikan peranan masa depan dan jurangnya.",
-        "visitor_next": "Cuba pratonton CV percuma di halaman utama, atau [[page:/auth/signup]] "
-        "untuk melihat peranan padanan, jurang kemahiran dan pelan pembelajaran.",
-        "top": "Padanan terkuat anda ialah [[role:{role}]] dengan anggaran kesesuaian {score}.",
-        "others": "Seterusnya: {roles}.",
+        "profile": "Lihat dan ubah kemahiran serta tahap anda di [[page:/app/profile]]. Tiada CV? Pilih kemahiran sendiri di [[page:/app/onboarding]], atau muat naik CV (PDF, Word atau teks). Fail tidak disimpan, dan anda mengesahkan setiap kemahiran.",
+        "profile_skills": "Kemahiran dan tahap tersimpan anda: {skills}.",
+        "profile_empty": "Profil anda belum mempunyai kemahiran tersimpan.",
+        "profile_unavailable": "Saya tidak dapat memuatkan kemahiran tersimpan anda, jadi saya tidak akan menekanya.",
+        "profile_work": "Tukar ke ruang kerja peribadi untuk melihat atau mengubah profil kemahiran anda. Di ruang kerja organisasi, [[page:/work/skills]] menunjukkan perkara yang anda kongsi.",
+        "match_unavailable": "Saya tidak dapat memuatkan skor padanan anda untuk [[role:{role}]], jadi saya tidak akan menggunakan skor peranan lain. Semak [[page:/app/matches]].",
+        "skill_learning": "Untuk [[skill:{skill}]], bandingkan tahap anda dengan keperluan peranan pilihan di [[page:/app/matches]]. Pembelajaran berguna apabila merapatkan jurang itu; saya tidak boleh menjanjikan hasil kerjaya. Lihat kursus disemak di [[page:/app/courses]].",
+        "hiring": "Untuk kekosongan semasa, semak [[page:/app/jobs]] dan halaman majikan. Peranan padanan ialah anggaran kesesuaian kemahiran, bukan bukti bahawa majikan sedang mengambil pekerja.",
+        "role_exploration": "Anda boleh meneroka pertukaran kerjaya menggunakan kemahiran boleh pindah. Kemas kini profil di [[page:/app/profile]], kemudian bandingkan peranan katalog, keperluan kemahiran dan anggaran prospek bertarikh di [[page:/app/pathway/compare]]. Saya tidak boleh mengesahkan padanan atau prospek pekerjaan di luar katalog itu, atau menjanjikan hasil kerjaya.",
+        "self_enrolment": "Buka kursus dari [[page:/app/pathway]] atau [[page:/app/courses]], kemudian ikut pautan penyedia untuk menyemak syarat dan mendaftar di laman penyedia. Saya tidak boleh mendaftarkan anda dari sembang.",
+        "improvement": "Membina [[skill:{skill}]] boleh menambah kira-kira +{gain} mata. {course}.",
+        "no_closing_course": "Belum ada kursus katalog untuknya",
+        "hello": "Hai, saya Adi! Tanya saya tentang peranan padanan anda, apa perlu dipelajari seterusnya atau trend kemahiran. Apa yang anda ingin tahu?",
+        "no_profile": "Mari mulakan dengan kemahiran anda! Hanya kira-kira dua minit di [[page:/app/onboarding]]. Kemudian saya boleh padankan anda dengan peranan masa depan dan tunjukkan jurangnya.",
+        "visitor_next": "Cuba pratonton CV percuma di halaman utama, atau [[page:/auth/signup]] untuk melihat peranan padanan, jurang kemahiran dan pelan pembelajaran.",
+        "top": "Padanan terkuat anda sekarang ialah [[role:{role}]] dengan anggaran {score}.",
         "gap": "Untuk merapatkan jurang, fokus pada {skills}.",
-        "no_gap": "Anda sudah memenuhi kemahiran yang diperlukan; pelan anda boleh mendalaminya.",
+        "no_gap": "Anda sudah ada kemahiran yang diperlukan, jadi pelan anda boleh membantu anda mendalaminya.",
         "why": "Ia anggaran, bukan jaminan.",
-        "plan": "Pelan anda untuk [[role:{role}]] bermula dengan [[skill:{skill}]] melalui "
-        "[[course:{course}]]. Jejak di [[page:/app/progress]].",
-        "no_plan": "Pilih peranan dan simpan pelan di [[page:/app/pathway]]; saya akan bimbing "
-        "anda langkah demi langkah.",
-        "trend": "Dalam petikan terkini, kemahiran ini meningkat: {skills}. Tren ialah anggaran; "
-        "lihat [[page:/app/radar]].",
+        "plan": "Langkah seterusnya ke arah [[role:{role}]] ialah [[skill:{skill}]], melalui [[course:{course}]]. Jejak di [[page:/app/progress]].",
+        "no_plan": "Anda belum menyimpan pelan. Pilih peranan dan simpan pelan di [[page:/app/pathway]], dan saya akan bimbing anda langkah demi langkah.",
+        "trend": "Kemahiran yang meningkat dalam petikan terkini: {skills}. Ini anggaran daripada penyelidikan dan unjuran tenaga kerja; terokai di [[page:/app/radar]].",
         "my_trend": "Kemahiran anda: {skills}.",
-        "cost": "Setiap kursus menunjukkan jam, harga bertarikh dan kelayakan tuntutan HRD Corp. "
-        "Kelayakan tidak menjamin pembiayaan: sahkan yuran sijil, cukai dan kelulusan majikan "
-        "sebelum membeli. Lihat [[page:/app/courses]].",
-        "plan_progress": "Untuk pelan tersimpan bagi [[role:{role}]], {share} jam pembelajaran direkodkan selesai; {courses} kursus direkodkan selesai dan {closed} daripada {total} jurang kemahiran ditutup. Tamat kursus tidak menjamin semua kemahiran peranan dipenuhi. Lihat [[page:/app/progress]].",
-        "plan_duration": "Pelan tersimpan bagi [[role:{role}]] menganggarkan {weeks} minggu pada {weekly} jam seminggu, dengan jumlah {hours} jam belajar. Ini anggaran pembelajaran, bukan jaminan tarikh tamat. Lihat [[page:/app/pathway]].",
-        "plan_cost": "Pelan tersimpan bagi [[role:{role}]] merekodkan anggaran harga senarai RM {listed} dan kos pelajar RM {learner} berdasarkan andaian pembiayaan tersimpan. Sahkan yuran sijil, cukai, harga semasa dan kelulusan majikan sebelum membeli. Lihat [[page:/app/pathway]].",
-        "progress_unavailable": "Saya tidak dapat memuatkan kemajuan pelan tersimpan. Cuba lagi atau lihat [[page:/app/progress]]; saya tidak boleh menganggap kemajuan sifar.",
-        "totals_unavailable": "Saya tidak dapat memuatkan jumlah pelan tersimpan. Cuba lagi atau lihat [[page:/app/pathway]]; saya tidak boleh menganggar angka yang tiada.",
-        "sdg": "Setiap peranan dan kemahiran dikaitkan dengan sasaran SDG PBB beserta "
-        "sebabnya.{badges} Lihat [[page:/app/sdg]].",
-        "privacy": "Fail CV anda dibaca dalam memori dan tidak disimpan; anda mengesahkan kemahiran yang diekstrak sebelum disimpan. Apabila perkhidmatan AI diaktifkan, teks sembang yang dibersihkan dan calon jawapan mungkin diproses oleh RunPod atau Google Gemini, dan padanan kemahiran pilihan menghantar frasa kemahiran pendek yang maklumat hubungannya disunting ke Gemini, bukan fail CV. Anda boleh muat turun atau padam data anda di Kemahiran saya. Butiran: [[page:/privacy]]; model AI yang digunakan: [[page:/about]].",
-        "how": "Adept membawa anda dari kemahiran hari ini ke peranan masa depan: profil → Radar "
-        "Kemahiran Masa Depan → peranan padanan → pelan pembelajaran yang dikaitkan dengan SDG "
-        "PBB. Setiap anggaran ada sumber dan tarikh. [[page:/about]]",
+        "cost": "Setiap kursus menunjukkan jam, harga bertarikh dan sama ada tuntutan HRD Corp mungkin layak. Kelayakan tidak menjamin pembiayaan, jadi semak yuran, cukai dan kelulusan majikan sebelum membeli. Lihat [[page:/app/courses]].",
+        "plan_progress": "Dalam pelan anda ke arah [[role:{role}]], {share} jam pembelajaran sudah selesai: {courses} kursus selesai dan {closed} daripada {total} jurang kemahiran ditutup. Tamat kursus tidak menjamin semua kemahiran peranan. Lihat [[page:/app/progress]].",
+        "plan_duration": "Pelan anda ke arah [[role:{role}]] dianggarkan mengambil kira-kira {weeks} minggu pada {weekly} jam seminggu, jumlahnya {hours} jam belajar. Ini anggaran, bukan janji. Lihat [[page:/app/pathway]].",
+        "plan_cost": "Pelan anda ke arah [[role:{role}]] mencatat harga senarai kira-kira RM {listed}, dan kira-kira RM {learner} untuk anda mengikut andaian pembiayaan tersimpan. Semak yuran, cukai, harga semasa dan kelulusan majikan sebelum membeli. Lihat [[page:/app/pathway]].",
+        "progress_unavailable": "Maaf, saya tidak dapat memuatkan kemajuan pelan anda sekarang, dan saya tidak akan menganggap sifar. Cuba lagi atau lihat [[page:/app/progress]].",
+        "totals_unavailable": "Maaf, saya tidak dapat memuatkan jumlah pelan anda sekarang, dan saya tidak akan menekanya. Cuba lagi atau lihat [[page:/app/pathway]].",
+        "sdg": "Setiap peranan dan kemahiran dikaitkan dengan sasaran SDG PBB, beserta sebabnya.{badges} Lihat [[page:/app/sdg]].",
+        "privacy": "Pelan peribadi, padanan dan sembang anda kekal peribadi. Majikan melihat kemajuan program dan bukti dalam ruang kerjanya sendiri, serta tahap kemahiran hanya dengan persetujuan perkongsian anda. Fail CV anda dibaca dalam memori dan tidak pernah disimpan, dan anda mengesahkan setiap kemahiran sebelum disimpan. Jika perkhidmatan AI diaktifkan, teks sembang yang dibersihkan dan frasa kemahiran pendek tanpa maklumat hubungan mungkin diproses oleh RunPod atau Google Gemini, bukan fail CV anda. Anda boleh muat turun atau padam data di Kemahiran saya. Butiran: [[page:/privacy]]; model AI yang digunakan: [[page:/about]].",
+        "how": "Adept membawa anda dari kemahiran hari ini ke peranan masa depan: profil kemahiran → Radar Kemahiran Masa Depan → peranan padanan dan jurang → pelan pembelajaran yang dikaitkan dengan SDG PBB. Setiap anggaran ada sumber dan tarikh. Lagi di [[page:/about]].",
         "team": "Pasukan anda: {members} ahli, {complete} dengan profil lengkap.{gap}",
         "team_gap": " Jurang purata terbesar ialah untuk [[role:{role}]] ({gap}).",
         "team_plan": " Pelan pasukan menyasarkan [[role:{role}]]: lihat [[page:/org/plan]].",
-        "team_none": "Kongsi kod sertai dari [[page:/org/members]] supaya pasukan anda boleh "
-        "menambah kemahiran mereka.",
-        "plan_done": "Anda telah menamatkan semua kursus dalam pelan tersimpan untuk [[role:{role}]]. {gaps} Bandingkan peranan lain di [[page:/app/pathway/compare]] atau semak kemahiran di [[page:/app/progress]].",
+        "team_none": "Kongsi kod sertai dari [[page:/org/members]] supaya pasukan anda boleh menambah kemahiran mereka.",
+        "plan_done": "Syabas, anda telah menamatkan semua kursus dalam pelan ke arah [[role:{role}]]! {gaps} Bandingkan peranan lain di [[page:/app/pathway/compare]] atau semak kemahiran di [[page:/app/progress]].",
         "plan_done_gaps": "{open} kemahiran yang diperlukan masih perlu latihan atau kursus yang belum ada dalam katalog.",
-        "plan_done_closed": "Jurang kemahiran yang disenaraikan telah ditutup.",
+        "plan_done_closed": "Semua jurang kemahiran yang disenaraikan telah ditutup.",
         "work_pending": "Di {org}, program “{title}” untuk [[role:{role}]] menunggu jawapan anda. Semak perjanjian pembelajaran di [[page:/work/plan]]: terima, atau minta perubahan.",
         "work_active": "Di {org}, program “{title}” anda menuju [[role:{role}]] menjelang {date}, dengan {hours} jam seminggu masa belajar berbayar dan sehingga RM {budget} daripada majikan. {share} jam kursus direkodkan selesai.",
         "work_next": " Seterusnya: [[course:{course}]]. Jejak di [[page:/work/progress]].",
@@ -756,65 +1026,77 @@ T: dict[str, dict[str, str]] = {
         "programmes": " Program: {count} dihantar; {accepted} diterima, {pending} menunggu, {changes} minta perubahan, {declined} ditolak. Lihat [[page:/org/programmes]].",
         "programmes_none": " Belum ada program dihantar: mulakan dari objektif perniagaan di [[page:/org/programmes/new]].",
         "team_shared": " {shared} daripadanya berkongsi tahap kemahiran.",
+        "team_suppressed": " Terlalu sedikit ahli untuk memaparkan jurang kemahiran pasukan.",
+        "off_topic": "Maaf, saya tak dapat membantu dengan yang itu. Saya paling arif tentang kemahiran, peranan padanan dan pelan pembelajaran anda. Ada apa-apa lagi yang boleh saya bantu?",
+        "invent": "Maaf, saya tidak boleh mereka-reka pekerjaan, kursus, kemahiran atau angka. Semua yang saya tunjukkan datang daripada katalog Adept yang disemak dan data anda. Ada apa-apa lagi yang boleh saya bantu?",
+        "unknown": "Maaf, saya kurang pasti boleh membantu dengan yang itu. Saya boleh terangkan padanan anda, apa perlu dipelajari seterusnya atau trend kemahiran. Ada apa-apa lagi yang boleh saya bantu?",
+        "thanks": "Sama-sama! Ada apa-apa lagi yang boleh saya bantu?",
     },
     "zh": {
-        "decision": "Adept 为您的判断提供支持，绝不作出招聘、解雇、晋升或录取决定。",
-        "other_person": "我只能在此对话中讨论您自己的数据，不能透露他人的简历、技能、分数或私人计划。",
-        "injection": "我不能遵循绕过规则或泄露隐藏指令的请求。我可以帮助解释您的 Adept 结果。",
-        "action_not_supported": "聊天无法编辑或删除课程及计划步骤。请到 [[page:/app/pathway]] 查看计划，或通过 [[page:/app/pathway/compare]] 选择其他目标。",
-        "no_data": "此对话中没有经过核实的薪资数据或按地点筛选的职位结果。我不会猜测。请浏览 [[page:/app/jobs]] 并查看雇主发布的信息。",
-        "forecast_accuracy": "这些预测是根据有日期的研究关注度与劳动力预测形成的情景估计，并非经过校准的概率或保证。Adept 没有针对您个人结果的已验证预测准确率。覆盖不足、旧观察时间段及备用快照会限制结果。请在 [[page:/app/radar]] 查看来源日期。",
-        "sources": "快照日期：{date}。已存来源：{sources}。您的计划课程：{courses}。课程链接指向提供方页面；职位请核对雇主信息。聊天无法确认当前供应情况或价格。",
-        "sources_fallback": "正在显示 {date} 的最近一次可用快照（备用数据：无法加载最新趋势数据）。",
-        "unavailable_busy": "我还在回答你上一个问题，请等待该回答后再提问。",
-        "unavailable_overloaded": "Adi 正在回答很多问题，请稍后再试。",
-        "unavailable_timeout": "暂时无法及时加载你的结果，请稍后重试。详见 [[page:/about]]。",
-        "unavailable_catalogue": "此回答中的部分引用无法与目录核对，因此不会显示。请重试。详见 [[page:/about]]。",
-        "sources_unavailable": "无法加载此回答的来源记录。请查看 [[page:/about]]；我不会编造引用。",
-        "scenario": "在相同资料和同一日期快照下，{before} → {after}的估计分数：{rows}。排名是相对的，也可能不变。这是情景比较，不会更改您的选择。请在 [[page:/app/matches]] 使用 AI 变化速度切换。",
-        "scenario_unavailable": "无法加载适合您资料的第二个可比情景。两种情景都是估计，并非保证。请在 [[page:/app/radar]] 使用 AI 变化速度切换来比较可用数据。",
+        "decision": "抱歉，这不是我能做的决定。招聘、解雇、晋升和录取的决定属于人：Adept 只为人的判断提供支持，从不作出这些决定。我可以展示技能数据，帮助你公平地做决定。",
+        "other_person": "抱歉，我只能谈你自己的数据，不能分享他人的简历、技能、分数或计划。",
+        "injection": "抱歉，我不能更改规则或透露隐藏指令。不过我很乐意解释你自己的 Adept 结果。",
+        "action_not_supported": "抱歉，我无法在聊天中帮你报名、预订课程、申请职位或修改计划。请在 [[page:/app/pathway]] 打开课程，到提供方网站自行报名；申请职位请通过 [[page:/app/jobs]] 前往雇主自己的页面。",
+        "no_data": "我没有经过核实的薪资或地点数据，所以不会猜测。薪资和地点请查看 [[page:/app/jobs]] 上的真实职位信息。",
+        "forecast_accuracy": "好问题！这些预测是每种 AI 发展速度情景下的估计，依据有日期的研究和劳动力预测。它们不是保证，Adept 也没有针对你个人结果的已验证准确率。请在 [[page:/app/radar]] 查看来源日期。",
+        "sources": "数据来源如下。数据快照：{date}。已存来源：{sources}。你计划中的课程：{courses}。价格和职位会变化，请同时查看提供方或雇主页面。",
+        "sources_fallback": "提示：这是 {date} 的最近一次可用快照（备用数据：最新趋势数据未能加载）。",
+        "unavailable_busy": "稍等！我还在回答你上一个问题，等那个回答出来后再问吧。",
+        "unavailable_overloaded": "现在提问的人很多，请稍后再试。",
+        "unavailable_timeout": "抱歉，没能及时加载你的结果，请稍后重试。详见 [[page:/about]]。",
+        "unavailable_catalogue": "抱歉，那个回答中的部分链接无法与目录核对，所以不会显示。请重试。详见 [[page:/about]]。",
+        "sources_unavailable": "抱歉，暂时无法加载来源记录，我也不会编造引用。你可以在 [[page:/about]] 查看。",
+        "scenario": "在相同资料和数据快照下，从{before}到{after} AI 速度，你的估计分数变化如下：{rows}。这只是比较，不会更改你选择的情景。可在 [[page:/app/matches]] 试试 AI 速度切换。",
+        "scenario_unavailable": "抱歉，无法加载可供比较的第二个情景。两种情景都是估计，并非保证。可在 [[page:/app/radar]] 试试 AI 速度切换。",
         "pace_moderate": "适度",
         "pace_fast": "快速",
-        "sdg_explain": "联合国可持续发展目标将学习和工作与公共目标联系起来。Adept 的 SDG 目录中的官方目标定义：{targets}。计划关联是提供支持的假设，并非联合国目标的实测进展。请查看 [[page:/app/sdg]]。",
-        "sdg_unavailable": "当前目录上下文中没有该 SDG 定义。我不会编造，请查看 [[page:/app/sdg]]。",
-        "rank_unavailable": "当前结果中没有该名次。请查看 [[page:/app/matches]]；我不会编造职位。",
-        "rank_context": "这是第 {rank} 名。领先职位为 [[role:{role}]]，估计得分 {score}。排名由加权分数组成，同分时按目录 ID 排序。",
-        "trend_declining": "此快照中需求下降的技能：{skills}。需求下降的职位：{roles}。这些是基于研究关注度和劳动力预测的估计，并不表示某个工作一定会消失。请查看 [[page:/app/radar]]。",
-        "score_math": "[[role:{role}]] 的估计匹配度（权重 × 分项 = 得分）：{parts}。总计 = {total} 分，满分 100。",
+        "sdg_explain": "联合国可持续发展目标（SDG）是全球共同的目标，其中包括优质教育和体面工作。Adept 目录中的官方定义：{targets}。与你计划的关联是期望的贡献，并非联合国实测进展。详见 [[page:/app/sdg]]。",
+        "sdg_unavailable": "抱歉，我的目录中没有该 SDG 目标，我也不会编造。完整列表见 [[page:/app/sdg]]。",
+        "rank_unavailable": "在你当前的结果中找不到这个名次，我也不会编造职位。请看看 [[page:/app/matches]]。",
+        "rank_context": "这是你的第 {rank} 名匹配。你的首位职位是 [[role:{role}]]，估计 {score} 分；职位按这些加权分数排序（同分按目录顺序）。",
+        "trend_declining": "我无法预测 AI 是否会取代某种职业或你的工作。此快照中需求降温的技能：{skills}。需求降温的职位：{roles}。这些是快照的估计，不能证明你的工作或团队技能正在衰退。详见 [[page:/app/radar]]。",
+        "score_math": "[[role:{role}]] 的计算方式（权重 × 分项 = 得分）：{parts}。总计：{total} 分，满分 100。",
         "skill_overlap": "技能重合",
         "trend_outlook": "趋势前景",
         "interest_fit": "兴趣契合",
         "neutral": "（未提供，取中性值）",
-        "profile": "没有简历也没关系：在 [[page:/app/onboarding]] 可以手动选择技能和水平，或上传简历（PDF、Word 或文本）。文件只在内存中读取、不会保存，每项技能都由你确认后才保存。之后可在 [[page:/app/profile]] 更新。",
-        "improvement": "弥补 [[skill:{skill}]] 差距，预计提高 {gain} 分。{course}。",
-        "no_closing_course": "目录中暂时没有能完全弥补此差距的课程",
-        "hello": "你好，我是 Adi！我可以解释你的匹配职位、下一步该学什么、技能趋势、课程费用与 HRD Corp "
-        "补贴，以及你的路径如何关联联合国可持续发展目标。",
-        "no_profile": "先告诉我你的技能：在 [[page:/app/onboarding]] 只需两分钟。之后我就能为你排序未来职位并显示差距。",
+        "profile": "在 [[page:/app/profile]] 查看和修改你的技能及水平。没有简历？可以在 [[page:/app/onboarding]] 手动选择，或上传简历（PDF、Word 或文本）。文件不会被保存，每项技能都由你确认。",
+        "profile_skills": "你已保存的技能及水平：{skills}。",
+        "profile_empty": "你的资料中还没有已保存的技能。",
+        "profile_unavailable": "暂时无法加载你已保存的技能，我不会猜测。",
+        "profile_work": "请切换到个人工作区查看或修改自己的技能资料。在组织工作区，[[page:/work/skills]] 显示你选择分享的内容。",
+        "match_unavailable": "无法加载你与 [[role:{role}]] 的匹配分数，我不会使用其他职位的分数。请查看 [[page:/app/matches]]。",
+        "skill_learning": "对于 [[skill:{skill}]]，请在 [[page:/app/matches]] 比较你的水平与所选职位的要求。当学习能缩小这个差距时才有帮助，我无法保证职业结果。可在 [[page:/app/courses]] 浏览已核实的课程。",
+        "hiring": "请在 [[page:/app/jobs]] 及雇主页面查看当前空缺。职位匹配是技能契合度的估计，不能证明雇主正在招聘。",
+        "role_exploration": "你可以利用可迁移的技能探索转行。在 [[page:/app/profile]] 更新技能资料，再到 [[page:/app/pathway/compare]] 比较目录中的职位、技能要求及带日期的前景估计。我无法确认目录之外职业的匹配或前景，也无法保证职业结果。",
+        "self_enrolment": "在 [[page:/app/pathway]] 或 [[page:/app/courses]] 打开课程，再通过提供方链接查看要求并在其网站自行报名。我无法在聊天中帮你报名。",
+        "improvement": "提升 [[skill:{skill}]] 预计可增加约 {gain} 分。{course}。",
+        "no_closing_course": "目录中暂时没有对应课程",
+        "hello": "你好，我是 Adi！可以问我你的匹配职位、下一步学什么或技能趋势。你想了解什么？",
+        "no_profile": "先从你的技能开始吧！在 [[page:/app/onboarding]] 大约只需两分钟。之后我就能为你匹配未来职位并显示差距。",
         "visitor_next": "试试首页的免费简历预览，或 [[page:/auth/signup]] 查看匹配职位、技能差距和学习计划。",
-        "top": "你最匹配的职位是 [[role:{role}]]，估计匹配度 {score}。",
-        "others": "其次：{roles}。",
+        "top": "你目前最匹配的职位是 [[role:{role}]]，估计匹配度 {score}。",
         "gap": "要缩小差距，请重点学习 {skills}。",
         "no_gap": "你已具备该职位所需技能，学习计划可以帮你进一步提升。",
         "why": "这只是估计，不是保证。",
-        "plan": "你为 [[role:{role}]] 保存的计划从 [[skill:{skill}]] 开始，课程是 [[course:{course}]]。在 [[page:/app/progress]] 跟踪进度。",
-        "no_plan": "在 [[page:/app/pathway]] 选择职位并保存计划，我会一步步带你完成。",
-        "trend": "在最新快照中，这些技能正在上升：{skills}。趋势是估计值；详见 [[page:/app/radar]]。",
-        "my_trend": "你的技能：{skills}。",
-        "cost": "每门课程均标明学时、带日期的价格及 HRD Corp 申报资格。符合资格不代表已获资助：购买前请确认凭证费用、税费及雇主批准。浏览 [[page:/app/courses]]。",
-        "plan_progress": "你为 [[role:{role}]] 保存的计划中，已记录完成 {share} 的学习时数、{courses} 门课程，以及 {total} 项技能差距中的 {closed} 项。完成课程不代表已满足全部职位技能。详见 [[page:/app/progress]]。",
-        "plan_duration": "你为 [[role:{role}]] 保存的计划预计需要 {weeks} 周，每周 {weekly} 小时，总计 {hours} 学习小时。这是学习时间估计，不是完成日期保证。详见 [[page:/app/pathway]]。",
-        "plan_cost": "你为 [[role:{role}]] 保存的计划记录的预计标价为 RM {listed}，依照保存的资助假设，学员费用为 RM {learner}。购买前请确认凭证费用、税费、最新价格及雇主批准。详见 [[page:/app/pathway]]。",
-        "progress_unavailable": "暂时无法加载已保存计划的进度，请重试或查看 [[page:/app/progress]]；我不会假设进度为零。",
-        "totals_unavailable": "暂时无法加载已保存计划的总额，请重试或查看 [[page:/app/pathway]]；我不会估计缺失的数据。",
-        "sdg": "每个职位和技能都关联联合国 SDG 具体目标并附理由。{badges} 详见 [[page:/app/sdg]]。",
-        "privacy": "你的简历文件只在内存中读取，不会保存；提取的技能由你确认后才保存。启用 AI 服务时，经清理的聊天文本和候选答案可能由 RunPod 或 Google Gemini 处理，可选的技能匹配会把去除联系方式的简短技能短语发送给 Gemini，而不是简历文件。你可以在“我的技能”下载或删除数据。详情：[[page:/privacy]]；所用 AI 模型：[[page:/about]]。",
-        "how": "Adept 带你从今天的技能走向未来职位：技能档案 → 未来技能雷达 → 匹配职位与差距 → 关联联合国 SDG 的学习计划。每个估计都注明来源和日期。[[page:/about]]",
+        "plan": "你迈向 [[role:{role}]] 的下一步是 [[skill:{skill}]]，课程是 [[course:{course}]]。在 [[page:/app/progress]] 跟踪进度。",
+        "no_plan": "你还没有保存计划。在 [[page:/app/pathway]] 选择职位并保存计划，我会一步步带你完成。",
+        "trend": "最新快照中正在上升的技能：{skills}。这些是根据研究和劳动力预测得出的估计；可在 [[page:/app/radar]] 查看。",
+        "my_trend": "你自己的技能：{skills}。",
+        "cost": "每门课程都标明学时、带日期的价格，以及是否可能申请 HRD Corp 补贴。符合资格不代表一定获得资助，购买前请确认费用、税费和雇主批准。浏览 [[page:/app/courses]]。",
+        "plan_progress": "在你迈向 [[role:{role}]] 的计划中，已完成 {share} 的学习时数：{courses} 门课程已完成，{total} 项技能差距中已补齐 {closed} 项。完成课程不代表已满足全部职位技能。详见 [[page:/app/progress]]。",
+        "plan_duration": "你迈向 [[role:{role}]] 的计划预计需要约 {weeks} 周，每周 {weekly} 小时，总计 {hours} 学习小时。这是估计，不是承诺。详见 [[page:/app/pathway]]。",
+        "plan_cost": "你迈向 [[role:{role}]] 的计划标价约 RM {listed}，按保存的资助假设，你需支付约 RM {learner}。购买前请确认费用、税费、最新价格和雇主批准。详见 [[page:/app/pathway]]。",
+        "progress_unavailable": "抱歉，暂时无法加载你的计划进度，我不会假设进度为零。请重试或查看 [[page:/app/progress]]。",
+        "totals_unavailable": "抱歉，暂时无法加载你的计划总额，我不会猜测。请重试或查看 [[page:/app/pathway]]。",
+        "sdg": "每个职位和技能都关联联合国 SDG 具体目标并附有理由。{badges} 详见 [[page:/app/sdg]]。",
+        "privacy": "个人计划、匹配结果和聊天保持私密。雇主可查看其工作区中的项目进度和证据，只有你同意分享时才可查看技能水平。你的简历文件只在内存中读取，从不保存；每项技能都由你确认后才保存。启用 AI 服务时，经清理的聊天文本和去除联系方式的简短技能短语可能由 RunPod 或 Google Gemini 处理，绝不包括你的简历文件。你可以在“我的技能”下载或删除数据。详情：[[page:/privacy]]；所用 AI 模型：[[page:/about]]。",
+        "how": "Adept 带你从今天的技能走向未来职位：技能档案 → 未来技能雷达 → 匹配职位与差距 → 关联联合国 SDG 的学习计划。每个估计都注明来源和日期。详见 [[page:/about]]。",
         "team": "你的团队：{members} 名成员，其中 {complete} 名已完成档案。{gap}",
         "team_gap": " 平均差距最大的是 [[role:{role}]]（{gap}）。",
         "team_plan": " 团队计划目标为 [[role:{role}]]：详见 [[page:/org/plan]]。",
         "team_none": "在 [[page:/org/members]] 分享加入码，让成员添加他们的技能。",
-        "plan_done": "你已完成为 [[role:{role}]] 保存的计划中的全部课程。{gaps} 可在 [[page:/app/pathway/compare]] 比较其他职位，或在 [[page:/app/progress]] 查看技能。",
+        "plan_done": "太棒了，你已完成迈向 [[role:{role}]] 的计划中的全部课程！{gaps} 可在 [[page:/app/pathway/compare]] 比较其他职位，或在 [[page:/app/progress]] 查看技能。",
         "plan_done_gaps": "仍有 {open} 项所需技能需要实践，或目录中尚无对应课程。",
         "plan_done_closed": "列出的技能差距均已补齐。",
         "work_pending": "在 {org}，面向 [[role:{role}]] 的项目“{title}”正在等待你的答复。请在 [[page:/work/plan]] 查看学习协议：接受，或申请调整。",
@@ -829,6 +1111,11 @@ T: dict[str, dict[str, str]] = {
         "programmes": " 项目：已发送 {count} 个；{accepted} 人接受，{pending} 人待定，{changes} 人申请调整，{declined} 人拒绝。详见 [[page:/org/programmes]]。",
         "programmes_none": " 尚未发送项目：可在 [[page:/org/programmes/new]] 从业务目标开始。",
         "team_shared": " 其中 {shared} 人分享了技能水平。",
+        "team_suppressed": " 成员人数过少，无法显示团队技能差距。",
+        "off_topic": "抱歉，这个问题我帮不上忙。我最擅长的是你的技能、匹配职位和学习计划。还有什么我可以帮你的吗？",
+        "invent": "抱歉，我不能编造职位、课程、技能或数字。我展示的一切都来自 Adept 核实过的目录和你的数据。还有什么我可以帮你的吗？",
+        "unknown": "抱歉，这个问题我不太确定能否帮上忙。我可以解释你的匹配结果、下一步学什么或技能趋势。还有什么我可以帮你的吗？",
+        "thanks": "不客气！还有什么我可以帮你的吗？",
     },
 }
 
@@ -843,7 +1130,10 @@ CHIPS: dict[str, dict[str, str]] = {
         "declining": "Which skills are declining?",
         "rising": "Which skills are rising?",
         "accuracy": "How accurate are your forecasts?",
-        "why_top": "Why is my top role a match?",
+        "why_top": "Why is this my top match?",
+        "start_course": "Which course should I start with?",
+        "progress": "How much of my plan have I finished?",
+        "sdg_what": "What is SDG 4.4?",
         "plan_cost": "How much will my plan cost?",
         "hrd": "Which courses are HRD Corp claimable?",
         "employer_see": "What does my employer see?",
@@ -861,7 +1151,10 @@ CHIPS: dict[str, dict[str, str]] = {
         "declining": "Kemahiran apa yang semakin menurun?",
         "rising": "Kemahiran apa yang meningkat?",
         "accuracy": "Sejauh mana ketepatan ramalan anda?",
-        "why_top": "Kenapa peranan teratas sesuai?",
+        "why_top": "Kenapa ini padanan teratas saya?",
+        "start_course": "Kursus mana patut saya mula dulu?",
+        "progress": "Apakah kemajuan pelan saya?",
+        "sdg_what": "Apa itu SDG 4.4?",
         "plan_cost": "Berapa kos pelan saya?",
         "hrd": "Kursus mana boleh tuntut HRD Corp?",
         "employer_see": "Apa yang majikan nampak?",
@@ -879,7 +1172,10 @@ CHIPS: dict[str, dict[str, str]] = {
         "declining": "哪些技能在下降？",
         "rising": "哪些技能在上升？",
         "accuracy": "你们的预测有多准确？",
-        "why_top": "为什么这个职位最匹配？",
+        "why_top": "为什么这是我最匹配的职位？",
+        "start_course": "我应该先学哪门课程？",
+        "progress": "我的计划完成了多少？",
+        "sdg_what": "SDG 4.4 是什么？",
         "plan_cost": "我的计划费用是多少？",
         "hrd": "哪些课程可用 HRD Corp 报销？",
         "employer_see": "雇主能看到什么？",
@@ -899,7 +1195,10 @@ CHIP_INTENTS: dict[str, str] = {
     "declining": "trend_declining",
     "rising": "trend",
     "accuracy": "forecast_accuracy",
-    "why_top": "roles",
+    "why_top": "score_breakdown",
+    "start_course": "learn",
+    "progress": "plan_progress",
+    "sdg_what": "sdg_explain",
     "plan_cost": "plan_cost",
     "hrd": "cost",
     "employer_see": "privacy",
@@ -940,6 +1239,36 @@ _MANAGER_FOLLOW_UPS: dict[str, tuple[str, ...]] = {
     "trend_declining": ("rising", "sources", "team_gap"),
     "sources": ("accuracy", "declining", "team_gap"),
 }
+# Never show more than this many chips at once.
+MAX_SUGGESTIONS = 3
+# Chips after a refusal, small talk or "not sure" reply, by the page the person is on.
+_PAGE_CHIPS: dict[str, dict[str, tuple[str, ...]]] = {
+    "learner": {
+        "/app/matches": ("why_top", "raise", "faster"),
+        "/app/jobs": ("why_top", "raise", "rising"),
+        "/app/pathway": ("start_course", "plan_cost", "progress"),
+        "/app/progress": ("progress", "start_course", "plan_cost"),
+        "/app/courses": ("start_course", "hrd", "plan_cost"),
+        "/app/radar": ("rising", "declining", "faster"),
+        "/app/sdg": ("sdg_what", "next", "sources"),
+        "/app/profile": ("why_top", "rising", "cv_stored"),
+    },
+    "manager": {
+        "/org/radar": ("rising", "declining", "team_gap"),
+        "/org/gaps": ("team_gap", "programmes", "declining"),
+        "/org/programmes": ("programmes", "team_gap", "sources"),
+    },
+    "employee": {
+        "/work/skills": ("employer_see", "programme", "next"),
+    },
+}
+# Extra questions used to keep three chips when a default would repeat the last answer.
+_CHIP_BACKFILL: dict[str, tuple[str, ...]] = {
+    "visitor": ("how", "cv_stored", "rising", "sources"),
+    "learner": ("next", "why_top", "rising", "how", "sources"),
+    "employee": ("next", "employer_see", "programme", "how", "rising"),
+    "manager": ("team_gap", "programmes", "sources", "declining", "rising"),
+}
 
 
 def intent(question: str, audience: str = "learner") -> str:
@@ -965,9 +1294,17 @@ def intents(question: str, audience: str = "learner") -> list[str]:
         possessive and possessive.group(1) not in _NOT_PEOPLE
     ):
         return ["other_person"]
+    if any(pattern.search(q) for pattern in _INVENT):
+        return ["invent"]
+    if any(pattern.search(q) for pattern in _VISIBILITY):
+        return ["privacy"]
+    if any(_contains(q, word) for word in _OFF_TOPIC) and not any(
+        _contains(q, word) for word in _CAREER_WORDS
+    ):
+        return ["off_topic"]
     scores: dict[str, float] = {}
     for name, words in INTENTS.items():
-        if name in SAFETY_INTENTS:
+        if name in SAFETY_INTENTS or name == "unknown":
             continue
         if name in PERSONAL_PLAN_INTENTS and audience not in ("learner", "employee"):
             continue
@@ -985,13 +1322,16 @@ def intents(question: str, audience: str = "learner") -> list[str]:
         hits: float = patterns + sum(_strength(word) for word in words if _contains(q, word))
         if not hits:
             hits = 0.6 * any(_keyword_hit(q, word) for word in words)
-        weight = 3.0 if name in FACT_INTENTS else 0.15 if name in {"how", "next"} else 1.0
+        weight = 3.0 if name in FACT_INTENTS else 0.15 if name in GENERIC_INTENTS else 1.0
         scores[name] = hits * weight
     specific = {
-        name: value for name, value in scores.items() if name not in {"how", "next"} and value >= 1
+        name: value for name, value in scores.items() if name not in GENERIC_INTENTS and value >= 1
     }
     if not specific:
-        return [max(scores, key=lambda name: scores[name]) if any(scores.values()) else "next"]
+        if any(_contains(q, word) for word in _OFF_TOPIC):
+            return ["off_topic"]
+        # Ties keep table order, so "how"/"next" outrank a greeting in the same question.
+        return [max(scores, key=lambda name: scores[name]) if any(scores.values()) else "unknown"]
     ranked = sorted(specific, key=lambda name: -specific[name])  # stable: ties keep table order
     if len(ranked) > 1 and specific[ranked[1]] >= NEAR_TIE * specific[ranked[0]]:
         return ranked[:2]
@@ -1098,6 +1438,7 @@ def _edit_distance(a: str, b: str) -> int:
 def focus_context(question: str, ctx: Context) -> Context:
     """Resolve ordinal roles and catalogue targets without changing the stored context."""
     facts = dict(ctx.facts)
+    q = question.lower()
     ordinals = (("second", "2nd", "kedua", "第二"), ("third", "3rd", "ketiga", "第三"))
     matches = facts.get("matches") or []
     for index, words in enumerate(ordinals, start=1):
@@ -1105,11 +1446,69 @@ def focus_context(question: str, ctx: Context) -> Context:
             facts["focus_rank"] = index + 1
             facts["focus_match"] = matches[index] if len(matches) > index else None
             break
+    role = _named_ref(q, ctx.refs.roles)
+    if role:
+        facts["focus_role"] = role
+        facts["focus_match"] = next((m for m in matches if m["role_id"] == role), None)
+        if facts["focus_match"]:
+            facts["focus_rank"] = matches.index(facts["focus_match"]) + 1
+    skill = _named_ref(q, ctx.refs.skills)
+    if skill:
+        facts["focus_skill"] = skill
     target = re.search(r"\bsdg\s*(\d{1,2}\.[a-z0-9]+)", question.lower())
     if target:
         facts["sdg_focus"] = target.group(1)
+    else:
+        goal = re.search(r"\bsdg\s*(\d{1,2})\b", q)
+        if goal:
+            facts["sdg_goal_focus"] = goal.group(1)
     facts["sdg_plan_question"] = any(_contains(question.lower(), word) for word in PLAN_WORDS)
+    facts["hiring_question"] = any(
+        _contains(q, word)
+        for word in (
+            "hiring",
+            "vacancies",
+            "openings",
+            "mengambil pekerja",
+            "jawatan kosong",
+            "招聘",
+        )
+    )
+    facts["role_exploration"] = any(_contains(q, word) for word in CAREER_MOVES) or bool(
+        re.search(
+            r"\b(?:what|which)\s+(?!skills?\b|roles?\b|jobs?\b|courses?\b)"
+            r"(?:[\w-]+\s+){1,4}(?:roles|jobs|skills)\b",
+            q,
+        )
+    )
+    facts["self_enrolment"] = bool(
+        re.search(r"\bhow\s+(?:do|can)\s+i\s+(?:enrol|enroll|register|book)\b", q)
+    )
     return replace(ctx, facts=facts)
+
+
+def _named_ref(question: str, labels: dict[str, str]) -> str | None:
+    """Match stored labels or readable catalogue IDs, preferring the longest exact name."""
+    names = sorted(
+        (
+            (name.lower(), key)
+            for key, label in labels.items()
+            for name in (label, key.replace("-", " "))
+        ),
+        key=lambda item: -len(item[0]),
+    )
+    return next(
+        (
+            key
+            for name, key in names
+            if (
+                name in question
+                if re.search(r"[一-鿿]", name)
+                else re.search(rf"(?<!\w){re.escape(name)}(?!\w)", question)
+            )
+        ),
+        None,
+    )
 
 
 def _contains(question: str, word: str) -> bool:
@@ -1162,9 +1561,24 @@ def reply_for_intent(kind: str, ctx: Context, locale: Locale) -> str:
         "action_not_supported",
         "no_data",
         "forecast_accuracy",
-        "profile",
+        "thanks",
+        "unknown",
     }:
         return t[kind]
+    if kind == "greeting":
+        return t["hello"]
+    if kind == "profile":
+        if ctx.audience != "learner":
+            return t["profile_work"]
+        skills = f.get("skills")
+        if skills is None:
+            return t["profile_unavailable"] + " " + t["profile"]
+        rows = ", ".join(f"[[skill:{key}]] {level}/5" for key, level in skills.items())
+        return (
+            (t["profile_skills"].format(skills=rows) if rows else t["profile_empty"])
+            + " "
+            + t["profile"]
+        )
     if kind == "sources":
         if ctx.meta is None:
             return t["sources_unavailable"]
@@ -1200,6 +1614,8 @@ def reply_for_intent(kind: str, ctx: Context, locale: Locale) -> str:
         targets = (
             [focus]
             if focus
+            else [key for key in ctx.refs.sdg if key.startswith(f"{f['sdg_goal_focus']}.")]
+            if f.get("sdg_goal_focus")
             else f.get("plan_sdg_targets") or f.get("sdg_targets") or list(ctx.refs.sdg)[:2]
         )
         if not targets:
@@ -1216,13 +1632,15 @@ def reply_for_intent(kind: str, ctx: Context, locale: Locale) -> str:
         and ctx.audience == "learner"
     ):
         matches = f.get("matches") or []
+        if f.get("focus_role") and not f.get("focus_match"):
+            return t["match_unavailable"].format(role=f["focus_role"])
         if not matches:
             return t["no_profile"]
         if kind == "match_detail" and f.get("focus_rank") and not f.get("focus_match"):
             return t["rank_unavailable"]
         top = f.get("focus_match") or matches[0]
         body = _score_math(top, t)
-        if kind == "match_detail":
+        if kind == "match_detail" or f.get("focus_rank"):
             body += " " + t["rank_context"].format(
                 rank=f.get("focus_rank", 1),
                 role=matches[0]["role_id"],
@@ -1245,6 +1663,12 @@ def reply_for_intent(kind: str, ctx: Context, locale: Locale) -> str:
         return t["privacy"]
     if kind == "how":
         return t["how"]
+    if kind == "roles" and f.get("hiring_question"):
+        return t["hiring"]
+    if kind in ("roles", "learn") and f.get("role_exploration"):
+        return t["role_exploration"]
+    if kind == "learn" and f.get("self_enrolment"):
+        return t["self_enrolment"]
     if kind == "trend":
         out = t["trend"].format(skills=_tags("skill", f.get("rising", [])[:5]) or "—")
         mine = f.get("my_trends") or {}
@@ -1292,6 +1716,8 @@ def reply_for_intent(kind: str, ctx: Context, locale: Locale) -> str:
         if f.get("role_gaps"):
             role, value = f["role_gaps"][0]
             gap = t["team_gap"].format(role=role, gap=_pct(value))
+        if f.get("team_gaps_suppressed"):
+            gap += t["team_suppressed"]
         if "members_shared" in f:
             gap = t["team_shared"].format(shared=f["members_shared"]) + gap
         programmes = f.get("programmes")
@@ -1323,9 +1749,13 @@ def reply_for_intent(kind: str, ctx: Context, locale: Locale) -> str:
         steps = f.get("plan_steps") or []
         done = set(f.get("done") or [])
         for step in steps:
+            if f.get("focus_skill") and step["skill"] != f["focus_skill"]:
+                continue
             todo = [c for c in step["courses"] if c not in done]
             if todo:
                 return t["plan"].format(role=f["plan_role"], skill=step["skill"], course=todo[0])
+        if f.get("focus_skill"):
+            return t["skill_learning"].format(skill=f["focus_skill"])
         if steps and f.get("plan_role"):
             open_gaps = f.get("plan_gaps", 0)
             if f.get("plan_progress"):
@@ -1349,10 +1779,6 @@ def reply_for_intent(kind: str, ctx: Context, locale: Locale) -> str:
         body = t["top"].format(role=top["role_id"], score=_pct(top["score"]))
         # The same weighted arithmetic as the score-breakdown answer, in every language.
         body += " " + _score_math(top, t) + " " + t["why"]
-        if len(matches) > 1:
-            body += "\n\n" + t["others"].format(
-                roles=_tags("role", [m["role_id"] for m in matches[1:3]])
-            )
         missing = top["missing"] + top["partial"]
         if missing:
             body += " " + t["gap"].format(skills=_tags("skill", missing[:3]))
@@ -1402,11 +1828,50 @@ def _employee_reply(kind: str, ctx: Context, t: dict[str, str]) -> str:
     return out
 
 
-def suggestions(ctx: Context, page: str, locale: Locale, kind: str | None = None) -> list[str]:
-    """Three follow-up chips for the audience, chosen for the answer just given."""
-    keys = _CHIP_DEFAULTS[ctx.audience]
-    if kind and ctx.audience == "learner":
+def _page_chips(page: str, audience: str) -> tuple[str, ...] | None:
+    """Chips for the page the person is on (longest matching route prefix), if any."""
+    table = _PAGE_CHIPS.get(audience, {})
+    route = (page or "/").split("?", 1)[0].rstrip("/") or "/"
+    best = max(
+        (prefix for prefix in table if route == prefix or route.startswith(prefix + "/")),
+        key=len,
+        default=None,
+    )
+    return table[best] if best else None
+
+
+def suggestion_keys(
+    ctx: Context, page: str, kind: str | None = None, question: str = "", locale: Locale = "en"
+) -> list[str]:
+    """At most three server-authored chip IDs for the answer just given.
+
+    Refusals, small talk and "not sure" replies (and replies with no answer kind) offer chips
+    for the page the person is on. A chip is never the question just asked, nor another way of
+    asking for the answer just shown; gaps are filled from the audience's usual questions.
+    """
+    audience = ctx.audience if ctx.audience in _CHIP_DEFAULTS else "visitor"
+    keys: tuple[str, ...] = _CHIP_DEFAULTS[audience]
+    if kind is None or kind in SAFETY_INTENTS or kind in CHAT_INTENTS:
+        keys = _page_chips(page, audience) or keys
+    elif audience == "learner":
         keys = _CHIP_FOLLOW_UPS.get(kind, keys)
-    elif kind and ctx.audience == "manager":
+    elif audience == "manager":
         keys = _MANAGER_FOLLOW_UPS.get(kind, keys)
-    return [CHIPS[locale][key] for key in keys]
+    asked = question.strip().casefold()
+    chosen: list[str] = []
+    for key in (*keys, *_CHIP_DEFAULTS[audience], *_CHIP_BACKFILL[audience]):
+        if key in chosen or (kind is not None and CHIP_INTENTS.get(key) == kind):
+            continue
+        if asked and CHIPS[locale][key].casefold() == asked:
+            continue
+        chosen.append(key)
+        if len(chosen) == MAX_SUGGESTIONS:
+            break
+    return chosen
+
+
+def suggestions(
+    ctx: Context, page: str, locale: Locale, kind: str | None = None, question: str = ""
+) -> list[str]:
+    """Up to three follow-up chips (question text) for the audience and the answer just given."""
+    return [CHIPS[locale][key] for key in suggestion_keys(ctx, page, kind, question, locale)]

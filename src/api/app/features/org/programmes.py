@@ -128,6 +128,7 @@ def route_for(share: float) -> Route:
 def options(user: CurrentUser) -> ProgrammeOptions:
     org_id = funding.manager_scope(user)
     team = service.member_learners(org_id)
+    service.require_cohort(len(team))
     names = {m.id: m.display_name for m in repository.list_members(org_id)}
     labels = data.role_labels()
     skill_labels = data.skill_labels()
@@ -175,7 +176,11 @@ def _catalogue(brief: ProgrammeBriefIn) -> list[Course]:
     for c in data.catalogue():
         if c.format == "subscription" or c.price_basis != "per_course":
             continue
-        if brief.certificate_required and c.price_status != "listed":
+        if brief.certificate_required and (
+            c.certificate_status != "included"
+            or c.certificate_source is None
+            or c.price_status != "listed"
+        ):
             continue
         if brief.hrd_claimable_only and not c.hrd_claimable and c.cost_myr > 0:
             continue
@@ -197,6 +202,7 @@ def generate(user: CurrentUser, brief: ProgrammeBriefIn) -> ProgrammePlan:
             status_code=422,
             code="unknown_member",
         )
+    service.require_cohort(len(member_ids))
     known = set(data.target_role_ids())
     roles = {}
     for target in brief.roles:

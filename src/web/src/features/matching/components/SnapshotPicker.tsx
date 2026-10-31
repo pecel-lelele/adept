@@ -32,7 +32,7 @@ export function SnapshotPicker({
           const next = new URLSearchParams(params.toString());
           if (e.target.value) next.set("snapshot_date", e.target.value);
           else next.delete("snapshot_date");
-          start(() => router.push(`${pathname}?${next.toString()}`, { scroll: false }));
+          start(() => router.replace(`${pathname}?${next.toString()}`, { scroll: false }));
         }}
       >
         <option value="">{latestLabel}</option>

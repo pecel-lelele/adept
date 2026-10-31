@@ -43,5 +43,11 @@
   "worthExploring": "Worth exploring",
   "worthExploringHint": "You hold less than {share}% of the required skill levels today: a longer pathway, worth it if the role excites you.",
   "emptyTitle": "No matches to show yet",
-  "emptyHint": "Review your skills and interests, then try matching again."
+  "emptyHint": "Review your skills and interests, then try matching again.",
+  "criticalOccupation": "MyCOL {edition} critical occupation",
+  "criticalOccupationNote": "Historical occupation-list inclusion; not a current vacancy or a ranking bonus.",
+  "scenarioRankDelta": "{movement} vs {scenario} · estimate",
+  "otherScenarioScore": "other score {score}% (estimate)",
+  "otherScenarioRank": "other rank {rank}",
+  "newRank": "→ rank {rank} (estimate)"
 }

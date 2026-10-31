@@ -88,7 +88,10 @@ class SharingIn(BaseModel):
 class GapHeatmapCell(BaseModel):
     role_id: str
     skill_id: str
-    gap: float = Field(ge=0, le=1, description="Share of members missing the skill.")
+    gap: float | None = Field(
+        ge=0, le=1, description="Share below required level; null when suppressed."
+    )
+    suppressed: bool = False
 
 
 class GapHeatmapResponse(BaseModel):
@@ -96,11 +99,14 @@ class GapHeatmapResponse(BaseModel):
     role_labels: dict[str, str] = Field(default_factory=dict, description="role_id -> label")
     skills: list[Skill]
     cells: list[GapHeatmapCell]
-    role_gaps: dict[str, float] = Field(
+    cohort_size: int = Field(default=0, ge=0)
+    min_cohort: int = Field(default=3, ge=1)
+    role_suppressed: dict[str, bool] = Field(default_factory=dict)
+    role_gaps: dict[str, float | None] = Field(
         default_factory=dict,
         description=(
             "role_id -> average gap over that role's required skills only. "
-            "Cells for skills a role does not require are 0 "
+            "Suppressed rows are null. Unsuppressed cells for unrequired skills are 0 "
             "and must not be averaged."
         ),
     )

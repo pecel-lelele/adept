@@ -20,6 +20,8 @@ Run from the repo root:
     PYTHONPATH=src/api:src .venv/bin/python -m pipelines.jobs.run            # fetch + seed CSV
     PYTHONPATH=src/api:src .venv/bin/python -m pipelines.jobs.run --db       # ... and database
     PYTHONPATH=src/api:src .venv/bin/python -m pipelines.jobs.run --cached   # re-classify only
+    PYTHONPATH=src/api:src .venv/bin/python -m pipelines.jobs.run --refilter-locations
+        # offline: re-apply the current location rule to the seed CSV (no network)
 """
 
 from __future__ import annotations
@@ -30,7 +32,10 @@ import json
 import os
 import re
 import sys
+import time
 from collections import Counter, defaultdict
+from collections.abc import Sequence
+from contextlib import nullcontext
 from dataclasses import asdict
 from datetime import date, timedelta
 from pathlib import Path
@@ -38,6 +43,7 @@ from statistics import median
 from typing import Any
 
 import httpx
+import psycopg
 
 from app.core import seed as seed_rows
 from app.features.pathway.catalogue_sources import (
@@ -57,6 +63,7 @@ from pipelines.jobs.sources import (
     IncompleteRead,
     MissingKey,
     RawPosting,
+    in_malaysia,
 )
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -87,26 +94,37 @@ def requirements() -> dict[str, list[RoleReq]]:
     return dict(out)
 
 
-def fetch(only: set[str] | None) -> tuple[list[RawPosting], list[dict[str, Any]]]:
-    fetcher = Fetcher()
+def fetch(
+    only: set[str] | None,
+    *,
+    selected: Sequence[boards.Board] | None = None,
+    fetcher: Fetcher | None = None,
+    deadline: float | None = None,
+) -> tuple[list[RawPosting], list[dict[str, Any]]]:
+    """Read the boards. The in-app refresh passes `selected` (the boards to run), a bounded
+    `fetcher` and a monotonic `deadline`; boards not reached by then are logged as skipped."""
+    fetcher = fetcher or Fetcher()
     postings: dict[str, RawPosting] = {}
     log: list[dict[str, Any]] = []
-    for b in boards.ALL:
+    for b in selected if selected is not None else boards.ALL:
         if only and b.source not in only and b.board not in only:
             continue
         entry: dict[str, Any] = {"source": b.source, "board": b.board, "employer": b.employer}
         found: list[RawPosting] = []
+        if deadline is not None and time.monotonic() >= deadline:
+            log.append(entry | {"status": "skipped", "kept": 0, "detail": "time budget reached"})
+            continue
         try:
             found.extend(CONNECTORS[b.source](fetcher, b))
             entry |= {"status": "ok", "kept": len(found)}
         except IncompleteRead as exc:
-            entry |= {"status": "partial", "kept": len(found), "detail": str(exc)}
+            entry |= {"status": "partial", "kept": len(found), "detail": type(exc).__name__}
         except MissingKey as exc:
             entry |= {"status": "skipped", "kept": 0, "detail": f"set {exc} to enable"}
         except PermissionError as exc:
-            entry |= {"status": "blocked", "kept": 0, "detail": str(exc)}
+            entry |= {"status": "blocked", "kept": 0, "detail": type(exc).__name__}
         except (httpx.HTTPError, ValueError, KeyError) as exc:
-            entry |= {"status": "error", "kept": 0, "detail": f"{type(exc).__name__}: {exc}"[:300]}
+            entry |= {"status": "error", "kept": 0, "detail": type(exc).__name__}
         for p in found:
             if p.title and p.url:
                 postings.setdefault(f"{p.source}:{p.board}:{p.source_id}", p)
@@ -340,13 +358,17 @@ def load_raw(today: date | None) -> tuple[list[RawPosting], date]:
 
 
 def to_db(
-    rows: list[dict[str, Any]], certs: list[dict[str, Any]], log: list[dict[str, Any]], today: date
-) -> None:
-    import psycopg
-
-    url = os.environ.get("DATABASE_URL", "postgresql://adept:adept@127.0.0.1:5433/adept")
+    rows: list[dict[str, Any]],
+    certs: list[dict[str, Any]],
+    log: list[dict[str, Any]],
+    today: date,
+    url: str | None = None,
+    conn: psycopg.Connection[tuple[Any, ...]] | None = None,
+) -> int:
+    """Upsert in one transaction (all or nothing); returns the active openings afterwards."""
+    url = url or os.environ.get("DATABASE_URL", "postgresql://adept:adept@127.0.0.1:5433/adept")
     ok_boards = {(e["source"], e["board"]) for e in log if e["status"] == "ok"}
-    with psycopg.connect(url) as conn:
+    with nullcontext(conn) if conn is not None else psycopg.connect(url) as conn:
         roles = {r[0] for r in conn.execute("SELECT id FROM roles").fetchall()}
         cols = ", ".join(CERT_FIELDS)
         marks = ", ".join(["%s"] * len(CERT_FIELDS))
@@ -398,7 +420,67 @@ def to_db(
                 ],
             )
         active = conn.execute("SELECT count(*) FROM job_postings WHERE active").fetchone()
-    print(f"database: {len(rows)} upserted, {active[0] if active else 0} active")
+    count = int(active[0]) if active else 0  # type: ignore[call-overload]
+    print(f"database: {len(rows)} upserted, {count} active")
+    return count
+
+
+def keeps_location(row: dict[str, Any]) -> bool:
+    """The fetch-time rule, applied to a stored row: Malaysian location, or a remote opening
+    with a Malaysia-eligible scope (remote boards set the scope from their own region field)."""
+    if row.get("work_mode") == "remote" and row.get("remote_scope"):
+        return True
+    return in_malaysia(row.get("location"))
+
+
+def refilter_locations(
+    rows: list[dict[str, Any]], log: dict[str, Any], applied_on: date
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """Drop stored openings the current location rule rejects; keep counts consistent.
+
+    Pure: returns the kept rows and an updated fetch log (evaluation recomputed on the kept
+    active rows; per-board `kept` reduced by rows dropped from that board's latest fetch).
+    `fetched_on` is unchanged because no source was read again.
+    """
+    kept = [r for r in rows if keeps_location(r)]
+    dropped = [r for r in rows if not keeps_location(r)]
+    fetched_on = log.get("fetched_on")
+    from_last_fetch = Counter(
+        (r["source"], r["board"]) for r in dropped if r.get("last_seen") == fetched_on
+    )
+    boards_log = []
+    for entry in log.get("boards", []):
+        entry = dict(entry)
+        cut = from_last_fetch.get((entry.get("source"), entry.get("board")), 0)
+        if cut and isinstance(entry.get("kept"), int):
+            entry["kept"] = max(0, entry["kept"] - cut)
+        boards_log.append(entry)
+    updated = {
+        **log,
+        "evaluation": evaluate([r for r in kept if r.get("active") == "true"]),
+        "boards": boards_log,
+        "location_refilter": {
+            "applied_on": applied_on.isoformat(),
+            "rule": (
+                "primary location in Malaysia (a bare Remote/Anywhere counts as missing), or a "
+                "remote opening with a Malaysia-eligible scope"
+            ),
+            "dropped": len(dropped),
+            "dropped_by_source": dict(Counter(r["source"] for r in dropped).most_common()),
+            "network": False,
+        },
+    }
+    return kept, updated
+
+
+def refilter_seed(applied_on: date) -> int:
+    rows = _read_csv(POSTINGS_CSV)
+    log = json.loads(FETCH_LOG.read_text(encoding="utf-8")) if FETCH_LOG.exists() else {}
+    kept, updated = refilter_locations(rows, log, applied_on)
+    _write_csv(POSTINGS_CSV, POSTING_FIELDS, kept)
+    FETCH_LOG.write_text(json.dumps(updated, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    print(f"kept {len(kept)} of {len(rows)} openings; dropped {len(rows) - len(kept)}")
+    return 0
 
 
 def main() -> int:
@@ -406,7 +488,14 @@ def main() -> int:
     ap.add_argument("--db", action="store_true", help="also upsert into DATABASE_URL")
     ap.add_argument("--cached", action="store_true", help="re-classify the latest raw fetch")
     ap.add_argument("--only", nargs="*", help="limit to these sources or boards")
+    ap.add_argument(
+        "--refilter-locations",
+        action="store_true",
+        help="offline: drop seed rows the current location rule rejects",
+    )
     args = ap.parse_args()
+    if args.refilter_locations:
+        return refilter_seed(date.today())
 
     if args.cached:
         raw, today = load_raw(None)

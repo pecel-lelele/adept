@@ -2,12 +2,12 @@ import { ArrowRight, Building2, Clock3, Layers, Pencil, TrendingUp, Wallet } fro
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
-import { Kpis, PageHeader, TrendPill } from "@/components";
+import { EstimateLabel, Kpis, PageHeader, TrendPill } from "@/components";
 import { journeyStepCount } from "@/config/navigation";
 import { ErrorState } from "@/components/ErrorState";
 import { AccountDataCard } from "@/features/core/components/AccountDataCard";
 import { LevelPips } from "@/components/viz";
-import { fetchMyOrg } from "@/features/org/api";
+import { getWorkspaceResult } from "@/lib/auth/workspaces";
 import { fetchRadar } from "@/features/trends/api";
 import type { ScenarioId } from "@/lib/api";
 
@@ -22,13 +22,22 @@ export async function ProfileView({ scenario = "moderate" }: { scenario?: Scenar
   const tp = await getTranslations("ui.page");
   const ti = await getTranslations("ui.intake");
   const tj = await getTranslations("ui.join");
-  const [profile, catalogue, radar, org] = await Promise.all([
+  const [profile, catalogue, radar, spaces] = await Promise.all([
     fetchMyProfile(),
     fetchSkillCatalogue(),
     fetchRadar(scenario),
-    fetchMyOrg(),
+    getWorkspaceResult(),
   ]);
-  if (!profile.ok) return <ErrorState failure={profile} />;
+  // A failed lookup must not tell members and admins to join an organisation.
+  const org = spaces.ok ? spaces.data.workspaces : [];
+  if (!profile.ok) return (
+    <div className="a-view">
+      <PageHeader eyebrow={tp("stepOf", { step: 1, total: journeyStepCount() })} title={t("title")} description={tp("skillsDesc")}>
+        <EstimateLabel scenario={scenario} />
+      </PageHeader>
+      <ErrorState failure={profile} />
+    </div>
+  );
   const p = profile.data;
   const labels = new Map(catalogue.ok ? catalogue.data.skills.map((s) => [s.id, s.label]) : []);
   const trend = new Map(radar.ok ? radar.data.items.map((i) => [i.skill_id, scenario === "fast" ? i.direction_fast : i.direction_moderate]) : []);
@@ -135,10 +144,12 @@ export async function ProfileView({ scenario = "moderate" }: { scenario?: Scenar
               <div>
                 <dt>{tp("organisation")}</dt>
                 <dd>
-                  {org.ok ? (
+                  {org.some((w) => w.kind === "org") ? (
                     <span className="a-inline">
-                      <Building2 size={14} aria-hidden /> {org.data.name}
+                      <Building2 size={14} aria-hidden /> {org.filter((w) => w.kind === "org").map((w) => w.name).join(", ")}
                     </span>
+                  ) : !spaces.ok ? (
+                    <span className="a-muted">{tp("organisationUnavailable")}</span>
                   ) : (
                     <Link className="a-link" href="/app/join">
                       {tj("title")} <ArrowRight size={13} aria-hidden />

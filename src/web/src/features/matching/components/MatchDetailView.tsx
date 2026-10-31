@@ -16,6 +16,7 @@ import { componentLabels } from "./labels";
 import { MatchImprovements } from "./MatchImprovements";
 import { MatchSdgTargets } from "./MatchSdgTargets";
 import { ProfileNote } from "./ProfileNote";
+import { CriticalOccupationBadge } from "./CriticalOccupationBadge";
 
 /**
  * One role, in the same context as the list it was opened from (scenario, snapshot date and
@@ -40,7 +41,15 @@ export async function MatchDetailView({
     fetchMatch(roleId, scenario, snapshotDate, sdgWeight),
     fetchMatches(scenario, snapshotDate, sdgWeight),
   ]);
-  if (!result.ok) return <ErrorState failure={result} />;
+  if (!result.ok) return (
+    <div className="a-view">
+      <PageHeader eyebrow={tp("stepOf", { step: 3, total: journeyStepCount() })} title={t("title")} description={t("description")}>
+        <EstimateLabel scenario={scenario} />
+        {snapshotDate ? <span className="a-chip">{tp("asOf", { date: snapshotDate })}</span> : null}
+      </PageHeader>
+      <ErrorState failure={result} />
+    </div>
+  );
   const m = result.data;
   // Compare this role with the next-best matches from the same ranking (three roles in total).
   const compareRoles = [
@@ -85,6 +94,7 @@ export async function MatchDetailView({
       <HistoricalSnapshotBanner date={snapshotDate} latestHref={`/app/matches/${encodeURIComponent(roleId)}?scenario=${scenario}${sdgWeight > 0 ? `&sdg=${sdgWeight.toFixed(2)}` : ""}`} />
 
       <ProfileNote note={m.profile_note} />
+      <CriticalOccupationBadge badge={m.critical_occupation} />
       <div className="a-split">
         <section className="a-card" aria-labelledby="h-breakdown">
           <div className="a-card-head">

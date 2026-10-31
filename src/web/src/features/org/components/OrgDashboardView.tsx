@@ -1,3 +1,5 @@
+import { MalaysiaContextCard } from "@/features/trends/components/MalaysiaContextCard";
+import { AdminTrendRefresh } from "@/features/trends/components/AdminTrendRefresh";
 import { ArrowRight, ArrowUpRight, Check, Grid3x3, Leaf, Route, Target, UserCheck, Users } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
@@ -6,6 +8,7 @@ import { Kpis, MetaBar } from "@/components";
 import { ErrorState } from "@/components/ErrorState";
 import { Heatmap, SdgTiles, StackBar, StepTrack } from "@/components/viz";
 import { fetchOrgContribution } from "@/features/sdg/api";
+import { fetchProgrammes } from "../programmes/api";
 import type { ScenarioId, Schemas } from "@/lib/api";
 
 import { fetchGaps, fetchMembers, fetchMyOrg, fetchPlan } from "../api";
@@ -13,8 +16,9 @@ import { JoinCodeCard } from "./JoinCodeCard";
 
 /** The most useful columns of a heatmap: skills with the largest gap anywhere, max `n`. */
 export function topGapSkills(gaps: Schemas["GapHeatmapResponse"], n: number) {
+  if (gaps.cells.some((c) => c.suppressed)) return gaps.skills.slice(0, n);
   const worst = new Map<string, number>();
-  for (const c of gaps.cells) worst.set(c.skill_id, Math.max(worst.get(c.skill_id) ?? 0, c.gap));
+  for (const c of gaps.cells) if (c.gap != null && !c.suppressed) worst.set(c.skill_id, Math.max(worst.get(c.skill_id) ?? 0, c.gap));
   return gaps.skills
     .filter((s) => (worst.get(s.id) ?? 0) > 0)
     .sort((a, b) => (worst.get(b.id) ?? 0) - (worst.get(a.id) ?? 0))
@@ -22,11 +26,14 @@ export function topGapSkills(gaps: Schemas["GapHeatmapResponse"], n: number) {
 }
 
 export function heatRows(gaps: Schemas["GapHeatmapResponse"], skills: { id: string }[]) {
-  const cell = new Map(gaps.cells.map((c) => [`${c.role_id}|${c.skill_id}`, c.gap]));
+  const cell = new Map(gaps.cells.map((c) => [`${c.role_id}|${c.skill_id}`, c]));
   return gaps.role_ids.map((r) => ({
     id: r,
     label: gaps.role_labels?.[r] ?? r,
-    cells: skills.map((s) => ({ id: s.id, value: cell.get(`${r}|${s.id}`) ?? 0 })),
+    cells: skills.map((s) => {
+      const entry = cell.get(`${r}|${s.id}`);
+      return { id: s.id, value: entry?.gap ?? null, suppressed: entry?.suppressed ?? true };
+    }),
   }));
 }
 
@@ -39,7 +46,7 @@ export async function OrgDashboardView({ scenario }: { scenario: ScenarioId }) {
   const t = await getTranslations("ui.org");
   const tn = await getTranslations("ui.nav");
   const tp = await getTranslations("ui.page");
-  const [org, members, gaps] = await Promise.all([fetchMyOrg(), fetchMembers(), fetchGaps(scenario)]);
+  const [org, members, gaps, programmes] = await Promise.all([fetchMyOrg(), fetchMembers(), fetchGaps(scenario), fetchProgrammes()]);
   if (!org.ok) return <ErrorState failure={org} />;
   const list = members.ok ? members.data.members : [];
   const complete = list.filter((m) => m.intake_status === "complete").length;
@@ -69,17 +76,18 @@ export async function OrgDashboardView({ scenario }: { scenario: ScenarioId }) {
       }))
     : [];
 
-  const journeyDone = [list.length > 0, complete > 0, complete > 0, Boolean(plan?.ok && plan.data.steps.length)];
+  const journeyDone = [list.length > 0, complete > 0, complete > 0, Boolean(programmes.ok && programmes.data.programmes.length)];
   const firstOpen = journeyDone.findIndex((d) => !d);
   const journey = [
     { key: "oInvite", to: "/org/members" },
-    { key: "oProfiles", to: "/org/members" },
+    { key: "oProfiles", to: `/org/radar?scenario=${scenario}` },
     { key: "oGaps", to: `/org/gaps?scenario=${scenario}` },
-    { key: "oPlan", to: `/org/plan?scenario=${scenario}${roleQuery}` },
+    { key: "oPlan", to: `/org/programmes?scenario=${scenario}${roleQuery}` },
   ] as const;
 
   return (
     <div className="a-view">
+      <AdminTrendRefresh />
       <section className="a-welcome">
         <div className="a-welcome-main">
           <span className="a-eyebrow">{org.data.name}</span>
@@ -168,6 +176,7 @@ export async function OrgDashboardView({ scenario }: { scenario: ScenarioId }) {
               {tn("gaps")} <ArrowUpRight size={13} aria-hidden />
             </Link>
           </div>
+          {gaps.ok && Object.values(gaps.data.role_suppressed ?? {}).some(Boolean) ? <p className="a-muted" role="status">{t("tooFewMembers")}</p> : null}
           {!gaps.ok ? (
             <ErrorState failure={gaps} compact />
           ) : skills.length ? (
@@ -175,6 +184,7 @@ export async function OrgDashboardView({ scenario }: { scenario: ScenarioId }) {
               rows={heatRows(gaps.data, skills)}
               columns={skills.map((s) => ({ id: s.id, label: s.label }))}
               legend={[t("gapsLow"), t("gapsHigh")]}
+              suppressedLabel={t("tooFewMembers")}
             />
           ) : (
             <p className="a-muted a-small">{t("noGaps")}</p>
@@ -242,6 +252,7 @@ export async function OrgDashboardView({ scenario }: { scenario: ScenarioId }) {
         </section>
       </div>
       {gaps.ok ? <MetaBar meta={gaps.data.meta} /> : null}
+      <MalaysiaContextCard />
     </div>
   );
 }

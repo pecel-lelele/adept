@@ -134,8 +134,8 @@ def plan_links(plan: Pathway) -> list[SdgLink]:
             links.append(
                 SdgLink(
                     target=targets["4.3"],
-                    reason="Every course in this plan is free or HRD Corp-funded for you, so "
-                    "cost is not a barrier to technical education.",
+                    reason="Every course in this plan is free to learn "
+                    "(certificate fees may apply).",
                     strength="direct",
                     via="pathway",
                     evidence=EVIDENCE_4_3,
@@ -293,6 +293,7 @@ def org_contribution(
 ) -> SdgContribution:
     """Aggregate of every counted member's plan towards the selected (or default) role."""
     plans = org_service.member_plans(org_id, scenario, role_id)
+    org_service.require_cohort(len(plans))
     return contribution_for_plans(plans, "organisation", org_id, scenario)
 
 
@@ -305,7 +306,39 @@ def region_contribution(
     plans: dict[str, Pathway] = {}
     for org_id in org_ids:
         plans.update(org_service.member_plans(org_id, scenario, role_id))
-    return contribution_for_plans(plans, "region", state, scenario)
+    minimum = 5
+    if len(plans) < minimum:
+        return SdgContribution(
+            goals_summary=[],
+            links=[],
+            meta=_meta(scenario, is_estimate=True),
+            scope="region",
+            scope_id=state,
+            aggregation_status="suppressed",
+            minimum_people=minimum,
+        )
+    result = contribution_for_plans(plans, "region", state, scenario)
+    target_people: dict[str, set[str]] = {}
+    for person, plan in plans.items():
+        for link in links_for_plan(plan):
+            target_people.setdefault(link.target.target, set()).add(person)
+    supported = {target for target, people in target_people.items() if len(people) >= minimum}
+    # Regional totals never expose rare role/skill links or below-threshold goal counts.
+    return result.model_copy(
+        update={
+            "links": [link for link in result.links if link.target.target in supported],
+            "goals_summary": [
+                goal for goal in result.goals_summary if goal.contributors >= minimum
+            ],
+            "target_contributions": [
+                target
+                for target in result.target_contributions
+                if target.target.target in supported
+            ],
+            "role_ids": [],
+            "minimum_people": minimum,
+        }
+    )
 
 
 def regions() -> RegionListResponse:

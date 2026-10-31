@@ -1,11 +1,13 @@
 // Type-checks translation keys against the English messages.
 import type common from "../../../messages/en/common.json";
 import type guardrails from "../../../messages/en/guardrails.json";
+import type impact from "../../../messages/en/impact.json";
 import type jobs from "../../../messages/en/jobs.json";
 import type matching from "../../../messages/en/matching.json";
 import type org from "../../../messages/en/org.json";
 import type pathway from "../../../messages/en/pathway.json";
 import type privacy from "../../../messages/en/privacy.json";
+import type publicPages from "../../../messages/en/publicPages.json";
 import type profile from "../../../messages/en/profile.json";
 import type scenarios from "../../../messages/en/scenarios.json";
 import type sdg from "../../../messages/en/sdg.json";
@@ -30,6 +32,8 @@ declare module "next-intl" {
       ui: typeof ui;
       jobs: typeof jobs;
       privacy: typeof privacy;
+      publicPages: typeof publicPages;
+      impact: typeof impact;
     };
   }
 }

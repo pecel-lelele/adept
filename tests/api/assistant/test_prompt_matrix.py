@@ -430,7 +430,7 @@ def test_phrase_level_routing(locale: str, question: str, expected: str | None) 
 @pytest.mark.parametrize(
     ("question", "expected"),
     [
-        ("Microcourses and roleplaying", "next"),
+        ("Microcourses and roleplaying", "unknown"),
         ("What is the most rising skill?", "trend"),
         ("Show sourcess", "sources"),
     ],
@@ -504,7 +504,7 @@ def test_reply_follows_a_clearly_different_question_language(
     assert answer.suggestions == guide.suggestions(focused, "/", expected, kind)
 
 
-def test_near_tied_intents_render_both_blocks_and_keep_a_valid_model_second_choice(
+def test_near_tied_intents_render_both_blocks_and_reject_an_unrelated_model_second_choice(
     grounded_context: context.Context, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     question = "Show sources and the fast scenario"
@@ -524,7 +524,9 @@ def test_near_tied_intents_render_both_blocks_and_keep_a_valid_model_second_choi
     chosen = service.answer(USER, body)
     assert chosen.used_llm is True
     shown = "".join(part.text for part in chosen.parts)
-    assert "Stored sources" in shown and "rising" in shown
+    assert "Stored sources" in shown and "estimated scores change" in shown
+    assert "Skills rising" not in shown
+    assert chosen.parts == offline.parts
     # A selection without the routed block falls back to the deterministic pair.
     monkeypatch.setattr(service, "select_ids_or_fallback", lambda *_: (["trend"], True))
     fallback = service.answer(USER, body)

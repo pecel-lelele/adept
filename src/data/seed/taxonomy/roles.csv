@@ -1,32 +1,49 @@
 id,label,taxonomy,interest_tags,is_target
-bank-operations-executive,Bank Operations Executive,custom,,false
-data-entry-clerk,Data Entry Clerk,custom,,false
-logistics-supervisor,Logistics Supervisor,custom,,false
-data-analyst,Data Analyst,custom,data|analytics|software,true
-ai-operations-specialist,AI Operations Specialist,custom,software|AI|automation,true
-process-automation-analyst,Process Automation Analyst,custom,process improvement|operations|automation|finance,true
-compliance-analytics-officer,Compliance Analytics Officer,custom,finance|risk|data|compliance,true
-machine-learning-engineer,Machine Learning Engineer,custom,AI|software|data,true
-data-engineer,Data Engineer,custom,data|software|cloud,true
-cloud-solutions-architect,Cloud Solutions Architect,custom,cloud|software,true
-cybersecurity-analyst,Cybersecurity Analyst,custom,security|risk|software,true
-ai-product-manager,AI Product Manager,custom,AI|product|people,true
-ux-designer,UX / UI Designer,custom,design|software|people,true
-digital-marketing-specialist,Digital Marketing Specialist,custom,marketing|customer|creative,true
-business-analyst,Business Analyst,custom,data|process improvement|operations,true
-solar-pv-engineer,Solar PV & Renewable Energy Engineer,custom,sustainability|energy|engineering,true
-energy-manager,Energy Manager,custom,sustainability|energy|operations,true
-esg-sustainability-analyst,ESG & Sustainability Analyst,custom,sustainability|finance|compliance,true
-smart-manufacturing-engineer,Smart Manufacturing Engineer,custom,manufacturing|engineering|automation,true
-semiconductor-process-engineer,Semiconductor Process Engineer,custom,manufacturing|engineering,true
-supply-chain-analyst,Supply Chain Analyst,custom,logistics|operations|data,true
-precision-agriculture-specialist,Precision Agriculture Specialist,custom,agriculture|sustainability|data,true
-health-informatics-specialist,Health Informatics Specialist,custom,healthcare|data,true
-digital-health-nurse,Digital Health Nurse,custom,healthcare|people,true
-learning-experience-designer,Learning Experience Designer,custom,education|people|creative,true
-tvet-digital-skills-trainer,TVET & Digital Skills Trainer,custom,education|people,true
-customer-success-specialist,Customer Success Specialist,custom,customer|people|AI,true
-islamic-finance-analyst,Islamic Finance Analyst,custom,finance|risk|compliance,true
-people-analytics-specialist,People Analytics Specialist,custom,people|data|HR,true
-hospitality-experience-manager,Hospitality Experience Manager,custom,tourism|customer|people,true
-responsible-ai-officer,Responsible AI & Governance Officer,custom,AI|risk|compliance,true
+bank-operations-executive,"Financial Clerks, All Other",O*NET-SOC,,false
+data-entry-clerk,Data Entry Keyers,O*NET-SOC,,false
+logistics-supervisor,Supply Chain Managers,O*NET-SOC,,false
+data-analyst,Data Scientists (data analysis focus),O*NET-SOC,data|analytics|software,true
+ai-operations-specialist,Computer Systems Engineers/Architects (AI operations focus),O*NET-SOC,software|AI|automation,true
+process-automation-analyst,Management Analysts (process automation focus),O*NET-SOC,process improvement|operations|automation|finance,true
+compliance-analytics-officer,Compliance Officers (compliance analytics focus),O*NET-SOC,finance|risk|data|compliance,true
+machine-learning-engineer,Data Scientists (machine learning focus),O*NET-SOC,AI|software|data,true
+data-engineer,Database Architects,O*NET-SOC,data|software|cloud,true
+cloud-solutions-architect,Computer Systems Engineers/Architects (cloud solutions focus),O*NET-SOC,cloud|software,true
+cybersecurity-analyst,Information Security Analysts,O*NET-SOC,security|risk|software,true
+ai-product-manager,Computer and Information Systems Managers,O*NET-SOC,AI|product|people,true
+ux-designer,Web and Digital Interface Designers,O*NET-SOC,design|software|people,true
+digital-marketing-specialist,Search Marketing Strategists,O*NET-SOC,marketing|customer|creative,true
+business-analyst,Management Analysts (business analysis focus),O*NET-SOC,data|process improvement|operations,true
+solar-pv-engineer,Solar Energy Systems Engineers,O*NET-SOC,sustainability|energy|engineering,true
+energy-manager,"Energy Engineers, Except Wind and Solar",O*NET-SOC,sustainability|energy|operations,true
+esg-sustainability-analyst,Sustainability Specialists,O*NET-SOC,sustainability|finance|compliance,true
+smart-manufacturing-engineer,Industrial Engineers (smart manufacturing focus),O*NET-SOC,manufacturing|engineering|automation,true
+semiconductor-process-engineer,Industrial Engineers (semiconductor process focus),O*NET-SOC,manufacturing|engineering,true
+supply-chain-analyst,Logisticians,O*NET-SOC,logistics|operations|data,true
+precision-agriculture-specialist,Precision Agriculture Technicians,O*NET-SOC,agriculture|sustainability|data,true
+health-informatics-specialist,Health Informatics Specialists,O*NET-SOC,healthcare|data,true
+digital-health-nurse,Registered Nurses (digital health focus),O*NET-SOC,healthcare|people,true
+learning-experience-designer,Instructional Coordinators,O*NET-SOC,education|people|creative,true
+tvet-digital-skills-trainer,"Career/Technical Education Teachers, Postsecondary",O*NET-SOC,education|people,true
+customer-success-specialist,Customer Service Representatives (customer success focus),O*NET-SOC,customer|people|AI,true
+islamic-finance-analyst,Financial and Investment Analysts,O*NET-SOC,finance|risk|compliance,true
+people-analytics-specialist,Human Resources Specialists,O*NET-SOC,people|data|HR,true
+hospitality-experience-manager,Lodging Managers,O*NET-SOC,tourism|customer|people,true
+responsible-ai-officer,Compliance Officers (responsible AI focus),O*NET-SOC,AI|risk|compliance,true
+retail-salespersons,Retail Salespersons,O*NET-SOC,,false
+customer-service-representatives,Customer Service Representatives,O*NET-SOC,,false
+production-workers-all-other,"Production Workers, All Other",O*NET-SOC,,false
+bookkeeping-accounting-clerks,"Bookkeeping, Accounting, and Auditing Clerks",O*NET-SOC,,false
+secretaries-administrative-assistants,"Secretaries and Administrative Assistants, Except Legal, Medical, and Executive",O*NET-SOC,,false
+registered-nurses,Registered Nurses,O*NET-SOC,,false
+retail-sales-supervisors,First-Line Supervisors of Retail Sales Workers,O*NET-SOC,,false
+shipping-receiving-inventory-clerks,"Shipping, Receiving, and Inventory Clerks",O*NET-SOC,,false
+teaching-assistants-school,"Teaching Assistants, Preschool, Elementary, Middle, and Secondary School, Except Special Education",O*NET-SOC,,false
+accountants-auditors,Accountants and Auditors,O*NET-SOC,,false
+bank-tellers,Tellers,O*NET-SOC,,false
+team-assemblers,Team Assemblers,O*NET-SOC,,false
+web-developers,Web Developers,O*NET-SOC,software|design|customer,true
+database-administrators,Database Administrators,O*NET-SOC,data|software|cloud,true
+network-systems-administrators,Network and Computer Systems Administrators,O*NET-SOC,software|cloud|security,true
+software-quality-assurance-testers,Software Quality Assurance Analysts and Testers,O*NET-SOC,software|process improvement|security,true
+business-intelligence-analysts,Business Intelligence Analysts,O*NET-SOC,data|analytics|finance,true

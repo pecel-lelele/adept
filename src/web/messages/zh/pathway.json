@@ -17,8 +17,13 @@
     "totalHours": "共 {hours} 小时",
     "outOfPocket": "您需支付 RM {amount}（预算 RM {budget}）",
     "listPrice": "标价 RM {amount}",
-    "hrdNote": "可申请 HRD Corp 的课程对您免费：雇主须在课程开始前申请培训税补助。",
-    "overBudget": "超出预算"
+    "hrdNote": "若雇主在课程开始前申请培训税补助，可申请 HRD Corp 的课程或可获资助。获批前，上述费用按标价计算。",
+    "overBudget": "超出预算",
+    "style": {
+      "classroom": "课堂学习方式：在预算内优先选择面授、线上直播或混合课程。",
+      "video": "视频学习方式：优先选择自定进度的线上课程。",
+      "reading": "阅读学习方式：优先选择自定进度的线上课程。"
+    }
   },
   "step": {
     "levels": "水平 {current} → {reaches}（职位要求 {target}）",
@@ -46,14 +51,17 @@
     "viewSaved": "查看该计划"
   },
   "replan": {
-    "title": "新的趋势数据改变了您的计划",
+    "title": "您的计划可以更新",
     "accept": "接受更新后的计划",
     "keep": "保留当前计划",
     "change": {
       "added": "新增",
       "removed": "移除",
       "reordered": "顺序调整",
-      "courses_changed": "课程变更"
+      "courses_changed": "课程变更",
+      "schedule_changed": "时间安排已变更",
+      "style_changed": "学习方式已变更",
+      "cost_changed": "费用已变更"
     }
   },
   "progress": {
@@ -119,15 +127,16 @@
     "reviewNote": "审核备注：{note}",
     "kind": {
       "self_reported": "自行报告",
-      "certificate_link": "证书链接",
+      "certificate_link": "证书已提交",
       "org_confirmed": "已由您的机构确认",
       "org_rejected": "未被您的机构接受"
     },
     "link": {
       "not_submitted": "尚无链接",
-      "provider_verified": "链接可在提供方网站打开（未核验归属和内容）",
+      "provider_verified": "已提交审核；学习者身份和课程尚未核实",
       "unreachable": "无法打开链接",
-      "not_provider_page": "非官方验证页面：需要人工核对"
+      "not_provider_page": "非官方验证页面：需要人工核对",
+      "submitted": "已提交审核；学习者身份和课程尚未核实"
     }
   },
   "verify": {
@@ -143,24 +152,6 @@
     "notePlaceholder": "给学员的备注（可选）",
     "confirm": "确认",
     "reject": "拒绝"
-  },
-  "guide": {
-    "working": {
-      "title": "报名之前",
-      "body": "可申请 HRD Corp 的步骤由您的雇主申请，而不是由您申请。报名前请先与 HR 分享此计划；完成后，他们可以确认您的完成情况。",
-      "link": "查看可申请 HRD Corp 的课程"
-    },
-    "graduate": {
-      "title": "先学免费课程，保留证明",
-      "body": "从免费步骤开始。每完成一项，就在进度页面添加证书链接，方便向雇主和就业中心展示。",
-      "link": "浏览免费课程"
-    },
-    "switcher": {
-      "title": "在已有基础上发展",
-      "body": "您的计划只覆盖差距：已掌握的技能不会重复学习。比较职位，看看哪些技能可以沿用。",
-      "link": "比较职位"
-    },
-    "sameplan": "此建议取决于您的情况；计划本身对拥有相同技能、时间和预算的任何人都一样。"
   },
   "compare": {
     "link": "比较其他职位",
@@ -183,7 +174,8 @@
     "seeMatches": "查看你的匹配排名",
     "humanInCharge": "此比较仅辅助你的决定，不会替你排序或选择职位。",
     "emptyTitle": "目前没有可比较的职位",
-    "emptyHint": "返回匹配页面以选择目标职位。"
+    "emptyHint": "返回匹配页面以选择目标职位。",
+    "useBestMatch": "使用我的最佳匹配"
   },
   "badge": {
     "first": "完成第一门课程",

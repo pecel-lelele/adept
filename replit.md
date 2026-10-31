@@ -28,13 +28,11 @@ trusted visitor identity and ignore supplied internal-secret/IP headers.
 ## Production configuration
 
 Replit supplies its managed `DATABASE_URL`. Set a stable random `SESSION_SECRET` of at least
-32 characters and a matching `PROXY_SHARED_SECRET` for web/API. Set `TRUSTED_PROXY_HOPS`
-only after verifying the live ingress chain; a settings screenshot is not evidence of
-header sanitisation. Until then, `PROXY_CLIENT_IP_MODE=best-effort` with zero hops keeps
-serving without signing an unverified address, so anonymous requests share the private
-API peer's rate bucket. Signed-in limits still use verified session IDs.
-Follow [the count-only verification procedure](docs/replit-proxy-verification.md) before
-enabling a positive hop count and trusted mode. Keep `APP_ENV=production`,
+32 characters and a matching `PROXY_SHARED_SECRET` for web/API. The deployment uses
+`TRUSTED_PROXY_HOPS=1` (the right-most `X-Forwarded-For` entry, appended by Replit's edge);
+production refuses trusted mode with 0 hops. Signed-in limits still use verified session IDs.
+If the ingress chain changes (for example a custom domain or extra proxy), recheck it with
+[the count-only verification procedure](docs/replit-proxy-verification.md). Keep `APP_ENV=production`,
 `AUTH_RAW_USER_IDS=false`, an empty `AUTH_DEFAULT_USER`, and `M3_BACKEND=postgres`.
 `AUTH_MODE=demo` means normal local PostgreSQL accounts, not a fixture/demo session.
 Set `WEB_ORIGIN` and `CORS_ORIGINS` to the exact published HTTPS origin without a trailing
@@ -55,6 +53,11 @@ publish. If needed, use Replit's production-database initialization from reviewe
 data. Never run migration/seed scripts automatically at production build or start, or point
 local setup at production. Production schema changes follow the database owner's procedure.
 
+Before publishing, set `ADMIN_USER_IDS` (comma-separated account IDs of trend-refresh admins) to
+the same value on both web and API; it replaces `ADMIN_EMAILS`. Replit startup never migrates, so
+apply the two new migrations manually to the production database first:
+`20261030140000_core_workspace_integrity.sql` and `20261030143000_public_labour_context.sql`.
+
 Publish only when the owner is ready. Verify `/`, `/about`, `/auth/login`, a static asset,
 `/api/healthz`, `/api/v1` and `/api/v1/health`, then test signed-in flows with synthetic accounts.
 A live old release can remain healthy while a new publish attempt fails; verify the source
@@ -67,3 +70,14 @@ PostgreSQL upgrades/recovery and the actual root production build/start. Its dep
 smoke uses an explicit disposable loopback database and never calls a model.
 Weekly source/trend jobs and the guarded manual MiniLM publisher stay at `.github/workflows`;
 worker Docker builds use the repository root as context. Public pages read saved snapshots.
+
+## Automatic in-app data refresh
+
+GitHub is only the daily clock. Apply all four refresh migrations explicitly (including `20261031010000_measured_trend_inputs.sql`), then set the
+new `DATA_REFRESH_TOKEN` in Replit and GitHub, and repository variable `DATA_REFRESH_APP_URL`
+to the public HTTPS origin. The app uses its existing private database and dedicated
+`TRENDS_RUNPOD_*` configuration; GitHub needs neither DB nor MiniLM credentials. Keep the
+old workflow/secrets until an automatic publication is proven. Follow the complete
+[activation and verification guide](docs/data-refresh.md); no migration or paid refresh
+is triggered by build/start. Signed-in users can check/attach to the same job from the radar
+or dashboard; failures preserve the last good source snapshot.

@@ -23,6 +23,27 @@ test passed on 24 October 2026; the first integrated refresh failed on Replit's 
 development host `helium`. See the
 [operations guide](../../../../pipelines/trends/runpod/DEPLOYMENT_HANDOFF.md).
 
+Manual refresh from `/admin/snapshots` (`refresh.py`): **Refresh trend data now** dispatches
+`trends-refresh.yml` through the GitHub REST API (`POST /trends/refresh`, server-side
+`GITHUB_DISPATCH_TOKEN` + `GITHUB_REPOSITORY`; an already queued/running run is returned instead
+of a second dispatch), and `GET /trends/refresh/status` polls the run and clears the trend caches
+once it succeeds. **Re-score stored signals** (`POST /trends/refresh/rescore`) re-runs the
+pipeline's scorer/validator/publisher on the stored weeks and publishes only a newer measured
+window, else reports `no_new_data`. All three require a signed-in account listed in
+`ADMIN_USER_IDS` (account IDs, set on both web and API; empty = nobody). The workflow's `TREND_DATABASE_URL` secret is the same database
+the app reads as `DATABASE_URL`.
+
+## Automatic app refresh (2026-10-30)
+
+The dashboard, radar and admin page now use the shared background refresh job. GitHub's
+`automatic-data-refresh.yml` calls the public app with `DATA_REFRESH_TOKEN`; the app writes
+through its own database. Trends measure the last two complete real arXiv cs.AI submission
+weeks (bounded samples), skip inference when already measured, and atomically publish the
+measured Sunday as snapshot date. Static BLS retrieval dates remain unchanged. Historical
+October 2024 replay observations stay labelled and the old backdating script is retired.
+The legacy workflow/API above remain available until the replacement is proven in production.
+See [operations and source assessment](../../../../../docs/data-refresh.md).
+
 ## Goal and tasks (from docs/tasks.md)
 
 **Goal:** at least one updatable AI/job-market source; source and date visible; no hard-coded lists.
@@ -53,3 +74,19 @@ development host `helium`. See the
 | Model / method | Research log-ratio blended 0.6/0.4 with labour decay | Moderate and fast scenarios remain estimates |
 | Evaluation | IDs, finite values, two periods and minimum evidence coverage | Failure prevents publication |
 | Serving | Atomic PostgreSQL snapshot/provenance transaction | GET `/api/v1/trends/snapshot` |
+
+## Trend over time (2026-10-31, M1-019)
+
+`GET /trends/series` (`series.py`) counts the stored paper cache (M1-018) to give each skill's
+observed 7-day rolling share for every day in a chosen range. The radar's "Trend over time"
+card (`TrendRangeCard`, `TrendLinesChart` on shadcn chart / Recharts) lets people pick dates
+and skills; the choice lives in the URL (`?from=&to=&skill=`).
+
+The card renders its own series attribution rather than borrowing the radar forecast's
+snapshot and sources. With no stored papers, metadata cites the dated, versioned method
+and explicitly says no paper observations are stored; query dates never become an arXiv
+retrieval date. The observation period remains null until a complete window contributes data.
+
+
+Daily denominators and mention counts use one SQL statement snapshot, so a concurrent
+settled-day replacement cannot mix versions or inflate a displayed sample share.

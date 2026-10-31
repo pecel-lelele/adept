@@ -157,11 +157,14 @@ choices are not verified CV facts. Parser regression fixtures remain under `test
 [publishing handoff](replit.md#publishing-handoff). The web starts with the monorepo standalone
 launcher, not `next start`. One public Next.js server relays `/api/v1/*` to private FastAPI; the root supervisor waits for API/database readiness before opening the web port.
 Provide stable `SESSION_SECRET`, matching `PROXY_SHARED_SECRET`, Replit's managed
-PostgreSQL `DATABASE_URL` and exact production origin. `PROXY_CLIENT_IP_MODE=best-effort`
-allows `TRUSTED_PROXY_HOPS=0`: the web forwards only the right-most valid forwarded address,
-or warns and omits `X-Real-IP` when absent. `trusted` mode requires a verified positive hop
-count. Authenticated rate limits use verified session IDs; anonymous requests without a
-forwarded address share their direct peer's allowance. Both modes require the shared secret.
+PostgreSQL `DATABASE_URL` and exact production origin. The Replit deployment runs with
+`TRUSTED_PROXY_HOPS=1`: the client is the right-most `X-Forwarded-For` entry appended by
+Replit's edge, and caller-supplied entries to its left are ignored. Production refuses to start
+in trusted mode with 0 hops. With 0 hops (local development) no client IP is forwarded and
+anonymous visitors share one rate-limit bucket. If the ingress chain changes, recheck it with
+[docs/replit-proxy-verification.md](docs/replit-proxy-verification.md). Authenticated rate limits
+use verified session IDs; anonymous requests without a forwarded address share their direct
+peer's allowance. Both modes require the shared secret.
 Importing GitHub files copies neither database contents nor secrets. Pull the merged source
 into the correct Replit project before making a fresh publish attempt. A working public
 instance does not prove that a newer attempted release succeeded.
@@ -174,6 +177,7 @@ instance does not prove that a newer attempted release succeeded.
 | Adi fallback         | Google **Gemini 3.5 Flash Lite**, with Gemini 3.6 Flash / 3.1 Flash Lite backups | Handles provider failure; a built-in guide remains available.                                                        |
 | Trend encoder        | Sentence Transformers **all-MiniLM-L6-v2** through RunPod                        | Relates public research sentences to catalogue skills. Deployed worker verified with two 384-dimensional embeddings. |
 | CV / skill-search suggestions | Google **gemini-embedding-001**                                          | Suggests one catalogue match for unfamiliar skill phrases or an explicitly submitted search; the user confirms additions. Manual search uses approved aliases locally. |
+| Trend refresh fallback | Google **gemini-embedding-001**                                          | Only when the RunPod MiniLM worker is missing or fails: embeds public arXiv papers and skill labels; the match threshold is calibrated to the stored MiniLM mention rate, and the snapshot note names the fallback (M1-017). |
 
 Model features are configurable; the default assistant uses the built-in guide. Role scores, learning plans and trend calculations use deterministic rules. Model-selected IDs pass through `validate_ids` before display.
 
@@ -208,7 +212,7 @@ trend runner installs pipeline client dependencies and calls RunPod over HTTPS.
 | :----------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [CI](.github/workflows/ci.yml)                         | Pushes to `main`, pull requests and manual runs: lint, tests, real PostgreSQL checks, translations, generated contracts and production web build.              |
 | [Data sources](.github/workflows/data-sources.yml)     | Mondays 02:17 UTC (10:17 MYT) and manual runs: checks upstream SDG/course data and evidence links; does not publish trend snapshots.                          |
-| [Trends refresh](.github/workflows/trends-refresh.yml) | Mondays 03:41 UTC (11:41 MYT) and manual runs: ingest public research → RunPod embeddings → score → validate → publish a dated database snapshot.             |
+| [Trends refresh](.github/workflows/trends-refresh.yml) | Manual backup only (not scheduled, M1-017): ingest public research → RunPod embeddings → score → validate → publish a dated snapshot. The app's own refresh adds new arXiv days on demand to a stored paper cache and publishes rolling 7-day trends (M1-018), with a calibrated Gemini fallback when RunPod is down. |
 | [Publish MiniLM](.github/workflows/publish-minilm.yml) | Manual dispatch on the source repository's `main` only: builds `linux/amd64` and publishes GHCR tags with job-scoped `GITHUB_TOKEN`. PRs/forks do not publish. |
 
 Configure **repository Settings → Secrets and variables → Actions**:
@@ -242,7 +246,7 @@ Keeping the same database does not require a Replit redeployment for each trend 
 See the [operations and recovery guide](src/pipelines/trends/runpod/DEPLOYMENT_HANDOFF.md)
 for image access, worker recovery, first-run validation and deployment evidence.
 
-**Submission and technical guides:** [Proposal](docs/submission-proposal.md) · [Technical declaration](docs/submission-technical-declaration.md) · [Diagrams](docs/diagrams/index.html) · [Decisions](docs/decisions.md) · [MiniLM operations](src/pipelines/trends/runpod/DEPLOYMENT_HANDOFF.md) · [Replit publishing](replit.md). Background: [architecture](docs/architecture.md) · [solution design](docs/solution-design.md).
+**Submission and technical guides:** [Proposal](docs/submission/submission-proposal.md) · [Technical declaration](docs/submission/submission-technical-declaration.md) · [Diagrams](docs/diagrams/index.html) · [Decisions](docs/decisions.md) · [MiniLM operations](src/pipelines/trends/runpod/DEPLOYMENT_HANDOFF.md) · [Replit publishing](replit.md). Background: [architecture](docs/architecture.md) · [solution design](docs/solution-design.md).
 
 <a name="interactive-diagrams"></a>
 
@@ -389,12 +393,13 @@ flowchart TB
 flowchart LR
   S["Skill overlap<br/>Σ importance × min(level / required, 1)<br/>divided by Σ importance"] -- "× 0.45" --> T(("Fit score"))
   R["Trend outlook<br/>importance-weighted percentile<br/>of skill velocity (scenario)"] -- "× 0.25" --> T
-  I["Interest fit<br/>Jaccard(user interests, role tags)"] -- "× 0.30" --> T
+  I["Interest fit<br/>0.5 + 0.5 × share of declared interests matched<br/>case-insensitive; no interests or no role tags = neutral"] -- "× 0.30" --> T
   G["UN Goals impact (optional λ)<br/>direct links 1 · enabling 0.5"] -. "score' = (1−λ)·score + λ·impact" .-> T
   T --> O["Ranked roles + have / partial / missing skills<br/>each part shown with its explanation"]
 ```
 
 - Protected attributes (age, gender, background) are never read by matching. Counterfactual tests swap personas and require identical results.
+- Declaring matching interests adds a bonus above the neutral interest contribution; unmatched interests stay neutral. Scenario outlooks report each scenario's computed skill aggregate, so mixed skill signals can make fast less extreme than moderate. Comparison metadata says `scenario: "both"`; selectable scenarios remain moderate and fast.
 - Completed learning can raise a skill's effective matching level when an organisation reviewer confirms it, or when a certificate link passes the provider-page check. That link check confirms reachability and provider domain, not certificate ownership.
 
 ### Knowledge graph
@@ -684,8 +689,8 @@ static CSS, health, CORS preflight and a read-only failed login through the publ
 ## Production boundaries
 
 The Next.js/API pair must receive the same nonempty `PROXY_SHARED_SECRET`. Set
-`TRUSTED_PROXY_HOPS` from the real forwarding chain; do not guess it. Your Replit configuration
-currently shows 1: retain it only if that matches the one public server's platform chain.
+`TRUSTED_PROXY_HOPS` from the real forwarding chain; do not guess it. Replit production uses 1
+(one appending edge in front of the single public server).
 Production rejects missing/zero trust configuration. Local direct-socket development may
 use zero. The public API handler strips caller-supplied internal identity headers.
 
@@ -697,3 +702,19 @@ The hardened MiniLM dependency pins are source changes. Applying them to the liv
 requires a guarded image build and RunPod redeployment. The historical verified worker image
 is not evidence that those newer dependencies are already deployed. Keep all keys and
 connection strings in secret stores, never in this README or submission PDFs.
+
+Final-round review: [refresh and demo runbook](docs/review-runbook.md). Dashboard refresh uses the existing published RunPod MiniLM model through an admin-only workflow dispatch; production configuration and paid-run acceptance remain explicit rollout steps.
+
+### Final-round disclosure and measurement notes (30 October 2026)
+
+The About registry and technical declaration identify RunPod MiniLM, RunPod GLM-5.3
+with separately authenticated Gemini failover, and Replit hosting. Google Fonts'
+Inter assets are available through `@fontsource-variable/inter`; current app styles
+use Arial/system fallbacks, without a live Google Fonts request. ElevenLabs was
+confirmed used for presentation audio, not application recommendations.
+
+The MyCOL 2024/2025 badge uses only the reviewed stored `data-analyst` ID and cites
+TalentCorp's restricted title list; it does not change ranking or claim current vacancies.
+See [mapping evidence](docs/reference/critical-occupations.md).
+Human KPI trials remain unrun (0 testers, 0 trials); automated local API timings
+are separate evidence: [journey measurements](docs/evidence/kpi-automated-journeys.md).

@@ -11,7 +11,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from app.contracts.common import RecommendationMeta
+from app.contracts.common import RecommendationMeta, TrendProvenance, TrendSource
 
 # ---------------------------------------------------------------------------
 # Legacy contracts (skeleton – kept for backward compat with existing tests)
@@ -19,6 +19,12 @@ from app.contracts.common import RecommendationMeta
 
 EntityType = Literal["role", "skill"]
 Direction = Literal["rising", "stable", "declining"]
+
+
+class TrendRecommendationMeta(RecommendationMeta, TrendProvenance):
+    """Legacy trend endpoints retain the same explicit origin as snapshot/freshness."""
+
+    sources: list[TrendSource] = Field(min_length=1)
 
 
 class TrendSignal(BaseModel):
@@ -30,16 +36,26 @@ class TrendSignal(BaseModel):
     ai_exposure: float = Field(ge=0, le=1)
     automation_share: float = Field(ge=0, le=1)
     augmentation_share: float = Field(ge=0, le=1)
+    trend_coverage: float | None = Field(
+        default=None,
+        ge=0,
+        le=1,
+        description="Roles only: share of the role's skill importance that has trend data.",
+    )
+    insufficient_evidence: bool = Field(
+        default=False,
+        description="Roles only: trend_coverage is below 0.5, so the direction is not reliable.",
+    )
 
 
 class RadarResponse(BaseModel):
     items: list[TrendSignal]
-    meta: RecommendationMeta
+    meta: TrendRecommendationMeta
 
 
 class RoleTrendResponse(BaseModel):
     signal: TrendSignal
-    meta: RecommendationMeta
+    meta: TrendRecommendationMeta
 
 
 # ---------------------------------------------------------------------------
@@ -48,10 +64,8 @@ class RoleTrendResponse(BaseModel):
 # ---------------------------------------------------------------------------
 
 
-class SourceRef(BaseModel):
-    name: str
-    url: str
-    retrieved_at: date
+class SourceRef(TrendSource):
+    """Source retrieval basis is part of the trend response, not just its export."""
 
 
 class SkillVelocity(BaseModel):
@@ -91,9 +105,11 @@ class SkillVelocity(BaseModel):
     )
 
 
-class TrendSnapshotMeta(BaseModel):
+class TrendSnapshotMeta(TrendProvenance):
     sources: list[SourceRef]
-    snapshot_date: date
+    snapshot_date: date = Field(
+        description="Snapshot version/slot label, not its observation or retrieval date."
+    )
     scenario: Literal["moderate", "fast"]
     is_estimate: bool = True
     served_from: Literal["db", "fixture"] = "db"
@@ -115,15 +131,77 @@ class TrendSnapshotMeta(BaseModel):
             "arXiv date-window pulls or demo calibration."
         ),
     )
-    observed_from: date | None = Field(
-        default=None,
-        description="Start of the period the source data measures; may predate snapshot_date.",
-    )
-    observed_to: date | None = Field(
-        default=None, description="End of the period the source data measures."
-    )
 
 
 class TrendSnapshotResponse(BaseModel):
     meta: TrendSnapshotMeta
     items: list[SkillVelocity]
+
+
+# ---------------------------------------------------------------------------
+# Admin trend refresh (F2): dispatch the trends-refresh workflow, or re-score stored signals
+# ---------------------------------------------------------------------------
+
+RefreshRunStatus = Literal["queued", "in_progress", "completed"]
+
+
+class TrendRefreshStatus(BaseModel):
+    """State of the GitHub Actions trend refresh run (the workflow publishes the snapshot)."""
+
+    status: RefreshRunStatus
+    conclusion: str | None = Field(
+        default=None, description="GitHub run conclusion once completed, e.g. success, failure."
+    )
+    run_id: int | None = Field(default=None, description="None until GitHub lists the new run.")
+    run_url: str | None = None
+    created_at: str | None = None
+    updated_at: str | None = None
+    dispatched: bool = Field(default=False, description="True when this request started the run.")
+    already_running: bool = Field(
+        default=False, description="True when an earlier run was still queued or in progress."
+    )
+    caches_cleared: bool = False
+    snapshot_date: date | None = Field(
+        default=None, description="Latest snapshot the app serves after a completed run."
+    )
+    served_from: Literal["db", "fixture"] | None = None
+    is_fallback: bool = False
+
+
+class TrendRescoreResult(BaseModel):
+    """Outcome of re-scoring the latest stored signals (no ingest, no model call)."""
+
+    status: Literal["published", "no_new_data", "failed"]
+    message: str
+    snapshot_date: date | None = Field(
+        default=None, description="New snapshot date (published) or the one still live."
+    )
+    observed_from: date | None = None
+    observed_to: date | None = None
+
+
+class TrendSeriesPoint(BaseModel):
+    day: date
+    share: float | None = Field(
+        description="Share of sampled arXiv papers in the 7 days ending on `day` that mention "
+        "the skill; null when that window is not fully stored."
+    )
+
+
+class TrendSeriesLine(BaseModel):
+    skill_id: str
+    label: str
+    points: list[TrendSeriesPoint]
+    change: float | None = Field(description="Last minus first available share in the range.")
+
+
+class TrendSeriesResponse(BaseModel):
+    """Observed rolling shares per skill over a chosen date range (M1-018 paper store)."""
+
+    start: date
+    end: date
+    window_days: int = 7
+    available_from: date | None = Field(description="First day a full window is stored.")
+    available_to: date | None = Field(description="Newest stored day.")
+    lines: list[TrendSeriesLine]
+    meta: RecommendationMeta

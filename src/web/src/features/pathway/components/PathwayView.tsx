@@ -1,3 +1,4 @@
+import { DataAsOf } from "@/components/DataAsOf";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -14,7 +15,7 @@ import {
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
-import { ErrorState, Kpis, MetaBar, PageHeader } from "@/components";
+import { ErrorState, EstimateLabel, Kpis, MetaBar, PageHeader } from "@/components";
 import { journeyStepCount } from "@/config/navigation";
 import { Fold } from "@/components/Fold";
 import { HistoricalSnapshotBanner } from "@/components/HistoricalSnapshotBanner";
@@ -57,7 +58,7 @@ async function PlanAside({ plan, query }: { plan: Schemas["Pathway"]; query: str
     { to: `/app/progress${query}`, icon: <Target size={16} aria-hidden />, label: t("plan.progressLink") },
     { to: `/app/sdg${query}`, icon: <Leaf size={16} aria-hidden />, label: t("plan.sdgLink") },
     { to: `/app/courses${query}`, icon: <BookOpen size={16} aria-hidden />, label: t("catalogue.browse") },
-    { to: `/app/pathway/compare${query}`, icon: <GitCompareArrows size={16} aria-hidden />, label: t("compare.link") },
+    { to: `/app/pathway/compare${query.replace("?role=", "?roles=")}`, icon: <GitCompareArrows size={16} aria-hidden />, label: t("compare.link") },
   ];
   return (
     <aside className="a-aside is-sticky">
@@ -84,6 +85,9 @@ async function PlanAside({ plan, query }: { plan: Schemas["Pathway"]; query: str
         <ul className="a-notes a-fold-body">
           <li>{t("summary.outOfPocket", { amount: plan.out_of_pocket_myr ?? 0, budget: plan.budget_myr ?? 0 })}</li>
           {plan.hrd_eligible ? <li>{t("summary.hrdNote")}</li> : null}
+          {plan.learning_style === "classroom" || plan.learning_style === "video" || plan.learning_style === "reading" ? (
+            <li>{t(`summary.style.${plan.learning_style}`)}</li>
+          ) : null}
           {(plan.warnings ?? []).map((w) => (
             <li key={w}>{w}</li>
           ))}
@@ -110,7 +114,8 @@ async function ReplanBanner({ status }: { status: Schemas["ReplanStatus"] }) {
         <ul>
           {status.changes.map((c) => (
             <li key={`${c.kind}-${c.skill_id}`}>
-              {t(`replan.change.${c.kind}`)}: {skillName(c.skill_id)}. {c.detail}
+              {t(`replan.change.${c.kind}`)}
+              {c.skill_id ? `: ${skillName(c.skill_id)}.` : ":"} {c.detail}
             </li>
           ))}
         </ul>
@@ -137,7 +142,15 @@ export async function PathwayView({
   const tp = await getTranslations("ui.page");
   const [result, status] = await Promise.all([fetchPathway(roleId, scenario, snapshotDate), fetchPlanStatus()]);
   const tm = await getTranslations("matching");
-  if (!result.ok) return <ErrorState failure={result} />;
+  if (!result.ok) return (
+    <div className="a-view">
+      <PageHeader eyebrow={tp("stepOf", { step: 4, total: journeyStepCount() })} title={t("title")} description={d("pathBody")}>
+        <EstimateLabel scenario={scenario} />
+        {snapshotDate ? <span className="a-chip">{tp("asOf", { date: snapshotDate })}</span> : null}
+      </PageHeader>
+      <ErrorState failure={result} />
+    </div>
+  );
   const saved = status.ok ? status.data.saved : null;
   // The saved plan is the one progress is tracked against; show it (not a fresh rebuild)
   // whenever it is for this role and scenario. Changes are offered by the re-plan banner.
@@ -147,7 +160,16 @@ export async function PathwayView({
 
   // Fetch progress for vertical timeline node state (only when the user has saved this plan)
   const progressResult = savedHere ? await fetchProgress(roleId, scenario) : null;
-  const courseStatus: Record<string, string> = progressResult?.ok ? progressResult.data.course_status : {};
+  const courseStatus: Record<string, string> = {};
+  if (progressResult?.ok) {
+    const p = progressResult.data;
+    Object.assign(courseStatus, p.course_status);
+    if (p.workspace === "personal" && p.completed_elsewhere) {
+      for (const courseId of Object.keys(p.completed_elsewhere)) {
+        courseStatus[courseId] = "completed";
+      }
+    }
+  }
   const query = `?role=${encodeURIComponent(roleId)}&scenario=${scenario}`;
   // Same role, other scenario: point back to the saved plan rather than implying none exists.
   const savedOtherScenario =
@@ -176,6 +198,7 @@ export async function PathwayView({
       >
         <MetaBar meta={plan.meta} />
       </PageHeader>
+      <DataAsOf source="trends" meta={plan.meta} />
       <HistoricalSnapshotBanner date={snapshotDate} latestHref={`/app/pathway${query}`} />
       {savedOtherScenario ? (
         <p className="a-notice" data-tone="info">

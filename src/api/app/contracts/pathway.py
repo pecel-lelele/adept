@@ -47,6 +47,11 @@ class Course(BaseModel):
     location: str = ""
     price_note: str = Field(default="", description="How cost_myr was derived (e.g. FX rate).")
     price_status: Literal["listed", "certificate_price_unknown"] = "listed"
+    certificate_status: Literal["unknown", "included"] = Field(
+        default="unknown",
+        description="Completion certificate verified as included in the listed learning price.",
+    )
+    certificate_source: Source | None = None
     certificate_note: str = ""
 
 
@@ -108,6 +113,10 @@ class Pathway(BaseModel):
     budget_myr: float = Field(default=0, ge=0)
     within_budget: bool = True
     hrd_eligible: bool = False
+    learning_style: str = Field(
+        default="mixed",
+        description="Learning style used to prefer course delivery formats within budget.",
+    )
     gaps: list[SkillGap] = Field(default_factory=list)
     unmet: list[UnmetSkill] = Field(default_factory=list)
     warnings: list[str] = Field(default_factory=list)
@@ -137,8 +146,16 @@ class SavedPlan(BaseModel):
 
 
 class PlanChange(BaseModel):
-    kind: Literal["added", "removed", "reordered", "courses_changed"]
-    skill_id: str
+    kind: Literal[
+        "added",
+        "removed",
+        "reordered",
+        "courses_changed",
+        "schedule_changed",
+        "cost_changed",
+        "style_changed",
+    ]
+    skill_id: str = Field(description="Empty for whole-plan changes (schedule, cost, style).")
     detail: str
 
 
@@ -199,7 +216,9 @@ class ProgressUpdate(BaseModel):
 
 # Evidence ladder for a completed course, weakest first (KerjaCerdas proof-level idea).
 EvidenceKind = Literal["self_reported", "certificate_link", "org_confirmed", "org_rejected"]
-LinkStatus = Literal["not_submitted", "provider_verified", "unreachable", "not_provider_page"]
+LinkStatus = Literal[
+    "not_submitted", "submitted", "provider_verified", "unreachable", "not_provider_page"
+]
 
 
 class CompletionEvidence(BaseModel):

@@ -3,12 +3,15 @@ import { getTranslations } from "next-intl/server";
 
 import { Badge, ErrorState } from "@/components";
 import { SiteFooter, SiteHeader } from "@/components/shell/Site";
+import Link from "next/link";
+
 import { call, getApi } from "@/lib/api";
 
 /** About page (F8, owner M3): LLM disclosure, methodology, guardrails, sources, fairness. */
 export async function AboutView() {
   const t = await getTranslations("guardrails");
   const tl = await getTranslations("ui.landing");
+  const ti = await getTranslations("impact");
   const api = await getApi();
   const [disclosure, sources, fairness] = await Promise.all([
     call(api.GET("/api/v1/guardrails/disclosure")),
@@ -23,6 +26,11 @@ export async function AboutView() {
         <span className="a-eyebrow is-square">{tl("navAbout")}</span>
         <h1 className="a-display">{t("title")}</h1>
         <p className="a-hero2-lead">{t("methodBody")}</p>
+        <p>
+          <Link className="a-link" href="/impact">
+            {ti("aboutLink")}
+          </Link>
+        </p>
 
         <div className="a-about-grid">
           <section className="a-card">

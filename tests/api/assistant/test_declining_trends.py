@@ -45,3 +45,21 @@ def test_context_stores_declining_skills_and_roles_from_the_snapshot(
     )
     assert not set(ctx.facts["declining"]) & set(ctx.facts["rising"])
     assert ctx.facts["declining_roles"]
+
+
+def test_insufficient_evidence_roles_are_not_called_declining(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    snapshot = mocks.snapshot("moderate")
+    real = trends_service.signals_from_snapshot(snapshot, "moderate")
+    forced = [
+        s.model_copy(update={"direction": "declining", "insufficient_evidence": True})
+        if s.entity_type == "role"
+        else s
+        for s in real
+    ]
+    monkeypatch.setattr(trends_service, "get_snapshot", lambda *_: snapshot)
+    monkeypatch.setattr(trends_service, "signals_from_snapshot", lambda *_: forced)
+    ctx = context.Context(audience="learner")
+    context._trends(ctx, "moderate", set())
+    assert ctx.facts["declining_roles"] == []

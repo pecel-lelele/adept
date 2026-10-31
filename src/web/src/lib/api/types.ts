@@ -4,6 +4,23 @@
  */
 
 export interface paths {
+    "/api/v1/meta/version": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Version */
+        get: operations["core_version"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -192,6 +209,119 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/data/freshness": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Data Freshness
+         * @description When each data source was last fetched (from stored data or run logs) and where it is
+         *     served from. Page requests never fetch upstream data.
+         */
+        get: operations["data_data_freshness"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/data/refresh/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Scheduled Run */
+        post: operations["data_scheduled_run"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/data/refresh/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** User Refresh */
+        post: operations["data_user_refresh"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/data/refresh/status/{run_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Run Status */
+        get: operations["data_run_status"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/data/refresh/recent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Recent Runs */
+        get: operations["data_recent_runs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/data/refresh/{source}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Refresh Source
+         * @description Fetch, validate and upsert one source into the app database (admin only).
+         *
+         *     409 refresh_in_progress while that source is running; 501 refresh_not_supported when the
+         *     pipeline is not installed here; 503 when the database is not available. A failed run
+         *     (status "failed") wrote nothing and the last good data stays served.
+         */
+        post: operations["data_refresh_source"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/guardrails/disclosure": {
         parameters: {
             query?: never;
@@ -244,6 +374,27 @@ export interface paths {
          * @description Live fairness checks: protected attributes excluded, counterfactual invariance.
          */
         get: operations["guardrails_get_fairness"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/impact/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Summary
+         * @description Public, read-only impact evidence computed on request from the catalogue, the trend
+         *     snapshot and the production matching and pathway engines, on synthetic personas.
+         */
+        get: operations["impact_get_summary"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1392,6 +1543,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/trends/malaysia-context": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Malaysia Context */
+        get: operations["trends_malaysia_context"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/trends/snapshot": {
         parameters: {
             query?: never;
@@ -1408,6 +1576,29 @@ export interface paths {
          *     All scores are pre-computed by the pipeline; no network call is made here.
          */
         get: operations["trends_get_snapshot"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trends/series": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Series
+         * @description Observed 7-day rolling share per skill for each day in [start, end] (max 120 days).
+         *
+         *     Counted from stored papers (no model call). Without `skill_ids`, the three biggest risers
+         *     and fallers in the range are returned. 422 invalid_range for bad dates or skills.
+         */
+        get: operations["trends_get_series"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1444,6 +1635,71 @@ export interface paths {
         get: operations["trends_get_role_trend"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trends/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start Refresh
+         * @description Fetch the latest data: start the trends-refresh GitHub Actions workflow.
+         *
+         *     Returns the run already queued or in progress instead of starting a second one.
+         *     503 refresh_not_configured when GITHUB_DISPATCH_TOKEN / GITHUB_REPOSITORY are unset.
+         */
+        post: operations["trends_start_refresh"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trends/refresh/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Refresh Status
+         * @description Status of a refresh run; a successful run clears the trend caches once.
+         */
+        get: operations["trends_refresh_status"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trends/refresh/rescore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Rescore
+         * @description Re-score the latest stored signals (no ingest, no model call).
+         *
+         *     Publishes only a genuinely new snapshot; otherwise reports no_new_data.
+         */
+        post: operations["trends_rescore"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1669,9 +1925,14 @@ export interface components {
             parts: components["schemas"]["AnswerPart"][];
             /**
              * Suggestions
-             * @description Follow-up questions.
+             * @description Up to three server-authored follow-up questions; tapping one asks it.
              */
             suggestions?: string[];
+            /**
+             * Suggestion Ids
+             * @description Catalogue IDs of the follow-up questions, in the same order.
+             */
+            suggestion_ids?: string[];
             /**
              * Used Llm
              * @description False when the deterministic guide answered.
@@ -1704,6 +1965,41 @@ export interface components {
              * @default
              */
             workspace_name: string;
+        };
+        /** BackgroundRefresh */
+        BackgroundRefresh: {
+            /** Run Id */
+            run_id?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "queued" | "running" | "ok" | "failed" | "up_to_date" | "cooldown";
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /** Finished At */
+            finished_at?: string | null;
+            /**
+             * Checked At
+             * Format: date-time
+             */
+            checked_at: string;
+            /** Data As Of */
+            data_as_of?: string | null;
+            /** Retry At */
+            retry_at?: string | null;
+            /** Next Scheduled At */
+            next_scheduled_at?: string | null;
+            /**
+             * Shared
+             * @default false
+             */
+            shared: boolean;
+            /** Steps */
+            steps?: components["schemas"]["RefreshStep"][];
         };
         /** Badge */
         Badge: {
@@ -1747,6 +2043,46 @@ export interface components {
         Body_profile_upload_cv: {
             /** File */
             file: string;
+        };
+        /** CatalogueCoverage */
+        CatalogueCoverage: {
+            /** Course Count */
+            course_count: number;
+            /** Role Count */
+            role_count: number;
+            /** Target Role Count */
+            target_role_count: number;
+            /** Skill Count */
+            skill_count: number;
+            /** Free Course Count */
+            free_course_count: number;
+            /** Free Course Share */
+            free_course_share: number;
+            /** Free Hours */
+            free_hours: number;
+            /** Sdg Target Count */
+            sdg_target_count: number;
+            /** Role Sdg Link Count */
+            role_sdg_link_count: number;
+            /** By Language */
+            by_language: components["schemas"]["CountBucket"][];
+            /** By Provider Type */
+            by_provider_type: components["schemas"]["CountBucket"][];
+            /** Verified Recent Share */
+            verified_recent_share: number;
+            /** Verified Window Days */
+            verified_window_days: number;
+            /**
+             * Verified Since
+             * Format: date
+             */
+            verified_since: string;
+            /**
+             * As Of
+             * Format: date
+             * @description Newest stored course verification date; not the clock.
+             */
+            as_of: string;
         };
         /** CatalogueResponse */
         CatalogueResponse: {
@@ -1849,7 +2185,7 @@ export interface components {
              * @default not_submitted
              * @enum {string}
              */
-            link_status: "not_submitted" | "provider_verified" | "unreachable" | "not_provider_page";
+            link_status: "not_submitted" | "submitted" | "provider_verified" | "unreachable" | "not_provider_page";
             /** Link Checked At */
             link_checked_at?: string | null;
             /**
@@ -1880,6 +2216,13 @@ export interface components {
              * @description Set when the member copied this from their personal learning.
              */
             shared_from?: "personal" | null;
+        };
+        /** CountBucket */
+        CountBucket: {
+            /** Key */
+            key: string;
+            /** Count */
+            count: number;
         };
         /** CounterfactualResult */
         CounterfactualResult: {
@@ -1983,6 +2326,14 @@ export interface components {
              */
             price_status: "listed" | "certificate_price_unknown";
             /**
+             * Certificate Status
+             * @description Completion certificate verified as included in the listed learning price.
+             * @default unknown
+             * @enum {string}
+             */
+            certificate_status: "unknown" | "included";
+            certificate_source?: components["schemas"]["Source"] | null;
+            /**
              * Certificate Note
              * @default
              */
@@ -2001,6 +2352,22 @@ export interface components {
              */
             status: "not_started" | "in_progress" | "completed";
             evidence?: components["schemas"]["CompletionEvidence"] | null;
+        };
+        /** CriticalOccupationBadge */
+        CriticalOccupationBadge: {
+            /** Edition */
+            edition: string;
+            /** Masco4D */
+            masco4d: string;
+            /** Occupation Label */
+            occupation_label: string;
+            /** Matched Title */
+            matched_title: string;
+            /** Source Page */
+            source_page: number;
+            /** Pdf Page */
+            pdf_page: number;
+            meta: components["schemas"]["RecommendationMeta"];
         };
         /** CvExtractionResult */
         CvExtractionResult: {
@@ -2025,13 +2392,34 @@ export interface components {
         };
         /** DataFreshness */
         DataFreshness: {
+            /** Observation Window Start */
+            observation_window_start?: string | null;
+            /** Observation Window End */
+            observation_window_end?: string | null;
+            /** Retrieved At */
+            retrieved_at?: string | null;
+            /**
+             * Retrieved At Basis
+             * @default unknown
+             * @enum {string}
+             */
+            retrieved_at_basis: "pipeline_fetch" | "fetch_log" | "git_commit_date" | "unknown";
+            /** Retrieval Evidence */
+            retrieval_evidence?: string | null;
+            /** Is Replay */
+            is_replay?: boolean | null;
+            /** Observed From */
+            observed_from?: string | null;
+            /** Observed To */
+            observed_to?: string | null;
             /**
              * Snapshot Date
              * Format: date
+             * @description Snapshot version/slot label; see observation_window_* for the measured period.
              */
             snapshot_date: string;
             /** Sources */
-            sources: components["schemas"]["Source"][];
+            sources: components["schemas"]["TrendSource"][];
             /** Is Mock */
             is_mock: boolean;
             /**
@@ -2041,6 +2429,117 @@ export interface components {
             served_from: "db" | "fixture";
             /** Is Fallback */
             is_fallback: boolean;
+        };
+        /** DataFreshnessResponse */
+        DataFreshnessResponse: {
+            /** Sources */
+            sources: components["schemas"]["DataSourceFreshness"][];
+        };
+        /**
+         * DataRefreshResult
+         * @description Outcome of one admin refresh. A failed run wrote nothing; the last good data stays.
+         */
+        DataRefreshResult: {
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "courses" | "catalogue" | "jobs" | "labour" | "trends";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "failed";
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /**
+             * Finished At
+             * Format: date-time
+             */
+            finished_at: string;
+            /** Rows Fetched */
+            rows_fetched: number;
+            /** Rows Upserted */
+            rows_upserted: number;
+            /** Rows Rejected */
+            rows_rejected: number;
+            /** Error Code */
+            error_code?: string | null;
+            /** Message */
+            message: string;
+            /** Boards Run */
+            boards_run?: string[];
+            /** Boards Skipped */
+            boards_skipped?: string[];
+            freshness?: components["schemas"]["DataSourceFreshness"] | null;
+        };
+        /**
+         * DataSourceFreshness
+         * @description How fresh the data behind one page is, from stored data or run logs (never the clock).
+         */
+        DataSourceFreshness: {
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "trends" | "courses" | "jobs" | "labour";
+            /** Source Name */
+            source_name: string;
+            /** Source Url */
+            source_url?: string | null;
+            /**
+             * Last Fetched At
+             * @description Date the stored data was last fetched/observed from its source.
+             */
+            last_fetched_at?: string | null;
+            /**
+             * Data As Of
+             * @description Period the data describes (snapshot date, observed month), if distinct.
+             */
+            data_as_of?: string | null;
+            /** Snapshot Date */
+            snapshot_date?: string | null;
+            /** Observed From */
+            observed_from?: string | null;
+            /** Observed To */
+            observed_to?: string | null;
+            /**
+             * Is Historical Replay
+             * @default false
+             */
+            is_historical_replay: boolean;
+            /** Last Success */
+            last_success?: string | null;
+            /** Last Checked At */
+            last_checked_at?: string | null;
+            /** Age Days */
+            age_days?: number | null;
+            /**
+             * Is Stale
+             * @default false
+             */
+            is_stale: boolean;
+            /** Rows */
+            rows: number;
+            /**
+             * Served From
+             * @enum {string}
+             */
+            served_from: "database" | "seed";
+            /**
+             * Is Fallback
+             * @description True when the frozen seed export is being served.
+             */
+            is_fallback: boolean;
+            /**
+             * Refreshable
+             * @description An administrator can refresh this source in the app.
+             */
+            refreshable: boolean;
+            last_run?: components["schemas"]["RefreshRunSummary"] | null;
         };
         /** DataSourceInfo */
         DataSourceInfo: {
@@ -2114,6 +2613,47 @@ export interface components {
             links: components["schemas"]["SdgLink"][];
             meta: components["schemas"]["RecommendationMeta"];
         };
+        /**
+         * EvidenceItem
+         * @description A figure quoted from a public page that was fetched and checked, with its source.
+         */
+        EvidenceItem: {
+            /** Id */
+            id: string;
+            /** Figure */
+            figure: string;
+            /** Value */
+            value: number;
+            /** Unit */
+            unit: string;
+            /** Scope */
+            scope: string;
+            /** Claim */
+            claim: string;
+            /**
+             * Quote
+             * @description Short verbatim phrase from the page.
+             */
+            quote: string;
+            /** Publisher */
+            publisher: string;
+            /** Title */
+            title: string;
+            /** Url */
+            url: string;
+            /**
+             * Retrieved At
+             * Format: date
+             */
+            retrieved_at: string;
+            /** Published At */
+            published_at?: string | null;
+            /**
+             * Feature
+             * @description Key of the Adept feature that addresses it.
+             */
+            feature: string;
+        };
         /** EvidenceSubmit */
         EvidenceSubmit: {
             /** Role Id */
@@ -2133,6 +2673,26 @@ export interface components {
             level: number;
             /** Confidence */
             confidence: number;
+        };
+        /** FairnessEvidence */
+        FairnessEvidence: {
+            /** Variants Tested */
+            variants_tested: number;
+            /** Personas Tested */
+            personas_tested: number;
+            /**
+             * Max Rank Change
+             * @description Largest role-position change across swaps.
+             */
+            max_rank_change: number;
+            /** Guardrail Report Passed */
+            guardrail_report_passed: boolean;
+            /** Api Inputs Checked */
+            api_inputs_checked: number;
+            /** Protected Inputs Found */
+            protected_inputs_found: string[];
+            /** Method */
+            method: string;
         };
         /** FairnessReport */
         FairnessReport: {
@@ -2270,9 +2830,14 @@ export interface components {
             skill_id: string;
             /**
              * Gap
-             * @description Share of members missing the skill.
+             * @description Share below required level; null when suppressed.
              */
-            gap: number;
+            gap: number | null;
+            /**
+             * Suppressed
+             * @default false
+             */
+            suppressed: boolean;
         };
         /** GapHeatmapResponse */
         GapHeatmapResponse: {
@@ -2290,11 +2855,25 @@ export interface components {
             /** Cells */
             cells: components["schemas"]["GapHeatmapCell"][];
             /**
+             * Cohort Size
+             * @default 0
+             */
+            cohort_size: number;
+            /**
+             * Min Cohort
+             * @default 3
+             */
+            min_cohort: number;
+            /** Role Suppressed */
+            role_suppressed?: {
+                [key: string]: boolean;
+            };
+            /**
              * Role Gaps
-             * @description role_id -> average gap over that role's required skills only. Cells for skills a role does not require are 0 and must not be averaged.
+             * @description role_id -> average gap over that role's required skills only. Suppressed rows are null. Unsuppressed cells for unrequired skills are 0 and must not be averaged.
              */
             role_gaps?: {
-                [key: string]: number;
+                [key: string]: number | null;
             };
             meta: components["schemas"]["RecommendationMeta"];
         };
@@ -2409,6 +2988,51 @@ export interface components {
              */
             database: "ok" | "unavailable";
         };
+        /** ImpactAggregate */
+        ImpactAggregate: {
+            /**
+             * Scenario
+             * @enum {string}
+             */
+            scenario: "moderate" | "fast";
+            /** Persona Count */
+            persona_count: number;
+            /** Median Free Course Share */
+            median_free_course_share: number;
+            /** Median Free Hours Share */
+            median_free_hours_share: number;
+            /** Median Hrd Course Share */
+            median_hrd_course_share: number;
+            /** Median Total Hours */
+            median_total_hours: number;
+            /** Median Sdg Target Count */
+            median_sdg_target_count: number;
+            /** Median Top5 Changed */
+            median_top5_changed: number;
+        };
+        /** ImpactSummary */
+        ImpactSummary: {
+            /** Personas */
+            personas: components["schemas"]["PersonaImpact"][];
+            /** Aggregates */
+            aggregates: components["schemas"]["ImpactAggregate"][];
+            catalogue: components["schemas"]["CatalogueCoverage"];
+            fairness: components["schemas"]["FairnessEvidence"];
+            /** Public Evidence */
+            public_evidence: components["schemas"]["EvidenceItem"][];
+            /** @description Stored DOSM labour force snapshot, with its real dates. */
+            labour_context?: components["schemas"]["MalaysiaLabourContext"] | null;
+            /**
+             * Formulas
+             * @description How each displayed figure is derived.
+             */
+            formulas: {
+                [key: string]: string;
+            };
+            /** Persona Note */
+            persona_note: string;
+            meta: components["schemas"]["RecommendationMeta"];
+        };
         /**
          * JobBoardPage
          * @description Every live opening matched to an Adept role, filtered and paged.
@@ -2478,6 +3102,18 @@ export interface components {
              */
             first_seen: string;
             /**
+             * Last Seen
+             * Format: date
+             * @description Last day a source read still listed the ad.
+             */
+            last_seen: string;
+            /**
+             * Is Stale
+             * @description Not re-seen by a source read in the last 14 days; it may have closed. Shown labelled, never counted as open.
+             * @default false
+             */
+            is_stale: boolean;
+            /**
              * Role Method
              * @description How the opening was matched to the role: its job title, or its skills.
              * @enum {string}
@@ -2530,11 +3166,68 @@ export interface components {
             /** Password */
             password: string;
         };
+        /** MalaysiaLabourContext */
+        MalaysiaLabourContext: {
+            /**
+             * Observed Month
+             * Format: date
+             */
+            observed_month: string;
+            /** Unemployment Rate */
+            unemployment_rate: number;
+            /** Participation Rate */
+            participation_rate: number;
+            /** Employment Population Ratio */
+            employment_population_ratio: number;
+            meta: components["schemas"]["RecommendationMeta"];
+        };
+        /** MatchMeta */
+        MatchMeta: {
+            /** Sources */
+            sources: components["schemas"]["Source"][];
+            /**
+             * Snapshot Date
+             * Format: date
+             */
+            snapshot_date: string;
+            /**
+             * Scenario
+             * @description Scenario of the result; 'both' identifies a moderate/fast comparison.
+             */
+            scenario: ("moderate" | "fast") | "both";
+            /**
+             * Is Estimate
+             * @default true
+             */
+            is_estimate: boolean;
+            /** Served From */
+            served_from?: ("db" | "fixture") | null;
+            /**
+             * Is Fallback
+             * @default false
+             */
+            is_fallback: boolean;
+            /**
+             * Observed From
+             * @description Start of the period the source data measures; may predate snapshot_date.
+             */
+            observed_from?: string | null;
+            /**
+             * Observed To
+             * @description End of the period the source data measures.
+             */
+            observed_to?: string | null;
+            /**
+             * Available Snapshots
+             * @description Stored snapshot dates supplied by the trend source used for this ranking.
+             */
+            available_snapshots?: string[];
+        };
         /** MatchResponse */
         MatchResponse: {
             /** Matches */
             matches: components["schemas"]["RoleMatch"][];
-            meta: components["schemas"]["RecommendationMeta"];
+            meta: components["schemas"]["MatchMeta"];
             /**
              * Data Provenance Note
              * @description Trend provider's provenance disclosure, including any demo-fixture caveat.
@@ -2831,6 +3524,12 @@ export interface components {
              * @default false
              */
             hrd_eligible: boolean;
+            /**
+             * Learning Style
+             * @description Learning style used to prefer course delivery formats within budget.
+             * @default mixed
+             */
+            learning_style: string;
             /** Gaps */
             gaps?: components["schemas"]["SkillGap"][];
             /** Unmet */
@@ -2847,6 +3546,46 @@ export interface components {
              * @description The learner's segment, for guidance text only; it never changes the plan.
              */
             segment?: ("working" | "graduate" | "switcher") | null;
+        };
+        /**
+         * PathwayImpact
+         * @description One persona's pathway towards their top-ranked role in one scenario.
+         */
+        PathwayImpact: {
+            /**
+             * Scenario
+             * @enum {string}
+             */
+            scenario: "moderate" | "fast";
+            /** Top Role Id */
+            top_role_id: string;
+            /** Top Role Label */
+            top_role_label: string;
+            /** Course Count */
+            course_count: number;
+            /** Total Hours */
+            total_hours: number;
+            /**
+             * Free Course Share
+             * @description Courses with cost_myr == 0.
+             */
+            free_course_share: number;
+            /** Free Hours Share */
+            free_hours_share: number;
+            /**
+             * Hrd Course Share
+             * @description Courses flagged HRD Corp claimable.
+             */
+            hrd_course_share: number;
+            /** Hrd Hours Share */
+            hrd_hours_share: number;
+            /**
+             * Sdg Target Count
+             * @description Distinct SDG targets the path contributes to.
+             */
+            sdg_target_count: number;
+            /** Sdg Targets */
+            sdg_targets?: string[];
         };
         /** PathwayStep */
         PathwayStep: {
@@ -2906,14 +3645,39 @@ export interface components {
              */
             member_ids?: string[];
         };
+        /** PersonaImpact */
+        PersonaImpact: {
+            /** Persona Id */
+            persona_id: string;
+            /** Source */
+            source: string;
+            /** Skill Count */
+            skill_count: number;
+            /** Hours Per Week */
+            hours_per_week: number;
+            /** Hrd Eligible */
+            hrd_eligible: boolean;
+            moderate: components["schemas"]["PathwayImpact"];
+            fast: components["schemas"]["PathwayImpact"];
+            /**
+             * Top5 Changed
+             * @description Roles in the Moderate top 5 that are absent from the Fast top 5.
+             */
+            top5_changed: number;
+            /** Top Role Changed */
+            top_role_changed: boolean;
+        };
         /** PlanChange */
         PlanChange: {
             /**
              * Kind
              * @enum {string}
              */
-            kind: "added" | "removed" | "reordered" | "courses_changed";
-            /** Skill Id */
+            kind: "added" | "removed" | "reordered" | "courses_changed" | "schedule_changed" | "cost_changed" | "style_changed";
+            /**
+             * Skill Id
+             * @description Empty for whole-plan changes (schedule, cost, style).
+             */
             skill_id: string;
             /** Detail */
             detail: string;
@@ -3336,7 +4100,7 @@ export interface components {
         RadarResponse: {
             /** Items */
             items: components["schemas"]["TrendSignal"][];
-            meta: components["schemas"]["RecommendationMeta"];
+            meta: components["schemas"]["TrendRecommendationMeta"];
         };
         /**
          * RecommendationMeta
@@ -3352,9 +4116,9 @@ export interface components {
             snapshot_date: string;
             /**
              * Scenario
-             * @enum {string}
+             * @description Scenario of the result; 'both' identifies a moderate/fast comparison.
              */
-            scenario: "moderate" | "fast";
+            scenario: ("moderate" | "fast") | "both";
             /**
              * Is Estimate
              * @default true
@@ -3378,6 +4142,69 @@ export interface components {
              */
             observed_to?: string | null;
         };
+        /** RefreshCheck */
+        RefreshCheck: {
+            /**
+             * Bypass Cooldown
+             * @default false
+             */
+            bypass_cooldown: boolean;
+        };
+        /** RefreshHistory */
+        RefreshHistory: {
+            /** Runs */
+            runs: components["schemas"]["BackgroundRefresh"][];
+            /**
+             * Next Scheduled At
+             * Format: date-time
+             */
+            next_scheduled_at: string;
+        };
+        /**
+         * RefreshRunSummary
+         * @description The most recent in-app refresh of one source (no secrets, no raw error text).
+         */
+        RefreshRunSummary: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "failed";
+            /**
+             * Finished At
+             * Format: date-time
+             */
+            finished_at: string;
+            /** Rows Fetched */
+            rows_fetched: number;
+            /** Rows Upserted */
+            rows_upserted: number;
+            /** Rows Rejected */
+            rows_rejected: number;
+            /** Error Code */
+            error_code?: string | null;
+        };
+        /** RefreshStep */
+        RefreshStep: {
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "trends" | "courses" | "jobs" | "labour";
+            /**
+             * Status
+             * @default pending
+             * @enum {string}
+             */
+            status: "pending" | "running" | "done" | "failed" | "skipped";
+            /**
+             * Rows
+             * @default 0
+             */
+            rows: number;
+            /** Error Code */
+            error_code?: string | null;
+        };
         /** RegionListResponse */
         RegionListResponse: {
             /** Regions */
@@ -3389,7 +4216,7 @@ export interface components {
              * Id
              * @enum {string}
              */
-            id: "minilm" | "glm" | "gemini" | "embeddings" | "arxiv" | "bls" | "onet" | "jobs" | "mscert" | "awscert" | "googlecert" | "iibacert" | "iappcert" | "bnm";
+            id: "minilm" | "glm" | "gemini" | "embeddings" | "arxiv" | "bls" | "onet" | "jobs" | "mscert" | "awscert" | "googlecert" | "iibacert" | "iappcert" | "bnm" | "replit" | "fonts";
             /** Name */
             name: string;
             /** Url */
@@ -3421,19 +4248,19 @@ export interface components {
             velocity_after: number;
             /**
              * Position Before
-             * @description Skill velocity on the shared min-max scale, earlier snapshot.
+             * @description Skill trend position (0-1, median-scaled log-tanh), earlier snapshot.
              * @default 0
              */
             position_before: number;
             /**
              * Position After
-             * @description Skill velocity on the shared min-max scale, later snapshot.
+             * @description Skill trend position (0-1, median-scaled log-tanh), later snapshot.
              * @default 0
              */
             position_after: number;
             /**
              * Effect
-             * @description Score points this skill moved the role: change on the shared min-max scale times its share of the role's importance times the trend weight; > 0 pushed up.
+             * @description Score points this skill moved the role: change in trend position times its share of the role's importance times the trend weight; > 0 pushed up.
              */
             effect: number;
         };
@@ -3518,6 +4345,17 @@ export interface components {
              * @description Sum of weight * value over components.
              */
             score: number;
+            /** Rank */
+            rank?: number | null;
+            /** Other Scenario */
+            other_scenario?: ("moderate" | "fast") | null;
+            /** Other Score */
+            other_score?: number | null;
+            /**
+             * Other Rank
+             * @description Other-scenario rank for the same profile, snapshot and SDG weight.
+             */
+            other_rank?: number | null;
             /** Components */
             components: components["schemas"]["ScoreComponent"][];
             /** Missing Skills */
@@ -3526,6 +4364,7 @@ export interface components {
             partial_skills: components["schemas"]["Skill"][];
             /** Sdg Targets */
             sdg_targets: components["schemas"]["SdgTarget"][];
+            critical_occupation?: components["schemas"]["CriticalOccupationBadge"] | null;
             /** Improvements */
             improvements?: components["schemas"]["ScoreImprovement"][];
             /**
@@ -3747,7 +4586,7 @@ export interface components {
         /** RoleTrendResponse */
         RoleTrendResponse: {
             signal: components["schemas"]["TrendSignal"];
-            meta: components["schemas"]["RecommendationMeta"];
+            meta: components["schemas"]["TrendRecommendationMeta"];
         };
         /** SavePlanIn */
         SavePlanIn: {
@@ -3834,6 +4673,11 @@ export interface components {
             label: string;
             /** Score Gain */
             score_gain: number;
+            /**
+             * New Rank
+             * @description Estimated rank after raising this skill and reranking all roles.
+             */
+            new_rank?: number | null;
             /** Course Id */
             course_id?: string | null;
             /** Course Title */
@@ -3880,6 +4724,14 @@ export interface components {
             role_ids?: string[];
             /** Target Contributions */
             target_contributions?: components["schemas"]["TargetContribution"][];
+            /**
+             * Aggregation Status
+             * @default available
+             * @enum {string}
+             */
+            aggregation_status: "available" | "suppressed";
+            /** Minimum People */
+            minimum_people?: number | null;
         };
         /**
          * SdgEvidence
@@ -4311,17 +5163,34 @@ export interface components {
              */
             retrieved_at: string;
         };
-        /** SourceRef */
+        /**
+         * SourceRef
+         * @description Source retrieval basis is part of the trend response, not just its export.
+         */
         SourceRef: {
-            /** Name */
+            /**
+             * Name
+             * @example MOCK DATA
+             */
             name: string;
-            /** Url */
+            /**
+             * Url
+             * @description Empty only for mock data.
+             */
             url: string;
             /**
              * Retrieved At
              * Format: date
              */
             retrieved_at: string;
+            /**
+             * Retrieved At Basis
+             * @default unknown
+             * @enum {string}
+             */
+            retrieved_at_basis: "pipeline_fetch" | "fetch_log" | "git_commit_date" | "unknown";
+            /** Retrieval Evidence */
+            retrieval_evidence?: string | null;
         };
         /** SourcesResponse */
         SourcesResponse: {
@@ -4417,6 +5286,201 @@ export interface components {
             /** Trend Coverage */
             trend_coverage: number;
         };
+        /**
+         * TrendRecommendationMeta
+         * @description Legacy trend endpoints retain the same explicit origin as snapshot/freshness.
+         */
+        TrendRecommendationMeta: {
+            /** Observation Window Start */
+            observation_window_start?: string | null;
+            /** Observation Window End */
+            observation_window_end?: string | null;
+            /** Retrieved At */
+            retrieved_at?: string | null;
+            /**
+             * Retrieved At Basis
+             * @default unknown
+             * @enum {string}
+             */
+            retrieved_at_basis: "pipeline_fetch" | "fetch_log" | "git_commit_date" | "unknown";
+            /** Retrieval Evidence */
+            retrieval_evidence?: string | null;
+            /** Is Replay */
+            is_replay?: boolean | null;
+            /**
+             * Observed From
+             * @description Start of the period the source data measures; may predate snapshot_date.
+             */
+            observed_from?: string | null;
+            /**
+             * Observed To
+             * @description End of the period the source data measures.
+             */
+            observed_to?: string | null;
+            /** Sources */
+            sources: components["schemas"]["TrendSource"][];
+            /**
+             * Snapshot Date
+             * Format: date
+             */
+            snapshot_date: string;
+            /**
+             * Scenario
+             * @description Scenario of the result; 'both' identifies a moderate/fast comparison.
+             */
+            scenario: ("moderate" | "fast") | "both";
+            /**
+             * Is Estimate
+             * @default true
+             */
+            is_estimate: boolean;
+            /** Served From */
+            served_from?: ("db" | "fixture") | null;
+            /**
+             * Is Fallback
+             * @default false
+             */
+            is_fallback: boolean;
+        };
+        /**
+         * TrendRefreshStatus
+         * @description State of the GitHub Actions trend refresh run (the workflow publishes the snapshot).
+         */
+        TrendRefreshStatus: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "queued" | "in_progress" | "completed";
+            /**
+             * Conclusion
+             * @description GitHub run conclusion once completed, e.g. success, failure.
+             */
+            conclusion?: string | null;
+            /**
+             * Run Id
+             * @description None until GitHub lists the new run.
+             */
+            run_id?: number | null;
+            /** Run Url */
+            run_url?: string | null;
+            /** Created At */
+            created_at?: string | null;
+            /** Updated At */
+            updated_at?: string | null;
+            /**
+             * Dispatched
+             * @description True when this request started the run.
+             * @default false
+             */
+            dispatched: boolean;
+            /**
+             * Already Running
+             * @description True when an earlier run was still queued or in progress.
+             * @default false
+             */
+            already_running: boolean;
+            /**
+             * Caches Cleared
+             * @default false
+             */
+            caches_cleared: boolean;
+            /**
+             * Snapshot Date
+             * @description Latest snapshot the app serves after a completed run.
+             */
+            snapshot_date?: string | null;
+            /** Served From */
+            served_from?: ("db" | "fixture") | null;
+            /**
+             * Is Fallback
+             * @default false
+             */
+            is_fallback: boolean;
+        };
+        /**
+         * TrendRescoreResult
+         * @description Outcome of re-scoring the latest stored signals (no ingest, no model call).
+         */
+        TrendRescoreResult: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "published" | "no_new_data" | "failed";
+            /** Message */
+            message: string;
+            /**
+             * Snapshot Date
+             * @description New snapshot date (published) or the one still live.
+             */
+            snapshot_date?: string | null;
+            /** Observed From */
+            observed_from?: string | null;
+            /** Observed To */
+            observed_to?: string | null;
+        };
+        /** TrendSeriesLine */
+        TrendSeriesLine: {
+            /** Skill Id */
+            skill_id: string;
+            /** Label */
+            label: string;
+            /** Points */
+            points: components["schemas"]["TrendSeriesPoint"][];
+            /**
+             * Change
+             * @description Last minus first available share in the range.
+             */
+            change: number | null;
+        };
+        /** TrendSeriesPoint */
+        TrendSeriesPoint: {
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /**
+             * Share
+             * @description Share of sampled arXiv papers in the 7 days ending on `day` that mention the skill; null when that window is not fully stored.
+             */
+            share: number | null;
+        };
+        /**
+         * TrendSeriesResponse
+         * @description Observed rolling shares per skill over a chosen date range (M1-018 paper store).
+         */
+        TrendSeriesResponse: {
+            /**
+             * Start
+             * Format: date
+             */
+            start: string;
+            /**
+             * End
+             * Format: date
+             */
+            end: string;
+            /**
+             * Window Days
+             * @default 7
+             */
+            window_days: number;
+            /**
+             * Available From
+             * @description First day a full window is stored.
+             */
+            available_from: string | null;
+            /**
+             * Available To
+             * @description Newest stored day.
+             */
+            available_to: string | null;
+            /** Lines */
+            lines: components["schemas"]["TrendSeriesLine"][];
+            meta: components["schemas"]["RecommendationMeta"];
+        };
         /** TrendSignal */
         TrendSignal: {
             /**
@@ -4444,14 +5508,46 @@ export interface components {
             automation_share: number;
             /** Augmentation Share */
             augmentation_share: number;
+            /**
+             * Trend Coverage
+             * @description Roles only: share of the role's skill importance that has trend data.
+             */
+            trend_coverage?: number | null;
+            /**
+             * Insufficient Evidence
+             * @description Roles only: trend_coverage is below 0.5, so the direction is not reliable.
+             * @default false
+             */
+            insufficient_evidence: boolean;
         };
         /** TrendSnapshotMeta */
         TrendSnapshotMeta: {
+            /** Observation Window Start */
+            observation_window_start?: string | null;
+            /** Observation Window End */
+            observation_window_end?: string | null;
+            /** Retrieved At */
+            retrieved_at?: string | null;
+            /**
+             * Retrieved At Basis
+             * @default unknown
+             * @enum {string}
+             */
+            retrieved_at_basis: "pipeline_fetch" | "fetch_log" | "git_commit_date" | "unknown";
+            /** Retrieval Evidence */
+            retrieval_evidence?: string | null;
+            /** Is Replay */
+            is_replay?: boolean | null;
+            /** Observed From */
+            observed_from?: string | null;
+            /** Observed To */
+            observed_to?: string | null;
             /** Sources */
             sources: components["schemas"]["SourceRef"][];
             /**
              * Snapshot Date
              * Format: date
+             * @description Snapshot version/slot label, not its observation or retrieval date.
              */
             snapshot_date: string;
             /**
@@ -4492,22 +5588,38 @@ export interface components {
              * @description Optional explanation of data provenance, e.g. for historical arXiv date-window pulls or demo calibration.
              */
             data_provenance_note?: string | null;
-            /**
-             * Observed From
-             * @description Start of the period the source data measures; may predate snapshot_date.
-             */
-            observed_from?: string | null;
-            /**
-             * Observed To
-             * @description End of the period the source data measures.
-             */
-            observed_to?: string | null;
         };
         /** TrendSnapshotResponse */
         TrendSnapshotResponse: {
             meta: components["schemas"]["TrendSnapshotMeta"];
             /** Items */
             items: components["schemas"]["SkillVelocity"][];
+        };
+        /** TrendSource */
+        TrendSource: {
+            /**
+             * Name
+             * @example MOCK DATA
+             */
+            name: string;
+            /**
+             * Url
+             * @description Empty only for mock data.
+             */
+            url: string;
+            /**
+             * Retrieved At
+             * Format: date
+             */
+            retrieved_at: string;
+            /**
+             * Retrieved At Basis
+             * @default unknown
+             * @enum {string}
+             */
+            retrieved_at_basis: "pipeline_fetch" | "fetch_log" | "git_commit_date" | "unknown";
+            /** Retrieval Evidence */
+            retrieval_evidence?: string | null;
         };
         /** UnmetSkill */
         UnmetSkill: {
@@ -4580,6 +5692,20 @@ export interface components {
             /** Items */
             items: components["schemas"]["VerificationItem"][];
         };
+        /** VersionInfo */
+        VersionInfo: {
+            /** Version */
+            version: string;
+            /** Revision */
+            revision: string | null;
+            /** Dirty */
+            dirty: boolean | null;
+            /**
+             * Environment
+             * @enum {string}
+             */
+            environment: "development" | "production";
+        };
         /**
          * Workspace
          * @description A workspace the signed-in person can switch to.
@@ -4624,6 +5750,26 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    core_version: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VersionInfo"];
+                };
+            };
+        };
+    };
     core_health: {
         parameters: {
             query?: never;
@@ -4914,6 +6060,194 @@ export interface operations {
             };
         };
     };
+    data_data_freshness: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DataFreshnessResponse"];
+                };
+            };
+        };
+    };
+    data_scheduled_run: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-data-refresh-token"?: string | null;
+                "x-demo-user"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackgroundRefresh"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    data_user_refresh: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                "x-workspace"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RefreshCheck"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackgroundRefresh"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    data_run_status: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-data-refresh-token"?: string | null;
+                "x-demo-user"?: string | null;
+            };
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackgroundRefresh"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    data_recent_runs: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                "x-workspace"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RefreshHistory"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    data_refresh_source: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                "x-workspace"?: string | null;
+            };
+            path: {
+                source: "courses" | "catalogue" | "jobs" | "labour" | "trends";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DataRefreshResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     guardrails_get_disclosure: {
         parameters: {
             query?: never;
@@ -4970,6 +6304,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FairnessReport"];
+                };
+            };
+        };
+    };
+    impact_get_summary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImpactSummary"];
                 };
             };
         };
@@ -7101,6 +8455,26 @@ export interface operations {
             };
         };
     };
+    trends_malaysia_context: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MalaysiaLabourContext"];
+                };
+            };
+        };
+    };
     trends_get_snapshot: {
         parameters: {
             query?: {
@@ -7122,6 +8496,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TrendSnapshotResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    trends_get_series: {
+        parameters: {
+            query?: {
+                start?: string | null;
+                end?: string | null;
+                skill_ids?: string[];
+                scenario?: "moderate" | "fast";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrendSeriesResponse"];
                 };
             };
             /** @description Validation Error */
@@ -7187,6 +8595,105 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RoleTrendResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    trends_start_refresh: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                "x-workspace"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrendRefreshStatus"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    trends_refresh_status: {
+        parameters: {
+            query?: {
+                /** @description GitHub Actions run id. */
+                run_id?: number | null;
+            };
+            header?: {
+                "x-demo-user"?: string | null;
+                "x-workspace"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrendRefreshStatus"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    trends_rescore: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-user"?: string | null;
+                "x-workspace"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrendRescoreResult"];
                 };
             };
             /** @description Validation Error */

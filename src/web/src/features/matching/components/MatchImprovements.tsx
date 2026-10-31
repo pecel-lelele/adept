@@ -13,6 +13,7 @@ export function MatchImprovements({ items }: { items: Schemas["ScoreImprovement"
         {items.slice(0, 3).map((item) => (
           <li key={item.skill}>
             {item.label} · {t("scoreGain", { gain: (item.score_gain * 100).toFixed(1) })}{" "}
+            {item.new_rank != null ? <span>{t("newRank", { rank: item.new_rank })} </span> : null}
             {item.course_url && item.course_title ? (
               <Link href={item.course_url} target="_blank" rel="noreferrer">{item.course_title}</Link>
             ) : <span className="a-muted">{t("noClosingCourse")}</span>}

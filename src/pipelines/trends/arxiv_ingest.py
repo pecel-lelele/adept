@@ -48,6 +48,7 @@ from datetime import date
 from pathlib import Path
 
 from pipelines.trends.encoder import Encoder, get_encoder
+from pipelines.trends.provenance import cached_retrieval, record_fetch
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SEED_DIR = REPO_ROOT / "src" / "data" / "seed"
@@ -128,6 +129,7 @@ def fetch_or_load_rss(fetch_date: str) -> list[dict[str, str]]:
     papers = _parse_rss(raw_xml)
     with cache_file.open("w", encoding="utf-8") as fh:
         json.dump(papers, fh, ensure_ascii=False, indent=2)
+    record_fetch(cache_file, ARXIV_RSS_URL)
     print(f"[arxiv] Cached {len(papers)} papers -> {cache_file}")
     return papers
 
@@ -214,6 +216,37 @@ def cosine_similarity(a: list[float], b: list[float]) -> float:
     return dot / (norm_a * norm_b)
 
 
+def paper_mentions(
+    papers: list[dict[str, str]],
+    skill_ids: list[str],
+    skill_vectors: dict[str, list[float]],
+    model: Encoder | None,
+) -> list[list[str]]:
+    """Per paper, the skills it mentions (sentence-level cosine >= SIMILARITY_THRESHOLD)."""
+    if model is None:
+        return [[] for _ in papers]  # cannot embed
+    # One encode call for every sentence of every paper: the remote encoder then runs a few
+    # 64-sentence jobs under one deadline instead of one job (and one cold start) per paper.
+    per_paper = [_split_sentences(f"{p['title']}. {p['abstract']}") for p in papers]
+    flat = [sentence for sentences in per_paper for sentence in sentences]
+    vectors = model.encode(flat, batch_size=64, show_progress_bar=False) if flat else []
+    result: list[list[str]] = []
+    offset = 0
+    for sentences in per_paper:
+        sent_vecs = vectors[offset : offset + len(sentences)]
+        offset += len(sentences)
+        found: list[str] = []
+        if sentences:
+            for sid in skill_ids:
+                if sid not in skill_vectors:
+                    continue
+                sv = skill_vectors[sid]
+                if max(cosine_similarity(sv, v) for v in sent_vecs) >= SIMILARITY_THRESHOLD:
+                    found.append(sid)
+        result.append(found)
+    return result
+
+
 def count_mentions(
     papers: list[dict[str, str]],
     skill_ids: list[str],
@@ -225,29 +258,9 @@ def count_mentions(
     Returns {skill_id: count}.
     """
     counts: dict[str, int] = {sid: 0 for sid in skill_ids}
-
-    for paper in papers:
-        text = f"{paper['title']}. {paper['abstract']}"
-        sentences = _split_sentences(text)
-        if not sentences:
-            continue
-
-        # Embed sentences
-        if model is not None:
-            sent_vecs = model.encode(sentences, batch_size=64, show_progress_bar=False)
-        else:
-            # Cannot embed; skip
-            continue
-
-        # Check each skill
-        for sid in skill_ids:
-            if sid not in skill_vectors:
-                continue
-            sv = skill_vectors[sid]
-            max_sim = max(cosine_similarity(sv, sent_vec) for sent_vec in sent_vecs)
-            if max_sim >= SIMILARITY_THRESHOLD:
-                counts[sid] += 1
-
+    for found in paper_mentions(papers, skill_ids, skill_vectors, model):
+        for sid in found:
+            counts[sid] += 1
     return counts
 
 
@@ -261,12 +274,26 @@ def write_signal_rows(
     total_papers: int,
     fetch_date: date,
     db_url: str,
+    *,
+    provenance: dict[str, object],
+    period: str | None = None,
+    source_url: str = ARXIV_RSS_URL,
+    fetch_timestamp: str | None = None,
 ) -> None:
-    """Upsert skill_signal_raw rows and log the fetch."""
+    """Persist observation/retrieval evidence separately from an optional replay slot.
+
+    The legacy fetch_date argument selects a collection/slot bucket only. Actual
+    retrieval dates always come from provenance, including when this is a replay.
+    """
     import psycopg  # type: ignore[import]
 
-    period = _iso_week(fetch_date)
-    retrieved_at = fetch_date
+    from app.features.trends.provenance import provenance_values
+
+    period = period or _iso_week(fetch_date)
+    facts = provenance_values(provenance)
+    if facts["is_replay"] is None:
+        raise ValueError("Signal creation requires explicit live/replay provenance")
+    retrieved_at = facts["retrieved_at"]
 
     with psycopg.connect(db_url) as conn:
         with conn.cursor() as cur:
@@ -274,25 +301,44 @@ def write_signal_rows(
                 cur.execute(
                     """
                     INSERT INTO skill_signal_raw
-                        (skill_id, source, metric, value, total_papers, period, retrieved_at)
-                    VALUES (%s, 'arxiv', 'mention_count', %s, %s, %s, %s)
-                    ON CONFLICT (skill_id, source, metric, period, retrieved_at)
+                        (skill_id, source, metric, value, total_papers, period, retrieved_at,
+                         is_replay, observation_window_start, observation_window_end,
+                         retrieved_at_basis, retrieval_evidence)
+                    VALUES (%s, 'arxiv', 'mention_count', %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (skill_id, source, metric, period, retrieved_at, is_replay)
                     DO UPDATE SET value = EXCLUDED.value,
-                                  total_papers = EXCLUDED.total_papers
+                                  total_papers = EXCLUDED.total_papers,
+                                  observation_window_start = EXCLUDED.observation_window_start,
+                                  observation_window_end = EXCLUDED.observation_window_end,
+                                  retrieved_at_basis = EXCLUDED.retrieved_at_basis,
+                                  retrieval_evidence = EXCLUDED.retrieval_evidence
                     """,
-                    (skill_id, float(count), total_papers, period, retrieved_at),
+                    (
+                        skill_id,
+                        float(count),
+                        total_papers,
+                        period,
+                        retrieved_at,
+                        facts["is_replay"],
+                        facts["observation_window_start"],
+                        facts["observation_window_end"],
+                        facts["retrieved_at_basis"],
+                        facts["retrieval_evidence"],
+                    ),
                 )
-            # Log the fetch
-            cur.execute(
-                """
+            # Reprocessing cached/replayed papers is not a fresh upstream fetch.
+            if fetch_timestamp is not None:
+                cur.execute(
+                    """
                 INSERT INTO arxiv_fetch_log (fetch_date, paper_count, source_url, retrieved_at)
-                VALUES (%s, %s, %s, now())
+                VALUES (%s, %s, %s, %s)
                 ON CONFLICT (fetch_date) DO UPDATE
                     SET paper_count = EXCLUDED.paper_count,
-                        retrieved_at = now()
+                        retrieved_at = EXCLUDED.retrieved_at,
+                        source_url = EXCLUDED.source_url
                 """,
-                (fetch_date, total_papers, ARXIV_RSS_URL),
-            )
+                    (retrieved_at, total_papers, source_url, fetch_timestamp),
+                )
         conn.commit()
     print(f"[db] Wrote {len(counts)} signal rows for period {period}.")
 
@@ -321,6 +367,14 @@ def main() -> None:
         print("No papers found; exiting.")
         return
 
+    retrieval = cached_retrieval(ARXIV_CACHE_DIR / f"{fetch_date_str}.json")
+    provenance: dict[str, object] = {
+        **retrieval,
+        "is_replay": retrieval["retrieved_at_basis"] == "git_commit_date",
+        "observation_window_start": fetch_date,
+        "observation_window_end": fetch_date,
+    }
+
     # Load embeddings from DB (preferred) or encode from model
     skill_vectors = load_skill_vectors(skill_ids, db_url)
     missing_ids = [sid for sid in skill_ids if sid not in skill_vectors]
@@ -341,7 +395,14 @@ def main() -> None:
     print(f"Skills with at least one mention: {mentioned}/{len(skill_ids)}")
 
     # Write to DB
-    write_signal_rows(counts, len(papers), fetch_date, db_url)
+    write_signal_rows(
+        counts,
+        len(papers),
+        fetch_date,
+        db_url,
+        provenance=provenance,
+        fetch_timestamp=retrieval.get("fetched_at"),
+    )
     print("Done.")
 
 

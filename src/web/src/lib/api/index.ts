@@ -7,4 +7,4 @@ export { getApi } from "./server";
 export type Schemas = components["schemas"];
 export type Source = Schemas["Source"];
 export type RecommendationMeta = Schemas["RecommendationMeta"];
-export type ScenarioId = RecommendationMeta["scenario"];
+export type ScenarioId = Schemas["RoleOutlook"]["scenario"];

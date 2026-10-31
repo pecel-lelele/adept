@@ -2,12 +2,28 @@
 
 from fastapi import APIRouter
 
-from app.contracts.common import DataFreshness, HealthResponse, PlatformOverview, Source
+from app.contracts.common import (
+    DataFreshness,
+    HealthResponse,
+    PlatformOverview,
+    TrendSource,
+    VersionInfo,
+)
 from app.core import overview
 from app.core.config import get_settings
 from app.core.db import database_status
 
 router = APIRouter(tags=["core"])
+
+
+@router.get("/meta/version")
+def version() -> VersionInfo:
+    from app.core.buildinfo import dirty, revision
+
+    settings = get_settings()
+    return VersionInfo(
+        version=settings.version, revision=revision(), dirty=dirty(), environment=settings.app_env
+    )
 
 
 @router.get("/health")
@@ -29,12 +45,21 @@ def data_freshness() -> DataFreshness:
     snap = trends_service.get_snapshot(None, "moderate")
     return DataFreshness(
         snapshot_date=snap.meta.snapshot_date,
-        sources=[
-            Source(name=s.name, url=s.url, retrieved_at=s.retrieved_at) for s in snap.meta.sources
-        ],
+        sources=[TrendSource.model_validate(s.model_dump()) for s in snap.meta.sources],
         is_mock=snap.meta.served_from == "fixture",
         served_from=snap.meta.served_from,
         is_fallback=snap.meta.is_fallback,
+        **{
+            key: getattr(snap.meta, key)
+            for key in (
+                "observation_window_start",
+                "observation_window_end",
+                "retrieved_at",
+                "retrieved_at_basis",
+                "retrieval_evidence",
+                "is_replay",
+            )
+        },
     )
 
 

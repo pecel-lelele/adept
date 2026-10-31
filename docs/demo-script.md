@@ -2,10 +2,10 @@
 
 The **demo film** (planned 3 min 11 s, 1920×1080, 30 fps) is built in a local, gitignored
 Remotion workspace at `submission/demo-video/`. That workspace is not a judge-facing link.
-The [delivery checklist](submission-deliverables.md) links the team's existing video folder;
+The [delivery checklist](submission/submission-deliverables.md) links the team's existing video folder;
 the final exported file and anonymous viewing access still require verification.
 It follows one person, **Sofia Tan** (a synthetic CV), from uploading her CV to a saved learning plan,
-with motion graphics for the parts you cannot see on screen. It has an AI voice-over (Kokoro, local),
+with motion graphics for the parts you cannot see on screen. It has an AI voice-over (ElevenLabs stock voice, video only),
 sound effects, a music bed and soft light sweeps. App scenes use screens captured from the local app;
 each one can be swapped for a **live screen recording** (see "Combine with the live demo").
 
@@ -74,7 +74,7 @@ or the observation date of Adept's trend snapshot.
 | At least 20% faster planning | Proposed matched manual/Adept evaluation | Target only; no collected baseline or achieved reduction is asserted. |
 
 Presentation production tools and outstanding asset credits are declared in
-[technical declaration section 4.4](submission-technical-declaration.md#44-content-and-presentation-tools).
+[technical declaration section 4.4](submission/submission-technical-declaration.md#44-content-and-presentation-tools).
 
 ## Combine with the live demo
 

@@ -47,7 +47,12 @@ Fill this in as the feature takes shape (copy it into the `docs/decisions.md` en
 
 ## Learning packages and employer funding
 
-HR chooses a target role and a cohort of 1–50 completed profiles at `/org/plan`.
+HR chooses a target role and up to 50 completed, consenting profiles at `/org/plan`.
+Team plans, package previews/selections, programme options/generation and organisation SDG
+contributions require `ORG_MIN_COHORT` sharing members with usable completed profiles. Selected
+subsets must meet the same configured minimum. Below it, the API returns HTTP 409 with
+`insufficient_cohort`; the web shows a translated "too few members" state without skill-derived
+plans, readiness or assignments. Individual members can still see their own accepted programme.
 `GET /org/packages` returns free-first, member-budget-capped and broader-catalogue proposals
 using F5 for every member. Each proposal includes dated course prices, each member's study
 time, remaining gaps and source metadata. Options can coincide when free courses provide
@@ -101,3 +106,19 @@ completions enter employer routes only through explicit sharing.
 Programme schemas live in `contracts/programmes.py`; behaviour is covered by
 `tests/api/org/test_programmes.py` and `test_workspaces.py`. Personal saved plans and Adi
 conversations remain separate. Last-manager deletion is blocked when it would orphan a team.
+
+## Small-cohort heatmap privacy
+
+`ORG_MIN_COHORT=3` counts only consenting, completed-intake members whose profile is
+available through `member_learners`. All roles currently use that same cohort. Below the
+threshold, `cells[].gap` and `role_gaps[role]` are null, `suppressed` and
+`role_suppressed[role]` are true, and `cohort_size` / `min_cohort` explain the boundary.
+Never convert these nulls into zeroes, green cells, gap percentages or a ranked gap.
+The manager's other authorised planning tools are unchanged.
+
+The synthetic test/demo fixtures currently have 4 bank members (2 complete and consenting)
+and 2 polytechnic members (1 complete and consenting), excluding managers/advisors. Both
+heatmaps are therefore suppressed at the safe default. They are test fixtures, not automatic
+production seed accounts. A meaningful demo of numeric heatmap data requires at least three
+completed synthetic member profiles with explicit sharing consent; the above-threshold
+regressions install a third synthetic bank learner without lowering the threshold.

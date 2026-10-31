@@ -1,13 +1,13 @@
-# Weekly trend refresh (F2, handoff H01): ingest this week's arXiv cs.AI listing, score it against
+# Manual trend refresh (F2, handoff H01): ingest this week's arXiv cs.AI listing, score it against
 # the previous week, validate, and publish one new snapshot to the deployment database.
+# Not scheduled (M1-017): the app's own refresh (/app/data refresh button or the daily app job)
+# measures new weeks on demand, with a Gemini fallback when RunPod is down. Kept as a backup.
 # A failed run publishes nothing, so the last valid snapshot stays live.
 # Needs TREND_DATABASE_URL and TRENDS_RUNPOD_API_KEY secrets, plus the
 # TRENDS_RUNPOD_ENDPOINT_ID repository variable. Missing configuration fails manual runs.
 name: Trends refresh
 
 on:
-  schedule:
-    - cron: "41 3 * * 1" # Mondays 03:41 UTC, after the data-source check
   workflow_dispatch:
 
 permissions:
@@ -63,6 +63,8 @@ jobs:
 
       - name: Ingest, score, validate and publish
         if: env.DATABASE_URL != '' && env.TRENDS_RUNPOD_ENDPOINT_ID != '' && env.TRENDS_RUNPOD_API_KEY != ''
+        env:
+          TRENDS_RUNPOD_TIMEOUT_SECONDS: "900"
         run: |
           set -euo pipefail
           PYTHONPATH=src/api:src .venv/bin/python -m pipelines.trends.run | tee "$RUNNER_TEMP/trends-refresh.log"

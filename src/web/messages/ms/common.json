@@ -13,7 +13,8 @@
     "pace": "Kadar AI",
     "moderateShort": "Sederhana",
     "fastShort": "Pantas",
-    "hint": "Seberapa pantas AI mengubah kerja. Kedudukan dan unjuran ialah anggaran bagi setiap kadar."
+    "hint": "Seberapa pantas AI mengubah kerja. Kedudukan dan unjuran ialah anggaran bagi setiap kadar.",
+    "updating": "Mengemas kini anggaran untuk kadar ini…"
   },
   "estimate": {
     "label": "Anggaran",
@@ -24,6 +25,10 @@
     "asOf": "data setakat {date}"
   },
   "freshness": {
+    "replay": "Main semula sejarah: diperhatikan dari {from} hingga {to}. Slot snapshot: {date}.",
+    "observed": "Diperhatikan dari {from} hingga {to}.",
+    "commitDerived": "Tarikh pemerolehan {date} berdasarkan komit sumber; masa pengambilan belum disahkan.",
+    "unverified": "Asal usul data trend belum disahkan. Snapshot {date} ialah label, bukan bukti pemerhatian semasa.",
     "historical": "Melihat petikan {date}.",
     "backToLatest": "Kembali ke yang terkini",
     "fallback": "Memaparkan petikan terakhir yang tersedia dari {date}",

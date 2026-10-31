@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { errorMessage } from "@/lib/api/error-message";
 
 import type { ActionState } from "../action-state";
+import { triggerProgressToast } from "./ProgressToast";
 
 type Props = {
   action: (state: ActionState, form: FormData) => Promise<ActionState>;
@@ -16,41 +17,32 @@ type Props = {
 
 /**
  * "Mark done" gated behind proof of completion.
- * Clicking the button reveals a URL input. On submission a toast fires and
- * the course moves to the completed/pending state via server revalidation.
+ * Clicking the button reveals a URL input. On submission a toast fires (managed by ProgressToast)
+ * and the course moves to the completed state via server revalidation.
  */
 export function MarkDoneFlow({ action, fields }: Props) {
   const t = useTranslations("pathway");
   const te = useTranslations("ui.apiErrors");
   const [showForm, setShowForm] = useState(false);
-  const [toastVisible, setToastVisible] = useState(false);
-  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const [state, formAction, pending] = useActionState(action, {});
+  const [state, formAction, pending] = useActionState(async (prev: ActionState, formData: FormData) => {
+    const res = await action(prev, formData);
+    if (res.done) {
+      triggerProgressToast(t("evidence.sent"));
+    }
+    return res;
+  }, {});
 
-  // When the server action succeeds show a toast and hide the form
   useEffect(() => {
     if (state.done && !pending) {
-      setToastVisible(true);
       setShowForm(false);
-      if (toastTimer.current) clearTimeout(toastTimer.current);
-      toastTimer.current = setTimeout(() => setToastVisible(false), 3500);
     }
-    return () => {
-      if (toastTimer.current) clearTimeout(toastTimer.current);
-    };
   }, [state.done, pending]);
 
   if (state.done && !showForm) {
-    // Course now revalidated server-side; show inline confirmation until page re-renders
     return (
       <span aria-live="polite" className="a-form-msg">
         <span className="a-ok">{t("evidence.sent")}</span>
-        {toastVisible ? (
-          <div role="status" className="a-toast">
-            {t("evidence.sent")}
-          </div>
-        ) : null}
       </span>
     );
   }
@@ -101,12 +93,6 @@ export function MarkDoneFlow({ action, fields }: Props) {
           ) : null}
         </span>
       </form>
-      {toastVisible ? (
-        <div role="status" className="a-toast">
-          {t("evidence.sent")}
-        </div>
-      ) : null}
     </div>
   );
 }
-

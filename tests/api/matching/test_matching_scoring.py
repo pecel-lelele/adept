@@ -126,10 +126,28 @@ def test_trend_scores_ties_averaged() -> None:
 
 
 def test_trend_scores_single_item() -> None:
-    scores = trend_scores({"only": 0.99})
-    assert scores["only"] == NEUTRAL
-    assert trend_scores({"only": 0.99}, {"other": -0.5})["only"] == 1.0
+    # Zero velocity is neutral; the sign of a lone velocity is kept (rising above neutral).
+    assert trend_scores({"only": 0.99})["only"] > NEUTRAL
+    assert trend_scores({"only": -0.99})["only"] < NEUTRAL
+    assert trend_scores({"only": 0.99}, {"other": -0.5})["only"] > NEUTRAL
     assert trend_scores({"still": 0})["still"] == NEUTRAL
+
+
+def test_trend_scores_do_not_collapse_behind_outliers() -> None:
+    """N1: a few large velocities must not squeeze the bulk into one value (min-max did)."""
+    bulk = {f"s{i}": (i - 10) * 0.001 for i in range(21)}  # -0.01 .. 0.01
+    scores = trend_scores({**bulk, "outlier-up": 2.4, "outlier-down": -3.3})
+    assert scores["s20"] - scores["s0"] > 0.3
+    assert scores["outlier-up"] > scores["s20"] and scores["outlier-down"] < scores["s0"]
+    assert scores["s10"] == NEUTRAL
+
+
+def test_fast_never_below_moderate_for_a_rise() -> None:
+    """Both scenarios are clamped to the same bound before sharing one scale."""
+    moderate = {"rise": 2.44, "small": 0.01, "fall": -0.2}
+    fast = {"rise": 2.0, "small": 0.02, "fall": -0.3}
+    m, f = trend_scores(moderate, fast), trend_scores(fast, moderate)
+    assert f["rise"] >= m["rise"] and f["small"] >= m["small"] and f["fall"] <= m["fall"]
 
 
 # ---------------------------------------------------------------------------
@@ -159,9 +177,8 @@ def test_skill_overlap_empty_role() -> None:
 
 def test_interest_fit_full() -> None:
     full = MatchProfile(skills={}, interests=frozenset({"data", "ai"}))
-    # ROLE_DATA has {"data", "reporting"} -> Jaccard = 1/3
-    # (intersection {data}, union {data, ai, reporting})
-    assert interest_fit(full, ROLE_DATA) == pytest.approx(1 / 3)
+    # One of two declared interests matches: neutral + half of the available bonus.
+    assert interest_fit(full, ROLE_DATA) == pytest.approx(NEUTRAL + (1 - NEUTRAL) / 2)
 
 
 def test_interest_fit_no_interests_returns_none() -> None:
@@ -283,3 +300,19 @@ def test_counterfactual_fairness_demographic_swaps() -> None:
         "skills_changed": MatchProfile(skills={"python": 1.0, "sql": 1.0}, interests=base_interests)
     }
     assert counterfactual_diffs(_rank_key, baseline, perturbed) == ["skills_changed"]
+
+
+def test_top_trend_skills_do_not_all_saturate_on_either_fixture() -> None:
+    from app.features.matching.scoring import trend_scores
+    from app.features.trends import mocks
+
+    for snapshot_date in mocks.AVAILABLE_MOCK_DATES:
+        items = mocks.snapshot("moderate", snapshot_date).items
+        moderate = {i.skill_id: i.velocity_moderate for i in items}
+        fast = {i.skill_id: i.velocity_fast for i in items}
+        for own, other in ((moderate, fast), (fast, moderate)):
+            scores = trend_scores(own, other)
+            top = sorted(scores.values(), reverse=True)[:10]
+            assert top[-1] < 0.99, (snapshot_date, top)
+            assert len({round(s, 3) for s in top}) > 1
+            assert sum(s >= 0.99 for s in scores.values()) < 5

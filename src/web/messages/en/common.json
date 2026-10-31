@@ -13,7 +13,8 @@
     "pace": "AI pace",
     "moderateShort": "Moderate",
     "fastShort": "Fast",
-    "hint": "How fast AI changes work. Rankings and outlooks are estimates under each pace."
+    "hint": "How fast AI changes work. Rankings and outlooks are estimates under each pace.",
+    "updating": "Updating estimates for this pace…"
   },
   "estimate": {
     "label": "Estimate",
@@ -24,6 +25,10 @@
     "asOf": "data as of {date}"
   },
   "freshness": {
+    "replay": "Historical replay: observed {from} to {to}. Snapshot slot: {date}.",
+    "observed": "Observed {from} to {to}.",
+    "commitDerived": "Retrieval date {date} is derived from the source commit; the fetch time is unverified.",
+    "unverified": "Trend provenance is unverified. Snapshot {date} is a label, not evidence of current observations.",
     "historical": "Viewing snapshot {date}.",
     "backToLatest": "Back to latest",
     "fallback": "Showing last good snapshot from {date}",

@@ -81,6 +81,24 @@ def _context(user: CurrentUser, role_id: str, scenario: ScenarioId) -> Context:
 # --- shared builders ---------------------------------------------------------------------------
 
 
+def _unavailable() -> AppError:
+    return AppError(
+        "Job openings data is unavailable right now.", status_code=503, code="jobs_unavailable"
+    )
+
+
+def _feed_date() -> date | None:
+    """When the openings feed was last actually read: the pipeline's fetch date, else the
+    newest stored observation. Never the request date: an empty result must not look fresh."""
+    fetched = repository.fetch_log().get("fetched_on")
+    if isinstance(fetched, str):
+        try:
+            return date.fromisoformat(fetched[:10])
+        except ValueError:
+            pass
+    return repository.observation_date()
+
+
 def _meta(rows: Sequence[Posting], scenario: ScenarioId) -> RecommendationMeta:
     """One source per employer feed or job board, dated by the last time it was read."""
     latest: dict[tuple[str, str], tuple[date, str]] = {}
@@ -97,7 +115,11 @@ def _meta(rows: Sequence[Posting], scenario: ScenarioId) -> RecommendationMeta:
         Source(name=name, url=url, retrieved_at=day)
         for (name, url), (day, _) in sorted(latest.items())
     ]
-    fetched = max((s.retrieved_at for s in sources), default=date.today())
+    fetched = max((s.retrieved_at for s in sources), default=None) or _feed_date()
+    if fetched is None:
+        raise AppError(
+            "No dated job observations are available yet.", status_code=503, code="jobs_no_data"
+        )
     if not sources:
         sources = [
             Source(name="Adept job openings pipeline", url=PIPELINE_URL, retrieved_at=fetched)
@@ -122,6 +144,8 @@ def _opening(p: Posting, ctx: Context | None, labels: Mapping[str, str]) -> JobO
         source_name=p.source_name,
         posted_at=p.posted_at,
         first_seen=p.first_seen,
+        last_seen=p.last_seen,
+        is_stale=p.stale,
         role_method=p.role_method or "title",  # type: ignore[arg-type]
         skills=[
             SkillAsk(skill_id=s, label=labels.get(s, s), status=st)  # type: ignore[arg-type]
@@ -178,6 +202,12 @@ def role_openings(
     ctx = _context(user, role_id, scenario)
     skill_labels = pathway_data.skill_labels()
     cards = [_opening(p, ctx, skill_labels) for p in rows]
+    # Possibly closed ads stay visible, labelled and after every open one; stats ignore them.
+    stale_cards = [
+        _opening(p, ctx, skill_labels)
+        for p in repository.openings(include_stale=True)
+        if p.stale and p.role_id == role_id
+    ]
     # Closest first after the plan, then today, then newest; unrated ads last.
     cards.sort(
         key=lambda o: (
@@ -198,7 +228,7 @@ def role_openings(
         employer_count=len(employers),
         remote_count=sum(p.work_mode == "remote" for p in rows),
         employers=[e for e, _ in sorted(employers.items(), key=lambda kv: (-kv[1], kv[0]))[:8]],
-        openings=cards[: max(1, min(limit, 50))],
+        openings=(cards + stale_cards)[: max(1, min(limit, 50))],
         skill_demand=[
             SkillDemand(
                 skill_id=s,
@@ -228,8 +258,10 @@ def board(
     page: int = 1,
     page_size: int = 20,
 ) -> JobBoardPage:
-    rows = [p for p in repository.openings() if p.role_id]
-    counts = _counts(rows)
+    listed = [p for p in repository.openings(include_stale=True) if p.role_id]
+    # Counts are open (fresh) ads only; the listing keeps stale ads last, labelled.
+    counts = _counts([p for p in listed if not p.stale])
+    rows = listed
     if role_id:
         rows = [p for p in rows if p.role_id == role_id]
     if work_mode:
@@ -253,7 +285,7 @@ def board(
         page_size=page_size,
         roles=counts,
         fetched_on=_meta(rows, scenario).snapshot_date if rows else None,
-        meta=_meta(rows or repository.openings(), scenario),
+        meta=_meta(rows or listed or repository.openings(), scenario),
     )
 
 
@@ -305,6 +337,12 @@ def certifications(
         )
     level_order = {"foundational": 0, "associate": 1, "professional": 2}
     out.sort(key=lambda c: (-c.openings_naming, -c.role_skills, level_order[c.level], c.fee_myr))
+    # With no matching certification, date the answer by when the list was last verified.
+    verified = max((c.verified_at for c in out), default=None) or max(
+        (c.verified_at for c in repository.certifications()), default=None
+    )
+    if verified is None:
+        raise _unavailable()
     meta = RecommendationMeta(
         sources=[
             Source(
@@ -314,8 +352,8 @@ def certifications(
             )
             for c in out
         ]
-        or [Source(name="Adept certification list", url=PIPELINE_URL, retrieved_at=date.today())],
-        snapshot_date=max((c.verified_at for c in out), default=date.today()),
+        or [Source(name="Adept certification list", url=PIPELINE_URL, retrieved_at=verified)],
+        snapshot_date=verified,
         scenario=scenario,
         is_estimate=False,
     )

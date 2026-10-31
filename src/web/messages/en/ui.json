@@ -48,7 +48,8 @@
     "workspace_changed": "Your workspace changed. Refresh before trying again.",
     "funding_conflict": "The funding request could not be completed. Check its current status with your manager.",
     "disallowed_content": "Remove unsupported content from your input before continuing.",
-    "unknown_course": "Choose a course from the current plan or catalogue."
+    "unknown_course": "Choose a course from the current plan or catalogue.",
+    "insufficient_cohort": "Too few sharing members with completed profiles. Select a larger consenting cohort, or wait for more members to finish their profiles."
   },
   "nav": {
     "home": "Home",
@@ -82,7 +83,8 @@
     "funding": "Training budgets",
     "myWork": "My organisation",
     "programmes": "Programmes",
-    "jobs": "Jobs"
+    "jobs": "Jobs",
+    "compare": "Compare roles & scenarios"
   },
   "shell": {
     "disclaimer": "Projections are estimates from public data. You stay in charge: Adept never makes hiring decisions.",
@@ -271,7 +273,7 @@
     "q4": "Are the outlooks guaranteed?",
     "a4": "No. Outlooks are estimates under a moderate and a fast AI scenario. They help you plan; they are not promises of a job.",
     "q5": "What happens to my CV?",
-    "a5": "It is read in memory to find your skills and is never stored. Only the skills you confirm are saved to your account.",
+    "a5": "The CV file is parsed in memory and is not stored. Only confirmed skills are saved. When optional AI skill matching is enabled, short redacted skill phrases may be sent to the disclosed provider; see Privacy.",
     "q6": "Can my organisation use Adept?",
     "a6": "Yes. A manager or career advisor creates a workspace, shares a join code, sees the team’s skill gaps and assigns one training plan. Members keep control of their own data.",
     "closeEyebrow": "Free to start",
@@ -493,7 +495,8 @@
     "save": "Save changes",
     "saved": "Saved",
     "gapsLow": "Covered",
-    "gapsHigh": "Most missing"
+    "gapsHigh": "Most missing",
+    "tooFewMembers": "Too few members to show"
   },
   "skills": {
     "title": "My skills",
@@ -531,7 +534,13 @@
     "retry": "Try again",
     "signIn": "Sign in again",
     "profile": "Complete your profile",
-    "network": "We can’t reach Adept right now."
+    "network": "We can’t reach Adept right now.",
+    "cohort": "Too few members",
+    "members": "Review members",
+    "home": "Back home",
+    "unexpected": "We could not load this page. Try again or return home.",
+    "notFoundTitle": "Page not found",
+    "notFoundHint": "This page may have moved or the link may be incomplete."
   },
   "page": {
     "stepOf": "Step {step} of {total}",
@@ -563,6 +572,7 @@
     "interests": "Interests",
     "none": "None added",
     "organisation": "Organisation",
+    "organisationUnavailable": "Organisation details are unavailable right now.",
     "nextStep": "Next step",
     "nextRadarTitle": "See which of your skills are rising",
     "nextRadarBody": "The radar compares your skills with the latest job-market and AI research signals.",
@@ -712,12 +722,12 @@
     "open": "Ask Adi, your Adept guide",
     "close": "Close chat",
     "dismiss": "Hide",
-    "greet": "Hi, I’m Adi! Ask me about your matched roles, what to learn next, rising skills, course costs or how your path links to the UN SDGs.",
+    "greet": "Hi, I’m Adi! Ask me about your matched roles, what to learn next or how skills are trending. I’ll keep it short.",
     "placeholder": "Ask Adi…",
     "send": "Send",
     "thinking": "Adi is thinking…",
-    "error": "Adi couldn’t answer just now. Please try again.",
-    "slowDown": "That’s a lot of questions at once. Give Adi a moment and try again.",
+    "error": "Sorry, I couldn’t answer just now. Please try again in a moment.",
+    "slowDown": "That’s a lot of questions at once! Give me a moment, then try again.",
     "disclaimer": "Adi answers from your Adept data and can be wrong. You decide.",
     "byModel": "AI answer ({model})",
     "byGuide": "Adept guide",
@@ -727,6 +737,17 @@
     "s1": "Where does this data come from?",
     "s2": "What if AI moves faster?",
     "s3": "Which skills are declining?",
+    "conversation": "Conversation with Adi",
+    "suggested": "Suggested questions",
+    "sMatches1": "Why is this my top match?",
+    "sMatches2": "What would raise my score?",
+    "sMatches3": "What if AI moves faster?",
+    "sPathway1": "Which course should I start with?",
+    "sPathway2": "How much of my plan have I finished?",
+    "sPathway3": "How much will my plan cost?",
+    "sRadar1": "Which skills are rising?",
+    "sRadar2": "Which skills are declining?",
+    "sRadar3": "How accurate are your forecasts?",
     "inOrg": "Answering in {name}",
     "inPersonal": "Answering in your personal workspace"
   },
@@ -736,7 +757,9 @@
     "member": "Employee",
     "manager": "Manager",
     "switch": "Switch workspace",
-    "join": "Join another organisation"
+    "join": "Join another organisation",
+    "workspaceError": "We couldn’t switch to that workspace. Check that you still belong to it, then try again from the workspace menu.",
+    "activateRetry": "Your browser didn’t keep the workspace setting, so we stopped retrying. Allow cookies for this site, then press the button to try again."
   },
   "cvReview": {
     "title": "Wording to review",

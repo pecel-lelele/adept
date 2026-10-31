@@ -30,8 +30,3 @@ export async function fetchRegions() {
   const api = await getApi();
   return call(api.GET("/api/v1/sdg/regions"));
 }
-
-export async function fetchRoleSdg(roleId: string) {
-  const api = await getApi();
-  return call(api.GET("/api/v1/sdg/roles/{role_id}", { params: { path: { role_id: roleId } } }));
-}

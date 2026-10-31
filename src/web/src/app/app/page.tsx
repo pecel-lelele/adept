@@ -9,5 +9,5 @@ export default async function Page({ searchParams }: { searchParams: Promise<Sea
       return item ? [[key, item]] : [];
     }),
   );
-  return <DashboardView scenario={parseScenario(params.scenario)} query={query} />;
+  return <DashboardView scenario={parseScenario(params.scenario)} query={query} workspaceError={firstParam(params.workspace_error) === "1"} />;
 }

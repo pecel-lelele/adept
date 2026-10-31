@@ -27,7 +27,8 @@ from app.contracts.trends import TrendSnapshotResponse
 from app.core.config import get_settings
 from app.core.errors import NotFoundError
 from app.features.trends import mocks
-from app.features.trends.provenance import observation_window
+from app.features.trends.provenance import provenance_values
+from app.features.trends.velocity import served_velocity
 
 
 def _skill_labels() -> dict[str, str]:
@@ -114,6 +115,8 @@ class ResolvedContext:
     source: Literal["db", "fixture"]
     available_dates: list[date]
     conn: Any | None = None
+    # True when the fixture context exists because the database failed (not merely empty).
+    outage: bool = False
 
     def close(self) -> None:
         if self.conn is not None:
@@ -184,10 +187,11 @@ def resolve_context(strict: bool = False) -> ResolvedContext:
         status, timestamp = _db_status_cache
         if not status and now - timestamp < DB_FAILED_RETRY_TTL_S:
             return ResolvedContext(
-                source="fixture", available_dates=list(mocks.AVAILABLE_MOCK_DATES)
+                source="fixture", available_dates=list(mocks.AVAILABLE_MOCK_DATES), outage=True
             )
 
     conn = None
+    outage = False
     dates: list[date] = []
     try:
         conn = _get_connection()
@@ -201,13 +205,16 @@ def resolve_context(strict: bool = False) -> ResolvedContext:
         raise
     except Exception as exc:
         _db_status_cache = (False, now)
+        outage = True
         if strict:
             raise TrendsUnavailableError("Trend database unavailable") from exc
     finally:
         # Ownership transfers to ResolvedContext only on a successful dates read.
         if conn is not None and not dates:
             ResolvedContext("db", [], conn).close()
-    return ResolvedContext(source="fixture", available_dates=list(mocks.AVAILABLE_MOCK_DATES))
+    return ResolvedContext(
+        source="fixture", available_dates=list(mocks.AVAILABLE_MOCK_DATES), outage=outage
+    )
 
 
 def resolve_source(strict: bool = False) -> SourceType:
@@ -291,8 +298,7 @@ def _load_snapshot_db(
             found = cur.fetchall()
             try:
                 cur.execute(
-                    "SELECT sources, provenance_note FROM trend_snapshot_meta "
-                    "WHERE snapshot_date = %s",
+                    "SELECT * FROM trend_snapshot_meta WHERE snapshot_date = %s",
                     (snapshot_date,),
                 )
                 stored_meta = cur.fetchone()
@@ -322,8 +328,8 @@ def _load_snapshot_db(
                     labor_decay=r["labor_decay"],
                     labor_decay_source_note=r["labor_decay_source_note"],
                     automation_exposure=r["automation_exposure"],
-                    velocity_moderate=r["velocity_moderate"],
-                    velocity_fast=r["velocity_fast"],
+                    velocity_moderate=served_velocity(r["velocity_moderate"]),
+                    velocity_fast=served_velocity(r["velocity_fast"]),
                     direction_moderate=r["direction_moderate"],
                     direction_fast=r["direction_fast"],
                 )
@@ -333,41 +339,53 @@ def _load_snapshot_db(
             ctx.available_dates if ctx is not None else _list_snapshot_dates_db(strict=strict)
         )
 
-        if stored_meta and stored_meta.get("sources"):
+        if isinstance(stored_meta, dict) and stored_meta.get("sources"):
             # Provenance recorded with the snapshot (loader or pipeline run).
             sources = [
                 SourceRef(
                     name=str(src["name"]),
                     url=str(src["url"]),
                     retrieved_at=date.fromisoformat(str(src["retrieved_at"])),
+                    retrieved_at_basis=src.get("retrieved_at_basis", "unknown"),
+                    retrieval_evidence=src.get("retrieval_evidence"),
                 )
                 for src in stored_meta["sources"]
             ]
             note = str(stored_meta.get("provenance_note") or "") or None
         else:
+            # Legacy rows have no upstream retrieval evidence. Disclose an artifact
+            # commit-date fallback, not a fabricated fetch on the snapshot slot day.
+            fallback = mocks.snapshot("moderate").meta
             sources = [
                 SourceRef(
-                    name="arXiv cs.AI",
-                    url="https://arxiv.org/list/cs.AI/recent",
-                    retrieved_at=snapshot_date,
-                ),
-                SourceRef(
-                    name="BLS Occupational Projections 2023-2033",
-                    url=(
-                        "https://www.bls.gov/emp/tables/"
-                        "occupational-projections-and-characteristics.htm"
-                    ),
-                    retrieved_at=snapshot_date,
+                    name="Adept trend artifact (upstream retrieval unverified)",
+                    url="https://github.com/pecel-lelele/adept/tree/main/src/data/seed",
+                    retrieved_at=fallback.retrieved_at,
+                    retrieved_at_basis=fallback.retrieved_at_basis,
+                    retrieval_evidence=fallback.retrieval_evidence,
                 ),
             ]
-            note = "Scored by the Adept trend pipeline from arXiv cs.AI papers and BLS projections."
+            note = (
+                "Legacy trend provenance is unverified; the source date is a commit-date "
+                "fallback, not a verified fetch."
+            )
 
-        observed_from, observed_to = observation_window(stored_meta, note)
+        raw_meta = stored_meta if isinstance(stored_meta, dict) else {}
+        provenance = provenance_values(raw_meta, note)
+        # A DB-backed replay remains a replay. Conflicting persisted provenance fails
+        # closed rather than allowing metadata to relabel historical rows as live.
+        for row in rows:
+            if provenance["is_replay"] is not None and row.get("is_replay") is None:
+                raise TrendsUnavailableError("Snapshot rows are missing classified provenance")
+            if row.get("is_replay") is not None:
+                row_provenance = provenance_values(row)
+                if raw_meta.get("is_replay") is not None and row_provenance != provenance:
+                    raise TrendsUnavailableError("Conflicting stored trend provenance")
+                provenance = row_provenance
         meta = TrendSnapshotMeta(
             sources=sources,
             snapshot_date=snapshot_date,
-            observed_from=observed_from,
-            observed_to=observed_to,
+            **provenance,
             scenario=scenario,  # type: ignore[arg-type]
             is_estimate=True,
             served_from="db",

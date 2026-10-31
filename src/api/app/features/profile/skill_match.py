@@ -134,16 +134,6 @@ def ensure_index() -> dict[str, list[float]]:
         return _index
 
 
-def _nearest_db(vector: list[float], model: str, k: int = 3) -> list[tuple[str, float]]:
-    with connection() as conn:
-        rows = conn.execute(
-            "SELECT item_id, 1 - (embedding <=> %s::vector) AS sim FROM catalogue_embeddings "
-            "WHERE kind = 'skill' AND model = %s ORDER BY embedding <=> %s::vector LIMIT %s",
-            (_vector_literal(vector), model, _vector_literal(vector), k),
-        ).fetchall()
-    return [(str(r["item_id"]), float(r["sim"])) for r in rows]
-
-
 def ready_index() -> dict[str, list[float]]:
     """Read an existing catalogue index; requests never build or wait for one."""
     model = embeddings.model_name()

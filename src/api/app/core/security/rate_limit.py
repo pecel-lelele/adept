@@ -8,6 +8,9 @@ Design:
 - The map is capped (``max_keys``) with LRU eviction that prefers expired windows and never
   drops a counter that is currently at its limit (eviction must not reset a throttle). If
   every stored counter is at its limit, new clients are refused (429) until a window expires.
+- Global ceilings (``GLOBAL_LIMITS``) add one shared counter per route bucket across every
+  client, so many fresh accounts cannot multiply a per-account allowance on paid routes.
+  They use the reserved client key ``GLOBAL_CLIENT`` and the bucket ``global:<prefix>``.
 - ``X-Real-IP`` is trusted only when the request also carries the shared proxy secret, so a
   client cannot rotate a spoofed header to dodge the limit.
 
@@ -54,8 +57,13 @@ DEFAULT_BUCKET = "__default__"
 
 # Tighter buckets for routes that are expensive or write state.
 ROUTE_LIMITS: dict[str, Limit] = {
+    "/api/v1/data/refresh/status/": (120, 60),
+    "/api/v1/data/refresh/check": (6, 60),
+    "/api/v1/data/refresh/run": (6, 3600),
     "/api/v1/preview/cv": (10, 60),  # anonymous parsing and ranking
     "/api/v1/auth/login": (20, 60),  # slows password guessing
+    # Production best-effort mode (0 proxy hops) forwards no client IP, so every anonymous visitor
+    # shares one bucket: keep this high enough for a room of people signing up in the same minute.
     "/api/v1/auth/signup": (20, 60),
     "/api/v1/auth/me/delete": (5, 60),  # re-checks a password
     "/api/v1/org/join": (10, 60),  # slows join-code guessing
@@ -69,8 +77,25 @@ ROUTE_LIMITS: dict[str, Limit] = {
     "/api/v1/pathway/progress": (60, 60),  # writes
     "/api/v1/pathway/plans": (30, 60),  # writes + rebuilds a plan
     "/api/v1/guardrails": (60, 60),
+    "/api/v1/impact": (30, 60),  # public page; recomputes persona rankings when the memo expires
     "/api/v1/assistant": (20, 60),  # each answer may call a paid language model
 }
+
+# Ceilings shared by every client (accounts and anonymous callers together).
+GLOBAL_LIMITS: dict[str, Limit] = {
+    "/api/v1/data/refresh/run": (6, 3600),
+    "/api/v1/assistant": (60, 60),  # caps total paid-model calls however many accounts exist
+}
+GLOBAL_CLIENT = "__global__"
+GLOBAL_PREFIX = "global:"
+
+
+def global_bucket_for(path: str, global_limits: Mapping[str, Limit]) -> str | None:
+    """The global bucket name for `path`, or None when no shared ceiling applies."""
+    for prefix in global_limits:
+        if path.startswith(prefix):
+            return GLOBAL_PREFIX + prefix
+    return None
 
 
 def client_ip(request: Request, proxy_secret: str) -> str:
@@ -137,10 +162,18 @@ class SlidingWindowCounter:
                 return True
         return False
 
-    def hit(self, ip: str, path: str, now: float | None = None) -> tuple[bool, Limit, int, int]:
-        """Record one request. Returns (allowed, limit, remaining, retry_after_s)."""
+    def hit(
+        self, ip: str, path: str, now: float | None = None, *, bucket: str | None = None
+    ) -> tuple[bool, Limit, int, int]:
+        """Record one request. Returns (allowed, limit, remaining, retry_after_s).
+
+        `bucket` selects a named bucket from `route_limits` directly (global ceilings).
+        """
         now = time.monotonic() if now is None else now
-        bucket, limit = bucket_for(path, self.route_limits, self.default)
+        if bucket is None:
+            bucket, limit = bucket_for(path, self.route_limits, self.default)
+        else:
+            limit = self._limit_of(bucket)
         key = (ip, bucket)
         if key in self._windows:
             self._windows.move_to_end(key)
@@ -224,8 +257,11 @@ class PostgresCounter:
                 self._opened = True
         return self.pool
 
-    def hit(self, ip: str, path: str) -> Hit:
-        bucket, limit = bucket_for(path, self.route_limits, self.default)
+    def hit(self, ip: str, path: str, *, bucket: str | None = None) -> Hit:
+        if bucket is None:
+            bucket, limit = bucket_for(path, self.route_limits, self.default)
+        else:
+            limit = self.route_limits.get(bucket, self.default)
         max_req, window = limit
         now = self.clock()
         current = int(now // window) * window
@@ -242,7 +278,7 @@ class PostgresCounter:
         except (psycopg.Error, PoolTimeout) as exc:
             log.warning("shared rate limiter unavailable, using in-memory counter: %s", exc)
             with self._lock:
-                return self.fallback.hit(ip, path)
+                return self.fallback.hit(ip, path, bucket=bucket)
         assert row is not None
         hits, previous = int(row[0]), int(row[1])
         estimate = previous * (1 - elapsed / window) + hits
@@ -260,9 +296,15 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         proxy_secret: str = "",
         max_keys: int = 10_000,
         shared_conninfo: str = "",
+        global_limits: Mapping[str, Limit] | None = None,
     ) -> None:
         super().__init__(app)
-        limits = ROUTE_LIMITS if route_limits is None else route_limits
+        self.global_limits = dict(GLOBAL_LIMITS if global_limits is None else global_limits)
+        limits = {
+            **(ROUTE_LIMITS if route_limits is None else route_limits),
+            # Global buckets live in the same counters (never matched by a request path).
+            **{GLOBAL_PREFIX + prefix: limit for prefix, limit in self.global_limits.items()},
+        }
         self.counter = SlidingWindowCounter(limits, default, max_keys)
         self.shared = (
             PostgresCounter(shared_conninfo, limits, default, fallback=self.counter)
@@ -271,11 +313,11 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         )
         self.proxy_secret = proxy_secret
 
-    async def _hit(self, ip: str, path: str) -> Hit:
+    async def _hit(self, ip: str, path: str, bucket: str | None = None) -> Hit:
         if self.shared is not None:
             # Blocking database call: run it off the event loop.
-            return await asyncio.to_thread(self.shared.hit, ip, path)
-        return self.counter.hit(ip, path)
+            return await asyncio.to_thread(self.shared.hit, ip, path, bucket=bucket)
+        return self.counter.hit(ip, path, bucket=bucket)
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         # Public auth/preview endpoints retain IP limits, even if a token is supplied.
@@ -295,6 +337,15 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             )
         ip = f"user:{user_id}" if user_id else client_ip(request, self.proxy_secret)
         allowed, (max_req, window), remaining, retry_after = await self._hit(ip, request.url.path)
+        shared_bucket = global_bucket_for(request.url.path, self.global_limits)
+        if allowed and shared_bucket is not None:
+            # Checked only after the caller's own allowance, so a throttled caller never
+            # consumes the shared ceiling.
+            allowed, _, _, retry_after = await self._hit(
+                GLOBAL_CLIENT, request.url.path, shared_bucket
+            )
+            if not allowed:
+                remaining = 0
         headers = {
             "X-RateLimit-Limit": str(max_req),
             "X-RateLimit-Remaining": str(remaining),

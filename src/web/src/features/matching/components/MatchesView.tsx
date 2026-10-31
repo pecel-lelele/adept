@@ -1,3 +1,4 @@
+import { DataAsOf } from "@/components/DataAsOf";
 import { ArrowRight, CircleDashed, Circle } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
@@ -8,7 +9,7 @@ import { ErrorState } from "@/components/ErrorState";
 import { HistoricalSnapshotBanner } from "@/components/HistoricalSnapshotBanner";
 import { scoreColour } from "@/components/viz";
 import { fetchJobsSummary } from "@/features/jobs";
-import { fetchRadar } from "@/features/trends/api";
+import { Fold } from "@/components/Fold";
 import type { ScenarioId, Schemas } from "@/lib/api";
 
 import { fetchMatches, fetchReplay } from "../api";
@@ -20,6 +21,7 @@ import { MatchImprovements } from "./MatchImprovements";
 import { ScenarioDelta } from "./ScenarioDelta";
 import { MatchSdgTargets } from "./MatchSdgTargets";
 import { ProfileNote } from "./ProfileNote";
+import { CriticalOccupationBadge } from "./CriticalOccupationBadge";
 
 /**
  * One horizontal bar per score part: how much each part contributed to the fit. The bar and the
@@ -68,15 +70,11 @@ export async function MatchesView({
   const t = await getTranslations("matching");
   const th = await getTranslations("ui.home");
   const tp = await getTranslations("ui.page");
-  const otherScenario = scenario === "fast" ? "moderate" : "fast";
-  const [result, radar, changes, jobs, alternative] = await Promise.all([
+  const [result, changes, jobs] = await Promise.all([
     fetchMatches(scenario, snapshotDate, sdgWeight),
-    fetchRadar(scenario),
     snapshotDate ? fetchReplay(scenario, snapshotDate, sdgWeight) : Promise.resolve(null),
     fetchJobsSummary(scenario),
-    fetchMatches(otherScenario, snapshotDate, sdgWeight),
   ]);
-  const otherScores = new Map(alternative.ok ? alternative.data.matches.map((match) => [match.role_id, match.score]) : []);
   const tj = await getTranslations("jobs");
   const openings = new Map(jobs.ok ? jobs.data.roles.map((r) => [r.role_id, r.open_count]) : []);
   const labels = await componentLabels();
@@ -90,12 +88,13 @@ export async function MatchesView({
       <PageHeader eyebrow={tp("stepOf", { step: 3, total: journeyStepCount() })} title={t("title")} description={t("description")}>
         {result.ok ? <MetaBar meta={result.data.meta} /> : null}
       </PageHeader>
+      <DataAsOf source="trends" meta={result.ok ? result.data.meta : undefined} />
       <HistoricalSnapshotBanner date={snapshotDate} latestHref={`/app/matches?scenario=${scenario}${sdgWeight > 0 ? `&sdg=${sdgWeight.toFixed(2)}` : ""}`} />
 
       <section className="a-card a-controls" aria-label={tp("rankingOptions")}>
-        {radar.ok ? (
+        {result.ok ? (
           <SnapshotPicker
-            dates={radar.data.meta.available_snapshots}
+            dates={result.data.meta.available_snapshots ?? []}
             value={snapshotDate ?? ""}
             latestLabel={th("latest")}
             label={t("snapshotDate")}
@@ -136,8 +135,7 @@ export async function MatchesView({
               const i = result.data.matches.indexOf(m);
               const pct = (m.score * 100).toFixed(1);
               const detail = `/app/matches/${encodeURIComponent(m.role_id)}?scenario=${scenario}${replay}`;
-              return (
-                <li key={m.role_id}>
+              const card = (
                   <article className="a-card a-rolecard" data-top={i === 0 || undefined}>
                     <header className="a-rolecard-head">
                       <span className="a-rank-num">{i + 1}</span>
@@ -147,7 +145,7 @@ export async function MatchesView({
                           <Link href={detail}>{m.label}</Link>
                         </h2>
                         <span className="a-chips">
-                          <ScenarioDelta score={m.score} otherScore={otherScores.get(m.role_id)} otherScenario={otherScenario} />
+                          <ScenarioDelta score={m.score} rank={m.rank} otherScore={m.other_score} otherRank={m.other_rank} otherScenario={m.other_scenario} />
                           <span className="a-chip" data-tone={m.missing_skills.length ? "down" : "up"}>
                             {tp("toLearn", { count: m.missing_skills.length })}
                           </span>
@@ -173,6 +171,7 @@ export async function MatchesView({
                     <div className="a-rolecard-body">
                       <div>
                         <h3>{tp("drivers")}</h3>
+                        <CriticalOccupationBadge badge={m.critical_occupation} />
                         <ScoreParts parts={m.components} labels={labels} score={m.score} />
                       </div>
                       <div>
@@ -212,6 +211,14 @@ export async function MatchesView({
                       </Link>
                     </footer>
                   </article>
+              );
+              return (
+                <li key={m.role_id}>
+                  {i < 3 ? card : (
+                    <Fold title={`${i + 1}. ${m.label}`} meta={<span className="a-inline">{pct}% <EstimateLabel scenario={scenario} /></span>}>
+                      {card}
+                    </Fold>
+                  )}
                 </li>
               );
             })}

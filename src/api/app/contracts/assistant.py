@@ -42,7 +42,16 @@ class AnswerPart(BaseModel):
 
 class AssistantReply(BaseModel):
     parts: list[AnswerPart]
-    suggestions: list[str] = Field(default_factory=list, description="Follow-up questions.")
+    suggestions: list[str] = Field(
+        default_factory=list,
+        max_length=3,
+        description="Up to three server-authored follow-up questions; tapping one asks it.",
+    )
+    suggestion_ids: list[str] = Field(
+        default_factory=list,
+        max_length=3,
+        description="Catalogue IDs of the follow-up questions, in the same order.",
+    )
     used_llm: bool = Field(description="False when the deterministic guide answered.")
     provider: str
     model: str

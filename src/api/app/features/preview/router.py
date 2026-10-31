@@ -82,6 +82,7 @@ def build_preview(
         MatchProfile(skills={s.skill_id: float(s.level) for s in extraction.skills}),
         load_roles(),
         snap.velocities,
+        reference_velocities=snap.reference_velocities,
     )
     top = ranked[0] if ranked else None
     trends = [
@@ -110,6 +111,10 @@ def build_preview(
             snapshot_date=snap.snapshot_date,
             scenario=scenario,
             is_estimate=True,
+            served_from=snap.served_from,
+            is_fallback=snap.is_fallback,
+            observed_from=snap.observed_from,
+            observed_to=snap.observed_to,
         ),
         truncated=extraction.truncated,
     )

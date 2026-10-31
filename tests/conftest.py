@@ -25,6 +25,26 @@ os.environ["LLM_FALLBACK_API_KEY"] = ""
 os.environ["RUNPOD_API_KEY"] = ""
 os.environ["GEMINI_API_KEY"] = ""
 os.environ["APP_ENV"] = "development"
+# Never embed text with a real provider or call the MiniLM RunPod encoder from the suite.
+os.environ["EMBEDDINGS_PROVIDER"] = "none"
+os.environ["TRENDS_EMBEDDING_BACKEND"] = "runpod"
+os.environ["TRENDS_RUNPOD_API_KEY"] = ""
+os.environ["TRENDS_RUNPOD_ENDPOINT_ID"] = ""
+# Sync endpoints stay off unless a test enables them; proxy trust uses the documented defaults.
+os.environ["SYNC_TOKEN"] = ""
+os.environ["PROXY_SHARED_SECRET"] = ""
+os.environ["TRUSTED_PROXY_HOPS"] = "0"
+os.environ["PROXY_CLIENT_IP_MODE"] = "best-effort"
+os.environ["WEB_ORIGIN"] = ""
+os.environ["ADMIN_USER_IDS"] = ""
+os.environ["ADMIN_EMAILS"] = ""
+os.environ["GITHUB_DISPATCH_TOKEN"] = ""
+os.environ["GITHUB_REPOSITORY"] = ""
+# Keyed job boards are skipped without keys, so the jobs pipeline tests never reach them.
+os.environ["CAREERJET_API_KEY"] = ""
+os.environ["CAREERJET_LOCALE"] = "en_MY"
+os.environ["JOOBLE_API_KEY"] = ""
+os.environ["WEB3_CAREER_TOKEN"] = ""
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # tests/harness
 
 import pytest  # noqa: E402
@@ -39,6 +59,38 @@ fixtures.install()
 @pytest.fixture
 def client() -> TestClient:
     return TestClient(app)
+
+
+@pytest.fixture
+def planning_cohort(monkeypatch: pytest.MonkeyPatch) -> list[str]:
+    """Four synthetic sharing members keep planning/consent tests above the default gate.
+
+    Privacy regressions use the original two-member fixture or explicitly vary cohort size.
+    """
+    from app.contracts.org import Member
+    from app.features.org import repository as org_repository
+    from app.features.profile import repository as profile_repository
+
+    additions = []
+    for suffix in ("third", "fourth"):
+        uid = f"synthetic-cohort-{suffix}"
+        additions.append(
+            Member(
+                id=uid,
+                display_name=f"Synthetic {suffix} member",
+                current_role_id=None,
+                intake_status="complete",
+                skills_shared=True,
+            )
+        )
+        monkeypatch.setitem(
+            profile_repository._store,
+            uid,
+            profile_repository._store["emp-002"].model_copy(update={"user_id": uid}),
+        )
+    members = [*org_repository._members["org-demo-bank"], *additions]
+    monkeypatch.setitem(org_repository._members, "org-demo-bank", members)
+    return [m.id for m in members if m.intake_status == "complete" and m.skills_shared]
 
 
 @pytest.fixture(autouse=True)

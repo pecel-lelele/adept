@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import csv
 import json
+import math
 import ssl
 import urllib.error
 import urllib.request
@@ -37,6 +38,7 @@ MSLEARN_SOURCE_URL = "https://learn.microsoft.com/en-us/training/support/catalog
 COURSERA_API = "https://api.coursera.org/api/courses.v1?q=slug&slug={slug}&fields=workload"
 CHECKED = date(2026, 10, 20)
 CHECKED_2 = date(2026, 10, 23)  # catalogue enrichment pass
+CHECKED_3 = date(2026, 10, 30)  # Bahasa Melayu course pass
 
 
 @dataclass(frozen=True)
@@ -757,6 +759,168 @@ MANUAL: tuple[CourseRow, ...] = (
         provider_type="professional_body",
         location="Online / Kuala Lumpur",
     ),
+    # Bahasa Melayu, paid and HRD Corp-claimable (page read on CHECKED_3).
+    CourseRow(
+        id="modernlms-kursus-google-ads-ms",
+        title="Kursus Google Ads",
+        provider="ModernLMS",
+        url="https://www.modernlms.com/learning/courses/kursus-google-ads/",
+        hours=4,
+        cost_myr=149,
+        hrd_claimable=True,
+        verified_at=CHECKED_3,
+        skill_ids=("digital-marketing",),
+        level=2,
+        source_name="Provider course page",
+        source_url="https://www.modernlms.com/learning/courses/kursus-google-ads/",
+        hrd_note=(
+            "Provider page lists the e-certificate of completion as HRD Corp claimable; fee "
+            "RM 149.00. Google's own Google Ads Certification Exam is separate and not included."
+        ),
+        language="ms",
+        duration_note="Page states 4 hours, Bahasa Melayu, 12 modules, 1 year of access.",
+        provider_ref="kursus-google-ads",
+        format="self_paced",
+        audience="both",
+        list_price=149,
+        provider_type="private_provider",
+        location="Online",
+    ),
+)
+
+FREE_DIGITAL: tuple[CourseRow, ...] = (
+    CourseRow(
+        id="mslearn-intro-git",
+        title="Introduction to Git",
+        provider="Microsoft Learn",
+        url="https://learn.microsoft.com/en-us/training/modules/intro-to-git/",
+        hours=1.4,
+        cost_myr=0,
+        hrd_claimable=False,
+        verified_at=CHECKED_3,
+        skill_ids=("git",),
+        level=2,
+        source_name="Microsoft Learn course page",
+        source_url="https://learn.microsoft.com/en-us/training/modules/intro-to-git/",
+        hrd_note="Free learning module; nothing to claim. GitHub account required.",
+        language="en",
+        duration_note=(
+            "86 minutes across 6 units, rounded to 1.4 hours; "
+            "GitHub account and CLI familiarity required."
+        ),
+        provider_ref="intro-to-git",
+        format="self_paced",
+        audience="both",
+        provider_type="mooc",
+        location="Online",
+    ),
+)
+
+# Free Bahasa Melayu courses (language="ms", the existing catalogue language code).
+# Pages read on CHECKED_3; a locale in a URL alone does not verify the teaching language.
+FREE_MS: tuple[CourseRow, ...] = (
+    CourseRow(
+        id="pepperlabs-ai-ready-pendidik-ms",
+        title="AI Ready Malaysia: Edisi Pendidik",
+        provider="Pepper Labs (AVPN AI Opportunity Fund)",
+        url="https://pepper-s-site-1c7b.thinkific.com/courses/ai-ready-malaysia-asia-pacific-edisi-pendidik",
+        hours=2,
+        cost_myr=0,
+        hrd_claimable=False,
+        verified_at=CHECKED_3,
+        skill_ids=("ai-literacy", "prompt-engineering"),
+        level=2,
+        source_name="Pepper Labs course page",
+        source_url="https://pepper-s-site-1c7b.thinkific.com/courses/ai-ready-malaysia-asia-pacific-edisi-pendidik",
+        hrd_note="Free to enrol; nothing to claim.",
+        language="ms",
+        duration_note=(
+            "Page states about 2 hours of video content in 51 lessons; curriculum "
+            "sections and lesson titles are in Bahasa Melayu. Page does not mention a certificate."
+        ),
+        provider_ref="ai-ready-malaysia-asia-pacific-edisi-pendidik",
+        format="self_paced",
+        audience="individual",
+        provider_type="mooc",
+        location="Online",
+    ),
+    CourseRow(
+        id="pepperlabs-ai-ready-msme-ms",
+        title="AI Ready Malaysia: Edisi Tenaga Kerja MSME",
+        provider="Pepper Labs (AVPN AI Opportunity Fund)",
+        url="https://pepper-s-site-1c7b.thinkific.com/courses/ai-ready-malaysia-asia-pacific-edisi-tenaga-kerja-MSME",
+        hours=2,
+        cost_myr=0,
+        hrd_claimable=False,
+        verified_at=CHECKED_3,
+        skill_ids=("ai-literacy", "prompt-engineering", "ai-ethics"),
+        level=2,
+        source_name="Pepper Labs course page",
+        source_url="https://pepper-s-site-1c7b.thinkific.com/courses/ai-ready-malaysia-asia-pacific-edisi-tenaga-kerja-MSME",
+        hrd_note="Free to enrol; nothing to claim.",
+        language="ms",
+        duration_note=(
+            "Page states about 2 hours of video content in 43 lessons; curriculum "
+            "sections and lesson titles are in Bahasa Melayu. Page does not mention a certificate."
+        ),
+        provider_ref="ai-ready-malaysia-asia-pacific-edisi-tenaga-kerja-MSME",
+        format="self_paced",
+        audience="both",
+        provider_type="mooc",
+        location="Online",
+    ),
+    CourseRow(
+        id="pepperlabs-ai-ready-pelajar-ms",
+        title="AI Ready Malaysia: Edisi Pelajar",
+        provider="Pepper Labs (AVPN AI Opportunity Fund)",
+        url="https://pepper-s-site-1c7b.thinkific.com/courses/ai-ready-malaysia-asia-pacific-edisi-pelajar",
+        hours=2,
+        cost_myr=0,
+        hrd_claimable=False,
+        verified_at=CHECKED_3,
+        skill_ids=("ai-literacy", "prompt-engineering"),
+        level=2,
+        source_name="Pepper Labs course page",
+        source_url="https://pepper-s-site-1c7b.thinkific.com/courses/ai-ready-malaysia-asia-pacific-edisi-pelajar",
+        hrd_note="Free to enrol; nothing to claim.",
+        language="ms",
+        duration_note=(
+            "Page states about 2 hours of video content in 44 lessons; curriculum "
+            "sections and lesson titles are in Bahasa Melayu. Page does not mention a certificate."
+        ),
+        provider_ref="ai-ready-malaysia-asia-pacific-edisi-pelajar",
+        format="self_paced",
+        audience="individual",
+        provider_type="mooc",
+        location="Online",
+    ),
+    CourseRow(
+        id="modernlms-kursus-excel-ms",
+        title="Kursus Microsoft Excel",
+        provider="ModernLMS",
+        url="https://www.modernlms.com/learning/courses/kursus-microsoft-excel/",
+        hours=2,
+        cost_myr=0,
+        hrd_claimable=False,
+        verified_at=CHECKED_3,
+        skill_ids=("excel", "excel-basic"),
+        level=1,
+        source_name="Provider course page",
+        source_url="https://www.modernlms.com/learning/courses/kursus-microsoft-excel/",
+        hrd_note=(
+            'Page lists the course as free and also shows an "HRD Corp claimable" tag; there '
+            "is no fee to claim, so it is not treated as claimable."
+        ),
+        language="ms",
+        duration_note=(
+            "Page states 2 hours, Bahasa Melayu, fundamental level, 6 modules, 1 year of access."
+        ),
+        provider_ref="kursus-microsoft-excel",
+        format="self_paced",
+        audience="individual",
+        provider_type="private_provider",
+        location="Online",
+    ),
 )
 
 # Subscriptions and corporate bundles: shown in the catalogue and to HR, never booked as a
@@ -852,6 +1016,8 @@ def all_rows(
         from_mslearn(payload, retrieved, allow_missing)
         + list(COURSERA)
         + list(MANUAL)
+        + list(FREE_DIGITAL)
+        + list(FREE_MS)
         + list(BUNDLES)
     )
 
@@ -895,10 +1061,23 @@ def validate(rows: Iterable[CourseRow], skills: set[str]) -> None:
     if len(ids) != len(set(ids)):
         raise ValueError("duplicate course ids")
     for r in rows:
+        if not r.id.strip() or not r.title.strip() or not r.provider.strip():
+            raise ValueError(f"{r.id}: missing course identity or provider")
+        if not math.isfinite(r.cost_myr) or r.cost_myr < 0:
+            raise ValueError(f"{r.id}: invalid cost")
+        if not r.source_name.strip() or not r.source_url.startswith("https://"):
+            raise ValueError(f"{r.id}: missing source attribution")
+        if not isinstance(r.verified_at, date):
+            raise ValueError(f"{r.id}: missing verification date")
         unknown = set(r.skill_ids) - skills
         if unknown:
             raise ValueError(f"{r.id}: unknown skill ids {sorted(unknown)}")
-        if not 1 <= r.level <= 5 or r.hours <= 0 or not r.url.startswith("https://"):
+        if (
+            not 1 <= r.level <= 5
+            or not math.isfinite(r.hours)
+            or r.hours <= 0
+            or not r.url.startswith("https://")
+        ):
             raise ValueError(f"{r.id}: invalid level, hours or url")
         if r.hrd_claimable and not r.hrd_note:
             raise ValueError(f"{r.id}: HRD Corp claim without the provider's statement")
@@ -941,7 +1120,3 @@ def coursera_status(slug: str, get_json: Callable[[str, int], Any] = _get_json) 
     except (urllib.error.URLError, TimeoutError, ValueError):
         return None
     return bool(body.get("elements"))
-
-
-def with_verified(row: CourseRow, when: date) -> CourseRow:
-    return replace(row, verified_at=when)

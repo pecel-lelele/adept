@@ -48,7 +48,8 @@
     "workspace_changed": "您的工作区已更改，请刷新后重试。",
     "funding_conflict": "无法完成资助请求，请联系管理员检查当前状态。",
     "disallowed_content": "请移除输入中不受支持的内容后继续。",
-    "unknown_course": "请从当前计划或目录选择课程。"
+    "unknown_course": "请从当前计划或目录选择课程。",
+    "insufficient_cohort": "已完成档案并同意分享技能的成员太少。请选择更大的知情同意群组，或等待更多成员完成档案。"
   },
   "nav": {
     "home": "首页",
@@ -82,7 +83,8 @@
     "funding": "培训预算",
     "myWork": "我的组织",
     "programmes": "项目",
-    "jobs": "职位"
+    "jobs": "职位",
+    "compare": "比较岗位与情景"
   },
   "shell": {
     "disclaimer": "预测是基于公开数据的估计。决定权在你：Adept 从不做招聘决定。",
@@ -271,7 +273,7 @@
     "q4": "前景有保证吗？",
     "a4": "没有。前景是在温和与快速两种 AI 情景下的估计，帮助你规划，并不是工作承诺。",
     "q5": "我的简历会怎样处理？",
-    "a5": "简历只在内存中读取以找出你的技能，从不保存。只有你确认的技能会保存到你的账户。",
+    "a5": "简历文件在内存中解析，不会存储。仅保存您确认的技能。启用可选 AI 技能匹配时，经过脱敏的简短技能短语可能发送给已披露的提供方；请参阅隐私声明。",
     "q6": "我的机构可以使用 Adept 吗？",
     "a6": "可以。经理或职业顾问创建工作区、分享加入码、查看团队技能差距并分配一份培训计划。成员始终掌控自己的数据。",
     "closeEyebrow": "免费开始",
@@ -493,7 +495,8 @@
     "save": "保存更改",
     "saved": "已保存",
     "gapsLow": "已具备",
-    "gapsHigh": "最缺乏"
+    "gapsHigh": "最缺乏",
+    "tooFewMembers": "成员人数过少，无法显示"
   },
   "skills": {
     "title": "我的技能",
@@ -531,7 +534,13 @@
     "retry": "重试",
     "signIn": "重新登录",
     "profile": "完成你的资料",
-    "network": "目前无法连接 Adept。"
+    "network": "目前无法连接 Adept。",
+    "cohort": "成员人数不足",
+    "members": "查看成员",
+    "home": "返回首页",
+    "unexpected": "无法加载此页面。请重试或返回首页。",
+    "notFoundTitle": "找不到页面",
+    "notFoundHint": "此页面可能已移动，或链接不完整。"
   },
   "page": {
     "stepOf": "第 {step} 步，共 {total} 步",
@@ -563,6 +572,7 @@
     "interests": "兴趣",
     "none": "未添加",
     "organisation": "组织",
+    "organisationUnavailable": "暂时无法显示组织信息。",
     "nextStep": "下一步",
     "nextRadarTitle": "看看你的哪些技能正在上升",
     "nextRadarBody": "雷达将你的技能与最新的就业市场和 AI 研究信号进行比较。",
@@ -712,12 +722,12 @@
     "open": "询问你的 Adept 向导 Adi",
     "close": "关闭对话",
     "dismiss": "隐藏",
-    "greet": "你好，我是 Adi！可以问我你的匹配职位、下一步学什么、上升的技能、课程费用，或你的路径如何关联联合国 SDG。",
+    "greet": "你好，我是 Adi！可以问我你的匹配职位、下一步学什么或技能趋势，我会简短回答。",
     "placeholder": "问问 Adi…",
     "send": "发送",
     "thinking": "Adi 正在思考…",
-    "error": "Adi 暂时无法回答，请稍后再试。",
-    "slowDown": "问题有点多，请稍等片刻再试。",
+    "error": "抱歉，暂时无法回答，请稍后再试。",
+    "slowDown": "一下子问题有点多！请稍等片刻再试。",
     "disclaimer": "Adi 根据你的 Adept 数据回答，可能出错。决定由你做出。",
     "byModel": "AI 回答（{model}）",
     "byGuide": "Adept 向导",
@@ -727,6 +737,17 @@
     "s1": "数据来源是什么？",
     "s2": "如果AI发展更快会怎样？",
     "s3": "哪些技能在下降？",
+    "conversation": "与 Adi 的对话",
+    "suggested": "推荐问题",
+    "sMatches1": "为什么这是我最匹配的职位？",
+    "sMatches2": "如何提高匹配分数？",
+    "sMatches3": "如果AI发展更快会怎样？",
+    "sPathway1": "我应该先学哪门课程？",
+    "sPathway2": "我的计划完成了多少？",
+    "sPathway3": "我的计划费用是多少？",
+    "sRadar1": "哪些技能在上升？",
+    "sRadar2": "哪些技能在下降？",
+    "sRadar3": "你们的预测有多准确？",
     "inOrg": "在 {name} 中回答",
     "inPersonal": "在你的个人工作区中回答"
   },
@@ -736,7 +757,9 @@
     "member": "员工",
     "manager": "管理者",
     "switch": "切换工作区",
-    "join": "加入其他组织"
+    "join": "加入其他组织",
+    "workspaceError": "无法切换到该工作区。请确认您仍是其成员，然后从工作区菜单重试。",
+    "activateRetry": "您的浏览器没有保存工作区设置，因此我们已停止自动重试。请允许此网站使用 Cookie，然后点击按钮重试。"
   },
   "cvReview": {
     "title": "待核对的用词",

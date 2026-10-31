@@ -40,6 +40,7 @@ PAGES: dict[str, str] = {
     "/org": "Team home",
     "/org/members": "Team members",
     "/org/radar": "Team radar",
+    "/org/courses": "Team course catalogue",
     "/org/gaps": "Team skill gaps",
     "/org/programmes": "Programmes",
     "/org/programmes/new": "New programme",
@@ -156,7 +157,9 @@ def _trends(ctx: Context, scenario: ScenarioId, own: set[str]) -> None:
     ctx.facts["declining_roles"] = [
         signal.entity_id
         for signal in trends_service.signals_from_snapshot(snap, scenario)
-        if signal.entity_type == "role" and signal.direction == "declining"
+        if signal.entity_type == "role"
+        and signal.direction == "declining"
+        and not signal.insufficient_evidence
     ]
     ctx.facts["my_trends"] = {i.skill_id: getattr(i, f"direction_{scenario}") for i in mine}
     ctx.grounded_on.append("trend snapshot")
@@ -434,7 +437,13 @@ def _manager(ctx: Context, user: CurrentUser, scenario: ScenarioId) -> None:
         )
     gaps = _try("gaps", lambda: org_service.get_gaps(user, scenario))
     if gaps is not None and gaps.role_gaps:
-        ranked = sorted(gaps.role_gaps.items(), key=lambda kv: -kv[1])[:5]
+        visible = {
+            r: g
+            for r, g in gaps.role_gaps.items()
+            if g is not None and not gaps.role_suppressed.get(r, False)
+        }
+        ranked = sorted(visible.items(), key=lambda kv: -kv[1])[:5]
+        ctx.facts["team_gaps_suppressed"] = any(gaps.role_suppressed.values())
         ctx.facts["role_gaps"] = ranked
         ctx.lines.append(
             "Average team gap per target role (share of required skill level missing): "

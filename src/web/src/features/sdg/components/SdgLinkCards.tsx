@@ -37,6 +37,10 @@ export function SdgLinkCards({
         const color = SDG_COLOURS[goal] ?? "#555";
         const isDirect = link.strength === "direct";
         const via = viaLabel(link.via ?? "", labels, t);
+        const reason =
+          link.via === "pathway" && link.target.target === "4.3" && link.strength === "direct"
+            ? t("freeLearningReason")
+            : link.reason;
 
         return (
           <div key={`${link.target.target}-${link.via}-${i}`} className="a-sdg-flipwrap group">
@@ -48,7 +52,7 @@ export function SdgLinkCards({
                   <span className="a-sdg-face-label">SDG {link.target.target}</span>
                 </div>
                 {/* Short reason/hypothesis */}
-                <p className="a-sdg-face-reason">{link.reason}</p>
+                <p className="a-sdg-face-reason">{reason}</p>
                 {/* Pills at bottom */}
                 <div className="a-sdg-face-pills">
                   <span className="a-sdg-pill a-sdg-pill-via">{via}</span>
@@ -71,24 +75,31 @@ export function SdgLinkCards({
                     {isDirect ? t("direct") : t("enabling")}
                   </span>
                 </div>
-                {link.evidence ? (
-                  <>
-                    <div className="a-sdg-back-scroll">
+                <div className="a-sdg-back-scroll">
+                  {link.target.label ? (
+                    <p className="a-sdg-back-target-label">{link.target.label}</p>
+                  ) : null}
+                  <div className="a-sdg-back-section">
+                    <p className="a-sdg-back-evlabel">{t("whyLinked")}</p>
+                    <p className="a-sdg-back-evtext">{reason}</p>
+                  </div>
+                  {link.evidence ? (
+                    <div className="a-sdg-back-section">
                       <p className="a-sdg-back-evlabel">{t("evidence")}</p>
                       <p className="a-sdg-back-evtext">{link.evidence.note}</p>
+                      <a
+                        href={link.evidence.source.url}
+                        className="a-sdg-back-src"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        ↗ {link.evidence.source.name}
+                      </a>
                     </div>
-                    <a
-                      href={link.evidence.source.url}
-                      className="a-sdg-back-src"
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      ↗ {link.evidence.source.name}
-                    </a>
-                  </>
-                ) : (
-                  <p className="a-sdg-back-noev">{t("draft")}</p>
-                )}
+                  ) : (
+                    <p className="a-sdg-back-noev">{t("draft")}</p>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -97,4 +108,3 @@ export function SdgLinkCards({
     </div>
   );
 }
-

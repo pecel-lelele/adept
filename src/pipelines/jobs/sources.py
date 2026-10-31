@@ -10,6 +10,7 @@ find skills and is never stored.
 from __future__ import annotations
 
 import html
+import json
 import os
 import re
 import time
@@ -28,6 +29,8 @@ USER_AGENT = "AdeptJobsBot/1.0 (+https://github.com/pecel-lelele/adept; student 
 TIMEOUT_S = 30.0
 DELAY_S = 0.4
 MAX_PER_BOARD = 300
+# One response larger than this is rejected while it streams (memory bound for in-app runs).
+MAX_RESPONSE_BYTES = 15_000_000
 
 # Places that mark an on-site opening as Malaysian.
 MY_PLACES = (
@@ -57,7 +60,11 @@ MY_PLACES = (
     "kota kinabalu",
     "seremban",
     "negeri sembilan",
+    "miri",
 )
+# Location values that name no place: treated as missing so a later field (offices, country)
+# decides. A bare "Remote" primary used to reject a Malaysian office listed second.
+PLACEHOLDER_LOCATIONS = frozenset({"remote", "anywhere", "remote anywhere", "anywhere remote"})
 # Remote openings open to someone living in Malaysia.
 REMOTE_OK = ("malaysia", "worldwide", "anywhere", "global", "asia", "apac", "southeast asia")
 
@@ -88,13 +95,28 @@ class RawPosting:
 class Fetcher:
     """HTTP with robots.txt checks, a fixed delay per host and one shared client."""
 
-    def __init__(self, client: httpx.Client | None = None, delay_s: float = DELAY_S) -> None:
+    def __init__(
+        self,
+        client: httpx.Client | None = None,
+        delay_s: float = DELAY_S,
+        deadline: float | None = None,
+    ) -> None:
         self.client = client or httpx.Client(
             timeout=TIMEOUT_S, headers={"User-Agent": USER_AGENT}, follow_redirects=True
         )
         self.delay_s = delay_s
+        # time.monotonic() value after which no further request is made (in-app refresh).
+        self.deadline = deadline
         self._robots: dict[str, urllib.robotparser.RobotFileParser | None] = {}
         self._last: dict[str, float] = {}
+
+    def _remaining(self) -> float | None:
+        if self.deadline is None:
+            return None
+        left = self.deadline - time.monotonic()
+        if left <= 0:
+            raise IncompleteRead("time budget reached; previous listings retained")
+        return left
 
     def _rules(self, url: str) -> urllib.robotparser.RobotFileParser | None:
         parts = urlsplit(url)
@@ -102,13 +124,16 @@ class Fetcher:
         if origin not in self._robots:
             rp: urllib.robotparser.RobotFileParser | None = urllib.robotparser.RobotFileParser()
             try:
-                r = self.client.get(f"{origin}/robots.txt")
-                if r.status_code == 200 and "text/plain" in r.headers.get("content-type", ""):
-                    rp.parse(r.text.splitlines())  # type: ignore[union-attr]
-                else:
-                    rp = None  # no robots.txt (or an error page): nothing is disallowed
-            except httpx.HTTPError:
-                rp = None
+                body = self._read("GET", f"{origin}/robots.txt")
+                if body.lstrip().startswith(b"<"):
+                    raise PermissionError("robots check returned an error page")
+                rp.parse(body.decode("utf-8", errors="replace").splitlines())
+            except httpx.HTTPStatusError as exc:
+                if exc.response.status_code not in (404, 410):
+                    raise PermissionError("robots check denied or unavailable") from None
+                rp = None  # an explicitly absent robots.txt permits the published API
+            except httpx.HTTPError as exc:
+                raise IncompleteRead("robots check unavailable; board not read") from exc
             self._robots[origin] = rp
         return self._robots[origin]
 
@@ -122,6 +147,9 @@ class Fetcher:
         delay = max(self.delay_s, float((rp.crawl_delay(USER_AGENT) if rp else None) or 0))
         gap = time.monotonic() - self._last.get(host, 0.0)
         if gap < delay:
+            left = self._remaining()
+            if left is not None and delay - gap >= left:
+                raise IncompleteRead("crawl delay exceeds remaining time budget")
             time.sleep(delay - gap)
         self._last[host] = time.monotonic()
 
@@ -135,17 +163,28 @@ class Fetcher:
         if not self.allowed(url):
             raise PermissionError(f"robots.txt disallows {url}")
         self._wait(url)
-        r = self.client.get(url, **kw)
-        r.raise_for_status()
-        return r.text
+        return self._read("GET", url, **kw).decode("utf-8", errors="replace")
 
     def _request(self, method: str, url: str, **kw: Any) -> Any:
         if not self.allowed(url):
             raise PermissionError(f"robots.txt disallows {url}")
         self._wait(url)
-        r = self.client.request(method, url, **kw)
-        r.raise_for_status()
-        return r.json()
+        return json.loads(self._read(method, url, **kw))
+
+    def _read(self, method: str, url: str, **kw: Any) -> bytes:
+        """The response body, streamed with a size cap and the run's time budget."""
+        left = self._remaining()
+        if left is not None:
+            kw.setdefault("timeout", min(TIMEOUT_S, left))
+        with self.client.stream(method, url, **kw) as r:
+            r.raise_for_status()
+            body = bytearray()
+            for chunk in r.iter_bytes():
+                self._remaining()
+                body.extend(chunk)
+                if len(body) > MAX_RESPONSE_BYTES:
+                    raise ValueError("response exceeds the size limit")
+        return bytes(body)
 
 
 # --- cleaning helpers (pure) -----------------------------------------------------------------
@@ -162,9 +201,18 @@ def html_to_text(value: str | None) -> str:
     return _SPACE.sub(" ", text).strip()
 
 
+def _placeholder(place: str) -> bool:
+    return " ".join(re.findall(r"[a-z]+", place.lower())) in PLACEHOLDER_LOCATIONS
+
+
 def in_malaysia(*places: str | None) -> bool:
-    """The first supplied location is authoritative; later fields only fill a missing one."""
-    primary = next((p.strip().lower() for p in places if p and p.strip()), "")
+    """The first supplied location is authoritative; later fields only fill a missing one.
+
+    A bare "Remote" / "Anywhere" names no place, so it counts as missing too.
+    """
+    primary = next(
+        (p.strip().lower() for p in places if p and p.strip() and not _placeholder(p)), ""
+    )
     return primary in {"my", "mys"} or any(
         re.search(rf"(?<!\w){re.escape(place)}(?!\w)", primary) for place in MY_PLACES
     )

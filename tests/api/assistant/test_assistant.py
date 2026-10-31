@@ -362,7 +362,7 @@ def test_fallback_models_share_one_deadline() -> None:
 @pytest.mark.parametrize(
     "question,expected",
     [
-        ("Why is Data Analyst my top match?", "roles"),
+        ("Why is Data Analyst my top match?", "score_breakdown"),
         ("Which database skills should I learn?", "learn"),
         ("Is my personal data stored?", "privacy"),
         ("哪些数据库技能值得学习？", "learn"),
@@ -535,7 +535,7 @@ def test_missing_plan_or_unavailable_progress_never_invents_zero_totals():
         ("Show job trends for the coming weeks", "trend"),
         ("What are my budgets?", "cost"),
         ("Show database skills", "learn"),
-        ("Microcourses and roleplaying", "next"),
+        ("Microcourses and roleplaying", "unknown"),
         ("我的计划需要多久？", "plan_duration"),
         ("Berapa lama pelan saya?", "plan_duration"),
         ("我的计划费用是多少？", "plan_cost"),

@@ -60,6 +60,7 @@ async function ContributionBody({
   const tp = await getTranslations("ui.page");
   if (!result.ok) return <ErrorState failure={result} />;
   const data = result.data;
+  if (data.aggregation_status === "suppressed") return <section className="a-card"><h2>{title}</h2><p>{(await getTranslations("sdg"))(data.minimum_people ? "tooFewMembers" : "tooFewMembersUnknown", { count: data.minimum_people ?? 0 })}</p></section>;
   const labels = await entityLabels(scenario, data.scope === "person");
   const roleName = (id: string) => labels.get(`role:${id}`) ?? id;
   const linked = data.goals_summary.filter((g) => g.link_count > 0).length;
@@ -77,7 +78,7 @@ async function ContributionBody({
       ) : data.scope === "person" ? (
         <p className="a-notice" data-tone="info">
           {t("noRoleYet")}{" "}
-          <Link href="/app/pathway/compare" className="a-link">
+          <Link href={`/app/pathway/compare?scenario=${scenario}`} className="a-link">
             {t("compareRoles")}
           </Link>
         </p>

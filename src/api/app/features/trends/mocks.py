@@ -22,7 +22,8 @@ from app.contracts.trends import (
     TrendSnapshotMeta,
     TrendSnapshotResponse,
 )
-from app.features.trends.provenance import observation_window
+from app.features.trends.provenance import provenance_values
+from app.features.trends.velocity import served_velocity
 
 _REPO_ROOT = Path(__file__).resolve().parents[5]
 _SEED_DIR = _REPO_ROOT / "src" / "data" / "seed"
@@ -46,13 +47,15 @@ def _load_raw(snapshot_date: date | None = None) -> dict:
 def _parse_meta(raw_meta: dict, scenario: str) -> TrendSnapshotMeta:
     from app.contracts.trends import SourceRef
 
-    window = observation_window(raw_meta, raw_meta.get("data_provenance_note"))
+    provenance = provenance_values(raw_meta, raw_meta.get("data_provenance_note"))
     return TrendSnapshotMeta(
         sources=[
             SourceRef(
                 name=s["name"],
                 url=s["url"],
                 retrieved_at=date.fromisoformat(s["retrieved_at"]),
+                retrieved_at_basis=s.get("retrieved_at_basis", "unknown"),
+                retrieval_evidence=s.get("retrieval_evidence"),
             )
             for s in raw_meta["sources"]
         ],
@@ -67,8 +70,7 @@ def _parse_meta(raw_meta: dict, scenario: str) -> TrendSnapshotMeta:
             date.fromisoformat(d) for d in raw_meta.get("available_snapshots", [])
         ],
         data_provenance_note=raw_meta.get("data_provenance_note"),
-        observed_from=window[0],
-        observed_to=window[1],
+        **provenance,
     )
 
 
@@ -86,8 +88,8 @@ def _parse_items(raw_items: list[dict], scenario: str) -> list[SkillVelocity]:
                 labor_decay=item["labor_decay"],
                 labor_decay_source_note=item["labor_decay_source_note"],
                 automation_exposure=item["automation_exposure"],
-                velocity_moderate=item["velocity_moderate"],
-                velocity_fast=item["velocity_fast"],
+                velocity_moderate=served_velocity(item["velocity_moderate"]),
+                velocity_fast=served_velocity(item["velocity_fast"]),
                 direction_moderate=item["direction_moderate"],  # type: ignore[arg-type]
                 direction_fast=item["direction_fast"],  # type: ignore[arg-type]
             )

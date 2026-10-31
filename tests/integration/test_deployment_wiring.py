@@ -37,6 +37,8 @@ def test_trusted_proxy_mode_requires_a_positive_hop_count_in_production() -> Non
         proxy_shared_secret="synthetic-proxy-secret",
         trusted_proxy_hops=0,
         proxy_client_ip_mode="trusted",
+        m3_backend="postgres",
+        web_origin="https://adept.example.test",
     )
     assert any("TRUSTED_PROXY_HOPS" in error for error in settings.deployment_problems()[0])
     settings.trusted_proxy_hops = 1
@@ -73,7 +75,11 @@ def test_refresh_schedules_run_from_the_repository_root() -> None:
         with (ROOT / ".github/workflows" / name).open() as stream:
             workflow = yaml.safe_load(stream)
         trigger = workflow.get("on", workflow.get(True))
-        assert trigger["schedule"]
+        if name == "trends-refresh.yml":
+            # M1-017: manual backup only; the app's own refresh measures new weeks on demand.
+            assert "schedule" not in trigger and "workflow_dispatch" in trigger
+        else:
+            assert trigger["schedule"]
         for job in workflow["jobs"].values():
             directory = ROOT / job["defaults"]["run"]["working-directory"]
             assert directory == PYTHON_ROOT

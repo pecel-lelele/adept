@@ -43,5 +43,11 @@
   "worthExploring": "值得探索",
   "worthExploringHint": "你目前具备的所需技能水平不足 {share}%：路径更长，如果你对该职位感兴趣就值得投入。",
   "emptyTitle": "目前没有可显示的匹配",
-  "emptyHint": "检查您的技能与兴趣，然后重新尝试匹配。"
+  "emptyHint": "检查您的技能与兴趣，然后重新尝试匹配。",
+  "criticalOccupation": "MyCOL {edition} 关键职业",
+  "criticalOccupationNote": "历史职业清单收录；不代表当前空缺，也不增加排名分数。",
+  "scenarioRankDelta": "{movement} 相较{scenario} · 估计",
+  "otherScenarioScore": "另一情景得分 {score}%（估计）",
+  "otherScenarioRank": "另一情景排名 {rank}",
+  "newRank": "→ 排名 {rank}（估计）"
 }

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import re
 import secrets
+from collections.abc import Sequence
 from datetime import date
 
 from app.contracts.common import RecommendationMeta, ScenarioId, Source
@@ -29,12 +30,14 @@ from app.contracts.pathway import Pathway
 from app.contracts.profile import Skill
 from app.core import accounts
 from app.core.auth import CurrentUser
+from app.core.config import get_settings
 from app.core.errors import AppError, NotFoundError
 from app.features.org import repository
 from app.features.pathway import data as pathway_data
 from app.features.pathway import engine
 from app.features.pathway import repository as pathway_repository
 from app.features.pathway import service as pathway_service
+from app.features.profile import repository as profile_repository
 from app.features.profile import service as profile_service
 
 TEAM_DATA_SOURCE = Source(
@@ -203,6 +206,22 @@ def remove_member(user: CurrentUser, member_id: str) -> None:
     accounts.forget(member_id)
 
 
+def _learner_members(org_id: str, only: str | None = None) -> list[Member]:
+    return [
+        m
+        for m in repository.list_members(org_id)
+        if m.intake_status == "complete" and (m.id == only if only else m.skills_shared)
+    ]
+
+
+def _progress_scopes(org_id: str, members: Sequence[Member]) -> list[str]:
+    """Personal records count only when every included member shared them."""
+    scopes = [pathway_repository.org_scope(org_id)]
+    if all(m.skills_shared for m in members):
+        scopes.append(pathway_repository.PERSONAL)
+    return scopes
+
+
 def member_learners(org_id: str, only: str | None = None) -> dict[str, engine.Learner]:
     """Engine inputs for members with a completed intake (skills, time, budget only).
 
@@ -212,17 +231,14 @@ def member_learners(org_id: str, only: str | None = None) -> dict[str, engine.Le
     org = repository.get_org(org_id)
     company = org is not None and org.type == "company"
     out: dict[str, engine.Learner] = {}
-    members = [
-        m
-        for m in repository.list_members(org_id)
-        if m.intake_status == "complete" and (m.id == only if only else m.skills_shared)
-    ]
-    scopes = [pathway_repository.org_scope(org_id)]
-    if all(m.skills_shared for m in members):
-        scopes.append(pathway_repository.PERSONAL)
+    members = _learner_members(org_id, only)
+    scopes = _progress_scopes(org_id, members)
     earned = pathway_service.evidenced_levels_many([m.id for m in members], scopes)
+    profiles = profile_repository.get_profiles([m.id for m in members])
     for m in members:
-        profile = profile_service.get_my_profile(m.id)
+        profile = profiles.get(m.id)
+        if profile is None:
+            continue
         out[m.id] = engine.Learner(
             skill_levels=pathway_service.combined_levels(
                 m.id, {s.skill_id: s.level for s in profile.skills}, earned[m.id]
@@ -285,9 +301,15 @@ def member_plans(
 
 
 def get_gaps(user: CurrentUser, scenario: ScenarioId) -> GapHeatmapResponse:
-    members = member_learners(_require_manager(user))
+    org_id = _require_manager(user)
+    members = member_learners(org_id)
+    observed = profile_repository.observed_on(
+        list(members), _progress_scopes(org_id, _learner_members(org_id))
+    )
     labels = pathway_data.skill_labels()
     roles = pathway_data.target_role_ids()
+    min_cohort = get_settings().org_min_cohort
+    suppressed = len(members) < min_cohort
     computed = pathway_service.team_gaps(members, roles)
     skill_ids = list(dict.fromkeys(skill for _, skill, _ in computed))
     by_cell = {(role, skill): gap for role, skill, gap in computed}
@@ -295,7 +317,12 @@ def get_gaps(user: CurrentUser, scenario: ScenarioId) -> GapHeatmapResponse:
     for role, _skill, gap in computed:
         required[role].append(gap)
     cells = [
-        {"role_id": role, "skill_id": skill, "gap": by_cell.get((role, skill), 0.0)}
+        {
+            "role_id": role,
+            "skill_id": skill,
+            "gap": None if suppressed else by_cell.get((role, skill), 0.0),
+            "suppressed": suppressed,
+        }
         for role in roles
         for skill in skill_ids
     ]
@@ -306,10 +333,27 @@ def get_gaps(user: CurrentUser, scenario: ScenarioId) -> GapHeatmapResponse:
             "skills": [Skill(id=s, label=labels.get(s, s)) for s in skill_ids],
             "cells": cells,
             # Same average as _team_gap_by_role, so the page ranks roles like the backend.
-            "role_gaps": {r: round(sum(v) / len(v), 4) if v else 0.0 for r, v in required.items()},
+            "cohort_size": len(members),
+            "min_cohort": min_cohort,
+            "role_suppressed": {r: suppressed for r in roles},
+            "role_gaps": {
+                r: None if suppressed else (round(sum(v) / len(v), 4) if v else 0.0)
+                for r, v in required.items()
+            },
             "meta": RecommendationMeta(
-                sources=[TEAM_DATA_SOURCE],
-                snapshot_date=TEAM_DATA_SOURCE.retrieved_at,
+                sources=[TEAM_DATA_SOURCE]
+                + (
+                    [
+                        Source(
+                            name="Consenting member learning records",
+                            url="https://github.com/pecel-lelele/adept/blob/main/src/api/app/features/org/service.py",
+                            retrieved_at=observed,
+                        )
+                    ]
+                    if observed
+                    else []
+                ),
+                snapshot_date=observed or TEAM_DATA_SOURCE.retrieved_at,
                 scenario=scenario,
                 is_estimate=False,
             ),
@@ -317,10 +361,23 @@ def get_gaps(user: CurrentUser, scenario: ScenarioId) -> GapHeatmapResponse:
     )
 
 
+def require_cohort(size: int) -> None:
+    """Gate team-derived disclosures, including explicitly selected subsets."""
+    minimum = get_settings().org_min_cohort
+    if size < minimum:
+        raise AppError(
+            f"Too few members: at least {minimum} sharing members with completed profiles "
+            "are required for team planning.",
+            status_code=409,
+            code="insufficient_cohort",
+        )
+
+
 def get_plan(user: CurrentUser, scenario: ScenarioId, role_id: str | None = None) -> GroupPlan:
     org_id = _require_manager(user)
     org = repository.get_org(org_id)
     members = member_learners(org_id)
+    require_cohort(len(members))
     pathway = pathway_service.group_pathway(
         members,
         target_role(org_id, role_id, members=members),

@@ -91,6 +91,7 @@ def _learner(profile: Profile, user_id: str) -> engine.Learner:
         hours_per_week=float(profile.hours_per_week),
         budget_myr=float(profile.budget_myr),
         hrd_eligible=profile.hrd_eligible,
+        learning_style=profile.learning_style,
     )
 
 
@@ -112,6 +113,11 @@ def _meta(
             prev = sources.get(src.name)
             if prev is None or src.retrieved_at < prev.retrieved_at:
                 sources[src.name] = src  # oldest verification date is the honest one
+            if course.certificate_source:
+                cert = course.certificate_source
+                previous = sources.get(cert.name)
+                if previous is None or cert.retrieved_at < previous.retrieved_at:
+                    sources[cert.name] = cert
     if snapshot:
         for src in snapshot.all_sources():
             sources.setdefault(src.name, src)
@@ -185,6 +191,7 @@ def build_pathway(
         budget_myr=learner.budget_myr,
         within_budget=plan.out_of_pocket_myr <= learner.budget_myr,
         hrd_eligible=learner.hrd_eligible,
+        learning_style=learner.learning_style,
         gaps=plan.gaps,
         unmet=plan.unmet,
         warnings=plan.warnings + _trend_warnings(trend, [r.skill_id for r in reqs]),
@@ -209,8 +216,9 @@ def _trend_warnings(trend: trend_port.TrendView | None, skill_ids: list[str]) ->
 def get_pathway(
     user: CurrentUser, role_id: str, scenario: ScenarioId, snapshot_date: date | None = None
 ) -> Pathway:
+    learner = learner_for(user)
     profile = profile_service.get_my_profile(user)
-    plan = build_pathway(_learner(profile, user.id), role_id, scenario, snapshot_date=snapshot_date)
+    plan = build_pathway(learner, role_id, scenario, snapshot_date=snapshot_date)
     # Attached after building, so the segment can only change guidance text, never the plan.
     return plan.model_copy(update={"segment": profile.segment})
 
@@ -463,10 +471,9 @@ def _badge_label(
     return "milestone", None, names.get(key, key)
 
 
-# Evidence that lets completed learning raise a skill level for matching (H08, decided
-# 2026-10-22): a reviewer's confirmation, or a certificate link that opens on the provider's
-# own verification page. Self-ticked courses show progress but do not change matches.
-EARNED_EVIDENCE = frozenset({"org_confirmed", "certificate_link"})
+# A reachable URL does not bind the credential to this learner and course. Only a reviewer's
+# confirmation earns skill credit, including for legacy provider_verified link records.
+EARNED_EVIDENCE = frozenset({"org_confirmed"})
 
 
 def earned_levels(

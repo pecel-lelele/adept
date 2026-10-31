@@ -26,3 +26,18 @@ export function proxyConfig(env: NodeJS.ProcessEnv = process.env): {
   const mode = env.APP_ENV === "production" ? clientIpMode : "trusted";
   return { secret, trustedHops, clientIpMode: mode, logXffCount: logXffCount === "true" };
 }
+
+/**
+ * The app's public origin for same-origin checks and redirects.
+ *
+ * WEB_ORIGIN wins whenever it is set (production requires it). Without it, only a local
+ * development server falls back to the request's own Host; forwarded host headers are never
+ * trusted, because a caller can set them. Returns undefined in production without WEB_ORIGIN.
+ */
+export function publicOrigin(request: Request, env: NodeJS.ProcessEnv = process.env): string | undefined {
+  const configured = env.WEB_ORIGIN?.trim();
+  if (configured) return configured;
+  if (env.APP_ENV === "production" || env.NODE_ENV === "production") return undefined;
+  const url = new URL(request.url);
+  return `${url.protocol}//${request.headers.get("host") ?? url.host}`;
+}

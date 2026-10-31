@@ -1,16 +1,20 @@
 import { Bot, Minus, Radar, TrendingDown, TrendingUp } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
-import { Kpis, MetaBar, PageHeader, TrendPill } from "@/components";
+import { EstimateLabel, Kpis, MetaBar, PageHeader, TrendPill } from "@/components";
+import { DataAsOf } from "@/components/DataAsOf";
+import { getAccount } from "@/lib/auth/account";
+import { RefreshDataButton } from "./RefreshDataButton";
 import { journeyStepCount } from "@/config/navigation";
 import { ErrorState } from "@/components/ErrorState";
 import { TrendBars } from "@/components/viz";
 import { fetchMyProfile } from "@/features/profile/api";
 import type { ScenarioId } from "@/lib/api";
 
-import { fetchRadar, fetchRoleDirections } from "../api";
+import { fetchRadar, fetchRoleDirections, fetchSeries } from "../api";
 import { SignalExplorer } from "./SignalExplorer";
 import { RoleDirectionsCard } from "./RoleDirectionsCard";
+import { TrendRangeCard } from "./TrendRangeCard";
 
 /**
  * Step 2, the Future Skills Radar. Hierarchy: how many skills rise / hold / decline → the
@@ -21,19 +25,37 @@ export async function RadarView({
   scenario,
   snapshotDate,
   context = "individual",
+  range = { skillIds: [] },
 }: {
   scenario: ScenarioId;
   snapshotDate?: string;
   context?: "individual" | "organisation";
+  /** Trend over time: chosen dates and skills from the URL (?from=&to=&skill=). */
+  range?: { from?: string; to?: string; skillIds: string[] };
 }) {
+  const account = await getAccount();
   const t = await getTranslations("trends");
   const d = await getTranslations("common.design");
   const tp = await getTranslations("ui.page");
-  const [result, profile] = await Promise.all([
+  const [result, profile, series] = await Promise.all([
     fetchRadar(scenario, snapshotDate),
     context === "individual" ? fetchMyProfile() : Promise.resolve(null),
+    fetchSeries({ start: range.from, end: range.to, skillIds: range.skillIds, scenario }),
   ]);
-  if (!result.ok) return <ErrorState failure={result} />;
+  // A rejected date or skill choice (422) falls back to the default view, so the form and its
+  // reset stay usable and the card explains what was refused.
+  const rejected = !series.ok && series.status === 422;
+  const rangeSeries = rejected ? await fetchSeries({ skillIds: [], scenario }) : series;
+  if (!result.ok) return (
+    <div className="a-view">
+      <PageHeader eyebrow={context === "organisation" ? tp("radarEyebrowOrg") : tp("stepOf", { step: 2, total: journeyStepCount() })}
+        title={context === "organisation" ? t("orgTitle") : t("title")} description={tp("radarDesc")}>
+        <EstimateLabel scenario={scenario} />
+        {snapshotDate ? <span className="a-chip">{tp("asOf", { date: snapshotDate })}</span> : null}
+      </PageHeader>
+      <ErrorState failure={result} />
+    </div>
+  );
   const { items, meta } = result.data;
   const directions = await fetchRoleDirections(scenario, meta.snapshot_date);
   const v = scenario === "fast" ? "velocity_fast" : "velocity_moderate";
@@ -60,8 +82,10 @@ export async function RadarView({
       >
         <MetaBar meta={meta} />
       </PageHeader>
+      <DataAsOf source="trends" meta={meta} />
+      {account ? <RefreshDataButton dataAsOf={meta.observed_to ?? meta.snapshot_date} /> : null}
 
-      {meta.observed_to && Date.parse(meta.snapshot_date) - Date.parse(meta.observed_to) > 60 * 864e5 ? (
+      {meta.is_replay !== true && meta.observed_to && Date.parse(meta.snapshot_date) - Date.parse(meta.observed_to) > 60 * 864e5 ? (
         <p className="a-notice" role="note">
           {tp("historical", { from: meta.observed_from ?? meta.observed_to, to: meta.observed_to, date: meta.snapshot_date })}
         </p>
@@ -130,6 +154,24 @@ export async function RadarView({
           </section>
         )}
       </div>
+
+      {rangeSeries.ok ? (
+        <TrendRangeCard
+          series={rangeSeries.data}
+          rejected={rejected}
+          scenario={scenario}
+          snapshotDate={snapshotDate}
+          pathname={context === "organisation" ? "/org/radar" : "/app/radar"}
+          allSkills={[...items].sort((a, b) => a.skill_label.localeCompare(b.skill_label)).map((i) => ({ id: i.skill_id, label: i.skill_label }))}
+        />
+      ) : (
+        <>
+          <ErrorState failure={rangeSeries} />
+          {rejected ? (
+            <a className="a-btn is-ghost" href={`${context === "organisation" ? "/org/radar" : "/app/radar"}?scenario=${scenario}`}>{t("range.reset")}</a>
+          ) : null}
+        </>
+      )}
 
       {directions.ok ? <RoleDirectionsCard signals={directions.data.items} meta={directions.data.meta} organisation={context === "organisation"} snapshotDate={snapshotDate} /> : <ErrorState failure={directions} />}
       <section className="a-card" aria-labelledby="h-all">

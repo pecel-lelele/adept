@@ -17,8 +17,13 @@
     "totalHours": "{hours} j keseluruhan",
     "outOfPocket": "Anda bayar RM {amount} daripada bajet RM {budget}",
     "listPrice": "Harga senarai RM {amount}",
-    "hrdNote": "Kursus yang boleh dituntut HRD Corp tiada kos kepada anda: majikan memohon geran levi sebelum kursus bermula.",
-    "overBudget": "Melebihi bajet anda"
+    "hrdNote": "Kursus yang boleh dituntut HRD Corp mungkin dibiayai jika majikan anda memohon geran levi sebelum kursus bermula. Kos di atas ialah harga senarai sehingga permohonan diluluskan.",
+    "overBudget": "Melebihi bajet anda",
+    "style": {
+      "classroom": "Gaya pembelajaran bilik darjah: kursus bersemuka, dalam talian secara langsung atau hibrid dipilih dahulu jika sesuai dengan bajet anda.",
+      "video": "Gaya pembelajaran video: kursus dalam talian kendiri dipilih dahulu.",
+      "reading": "Gaya pembelajaran membaca: kursus dalam talian kendiri dipilih dahulu."
+    }
   },
   "step": {
     "levels": "Tahap {current} → {reaches} (peranan memerlukan {target})",
@@ -46,14 +51,17 @@
     "viewSaved": "lihat pelan itu"
   },
   "replan": {
-    "title": "Data trend baharu mengubah pelan anda",
+    "title": "Pelan anda boleh dikemas kini",
     "accept": "Terima pelan yang dikemas kini",
     "keep": "Kekalkan pelan semasa",
     "change": {
       "added": "Ditambah",
       "removed": "Dibuang",
       "reordered": "Disusun semula",
-      "courses_changed": "Kursus berubah"
+      "courses_changed": "Kursus berubah",
+      "schedule_changed": "Jadual berubah",
+      "style_changed": "Gaya pembelajaran berubah",
+      "cost_changed": "Kos berubah"
     }
   },
   "progress": {
@@ -119,15 +127,16 @@
     "reviewNote": "Nota penyemak: {note}",
     "kind": {
       "self_reported": "Dilaporkan sendiri",
-      "certificate_link": "Pautan sijil",
+      "certificate_link": "Sijil dihantar",
       "org_confirmed": "Disahkan oleh organisasi anda",
       "org_rejected": "Tidak diterima oleh organisasi anda"
     },
     "link": {
       "not_submitted": "belum ada pautan",
-      "provider_verified": "pautan dibuka di laman penyedia (pemilikan dan kandungan tidak disemak)",
+      "provider_verified": "dihantar untuk semakan; pelajar dan kursus belum disahkan",
       "unreachable": "pautan tidak dapat dibuka",
-      "not_provider_page": "bukan halaman pengesahan rasmi: perlu disemak secara manual"
+      "not_provider_page": "bukan halaman pengesahan rasmi: perlu disemak secara manual",
+      "submitted": "dihantar untuk semakan; pelajar dan kursus belum disahkan"
     }
   },
   "verify": {
@@ -143,24 +152,6 @@
     "notePlaceholder": "Nota pilihan kepada pelajar",
     "confirm": "Sahkan",
     "reject": "Tolak"
-  },
-  "guide": {
-    "working": {
-      "title": "Sebelum mendaftar",
-      "body": "Langkah yang boleh dituntut HRD Corp dituntut oleh majikan anda, bukan oleh anda. Kongsi pelan ini dengan HR sebelum mendaftar; apabila selesai, mereka boleh mengesahkan penyiapan anda.",
-      "link": "Lihat kursus boleh tuntut HRD Corp"
-    },
-    "graduate": {
-      "title": "Mula percuma, simpan bukti",
-      "body": "Mulakan dengan langkah percuma. Setiap kali selesai, tambah pautan sijilnya di halaman kemajuan supaya anda boleh menunjukkannya kepada majikan dan pusat kerjaya anda.",
-      "link": "Lihat kursus percuma"
-    },
-    "switcher": {
-      "title": "Bina atas apa yang anda ada",
-      "body": "Pelan anda hanya meliputi jurang: kemahiran yang sudah anda miliki tidak diajar semula. Bandingkan peranan untuk melihat kemahiran anda yang boleh dibawa.",
-      "link": "Bandingkan peranan"
-    },
-    "sameplan": "Nasihat ini bergantung pada situasi anda; pelan itu sendiri sama bagi sesiapa yang mempunyai kemahiran, masa dan bajet yang sama."
   },
   "compare": {
     "link": "Bandingkan peranan lain",
@@ -183,7 +174,8 @@
     "seeMatches": "Lihat padanan anda mengikut kedudukan",
     "humanInCharge": "Perbandingan ini menyokong keputusan anda; ia tidak menyusun atau memilih peranan untuk anda.",
     "emptyTitle": "Belum ada peranan untuk dibandingkan",
-    "emptyHint": "Kembali ke padanan untuk memilih peranan sasaran."
+    "emptyHint": "Kembali ke padanan untuk memilih peranan sasaran.",
+    "useBestMatch": "Guna padanan terbaik saya"
   },
   "badge": {
     "first": "Kursus pertama selesai",

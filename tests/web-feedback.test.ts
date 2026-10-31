@@ -5,6 +5,7 @@ import test from "node:test";
 import * as navigation from "../src/web/src/config/navigation.ts";
 import * as scenario from "../src/web/src/lib/scenario.ts";
 import * as skillSearch from "../src/web/src/features/profile/skill-search.ts";
+import * as intakeDraft from "../src/web/src/features/profile/intake-draft.ts";
 import * as errorMessages from "../src/web/src/lib/api/error-message.ts";
 import { loadComponent, React, renderToStaticMarkup, resolveTree, translations } from "./harness/web-components.ts";
 
@@ -27,10 +28,13 @@ test("zero matches and zero compare options render actionable empty states in ev
       "@/config/navigation": navigation,
       "@/components": { EmptyState, ErrorState, PageHeader, MetaBar: nothing, EstimateLabel: nothing, Badge: nothing, SdgBadge: nothing },
       "@/components/ErrorState": { ErrorState },
+      "@/components/DataAsOf": { DataAsOf: () => null },
       "@/components/HistoricalSnapshotBanner": { HistoricalSnapshotBanner: nothing },
       "@/components/viz": { scoreColour: () => "inherit" },
       "@/features/jobs": { fetchJobsSummary: async () => ({ ok: true, data: { roles: [] } }) },
       "@/features/trends/api": { fetchRadar: async () => ({ ok: false }) },
+      "@/features/matching/api": { fetchMatches: async () => ({ ok: false }) },
+      "@/components/Fold": { Fold: nothing },
       "./labels": { componentLabels: async () => ({}) },
       "./SnapshotPicker": { SnapshotPicker: nothing }, "./SdgWeightSlider": { SdgWeightSlider: nothing },
       "./ReplayChanges": { ReplayChanges: nothing }, "./MatchImprovements": { MatchImprovements: nothing },
@@ -65,13 +69,15 @@ test("intake Finish shows a disabled Saving state while the save transition is p
     let states = 0;
     let transitions = 0;
     const { IntakeWizard } = loadComponent("src/features/profile/components/IntakeWizard.tsx", {
+      "next/navigation": { useSearchParams: () => new URLSearchParams(), useRouter: () => ({ replace: nothing }) },
       "@/lib/api/error-message": errorMessages,
       "next-intl": translations(locale),
-      react: { useState: (value) => [states++ === 0 ? 4 : value, nothing], useMemo: (fn) => fn(), useRef: (current) => ({ current }), useTransition: () => [++transitions === 3, nothing] },
+      react: { useState: (value) => [states++ === 0 ? 4 : value, nothing], useMemo: (fn) => fn(), useRef: (current) => ({ current }), useTransition: () => [++transitions === 3, nothing], useEffect: nothing, startTransition: nothing },
       "@/components/SourceBadge": { SourceBadge: nothing },
       "@/features/core/components/CvPreview": { CV_SKILLS_KEY: "synthetic-preview" },
       "../actions": { resolveSkillAction: nothing, saveIntakeAction: nothing, uploadCvAction: nothing },
       "../skill-search": skillSearch,
+      "../intake-draft": intakeDraft,
     });
     const html = renderToStaticMarkup(React.createElement(IntakeWizard, { catalogue: [], interests: [], initial: null }));
     assert.match(html, /disabled="" aria-busy="true"/);

@@ -1,16 +1,23 @@
-FROM node:22-alpine AS build
-WORKDIR /workspace/src/web
+# Production web image (Next.js standalone). Build from the repository root:
+#   docker build -f src/docker/web.Dockerfile .
+# The pnpm workspace lockfile lives at the root, so the install uses the root manifests.
+FROM node:24-alpine AS build
+WORKDIR /workspace
 RUN corepack enable
-COPY src/web/package.json src/web/pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY scripts/require-pnpm.mjs scripts/require-pnpm.mjs
+COPY src/web/package.json src/web/package.json
 RUN pnpm install --frozen-lockfile
-COPY src/web/ ./
-RUN pnpm build
-FROM node:22-alpine AS runtime
-WORKDIR /workspace/src/web
-ENV NODE_ENV=production HOSTNAME=0.0.0.0 PORT=3000
+COPY src/web/ src/web/
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN pnpm --filter @workspace/adept build
+
+FROM node:24-alpine AS runtime
+WORKDIR /workspace
+ENV NODE_ENV=production HOSTNAME=0.0.0.0 PORT=3000 NEXT_TELEMETRY_DISABLED=1
+# outputFileTracingRoot is the repository root, so the server sits at src/web/server.js;
+# prepare-standalone.mjs has already copied .next/static and public next to it.
 COPY --from=build --chown=node:node /workspace/src/web/.next/standalone ./
-COPY --from=build --chown=node:node /workspace/src/web/.next/static ./.next/static
 USER node
 EXPOSE 3000
-CMD ["node", "server.js"]
-
+CMD ["node", "src/web/server.js"]

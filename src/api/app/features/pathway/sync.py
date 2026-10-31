@@ -77,10 +77,15 @@ def _job(
     today: date,
     coursera_check: Callable[[str], bool | None],
     fx: tuple[float, date] | None,
+    rows_override: list[src.CourseRow] | None = None,
 ) -> Callable[[psycopg.Connection[tuple[object, ...]]], SyncResult]:
     def job(conn: psycopg.Connection[tuple[object, ...]]) -> SyncResult:
         skills = {str(r[0]) for r in conn.execute("SELECT id FROM skills").fetchall()}
-        rows = src.all_rows(payload, today, allow_missing=True)
+        rows = (
+            rows_override
+            if rows_override is not None
+            else src.all_rows(payload, today, allow_missing=True)
+        )
         fx_detail = ""
         if fx is not None:
             rate, on = fx

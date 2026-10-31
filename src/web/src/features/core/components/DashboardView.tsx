@@ -1,3 +1,6 @@
+import { MalaysiaContextCard } from "@/features/trends/components/MalaysiaContextCard";
+import { RefreshDataButton } from "@/features/trends/components/RefreshDataButton";
+import { DataAsOf } from "@/components/DataAsOf";
 import { ArrowRight, ArrowUpRight, BookOpen, Building2, Check, Compass, Leaf, Route, Target, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -20,7 +23,7 @@ import { journeyHref } from "@/lib/navigation";
  * numbers → top roles and the learner's skill trends → the plan and the goals it supports.
  * Charts and lists only; illustrations stay on the public pages.
  */
-export async function DashboardView({ scenario, query }: { scenario: ScenarioId; query: URLSearchParams }) {
+export async function DashboardView({ scenario, query, workspaceError = false }: { scenario: ScenarioId; query: URLSearchParams; workspaceError?: boolean }) {
   const account = await getAccount();
   if (account && !account.has_profile) redirect("/app/onboarding");
   const t = await getTranslations("ui.home");
@@ -99,7 +102,15 @@ export async function DashboardView({ scenario, query }: { scenario: ScenarioId;
     .slice(0, 7);
 
   const isDone = (s: { courses: { id: string }[] }) =>
-    Boolean(p && s.courses.length > 0 && s.courses.every((c) => p.course_status[c.id] === "completed"));
+    Boolean(
+      p &&
+        s.courses.length > 0 &&
+        s.courses.every(
+          (c) =>
+            p.course_status[c.id] === "completed" ||
+            (p.workspace === "personal" && Boolean(p.completed_elsewhere?.[c.id])),
+        ),
+    );
   const steps: TrackStep[] = saved
     ? saved.pathway.steps.slice(0, 6).map((s, i, all) => ({
         id: s.skill_id,
@@ -118,6 +129,9 @@ export async function DashboardView({ scenario, query }: { scenario: ScenarioId;
 
   return (
     <div className="a-view">
+      <DataAsOf source="trends" />
+      {account ? <RefreshDataButton dataAsOf={radar.ok ? radar.data.meta.observed_to ?? radar.data.meta.snapshot_date : undefined} /> : null}
+      {workspaceError ? <p className="a-chip" data-tone="warn" role="alert">{(await getTranslations("ui.workspace"))("workspaceError")}</p> : null}
       <section className="a-welcome">
         <div className="a-welcome-main">
           <span className="a-eyebrow">{t("hello", { name: account?.display_name ?? "" })}</span>
@@ -214,7 +228,7 @@ export async function DashboardView({ scenario, query }: { scenario: ScenarioId;
             <ol className="a-rank">
               {top.map((m, i) => (
                 <li key={m.role_id}>
-                  <Link href={href(`/app/matches/${m.role_id}`)}>
+                  <Link href={href(`/app/matches/${encodeURIComponent(m.role_id)}`)}>
                     <span className="a-rank-num">{i + 1}</span>
                     <span className="a-rank-main">
                       <strong>{m.label}</strong>
@@ -291,6 +305,7 @@ export async function DashboardView({ scenario, query }: { scenario: ScenarioId;
         </section>
       </div>
       {matches.ok ? <MetaBar meta={matches.data.meta} /> : null}
+      <MalaysiaContextCard />
     </div>
   );
 }

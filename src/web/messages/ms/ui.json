@@ -48,7 +48,8 @@
     "workspace_changed": "Ruang kerja anda telah berubah. Muat semula sebelum mencuba lagi.",
     "funding_conflict": "Permintaan pembiayaan tidak dapat diselesaikan. Semak status semasanya dengan pengurus anda.",
     "disallowed_content": "Buang kandungan yang tidak disokong daripada input sebelum meneruskan.",
-    "unknown_course": "Pilih kursus daripada pelan atau katalog semasa."
+    "unknown_course": "Pilih kursus daripada pelan atau katalog semasa.",
+    "insufficient_cohort": "Terlalu sedikit ahli yang berkongsi kemahiran dan telah melengkapkan profil. Pilih kohort bersetuju yang lebih besar, atau tunggu lebih ramai ahli melengkapkan profil."
   },
   "nav": {
     "home": "Utama",
@@ -82,7 +83,8 @@
     "funding": "Bajet latihan",
     "myWork": "Organisasi saya",
     "programmes": "Program",
-    "jobs": "Pekerjaan"
+    "jobs": "Pekerjaan",
+    "compare": "Banding peranan & senario"
   },
   "shell": {
     "disclaimer": "Unjuran ialah anggaran daripada data awam. Anda yang membuat keputusan: Adept tidak pernah membuat keputusan pengambilan pekerja.",
@@ -271,7 +273,7 @@
     "q4": "Adakah unjuran dijamin?",
     "a4": "Tidak. Unjuran ialah anggaran di bawah senario AI sederhana dan pantas. Ia membantu anda merancang; bukan janji pekerjaan.",
     "q5": "Apa yang berlaku kepada CV saya?",
-    "a5": "Ia dibaca dalam memori untuk mencari kemahiran anda dan tidak pernah disimpan. Hanya kemahiran yang anda sahkan disimpan dalam akaun anda.",
+    "a5": "Fail CV dihuraikan dalam memori dan tidak disimpan. Hanya kemahiran yang disahkan disimpan. Jika pemadanan AI pilihan diaktifkan, frasa kemahiran ringkas yang telah disunting mungkin dihantar kepada penyedia yang dinyatakan; lihat Privasi.",
     "q6": "Bolehkah organisasi saya menggunakan Adept?",
     "a6": "Ya. Pengurus atau penasihat kerjaya mencipta ruang kerja, berkongsi kod sertai, melihat jurang kemahiran pasukan dan menetapkan satu pelan latihan. Ahli kekal mengawal data mereka.",
     "closeEyebrow": "Percuma untuk bermula",
@@ -493,7 +495,8 @@
     "save": "Simpan perubahan",
     "saved": "Disimpan",
     "gapsLow": "Dipenuhi",
-    "gapsHigh": "Paling kurang"
+    "gapsHigh": "Paling kurang",
+    "tooFewMembers": "Terlalu sedikit ahli untuk dipaparkan"
   },
   "skills": {
     "title": "Kemahiran saya",
@@ -531,7 +534,13 @@
     "retry": "Cuba lagi",
     "signIn": "Log masuk semula",
     "profile": "Lengkapkan profil anda",
-    "network": "Kami tidak dapat menghubungi Adept sekarang."
+    "network": "Kami tidak dapat menghubungi Adept sekarang.",
+    "cohort": "Ahli terlalu sedikit",
+    "members": "Semak ahli",
+    "home": "Kembali ke laman utama",
+    "unexpected": "Kami tidak dapat memuatkan halaman ini. Cuba lagi atau kembali ke laman utama.",
+    "notFoundTitle": "Halaman tidak ditemui",
+    "notFoundHint": "Halaman ini mungkin telah dipindahkan atau pautannya tidak lengkap."
   },
   "page": {
     "stepOf": "Langkah {step} daripada {total}",
@@ -563,6 +572,7 @@
     "interests": "Minat",
     "none": "Tiada",
     "organisation": "Organisasi",
+    "organisationUnavailable": "Butiran organisasi tidak tersedia buat masa ini.",
     "nextStep": "Langkah seterusnya",
     "nextRadarTitle": "Lihat kemahiran anda yang sedang meningkat",
     "nextRadarBody": "Radar membandingkan kemahiran anda dengan isyarat pasaran kerja dan penyelidikan AI terkini.",
@@ -712,12 +722,12 @@
     "open": "Tanya Adi, pemandu Adept anda",
     "close": "Tutup sembang",
     "dismiss": "Sembunyi",
-    "greet": "Hai, saya Adi! Tanya saya tentang peranan padanan anda, apa perlu dipelajari, kemahiran yang meningkat, kos kursus atau kaitan laluan anda dengan SDG PBB.",
+    "greet": "Hai, saya Adi! Tanya saya tentang peranan padanan anda, apa perlu dipelajari seterusnya atau trend kemahiran. Saya akan jawab dengan ringkas.",
     "placeholder": "Tanya Adi…",
     "send": "Hantar",
     "thinking": "Adi sedang berfikir…",
-    "error": "Adi tidak dapat menjawab sekarang. Sila cuba lagi.",
-    "slowDown": "Terlalu banyak soalan sekaligus. Tunggu sebentar dan cuba lagi.",
+    "error": "Maaf, saya tidak dapat menjawab sekarang. Cuba lagi sebentar.",
+    "slowDown": "Banyak soalan sekaligus! Beri saya sebentar, kemudian cuba lagi.",
     "disclaimer": "Adi menjawab daripada data Adept anda dan mungkin silap. Anda yang memutuskan.",
     "byModel": "Jawapan AI ({model})",
     "byGuide": "Pemandu Adept",
@@ -727,6 +737,17 @@
     "s1": "Dari mana data ini datang?",
     "s2": "Apa jadi kalau AI bergerak lebih laju?",
     "s3": "Kemahiran apa yang semakin menurun?",
+    "conversation": "Perbualan dengan Adi",
+    "suggested": "Soalan cadangan",
+    "sMatches1": "Kenapa ini padanan teratas saya?",
+    "sMatches2": "Bagaimana nak tingkatkan skor saya?",
+    "sMatches3": "Apa jadi kalau AI bergerak lebih laju?",
+    "sPathway1": "Kursus mana patut saya mula dulu?",
+    "sPathway2": "Apakah kemajuan pelan saya?",
+    "sPathway3": "Berapa kos pelan saya?",
+    "sRadar1": "Kemahiran apa yang meningkat?",
+    "sRadar2": "Kemahiran apa yang semakin menurun?",
+    "sRadar3": "Sejauh mana ketepatan ramalan anda?",
     "inOrg": "Menjawab di {name}",
     "inPersonal": "Menjawab di ruang kerja peribadi anda"
   },
@@ -736,7 +757,9 @@
     "member": "Pekerja",
     "manager": "Pengurus",
     "switch": "Tukar ruang kerja",
-    "join": "Sertai organisasi lain"
+    "join": "Sertai organisasi lain",
+    "workspaceError": "Kami tidak dapat beralih ke ruang kerja itu. Semak bahawa anda masih menjadi ahlinya, kemudian cuba semula daripada menu ruang kerja.",
+    "activateRetry": "Pelayar anda tidak menyimpan tetapan ruang kerja, jadi kami berhenti mencuba semula. Benarkan kuki untuk tapak ini, kemudian tekan butang untuk mencuba lagi."
   },
   "cvReview": {
     "title": "Istilah untuk disemak",

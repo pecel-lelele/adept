@@ -24,6 +24,8 @@ class RegisterEntry(BaseModel):
         "iibacert",
         "iappcert",
         "bnm",
+        "replit",
+        "fonts",
     ]
     name: str
     url: str
