@@ -521,6 +521,16 @@
 - **Replaces**: none (refines TEAM-041's proxy guidance)
 - **PR / branch**: fix/core-dispatch-trust
 
+### TEAM-048: Keep agent memory in the local workspace only
+- **Date**: 2026-10-31
+- **Feature**: Core / repository hygiene
+- **Type**: other
+- **Change**: Ignore `/.agents/memory/` and stop tracking its two existing files while leaving local copies intact. Future checkouts do not receive these per-agent recollections.
+- **Why**: Local preview-host notes and agent memory are not product sources or deployment configuration and should not be distributed with the repository. This removes them from the current tree, not from historical commits.
+- **Affects**: Git tracking only; no application runtime, public data, migration or provider change
+- **Replaces**: none
+- **PR / branch**: chore/core-untrack-agent-memory
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)
