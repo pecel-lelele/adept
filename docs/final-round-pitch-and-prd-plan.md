@@ -503,7 +503,7 @@ External sources checked during planning:
 Repository references:
 
 - [Project context](project-context.md), [architecture](architecture.md), [product/pitch source dossier](project-pitch-reference.md).
-- [Final-round rubric/evidence checklist](submission/rubric-check.md), [submission proposal](submission/submission-proposal.md).
+- [Final-round rubric/evidence checklist](submission/rubric-check.md), [submission proposal](submission/submission-final-report.md).
 - [Human KPI protocol](evidence/kpi-time-to-plan.md), [human measurement status](evidence/kpi-human-summary.json), [separate automated API journey evidence](evidence/kpi-automated-journeys.md).
 - [Role seeds](../src/data/seed/taxonomy/roles.csv), [skill seeds](../src/data/seed/taxonomy/skills.csv), [course seeds](../src/data/seed/courses/courses.csv).
 - [Refresh feature](../src/api/app/features/data_refresh/FEATURE.md), [matching method](../src/api/app/features/matching/scoring.py), [pathway engine](../src/api/app/features/pathway/engine.py).

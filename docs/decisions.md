@@ -3050,3 +3050,14 @@
 - **Affects**: dashboard, radar, matches, plan, progress, SDG and public header views; `tests/e2e/*`, `tests/web-labour-context.test.ts`; no API schema change
 - **Replaces**: none; completes M4-100
 - **PR / branch**: fix/core-dashboard-cleanup
+
+### M4-103: Fill the finalist templates exactly and measure the Phase 1 KPI
+- **Date**: 2026-11-01
+- **Feature**: Core (submission)
+- **Type**: method
+- **Change**: The final report and technical declaration now fill the organisers' Word templates in `submission/templates` through `src/scripts/fill_submission_docx.py`, which keeps every heading, prompt and table, with word limits enforced by a test. The PRD adopts the same plain style. `src/scripts/measure_catalogue_validity.py` measures the Phase 1 catalogue-ID KPI with the production pathway engine: 46 of 46 course IDs resolve on five synthetic personas in two scenarios. The preliminary PDF and proposal source are removed from HEAD.
+- **Why**: Section 4 must compare against the targets in the submitted Phase 1 PDF (100% catalogue-ID validity, median time-to-plan below three minutes), not a 20% reduction. The time-to-plan target has API timings only; human trials remain unrun, so it is not claimed as met.
+- **Pipeline** (data/ML only): five synthetic personas -> production matching -> production pathway engine -> course IDs compared with the catalogue seed -> 100.0% against a 100% target -> dated JSON evidence quoted in the report
+- **Affects**: submission PDFs and sources, evidence files; no runtime behaviour, contracts or schema
+- **Replaces**: none
+- **PR / branch**: #113, docs/core-finalist-evidence

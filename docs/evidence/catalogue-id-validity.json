@@ -1,0 +1,87 @@
+{
+  "kpi": "catalogue-ID validity",
+  "formula": "100 * valid course IDs / recommended course IDs",
+  "target_percent": 100,
+  "personas": 5,
+  "scenarios": [
+    "moderate",
+    "fast"
+  ],
+  "catalogue_courses": 104,
+  "recommended": 46,
+  "valid": 46,
+  "validity_percent": 100.0,
+  "limits": "ID resolution on synthetic personas; not a check of prices or links.",
+  "records": [
+    {
+      "persona": "demo-imran",
+      "scenario": "moderate",
+      "role": "compliance-analytics-officer",
+      "recommended": 1,
+      "valid": 1
+    },
+    {
+      "persona": "demo-imran",
+      "scenario": "fast",
+      "role": "compliance-analytics-officer",
+      "recommended": 1,
+      "valid": 1
+    },
+    {
+      "persona": "demo-sofia",
+      "scenario": "moderate",
+      "role": "process-automation-analyst",
+      "recommended": 4,
+      "valid": 4
+    },
+    {
+      "persona": "demo-sofia",
+      "scenario": "fast",
+      "role": "process-automation-analyst",
+      "recommended": 4,
+      "valid": 4
+    },
+    {
+      "persona": "demo-meera",
+      "scenario": "moderate",
+      "role": "process-automation-analyst",
+      "recommended": 7,
+      "valid": 7
+    },
+    {
+      "persona": "demo-meera",
+      "scenario": "fast",
+      "role": "process-automation-analyst",
+      "recommended": 7,
+      "valid": 7
+    },
+    {
+      "persona": "demo-adrian",
+      "scenario": "moderate",
+      "role": "data-analyst",
+      "recommended": 3,
+      "valid": 3
+    },
+    {
+      "persona": "demo-adrian",
+      "scenario": "fast",
+      "role": "data-analyst",
+      "recommended": 3,
+      "valid": 3
+    },
+    {
+      "persona": "demo-nur-hana",
+      "scenario": "moderate",
+      "role": "process-automation-analyst",
+      "recommended": 8,
+      "valid": 8
+    },
+    {
+      "persona": "demo-nur-hana",
+      "scenario": "fast",
+      "role": "process-automation-analyst",
+      "recommended": 8,
+      "valid": 8
+    }
+  ]
+}
