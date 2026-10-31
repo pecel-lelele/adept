@@ -40,3 +40,27 @@ are in [`runpod/README.md`](runpod/README.md). Explicitly select
 
 `populate_dual_snapshot.py` and `export_fixtures_from_db.py` build the historical demo
 snapshots (October 2024 arXiv windows replayed as 2026 dates; the app labels them as such).
+
+## One-time backfill and portable seed (M1-024, M1-027)
+
+`backfill.py` is an operator tool; the API and pages never call it. Run from the repository root
+with `PYTHONPATH=src/api:src` and the provider settings for that process only:
+
+1. `python -m pipelines.trends.backfill estimate` prints the range, paper count, arXiv time, cost
+   estimate and the resolved target. It makes no network call and no write.
+2. `... equivalence --target host:port/db` compares Gemini with MiniLM on the same papers and
+   writes `src/data/seed/trends/paper_store/equivalence.json`. The pass bar is in M1-024. MiniLM
+   rows come from the database if stored; otherwise the encoder selected by
+   `TRENDS_EMBEDDING_BACKEND` (`local` needs no paid call) produces and stores them.
+3. `... run --target host:port/db` stores every missing day from 2026-01-01 in resumable 14-day
+   chunks, then publishes the rolling snapshot. Run it again to resume. It refuses to start
+   without a passing report. Committing that report is what switches `TRENDS_MATCHER=auto` to
+   Gemini.
+4. `... export-seed` writes the series to `src/data/seed/trends/paper_store/`.
+
+To load the history elsewhere, apply migrations and run `make seed` with `DATABASE_URL` set to
+that database. No arXiv or model call is made and existing rows are kept.
+
+Stages: arXiv cs.AI submissions → title + abstract → Gemini embeddings (384 dimensions) → cosine
+at or above one stored threshold per model → equivalence against MiniLM → per-paper rows counted
+by the rolling series.

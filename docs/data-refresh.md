@@ -33,7 +33,7 @@ optional and were not provisioned as part of this change.
 
 - `POST /api/v1/data/refresh/run`: scheduler token (`X-Data-Refresh-Token`), constant-time
   comparison; rejects user-session headers; independently rate limited.
-- `POST /api/v1/data/refresh/check`: signed-in users. Cheap stored-week/daily-cadence check
+- `POST /api/v1/data/refresh/check`: administrators only since M1-026. Cheap stored-week/daily-cadence check
   precedes paid work and cooldown. A successful current-data check starts no worker/network
   request. The under-one-second target assumes a warm app/database; cold starts can exceed it.
 - Both return 202 and a UUID for queued/running work, 200 for up-to-date/cooldown. An existing
@@ -131,3 +131,13 @@ connectors are preserved; automatic refresh is restricted to the documented sour
 
 Open pages do not establish permission for every future use. Unverified candidates stay
 disabled; the assessment records those limits rather than claiming terms were approved.
+
+## Gemini trend matcher rollout (M1-024, M1-027)
+
+`TRENDS_MATCHER=auto` (the default) keeps the series on MiniLM until a passing
+`src/data/seed/trends/paper_store/equivalence.json` is committed, then uses Gemini, which needs
+`EMBEDDINGS_PROVIDER=gemini` and `GEMINI_API_KEY`. `TRENDS_EMBEDDING_BACKEND` still only configures
+the MiniLM encoder. Apply `20261031220000_trend_matcher_series.sql` before deploying this code. To
+move a database after the switch: run `make seed` against it (it loads the paper store, keeping
+existing rows), set the two settings, then let the daily job continue. `TRENDS_MATCHER=minilm`
+stays on MiniLM; its stored rows are never altered. See `src/pipelines/trends/README.md`.

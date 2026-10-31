@@ -45,3 +45,12 @@ It skips publication only when those inputs match (ignoring the note's rebuild d
 refresh commits corrected papers but fails before publication, the same-day retry detects the
 different counts and republishes; missing published inputs also trigger a rebuild. Press
 refresh once after deploying to backfill the history.
+
+## Gemini primary, resumable catch-up (2026-10-31, M1-024, M1-026, M1-027)
+
+This replaces the fallback and the cap above. `TRENDS_MATCHER` picks one matcher per series:
+`auto` (default) is MiniLM until a passing equivalence report is committed, then Gemini. A failure
+keeps the last snapshot and never mixes models. The Gemini history starts 2026-01-01; MiniLM keeps
+2026-10-06. Catch-up commits every 14 days with no per-run cap, so an interrupted
+run resumes, and publishes a snapshot only once complete. `POST /data/refresh/check` is admin
+only: people see "Data through <date>", and the button lives on the admin data page.
