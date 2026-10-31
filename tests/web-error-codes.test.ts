@@ -50,7 +50,7 @@ function authActions(failure = { ok: false, status: 401, code: "invalid_credenti
   return loadComponent("src/features/core/auth-actions.ts", {
     "next/cache": { revalidatePath: nothing }, "next/navigation": { redirect: nothing },
     "@/lib/api": { call: async () => failure, getApi: async () => ({ POST: nothing }) },
-    "@/lib/auth/session": {}, "@/lib/navigation": {},
+    "@/lib/auth/session": {}, "@/lib/auth/workspace": {}, "@/lib/navigation": {},
   });
 }
 

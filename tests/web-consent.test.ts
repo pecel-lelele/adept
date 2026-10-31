@@ -47,7 +47,7 @@ test("joining never infers skill sharing from membership consent", async () => {
       getApi: async () => ({ POST: (_path, { body }) => { calls++; submitted = body; return { name: "Synthetic org", id: "synthetic-org" }; } }),
       call: async (data) => ({ ok: true, data }),
     },
-    "@/lib/auth/session": {}, "@/lib/navigation": {},
+    "@/lib/auth/session": {}, "@/lib/auth/workspace": {}, "@/lib/navigation": {},
   });
   const form = new FormData();
   form.set("code", "SYNTHETIC");

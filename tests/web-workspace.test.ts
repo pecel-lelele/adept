@@ -68,10 +68,11 @@ test('signup with a join code still lands on onboarding; login keeps a join deep
     'next/cache': { revalidatePath: () => {} },
     'next/navigation': { redirect: (to: string) => { target = to; } },
     '@/lib/api': {
-      getApi: async () => ({ POST: () => ({ token: 'v2.synthetic.signature', next_path: nextPath }) }),
+      getApi: async () => ({ POST: () => ({ token: 'v2.synthetic.signature', account: { org_id: null }, next_path: nextPath }) }),
       call: async (data: unknown) => ({ ok: true, data }),
     },
     '@/lib/auth/session': { setSessionToken: async () => {}, clearSession: async () => {} },
+    '@/lib/auth/workspace': loadComponent('src/lib/auth/workspace.ts', { 'next/headers': {} }),
     '@/lib/navigation': { safeReturn },
   });
   const { signupAction, loginAction } = load();
@@ -84,4 +85,40 @@ test('signup with a join code still lands on onboarding; login keeps a join deep
   nextPath = '/app';
   await loginAction({}, form);
   assert.equal(target, '/app/join?code=SYNTHETIC');
+});
+
+test('new organisation admins get the workspace cookie at signup; other signups do not', async () => {
+  const { loadComponent } = await import('./harness/web-components.ts');
+  const signup = async (orgId: string | null, nextPath: string) => {
+    const set: unknown[][] = [];
+    let target = '';
+    const { signupAction } = loadComponent('src/features/core/auth-actions.ts', {
+      'next/cache': { revalidatePath: () => {} },
+      'next/headers': { cookies: async () => ({ set: (...args: unknown[]) => { set.push(args); } }) },
+      'next/navigation': { redirect: (to: string) => { target = to; } },
+      '@/lib/api': {
+        getApi: async () => ({ POST: () => ({ token: 'v2.synthetic.signature', account: { org_id: orgId }, next_path: nextPath }) }),
+        call: async (data: unknown) => ({ ok: true, data }),
+      },
+      '@/lib/auth/session': { setSessionToken: async () => {}, clearSession: async () => {} },
+      '@/lib/auth/workspace': loadComponent('src/lib/auth/workspace.ts', { 'next/headers': {} }),
+      '@/lib/navigation': { safeReturn },
+    }, { process: { env: { NODE_ENV: 'production' } } });
+    await signupAction({}, new FormData());
+    return { set, target };
+  };
+  const admin = await signup('synthetic-org', '/org');
+  assert.equal(admin.target, '/org');
+  assert.equal(admin.set.length, 1);
+  const [name, value, options] = admin.set[0] as [string, string, Record<string, unknown>];
+  assert.equal(name, 'adept_org');
+  assert.equal(value, 'synthetic-org');
+  assert.equal(options.path, '/');
+  assert.equal(options.httpOnly, true);
+  assert.equal(options.sameSite, 'lax');
+  assert.equal(options.secure, true);
+  assert.deepEqual((await signup(null, '/app/onboarding')).set, []);
+  assert.deepEqual((await signup('synthetic-org', '/app/onboarding')).set, []);
+  assert.deepEqual((await signup('Not An Id!', '/org')).set, []);
+  assert.deepEqual((await signup('personal', '/org')).set, []);
 });

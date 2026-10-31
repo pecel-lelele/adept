@@ -1,10 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { call, getApi } from "@/lib/api";
 import { clearSession, setSessionToken } from "@/lib/auth/session";
+import { ORG_COOKIE, isOrgId } from "@/lib/auth/workspace";
 import { safeReturn } from "@/lib/navigation";
 
 export type AuthState = { error?: string; values?: Record<string, string> };
@@ -66,6 +68,19 @@ export async function signupAction(_: AuthState, form: FormData): Promise<AuthSt
   );
   if (!result.ok) return { error: result.code, values: keep(form) };
   await setSessionToken(result.data.token);
+  // For new org admins, pre-set the workspace cookie so the /org layout resolves the workspace
+  // on the very first render. Without this the layout falls through to WorkspaceActivation,
+  // causing a visible blank-page flash (and occasionally the "stopped retrying" loop error).
+  const orgId = result.data.account.org_id;
+  if (isOrgId(orgId) && result.data.next_path.startsWith("/org")) {
+    (await cookies()).set(ORG_COOKIE, orgId, {
+      path: "/",
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 365 * 24 * 3600,
+    });
+  }
   redirect(destination(text(form, "next", 300), result.data.next_path, true));
 }
 

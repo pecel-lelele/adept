@@ -3050,3 +3050,13 @@
 - **Affects**: dashboard, radar, matches, plan, progress, SDG and public header views; `tests/e2e/*`, `tests/web-labour-context.test.ts`; no API schema change
 - **Replaces**: none; completes M4-100
 - **PR / branch**: fix/core-dashboard-cleanup
+
+### M4-103: Signed-out visitors get a log-in gate when the landing-page outlook cannot be returned
+- **Date**: 2026-11-01
+- **Feature**: Core / F1 profile
+- **Type**: UI
+- **Change**: When saving CV skill ratings on the landing page fails for a visitor with no session, the "we couldn't calculate" error is replaced by a blurred panel with sign-up and log-in links, and the confirmed ratings are kept in the existing sign-up handoff. Visitors with a session token still see the error. The blurred area holds neutral shapes only (no text, numbers or score-like arcs, hidden from screen readers), because no result exists at that point. A successful guest save is unchanged.
+- **Why**: Product request. The guest endpoint is anonymous and does not need a login, so this gate hides a failed request (for example the 10 per minute limit shared by CV upload and save, or an API outage) rather than a permission rule; no outlook is implied or invented, and every failed status is treated the same for guests. The session token decides who counts as a guest because `getAccount()` also returns null during an outage. Alternative considered: keep the error for guests, which the request ruled out.
+- **Affects**: `CvPreview`, new `CvOutlookGate`, `LandingView`, `ui.landing` messages (en, ms, zh), `tests/e2e/cv-preview.spec.ts`, `tests/web-cv-outlook-gate.test.ts`; no API schema change
+- **Replaces**: none
+- **PR / branch**: fix/org-signup-workspace-cookie (PR 116)

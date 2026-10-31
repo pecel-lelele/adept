@@ -9,6 +9,7 @@ import { Ring, scoreColour } from "@/components/viz/Ring";
 import { EstimateLabel } from "@/components/EstimateLabel";
 import type { Schemas } from "@/lib/api";
 import { CV_SKILLS_KEY, clearCvHandoff, cvFile, writeCvHandoff, type CvFile } from "@/features/profile/cv-handoff";
+import { CvOutlookGate } from "./CvOutlookGate";
 import "./cv-preview.css";
 
 type Preview = Schemas["GuestPreview"];
@@ -25,8 +26,10 @@ const EXTENSIONS = /\.(pdf|docx|txt)$/i;
 /**
  * Upload → explicit self-assessment → saved outlook. Only confirmed levels reach matching
  * or the sign-up handoff. The CV is read in memory by the API and never stored.
+ * If the outlook cannot be returned, signed-out visitors keep their ratings and get a log-in gate;
+ * anyone with a session gets the error, because logging in would not help them.
  */
-export function CvPreview() {
+export function CvPreview({ signedIn = false }: { signedIn?: boolean }) {
   const t = useTranslations("ui.landing");
   const cvText = useTranslations("ui.cvReview");
   const [file, setFile] = useState<File | null>(null);
@@ -35,7 +38,7 @@ export function CvPreview() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState<Preview | null>(null);
-  const [step, setStep] = useState<"upload" | "rate" | "results">("upload");
+  const [step, setStep] = useState<"upload" | "rate" | "results" | "locked">("upload");
   const [skills, setSkills] = useState<RatedSkill[]>([]);
   const [truncated, setTruncated] = useState(false);
   const [processedFile, setProcessedFile] = useState<CvFile | null>(null);
@@ -107,30 +110,37 @@ export function CvPreview() {
       return;
     }
     setBusy(true); setError("");
+    const confirmed = skills.flatMap(({ skill_id, level }) => (level === null ? [] : [{ skill_id, level }]));
+    const keepForSignup = () => {
+      if (processedFile) {
+        try { writeCvHandoff(window.sessionStorage, { file: processedFile, skills: confirmed }); }
+        catch { /* Storage disabled. */ }
+      }
+      try {
+        window.localStorage.setItem(CV_SKILLS_KEY, JSON.stringify(confirmed));
+      } catch {
+        /* storage blocked: the intake simply starts empty */
+      }
+    };
+    const outlookFailed = () => {
+      if (signedIn) { setError(t("outlookError")); return; }
+      setResult(null);
+      setStep("locked");
+      keepForSignup();
+    };
     try {
       const response = await fetch("/api/preview", {
         method: "PUT",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ skills: skills.map(({ skill_id, level }) => ({ skill_id, level })) }),
+        body: JSON.stringify({ skills: confirmed }),
       });
-      if (!response.ok) { setError(t("outlookError")); return; }
+      if (!response.ok) { outlookFailed(); return; }
       const data = (await response.json()) as Preview;
       setResult(data);
       setStep("results");
-      if (processedFile) {
-        try { writeCvHandoff(window.sessionStorage, { file: processedFile, skills: data.skills.map(({ skill_id, level }) => ({ skill_id, level })) }); }
-        catch { /* Storage disabled. */ }
-      }
-      try {
-        window.localStorage.setItem(
-          CV_SKILLS_KEY,
-          JSON.stringify(skills.map(({ skill_id, level }) => ({ skill_id, level }))),
-        );
-      } catch {
-        /* storage blocked: the intake simply starts empty */
-      }
+      keepForSignup();
     } catch {
-      setError(t("outlookError"));
+      outlookFailed();
     } finally {
       setBusy(false);
     }
@@ -256,6 +266,17 @@ export function CvPreview() {
           </>}
           <button type="button" className="a-link cv-text-button" disabled={busy} onClick={reset}>{t("tryAgain")}</button>
         </form>
+      ) : step === "locked" ? (
+        <div className="a-upload-result" aria-live="polite">
+          <div className="cv-rating-heading">
+            <h2>{t("outlookTitle")}</h2>
+            <button type="button" className="a-link cv-text-button" onClick={() => { setStep("rate"); setError(""); clearHandoff(); }}>{t("editLevels")}</button>
+          </div>
+          <CvOutlookGate />
+          <button type="button" className="a-link cv-text-button" onClick={reset}>
+            {t("tryAgain")}
+          </button>
+        </div>
       ) : step === "results" && result ? (
         <div className="a-upload-result" aria-live="polite">
           <div className="cv-rating-heading">
