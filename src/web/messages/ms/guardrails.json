@@ -12,7 +12,7 @@
     "arxiv": "Minggu penyerahan arXiv yang telah lengkap melalui API awam, dengan garis dasar BLS bertarikh. Data ulangan Oktober 2024 dilabel dengan jelas; perhatian penyelidikan bukan permintaan kerja yang diperhatikan.",
     "bls": "Unjuran pekerjaan sebagai garis dasar tenaga kerja bagi anggaran prospek peranan.",
     "onet": "Taksonomi pekerjaan sebagai asas pemetaan peranan Adept yang dikurasi; pengkhususan Adept bukan tajuk rasmi O*NET.",
-    "jobs": "Penyegaran automatik menggunakan API majikan Greenhouse, Lever dan Ashby yang didokumenkan, ditapis mengikut lokasi Malaysia pada setiap iklan dan luput selepas 14 hari. Careerjet, Jooble dan web3.career kekal pilihan. Eksport lama mungkin mengandungi suapan lain yang diberi kredit; iklan seluruh dunia sahaja dikecualikan.",
+    "jobs": "Penyegaran automatik menggunakan API majikan Greenhouse, Lever dan Ashby yang didokumenkan, ditapis mengikut lokasi Malaysia pada setiap iklan dan luput selepas 14 hari. Careerjet, Jooble dan web3.career kekal pilihan. Eksport lama mungkin mengandungi suapan lain yang diberi kredit. Papan kerja jarak jauh (Himalayas, Jobicy, Remote OK, Remotive) turut dibaca untuk papan pekerjaan dan halaman peranan, dengan setiap iklan dilabel “Jarak jauh · terbuka untuk Malaysia” atau “Jarak jauh · seluruh dunia”; halaman lain hanya menyenaraikan iklan yang berlokasi di Malaysia.",
     "mscert": "Penerangan pensijilan rasmi dan yuran peperiksaan Malaysia bertarikh; kursus dan peperiksaan pensijilan adalah berasingan.",
     "awscert": "Penerangan pensijilan AWS dan yuran peperiksaan rasmi.",
     "googlecert": "Penerangan pensijilan Google Cloud dan yuran peperiksaan rasmi.",

@@ -361,18 +361,21 @@ def _run_labour(started: float, budget: float) -> Outcome:
 
 
 def selected_boards() -> tuple[list[Any], list[str]]:
-    """Documented public employer APIs; optional keyed providers stay opt-in.
+    """Documented public employer APIs and the remote-job boards; optional keyed providers stay
+    opt-in.
 
+    Remote boards are read so their ads stay live for the job board and role detail page.
     Historical connectors remain available to the standalone CLI, but the automatic job
-    does not use undocumented career-site endpoints or generic worldwide remote feeds.
+    does not use undocumented career-site endpoints.
     """
     from pipelines.jobs import boards
 
     keyed = {b.board for b in boards.KEYED}
+    remote = {b.source for b in boards.REMOTE}
     runnable: list[Any] = []
     skipped: list[str] = []
     for b in boards.ALL:
-        if b.source not in {"greenhouse", "lever", "ashby", *_KEYED_ENV}:
+        if b.source not in {"greenhouse", "lever", "ashby", *remote, *_KEYED_ENV}:
             skipped.append(b.board)
             continue
         env = _KEYED_ENV.get(b.source)
@@ -416,11 +419,16 @@ def _run_jobs(started: float, budget: float) -> Outcome:
             boards_skipped=skipped,
         )
     today = _today()
-    # Automatic publication requires the posting's own location to identify Malaysia.
-    # A generic "Worldwide" remote label alone does not establish Malaysian coverage.
-    from pipelines.jobs.sources import in_malaysia
+    # Keep Malaysian locations and remote ads open to Malaysia or to anyone. Surfaces other than
+    # the job board and role detail page still serve only the posting's own Malaysian location.
+    from pipelines.jobs.sources import malaysia_relevance
 
-    raw = [posting for posting in raw if in_malaysia(posting.location)]
+    raw = [
+        posting
+        for posting in raw
+        if malaysia_relevance(posting.location, posting.work_mode, posting.remote_scope)
+        != "not_malaysia"
+    ]
     rows = jobs_run.classify(raw, today)
     valid = [r for r in rows if r["title"] and str(r["url"]).startswith("https://")]
     rejected = len(rows) - len(valid)

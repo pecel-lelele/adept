@@ -4,6 +4,7 @@ written by src/pipelines/jobs (same rows `make seed` loads)."""
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import date, timedelta
 
@@ -62,20 +63,17 @@ def _day(value: str) -> date | None:
     return date.fromisoformat(value[:10]) if value else None
 
 
-def openings(*, include_stale: bool = False) -> list[Posting]:
-    """Active openings, newest listing first. Expired ones are excluded even before the next
-    pipeline run closes them. Ads outside JOBS_STALE_DAYS are excluded from counts and
+def _read_postings(keep: Callable[[dict[str, str]], bool], include_stale: bool) -> list[Posting]:
+    """Stored rows that pass ``keep``, as postings. Expired ones are excluded even before the
+    next pipeline run closes them. Ads outside JOBS_STALE_DAYS are excluded from counts and
     matching; ``include_stale`` returns them too, flagged ``stale`` so listings can label
     them instead of letting them silently vanish."""
-    from pipelines.jobs.sources import in_malaysia
-
     today = date.today()
     out: list[Posting] = []
     for r in refdata.rows("jobs", "job_postings", active_only=True):
         if r.get("active", "true") != "true":
             continue
-        # Apply the automatic publisher's own-location rule to older stored exports too.
-        if not in_malaysia(r.get("location", "")):
+        if not keep(r):
             continue
         expires = _day(r.get("expires_at", ""))
         if expires and expires < today:
@@ -113,6 +111,38 @@ def openings(*, include_stale: bool = False) -> list[Posting]:
     # Fresh ads first (newest listing first), then stale ones.
     out.sort(key=lambda p: (not p.stale, p.posted_at or p.first_seen, p.id), reverse=True)
     return out
+
+
+def openings(*, include_stale: bool = False) -> list[Posting]:
+    """Active openings, newest listing first, limited to postings whose own location is in
+    Malaysia. See ``_read_postings`` for expiry and staleness."""
+    from pipelines.jobs.sources import in_malaysia
+
+    # Apply the automatic publisher's own-location rule to older stored exports too.
+    return _read_postings(lambda r: in_malaysia(r.get("location", "")), include_stale)
+
+
+def malaysia_relevant_openings(*, include_stale: bool = False) -> list[Posting]:
+    """``openings`` plus remote ads open to Malaysia or to anyone: the job board and the role
+    detail page only. Other surfaces keep the own-location rule."""
+    from pipelines.jobs.sources import malaysia_relevance
+
+    return _read_postings(
+        lambda r: (
+            malaysia_relevance(
+                r.get("location", ""), r.get("work_mode") or "onsite", r.get("remote_scope", "")
+            )
+            != "not_malaysia"
+        ),
+        include_stale,
+    )
+
+
+def relevance(p: Posting) -> str:
+    """The posting's Malaysia-relevance state (see pipelines.jobs.sources.malaysia_relevance)."""
+    from pipelines.jobs.sources import malaysia_relevance
+
+    return malaysia_relevance(p.location, p.work_mode, p.remote_scope)
 
 
 def certifications() -> list[CertRow]:

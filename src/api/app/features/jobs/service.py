@@ -16,6 +16,7 @@ from app.contracts.jobs import (
     CertificationList,
     JobBoardPage,
     JobOpening,
+    OpeningPlaceCounts,
     OpeningsSummary,
     Payer,
     RoleOpeningCount,
@@ -128,6 +129,15 @@ def _meta(rows: Sequence[Posting], scenario: ScenarioId) -> RecommendationMeta:
     return RecommendationMeta(sources=sources, snapshot_date=fetched, scenario=scenario)
 
 
+def _places(rows: Sequence[Posting]) -> OpeningPlaceCounts:
+    states = Counter(repository.relevance(p) for p in rows)
+    return OpeningPlaceCounts(
+        in_malaysia=states["in_malaysia"],
+        remote_explicit_my=states["remote_explicit_my"],
+        remote_assumed_worldwide=states["remote_assumed_worldwide"],
+    )
+
+
 def _opening(p: Posting, ctx: Context | None, labels: Mapping[str, str]) -> JobOpening:
     statuses = [ctx.status(s) if ctx else "not_rated" for s in p.skill_ids]
     now, after = fit.shares(statuses)
@@ -138,6 +148,7 @@ def _opening(p: Posting, ctx: Context | None, labels: Mapping[str, str]) -> JobO
         location=p.location,
         work_mode=p.work_mode,  # type: ignore[arg-type]
         remote_scope=p.remote_scope,
+        malaysia_relevance=repository.relevance(p),  # type: ignore[arg-type]
         employment_type=p.employment_type,
         seniority=p.seniority,  # type: ignore[arg-type]
         url=p.url,
@@ -170,6 +181,7 @@ def _counts(rows: Sequence[Posting]) -> list[RoleOpeningCount]:
             open_count=len(ps),
             employer_count=len({p.employer for p in ps}),
             remote_count=sum(p.work_mode == "remote" for p in ps),
+            places=_places(ps),
         )
         for rid, ps in sorted(by_role.items(), key=lambda kv: (-len(kv[1]), kv[0]))
     ]
@@ -193,19 +205,24 @@ def summary(scenario: ScenarioId = "moderate") -> OpeningsSummary:
 
 
 def role_openings(
-    user: CurrentUser, role_id: str, scenario: ScenarioId = "moderate", limit: int = 8
+    user: CurrentUser,
+    role_id: str,
+    scenario: ScenarioId = "moderate",
+    limit: int = 8,
+    malaysia_focus: bool = False,
 ) -> RoleOpenings:
     labels = pathway_data.role_labels()
     if role_id not in labels:
         raise NotFoundError(f"Unknown role {role_id}")
-    rows = [p for p in repository.openings() if p.role_id == role_id]
+    read = repository.malaysia_relevant_openings if malaysia_focus else repository.openings
+    rows = [p for p in read() if p.role_id == role_id]
     ctx = _context(user, role_id, scenario)
     skill_labels = pathway_data.skill_labels()
     cards = [_opening(p, ctx, skill_labels) for p in rows]
     # Possibly closed ads stay visible, labelled and after every open one; stats ignore them.
     stale_cards = [
         _opening(p, ctx, skill_labels)
-        for p in repository.openings(include_stale=True)
+        for p in read(include_stale=True)
         if p.stale and p.role_id == role_id
     ]
     # Closest first after the plan, then today, then newest; unrated ads last.
@@ -227,6 +244,7 @@ def role_openings(
         open_count=len(rows),
         employer_count=len(employers),
         remote_count=sum(p.work_mode == "remote" for p in rows),
+        places=_places(rows),
         employers=[e for e, _ in sorted(employers.items(), key=lambda kv: (-kv[1], kv[0]))[:8]],
         openings=(cards + stale_cards)[: max(1, min(limit, 50))],
         skill_demand=[
@@ -258,9 +276,10 @@ def board(
     page: int = 1,
     page_size: int = 20,
 ) -> JobBoardPage:
-    listed = [p for p in repository.openings(include_stale=True) if p.role_id]
+    listed = [p for p in repository.malaysia_relevant_openings(include_stale=True) if p.role_id]
     # Counts are open (fresh) ads only; the listing keeps stale ads last, labelled.
-    counts = _counts([p for p in listed if not p.stale])
+    fresh = [p for p in listed if not p.stale]
+    counts = _counts(fresh)
     rows = listed
     if role_id:
         rows = [p for p in rows if p.role_id == role_id]
@@ -283,9 +302,10 @@ def board(
         total=len(rows),
         page=page,
         page_size=page_size,
+        places=_places(fresh),
         roles=counts,
         fetched_on=_meta(rows, scenario).snapshot_date if rows else None,
-        meta=_meta(rows or listed or repository.openings(), scenario),
+        meta=_meta(rows or listed or repository.malaysia_relevant_openings(), scenario),
     )
 
 

@@ -11,11 +11,24 @@
   "malaysia": "Malaysia",
   "hybrid": "Hybrid",
   "posted": "Posted {date}",
+  "via": "via {source}",
+  "relevance": {
+    "in_malaysia": "In Malaysia",
+    "remote_explicit_my": "Remote · open to Malaysia",
+    "remote_assumed_worldwide": "Remote · worldwide"
+  },
+  "places": {
+    "inMalaysia": "{count} in Malaysia",
+    "remoteOpen": "{count} remote open to Malaysia",
+    "remoteWorldwide": "{count} remote worldwide"
+  },
   "openings": {
     "title": "Job openings",
     "meta": "{count, plural, one {# opening} other {# openings}} at {employers, plural, one {# company} other {# companies}}",
     "metaNone": "No openings right now",
+    "metaNoneMalaysia": "No Malaysia-relevant openings right now",
     "none": "No openings for {role} right now. New jobs are added every day.",
+    "noneMalaysia": "No live Malaysia-based or Malaysia-open opening for this role.",
     "asked": "Skills employers ask for",
     "all": "View all {count}"
   },
@@ -54,8 +67,8 @@
   },
   "board": {
     "title": "Jobs",
-    "description": "{count} openings in Malaysia and remote roles you can apply for.",
     "role": "Role",
+    "roleSplit": "{inMalaysia} · {remote} remote",
     "allRoles": "All roles",
     "where": "Work type",
     "anyMode": "Any",

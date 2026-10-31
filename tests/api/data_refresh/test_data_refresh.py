@@ -12,6 +12,7 @@ import json
 import threading
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
+from dataclasses import replace
 from datetime import date
 from pathlib import Path
 from typing import Any
@@ -26,6 +27,7 @@ from app.core.config import get_settings
 from app.core.seed import SEED_DIR
 from app.features.data_refresh import repository, service
 from app.features.pathway import catalogue_sources as src
+from pipelines.jobs import boards as jobs_boards
 from pipelines.jobs import run as jobs_run
 from pipelines.jobs.sources import RawPosting
 from pipelines.trends import malaysia_context as dosm
@@ -469,10 +471,38 @@ def test_only_configured_keyed_boards_run(monkeypatch: pytest.MonkeyPatch) -> No
     monkeypatch.delenv("WEB3_CAREER_TOKEN", raising=False)
     chosen, skipped = service.selected_boards()
     names = [b.board for b in chosen]
-    assert "careerjet-my" in names and "himalayas" not in names
-    assert {b.source for b in chosen} <= {"greenhouse", "lever", "ashby", "careerjet"}
+    assert "careerjet-my" in names and "himalayas" in names
+    assert {b.source for b in chosen} <= {
+        "greenhouse", "lever", "ashby", "careerjet", "himalayas", "jobicy", "remoteok", "remotive"
+    }  # fmt: skip
     assert "jooble-my" not in names and "web3career" not in names
-    assert {"jooble-my", "web3career", "himalayas"} <= set(skipped)
+    assert {"jooble-my", "web3career"} <= set(skipped)
+    # Undocumented career-site endpoints stay out of the automatic refresh.
+    assert any(b.source == "workday" and b.board in skipped for b in jobs_boards.ALL)
+
+
+def test_jobs_refresh_keeps_remote_open_postings_and_drops_other_places(
+    client: TestClient, store: FakeStore, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def posting(n: int, location: str, work_mode: str, scope: str) -> RawPosting:
+        return replace(_posting(n), location=location, work_mode=work_mode, remote_scope=scope)
+
+    _jobs_world(
+        monkeypatch,
+        store,
+        [
+            posting(1, "Kuala Lumpur, Malaysia", "onsite", ""),
+            posting(2, "Remote", "remote", "APAC"),
+            posting(3, "Remote", "remote", "Worldwide"),
+            posting(4, "LATAM - Remote", "remote", "Malaysia"),
+            posting(5, "Singapore", "onsite", ""),
+        ],
+    )
+    body = client.post("/api/v1/data/refresh/jobs", headers=AS_ADMIN).json()
+    assert body["status"] == "ok", body
+    assert {r["title"] for r in store.jobs} == {
+        "Data Analyst 1", "Data Analyst 2", "Data Analyst 3"
+    }  # fmt: skip
 
 
 def test_jobs_refresh_upserts_and_reports_boards(

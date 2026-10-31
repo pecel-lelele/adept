@@ -454,7 +454,8 @@ export interface paths {
         /**
          * Role Openings
          * @description Current openings for one role, the skills they ask for most, and how many are within the
-         *     learner's reach today and after their plan.
+         *     learner's reach today and after their plan. With `malaysia_focus`, remote ads open to
+         *     Malaysia or to anyone are included too, each labelled with its Malaysia relevance.
          */
         get: operations["jobs_role_openings"];
         put?: never;
@@ -3046,6 +3047,8 @@ export interface components {
             page: number;
             /** Page Size */
             page_size: number;
+            /** @description Open ads on the whole board, by state. */
+            places: components["schemas"]["OpeningPlaceCounts"];
             /** Roles */
             roles: components["schemas"]["RoleOpeningCount"][];
             /** Fetched On */
@@ -3073,6 +3076,12 @@ export interface components {
              * @default
              */
             remote_scope: string;
+            /**
+             * Malaysia Relevance
+             * @description in_malaysia: the ad's own location is in Malaysia; remote_explicit_my: remote, and the feed names Malaysia or a region including it; remote_assumed_worldwide: remote with no Malaysian claim (the feed said worldwide or named no region).
+             * @enum {string}
+             */
+            malaysia_relevance: "in_malaysia" | "remote_explicit_my" | "remote_assumed_worldwide";
             /**
              * Employment Type
              * @default
@@ -3347,6 +3356,18 @@ export interface components {
              * @description Roles in the catalogue that serve this objective.
              */
             role_ids: string[];
+        };
+        /**
+         * OpeningPlaceCounts
+         * @description Open ads by Malaysia-relevance state, kept apart so no blended Malaysia number is shown.
+         */
+        OpeningPlaceCounts: {
+            /** In Malaysia */
+            in_malaysia: number;
+            /** Remote Explicit My */
+            remote_explicit_my: number;
+            /** Remote Assumed Worldwide */
+            remote_assumed_worldwide: number;
         };
         /** OpeningsSummary */
         OpeningsSummary: {
@@ -4416,6 +4437,7 @@ export interface components {
             employer_count: number;
             /** Remote Count */
             remote_count: number;
+            places: components["schemas"]["OpeningPlaceCounts"];
         };
         /** RoleOpenings */
         RoleOpenings: {
@@ -4429,6 +4451,7 @@ export interface components {
             employer_count: number;
             /** Remote Count */
             remote_count: number;
+            places: components["schemas"]["OpeningPlaceCounts"];
             /**
              * Employers
              * @description Employers with the most openings, most first.
@@ -6405,6 +6428,7 @@ export interface operations {
             query?: {
                 scenario?: "moderate" | "fast";
                 limit?: number;
+                malaysia_focus?: boolean;
             };
             header?: {
                 "x-demo-user"?: string | null;

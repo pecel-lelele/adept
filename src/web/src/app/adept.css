@@ -187,6 +187,7 @@
 .a-chip[data-tone="down"] { border-color: var(--a-chip-down-border); color: var(--a-chip-down-ink); }
 .a-chip[data-tone="warn"] { border-color: var(--a-chip-warn-border); color: var(--a-chip-warn-ink); }
 .a-chip[data-tone="dark"] { border-color: var(--a-deep); color: var(--a-deep); font-weight: 600; }
+.a-chip[data-tone="quiet"] { border-color: var(--a-line); color: var(--a-muted); }
 .a-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .a-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 11px; color: var(--a-muted); margin-top: 18px; }
 .a-meta a { text-decoration: underline; text-underline-offset: 3px; }
