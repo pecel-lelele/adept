@@ -14,6 +14,7 @@ from typing import Any
 
 from app.contracts.assistant import Locale
 from app.core.security.sanitize import find_injection
+from app.features.assistant import help_topics
 from app.features.assistant.context import Context
 
 CAREER_MOVES = (
@@ -191,8 +192,6 @@ INTENTS: dict[str, tuple[str, ...]] = {
         "do not have a cv",
         "without a cv",
         "no cv",
-        "upload my cv",
-        "upload a cv",
         "add my skills",
         "update my skills",
         "edit my skills",
@@ -204,9 +203,7 @@ INTENTS: dict[str, tuple[str, ...]] = {
         "修改技能",
         "tiada cv",
         "tak ada cv",
-        "muat naik cv",
         "没有简历",
-        "上传简历",
     ),
     "privacy": (
         "privacy",
@@ -471,6 +468,11 @@ FACT_INTENTS = (
     | PERSONAL_PLAN_INTENTS
 )
 PLAN_WORDS = ("plan", "plans", "pelan", "rancangan", "计划")
+# Help blocks (`help_topics`): fixed how-to answers with page links, routed like fact intents.
+HELP_INTENTS = help_topics.TOPIC_IDS
+# Blocks that present no data, so they need no attribution.
+NO_DATA_INTENTS = CHAT_INTENTS | HELP_INTENTS
+FACT_INTENTS = FACT_INTENTS | HELP_INTENTS
 
 # Phrase and co-occurrence rules for words that are ambiguous on their own. Each match is a
 # strong hit for its intent. "Open source course" is course advice, not a citation request;
@@ -610,6 +612,19 @@ _OFF_TOPIC = (
     "crypto",
     "bitcoin",
     "stocks",
+    "capital of",
+    "who is the president",
+    "prime minister",
+    "homework",
+    "translate this",
+    "write code",
+    "write a story",
+    "write an essay",
+    "tell me a story",
+    "sing a song",
+    "bake",
+    "workout",
+    "diet",
     "lottery",
     "horoscope",
     "dating",
@@ -873,18 +888,18 @@ T: dict[str, dict[str, str]] = {
         "sources_fallback": "Heads-up: this is the last good snapshot from {date} (fallback data, because the latest trend data could not load). ",
         "unavailable_busy": "One moment! I'm still answering your last question. Ask again once that answer is in.",
         "unavailable_overloaded": "Lots of people are asking me things right now. Please try again in a moment.",
-        "unavailable_timeout": "Sorry, I couldn't load your results in time. Please try again shortly. More on [[page:/about]].",
+        "unavailable_timeout": "Sorry, I couldn't load your results in time. Please try again shortly. More on [[page:/app/radar]].",
         "unavailable_catalogue": "Sorry, I couldn't check every link in that answer against the catalogue, so I won't show it. Please try again. More on [[page:/about]].",
         "sources_unavailable": "Sorry, I couldn't load the source records just now, and I won't invent a citation. You can see them on [[page:/about]].",
-        "scenario": "Here's how your estimated scores change from {before} to {after} AI pace, with the same profile and data snapshot: {rows}. This only compares; your selected scenario stays the same. Try the AI pace toggle on [[page:/app/matches]].",
-        "scenario_unavailable": "Sorry, I couldn't load a second scenario to compare for you. Both are estimates, not guarantees. Try the AI pace toggle on [[page:/app/radar]].",
+        "scenario": "Here's how your estimated scores change from {before} to {after} AI pace, with the same profile and data snapshot: {rows}. This only compares; your selected scenario stays the same. Try the AI pace toggle on [[page:/app/radar]].",
+        "scenario_unavailable": "Sorry, I couldn't load a second scenario to compare for you. Both are estimates, not guarantees. Try the AI pace toggle on [[page:/app/matches]].",
         "pace_moderate": "Moderate",
         "pace_fast": "Fast",
         "sdg_explain": "The UN Sustainable Development Goals (SDGs) are shared global targets, including quality learning and decent work. Official wording from Adept's catalogue: {targets}. Links to your plan are hoped-for contributions, not measured UN progress. More on [[page:/app/sdg]].",
         "sdg_unavailable": "Sorry, that SDG target isn't in my catalogue, and I won't make one up. See the full list on [[page:/app/sdg]].",
         "rank_unavailable": "I can't find that rank in your current results, and I won't invent a role. Have a look at [[page:/app/matches]].",
         "rank_context": "That's your number {rank} match. Your top role is [[role:{role}]] at {score} estimated points; roles are ranked by these weighted scores (ties follow catalogue order).",
-        "trend_declining": "I can't predict whether AI will replace a particular occupation or your job. Skills cooling off in this snapshot: {skills}. Roles cooling off: {roles}. These are estimates for the snapshot, not proof that your job or your team's skills are declining. More on [[page:/app/radar]].",
+        "trend_declining": "I can't predict whether AI will replace a particular occupation or your job. Skills cooling off in this snapshot: {skills}. Roles cooling off: {roles}. These are estimates for the snapshot, not proof that your job or your team's skills are declining. More on [[page:/about]].",
         "score_math": "Here's the maths for [[role:{role}]] (weight × part = points): {parts}. Total: {total} out of 100.",
         "skill_overlap": "skill overlap",
         "trend_outlook": "trend outlook",
@@ -944,7 +959,7 @@ T: dict[str, dict[str, str]] = {
         "team_suppressed": " Too few members to show team skill gaps.",
         "off_topic": "Sorry, I can't help with that one. I'm best at your skills, matched roles and learning plan. Anything else I can do?",
         "invent": "Sorry, I can't make up jobs, courses, skills or figures. Everything I show comes from Adept's checked catalogue and your data. Anything else I can do?",
-        "unknown": "Sorry, I'm not sure I can help with that one. I can explain your matches, what to learn next or how skills are trending. Anything else I can do?",
+        "unknown": "Sorry, I'm not sure I understood that. I can answer questions about Adept and its pages, such as uploading your CV, choosing a target role, your matches, plan and progress, Impact and evidence, or Data and AI use. Anything else I can do?",
         "thanks": "You're welcome! Anything else I can help with?",
     },
     "ms": {
@@ -958,18 +973,18 @@ T: dict[str, dict[str, str]] = {
         "sources_fallback": "Makluman: ini petikan baik terakhir bertarikh {date} (data sandaran, kerana data trend terkini tidak dapat dimuatkan). ",
         "unavailable_busy": "Sekejap! Saya masih menjawab soalan anda tadi. Tanya lagi selepas jawapan itu sampai.",
         "unavailable_overloaded": "Ramai yang sedang bertanya sekarang. Cuba lagi sebentar.",
-        "unavailable_timeout": "Maaf, saya tidak dapat memuatkan hasil anda tepat pada masanya. Cuba lagi sebentar. Lagi di [[page:/about]].",
+        "unavailable_timeout": "Maaf, saya tidak dapat memuatkan hasil anda tepat pada masanya. Cuba lagi sebentar. Lagi di [[page:/app/radar]].",
         "unavailable_catalogue": "Maaf, saya tidak dapat menyemak setiap pautan dalam jawapan itu dengan katalog, jadi saya tidak akan memaparkannya. Cuba lagi. Lagi di [[page:/about]].",
         "sources_unavailable": "Maaf, saya tidak dapat memuatkan rekod sumber sekarang, dan saya tidak akan mereka-reka rujukan. Anda boleh melihatnya di [[page:/about]].",
-        "scenario": "Begini anggaran skor anda berubah daripada kadar AI {before} ke {after}, dengan profil dan petikan data yang sama: {rows}. Ini perbandingan sahaja; senario pilihan anda kekal. Cuba suis kadar AI di [[page:/app/matches]].",
-        "scenario_unavailable": "Maaf, saya tidak dapat memuatkan senario kedua untuk dibandingkan. Kedua-duanya anggaran, bukan jaminan. Cuba suis kadar AI di [[page:/app/radar]].",
+        "scenario": "Begini anggaran skor anda berubah daripada kadar AI {before} ke {after}, dengan profil dan petikan data yang sama: {rows}. Ini perbandingan sahaja; senario pilihan anda kekal. Cuba suis kadar AI di [[page:/app/radar]].",
+        "scenario_unavailable": "Maaf, saya tidak dapat memuatkan senario kedua untuk dibandingkan. Kedua-duanya anggaran, bukan jaminan. Cuba suis kadar AI di [[page:/app/matches]].",
         "pace_moderate": "Sederhana",
         "pace_fast": "Pantas",
         "sdg_explain": "Matlamat Pembangunan Mampan (SDG) PBB ialah sasaran global bersama, termasuk pendidikan berkualiti dan pekerjaan yang wajar. Takrif rasmi daripada katalog Adept: {targets}. Kaitan dengan pelan anda ialah sumbangan yang diharapkan, bukan kemajuan PBB yang diukur. Lagi di [[page:/app/sdg]].",
         "sdg_unavailable": "Maaf, sasaran SDG itu tiada dalam katalog saya, dan saya tidak akan mereka-rekanya. Lihat senarai penuh di [[page:/app/sdg]].",
         "rank_unavailable": "Saya tidak menemui kedudukan itu dalam hasil semasa anda, dan saya tidak akan mereka-reka peranan. Lihat [[page:/app/matches]].",
         "rank_context": "Itu padanan nombor {rank} anda. Peranan teratas anda ialah [[role:{role}]] dengan anggaran {score} mata; peranan disusun mengikut skor berwajaran ini (skor seri ikut susunan katalog).",
-        "trend_declining": "Saya tidak boleh meramal sama ada AI akan menggantikan sesuatu pekerjaan atau kerja anda. Kemahiran yang semakin menurun dalam petikan ini: {skills}. Peranan yang menurun: {roles}. Ini anggaran petikan, bukan bukti bahawa kerja anda atau kemahiran pasukan anda menurun. Lagi di [[page:/app/radar]].",
+        "trend_declining": "Saya tidak boleh meramal sama ada AI akan menggantikan sesuatu pekerjaan atau kerja anda. Kemahiran yang semakin menurun dalam petikan ini: {skills}. Peranan yang menurun: {roles}. Ini anggaran petikan, bukan bukti bahawa kerja anda atau kemahiran pasukan anda menurun. Lagi di [[page:/about]].",
         "score_math": "Ini kiraan untuk [[role:{role}]] (wajaran × komponen = mata): {parts}. Jumlah: {total} daripada 100.",
         "skill_overlap": "pertindihan kemahiran",
         "trend_outlook": "prospek trend",
@@ -1029,7 +1044,7 @@ T: dict[str, dict[str, str]] = {
         "team_suppressed": " Terlalu sedikit ahli untuk memaparkan jurang kemahiran pasukan.",
         "off_topic": "Maaf, saya tak dapat membantu dengan yang itu. Saya paling arif tentang kemahiran, peranan padanan dan pelan pembelajaran anda. Ada apa-apa lagi yang boleh saya bantu?",
         "invent": "Maaf, saya tidak boleh mereka-reka pekerjaan, kursus, kemahiran atau angka. Semua yang saya tunjukkan datang daripada katalog Adept yang disemak dan data anda. Ada apa-apa lagi yang boleh saya bantu?",
-        "unknown": "Maaf, saya kurang pasti boleh membantu dengan yang itu. Saya boleh terangkan padanan anda, apa perlu dipelajari seterusnya atau trend kemahiran. Ada apa-apa lagi yang boleh saya bantu?",
+        "unknown": "Maaf, saya kurang pasti faham soalan itu. Saya boleh menjawab soalan tentang Adept dan halamannya, seperti memuat naik CV, memilih peranan sasaran, padanan, pelan dan kemajuan anda, Kesan dan bukti, atau Data dan penggunaan AI. Ada apa-apa lagi yang boleh saya bantu?",
         "thanks": "Sama-sama! Ada apa-apa lagi yang boleh saya bantu?",
     },
     "zh": {
@@ -1043,18 +1058,18 @@ T: dict[str, dict[str, str]] = {
         "sources_fallback": "提示：这是 {date} 的最近一次可用快照（备用数据：最新趋势数据未能加载）。",
         "unavailable_busy": "稍等！我还在回答你上一个问题，等那个回答出来后再问吧。",
         "unavailable_overloaded": "现在提问的人很多，请稍后再试。",
-        "unavailable_timeout": "抱歉，没能及时加载你的结果，请稍后重试。详见 [[page:/about]]。",
+        "unavailable_timeout": "抱歉，没能及时加载你的结果，请稍后重试。详见 [[page:/app/radar]]。",
         "unavailable_catalogue": "抱歉，那个回答中的部分链接无法与目录核对，所以不会显示。请重试。详见 [[page:/about]]。",
         "sources_unavailable": "抱歉，暂时无法加载来源记录，我也不会编造引用。你可以在 [[page:/about]] 查看。",
-        "scenario": "在相同资料和数据快照下，从{before}到{after} AI 速度，你的估计分数变化如下：{rows}。这只是比较，不会更改你选择的情景。可在 [[page:/app/matches]] 试试 AI 速度切换。",
-        "scenario_unavailable": "抱歉，无法加载可供比较的第二个情景。两种情景都是估计，并非保证。可在 [[page:/app/radar]] 试试 AI 速度切换。",
+        "scenario": "在相同资料和数据快照下，从{before}到{after} AI 速度，你的估计分数变化如下：{rows}。这只是比较，不会更改你选择的情景。可在 [[page:/app/radar]] 试试 AI 速度切换。",
+        "scenario_unavailable": "抱歉，无法加载可供比较的第二个情景。两种情景都是估计，并非保证。可在 [[page:/app/matches]] 试试 AI 速度切换。",
         "pace_moderate": "适度",
         "pace_fast": "快速",
         "sdg_explain": "联合国可持续发展目标（SDG）是全球共同的目标，其中包括优质教育和体面工作。Adept 目录中的官方定义：{targets}。与你计划的关联是期望的贡献，并非联合国实测进展。详见 [[page:/app/sdg]]。",
         "sdg_unavailable": "抱歉，我的目录中没有该 SDG 目标，我也不会编造。完整列表见 [[page:/app/sdg]]。",
         "rank_unavailable": "在你当前的结果中找不到这个名次，我也不会编造职位。请看看 [[page:/app/matches]]。",
         "rank_context": "这是你的第 {rank} 名匹配。你的首位职位是 [[role:{role}]]，估计 {score} 分；职位按这些加权分数排序（同分按目录顺序）。",
-        "trend_declining": "我无法预测 AI 是否会取代某种职业或你的工作。此快照中需求降温的技能：{skills}。需求降温的职位：{roles}。这些是快照的估计，不能证明你的工作或团队技能正在衰退。详见 [[page:/app/radar]]。",
+        "trend_declining": "我无法预测 AI 是否会取代某种职业或你的工作。此快照中需求降温的技能：{skills}。需求降温的职位：{roles}。这些是快照的估计，不能证明你的工作或团队技能正在衰退。详见 [[page:/about]]。",
         "score_math": "[[role:{role}]] 的计算方式（权重 × 分项 = 得分）：{parts}。总计：{total} 分，满分 100。",
         "skill_overlap": "技能重合",
         "trend_outlook": "趋势前景",
@@ -1114,7 +1129,7 @@ T: dict[str, dict[str, str]] = {
         "team_suppressed": " 成员人数过少，无法显示团队技能差距。",
         "off_topic": "抱歉，这个问题我帮不上忙。我最擅长的是你的技能、匹配职位和学习计划。还有什么我可以帮你的吗？",
         "invent": "抱歉，我不能编造职位、课程、技能或数字。我展示的一切都来自 Adept 核实过的目录和你的数据。还有什么我可以帮你的吗？",
-        "unknown": "抱歉，这个问题我不太确定能否帮上忙。我可以解释你的匹配结果、下一步学什么或技能趋势。还有什么我可以帮你的吗？",
+        "unknown": "抱歉，我不太确定我是否理解了这个问题。我可以回答关于 Adept 及其页面的问题，例如上传简历、选择目标职位、匹配、计划和进度、影响与证据，或数据与 AI 使用。还有什么我可以帮你的吗？",
         "thanks": "不客气！还有什么我可以帮你的吗？",
     },
 }
@@ -1142,6 +1157,9 @@ CHIPS: dict[str, dict[str, str]] = {
         "programmes": "How are our programmes going?",
         "how": "How does Adept work?",
         "cv_stored": "Is my CV stored?",
+        "upload_cv": "Where do I upload my CV?",
+        "pick_role": "How do I choose a target role?",
+        "where_impact": "Where do I see my SDG impact?",
     },
     "ms": {
         "next": "Apa langkah seterusnya?",
@@ -1163,6 +1181,9 @@ CHIPS: dict[str, dict[str, str]] = {
         "programmes": "Bagaimana program kami?",
         "how": "Bagaimana Adept berfungsi?",
         "cv_stored": "Adakah CV saya disimpan?",
+        "upload_cv": "Di mana saya boleh muat naik CV?",
+        "pick_role": "Bagaimana memilih peranan sasaran?",
+        "where_impact": "Di mana saya boleh lihat kesan SDG?",
     },
     "zh": {
         "next": "我下一步该做什么？",
@@ -1184,6 +1205,9 @@ CHIPS: dict[str, dict[str, str]] = {
         "programmes": "我们的项目进展如何？",
         "how": "Adept 如何运作？",
         "cv_stored": "我的简历会被保存吗？",
+        "upload_cv": "在哪里上传简历？",
+        "pick_role": "如何选择目标职位？",
+        "where_impact": "在哪里查看 SDG 影响？",
     },
 }
 # The answer block each chip asks for (for the audience it is offered to).
@@ -1205,6 +1229,9 @@ CHIP_INTENTS: dict[str, str] = {
     "team_gap": "team",
     "how": "how",
     "cv_stored": "privacy",
+    "upload_cv": "help_cv_upload",
+    "pick_role": "help_target_role",
+    "where_impact": "help_impact",
 }
 # Opening chips per audience: the questions people most often ask first.
 _CHIP_DEFAULTS: dict[str, tuple[str, ...]] = {
@@ -1234,6 +1261,19 @@ _CHIP_FOLLOW_UPS: dict[str, tuple[str, ...]] = {
     "privacy": ("next", "sources", "how"),
     "profile": ("cv_stored", "how", "next"),
 }
+# After a help block, point to the next natural step in the journey.
+_HELP_FOLLOW_UPS: dict[str, tuple[str, ...]] = {
+    "help_cv_upload": ("pick_role", "cv_stored", "next"),
+    "help_target_role": ("start_course", "plan_cost", "next"),
+    "help_matches": ("pick_role", "raise", "faster"),
+    "help_plan": ("plan_cost", "progress", "start_course"),
+    "help_progress": ("progress", "next", "where_impact"),
+    "help_jobs": ("pick_role", "raise", "sources"),
+    "help_courses": ("hrd", "plan_cost", "start_course"),
+    "help_impact": ("sdg_what", "sources", "how"),
+    "help_about": ("sources", "cv_stored", "how"),
+    "help_index": ("upload_cv", "pick_role", "where_impact"),
+}
 _MANAGER_FOLLOW_UPS: dict[str, tuple[str, ...]] = {
     "trend": ("declining", "sources", "team_gap"),
     "trend_declining": ("rising", "sources", "team_gap"),
@@ -1249,9 +1289,10 @@ _PAGE_CHIPS: dict[str, dict[str, tuple[str, ...]]] = {
         "/app/pathway": ("start_course", "plan_cost", "progress"),
         "/app/progress": ("progress", "start_course", "plan_cost"),
         "/app/courses": ("start_course", "hrd", "plan_cost"),
-        "/app/radar": ("rising", "declining", "faster"),
         "/app/sdg": ("sdg_what", "next", "sources"),
-        "/app/profile": ("why_top", "rising", "cv_stored"),
+        "/app/radar": ("rising", "declining", "faster"),
+        "/app/profile": ("upload_cv", "why_top", "cv_stored"),
+        "/app/onboarding": ("upload_cv", "cv_stored", "pick_role"),
     },
     "manager": {
         "/org/radar": ("rising", "declining", "team_gap"),
@@ -1269,6 +1310,11 @@ _CHIP_BACKFILL: dict[str, tuple[str, ...]] = {
     "employee": ("next", "employer_see", "programme", "how", "rising"),
     "manager": ("team_gap", "programmes", "sources", "declining", "rising"),
 }
+
+
+# Register the help blocks: keywords and phrase patterns for routing, texts for rendering.
+INTENTS.update(help_topics.keywords())
+PATTERNS.update(help_topics.patterns())
 
 
 def intent(question: str, audience: str = "learner") -> str:
@@ -1330,6 +1376,10 @@ def intents(question: str, audience: str = "learner") -> list[str]:
     if not specific:
         if any(_contains(q, word) for word in _OFF_TOPIC):
             return ["off_topic"]
+        # A misspelt or loosely worded how-to question still reaches its help block.
+        guess = help_topics.fuzzy(q)
+        if guess is not None:
+            return [guess]
         # Ties keep table order, so "how"/"next" outrank a greeting in the same question.
         return [max(scores, key=lambda name: scores[name]) if any(scores.values()) else "unknown"]
     ranked = sorted(specific, key=lambda name: -specific[name])  # stable: ties keep table order
@@ -1557,6 +1607,8 @@ def reply_for_intent(kind: str, ctx: Context, locale: Locale) -> str:
     """Render one server-authored answer from checked application facts."""
     t = T[locale]
     f = ctx.facts
+    if kind in HELP_INTENTS:
+        return help_topics.text(kind, ctx.audience, locale)
     if kind in SAFETY_INTENTS or kind in {
         "action_not_supported",
         "no_data",
@@ -1853,6 +1905,8 @@ def suggestion_keys(
     keys: tuple[str, ...] = _CHIP_DEFAULTS[audience]
     if kind is None or kind in SAFETY_INTENTS or kind in CHAT_INTENTS:
         keys = _page_chips(page, audience) or keys
+    elif kind in HELP_INTENTS and audience == "learner":
+        keys = _HELP_FOLLOW_UPS.get(kind, keys)
     elif audience == "learner":
         keys = _CHIP_FOLLOW_UPS.get(kind, keys)
     elif audience == "manager":

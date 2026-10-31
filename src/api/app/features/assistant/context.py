@@ -49,6 +49,9 @@ PAGES: dict[str, str] = {
     "/auth/signup": "Create a free account",
     "/about": "How Adept works and its sources",
     "/privacy": "Privacy notice",
+    "/auth/login": "Sign in",
+    "/org/setup": "Organisation settings",
+    "/org/funding": "Funding requests",
 }
 
 

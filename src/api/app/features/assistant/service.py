@@ -24,7 +24,8 @@ from app.features.assistant import guide
 log = get_logger("app.assistant")
 _TAG = re.compile(r"\[\[(role|skill|course|sdg|page):([^\]\s]{1,100})\]\]")
 _INTENTS = tuple(guide.INTENTS)
-# Broad questions where the model may pick any checked block ("unknown": nothing matched).
+# Broad questions where the model may pick any checked block ("unknown": nothing matched,
+# including any help block, which are fixed how-to answers with page links).
 _OPEN_INTENTS = frozenset({"next", "unknown"})
 # Selection instructions. The model only returns block IDs; it never writes the answer.
 _SELECTION_RULES = (
@@ -188,8 +189,8 @@ def _provider() -> LLMProvider | None:
 
 
 def _meta(keys: list[str], ctx: ctx_mod.Context) -> RecommendationMeta | None:
-    if all(key in guide.CHAT_INTENTS for key in keys):
-        return None  # small talk and "not sure" replies present no data
+    if all(key in guide.NO_DATA_INTENTS for key in keys):
+        return None  # small talk, "not sure" and how-to replies present no data
     if any(key in guide.PERSONAL_PLAN_INTENTS for key in keys) and ctx.plan_meta is not None:
         return ctx.plan_meta
     return ctx.meta
