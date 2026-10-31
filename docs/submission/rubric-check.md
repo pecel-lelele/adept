@@ -38,8 +38,7 @@ employment/IP declarations without their confirmation.
 
 ## Evidence still outstanding
 
-- Measure the planning KPI using matched cases, a positive manual baseline and valid-plan
-  share; the 20% reduction remains a target.
+- Compare the **actual Phase 1 targets** (100% catalogue-ID validity; median intake-to-valid-plan below three minutes for five synthetic cases) with independent Phase 2 measurements. A 20% manual-time reduction is a potential **future pilot gate**, not a stated Phase 1 target; no human trial establishes it.
 - Verify deployed revision and production snapshot before claiming current trend data.
 - Evaluate fairness against the final scoring revision. Existing checks do not establish
   universal fairness or coverage of every Malaysian occupation.
@@ -49,9 +48,4 @@ employment/IP declarations without their confirmation.
 
 This document does not claim new test results, deployment checks or pipeline refreshes.
 
-Final-round measurement status, **30 October 2026**: **0 human testers and 0 human
-trials**; no measured manual baseline or achieved planning-time reduction. The
-20% figure is a proposed target only. See the [calculator output](../evidence/kpi-human-summary.json)
-and [separate automated synthetic API measurements](../evidence/kpi-automated-journeys.md)
-for dated sample sizes, completion/failure counts and methodological limits.
-Automated response timings do not establish human planning speed or impact.
+Final-round measurement status, **31 October 2026**: the [saved human-trial calculator](../evidence/kpi-human-summary.json) has **0 attempted trials** and null human medians. The Phase 1 targets are **100% catalogue-ID validity** and **median time to a valid plan below three minutes** on five synthetic cases; neither has been independently demonstrated by timed human trials. The separate [automated synthetic API measurements](../evidence/kpi-automated-journeys.md) exclude human review, browser interaction, network and a manual baseline. They cannot establish a planning-time or societal-impact improvement. The preliminary PDF, page 10, is the source for the two targets.

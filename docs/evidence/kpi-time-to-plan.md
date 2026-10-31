@@ -1,7 +1,10 @@
 # Offline planning KPI protocol
 
 Status: protocol and calculator only; no human trials or achieved reduction yet.
-The calculator does not import Adept, connect to a database or call a model.
+The actual Phase 1 PDF (page 10) targets 100% resolved catalogue course IDs and
+median intake-to-valid-plan below three minutes across five synthetic cases.
+The paired manual/Adept reduction below is an additional proposed pilot metric, **not**
+the Phase 1 target. The calculator does not import Adept, connect to a database or call a model.
 
 1. Use the five synthetic cases in `docs/demo-cvs/` and three anonymous testers T1-T3.
    Each tester completes both workflows for every case: 15 matched pairs, 30 trials.
