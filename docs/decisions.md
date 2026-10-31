@@ -1173,6 +1173,16 @@
 - **Replaces**: M2-032 skills-list line-boundary handling only
 - **PR / branch**: fix/profile-pr94-review / PR #94
 
+### M2-035: Make intake steps and uploads usable with keyboard and assistive technology
+- **Date**: 2026-10-31
+- **Feature**: F1 (Skills Profile Intake) / Core navigation
+- **Type**: UI
+- **Change**: Validate file size and supported formats at the shared CV handler for both drag/drop and the chooser; move focus to each newly selected intake step heading, name the catalogue result list, and announce completed sidebar stages to screen readers using existing translated copy.
+- **Why**: File-picker selection bypassed the drop-only early warning, and step/status changes were not announced to keyboard and assistive-technology users. Server-side byte/type validation remains authoritative.
+- **Affects**: Onboarding upload and step navigation; shared desktop sidebar labels; no API schema, catalogue or database change
+- **Replaces**: none
+- **PR / branch**: fix/profile-onboarding-access
+
 ---
 
 ## M3: Pathway, SDG & Guardrails (F5, F6, F8)

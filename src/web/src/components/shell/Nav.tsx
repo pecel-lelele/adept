@@ -66,6 +66,7 @@ function isCurrent(ws: Workspace, item: NavItem, pathname: string): boolean {
 /** Desktop sidebar: every page always visible, in labelled groups (journey first). */
 export function SideNav({ ws, doneSteps }: { ws: Workspace; doneSteps: number[] }) {
   const t = useTranslations("ui.nav");
+  const th = useTranslations("ui.page");
   const pathname = usePathname();
   const href = useHref();
 
@@ -86,6 +87,7 @@ export function SideNav({ ws, doneSteps }: { ws: Workspace; doneSteps: number[] 
             {done ? <Check size={11} strokeWidth={3} aria-hidden /> : item.step}
           </span>
         ) : null}
+        {done ? <span className="a-sr">{th("state.done")}</span> : null}
       </Link>
     );
   };
