@@ -51,9 +51,12 @@ PER_DAY = 50
 MAX_DAYS_PER_RUN = 14
 WINDOW_DAYS = 7
 ARXIV_SPACING_S = 3.5  # arXiv API cadence
-# arXiv lists a paper only after its announcement (weekend submissions wait until Monday), so a
-# day is fetched once it is complete in the API; stored days are never fetched again.
+# arXiv lists a paper only after its announcement (weekend submissions wait until Monday
+# evening ET), so a day is first fetched ARXIV_LAG_DAYS after it ends. A day fetched before
+# SETTLE_DAYS is fetched once more after that and its papers are replaced, so late
+# announcements are never lost; settled days are never fetched again.
 ARXIV_LAG_DAYS = 3
+SETTLE_DAYS = 5
 
 
 def periods(today: date) -> tuple[tuple[date, date], tuple[date, date]]:
@@ -135,12 +138,17 @@ def paper_key(identifier: str) -> str:
     return re.sub(r"v\d+$", "", identifier.rstrip("/").rsplit("/abs/", 1)[-1])
 
 
-def missing_days(stored: set[date], today: date) -> list[date]:
-    """Oldest unstored days that arXiv has fully announced."""
+def missing_days(stored: dict[date, date], today: date) -> list[date]:
+    """Oldest days to fetch: unstored announced days, and early-fetched days now settled.
+
+    `stored` maps each stored day to the date it was fetched.
+    """
     days: list[date] = []
     day = START_DAY
     while day <= today - timedelta(days=ARXIV_LAG_DAYS) and len(days) < MAX_DAYS_PER_RUN:
-        if day not in stored:
+        fetched_on = stored.get(day)
+        settled = day + timedelta(days=SETTLE_DAYS)
+        if fetched_on is None or (fetched_on < settled <= today):
             days.append(day)
         day += timedelta(days=1)
     return days
@@ -262,8 +270,10 @@ def gemini_match(
 def run(started: float, budget: float, stop: threading.Event) -> service.Outcome:
     deadline = started + budget - 20
     today = datetime.now(UTC).date()
-    stored = trend_store.fetched_days()
-    missing = missing_days(stored, today)
+    fetched_on = trend_store.fetched_days()
+    stored = set(fetched_on)
+    missing = missing_days(fetched_on, today)
+    revisited: set[date] = set()
     fetched_rows = 0
     if missing:
         if _runpod() is None and not trend_fallback.enabled():
@@ -286,6 +296,7 @@ def run(started: float, budget: float, stop: threading.Event) -> service.Outcome
             if calibrated:
                 trend_store.save_calibration(conn, *calibrated, today)
             trend_store.save_days(conn, days, mentions, method, model, today)
+        revisited = set(days) & stored
         stored |= set(days)
     end = snapshot_end(stored)
     if end is None:
@@ -298,7 +309,8 @@ def run(started: float, budget: float, stop: threading.Event) -> service.Outcome
     current = (end - timedelta(days=WINDOW_DAYS - 1), end)
     previous = (current[0] - timedelta(days=WINDOW_DAYS), current[0] - timedelta(days=1))
     latest = refresh.latest_published(repository.bounded_db_url())
-    if latest and window_from_note(latest[1]) == current:
+    unchanged = not any(previous[0] <= d <= current[1] for d in revisited)
+    if latest and window_from_note(latest[1]) == current and unchanged:
         return service.Outcome(
             fetched_rows, 0, 0, f"Trends are current through {end}; no new complete day yet."
         )
@@ -323,6 +335,12 @@ def rolling_inputs(
         raise service.RefreshFailed(
             "validation_failed", "A stored window has no papers; the last snapshot is kept."
         )
+    # The arXiv retrieval date is when these stored days were fetched, not the rebuild date.
+    fetched = trend_store.last_fetched(previous[0], current[1])
+    if fetched is None:
+        raise service.RefreshFailed(
+            "validation_failed", "Stored windows have no fetch date; the last snapshot is kept."
+        )
     models = sorted(set(models_before) | set(models_after)) or [MODEL_ID]
     fallback = any(m != MODEL_ID for m in models)
     bls = pipeline.bls_retrieval()
@@ -330,7 +348,7 @@ def rolling_inputs(
         dict(
             name="arXiv cs.AI submission API",
             url=ARXIV_API,
-            retrieved_at=today.isoformat(),
+            retrieved_at=fetched.isoformat(),
             retrieved_at_basis="pipeline_fetch",
         ),
         dict(
@@ -343,7 +361,8 @@ def rolling_inputs(
     ]
     note = (
         f"Observed arXiv submissions {current[0]}..{current[1]} against "
-        f"{previous[0]}..{previous[1]} (rolling 7-day windows); refreshed {today}. "
+        f"{previous[0]}..{previous[1]} (rolling 7-day windows); "
+        f"last fetched {fetched}, rebuilt {today}. "
         f"Papers matched once and accumulated since {START_DAY}, up to {PER_DAY} newest "
         f"per day. Models: {', '.join(models)}"
         + (" (Gemini fallback calibrated to stored MiniLM evidence). " if fallback else ". ")
@@ -355,7 +374,7 @@ def rolling_inputs(
         model_revision="mixed" if fallback else MODEL_REVISION,
         previous=previous,
         current=current,
-        fetched=today,
+        fetched=fetched,
         counts_before=before,
         counts_after=after,
         total_before=total_before,
