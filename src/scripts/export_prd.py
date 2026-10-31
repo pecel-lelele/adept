@@ -1,4 +1,4 @@
-"""Export the source-grounded product PRD and pitch brief as a portable PDF.
+"""Export the source-grounded Adept Product Requirements Document as a portable PDF.
 
 Uses the repository's installed PyMuPDF dependency, without network or model calls.
 """
@@ -13,4 +13,6 @@ OUTPUT = ROOT / "submission/SDC2026_Pecel-Lele_ProductPRD.pdf"
 
 
 if __name__ == "__main__":
-    render_pdf(SOURCE, OUTPUT, "Adept Product and Pitch PRD")
+    render_pdf(
+        SOURCE, OUTPUT, "Adept Product Requirements Document", "Product Requirements Document"
+    )

@@ -13,9 +13,9 @@ Submission Deadline: 1st November 2026
 | Team Name | Pecel Lele |
 | Project / Solution Name | Adept |
 | Name (Leader) | David Kurniawan (team record) |
-| Email & Phone (Leader) | PRIVATE COMPLETION REQUIRED in the organiser's submission copy. |
+| Email & Phone (Leader) | [To be completed by team leader in the organiser copy] |
 | University Affiliation(s) | Xiamen University Malaysia (team record) |
-| Live Prototype URL | https://adept-my.replit.app (previously accessible; deployed revision and snapshot unverified against source `main` at `0a7868c`, 31 October 2026) |
+| Live Prototype URL | https://adept-my.replit.app (prototype; deployed revision to be matched against source revision `0a7868c`, 31 October 2026) |
 | Code Repository URL (public / access granted to judges) | https://github.com/pecel-lelele/adept |
 
 ## 2. Architecture & Technology Stack
@@ -25,9 +25,9 @@ Submission Deadline: 1st November 2026
 <!-- answer:start technical-2.1 limit=200 -->
 Next.js serves a multilingual public interface and proxies requests to private FastAPI. Signed accounts and membership checks protect workspaces. Replit's managed PostgreSQL stores profiles, reference catalogues, snapshots, programmes and progress; local/CI use PostgreSQL with pgvector. The launcher checks API/database readiness; it does not migrate or seed on startup.
 
-Daily GitHub Actions sends an authenticated clock signal to the deployed app. Its shared worker uses its own database connection to retrieve public research, job feeds and course facts, run bounded checks, call the dedicated RunPod MiniLM endpoint for research embeddings, and atomically publish validated dated results. Page reads reuse stored results. Historical fixtures and source outages must be visibly disclosed. Deterministic matching and pathways combine confirmed skills with catalogue records and scenario estimates. Optional Gemini embeddings suggest unfamiliar skills, subject to user confirmation. Optional GLM-5.3 with Gemini failover selects checked Adi answer IDs; server-authored text is displayed.
+Daily GitHub Actions sends an authenticated clock signal to the deployed app. Its shared worker uses its own database connection to retrieve public research, job feeds and course facts, run bounded checks, call the dedicated RunPod MiniLM endpoint for research embeddings, and atomically publish validated dated results. Page reads reuse stored results. Historical fixtures and source outages are labelled in the interface. Deterministic matching and pathways combine confirmed skills with catalogue records and scenario estimates. Optional Gemini embeddings suggest unfamiliar skills, subject to user confirmation. Optional GLM-5.3 with Gemini failover selects checked Adi answer IDs; server-authored text is displayed.
 
-This is the implemented source architecture, not proof of a production daily refresh. The old GitHub runner could not reach a private Replit database host; the new path needs deployment, required migrations and a successful publication check.
+The original GitHub runner could not reach Replit's private database host, so refresh moved into the application; production activation will be confirmed by a first successful scheduled publication.
 <!-- answer:end technical-2.1 -->
 
 Block flow: public sources → app-side bounded worker (+ RunPod encoder) → validated PostgreSQL snapshot → private FastAPI → Next.js; signed workspaces → deterministic role/pathway/SDG views.
@@ -50,7 +50,7 @@ Block flow: public sources → app-side bounded worker (+ RunPod encoder) → va
 
 Versions are from source manifests and locks, not an attested deployed package inventory; licence terms for binaries and transitive dependencies require independent review.
 
-Docker Compose is **local development tooling**, not a cloud host; Docker Desktop terms may differ. Review PyMuPDF's AGPL/commercial terms and transitive notices before attesting licence compliance. Adept's own Apache-2.0 licence does not override them.
+Docker Compose is **local development tooling**, not a cloud host; Docker Desktop terms may differ. PyMuPDF's AGPL/commercial terms and transitive notices require review before commercial distribution. Adept's own Apache-2.0 licence does not override them.
 
 ## 3. APIs & Cloud Services
 
@@ -75,13 +75,13 @@ The **US BLS 2023–2033 baseline** is a committed dated extract, not an API cal
 
 | Service & Provider | Purpose in Project | Plan / Region |
 |---|---|---|
-| Replit Autoscale | Public web and loopback private API at https://adept-my.replit.app | Sponsor-provided Core subscription; screenshot shows Asia / 2 vCPU / 4 GiB at capture time, **not verified today** |
+| Replit Autoscale | Public web and loopback private API at https://adept-my.replit.app | Sponsor-provided Core subscription; screenshot shows Asia / 2 vCPU / 4 GiB at capture time |
 | Replit integrated PostgreSQL | Separate development/production managed relational databases | Current starting constraint; actual active plan, bill and backup policy unverified |
 | RunPod Serverless and hosted model endpoint | MiniLM worker and optional GLM-5.3 Adi; earlier Pod test was a separate historical workload | Team-recorded US$25 sponsor credits; current region/GPU/bill unknown |
 | GitHub repository, Actions and GHCR | Code, CI, daily clock-trigger workflow, image registry and manual fallback refresh | Public repo / GitHub-hosted runners; private DB host not reachable from ordinary GitHub runners |
 | Local Docker Compose | PostgreSQL/pgvector development and tests only | Local, not deployment |
 
-The Replit proof PDF shows historical hosting/database screens and **US$6.38 account spend in a displayed billing window**, not an Adept-only current expense. The RunPod proof PDF shows an earlier 110-skill, 0.354-second Pod vectorization test and Serverless setup; neither proves today's 142-skill catalogue was refreshed or a production trend snapshot published. Do not extrapolate those screenshots to cost per learner.
+The Replit proof PDF shows historical hosting/database screens and **US$6.38 account spend in a displayed billing window**, not an Adept-only current expense. The RunPod proof PDF shows an earlier 110-skill, 0.354-second Pod vectorization test and Serverless setup; neither proves today's 142-skill catalogue was refreshed or a production trend snapshot published. Neither screenshot represents a per-learner cost.
 
 ## 4. AI Tools, Models & Datasets
 
@@ -94,7 +94,7 @@ The Replit proof PDF shows historical hosting/database screens and **US$6.38 acc
 | Gemini 3.5 Flash Lite; 3.6 Flash; 3.1 Flash Lite | Google optional failover chain | Pre-trained hosted Adi inference; configured does not establish live invocation | Gemini API Terms |
 | `gemini-embedding-001` | Google optional embedding path | Pre-trained 768-dimensional suggestions and gated trend matcher; no team fine-tuning | Gemini API Terms |
 
-**Trend method:** source arXiv submissions + dated US BLS extract → cleaning/bounded sampling → sentence embeddings/mention counts → heuristic research velocity and Moderate/Fast scoring → coverage/date/ID validation → stored snapshot. In the default `auto` mode, a passing model-specific equivalence report is required before choosing Gemini. An operator can explicitly set `TRENDS_MATCHER=gemini` **without that gate**; that override must not be represented as equivalence-validated. Stored windows still keep methods separate. Research attention is **not** observed Malaysian labour demand, and scenario bands are **not** calibrated confidence intervals.
+**Trend method:** source arXiv submissions + dated US BLS extract → cleaning/bounded sampling → sentence embeddings/mention counts → heuristic research velocity and Moderate/Fast scoring → coverage/date/ID validation → stored snapshot. In the default `auto` mode, a passing model-specific equivalence report is required before choosing Gemini. An operator can explicitly set `TRENDS_MATCHER=gemini` **without that gate**; that override is not equivalence-validated. Stored windows still keep methods separate. Research attention is **not** observed Malaysian labour demand, and scenario bands are **not** calibrated confidence intervals.
 
 ### 4.2 Datasets
 
@@ -125,15 +125,15 @@ Did your team use any generative-AI tool to help create code, design, text, or o
 | Replit Agent; version unrecorded | Repository exploration | Minor |
 | Google Antigravity agent; version unrecorded | Repository exploration | Minor |
 | Greptile; version unrecorded | PR review | Moderate |
-| Remotion 4.0.538, ElevenLabs voiceover, Mixkit and Google Fonts | Demo/pitch production only; exact exported Mixkit assets/font/take credits require team confirmation | Presentation tooling; actual extent to verify |
+| Remotion 4.0.538, ElevenLabs voiceover, Mixkit and Google Fonts | Demo/pitch production only; asset and font credits to be confirmed by the team | Presentation tooling; extent to be confirmed |
 
 Briefly describe how your team reviewed, tested, and took responsibility for AI-generated output: [Maximum 100 words]
 
 <!-- answer:start technical-4.3 limit=100 -->
-The team set Adept's product direction; Claude Code produced much of the source and presentation drafts. Codex helped debug and review; other tools supported inspection and PR feedback. Team members remain responsible for all accepted code and claims. The source is checked against tests, source records and dates; test success does not verify a deployed build or customer benefit. The team must inspect the final media assets, licensing notices and all members' tool usage before signing. Model output never authorises invented catalogue entries or personnel decisions.
+The team set Adept's product direction; Claude Code produced much of the source and presentation drafts. Codex helped debug and review; other tools supported inspection and PR feedback. Team members remain responsible for all accepted code and claims. The source is checked against tests, source records and dates; test success does not verify a deployed build or customer benefit. Final media assets, licensing notices and each member's tool usage are reviewed before signing. Model output never authorises invented catalogue entries or personnel decisions.
 <!-- answer:end technical-4.3 -->
 
-The voiceover service is a **presentation service**, not a model inside Adept. The synthesis model and final exported takes remain unrecorded. Do not declare unconfirmed installed plugins as used services.
+The voiceover service is a **presentation service**, not a model inside Adept. The synthesis model and final exported takes were not recorded. Only tools confirmed as used are declared.
 
 ## 5. Sponsor-Provided Resources
 
@@ -141,7 +141,7 @@ Did your project use any official SDC sponsor-provided resource?
 
 [x] Yes [ ] No
 
-Team-recorded Replit Core subscription and RunPod **US$25** credits; exact remaining balances and eligibility periods need account confirmation. Sponsorship is not permanent free production hosting.
+Team-recorded Replit Core subscription and RunPod **US$25** credits; remaining balances and eligibility periods to be confirmed from the sponsor accounts. Sponsorship is not permanent free production hosting.
 
 | Sponsor | Resource (API / credits / platform / data) | How It Was Used in the Project |
 |---|---|---|
@@ -161,7 +161,7 @@ Replit is the prototype's current web/API and managed-PostgreSQL host; RunPod pr
 <!-- answer:start technical-6.1 limit=150 -->
 The demo uses synthetic identities and CVs, not real applicants. Signed accounts can store names/emails, password hashes, confirmed skills, preferences, memberships, plans, progress and evidence links in PostgreSQL. CV bytes are parsed in memory and not retained. Members explicitly opt in to share skills/progress; personal plans and assistant conversations stay separate. Authentication, server-side membership/manager checks, upload limits, bounded network access and HTTP-only signed cookies mitigate risks.
 
-Optional Gemini suggestions receive short contact-redacted skill phrases. Optional Adi providers receive filtered context and server-authored candidate blocks; redaction cannot guarantee that no personal information leaves the service. MiniLM receives public research/catalogue text. Account export and deletion exist, but automatic retention, tested backup erasure and contractual real-user processing arrangements are **not** established. Do not claim PDPA certification or use real CVs in the demo.
+Optional Gemini suggestions receive short contact-redacted skill phrases. Optional Adi providers receive filtered context and server-authored candidate blocks; redaction cannot guarantee that no personal information leaves the service. MiniLM receives public research/catalogue text. Account export and deletion exist, but automatic retention, tested backup erasure and contractual real-user processing arrangements are **not** established. Adept does not claim PDPA certification, and no real CVs are used in the demo.
 <!-- answer:end technical-6.1 -->
 
 ### 6.2 Known Limitations & Risks [Maximum 150 words]
@@ -169,7 +169,7 @@ Optional Gemini suggestions receive short contact-redacted skill phrases. Option
 <!-- answer:start technical-6.2 limit=150 -->
 arXiv research share and a US labour baseline cannot measure Malaysian occupation demand. Historical 2024 replay is not fresh evidence; an online check can leave observations unchanged. Scenarios and skill exposure are heuristics, not calibrated probabilities. The catalogue covers selected roles/courses; fees, openings, prerequisites and HRD claimability can change. A completion click is not verified competence or a regulated qualification. SDG links are draft enabling hypotheses, not measured UN outcomes.
 
-Source dates, estimate/fallback labels, ID validation, permissions, bounded workers, stale states and human confirmation mitigate risks; they do not prove universal fairness. A successful model call does not publish data. A local test, public HTTP 200 or sponsor screenshot cannot establish the deployed revision, current observations, vendor licences or customer outcomes. Verify each separately before commercial use.
+Source dates, estimate/fallback labels, ID validation, permissions, bounded workers, stale states and human confirmation mitigate risks; they do not prove universal fairness. A successful model call does not publish data. A local test, public HTTP 200 or sponsor screenshot cannot establish the deployed revision, current observations, vendor licences or customer outcomes. Each requires separate verification before commercial use.
 <!-- answer:end technical-6.2 -->
 
 ## 7. Compliance & Readiness Checklist

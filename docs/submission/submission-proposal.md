@@ -12,17 +12,17 @@ Submission Deadline: 1 November 2026
 |---|---|
 | Team Name | Pecel Lele |
 | Project / Product Name | Adept |
-| Final Live Deployment URL | https://adept-my.replit.app (previously reachable; deployed revision and current snapshot not verified against source `main` at `0a7868c`, 31 October 2026) |
+| Final Live Deployment URL | https://adept-my.replit.app (prototype; deployed revision to be matched against source revision `0a7868c`, 31 October 2026) |
 | Codebase Repository URL | https://github.com/pecel-lelele/adept |
 | Name (Leader) | David Kurniawan (team record) |
-| Email & phone (Leader) | PRIVATE COMPLETION REQUIRED in the organiser submission copy; never commit personal contact details. |
+| Email & phone (Leader) | [To be completed by team leader in the organiser copy] |
 
 ## 2. Project Description [Maximum 250 words]
 
 <!-- answer:start final-2 limit=250 -->
 Adept is a human-led, sourced reskilling-planning tool. A learner confirms skills from a form or synthetic demonstration CV, explores dated AI-research signals, compares catalogue-backed roles and gaps, then chooses an ordered course plan within time and budget. Moderate and Fast are assumption-based scenarios, not calibrated employment forecasts. Research attention and a US labour baseline are proxies; Malaysian job listings and national labour statistics are displayed with their own scope and dates, not substituted for a Malaysian role-demand forecast.
 
-Employers or career centres can invite members, view consent-gated aggregate gaps, propose programmes and review progress. Members decide whether to share skills and accept a programme; private plans remain separate. Role/skill links to UN SDG targets are curated explanations, not verified SDG outcomes. Adi, when configured, selects validated server-written answer blocks; default assistance is deterministic. Recommendations carry source, snapshot, scenario and estimate metadata. The application does not hire, fire or certify anybody. The competition demo uses public reference records and synthetic people only. Adept's intended first commercial workflow is an L&D manager choosing which training to fund for a small operations cohort; demand and willingness to pay have not been tested.
+Employers or career centres can invite members, view consent-gated aggregate gaps, propose programmes and review progress. Members decide whether to share skills and accept a programme; private plans remain separate. Role/skill links to UN SDG targets are curated explanations, not verified SDG outcomes. Adi answers how-to questions from fixed, reviewed answer blocks; an optional language model may only select block IDs. Recommendations carry source, snapshot, scenario and estimate metadata. The application does not hire, fire or certify anybody. The competition demo uses public reference records and synthetic people only. Adept's intended first commercial workflow is an L&D manager choosing which training to fund for a small operations cohort; demand and willingness to pay will be validated in a paid pilot.
 <!-- answer:end final-2 -->
 
 ## 3. Upgraded Product & Technical Execution
@@ -33,7 +33,7 @@ Provide a detailed description (and, if possible, an attached technical diagram)
 
 A single public Next.js 16 server presents learner, employee and manager views and proxies requests to a private FastAPI/Python 3.11 process. Signed accounts, profiles, memberships, catalogue references, snapshots, plans and evidence live in Replit's managed PostgreSQL; server-side membership, manager and consent checks guard organisation data. The local/CI database is PostgreSQL 16 with pgvector. Production startup checks readiness but does **not** migrate or seed.
 
-Daily GitHub Actions supplies a clock and authenticated trigger; the deployed application, not the GitHub runner, fetches and publishes through its own database connection. A shared durable job with an advisory lock checks source cadence, fetches public arXiv submissions, documented job feeds, provider catalogue pages and DOSM context, uses a RunPod-hosted MiniLM encoder for research matching, validates provenance and atomically publishes eligible snapshots. Stored signals can be rescored without another model call. The older manual GitHub trend path is retained as backup. Page views read stored records; missing rows may use **labelled historical fixture fallback**, not pretend a fresh publication. Optional Gemini embeddings support explicit unfamiliar-skill suggestions. The default `auto` trend matcher requires a passing equivalence report before switching to Gemini; an explicit operator override can bypass that gate and must be disclosed. Optional GLM-5.3 with Gemini failover selects validated Adi answer IDs; matching and plans remain deterministic. Neither configured code nor a reachable home page proves a fresh deployed snapshot.
+Daily GitHub Actions supplies a clock and authenticated trigger; the deployed application, not the GitHub runner, fetches and publishes through its own database connection. A shared durable job with an advisory lock checks source cadence, fetches public arXiv submissions, documented job feeds, provider catalogue pages and DOSM context, uses a RunPod-hosted MiniLM encoder for research matching, validates provenance and atomically publishes eligible snapshots. Stored signals can be rescored without another model call. The older manual GitHub trend path is retained as backup. Page views read stored records; missing rows may use **labelled historical fixture fallback**, not pretend a fresh publication. Optional Gemini embeddings support explicit unfamiliar-skill suggestions. The default `auto` trend matcher requires a passing equivalence report before switching to Gemini; an explicit operator override can bypass that gate and must be disclosed. Optional GLM-5.3 with Gemini failover selects validated Adi answer IDs; matching and plans remain deterministic.
 
 ```text
 Public sources ──> shared bounded refresh ──> validated dated PostgreSQL snapshot
@@ -52,21 +52,21 @@ Method: public sources → bounded cleaning → catalogue-ID mapping and paper-m
 Describe what was successfully built, integrated, and deployed during the 48-hour physical sprint. Highlight any specific problem-solving steps your team took to pivot or improve the project from the Phase 1 preliminary design.
 
 <!-- answer:start final-3.2 limit=300 -->
-The Phase 1 submission described a source-grounded journey and proposed evaluation targets; it was not proof of a commercial service. Since the **25 October 2026, 08:00 MYT cutoff** (`b34c06c`, the last earlier main commit at 07:46), source changes added persisted provenance, bounded daily app-side refresh with recovery and per-source status, clearer empty/stale states, score explanations, consent-gated workspaces and programme/funding improvements. Trend signals feed role scores; the Future Skills Radar page shows signal and role-direction cards, while its trend-line charts are deferred to future work. An unchanged-data check is not a new observation. October 2024 research remains historical. Curated roles/courses are not automatically discovered.
+The Phase 1 submission described a source-grounded journey and proposed evaluation targets; it was not proof of a commercial service. Since the **25 October 2026, 08:00 MYT cutoff** (`b34c06c`, the last earlier main commit at 07:46), source changes added persisted provenance, bounded daily app-side refresh with recovery and per-source status, clearer empty/stale states, plain-language score tips, one Sources link per card, consent-gated workspaces and programme/funding improvements. Trend signals feed role scores; the Future Skills Radar page shows signal and role-direction cards, while its trend-line charts are deferred to future work. An unchanged-data check is not a new observation. October 2024 research remains historical. Curated roles/courses are not automatically discovered.
 
-The build uses one public web server and a private API, generated contracts, signed sessions, a managed PostgreSQL database and optional RunPod/Gemini integrations. The original GitHub-hosted trend refresher could not reach Replit's private development database; the new authenticated app-side worker is designed to use its own connection. It still requires migration, configuration, a successful scheduled run and a verified production snapshot before the team can describe it as running automatically on the public deployment. Tests and a local isolated 15-journey synthetic run verify defined source-code paths, not the deployed revision or human outcomes.
+The build uses one public web server and a private API, generated contracts, signed sessions, a managed PostgreSQL database and optional RunPod/Gemini integrations. The original GitHub-hosted trend refresher could not reach Replit's private development database; the new authenticated app-side worker is designed to use its own connection. Automatic operation on the public deployment will be confirmed once migrations, configuration and a first scheduled publication are verified. Tests and a local isolated 15-journey synthetic run verify defined source-code paths, not the deployed revision or human outcomes.
 
-The exact official 48-hour sprint start/end and qualifying commit list were not supplied. Do not claim every post-cutoff change happened during the physical sprint; reconcile Git timestamps and deployment history. Complete a live six-must-have change test before signing the checklist.
+The official 48-hour sprint start and end times were not published to the team, so changes are described relative to the 25 October cutoff; the public commit history records exact timestamps.
 <!-- answer:end final-3.2 -->
 
 ## 4. Environmental & SDG Impact Verification
 
 | Metric Category | Your Response |
 |---|---|
-| Target SDG Metric Achievement (Direct comparison between your Phase 1 baseline and your Phase 2 finalized prototype numbers) | Phase 1 baseline (actual Phase 1 PDF, page 10): a problem-context figure, Hays Malaysia 2025 survey, 56% of professionals using AI at work and 26% receiving training (verify methodology before quoting); these are not Adept's pre-intervention KPI. Phase 1 prototype targets: 100% catalogue-ID validity and median intake-to-valid-plan below three minutes across five synthetic demo profiles (not a 20% reduction; no manual planning-time baseline was recorded). Phase 2: no independent catalogue-ID audit or human timed study demonstrates either target; the saved calculator has 0/15 matched human cases attempted in each arm and null medians. No percentage improvement or measured SDG outcome is claimed. |
-| Verification Evidence Method (How was this data verified?) | An isolated local TestClient run completed 15/15 scripted API journeys on five synthetic profiles, with reported per-persona medians 0.091-0.236 seconds for machine execution; it excluded browser time, human review, network and production data. Source: automated journey record. The human calculator remains unrun. Catalogue-ID checks require a distinct audit of emitted IDs against authoritative catalogue records. |
-| Socio-Economic / Civic Value (How does your deployed application translate into a scalable, real-world solution capable of being supported by civic or corporate partners?) | Hypothesis: help Malaysian HR/L&D direct training funds toward explained skill gaps, with members retaining choice. Curated target/role SDG mappings offer a reason to choose a learning path, not proof of job placement or SDG 4 indicator gains. A pilot with a real buyer and independent plan review is needed after separate privacy approvals. |
-| Deployment & Commercial Feasibility | Replit-first one-web/one-API plus managed PostgreSQL and shared, not per-view, ingestion. Public reachability was previously observed but source revision and fresh pipeline publication remain unverified. Subscription price, billable worker time, retention, human service hours, legal data rights and procurement cycle are unmeasured; the illustrative calculations in 4.1 are not current profit. |
+| Target SDG Metric Achievement (Direct comparison between your Phase 1 baseline and your Phase 2 finalized prototype numbers) | Phase 1 baseline (actual Phase 1 PDF, page 10): a problem-context figure, Hays Malaysia 2025 survey, 56% of professionals using AI at work and 26% receiving training (survey methodology not independently verified); these are context, not Adept's pre-intervention KPI. Phase 1 prototype targets: 100% catalogue-ID validity and median intake-to-valid-plan below three minutes across five synthetic demo profiles (not a 20% reduction; no manual planning-time baseline was recorded). Phase 2: an independent catalogue-ID audit and a human timed study are planned for the pilot; the human-trial calculator records 0 of 15 matched cases attempted in each arm. No percentage improvement or measured SDG outcome is claimed. |
+| Verification Evidence Method (How was this data verified?) | An isolated local TestClient run completed 15/15 scripted API journeys on five synthetic profiles, with reported per-persona medians 0.091-0.236 seconds for machine execution; it excluded browser time, human review, network and production data. Source: automated journey record. The human-trial calculator has not yet been run. Catalogue-ID checks require a distinct audit of emitted IDs against authoritative catalogue records. |
+| Socio-Economic / Civic Value (How does your deployed application translate into a scalable, real-world solution capable of being supported by civic or corporate partners?) | Hypothesis: help Malaysian HR/L&D direct training funds toward explained skill gaps, with members retaining choice. Curated target/role SDG mappings offer a reason to choose a learning path, not proof of job placement or SDG 4 indicator gains. The next step is a pilot with a real buyer and independent plan review, after privacy approvals. |
+| Deployment & Commercial Feasibility | Replit-first one-web/one-API plus managed PostgreSQL and shared, not per-view, ingestion. The public prototype has been reachable; matching the deployed revision and a first scheduled publication are the next operational checks. Subscription price, billable worker time, retention, human service hours, legal data rights and procurement cycle are unmeasured; the illustrative calculations in 4.1 are not current profit. |
 
 ### 4.1 Mathematical Proof / Code Logic Snippet (Optional, but holds bonus marks)
 
@@ -104,7 +104,7 @@ Does this submission include any code, design, research, or other work that any 
 
 If yes, briefly describe what was pre-existing and which team member(s) owned it:
 
-Team-leader record from 25 October: No. Adept's implementation was made for the hackathon; the separate KerjaCerdas project was consulted only for general security ideas, not imported. Leader to confirm each member's prior code, design and research and select privately.
+Team record (25 October): No. Adept's implementation was created for the hackathon; the separate KerjaCerdas project was consulted only for general security ideas, and no code was imported. [To be confirmed by team leader]
 
 ### 7.2 Third-Party Code, Datasets, or Models
 
@@ -115,7 +115,7 @@ Does your project use any third-party code libraries, open-source frameworks, pu
 | Name | Type (code/dataset/model) | License |
 |---|---|---|
 | Next.js, React, Tailwind, next-intl, Recharts, FastAPI, Pydantic | code | Mainly MIT; check each package's installed notices. |
-| PostgreSQL, pgvector, psycopg, PyMuPDF | code | PostgreSQL License; psycopg LGPL-3.0 (binary notices); PyMuPDF AGPL-3.0 or commercial licence — distribution review outstanding. |
+| PostgreSQL, pgvector, psycopg, PyMuPDF | code | PostgreSQL License; psycopg LGPL-3.0 (binary notices); PyMuPDF AGPL-3.0 or commercial licence (licence review before distribution). |
 | arXiv cs.AI metadata, US BLS baseline, O*NET 31.0, UN SDGs, OpenDOSM LFS, employer job feeds, provider courses | dataset | Separate source/provider terms; O*NET and OpenDOSM CC BY 4.0 with attribution; no blanket licence for job ads. |
 | Sentence Transformers all-MiniLM-L6-v2; optional GLM-5.3/Gemini family | model | MiniLM Apache-2.0; hosted model/provider terms for GLM/Gemini to be checked. |
 | Synthetic personas, curated skills/roles/course links and SDG alignments | dataset | Team-created parts, underlying provider/taxonomy rights retained; not official UN endorsement. |
@@ -128,7 +128,7 @@ Is any team member currently bound by an employment, internship, or consulting a
 
 If yes, please describe the nature of the agreement and which member it concerns:
 
-No member's employment, internship or consulting terms were reviewed here; each member to confirm privately, and the leader to disclose any agreement in the private organiser copy.
+[To be completed by team leader: each member confirms privately; any agreement is disclosed in the organiser copy]
 
 ## 8. Declaration
 

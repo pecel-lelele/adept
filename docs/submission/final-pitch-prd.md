@@ -1,125 +1,217 @@
-# Adept: Product PRD and Final Pitch Brief
+# Adept — Product Requirements Document
 
-**Audience:** Pecel Lele's product, design and pitch team. **Status:** evidence-based plan, reviewed 1 November 2026 against the 31 October `main` revision `0a7868c`. Research was retrieved 31 October unless otherwise dated. Public/synthetic competition data only. No live paid inference, production writes, interview, invoice or deployment test was conducted for this assessment. All evidence needed to understand the claims and calculations is stated below; external source titles and dates appear without links.
+Sourced skills-gap and reskilling planning for Malaysian employers and learners
 
-## Executive decision — what Adept is
+**Product:** Adept
 
-**One sentence:** Adept helps an employer's L&D manager and each consenting learner decide **which sourced skills to develop for a chosen role, in which order and at what estimated time/cost**, while keeping dated AI-research signals and uncertainty visible. It is **not** an employer's hiring engine, a provider of professional certification, a calibrated Malaysian job-demand predictor, or an HRMS replacement.
+**Team:** Pecel Lele
 
-**Initial paying customer hypothesis:** Malaysian HRD Corp-registered mid-size operations employers, beginning with one finance/shared-services/GBS training team; L&D buys and manages a cohort, learners control their own plans and sharing. An institution/TVET centre is a later possible buyer, and free individual use is discovery/learning rather than validated acquisition. This is a hypothesis to test with buyers, **not traction**. Avoid assuming HRD levy funds a SaaS subscription: HRD Corp's employer rules establish training contributions, not subscription claimability.
+**Competition:** SDC XMUM Hackathon 2026 · Domain 1: The Aiversecity Future-Ready Workforce
 
-**The strongest defensible wedge to test:** the *training decision before purchase* — identify a named, weighted gap for a target role; compare sourced, prerequisite-aware programmes within budget; document why a manager chose a course and let the member accept. BrioHR already sells training **administration** for RM3 per month, Talent Essentials for RM7 and a RM200 minimum contract on its Malaysia pricing page. We must prove that decision quality/work saved is incremental to that, a spreadsheet and an adviser; no page-view count proves it.
+**Date:** 1 November 2026 · **Version:** 1.0 (finalist submission)
 
-### Five uncomfortable truths, ranked
+## 1. Executive summary
 
-1. **A deployed refresh is not evidenced.** The source includes an app-side durable scheduler/worker; activation still requires migrations, secrets, deployment, a successful publication and later scheduled run. Do not show a historical 2024 replay or a 2026-10-20 fixture as today's research.
-2. **Our forecast is an estimate based on proxy inputs.** arXiv paper attention and US BLS projections do not establish Malaysian role vacancies or employment outcomes; Moderate/Fast transform stated assumptions. A role's outlook *level* and its *change over a selected interval* differ.
-3. **The Phase 1 targets have not been shown in a human study.** The preliminary submission proposes 100% catalogue-ID validity and median synthetic-case intake-to-valid-plan under three minutes, not a 20% manual-time improvement. Human results: 0 attempts; 15 local scripted journeys are machine-only and use historical fallback.
-4. **A catalogue row does not make a learner job-ready.** Today's CSV holds 142 skills, 48 roles (33 target flags) and 104 courses, but requirements and gains are curated; fee/date/prerequisite/eligibility can change. A clicked completion is not verified proficiency, certificate entitlement or placement.
-5. **No commercial proof exists.** There are no evidenced buyers, paid pilots, renewal rate, support hours per organisation, RunPod worker-seconds, Replit bills allocable to Adept, or verified software claimability. Earlier RM15/RM25-seat ideas exceed local HR-suite bundles and must be tested, not asserted as a viable margin.
+Adept helps an employer's learning-and-development (L&D) manager and each consenting employee decide **which skills to develop for a chosen role, in which order, and at what estimated time and cost**. Every recommendation is resolved against a curated catalogue of skills, roles and courses, carries its sources and snapshot date, and is labelled as an estimate wherever it depends on a forecast.
 
-## Part I — product and implementation PRD
+| Item | Summary |
+|---|---|
+| Problem | Malaysian employers already spend heavily on training (HRD Corp approved RM2.62bn of training assistance in 2025 [S1]), while 4.2 million workers are highly exposed to generative AI [S6]. Managers still choose courses before the skill gap behind a role is explained and documented. |
+| Solution | A web platform with an **individual mode** (skills profile, explained role matches, ordered course plan, SDG links) and an **organisation mode** (consent-gated team gap view, programme proposals, progress review), plus the Adi help assistant. |
+| First buyer | HR/L&D teams in HRD Corp-registered, mid-size Malaysian employers with AI-exposed operations staff (finance, shared services, GBS). TVET and university career centres are the second segment. |
+| Business model | Per-active-seat subscription; test price **RM6 per seat per month**, with a RM10 manager/evidence tier. Prices are hypotheses to be validated in a paid pilot. |
+| Differentiation | No invented entities (catalogue-ID validation), an openly documented scoring formula, Malaysia-specific sources, and two-sided consent between learner and employer. |
+| Status | Working prototype on Replit with managed PostgreSQL; 142 skills, 48 roles and 104 courses in the curated catalogue; 15/15 automated synthetic journeys passed in local tests [A1]. Human trials and commercial validation are the next milestone. |
+| Ask | One Malaysian operations team for an 8–12-week, 25–50-seat paid pilot. |
 
-### 1. Users, purchase decision and jobs to be done
+Adept is decision support. It does not hire, fire, promote or certify anyone, and it does not replace an HR management system.
 
-| Candidate | Decision-maker / payer | Returning workflow and existing alternative | Evidence/gap | Priority |
-|---|---|---|---|---|
-| Employer HR/L&D in AI-exposed operations | Head of L&D / department finance; employer pays | Each quarter: pick who to train for a selected role and what to fund. Today: manager spreadsheet + adviser + course portal + HRMS training module | HRD levy supports training budgets; BrioHR has a real incumbent module. No employer interviews/paid order | **First pilot** |
-| TVET/university career centre | Career-services head / institutional procurement | Each cohort: evidence-backed advising and course plans; today: staff advisers, institutional LMS, UpskillMalaysia, job portals | National TVET portal lists institutions, not software buyers. Public procurement/integration and advisor validation are untested | Later |
-| Individual worker/graduate | Person uses; individual or employer might pay | Reassess after a skills change; today: ChatGPT, MyFutureJobs, course search, adviser | Zero observed returning users or paid conversion; do not promise consumer revenue | Free, bounded pilot |
+## 2. Problem and opportunity in Malaysia
 
-**Why a company could pay:** reduce the manager's time to a justified training choice and reduce wrong-course selections *if* an independent reviewer finds plans relevant and learners accept them. HCC reimbursements require actual rules/eligibility; do not promise they fund Adept. A paid renewal, documented workflow adoption, and independently reviewed outcome are the evidence gates. ChatGPT can draft generic advice cheaply; our proposed incremental value is catalogue-ID grounding, dated evidence, manager consent/approval/audit workflow and team-specific gap aggregation. Benchmark each against real buyer alternatives instead of assuming superiority.
-
-### 2. Preliminary → final change narrative and status
-
-`b34c06c` is the **last main commit before 25 October 2026, 08:00 MYT** (07:46:32). This cutoff already included five synthetic demonstration CVs, both sponsor proof PDFs, a signed-account root-hosted prototype and the preliminary proposal. It was **not** only a skeleton or a screenshot. The final source baseline above includes many merges from 30–31 October. The exact official 48-hour physical-sprint window remains **unknown**: do not label every change after this cutoff as sprint-built without the event timetable and commit evidence. The Phase 1 PDF proposed the end-to-end journey and two evaluation targets, but neither the preliminary screenshots nor repository code establishes a buyer outcome.
-
-| Product / idea | Before 25 Oct 08:00 MYT (`b34c06c`) | Final source at pinned main | What remains to prove |
-|---|---|---|---|
-| Signal refresh | A working offline MiniLM/arXiv proof and dated snapshots; an early RunPod RTX 4090 Pod screenshot shows **110** vectors in **0.354 seconds for that one batch**. Not a continuous production ingestion KPI | The first GitHub-based refresh later failed against Replit's private database host; the design pivoted to GitHub as a clock and an authenticated **in-app** worker using its own managed-PostgreSQL connection. Durable runs, advisory lock, bounded source fetch, stored measured inputs, source-specific publication and stale states now exist | Apply approved production migrations/configuration, record a successful live publication and later scheduled success; do not call the Pod test the production worker speed |
-| Trend interpretation | Dated Moderate/Fast skill trend snapshots and sourced radar existed. No role/category comparison timeline yet | Trend signals stay inside role matching (25% trend weight under Moderate/Fast). The **Future Skills Radar page ships with its signal and role-direction cards**; its **trend-line, range-chart and snapshot-picker cards are moved to future work** and removed from the shipped UI (parallel frontend PR); they return only after a verified fresh snapshot cadence | Capture a deployed selection/change test; avoid calling a research-share proxy observed Malaysian vacancies |
-| Matching and learner journey | CV/form confirmation, deterministic role scoring/gaps, course ordering, curated SDG links and individual/organisation modes existed in the source; PDFs show early hosted infrastructure | Reworked score explanations and scenario deltas, added catalogue/critical-occupation scope notes, preserved guarded member sharing and improved task completion/empty/stale states. Curated records expanded to 142 skills, 48 roles (33 target flags) and 104 courses | Independently review course fit/availability and measure human plan validity; progress click is not verified proficiency |
-| Operating model and customer | Two modes aimed at four personas, no prioritised paying buyer or validated willingness-to-pay | Product strategy **proposed in this brief**: one employer L&D training decision first; a shared Replit-first scheduler and database replace ad-hoc per-user inference assumptions. This is a positioning proposal, **not a shipped monetisation feature** | Buyer interviews, written price test, invoices, support costs and renewal decision; do not claim commercial pivot was deployed |
-| Trust and deployment | Root-hosted UI/API and signed demo accounts with PostgreSQL; sponsor-use screenshots historical | One public Next.js/proxied private API, stronger attribution, workspace/consent regressions, generated contracts and source-date metadata; automatic refresh credentials now stay in the hosted app rather than GitHub's DB URL | Verify deployed SHA, authorised sharing, restoration, actual provider usage and licences |
-
-**Core journey acceptance, judge-facing:** (1) synthetic CV/form gives confirmable catalogue skills; (2) research/job source shows *observation*, *retrieval* and *snapshot* dates; (3) matching score components/gaps change when the profile changes; (4) ordered plan resolves every entity and shows hours, cost and unmet gaps; (5) role **and** skill SDG target reasons show as enabling links, not outcome claims; (6) Moderate/Fast changes estimates with visible assumptions. Demonstrate an actual altered source snapshot changing a downstream output; a component visible in source is not a deployed change test. No real CVs.
-
-### 3. Trace the claims, not just the component count
-
-| User-visible belief | Actual source/logic and status | Risk / acceptance evidence |
-|---|---|---|
-| “Trend signals predict future Malaysian jobs” (Radar trend-line charts are future work) | Database-first trend read; labelled fixture fallback dated 13/20 October 2026. Public arXiv completed weeks, a versioned US BLS baseline and curated exposure produce estimates. The stored synthetic evidence uses 2024 research observations. **Implemented; deployment unverified.** | Show production run, measured period and method; say “AI-research signal / estimated role outlook,” not Malaysian jobs forecast |
-| “Role recommendations fit me” | Deterministic score: 0.45 skill overlap + 0.25 trend fit + 0.30 interests, with optional SDG adjustment. The profile changes the result; roles come from a curated catalogue. **Locally tested; production unverified.** | Change a synthetic profile and show ranking/gap changes; one older fixture showed 0/5 top-five set changes across scenarios, not a universal result |
-| “Courses close the skill gap” | Pathway engine selects ordered stored courses by coverage, budget and prerequisites. A course can partially cover a proficiency gap and its date/fee can age. **Dynamic plan over static, checked references.** | Resolve every ID; independently inspect level, budget, prerequisite and issuance terms; no claim of qualification |
-| “My learning helps an SDG” | UN target definitions plus team-curated role/skill-to-target hypotheses. **Reference data by design.** | Compare choices by target; record real learning evidence separately from a displayed SDG badge |
-| “Manager can see my skills” | Server-enforced membership/manager checks; explicit sharing consent and small-cohort suppression. **Locally tested; production unverified.** | Member denied other workspaces, missing consent is never consent, no tiny-cohort leakage |
-| “Adi independently advises me” | Configured provider selects validated server-authored answer IDs; deterministic guide otherwise. **Source implemented; provider reachability unverified.** | Unknown IDs or outage fall back; no unreviewed model prose or inference on every page view |
-
-Static official UN/O*NET tables are legitimate reference data; the error is calling a **stale observation current** or an **inferred outcome measured**.
-
-### 4. Requirements and boundaries for commercial pilot
-
-- **P0 — truthful evidence:** pin deployment SHA/build identity; verify original/retrieval/snapshot dates and refreshed publication; distinguish no data, zero and source outage; remove or relabel role-demand claims until Malaysian role-level validation exists. Acceptance: dated demo recording of all six must-haves and source-change propagation, a later automatic run, no silent fixture masquerade. Effort: 2–5 team days after host access; dependency: operator migration/secret setup, actual model budget.
-- **P0 — buyer workflow:** manager chooses target role, approves budget/course plan, member explicitly accepts/shares, manager reviews evidence; export a human-readable decision record with source/fee/prerequisite date. Acceptance: 5 synthetic cohort sessions with permission/consent tests and review of every generated entity. Effort: 3–7 days; dependency: current org flow and catalogue review.
-- **P1 — outcomes instrumentation:** reviewer-rated valid plan; human time-to-plan; course relevance/availability check; learner consent and verified skill evidence separate from completion clicks. Acceptance: pre-registered 8–12-week pilot protocol, raw anonymised numerator/denominator and fail counts. Effort: 2–3 days protocol plus pilot; dependency: ethical approval, privacy/legal agreement for any real data.
-- **P1 — operation:** record job UUID, start/end, per-source changed rows, model billed seconds/tokens, DB pool use/latency, cache reuse; expiry, backup restore, low-evidence alert. Acceptance: alert exercise + restore on disposable data + cost export attributed to app. Effort: 4–10 days; dependency: account/plan telemetry and owner authorisation.
-- **P2 — integrations only when won:** HRIS import, SSO, provider agreements, regulated credential verification, BI export. Acceptance: signed pilot request, permissions/licence review and measured support load before implementation. Effort: unknown until buyer spec; dependency: paid design partner. Do not expand generic chat or unvalidated role categories to simulate product-market fit.
-
-**Replit-first operational invariant:** one managed PG instance with explicit pool limits and indexes, shared worker lock/lease/retry/recovery, bounded external calls and stored snapshots. A fresh browser read is cheap. A source refresh is a shared job. Measure pool saturation and query p95, active connections vs plan cap, lock contention, WAL/storage growth, restoration time, stale-cache age and worker recovery. “Replit cannot scale” is *not established*; whether a plan limit, DB plan setting or our SQL is the bottleneck is presently **unknown**. Do not migrate providers or split into microservices without observed thresholds.
-
-### 5. Pilot protocol (not yet executed)
-
-**Recruitment:** approach 10–15 Malaysian operations L&D decision-makers for discovery, then secure one company willing to pilot a single 25–50-person synthetic/demo workflow first. Any later real-data pilot needs signed employer/learner consent, privacy notice, legitimate processing agreements, retention/deletion plan, access audit, security review and legal guidance; competition materials remain synthetic. **Duration:** 8–12 weeks, one role family and one budget. **Baseline:** current manager spreadsheet/course-buying decision for matched cases with documented provenance and equivalent time/budget constraints; counterbalance Adept-first/manual-first. **Leading metrics:** fraction of plans independently valid, manager review minutes, learner acceptance, error/rework and source/link freshness; numerators and denominators tracked. **Later metrics:** verified skill demonstration by independent assessor, repeated use and paid renewal; do not infer redeployment, productivity or job placement from clicks. **Go/no-go assumptions:** illustrative targets ≥80% independently valid plans, ≥20% median *human* decision-time improvement vs matched manual baseline, ≥70% consented completion of intake and 1 paid renewal offer. All are new pilot gates, **not measured or Phase 1 targets**. A relevant-course disagreement or privacy incident stops the pilot; a buyer who will not pay or renew after a valid workflow forces a narrower proposition/pivot.
-
-## Part II — Malaysia market and competitor evidence
-
-### Research update, 1 November 2026 (implementation, scalability and feasibility focus)
-
-Mentor feedback: judges set the problem and may invest, so lead with feasibility. This section supersedes older market wording where they differ. **Official** = government document read by the team; **Secondary** = press/vendor relay; **Estimate** = our arithmetic. No interviews, customers or revenue are claimed. Retrieved 1 Nov 2026 unless marked 31 Oct.
-
-**Market and money already flowing**
-
-| Finding | Source (publisher, date, URL) | Class |
-|---|---|---|
-| HRD Corp approved **RM2.62bn** training assistance in 2025 (+32%); **>2.8m** training places; RM130m and >103,000 places in IR4.0/digital | HRD Corp media release, 13 Jan 2026, https://hrdcorp.gov.my/wp-content/uploads/2026/01/Media-Release-Highlights-of-2025.pdf | Official |
-| Covered employers pay **1% of wages** (≥10 Malaysian staff) | HRD Corp Employer Registration, https://hrdcorp.gov.my/employer/ (31 Oct) | Official |
-| >100,000 registered employers, >4.8m registered workers | NST, Aug 2025, https://www.nst.com.my/news/nation/2025/08/1263966/hrd-corp-registers-over-48mil-employees-100000-employers-says-steven (31 Oct) | Secondary |
-| Employees **12.63m** of 16.87m employed; unemployment 2.9% (Aug 2026) | DOSM Labour Force Statistics Aug 2026, 9 Oct 2026, https://www.dosm.gov.my/portal-main/release-content/labour-force-statistics-aug2026 | Official |
-| Median monthly salary **RM2,940** (2025) | DOSM Salaries & Wages Survey 2025, 21 Sep 2026, https://www.dosm.gov.my/portal-main/release-content/salaries-and-wages-survey-report- | Official |
-| Paid-report market sizes (e.g. Malaysia IT training USD 347.1m, 2025) have invisible methods; not used for TAM | IMARC, https://www.imarcgroup.com/malaysia-it-training-market | Paid report |
-
-**Demand signals**
+### 2.1 Training budgets already exist
 
 | Finding | Source | Class |
 |---|---|---|
-| **4.2m workers (28%)** highly exposed to generative AI, +2.5m medium-high; women, young, clerical and urban workers most exposed; exposure ≠ job loss | ISIS Malaysia & World Bank, Jul 2025, https://www.isis.org.my/2025/07/06/novel-ai-technologies-and-the-future-of-work-in-malaysia/ | Official research |
-| **~620,000 jobs (18%)** in 10 sectors highly impacted by AI/digital/green within 3–5 years; GBS 32% | The Edge on TalentCorp study, Nov 2024, https://theedgemalaysia.com/node/734414 | Secondary |
-| Graduate skill-related underemployment **32.2% (1.60m)**; **66.0%** for age ≤24 | DOSM Graduates Statistics 2024, 31 Oct 2025, https://www.dosm.gov.my/uploads/release-content/file_20260401145140.pdf | Official |
-| MyCOL 2024/2025 lists **66** critical occupation groups (Adept stores Table 7; one reviewed role crosswalk) | TalentCorp; repo `docs/reference/critical-occupations.provenance.json` | Official, in repo |
-| National AI Action Plan 2026–2030: up to **300,000** new AI roles by 2030 | NST, 22 Oct 2026, https://www.nst.com.my/amp/business/economy/2026/10/1561294/malaysia-targets-300000-ai-jobs-2030 | Secondary |
-| PERKESO EIS: 117,733 job seekers re-employed Jan–14 Aug 2026; training via active labour-market programmes | Bernama, 18 Oct 2026, https://bernama.com/en/general/news.php?id=2621984 | Secondary |
-| Malaysia attrition **18.2%** (2025); 2026 salary budgets +4.8% | Aon release, 11 Dec 2025, https://www.aon.com/apac/in-the-press/asia-newsroom/2025/aon-survey-projects-4-8-percent-salary-growth-for-malaysia-in-2026 | Secondary |
+| HRD Corp approved **RM2.62bn** in training assistance in 2025 (+32%), covering more than 2.8 million training places; RM130m and more than 103,000 places in IR4.0/digital training | HRD Corp media release, 13 Jan 2026 [S1] | Official |
+| Covered employers pay a **1% levy on wages** (employers with ten or more Malaysian employees; 0.5% voluntary for five to nine) | HRD Corp employer registration [S2] | Official |
+| More than 100,000 registered employers and more than 4.8 million registered workers | NST, Aug 2025 [S3] | Secondary |
+| RM2.5bn levy collected and RM2.44bn grants disbursed in FY2025 | The Edge, relaying HRD Corp financial report [S17] | Secondary |
+| 12.63 million employees out of 16.87 million employed persons; unemployment 2.9% (Aug 2026) | DOSM Labour Force Statistics, 9 Oct 2026 [S4] | Official |
+| Median monthly salary **RM2,940** (2025) | DOSM Salaries & Wages Survey, 21 Sep 2026 [S5] | Official |
+| 8.09 million persons (48.7% of employment) work in MSMEs; 1,069,831 MSME establishments | DOSM MSME Performance 2025 [S15]; Economic Census 2023 [S16] | Official |
 
-**Users (secondary evidence only; no team interviews recorded — [TODO: team adds any real discovery calls])**: P1 displaced clerical/GBS adult (ISIS, TalentCorp rows above); P2 fresh graduate (DOSM 66.0% ≤24 underemployment); P3 career switcher (Aon 18.2% attrition; PERKESO re-employment); P4 HR/L&D manager — **first buyer** (HRD Corp RM2.62bn spend); P5 TVET/university advisor — second buyer (1,996 TVET institutions, National TVET Portal 31 Oct; 65 private universities, 38 university colleges, 252 colleges, MIDA Feb 2026, https://www.mida.gov.my/industries/services/education-services/).
+### 2.2 The workforce is under pressure to reskill
 
-**Why HR would buy:** (1) spend levy-funded training on a named, sourced gap toward a named role; (2) plan toward courses flagged HRD-claimable (HRD Corp e-learning claims are hour-based, minimum 1 hour and one complete module: https://supportcentre.hrdcorp.gov.my/portal/en/kb/articles/e-learning-programme-financial-assistance); (3) internal mobility against 18.2% attrition; (4) consent-gated, no-protected-attribute ranking with no hiring/firing automation. **Adept's own subscription is not shown to be HRD-claimable**; vendor blogs say pre-approved LMS subscriptions from registered providers can be (https://disprz.ai/blog/hrdf-digital-learning-lms-malaysia) — test via training-provider registration or bundling.
-
-**Pricing vs purchasing power and competitors**
-
-| Product | Price signal | Adept difference |
+| Finding | Source | Class |
 |---|---|---|
-| LinkedIn Learning Teams | US$379.88/licence/yr (https://www.linkedin.com/help/learning/answer/a768297) ≈ RM128/month at BNM USD selling 4.056, 30 Oct 2026 (https://api.bnm.gov.my/public/exchange-rate/USD) — estimate | Content library; Adept is the decision layer pointing to free/paid courses |
-| Coursera for Teams | ~US$399/user/yr (third-party, https://trainingcost.com/coursera-for-business-pricing) | Same |
-| Workday Skills Cloud | Quote-only, HCM bundle (https://www.gartner.com/reviews/product/workday-skills-cloud) | Enterprise; no public Malaysia-specific signals |
-| BrioHR | RM3 training / RM7 talent per employee/month, RM200 minimum (31 Oct) | HRMS admin; Adept decides *which* gap/course, then exports |
-| MyMahir / MyFutureJobs | Free public portals | Adept complements with person-level explained gap + consented team view |
-| **Adept (test price)** | **RM6/active seat/month** (= 0.2% of median monthly salary; estimate), RM10 deeper tier | Grounded catalogue IDs, published formula, Malaysia data (MyCOL, DOSM, MY job feeds, MYR, HRD flag), two-sided consent |
+| **4.2 million workers (28%)** highly exposed to generative AI, plus 2.5 million medium-high; women, young, clerical and urban workers are most exposed. Exposure is not job loss | ISIS Malaysia & World Bank, Jul 2025 [S6] | Official research |
+| **About 620,000 jobs (18%)** in ten sectors highly impacted by AI, digital and green change within 3–5 years; 32% in global business services | The Edge on TalentCorp study, Nov 2024 [S7] | Secondary |
+| Graduate skill-related underemployment **32.2% (1.60 million)**; **66.0%** for graduates aged 24 or below | DOSM Graduates Statistics 2024 [S8] | Official |
+| MyCOL 2024/2025 lists **66** critical occupation groups | TalentCorp [S9] | Official |
+| National AI Action Plan 2026–2030 targets up to **300,000** new AI roles by 2030 | NST, 22 Oct 2026 [S10] | Secondary |
+| 117,733 PERKESO Employment Insurance job seekers re-employed between January and 14 August 2026 | Bernama, 18 Oct 2026 [S11] | Secondary |
+| Employee attrition **18.2%** (2025); 2026 salary budgets +4.8% | Aon, 11 Dec 2025 [S12] | Secondary |
 
-**Moat to test:** grounded no-invention catalogue (15/15 automated synthetic journeys passed checks that every planned course/skill ID resolves to a sourced catalogue record — `docs/evidence/kpi-automated-journeys.md`, 30 Oct 2026, local fixture); explainable gap (0.45 skill + 0.25 trend + 0.30 interest, `src/api/app/features/matching/scoring.py`); Malaysia-specific data plumbing; individual + organisation two-sided model.
+### 2.3 The gap Adept addresses
 
-**TAM / SAM / SOM (estimates at RM72/seat/year):** TAM = 4.8m HRD-registered workers × RM72 ≈ **RM345.6m/yr** (cross-check: ISIS 4.2m exposed × RM72 ≈ RM302.4m). SAM = 620,000 highly impacted jobs × RM72 ≈ **RM44.6m/yr**. SOM year 5 (base) ≈ **RM3.5m/yr** = 30,000 seats (4.8% of SAM seats) + institution licences.
+Training money and reskilling pressure are both visible. The decision between them is not: a manager typically combines a spreadsheet, an adviser, a course portal and an HRMS training module, and the reason a particular course was chosen for a particular role is rarely recorded. Adept targets this **pre-purchase training decision** by naming the role, weighting the skill gap, comparing sourced courses within budget and prerequisites, and keeping a record of why the plan was chosen and whether the employee accepted it.
 
-**3–5-year projection (estimate; every input is an assumption)** — employers × seats × price (RM6 in 2027, RM8 blended after) × 12 + institutions × flat licence (RM20k 2028–29, RM25k after). Costs: team at an assumed RM6,000/month loaded per FTE (2, 4, 6, 9, 12 FTE); infrastructure assumed US$117, 400, 1,000, 2,500, 5,000/month × 4.056; sales/partner cost 20% of revenue.
+Training spend and workforce scale establish context, not Adept's own demand. Buyer demand will be established through interviews, purchase orders and renewals (Section 10).
+
+## 3. Target users and buyers
+
+| Persona | Need | Evidence of need | Role in business model |
+|---|---|---|---|
+| P1 Working adult in clerical/GBS work facing AI exposure | Find a realistic adjacent role and the shortest credible learning path | ISIS 4.2m exposed [S6]; TalentCorp 620,000 impacted jobs [S7] | Learner (seat) |
+| P2 Fresh graduate | Turn a degree into skills employers ask for | 66.0% underemployment for graduates aged 24 or below [S8] | Learner (free individual use) |
+| P3 Career switcher | Compare target roles and the time/cost to switch | 18.2% attrition [S12]; PERKESO re-employment [S11] | Learner (free individual use) |
+| P4 HR/L&D manager | Fund training against an explained, documented gap | RM2.62bn approved training assistance [S1] | **First buyer** |
+| P5 TVET/university career adviser | Evidence-backed advising and course plans for a cohort | 1,996 TVET institutions [S13]; 65 private universities, 38 university colleges and 252 colleges [S14] | Second buyer |
+
+**Primary buyer.** The head of L&D (with department finance) in a Malaysian operations employer. The employer pays; each employee controls their own plan and what they share.
+
+**Why HR would buy.**
+
+1. Direct levy-funded training toward a named, sourced gap for a named role.
+2. Plan toward courses flagged as HRD-claimable; HRD Corp e-learning claims are hour-based, with a minimum of one hour and one complete module [S18].
+3. Support internal mobility at a time of 18.2% attrition [S12].
+4. Use consent-gated data with no protected attributes in ranking and no automated hiring or firing decisions.
+
+Whether an Adept subscription itself is HRD-claimable is not established. Vendor material reports that pre-approved LMS subscriptions from registered providers can be claimable [S20]; Adept will test this through training-provider registration [S19] or bundling with registered providers.
+
+## 4. Product overview and key features
+
+### 4.1 Individual mode (`/app`)
+
+- **Skills profile.** The learner uploads a CV (PDF, DOCX or text) or completes a form. Skills are extracted against the catalogue and the learner confirms each one; the CV file is parsed in memory and not stored.
+- **Explained role matches.** Each target role shows a fit score, the skills that match, the weighted gaps, and plain-language **"what would raise this score"** tips instead of raw score arithmetic.
+- **Reskilling pathway.** An ordered course plan that respects prerequisites, budget and available hours, showing estimated hours and cost per course. Gaps with no qualifying course remain visible rather than being filled with an invented course.
+- **Scenarios.** Moderate and Fast AI-adoption scenarios change trend-based estimates with visible assumptions.
+- **SDG links.** Roles and skills show curated links to UN SDG targets (mainly SDG 4, with SDG 5, 8, 9 and 10) as enabling reasons, not measured outcomes.
+
+### 4.2 Organisation mode (`/org`)
+
+- Managers invite members to a workspace; membership and manager permissions are enforced on the server.
+- A **team gap heatmap** aggregates only skills that members have explicitly chosen to share, with small-cohort suppression to prevent identifying individuals.
+- Managers propose training programmes; **members accept or decline** each programme, and managers review consented progress.
+- Personal plans and assistant conversations remain private to the learner.
+
+### 4.3 Future Skills Radar
+
+The Radar page shows **signal cards and role-direction cards** built from dated AI-research signals (arXiv cs.AI publication activity) combined with a versioned US BLS projection baseline and curated exposure estimates. Trend signals also feed 25% of each role-fit score. Trend-line, range-chart and snapshot-comparison views are **future work**, planned once a verified refresh cadence produces enough fresh snapshots. All trend values are labelled as estimates; they are proxies, not Malaysian vacancy forecasts.
+
+### 4.4 Adi assistant
+
+Adi answers how-to questions about the product from a set of **fixed, reviewed answer blocks** written by the team. The default configuration uses no language model. When a model is enabled (RunPod-hosted GLM-5.3, with Gemini failover), it may only **select answer-block IDs** from an allowlist; unknown IDs or provider outages fall back to the deterministic guide. No unchecked model text is shown to users.
+
+### 4.5 Sources and transparency
+
+Every recommendation card shows one small **Sources** link, its snapshot date and estimate label; the full source list, model disclosure and methodology are on the **Data and AI use** page (`/about`). The interface is available in English, Malay and Chinese.
+
+### 4.6 Core journey
+
+1. A synthetic CV or form produces skills the learner confirms.
+2. Research and job sources show their observation, retrieval and snapshot dates.
+3. Role scores and gaps change when the profile changes.
+4. The ordered plan resolves every course and skill to the catalogue and shows hours, cost and uncovered gaps.
+5. Role and skill SDG target links are shown as enabling reasons.
+6. Switching between Moderate and Fast scenarios changes estimates with visible assumptions.
+
+## 5. Requirements
+
+### 5.1 Functional requirements
+
+| ID | Requirement | Acceptance criterion |
+|---|---|---|
+| FR-1 | Create a skills profile from CV upload or form, with learner confirmation | Only catalogue skills can be confirmed; unknown phrases produce suggestions that need confirmation |
+| FR-2 | Rank target roles with an explained score and weighted gaps | Changing a profile changes the ranking or gaps; each role resolves to a catalogue record |
+| FR-3 | Generate an ordered, prerequisite-aware course plan within budget and hours | Every course ID resolves; uncovered gaps are reported, never filled with invented courses |
+| FR-4 | Show Moderate and Fast scenario estimates | Scenario switch changes trend-based estimates; values carry an estimate label |
+| FR-5 | Show curated SDG target links for roles and skills | Target text comes from the UN SDG source; links are labelled as team-curated alignments |
+| FR-6 | Organisation workspaces with invitations, consent-gated aggregates and programme proposals | Non-members are denied; missing consent is treated as no consent; small cohorts are suppressed |
+| FR-7 | Members accept or decline employer programmes and control sharing | No programme is assigned without member acceptance |
+| FR-8 | Adi answers product how-to questions | Only reviewed answer blocks are displayed; provider failure falls back deterministically |
+| FR-9 | Shared, scheduled refresh of research, job and course sources | One bounded job per cadence for all tenants; validated, dated snapshots; stale or fallback data is labelled |
+| FR-10 | Account data export and deletion | Learner can export and delete their account data |
+
+### 5.2 Non-functional requirements
+
+| Area | Requirement |
+|---|---|
+| Grounding | No invented jobs, courses, skills, statistics or SDG targets. Any model-assisted selection passes ID validation against a request-scoped allowlist, with deterministic fallback. |
+| Attribution | Every recommendation, match score and trend projection carries sources (name, URL, retrieval date), snapshot date, scenario and an `is_estimate` flag; an automated regression test checks this on recommendation endpoints. |
+| Privacy and consent | Server-side authentication, membership and manager checks; explicit opt-in for skill and progress sharing; CVs parsed in memory and not retained; contact details redacted from skill phrases sent to optional embedding suggestions. The competition prototype uses synthetic people only. |
+| Human in the loop | Outputs support human judgement only; no autonomous hiring, firing, promotion or admission decisions. |
+| Fairness | No age, gender, identity or protected-background attributes in ranking; fairness regression tests are maintained. |
+| Security | Signed HTTP-only session cookies, upload type and size limits, bounded outbound requests with SSRF protection, exact CORS origins, fail-closed production startup checks. |
+| Cost and performance | No model inference on page views; matching and pathways are deterministic database reads. Source refresh is a shared job, not per user. |
+| Localisation | English, Malay and Chinese with key-parity checks. |
+
+## 6. System architecture
+
+A single public **Next.js 16** server presents learner, employee and manager views and proxies requests to a private **FastAPI (Python 3.11)** service. Accounts, profiles, memberships, the reference catalogue, dated snapshots, plans and progress are stored in **Replit-managed PostgreSQL** (PostgreSQL 16 with pgvector locally and in CI).
+
+A daily GitHub Actions schedule sends an authenticated trigger to the deployed application. The application's own worker, holding a database advisory lock, fetches bounded public sources (arXiv submissions, documented job feeds, provider course pages, DOSM context), encodes research text with an **all-MiniLM-L6-v2** model on RunPod Serverless, validates provenance and publishes a dated snapshot atomically. Stored signals can be rescored without another model call.
+
+| Stage | Method |
+|---|---|
+| Data sources | arXiv cs.AI [S34], US BLS 2023–2033 projections [S35], O*NET 31.0 [S36], UN SDG API [S37], OpenDOSM labour force [S38], MyCOL [S9], public job feeds and provider course catalogues |
+| Cleaning | Bounded sampling, deduplication, date and coverage checks |
+| Features | Catalogue-ID mapping, research mention counts and sentence embeddings |
+| Method | Documented heuristic scoring and Moderate/Fast scenarios |
+| Evaluation | Finite-value, coverage, date and ID validation before publication |
+| Serving | Dated database snapshots read by deterministic APIs and sourced UI cards |
+
+**Role-fit formula** (documented in the open-source repository; users see plain-language tips rather than the arithmetic): `fit = 0.45 × skill_overlap + 0.25 × trend_fit + 0.30 × interest_fit`, where skill overlap is importance-weighted and capped at the required level. An optional SDG slider `w` blends in an SDG component: `fit_sdg = (1 − w) × fit + w × sdg_impact`.
+
+**Model disclosure.** all-MiniLM-L6-v2 (Apache-2.0) for research embeddings; optional GLM-5.3 and Gemini models for Adi answer-block selection; optional `gemini-embedding-001` for unfamiliar-skill suggestions. The default runtime setting uses no language model.
+
+## 7. Differentiation and competitive landscape
+
+| Product | Price signal | What it does | Adept's position |
+|---|---|---|---|
+| LinkedIn Learning Teams | US$379.88 per licence per year [S21] ≈ RM128/month at BNM USD selling rate 4.056 (30 Oct 2026) [S22] (estimate) | Content library | Decision layer that points to free and paid courses across providers |
+| Coursera for Teams | About US$399 per user per year (third-party) [S23]; enterprise pricing custom [S33] | Content library | As above |
+| Workday Skills Cloud | Quote-only, sold within HCM suite [S24] | Enterprise skills ontology | Malaysia-specific sources, sized for mid-size employers |
+| BrioHR | RM3 training / RM7 Talent Essentials / RM21 All-in-One per employee per month; RM200 minimum [S25] | HRMS training administration | Decides *which* gap and course to fund, then exports to existing administration |
+| Swingvy | RM8.50 per user per month, five-user minimum [S26] | HR and payroll suite | Complements; no duplicated HR administration |
+| MyFutureJobs, UpskillMalaysia, MyMahir | Free public portals [S27] | Job and programme matching | Adds a person-level explained gap and a consented team view |
+| Generic chatbot + spreadsheet | Low cost | Drafts generic advice | Validated catalogue IDs, dated sources, consent and an auditable decision record |
+
+**Defensibility to build.** (1) A grounded, no-invention catalogue: in local automated tests, 15/15 synthetic journeys passed checks that every planned course and skill ID resolves to a sourced catalogue record [A1]. (2) An explainable, openly documented scoring formula. (3) Malaysia-specific data plumbing: MyCOL, DOSM, Malaysian job feeds, MYR pricing and HRD flags. (4) A two-sided individual and organisation model with explicit consent. Over time, the reviewed catalogue, source history and buyer workflow integration are the assets that compound; a formula alone is not a moat.
+
+## 8. Business model and pricing
+
+| Element | Design |
+|---|---|
+| Customer | Employer HR/L&D (first); TVET and university career centres (second, flat institutional licence) |
+| Unit | Active paid learner seat per month |
+| Test price | **RM6 per seat per month** (about 0.2% of the RM2,940 median monthly salary [S5]); **RM10** for a deeper manager/evidence tier |
+| Individual use | Free and bounded, for discovery and learning; no consumer revenue is assumed |
+| Funding route to test | Ordinary L&D software budget first; HRD claimability via training-provider registration or bundling [S19] |
+| Pricing validation | Paired written quotes to ten eligible buyers; a paid pilot invoice rather than a survey; refusals and procurement objections recorded |
+
+RM6 is set below BrioHR's RM7 Talent Essentials bundle [S25] because Adept is positioned as an add-on decision layer, not a full HR suite. Neither RM6 nor RM10 has yet been validated with buyers.
+
+**Pilot unit economics (illustration).** A 40-seat, three-month pilot at RM6 bills `40 × RM6 × 3 = RM720`, recognised at RM240 per month. Assuming three support and review hours per organisation per month at RM50 per hour (RM150), the contribution is RM90 per month before hosting, data rights, inference, billing fees and sales. Break-even customers are `ceil(F / (RM240 − v))` where `v` is monthly delivery cost per customer and `F` is fixed monthly cost; both will be measured in the pilot.
+
+## 9. Market sizing and financial projection
+
+### 9.1 TAM, SAM and SOM (estimates)
+
+All values use RM72 per seat per year (RM6 × 12).
+
+| Measure | Basis | Estimate |
+|---|---|---|
+| TAM | 4.8 million HRD-registered workers [S3] × RM72 | **≈ RM345.6m per year** (cross-check: 4.2 million AI-exposed workers [S6] × RM72 ≈ RM302.4m) |
+| SAM | About 620,000 highly impacted jobs [S7] × RM72 | **≈ RM44.6m per year** |
+| SOM (year 5, base case) | 30,000 seats (4.8% of SAM seats) plus institution licences | **≈ RM3.5m per year** |
+
+These are top-down estimates. Registered workers and impacted jobs are not paid seats, and an official Malaysian HR/L&D software market size was not found (paid reports such as IMARC's Malaysia IT-training estimate [S31] have undisclosed methods and are not used). The bottom-up check that will replace these estimates is `qualified employers × seats per employer × price × 12`, built from a qualified buyer roster and observed win rates. As an illustration, if 1,000 organisations qualify with 40 seats each at RM6, the serviceable market would be RM2.88m per year; three won 40-seat accounts would produce RM8,640 per year.
+
+### 9.2 Five-year projection (base case, estimate)
+
+Revenue = employers × seats × price × 12 + institutions × flat licence. Price RM6 per seat per month in 2027 and a blended RM8 thereafter; institution licence RM20,000 (2028–29) and RM25,000 thereafter. Costs: team at an assumed RM6,000 per month loaded per FTE (2, 4, 6, 9 and 12 FTE); infrastructure assumed at US$117, 400, 1,000, 2,500 and 5,000 per month converted at 4.056; sales and partner cost at 20% of revenue.
 
 | Year | Employers × seats | Institutions | Revenue (RM) | Team + infra + sales (RM) | Operating result (RM) |
 |---|---|---|---:|---:|---:|
@@ -129,171 +221,129 @@ Mentor feedback: judges set the problem and may invest, so lead with feasibility
 | 2030 | 150 × 100 | 15 | 1,815,000 | 1,132,680 | 682,320 |
 | 2031 | 300 × 100 | 25 | 3,505,000 | 1,808,360 | 1,696,640 |
 
-Low case (half the customers) reaches RM1.74m revenue in 2031; high case (1.5×) RM5.27m. Cumulative pre-break-even need in the base case ≈ **RM0.30m** (estimate). Year-5 base share = 300 of >100,000 registered employers (0.3%). **Why Adept can reach it:** deterministic reads mean no model cost per page view and one shared daily refresh for all customers, so marginal cost per seat is mostly support time; the catalogue and Malaysian sources are reused across every customer. Gates before spending: paid pilot → renewal → claimability answer → measured capacity.
+- **Sensitivity:** a low case (half the customers) reaches RM1.74m revenue in 2031; a high case (1.5×) reaches RM5.27m.
+- **Funding need:** cumulative pre-break-even need in the base case is about **RM0.30m** (estimate).
+- **Share required:** 300 employers in year 5 is 0.3% of more than 100,000 registered employers [S3].
+- **Why the cost curve is favourable:** reads are deterministic, so there is no model cost per page view; one shared daily refresh serves all customers; and the catalogue and Malaysian sources are reused across customers. Marginal cost per seat is mainly support time.
+- **Spending gates:** paid pilot → renewal → HRD claimability answer → measured capacity.
 
-**Not found:** an official Malaysian HR/L&D software market size; a 2026 national count of registered employers; any official statement that skills-planning SaaS is HRD-claimable; a Malaysia replacement-cost-per-employee benchmark.
+## 10. Pilot plan and success metrics
 
-### Evidence classifications and source register
+**Design.** One Malaysian operations employer, one role family, one training budget, 25–50 seats, 8–12 weeks. The competition prototype uses synthetic data; a real-data pilot requires signed employer and learner consent, a privacy notice, a data-processing agreement, a retention and deletion plan, an access audit and a security review. The baseline is the manager's current spreadsheet and course-buying process on matched cases, with Adept-first and manual-first order counterbalanced. An independent reviewer rates plan validity.
 
-**Measured** = source logs/invoice/reproducible benchmark; **verified external fact** = directly read authoritative publisher; **planning assumption** = hypothetical for decision testing; **derived** = arithmetic from labelled inputs; **unknown** = missing proof. A URL's live page can change: the retrieval date above is part of each claim. Price figures below are **listed rates, not team invoices**. No USD→MYR conversion is silently applied.
+**Recruitment.** Discovery conversations with 10–15 Malaysian operations L&D decision-makers, leading to one pilot partner.
 
-| Input / exact unit | Evidence class, publisher and limits |
+| KPI | Current evidence | Pilot target |
+|---|---|---|
+| Catalogue-ID validity of recommended courses | Phase 1 target 100%; 15/15 automated synthetic journeys passed ID-resolution checks locally [A1] | 100% in an independent audit |
+| Median time from intake to a valid plan | Phase 1 target under 3 minutes; human trials not yet run | Under 3 minutes (human-completed) |
+| Plans rated valid by an independent reviewer | Not yet measured | ≥ 80% |
+| Median manager decision time vs manual baseline | Not yet measured | ≥ 20% improvement |
+| Consented intake completion | Not yet measured | ≥ 70% |
+| Commercial signal | No paid customers yet | ≥ 1 paid renewal offer |
+| Privacy incidents | — | 0 (any incident stops the pilot) |
+
+Later metrics are verified skill demonstration by an independent assessor, repeat use and paid renewal. Course clicks are not treated as proof of proficiency, redeployment or job placement. A buyer who will not pay or renew after a valid workflow triggers a narrower proposition.
+
+## 11. Scalability and feasibility
+
+**Replit-first.** The prototype runs as one public web server, one private API and one managed PostgreSQL instance with explicit pool limits and indexes. Source refresh is a single shared job with a lock, lease, retry and recovery; page reads use stored snapshots. This keeps the marginal cost of a learner low: a 30-day research refresh is charged once per shared run, not once per learner.
+
+**Scale path.** Capacity has not yet been load-tested. Adept will measure database p95 query time and pool saturation, active connections against the plan cap, lock contention, storage growth, restore time, cache age and worker recovery, and will add workers or split services only when measured thresholds are reached.
+
+**Public provider tariffs (USD, retrieved 31 Oct 2026).**
+
+| Service | Tariff | Source |
+|---|---|---|
+| Replit Autoscale | $1/month base + $0.40 per million requests + $0.60 per million compute units; egress $0.05/GiB | [S28] |
+| Replit PostgreSQL | $0.16 per compute-hour + $0.35 per GiB-month | [S28] |
+| RunPod Serverless (MiniLM) | L4/24GB $0.75 per GPU-hour; RTX 4090 $1.34; billed per running second, rounded up per period | [S29] |
+| Gemini embedding / Flash Lite | $0.15 per million input tokens (batch $0.075); Flash Lite $0.30 input + $2.50 output per million tokens | [S30] |
+
+**Illustrative monthly model and database cost (assumptions, not invoices).** 720 database compute-hours with 5 GiB stored ≈ US$116.95; 30 daily MiniLM jobs × 2 periods × 90 s on L4 ≈ US$1.13; 200 embedding searches × 100 tokens ≈ US$0.003; 300 Adi requests with 5% Gemini fallback ≈ US$0.03 (primary GLM endpoint cost to be measured). Hosting compute units, licences and human support are additional and are expected to dominate.
+
+**Workload scenarios (planning assumptions).** 50 seats per organisation, 80% monthly active, per active user per month: one saved plan, two role checks, four trend-backed role reads, 0.2 skill searches and 0.3 Adi chats; three support hours per organisation per month at RM50.
+
+| Monthly active users | Organisations / paid seats | Plans / role checks / role reads | Searches / Adi chats | Revenue at RM6 | Support cost assumption |
+|---|---:|---:|---:|---:|---:|
+| Pilot (32) | 1 / 40 | 32 / 64 / 128 | 6.4 / 9.6 | RM240 | RM150 |
+| 1,000 | 25 / 1,250 | 1,000 / 2,000 / 4,000 | 200 / 300 | RM7,500 | RM3,750 |
+| 10,000 | 250 / 12,500 | 10k / 20k / 40k | 2k / 3k | RM75,000 | RM37,500 |
+| 100,000 | 2,500 / 125,000 | 100k / 200k / 400k | 20k / 30k | RM750,000 | RM375,000 |
+
+Source refresh stays at about 30 shared daily checks at every scale, rather than one refresh per user. At 2,500 organisations, support staffing (not compute) is the binding constraint, which is why onboarding and review tooling are on the roadmap.
+
+## 12. Risks and mitigations
+
+| Risk | Mitigation |
 |---|---|
-| 1% levy on wages for covered employers with ≥10 Malaysian staff; 0.5% voluntary for 5–9 | **Verified external fact.** HRD Corp, Employer Registration guidance, undated, retrieved 31 Oct 2026. Does not mean subscriptions are claimable. |
-| BrioHR Training RM3/month, Talent Essentials RM7/month, minimum RM200/month | **Verified external listed rate.** BrioHR, Malaysia Pricing Plans, undated, retrieved 31 Oct 2026. Rate is modular with billable-employee conditions; an individual quote may differ. |
-| Swingvy Premium RM8.50/user/month, five-user minimum | **Verified external listed rate.** Swingvy Malaysia Pricing, undated, retrieved 31 Oct 2026; payroll and annual discount separate. |
-| Kakitangan software | **Unknown price.** The vendor's estimator did not render a comparable rate when unconfigured on 31 Oct 2026; RM0 is not a published price. |
-| 8.09m persons employed by MSMEs = 48.7% of Malaysian employment, 2025 | **Verified external fact.** DOSM, MSME Performance 2025, published 30 Jul 2026; persons are not buyers or seats. |
-| 1,996 TVET institutions = 895 public + 52 state/statutory + 1,049 JPK private | **Verified external count.** National TVET Portal, undated counters retrieved 31 Oct 2026; alternate official population definitions exist and this is a separate buyer segment. |
-| 100,000+ HRD Corp-registered employers | **Secondary reported fact.** NST reporting a ministerial reply, Aug 2025; no primary buyer roster verified; registered is not qualified to buy. |
-| RM2.5bn collected / RM2.44bn grants disbursed FY2025 | **Secondary.** The Edge Malaysia report on HRD Corp financials; primary financial PDF not independently text-verified here. Training money is not SaaS revenue. |
-| 56% AI use / 26% training in Malaysia (Phase 1 context) | **Historical secondary quote.** Preliminary submission attributes to Hays Asia Salary Guide 2025; the public landing page does not reproduce values. Verify survey table/sample before hero use. |
-| 15/15 local scripted synthetic API journeys, per-persona medians 0.091–0.236s | **Measured in isolated local tests**, 30 Oct 2026, CSV/in-memory historical fixture; excludes human, browser, network and paid model. Not an achieved time-to-plan KPI. |
-| 0 human attempts and null matched medians | **Recorded absence**, 30 Oct 2026; human trial protocol not run. |
+| Trend signals are proxies (research attention, US baseline), not Malaysian vacancy data | Labelled as estimates with sources and dates; scenarios show assumptions; Malaysian job and labour data shown with their own scope |
+| Automatic refresh not yet verified in production | Apply migrations and configuration, record a successful live publication and a later scheduled run; stale or fallback data is labelled in the UI |
+| Catalogue facts (fees, dates, prerequisites) change | Dated course records, reviewer checks during the pilot, uncovered gaps shown explicitly |
+| Buyers may not pay above incumbent HR modules | Add-on pricing below incumbent bundles; paid pilot and renewal as the gate before scaling |
+| HRD claimability of the subscription is unconfirmed | Sell from software budget first; test training-provider registration or bundling |
+| Personal data in a real pilot | Consent, data-processing agreement, retention plan, access audit and security review before any real data; synthetic data in the competition |
+| Model misuse or invented content | Models only select validated IDs; deterministic fallback; no model text displayed |
+| Support load at scale | Measure hours per organisation in the pilot; build onboarding and review tooling before growth |
+| Third-party licences (e.g. PyMuPDF AGPL, job-feed reuse terms) | Licence review before commercial distribution; commercial licence or replacement if required |
 
-**Market trend is not demand validation:** Malaysian training spend and employment scale establish a large context; interviews, purchase orders and renewals must establish *our* buyer demand. The TVET total overlaps some government-funded education ecosystems; never add education students to employer seats to inflate TAM. Older pitch notes claim “1.6M trainees (2025)” and “1% of SAM” without a defensible source/pipeline; **do not reuse**. Government portals MyFutureJobs and UpskillMalaysia are real alternatives. The latter explicitly includes skills and programme matching; do not claim Adept invented matching. Large enterprise products Coursera for Business and Degreed have broad course/skills offerings and custom pricing. Distinction to test: a *Malaysian employer's sourced, consent-aware training decision record*, not “better AI” or “cheaper than every competitor.”
+## 13. Roadmap and future work
 
-### Customer value and pricing research, with honest counterweights
-
-| Alternative | What it already does | Why test Adept as an add-on, not a replacement | Unresolved |
-|---|---|---|---|
-| BrioHR | Training paths, approvals, catalogue, attendance, course/provider evaluation on official page | Decide **which role/gap/source** warrants training, then export into existing admin workflow | RM3 module/RM7 talent bundle challenge RM15–25 legacy seat price; integrations absent |
-| Swingvy | HR/payroll suite with public per-user MYR pricing | New input for role-gap justification, not duplicated HR administration | No direct procurement integration; five-user minimum elsewhere is not Adept demand |
-| ChatGPT + spreadsheet | On-demand drafting at low friction | Validated IDs, source snapshots, conservative unmet gaps, employee consent and programme acceptance | Buyer may value human adviser more; must run blind reviewer task |
-| HRD/e-LATiH / course sites | Courses and funding pathways | Decide priority across courses and keep dates/limitations visible | No blanket claim a software fee is HRD-claimable; verify with HRD Corp |
-| TVET/placement portals | Cohort/career matching and public programmes | Potential later institution workflow | Public alternatives and procurement cycle make this a second market |
-
-**Price hypotheses, not published Adept prices:** test RM6/active learner/month with 25–50-seat organisations and RM10 for a deeper manager/evidence tier. BrioHR Talent Essentials RM7 and All-in-One RM21 make the older RM15/RM25 plan difficult to justify for a thin add-on; neither RM6 nor RM10 is proven viable. Present paired written quotes to 10 eligible buyers; ask for a paid pilot/invoice rather than a survey-style “would you buy?” Retain refusals and procurement objections. No consumer LTV or referral commission is assumed.
-
-## Part III — financial feasibility and scale model
-
-### Cost/service inventory and evidence standard
-
-| Cost object | How charged / primary source (USD unless noted) | Adept cash now, credit, future and labour classification |
-|---|---|---|
-| Replit Autoscale | Replit Aug 2026 cloud billing: $1/month base + $0.40 per **million requests** + $0.60 per **million compute units**; egress $0.05/GiB; rates effective 2026-08-01 for eligible billing cycles, retrieved 2026-10-31 | Actual product-attributable usage/invoice **unknown**. Sponsor Core subscription temporarily provided. Historic proof shows $6.38 **account** spend in its window, not current Adept-only cost |
-| Replit managed PostgreSQL | Same official billing page: $0.16/**compute-hour**, $0.35/**GiB-month** DB storage. Outbound deployment egress is separate, not automatically DB egress | Actual compute-hours/storage, backup/restore cost, plan cap unknown; sponsor use not free after allowance |
-| RunPod MiniLM Serverless | Serverless docs: running worker seconds billed, each period rounded **up to 1 second**; cold start + 5s default post-job idle billable, scaled-down time not billed. Public price table: L4/24GB group $0.75/GPU-hour, RTX4090/24GB $1.34/GPU-hour; actual deployed SKU unknown | Historical US$25 sponsor credit, balance and usage export unknown. Old 4090 Pod demo ≠ current MiniLM worker price/throughput |
-| RunPod GLM-5.3 | Public hosted GLM endpoint is a **different billing product** from our MiniLM worker; exact endpoint invoice/rate and input/output tokens unknown | Configured Adi provider; default `LLM_PROVIDER=none`; never apply MiniLM GPU runtime rate to hosted GLM tokens |
-| Gemini `gemini-embedding-001` | Google API pricing, undated page retrieved 2026-10-31: paid standard $0.15/**million input tokens**, batch $0.075; free tier conditions differ | Opt-in unfamiliar skill search/reindex; actual paid/free entitlement, requests and token count unknown |
-| Gemini 3.5 Flash Lite fallback | Same Google page: paid standard $0.30/**million input tokens** + $2.50/**million output tokens**, plus applicable extras. 3.6 Flash and 3.1 Flash Lite backup prices/tier differ | Activated only on optional Adi failure; fallback/retry count unknown. Free allowance does not prove long-run zero |
-| Feeds and rights | arXiv/UN/DOSM/board public endpoints have terms; keyed feeds and commercial data/enterprise integrations may require licence | Current licence/paid contracts **unknown**; do not count them as zero for production |
-| Human service | Onboarding, mapping review, security/legal, privacy support, quality checks, sales; founder labour currently unpaid | Cash paid vs necessary sustainable staffing **unknown**; budget with `hours × loaded MYR hourly cost` |
-| Development tools | Claude Code, Codex, Replit Agent, Greptile, Remotion/ElevenLabs etc. in declaration | Team subscriptions and presentation expenses **separate** from per-learner product inference; actual invoices unknown |
-
-**Billing ledger needed before a commercial forecast:** Replit invoice by project/billing cycle (compute units, requests, DB compute-hours/GiB, backups, transfer), RunPod endpoint SKU/active workers/idletime/charged seconds and GLM endpoint token/rate report, Gemini usage by model/tier and paid flag, provider licences, staff time sheets and FX. Never expose credentials or private user records. A screenshot balance is a dated account observation, not cash cost allocated to Adept.
-
-### Feature → billable event map (code path, not pricing guess)
-
-| Trigger | Shared vs per-user, service event, cache and retry | Meter / measurement still required |
-|---|---|---|
-| PDF/DOCX/text CV parse and intake | Per-user local CPU/memory and DB writes; unknown phrase may request optional Gemini semantic suggestion; user confirms. No default paid LLM on upload | Parse CPU/p95, upload size, embeddings per CV, tokens/errors |
-| Catalogue seed/re-index and explicit unfamiliar-skill search | Reindex changed labels once/shared when enabled; explicit phrase query per user optional Gemini; approved aliases resolve locally. No embedding on each dashboard view | Label count, tokens/label, cache hits, search rate, free/paid tier |
-| Adi chat | Per signed-in request, optional RunPod GLM-5.3 then separately authenticated Gemini failover, finally deterministic guide. No model-generated entity/prose display | Input/output/thinking tokens and rates, fallback attempts, charged failed calls, latency |
-| Trends ingestion + MiniLM | Shared daily due-check; bounded arXiv weeks, MiniLM per batch, then database publication; worker may cold-start. `TRENDS_MATCHER=auto` keeps MiniLM until equivalence gate | Paper/week and text length avg/p95, batches, billed seconds/attempt incl retries, successful publication |
-| Stored trend rescore | Shared database/computation only, reuses paper inputs; no model call if cache complete | CPU and DB rows/time, recompute frequency |
-| Jobs/course refresh | Shared daily or source cadence; documented public boards/providers, bounded requests, URLs; no LLM on normal sync | Request counts/status, per-source rules, fact age, licensed access, DB writes |
-| Matches/pathway/radar/scenario/date filter | Per-user deterministic DB/reference reads and scores; date switch may change stored snapshot; **no inference on page view** | DB query counts, p50/p95, memory, pool concurrency, cache-hit ratio |
-| Org aggregation | Per-org DB query over explicitly shared member records; no inference per card | Cohort size, suppression and query plans/CPU, cache invalidation |
-
-**No double-charge:** a 30-day arXiv refresh is charged once per shared run, **not once per learner**. A failed job can still consume billable worker time or tokens. Some successful checks publish no new data; record changed-row counts. `LLM_PROVIDER=none` and `EMBEDDINGS_PROVIDER=none` are source defaults, not guaranteed deployed settings.
-
-### Reproducible math — price, units and uncertainty
-
-Let `x` be **MYR per USD at the actual payment date** (unknown; source later from BNM, record date/fees). Do **not** merge USD costs and MYR revenue without `x`. `ceil` applies **per billed worker period**, not to a whole month's summed seconds.
-
-```
-Replit_DB_USD = 0.16 USD/compute-hour × measured compute-hours
-              + 0.35 USD/GiB-month × measured mean stored GiB-months
-Replit_web_USD = 1 USD/month + 0.40 USD/(10^6 requests) × requests
-               + 0.60 USD/(10^6 compute units) × compute units
-               + 0.05 USD/GiB × outbound GiB
-MiniLM_USD = Σ_billed-worker-periods [GPU_rate USD/hour × ceil(running_seconds)/3600 seconds/hour]
-Gemini_embedding_USD = eligible_input_tokens / 10^6 × 0.15 USD (standard paid tier)
-Gemini_fallback_USD = input_tokens/10^6 × 0.30 + output_tokens/10^6 × 2.50
-Full_month_MYR = (Replit_web + Replit_DB + RunPod + Gemini + other USD costs) × x
-               + MYR licensing + loaded human hours × MYR/hour + sales/support/admin
-```
-
-**Illustrative partial monthly computation, all unvalidated planning assumptions:** 720 DB compute-hours and 5 average GiB produce `720 h × $0.16/h + 5 GiB-month × $0.35/GiB-month = $115.20 + $1.75 = $116.95` for the DB **only**. Assume a MiniLM L4/24GB flex worker (actual SKU unknown), 30 daily jobs, two charged worker periods per job, 90 seconds each including cold start/idle: `30 × 2 × ceil(90s) = 5,400 worker-s = 1.5 h; 1.5 h × $0.75/h = $1.125`. A real run may invoke more batches or be skipped; this is **not** a measured cost. Assume 200 explicit embedding searches ×100 input tokens = 20,000 tokens → `$0.003` paid embedding price, if not free. Assume 300 Adi requests, 5% Gemini fallback with 2,000 input and 500 output tokens each: `15 × (2000×$0.30 + 500×$2.50)/1,000,000 = $0.02775`; the primary GLM charge and retries remain **unknown**, so do not call $0.02775 the chat cost. The Replit 1M compute-unit tariff needs actual compute units; 720 h does **not** imply any number of those units. Rounded bills and payment FX differ. These small model illustrations do not establish affordability once hosting, licensing and labour are counted.
-
-### Pilot, 1k, 10k, 100k workload scenarios — **capacity not benchmarked**
-
-Planning assumptions: each organisation pays for **50 seats**, 80% active in a month, one saved plan, two role checks, four trend-backed role reads (Radar trend-line charts are future work), 0.2 explicit embedding searches and 0.3 Adi chats per MAU/month; daily source cadence shared across all tenants (may skip if up-to-date). Typical Adi fallback tokens 2,000 input/500 output, p95 planning placeholder 8,000/1,500 to be **measured**; 5% fallback and retry load are **assumptions**, not observed rates. Daily peak concurrency, worker SKU, DB retention and storage bytes/record are unknown; model them as parameters `C_peak`, `B_worker`, `bytes_saved`. Assume 3 loaded service hours/org/month for onboarding amortisation + support + reviewer checks at **RM50/hour** solely to illustrate labour sensitivity (neither wage nor time is verified). At 2,500 organisations this staffing assumption alone is implausible for four founders.
-
-| MAU scenario (assumed) | Organisations / paid seats | Plans, role checks, radar reads / month | Search, Adi chats / month | Shared source check/jobs | Price-hypothesis revenue @ RM6/paid seat/mo; human cost @3h/org×RM50/h |
-|---|---:|---:|---:|---|---:|
-| Pilot | 1 / 40; assume 32 MAU | 32 / 64 / 128 | 6.4 / 9.6 expected counts | <=30 due checks; actual workers only when due | RM240 revenue; RM150 service assumption |
-| 1,000 | 25 / 1,250 | 1,000 / 2,000 / 4,000 | 200 / 300 | 30 shared daily checks, not 30,000 refreshes | RM7,500 revenue; RM3,750 service assumption |
-| 10,000 | 250 / 12,500 | 10k / 20k / 40k | 2k / 3k | same shared cadence unless new source volume | RM75,000 revenue; RM37,500 service assumption |
-| 100,000 | 2,500 / 125,000 | 100k / 200k / 400k | 20k / 30k | same cadence, heavier data and operational burden | RM750,000 revenue; RM375,000 service assumption |
-
-These are **stress planning numbers, not market capture, platform throughput or a sales forecast**. Subscription billing unit is *paid seats*, not MAU; the table does not charge both included seats and an organisation licence. Retention of one plan/person/month adds `plans × bytes_saved` plus audit and source-history growth, not “free unlimited storage.” Peak/day ratio, burst concurrency and p95 payload are unknown. Measure DB p95 query/pool saturation, scheduler lock wait, worker seconds per batch and hosting compute units before proposing a Replit plan upgrade. A split worker/database host is justified only after consistent measured resource pressure and a tested migration/restore path. Content licences or human verification may dominate model bills.
-
-### Pricing, margin, break-even, cash and downside
-
-**Hypotheses**: RM6 per paid learner/month for a basic employer cohort; RM10 for a manager/verification tier only if independently validated. One 40-seat, 12-week pilot at RM6/month = `40×RM6×3=RM720` recognised over three months (**RM240/month**); an annual 40-seat booking at the same rate would be RM2,880, not the three-month pilot price. If a single invoice bills RM720 upfront, cash collected upon payment is RM720 but revenue is recognised RM240 per delivered month; if invoiced monthly and paid 30 days later, cash arrives later. No bookings, cash or revenue actually exist today.
-
-Illustrative labour at 1 org ×3h/month×RM50/h = **RM150/month**, leaving **RM90/month before hosting, data rights, inference, billing fees, sales, taxes or fixed staffing**. If support increases to 5h/month, the same assumption costs RM250 and contribution is negative even before infrastructure. **Actual `v` variable delivery cost and `F` fixed monthly cost are unknown.** For a 40-seat RM6 tier: `contribution = RM240 − v`; if `v < RM240`, `break_even_orgs = ceil(F/(RM240−v))`, otherwise the price cannot break even. At RM10/seat for 40 seats revenue would be RM400/month but buyer willingness remains unknown. Any margin `=(revenue−delivery cost)/revenue` must include loaded onboarding/review labour and allocated cloud charges and cannot presently be stated. Do not call operating contribution profit; fixed team salaries, sales and founder compensation remain to be paid.
-
-**Cash runway model:** opening cash + pilot invoices *actually collected by month* − Replit/RunPod/Gemini cash paid after credits expire − staffing/support/legal/sales cash − tax/working-capital changes. Record sponsor-credit expiry, 30–90 day procurement and payment lag, pilot onboarding spike, annual prepayment vs monthly recognition, renewal timing and delayed enterprise collections. No CAC, churn, LTV or payback metric exists without customers. Downside gates: only 1 of 10 interviews converts; LLM fallback/long context doubles charges; support rises from 3→5 h/org/mo; credit runs out; database compute-hours double; procurement takes 6 months; source licence becomes paid. Recompute with actual logs/invoices; do not hide a negative contribution behind free credits or founder time.
-
-### Bottom-up Malaysian TAM / SAM / SOM — planning construct, not claimed revenue
-
-**Verified denominator caveat:** DOSM's 1,069,831 MSME *establishments* (Economic Census 2023, release) are not unique employer contracts; 8.09m employed *persons* are not paid seats. Reported 100,000+ HRD-registered *employers* is **secondary**, and not all have an L&D buyer, eligible role family or procurement budget. We do not have a machine-readable qualified-employer count. Accordingly **verified numeric TAM, SAM and SOM do not yet exist.** Do not reuse legacy “3.5M×RM240” or a flat 1% capture claim.
-
-```
-TAM_MY_RM/year = N_eligible_employers × mean_purchasable_seats × price_RM/seat/month × 12
-SAM_MY_RM/year = N_employers_with_budget+reachable_role+permitted_data+support_capacity × billable_seats × P × 12
-SOM_3yr_RM/year = min(qualified_prospects×observed_win_rate,
-                       procurement/onboarding/support capacity) × realised_seats × realised_P × 12
-```
-
-**Transparent illustration, not a measured market size:** if **1,000** organisations independently qualify through interviews/licensing (assumption), 40 seats each at RM6 (hypothesis) → `1,000×40×RM6×12 = RM2,880,000/year` **illustrative SAM**, *not* a verified opportunity. If a team can source **30** qualified prospects/year, wins **10%** (both untested) and supports **3** 40-seat accounts → `3×40×RM6×12=RM8,640/year` illustrative run-rate at year-end; procurement timing means actual first-year recognised revenue could be much less. TAM remains `N_eligible×seats×P×12` until a qualified buyer roster exists. Employer and TVET populations are separate sales motions; add neither seats nor contracts twice.
-
-### Questions a CEO judge will ask — answer without bluffing
-
-| Judge | Honest answer / evidence gate |
+| Horizon | Milestones |
 |---|---|
-| Why pay when BrioHR Training is RM3? | We are testing a *pre-purchase role/gap decision* layer; administration is already served. If buyer time and course choices do not improve in a paid pilot, there is no purchase case. |
-| Is RM6 profitable? | Unknown. RM240/month on a 40-seat pilot, assumed RM150 service leaves RM90 before every platform/marketing cost. We need real support logs and invoices. |
-| Does HRD levy pay your subscription? | No verified permission. We will ask HRD Corp and use ordinary L&D software budget unless explicit written eligibility exists. |
-| Does your AI predict which jobs vanish? | No calibrated Malaysian employment predictor. It compares sourced proxy trends and scenario assumptions; employers still make choices. |
-| Can it handle 100k users on Replit? | Not benchmarked. Shared refresh reduces repeated inference but DB concurrency, paid service and support capacity must be load-tested; no provider migration promised. |
-| What did you achieve against Phase 1 targets? | Code paths and 15 scripted synthetic journeys work locally, but no human timed test or independent 100% ID validity audit has yet proven targets. |
-| What is the moat? | Hypothesis: local workflow, source/date integrity, consent and auditable decisions. Data/IP permissions and buyer adoption must be earned; a matching formula alone is not defensible. |
+| Now (submission) | Individual and organisation modes, explained matching and gaps, catalogue-grounded pathways, SDG links, Radar signal and role-direction cards, Adi answer blocks, sources on every card, three languages |
+| Next 30 days | Verify the deployed revision and a live source publication; ten buyer discovery interviews; billing instrumentation and a backup-restore drill |
+| Next 90 days | One 25–50-seat paid pilot under consent and contract; independent plan review; renewal decision |
+| Future work | Radar trend-line, range and snapshot-comparison charts once refresh cadence is verified; exportable training decision record; HRIS import, SSO and BI export when requested by a paying buyer; TVET/university workflow; HRD training-provider route |
 
-## Part IV — final presentation storyboard (≤15 slides)
+**Out of scope.** Predicting exact job losses, automated hiring or personnel decisions, certificate equivalence, and model calls on every page view.
 
-**Deck is business-first, maximum 15 slides. This plan specifies 14; the product PRD above carries technical detail that the CEO audience should not read on screen.** Format 16:9, one thesis per slide, 1–3 graphic objects and ≤25–30 body words, source/date in a quiet footer (never omitted for a number). Suggested typography: title ~40–48pt, hero number ~88–120pt, body ≥22pt, source ≥12pt. Use Adept's deep green/sage/ink, one accent per slide; visual identity remains consistent with the app. No clipped source captions, word clouds, axis tricks, dual axes or decorative pies. Charts encode **one unit per axis**, display denominators, and use labels/patterns in addition to color. Do not make up a trend line from one observation. Images/screenshots must be captured from the verified build with synthetic data, and labelled as such. Speaker notes below contain the detail removed from screen.
+## 14. Sources
 
-| # · time | Slide thesis (on-screen copy) | Layout / visual, exact data and spoken narrative | Evidence gate |
-|---|---|---|---|
-| 1 · :15 | **Adept. Better training decisions for changing work.** | Dark cover; single worker → role → plan path; speaker introduces employer L&D buyer and member autonomy | No numeric claim |
-| 2 · :30 | **Training need is growing. The choice is hard.** | Large **8.09m** with small caption “persons employed by Malaysian MSMEs, 2025”, and **48.7%** share; two clean labelled horizontal marks, not a fake time series. Explain this is the *context*, not Adept users (DOSM, 2026-07-30) | Consider one better verified buyer-pain figure only after source methodology checked; never imply 8.09m are reskilling buyers |
-| 3 · :25 | **The manager buys a course before proving the gap.** | One-screen manual workflow with three fragmented cards: role list / spreadsheet / course catalogue; one red connector labelled “decision not traceable”. Speaker asks who is trained, for which role, why this course | Interview needed to validate frequency; mark workflow as hypothesis |
-| 4 · :25 | **Adept starts with the gap.** | 4-stage pipeline: confirmed skills → dated signal → explained role/gap → ordered, costed training plan; emphasis on human approval, small source label | Trace through source and synthetic demo |
-| 5 · :35 | **A learner sees an actionable next step.** | Three actual synthetic UI crops (confirmed skills, score/gap, course plan) with 1-line annotations; large valid-ID target “100%*” only if visibly marked **Phase 1 target, unverified** | Screenshot revision/snapshot; avoid claiming achieved speed-up |
-| 6 · :30 | **HR sees gaps, members control sharing.** | Split-screen consent toggle + aggregate heatmap/programme approval; 3 terse bullets: invite, review, fund. Narrate no autonomous HR decision | Server-side role/consent checks, synthetic org |
-| 7 · :30 | **Estimates, not employment promises.** | Show one role card with its Moderate/Fast trend component and its small Sources link (full sources on the Data and AI use page); no vacancy axis. Radar trend-line charts are listed as future work | Actual final API response and production source dates; no 2024 replay as current |
-| 8 · :25 | **The training wallet exists; our fee is not yet funded.** | Hero **1%** levy for covered ≥10-employee employers; slim qualifier “wages, not SaaS claimability” (HRD Corp); beside it show buyer → member → provider, no bogus cash flow | HRD Corp eligibility and software funding unresolved |
-| 9 · :30 | **Why add Adept to the existing stack?** | Four-column comparison of manager spreadsheet, generic chat, HRMS training admin, Adept hypothesis; only check features confirmed from vendor pages; call out BrioHR RM3 training/RM7 bundle footer | Buyer interview and blind plan-review needed; no blanket competitor weakness |
-| 10 · :30 | **Start with one Malaysian operations team.** | Concentric *funnel* of **qualified employer → paid pilot → renewal**, counts remain `?` until recruited; TVET next, not simultaneous. Use 100,000+ registered employers only with “secondary, not eligible buyers” footnote, preferably omit | 10 discovery interviews + qualified list |
-| 11 · :35 | **A paid pilot is the proof, not downloads.** | Side-by-side manual vs Adept task, 8–12 weeks, 25–50 seats. Three small gates: valid plan, decision minutes, paid renewal. Add **0 human trials** as current status, not a failure hidden | Pre-register, independent reviewer, anonymised results |
-| 12 · :30 | **RM6 is a price test, not revenue.** | One large equation `40 paid seats × RM6/month × 3 months = RM720`; below: “RM150/month human service *assumption*; cloud bill unknown.” Compare RM7 incumbent bundle without implying equal feature scope | Actual competitor page, assumptions labelled; correct 3-month vs annual math |
-| 13 · :25 | **Replit first. Upgrade when measured.** | Simple shared refresh → managed PG → cached reads; small markers “p95 query / worker seconds / support hours”; no AWS boxes or capacity claim | Run records, DB usage, restore test missing |
-| 14 · :20 | **Prove the decision, earn the renewal.** | 3-step roadmap: verify live source → paid buyer pilot → scoped integration; closing CTA “one team, one role family, one measured decision.” | No projected profit/TAM without qualified buyers |
+All web sources were retrieved on 31 October or 1 November 2026 unless another date is given. Live pages may change after retrieval.
 
-**Five mandatory themes covered:** problem 2–3; solution/impact 4/7/11; product 5–6; market/differentiation 8–10; business/funding/next investment 12–14. User target appears in 1, 6, 10. Leave screenshots as placeholders until captured from a verified production-like revision. Investor numbers should come from measured customer time or primary statistics, not invented “Adept reduces X%” forecasts. Use the real Phase 1 targets in report, not the pilot's proposed 20% reduction. Pitch in 5–7 minutes, reserve Q&A for the technical appendix/PRD. If a flattened PDF is required, export the completed deck and verify it independently; this file is a deck **plan**, not the deck itself.
+- **S1** HRD Corp, Media Release: Highlights of 2025, 13 Jan 2026. https://hrdcorp.gov.my/wp-content/uploads/2026/01/Media-Release-Highlights-of-2025.pdf (retrieved 1 Nov 2026)
+- **S2** HRD Corp, Employer Registration. https://hrdcorp.gov.my/employer/ (retrieved 31 Oct 2026)
+- **S3** New Straits Times, HRD Corp registers over 4.8mil employees, 100,000 employers, Aug 2025. https://www.nst.com.my/news/nation/2025/08/1263966/hrd-corp-registers-over-48mil-employees-100000-employers-says-steven (retrieved 31 Oct 2026)
+- **S4** DOSM, Labour Force Statistics, August 2026, 9 Oct 2026. https://www.dosm.gov.my/portal-main/release-content/labour-force-statistics-aug2026 (retrieved 1 Nov 2026)
+- **S5** DOSM, Salaries & Wages Survey Report 2025, 21 Sep 2026. https://www.dosm.gov.my/portal-main/release-content/salaries-and-wages-survey-report- (retrieved 1 Nov 2026)
+- **S6** ISIS Malaysia & World Bank, Novel AI technologies and the future of work in Malaysia, Jul 2025. https://www.isis.org.my/2025/07/06/novel-ai-technologies-and-the-future-of-work-in-malaysia/ (retrieved 1 Nov 2026)
+- **S7** The Edge Malaysia, report on TalentCorp impact study, Nov 2024. https://theedgemalaysia.com/node/734414 (retrieved 1 Nov 2026)
+- **S8** DOSM, Graduates Statistics 2024, 31 Oct 2025. https://www.dosm.gov.my/uploads/release-content/file_20260401145140.pdf (retrieved 1 Nov 2026)
+- **S9** TalentCorp, MyMahir Malaysia Critical Occupations List (MyCOL) 2024/2025. https://www.talentcorp.com.my/resources/publications/mymahir-malaysia-critical-occupations-list-mycol20242025/
+- **S10** New Straits Times, Malaysia targets 300,000 AI jobs by 2030, 22 Oct 2026. https://www.nst.com.my/amp/business/economy/2026/10/1561294/malaysia-targets-300000-ai-jobs-2030 (retrieved 1 Nov 2026)
+- **S11** Bernama, PERKESO EIS re-employment, 18 Oct 2026. https://bernama.com/en/general/news.php?id=2621984 (retrieved 1 Nov 2026)
+- **S12** Aon, Aon survey projects 4.8 percent salary growth for Malaysia in 2026, 11 Dec 2025. https://www.aon.com/apac/in-the-press/asia-newsroom/2025/aon-survey-projects-4-8-percent-salary-growth-for-malaysia-in-2026 (retrieved 1 Nov 2026)
+- **S13** National TVET Portal, institution counters (895 public, 52 state/statutory, 1,049 JPK private). https://www.tvet.gov.my/ (retrieved 31 Oct 2026)
+- **S14** MIDA, Education Services, Feb 2026. https://www.mida.gov.my/industries/services/education-services/ (retrieved 1 Nov 2026)
+- **S15** DOSM, MSME Performance 2025, 30 Jul 2026. https://www.dosm.gov.my/portal-main/release-content/micro-small--medium-enterprises-msmes-performance-2025 (retrieved 31 Oct 2026)
+- **S16** DOSM, Economic Census 2023: Profile of SMEs, 19 Sep 2024. https://www.dosm.gov.my/portal-main/release-content/economic-census-2023-profile-of-small-and-medium-enterprises (retrieved 31 Oct 2026)
+- **S17** The Edge Malaysia, HRD Corp FY2025 financials. https://theedgemalaysia.com/node/809678 ; HRD Corp Financial Report 2025. https://hrdcorp.gov.my/wp-content/uploads/2026/07/HRD-Corp-Financial-Report-2025-Digital-Version.pdf (retrieved 31 Oct 2026)
+- **S18** HRD Corp Support Centre, e-learning programme financial assistance. https://supportcentre.hrdcorp.gov.my/portal/en/kb/articles/e-learning-programme-financial-assistance (retrieved 1 Nov 2026)
+- **S19** HRD Corp, training provider registration and claimable courses. https://supportcentre.hrdcorp.gov.my/portal/en/kb/articles/training-provider-registration ; https://hrdcorp.gov.my/hrdcorp-claimable-courses (retrieved 31 Oct 2026)
+- **S20** Disprz (vendor blog), HRDF digital learning LMS Malaysia. https://disprz.ai/blog/hrdf-digital-learning-lms-malaysia (retrieved 1 Nov 2026)
+- **S21** LinkedIn Help, LinkedIn Learning pricing. https://www.linkedin.com/help/learning/answer/a768297 (retrieved 1 Nov 2026)
+- **S22** Bank Negara Malaysia, exchange rate API (USD selling rate, 30 Oct 2026). https://api.bnm.gov.my/public/exchange-rate/USD
+- **S23** TrainingCost (third party), Coursera for Business pricing. https://trainingcost.com/coursera-for-business-pricing (retrieved 1 Nov 2026)
+- **S24** Gartner Peer Insights, Workday Skills Cloud. https://www.gartner.com/reviews/product/workday-skills-cloud (retrieved 1 Nov 2026)
+- **S25** BrioHR, Malaysia pricing plans. https://briohr.com/pricing-plans-my/ (retrieved 31 Oct 2026)
+- **S26** Swingvy, Malaysia pricing. https://www.swingvy.com/my/pricing (retrieved 31 Oct 2026)
+- **S27** MyFutureJobs https://myfuturejobs.gov.my/ ; UpskillMalaysia https://upskillmalaysia.gov.my/aboutusp (retrieved 31 Oct 2026)
+- **S28** Replit, August 2026 cloud billing updates. https://docs.replit.com/billing/aug-cloud-billing-updates (retrieved 31 Oct 2026)
+- **S29** RunPod, pricing and Serverless billing. https://www.runpod.io/pricing ; https://docs.runpod.io/serverless/pricing (retrieved 31 Oct 2026)
+- **S30** Google, Gemini API pricing. https://ai.google.dev/gemini-api/docs/pricing (retrieved 31 Oct 2026)
+- **S31** IMARC, Malaysia IT training market (USD 347.1m, 2025; not used for sizing). https://www.imarcgroup.com/malaysia-it-training-market
+- **S32** Hays, Asia Salary Guide 2025 (56% AI use, 26% training in Malaysia; cited in Phase 1, survey table not yet verified). https://www.hays.com.my/hays-asia-salary-guide-2025
+- **S33** Coursera for Business and Degreed pricing pages (custom pricing). https://www.coursera.org/business/compare-plans ; https://degreed.com/experience/pricing/ (retrieved 31 Oct 2026)
+- **S34** arXiv API. https://info.arxiv.org/help/api/
+- **S35** US Bureau of Labor Statistics, occupational projections 2023–2033. https://www.bls.gov/emp/tables/occupational-projections-and-characteristics.htm
+- **S36** O*NET Resource Center (O*NET 31.0, CC BY 4.0). https://www.onetcenter.org/
+- **S37** UN Statistics Division, SDG API. https://unstats.un.org/SDGAPI/v1/sdg/Goal/List
+- **S38** OpenDOSM, monthly Labour Force Survey (CC BY 4.0). https://data.gov.my/data-catalogue/lfs_month
 
-## Part V — delivery gates and team questions
+## Appendix A. Prototype evidence
 
-| When | Work, effort and dependency | Acceptance evidence |
-|---|---|---|
-| Before judging | Verify deployed SHA, 6-step synthetic journey, real changed-source publication (1–2 team days after ops setup); reconcile private report/tool fields and source licences (1–2 days) | Run URL/status, snapshot/observation/retrieval dates, screenshots, PDF word-limit check and leader approval |
-| Next 30 days | 10 buyer interviews and blind manual-vs-Adept task design (1–2 weeks); bill instrumentation and disposable restore drill (3–7 days) | Interview notes with refusals, cost ledger/invoices, independent plan rubric, restored test fixture |
-| Following 90 days | One 25–50 learner paid pilot under appropriate consent and contract, then integration request only from buyer (8–12 weeks) | Signed payment and terms, reviewed results/failures, renewal/stop decision and legal review |
-
-**Stop expanding:** unsupported “predict exact job losses”, static research called live, SDG-badge-as-impact, arbitrary new role categories, certificate equivalence, automatic hiring decisions, invented ROI/market capture, per-page LLM calls. None of these makes a buyer's actual decision easier.
-
-**Questions only the team can settle:** What are the official 48-hour event timestamps and final deployed SHA/snapshot? Which actual team tools/media/licences and employer IP agreements need disclosure? Can a prospective employer pay for a three-month pilot from its own software budget, and which decision would the manager replace? Who will own 8–12 weeks of buyer support, independent plan review and compliance work? How much cash (not credits) is available to keep Replit/RunPod running after judging?
+- **A1 — Automated synthetic journeys.** An isolated local test run on 30 Oct 2026 completed 15/15 scripted API journeys across five synthetic profiles, with per-persona median machine times of 0.091–0.236 seconds, using a historical fixture. It excludes browser time, human review, network and paid models, and is not a human time-to-plan result. Human timed trials: 0 attempted to date.
+- **A2 — Catalogue size.** Source catalogue at the reviewed revision: 142 skills; 48 roles, of which 33 are target roles; 104 courses; 1,175 job-posting rows; 88 role-SDG and 167 skill-SDG alignment rows; UN definitions for 17 goals and 169 targets.
+- **A3 — Sponsor proof of use.** Replit: hosting and database screens with a displayed US$6.38 account spend in one billing window. RunPod: an RTX 4090 Pod batch of 110 embeddings in 0.354 seconds and the Serverless MiniLM endpoint set-up. These are historical captures, not current per-learner costs.
+- **A4 — Revision.** This document describes repository revision `0a7868c` (31 October 2026). The deployed prototype is at https://adept-my.replit.app and the source at https://github.com/pecel-lelele/adept.

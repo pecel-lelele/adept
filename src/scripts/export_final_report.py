@@ -14,4 +14,6 @@ OUTPUT = ROOT / "submission/SDC2026_Pecel-Lele_Final.pdf"
 
 
 if __name__ == "__main__":
-    render_pdf(SOURCE, OUTPUT, "Adept Final Project Report")
+    render_pdf(
+        SOURCE, OUTPUT, "Adept Final Project & Prototype Report", "Final Project & Prototype Report"
+    )
