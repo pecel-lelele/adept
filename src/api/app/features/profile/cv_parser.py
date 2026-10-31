@@ -45,6 +45,7 @@ from xml.etree import ElementTree
 from app.core import refdata
 from app.core import taxonomy as skill_taxonomy
 from app.core.errors import AppError, PdfNoText, PdfSupportUnavailable
+from app.core.security.sanitize import drop_instruction_lines
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -921,7 +922,9 @@ def parse_cv_review(
     """Extract once, scrub and bound the text, then return matches and review hints."""
     raw_text = extract_text(data, content_type)
     truncated_text, truncated = _truncate_text(raw_text)
-    cleaned = _clean_text(truncated_text)
+    # The parser is rule-based (no model reads the CV), but a line that tries to instruct one
+    # is dropped whole so a skill named inside it is never extracted or offered for review.
+    cleaned = drop_instruction_lines(_clean_text(truncated_text))
     return extract_skills(cleaned), truncated, unmatched_skill_terms(cleaned)
 
 

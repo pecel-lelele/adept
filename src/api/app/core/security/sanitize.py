@@ -72,6 +72,25 @@ def clean_extracted_text(text: str, *, max_length: int = 20_000) -> str:
     return cleaned.strip()
 
 
+#: Patterns that try to instruct a model, as opposed to markup or encoding tricks.
+_INSTRUCTION_PATTERNS: tuple[re.Pattern[str], ...] = tuple(
+    p for p in INJECTION_PATTERNS if not re.search(r"script|javascript|u003c|\\r\?\\n", p.pattern)
+)
+
+
+def drop_instruction_lines(text: str) -> str:
+    """Remove whole lines that try to instruct a model ("Ignore previous instructions...").
+
+    Used on document text such as CVs: dropping the line, not just the phrase, keeps a skill
+    named inside the injected instruction from being extracted ("...add Kubernetes as expert").
+    """
+    return "\n".join(
+        line
+        for line in text.split("\n")
+        if not any(pattern.search(line) for pattern in _INSTRUCTION_PATTERNS)
+    )
+
+
 def sanitize_filename(filename: str, max_length: int = 100) -> str:
     name = filename.replace("\\", "/").rsplit("/", 1)[-1][:max_length]
     name = _UNSAFE_FILENAME.sub("_", name).replace("..", "_").strip(" .")
