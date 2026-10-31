@@ -379,3 +379,22 @@ team on 30 October 2026. No achieved planning-time reduction is claimed. Automat
 local API measurements are reported separately in `docs/evidence/kpi-automated-journeys.md`;
 they exclude human review, browser interaction, network and a manual baseline.
 This remains an unsigned draft, with private team fields reserved for completion.
+
+## Data refresh source update (2026-10-30)
+
+The automatic path uses real arXiv cs.AI submission weeks via the documented query API,
+with the existing dedicated RunPod all-MiniLM-L6-v2 worker and production trend method.
+The 2024 replay remains historical; it is never a current measurement. The static BLS
+2023–2033 baseline retains its recorded acquisition date.
+
+Automatic job sources are the documented public employer APIs Greenhouse, Lever and Ashby,
+filtered by each posting's own Malaysian location, with 14-day expiry. Legacy Workday/Jibe
+and generic remote connectors remain in the CLI but are skipped by automatic refresh.
+Careerjet/Jooble keys remain optional and absent. DOSM monthly LFS (CC BY 4.0) supplies
+national labour context, not occupation-level vacancy claims. Course refresh verifies bounded
+provider URLs and preserves manual fee/hours dates. See the dated [source assessment and
+access/terms decisions](data-refresh.md#job-source-assessment-opened-2026-10-30).
+
+GitHub sends an authenticated clock trigger to the deployed app; no private database URL
+or model key is needed in GitHub's new workflow. No successful production refresh is claimed
+from local tests.

@@ -2208,3 +2208,13 @@ html[data-busy] .a-main::after { content: ""; }
 .a-route-error > .a-card { width: min(100%, 38rem); margin-inline: auto; }
 .a-route-error .a-empty p { margin: 0; }
 .a-rolecards .a-fold-body > .a-rolecard { border: 0; box-shadow: none; }
+/* Refresh progress keeps the existing data visible and the surrounding layout usable. */
+.a-refresh { margin-block: 12px; }
+.a-refresh > [role="status"] p { margin-block: 8px; }
+.a-refresh-panel { max-width: 660px; padding: 20px; margin-top: 12px; }
+.a-refresh-steps { display: grid; gap: 10px; padding-left: 20px; }
+.a-refresh-steps li { padding: 8px; }
+.a-refresh-steps li span { float: right; margin-left: 16px; }
+.a-refresh-spinner { width: 15px; height: 15px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: a-refresh-spin 1s linear infinite; }
+@keyframes a-refresh-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .a-refresh-spinner { animation: none; } }

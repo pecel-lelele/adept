@@ -1,5 +1,6 @@
 import { MalaysiaContextCard } from "@/features/trends/components/MalaysiaContextCard";
-import { AdminTrendRefresh } from "@/features/trends/components/AdminTrendRefresh";
+import { RefreshDataButton } from "@/features/trends/components/RefreshDataButton";
+import { DataAsOf } from "@/components/DataAsOf";
 import { ArrowRight, ArrowUpRight, BookOpen, Building2, Check, Compass, Leaf, Route, Target, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -120,7 +121,8 @@ export async function DashboardView({ scenario, query, workspaceError = false }:
 
   return (
     <div className="a-view">
-      <AdminTrendRefresh />
+      <DataAsOf source="trends" />
+      {account ? <RefreshDataButton dataAsOf={radar.ok ? radar.data.meta.observed_to ?? radar.data.meta.snapshot_date : undefined} /> : null}
       {workspaceError ? <p className="a-chip" data-tone="warn" role="alert">{(await getTranslations("ui.workspace"))("workspaceError")}</p> : null}
       <section className="a-welcome">
         <div className="a-welcome-main">

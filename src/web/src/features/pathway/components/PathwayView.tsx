@@ -1,3 +1,4 @@
+import { DataAsOf } from "@/components/DataAsOf";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -180,6 +181,7 @@ export async function PathwayView({
       >
         <MetaBar meta={plan.meta} />
       </PageHeader>
+      <DataAsOf source="trends" meta={plan.meta} />
       <HistoricalSnapshotBanner date={snapshotDate} latestHref={`/app/pathway${query}`} />
       {savedOtherScenario ? (
         <p className="a-notice" data-tone="info">

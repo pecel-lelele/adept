@@ -1,3 +1,8 @@
+# NOTE: production writes happen through the in-app refresh (Admin > Snapshots > Data sources,
+# POST /api/v1/data/refresh/{source}) because the Replit database is private and GitHub runners
+# cannot reach it. These scheduled runs only fetch and validate the live sources; they never
+# write to the production database.
+
 # Weekly (scheduled) run: fetch and validate only. It checks that the live public sources behind
 # the catalogue and SDG list still answer and still contain what we rely on, and fetches/classifies
 # job openings into the runner's discarded working copy. It never writes to any database and

@@ -155,7 +155,9 @@ def aggregate_period_runs(
     return combined_counts, max(combined_total, 1)
 
 
-def load_signal_raw(db_url: str, period: str) -> tuple[dict[str, float], int]:
+def load_signal_raw(
+    db_url: str, period: str, *, is_replay: bool = False
+) -> tuple[dict[str, float], int]:
     """
     Load and aggregate mention counts from skill_signal_raw for the given ISO-week period.
     Sums BOTH count and total_papers across all fetch_date rows in that period.
@@ -173,9 +175,11 @@ def load_signal_raw(db_url: str, period: str) -> tuple[dict[str, float], int]:
                 SELECT skill_id, SUM(value) AS total_count
                 FROM skill_signal_raw
                 WHERE source = 'arxiv' AND metric = 'mention_count' AND period = %s
+                    AND is_replay = %s
+                    AND (is_replay IS TRUE OR retrieved_at_basis IN ('pipeline_fetch', 'fetch_log'))
                 GROUP BY skill_id
                 """,
-                (period,),
+                (period, is_replay),
             )
             for row in cur.fetchall():
                 counts[row["skill_id"]] = float(row["total_count"])
@@ -187,24 +191,19 @@ def load_signal_raw(db_url: str, period: str) -> tuple[dict[str, float], int]:
                     SELECT DISTINCT retrieved_at, total_papers
                     FROM skill_signal_raw
                     WHERE source = 'arxiv' AND metric = 'mention_count' AND period = %s
+                        AND is_replay = %s
+                        AND (is_replay IS TRUE OR retrieved_at_basis
+                            IN ('pipeline_fetch', 'fetch_log'))
                 ) sub
                 """,
-                (period,),
+                (period, is_replay),
             )
             row = cur.fetchone()
             if row and row["period_total"] > 0:
                 total = int(row["period_total"])
-            else:
-                cur.execute(
-                    """
-                    SELECT COALESCE(SUM(paper_count), 0) AS total
-                    FROM arxiv_fetch_log
-                    WHERE to_char(fetch_date, 'IYYY-\"W\"IW') = %s
-                    """,
-                    (period,),
-                )
-                r_log = cur.fetchone()
-                total = int(r_log["total"]) if r_log else 1
+            # Never borrow a denominator from an unclassified/replay fetch log.
+            elif counts:
+                raise ValueError("Classified signal rows have no recorded paper count")
     return counts, max(total, 1)
 
 
@@ -222,15 +221,20 @@ def load_skill_ids(db_url: str) -> set[str]:
     return {row[0] for row in rows}
 
 
-def list_available_periods(db_url: str) -> list[str]:
-    """Return sorted list of ISO-week periods in skill_signal_raw."""
+def list_available_periods(db_url: str, *, is_replay: bool = False) -> list[str]:
+    """Return periods of one proven origin; NULL legacy rows are not live evidence."""
     import psycopg  # type: ignore[import]
 
     with psycopg.connect(db_url) as conn:
         with conn.cursor() as cur:
             cur.execute(
                 "SELECT DISTINCT period FROM skill_signal_raw "
-                "WHERE source = 'arxiv' ORDER BY period"
+                # Replay provenance fix: a historical 2024 window filed in a 2026
+                # slot must never become the prior real week of a live refresh.
+                "WHERE source = 'arxiv' AND is_replay = %s "
+                "AND (is_replay IS TRUE OR retrieved_at_basis IN ('pipeline_fetch', 'fetch_log')) "
+                "ORDER BY period",
+                (is_replay,),
             )
             return [row[0] for row in cur.fetchall()]
 
@@ -239,63 +243,20 @@ def write_snapshots(
     rows: list[dict],
     snapshot_date: date,
     db_url: str,
+    *,
+    provenance: dict[str, object] | None = None,
+    sources: list[dict] | None = None,
+    note: str = "Unclassified legacy scoring output; upstream retrieval unverified.",
 ) -> None:
-    """Write evidenced scored rows into trend_snapshots for snapshot_date.
+    """Use the atomic publisher so legacy scoring cannot erase classified provenance.
 
-    Rows without real signal (``has_evidence=False``) are never written so that
-    ``role_signal`` cannot count catalogue-only skills as covered.
-
-    **Snapshot cleanup**: all existing rows for this date are deleted before the
-    new evidenced rows are inserted.  This prevents a rescore from leaving stale
-    rows for skills that were evidenced in a previous run but are not evidenced
-    in the current one — those stale rows would otherwise be counted as covered
-    by ``role_signal`` and silently suppress uncertainty widening.
+    Preserve the callable's existing arguments. Callers without evidence remain
+    explicitly unclassified and cannot overwrite an already classified snapshot.
     """
-    import psycopg  # type: ignore[import]
+    from pipelines.trends.run import publish
 
-    evidenced = [r for r in rows if r.get("has_evidence", True)]
-    with psycopg.connect(db_url) as conn:
-        with conn.cursor() as cur:
-            # Remove all existing rows for this date so that skills which were
-            # evidenced in a previous run but are no longer evidenced now do not
-            # linger and falsely inflate role coverage.
-            cur.execute(
-                "DELETE FROM trend_snapshots WHERE snapshot_date = %s",
-                (snapshot_date,),
-            )
-            for r in evidenced:
-                cur.execute(
-                    """
-                    INSERT INTO trend_snapshots
-                        (skill_id, snapshot_date, research_velocity,
-                         labor_decay, labor_decay_source_note, automation_exposure,
-                         velocity_moderate, velocity_fast,
-                         direction_moderate, direction_fast)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                    ON CONFLICT (skill_id, snapshot_date) DO UPDATE SET
-                        research_velocity       = EXCLUDED.research_velocity,
-                        labor_decay             = EXCLUDED.labor_decay,
-                        labor_decay_source_note = EXCLUDED.labor_decay_source_note,
-                        automation_exposure     = EXCLUDED.automation_exposure,
-                        velocity_moderate       = EXCLUDED.velocity_moderate,
-                        velocity_fast           = EXCLUDED.velocity_fast,
-                        direction_moderate      = EXCLUDED.direction_moderate,
-                        direction_fast          = EXCLUDED.direction_fast
-                    """,
-                    (
-                        r["skill_id"],
-                        snapshot_date,
-                        r["research_velocity"],
-                        r["labor_decay"],
-                        r["labor_decay_source_note"],
-                        r["automation_exposure"],
-                        r["velocity_moderate"],
-                        r["velocity_fast"],
-                        r["direction_moderate"],
-                        r["direction_fast"],
-                    ),
-                )
-        conn.commit()
+    evidenced = [row for row in rows if row.get("has_evidence", True)]
+    publish(evidenced, snapshot_date, sources or [], note, db_url, provenance=provenance)
     print(f"[db] Wrote {len(evidenced)} of {len(rows)} snapshot rows for {snapshot_date}.")
 
 
@@ -405,7 +366,16 @@ def main(
         skill_ids=skill_ids,
     )
 
-    write_snapshots(scored_rows, snapshot_date, db_url)
+    from pipelines.trends.run import collected_dates, live_provenance, provenance
+
+    before, after = collected_dates(db_url, t0_period), collected_dates(db_url, t1_period)
+    if before is None or after is None:
+        raise ValueError("Scoring requires proven live observation windows")
+    facts = live_provenance(db_url, t1_period)
+    sources, note = provenance(t0_period, t1_period, before, after, retrieval=facts)
+    write_snapshots(
+        scored_rows, snapshot_date, db_url, provenance=facts, sources=sources, note=note
+    )
     rising_m = sum(1 for r in scored_rows if r["direction_moderate"] == "rising")
     declining_m = sum(1 for r in scored_rows if r["direction_moderate"] == "declining")
     print(
