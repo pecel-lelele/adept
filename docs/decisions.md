@@ -1315,6 +1315,16 @@
 - **Replaces**: none
 - **PR / branch**: `feat/pathway-sdg-guardrails`
 
+### M3-044: Onboarding settings visibly drive the plan
+- **Date**: 2026-10-31
+- **Feature**: F5 (Pathway), F1 settings
+- **Type**: method | contract | UI
+- **Change**: Learning style now prefers course delivery formats within budget (classroom → in-person/live online/hybrid; video/reading → self-paced; hands-on/mixed → no preference, since courses record only delivery format). `Pathway.learning_style` is returned and shown in plan notes. Re-plan now proposes whole-plan `schedule_changed` (hours per week → weeks) and `cost_changed` (budget, HRD eligibility, estimated cost) changes, which were previously ignored when no step changed. The HRD note no longer says claimable courses cost nothing; the shown cost stays the list price until the employer's grant is approved (M3 out_of_pocket rule unchanged).
+- **Why**: Judges must be able to change the profile and see results change (demo journey step 1). Measured with production code: learning style had no effect and a saved plan kept stale weeks/cost after settings changed.
+- **Affects**: F5 engine course choice and replan diff, `Pathway`/`PlanChange` contracts and generated client, pathway page notes and replan banner (en/ms/zh), fairness allowlist (learning style is a preference, not identity)
+- **Replaces**: none
+- **PR / branch**: fix/pathway-settings-drive-plan
+
 ---
 
 ### M3-026: Pathway reads M1's trend snapshot; compare roles before choosing; ports for M2

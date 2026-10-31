@@ -10688,6 +10688,12 @@
             "title": "Hrd Eligible",
             "default": false
           },
+          "learning_style": {
+            "type": "string",
+            "title": "Learning Style",
+            "description": "Learning style used to prefer course delivery formats within budget.",
+            "default": "mixed"
+          },
           "gaps": {
             "items": {
               "$ref": "#/components/schemas/SkillGap"
@@ -11006,13 +11012,17 @@
               "added",
               "removed",
               "reordered",
-              "courses_changed"
+              "courses_changed",
+              "schedule_changed",
+              "cost_changed",
+              "style_changed"
             ],
             "title": "Kind"
           },
           "skill_id": {
             "type": "string",
-            "title": "Skill Id"
+            "title": "Skill Id",
+            "description": "Empty for whole-plan changes (schedule, cost, style)."
           },
           "detail": {
             "type": "string",
