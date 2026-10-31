@@ -13,41 +13,42 @@ Research observations: 2024-10-13 through 2024-10-19. Historical replay is not c
 | Median free share of courses | 100.0% | 100.0% | free courses / courses in the path, cost_myr == 0, per persona; median over personas |
 | Median free share of hours | 100.0% | 100.0% | hours of free courses / hours of all courses in the path |
 | Median HRD Corp-claimable share of courses | 0.0% | 0.0% | courses with hrd_claimable / courses in the path (eligibility is not approved funding) |
-| Median pathway hours | 14.5 | 14.5 | sum of hours of the distinct courses in the pathway engine's plan; median over personas |
-| Median distinct SDG targets | 2 | 2 | distinct SDG targets on the steps of the path (skill to target mapping) |
+| Median pathway hours | 9.9 | 9.9 | sum of hours of the distinct courses in the pathway engine's plan; median over personas |
+| Median distinct SDG targets | 3 | 3 | distinct SDG targets on the steps of the path (skill to target mapping) |
 | Median top-5 roles that change Moderate to Fast | 0 | same | roles in the Moderate top 5 that are not in the Fast top 5, same profile, same scorer |
 
 ## Per persona
 
 | Persona | Scenario | Top role | Courses | Hours | Free (courses) | Free (hours) | HRD (courses) | SDG targets | Top-5 changed |
 |---|---|---|---:|---:|---:|---:|---:|---:|---:|
-| demo-imran | moderate | Compliance Analytics Officer | 1 | 0.3 | 100.0% | 100.0% | 0.0% | 1 | 0 |
-| demo-imran | fast | Compliance Analytics Officer | 1 | 0.3 | 100.0% | 100.0% | 0.0% | 1 | 0 |
-| demo-sofia | moderate | Process Automation Analyst | 4 | 7.7 | 100.0% | 100.0% | 0.0% | 3 | 0 |
-| demo-sofia | fast | Process Automation Analyst | 4 | 7.7 | 100.0% | 100.0% | 0.0% | 3 | 0 |
-| demo-meera | moderate | Business Analyst | 7 | 37 | 100.0% | 100.0% | 0.0% | 2 | 0 |
-| demo-meera | fast | Business Analyst | 7 | 37 | 100.0% | 100.0% | 0.0% | 2 | 0 |
-| demo-adrian | moderate | Data Analyst | 3 | 17.5 | 100.0% | 100.0% | 0.0% | 1 | 0 |
-| demo-adrian | fast | Data Analyst | 3 | 17.5 | 100.0% | 100.0% | 0.0% | 1 | 0 |
-| demo-nur-hana | moderate | Process Automation Analyst | 8 | 14.5 | 100.0% | 100.0% | 0.0% | 5 | 0 |
-| demo-nur-hana | fast | Process Automation Analyst | 8 | 14.5 | 100.0% | 100.0% | 0.0% | 5 | 0 |
+| demo-imran | moderate | Compliance Officers (compliance analytics focus) | 1 | 0.3 | 100.0% | 100.0% | 0.0% | 1 | 1 |
+| demo-imran | fast | Compliance Officers (compliance analytics focus) | 1 | 0.3 | 100.0% | 100.0% | 0.0% | 1 | 1 |
+| demo-sofia | moderate | Management Analysts (process automation focus) | 4 | 7.7 | 100.0% | 100.0% | 0.0% | 3 | 0 |
+| demo-sofia | fast | Management Analysts (process automation focus) | 4 | 7.7 | 100.0% | 100.0% | 0.0% | 3 | 0 |
+| demo-meera | moderate | Management Analysts (process automation focus) | 7 | 9.9 | 100.0% | 100.0% | 0.0% | 5 | 0 |
+| demo-meera | fast | Management Analysts (process automation focus) | 7 | 9.9 | 100.0% | 100.0% | 0.0% | 5 | 0 |
+| demo-adrian | moderate | Data Scientists (data analysis focus) | 3 | 17.5 | 100.0% | 100.0% | 0.0% | 1 | 0 |
+| demo-adrian | fast | Data Scientists (data analysis focus) | 3 | 17.5 | 100.0% | 100.0% | 0.0% | 1 | 0 |
+| demo-nur-hana | moderate | Management Analysts (process automation focus) | 8 | 14.5 | 100.0% | 100.0% | 0.0% | 5 | 0 |
+| demo-nur-hana | fast | Management Analysts (process automation focus) | 8 | 14.5 | 100.0% | 100.0% | 0.0% | 5 | 0 |
 
 ## Catalogue coverage
 
-Courses: 98. Roles: 34. Skills: 140. Free courses: 87 (88.8%), free hours listed: 518; distinct linked SDG targets: 26 across 64 role links. Catalogue date: 2026-10-23. Verified on or after 2026-09-23 (30 days before the catalogue verification date): 100.0% (courses verified within the window before the newest catalogue verification / all non-retired courses).
+Courses: 104. Roles: 48. Skills: 142. Free courses: 92 (88.5%), free hours listed: 527.4; distinct linked SDG targets: 26 across 88 role links. Catalogue date: 2026-10-30. Verified on or after 2026-09-30 (30 days before the catalogue verification date): 100.0% (courses verified within the window before the newest catalogue verification / all non-retired courses).
 
 | Group | Key | Courses |
 |---|---|---:|
-| Language | en | 98 |
+| Language | en | 99 |
+| Language | ms | 5 |
 | Provider type | industry_body | 2 |
-| Provider type | mooc | 88 |
-| Provider type | private_provider | 2 |
+| Provider type | mooc | 92 |
+| Provider type | private_provider | 4 |
 | Provider type | professional_body | 2 |
 | Provider type | university | 4 |
 
 ## Fairness
 
-Max rank change across 75 swaps on 5 personas: **0**. Guardrail report passed: True (83 API inputs checked). Formula: largest change in any role's rank when name and segment are swapped on a persona's profile, through the production profile-to-matching boundary and scorer.
+Max rank change across 75 swaps on 5 personas: **0**. Guardrail report passed: True (93 API inputs checked). Formula: largest change in any role's rank when name and segment are swapped on a persona's profile, through the production profile-to-matching boundary and scorer.
 
 Method: Each persona's profile is re-ranked with 5 names x 3 segments swapped; 17 protected terms are screened out of every API input.
 
@@ -57,8 +58,8 @@ Figures quoted from public pages fetched on the dates shown; stored in `src/data
 
 | Figure | Scope | What it measures | Quote | Source | Retrieved |
 |---|---|---|---|---|---|
-| 697,000 | Malaysia | Jobs that could be significantly affected by AI, digitalisation and the green economy within three to five years if workers do not upskill (published 24 June 2026). | "697,000 jobs in Malaysia" | [Malay Mail, citing a TalentCorp study (Human Resources Minister)](https://www.malaymail.com/news/malaysia/2026/06/24/malaysia-records-42807-job-losses-as-697000-roles-at-risk-from-ai-without-urgent-upskilling-says-hr-minister/224963) | 2026-10-30 |
-| 600,000+ | Malaysia | Workers who must reskill within three to five years, as stated by the Science, Technology and Innovation Minister (7 January 2025). | "600,000 workers must undergo reskilling training" | [Malay Mail, citing MOSTI (Science, Technology and Innovation Minister)](https://www.malaymail.com/news/malaysia/2025/01/07/mosti-ai-disruption-looms-in-malaysia-600000-workers-must-reskill-in-three-to-five-years/162368) | 2026-10-30 |
+| 697,000 | Malaysia | Jobs that could be significantly affected by AI, digitalisation and the green economy within three to five years if workers do not upskill (published 24 June 2026). | "697,000 jobs are expected to be highly affected" | [Malay Mail, citing a TalentCorp study (Human Resources Minister)](https://www.malaymail.com/news/malaysia/2026/06/24/malaysia-records-42807-job-losses-as-697000-roles-at-risk-from-ai-without-urgent-upskilling-says-hr-minister/224963) | 2026-10-30 |
+| 600,000+ | Malaysia | Workers who must reskill within three to five years, as stated by the Science, Technology and Innovation Minister (7 January 2025). | "more than 600,000 workers must undergo reskilling training" | [Malay Mail, citing MOSTI (Science, Technology and Innovation Minister)](https://www.malaymail.com/news/malaysia/2025/01/07/mosti-ai-disruption-looms-in-malaysia-600000-workers-must-reskill-in-three-to-five-years/162368) | 2026-10-30 |
 | 60% | Malaysia | Malaysian workers who regularly use AI tools (ManpowerGroup Global Talent Barometer 2026; 536 workers, 1 Sep to 1 Oct 2025). | "60 per cent" | [Malay Mail, citing ManpowerGroup Global Talent Barometer 2026](https://www.malaymail.com/news/malaysia/2026/01/22/study-warns-of-confidence-drop-as-malaysian-workers-adopt-ai-faster-than-they-are-trained/206331) | 2026-10-30 |
 | 55% | Malaysia | Malaysian workers reporting a lack of recent training (ManpowerGroup Global Talent Barometer 2026; 536 workers). | "55 per cent" | [Malay Mail, citing ManpowerGroup Global Talent Barometer 2026](https://www.malaymail.com/news/malaysia/2026/01/22/study-warns-of-confidence-drop-as-malaysian-workers-adopt-ai-faster-than-they-are-trained/206331) | 2026-10-30 |
 | 79% | Global | Business leaders worldwide who see AI adoption as critical to staying competitive. | "79% of leaders agree AI adoption is critical to remain competitive" | [Microsoft and LinkedIn, 2024 Work Trend Index](https://blogs.microsoft.com/blog/2024/05/08/microsoft-and-linkedin-release-the-2024-work-trend-index-on-the-state-of-ai-at-work/) | 2026-10-30 |
@@ -69,9 +70,9 @@ Stored DOSM Labour Force Survey, month 2026-08-01: unemployment 2.9%, participat
 ## Sources
 
 - Adept course catalogue (retrieved at its oldest verification date) (https://github.com/pecel-lelele/adept/blob/main/src/data/seed/courses/courses.csv), 2026-10-20
-- O*NET 31.0 crosswalk + Adept curated role requirements (estimates) (https://github.com/pecel-lelele/adept/blob/main/src/data/seed/taxonomy/provenance.json), 2026-10-23
+- O*NET 31.0 crosswalk + Adept curated role requirements (estimates) (https://github.com/pecel-lelele/adept/blob/main/src/data/seed/taxonomy/provenance.json), 2026-10-31
 - UN Statistics Division SDG API (https://unstats.un.org/SDGAPI/v1/sdg/Goal/List), 2026-10-20
-- Adept SDG mapping (draft, pending review) (https://github.com/pecel-lelele/adept/blob/main/src/data/seed/sdg/), 2026-10-20
+- Adept SDG mapping (draft, pending review) (https://github.com/pecel-lelele/adept/blob/main/src/data/seed/sdg/), 2026-10-30
 - arXiv cs.AI Query API (http://export.arxiv.org/api/query), 2026-10-20
 - BLS Occupational Projections 2023-2033 (https://www.bls.gov/emp/tables/occupational-projections-and-characteristics.htm), 2026-10-20
 - Synthetic personas (docs/demo-cvs) (https://github.com/pecel-lelele/adept/blob/main/docs/demo-cvs/profiles.json), 2026-10-30

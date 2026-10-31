@@ -1,13 +1,13 @@
 # Submission deliverables
 
-Reviewed 31 October 2026 against `main` `0a7868c`. The three written products are separate: [Phase 2 final report](submission-proposal.md), [technical declaration](submission-technical-declaration.md), and [product PRD / pitch brief](final-pitch-prd.md). The three written products each have a public **PDF copy**. A historical proof screenshot is not a current build/usage verification; no document is marked submitted or signed.
+Reviewed 31 October 2026 against `main` `0a7868c`. The three written products are separate: [Phase 2 final report](submission-final-report.md), [technical declaration](submission-technical-declaration.md), and [product PRD / pitch brief](final-pitch-prd.md). The three written products each have a public **PDF copy**. A historical proof screenshot is not a current build/usage verification; no document is marked submitted or signed.
 
 | Deliverable | Location | Before submission |
 |---|---|---|
 | Live prototype | [Adept](https://adept-my.replit.app) | Verify public judge access, deployed SHA, migrations, 6-step synthetic journey and successful fresh snapshot publication. |
 | Codebase | [GitHub](https://github.com/pecel-lelele/adept) | Confirm public/judge access and final reviewed commit. |
-| Phase 1 baseline | [Historical proposal PDF](../../submission/SDC2026_Pecel-Lele_Preliminary.pdf) | Page 10 targets 100% catalogue-ID validity and <3-minute median on five synthetic cases; no invented 20% Phase 1 target. |
-| Phase 2 report | [Source](submission-proposal.md) · [unsigned PDF](../../submission/SDC2026_Pecel-Lele_Final.pdf) | Fill private contact, IP/employment selections, final proof and leader signature; report measured outcome only after trials. |
+| Phase 1 baseline | Phase 1 proposal PDF (git history) | Page 10 targets 100% catalogue-ID validity and <3-minute median on five synthetic cases; no invented 20% Phase 1 target. |
+| Phase 2 report | [Source](submission-final-report.md) · [unsigned PDF](../../submission/SDC2026_Pecel-Lele_Final.pdf) | Fill private contact, IP/employment selections, final proof and leader signature; report measured outcome only after trials. |
 | Tools declaration | [Source](submission-technical-declaration.md) · [unsigned PDF](../../submission/SDC2026_Pecel-Lele_TechDeclaration.pdf) | Check every team member's tools, models, media, licences and sponsor use; fill contact and sign. |
 | Product Requirements Document (for judges) | [PRD: product, market, business model and pilot plan](final-pitch-prd.md) · [portable PDF](../../submission/SDC2026_Pecel-Lele_ProductPRD.pdf) | Validate price and demand assumptions in the paid pilot. |
 | Sponsor proofs | [Replit](../../submission/SDC2026_Pecel%20Lele_Replit_POU.pdf) · [RunPod](../../submission/SDC2026_Pecel%20Lele_Runpod_POU.pdf) | Historical screenshots only; do not change their dates or claim they show the current catalogue/production bill. |

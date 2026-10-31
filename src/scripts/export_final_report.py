@@ -1,19 +1,16 @@
-"""Export the public, unsigned Phase 2 report from its tracked Markdown source.
+"""Export the Phase 2 report in the organisers' template layout. No network, database or model.
 
-Run from the repository root. No network, database, model or office automation.
-The private organiser submission still needs leader contact, attestations and signature.
+Run from the repository root. Leader contact, attestations and signature are added afterwards.
 """
 
 from pathlib import Path
 
-from export_technical_declaration import render_pdf
+from template_pdf import render
 
 ROOT = Path(__file__).resolve().parents[2]
-SOURCE = ROOT / "docs/submission/submission-proposal.md"
+SOURCE = ROOT / "docs/submission/submission-final-report.md"
 OUTPUT = ROOT / "submission/SDC2026_Pecel-Lele_Final.pdf"
 
 
 if __name__ == "__main__":
-    render_pdf(
-        SOURCE, OUTPUT, "Adept Final Project & Prototype Report", "Final Project & Prototype Report"
-    )
+    render(SOURCE, OUTPUT, "Adept Final Project & Prototype Report")

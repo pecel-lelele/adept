@@ -1,7 +1,7 @@
-"""Export the tracked declaration Markdown with the existing PyMuPDF dependency.
+"""Export the declaration in the organisers' template layout (see ``template_pdf``).
 
 Run from the repository root. No network, model, or office automation is needed.
-``render_pdf`` is shared by ``export_final_report.py`` and ``export_prd.py``.
+``render_pdf`` is the styled A4 layout used by ``export_prd.py``.
 """
 
 from __future__ import annotations
@@ -360,9 +360,9 @@ def render_pdf(source: Path, output: Path, title: str, header: str | None = None
 
 
 def main() -> None:
-    render_pdf(
-        SOURCE, OUTPUT, "Adept Technical & Tools Declaration", "Technical & Tools Declaration"
-    )
+    from template_pdf import render
+
+    render(SOURCE, OUTPUT, "Adept Technical & Tools Declaration")
 
 
 if __name__ == "__main__":

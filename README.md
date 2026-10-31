@@ -15,7 +15,7 @@
 
 </div>
 
-> **Submission hub:** [Proposal PDF](submission/SDC2026_Pecel-Lele_Preliminary.pdf) ·
+> **Submission hub:** [Final report PDF](submission/SDC2026_Pecel-Lele_Final.pdf) ·
 > [Technical declaration PDF](submission/SDC2026_Pecel-Lele_TechDeclaration.pdf) ·
 > [Replit proof of use](submission/SDC2026_Pecel%20Lele_Replit_POU.pdf) ·
 > [RunPod proof of use](submission/SDC2026_Pecel%20Lele_Runpod_POU.pdf) ·
@@ -45,7 +45,7 @@
 | RunPod endpoints | [MiniLM](https://api.runpod.ai/v2/ta14jd0by2ijl2) · [Adi](https://api.runpod.ai/v2/b1dd8hy2hqo1nb/openai/v1) (requests need their own credentials) |
 | Slides | [Team folder](https://drive.google.com/drive/folders/1oNEOcD5OXCK-iAAPoj3aXihO1cW77bTn?usp=sharing) · check judge access |
 | Demo and pitch videos | [Team folder](https://drive.google.com/drive/folders/1tdSaHsHd1towg-bKghHUuSNn7jbI-LfN?usp=sharing) · select final files |
-| Written sources | [Proposal](docs/submission/submission-proposal.md) · [technical declaration](docs/submission/submission-technical-declaration.md) |
+| Written sources | [Final report](docs/submission/submission-final-report.md) · [technical declaration](docs/submission/submission-technical-declaration.md) |
 | Operations | [Replit](replit.md) · [RunPod/MiniLM](src/pipelines/trends/runpod/DEPLOYMENT_HANDOFF.md) |
 
 ## Overview
@@ -627,7 +627,7 @@ Migrations are in [`src/db/migrations`](src/db/migrations). New changes always g
 
 ## Submission checklist
 
-- [x] Source, synthetic demo CVs, proposal and technical-declaration exports linked.
+- [x] Source, synthetic demo CVs, final report and technical-declaration exports linked.
 - [x] Replit and RunPod proof-of-use exports linked; their historical state is disclosed.
 - [ ] Confirm final PDFs/signatures and selected slide/video files against the latest app.
 - [ ] Check anonymous access to shared folders and the live demo revision.
