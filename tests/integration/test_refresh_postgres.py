@@ -63,6 +63,7 @@ def pg(monkeypatch: pytest.MonkeyPatch) -> Iterator[Any]:
                     "20261031010000_measured_trend_inputs.sql",
                     "20261031120000_trend_replay_provenance.sql",
                     "20261031180000_trend_paper_store.sql",
+                    "20261031220000_trend_matcher_series.sql",
                 ):
                     setup.execute((MIGRATIONS / filename).read_text().split("-- migrate:down")[0])
 
@@ -229,6 +230,7 @@ def test_series_totals_and_mentions_stay_consistent_during_day_replacement(
         with pg.connect(pg.url, row_factory=dict_row) as conn:
             yield RacingReader(conn)
 
+    monkeypatch.setenv("TRENDS_MATCHER", "minilm")
     monkeypatch.setattr(trend_store, "connection", connection)
     papers, mentions = trend_store.daily(day, day, ["python"])
     assert changed
@@ -243,3 +245,22 @@ def test_series_totals_and_mentions_stay_consistent_during_day_replacement(
     # A later read sees the complete new version, not a mixed 450% result.
     papers, mentions = trend_store.daily(day, day, ["python"])
     assert papers == {day: 10} and mentions == {(day, "python"): 9}
+    # Another method's rows for the same day and papers never enter this series (M1-024).
+    with pg.connect(pg.url) as writer:
+        trend_store.save_days(
+            writer,
+            {day: new[:1]},
+            {new[0]["arxiv_id"]: ["python", "sql"]},
+            "M1-024",
+            "synthetic-gemini@384",
+            day,
+        )
+    assert trend_store.daily(day, day, ["python", "sql"]) == (
+        {day: 10},
+        {(day, "python"): 9},
+    )
+    monkeypatch.setenv("TRENDS_MATCHER", "gemini")
+    assert trend_store.daily(day, day, ["python", "sql"]) == (
+        {day: 1},
+        {(day, "python"): 1, (day, "sql"): 1},
+    )

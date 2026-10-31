@@ -28,6 +28,7 @@ os.environ["APP_ENV"] = "development"
 # Never embed text with a real provider or call the MiniLM RunPod encoder from the suite.
 os.environ["EMBEDDINGS_PROVIDER"] = "none"
 os.environ["TRENDS_EMBEDDING_BACKEND"] = "runpod"
+os.environ["TRENDS_MATCHER"] = "gemini"
 os.environ["TRENDS_RUNPOD_API_KEY"] = ""
 os.environ["TRENDS_RUNPOD_ENDPOINT_ID"] = ""
 # Sync endpoints stay off unless a test enables them; proxy trust uses the documented defaults.

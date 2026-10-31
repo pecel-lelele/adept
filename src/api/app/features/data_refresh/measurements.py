@@ -23,7 +23,8 @@ ARXIV_API = "https://export.arxiv.org/api/query"
 
 class MeasuredInputs(BaseModel):
     # M1-014: RunPod MiniLM weeks; M1-017: calibrated Gemini fallback weeks;
-    # M1-018: rolling 7-day windows counted from the accumulated paper store.
+    # M1-018: rolling 7-day windows counted from the accumulated paper store (one matcher per
+    # series since M1-024; `model` names it).
     method: Literal["M1-014", "M1-017", "M1-018"] = "M1-014"
     model: str = MODEL_ID
     model_revision: str = MODEL_REVISION

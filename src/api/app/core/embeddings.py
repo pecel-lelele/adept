@@ -58,13 +58,15 @@ def embed(
     patient: bool = False,
     timeout_s: float | None = None,
     dims: int = DIMS,
+    batch_size: int | None = None,
 ) -> list[list[float]]:
     """Unit vectors for `texts`, in order. Raises EmbeddingsUnavailable on any problem.
 
     `patient` (catalogue indexing only, never a user request) waits out rate limits (HTTP 429)
     in small batches instead of failing at once. `timeout_s` caps the HTTP timeout below the
     configured one (callers with their own deadline pass the time they have left). `dims` sets the
-    Matryoshka output size (trend fallback uses 384, MiniLM's size)."""
+    Matryoshka output size (the trend matcher uses 384, MiniLM's size). `batch_size` overrides the
+    per-request size (the operator backfill waits out rate limits at full batches)."""
     global _down_until  # noqa: PLW0603
     if not texts:
         return []
@@ -80,7 +82,7 @@ def embed(
             s.embeddings_timeout_s if timeout_s is None else min(s.embeddings_timeout_s, timeout_s)
         )
         with httpx.Client(timeout=timeout) as client:
-            size = 20 if patient else BATCH
+            size = batch_size or (20 if patient else BATCH)
             for i in range(0, len(texts), size):
                 chunk = [redact_text(t)[:2000] for t in texts[i : i + size]]
                 for attempt in range(6 if patient else 1):
