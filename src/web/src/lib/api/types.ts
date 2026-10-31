@@ -611,6 +611,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/org/packages/assigned/propose-role": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Propose Package Role */
+        post: operations["org_propose_package_role"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/org/programmes/options": {
         parameters: {
             query?: never;
@@ -943,27 +960,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/pathway/compare": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Compare Roles
-         * @description Time, cost, gap, trend outlook and SDG links of candidate roles, side by side, so the
-         *     learner can compare before choosing. Omit `role_ids` to compare every target role.
-         */
-        get: operations["pathway_compare_roles"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/pathway/catalogue": {
         parameters: {
             query?: never;
@@ -1161,6 +1157,26 @@ export interface paths {
         put?: never;
         /** Preview Cv */
         post: operations["preview_preview_cv"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/preview/cv/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm Preview
+         * @description Anonymous, stateless self-assessment; no CV, profile writes or model calls.
+         */
+        post: operations["preview_confirm_preview"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1560,6 +1576,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/trends/malaysia-context/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Malaysia Context History
+         * @description Stored monthly survey context (latest 120); never fetches live upstream data.
+         */
+        get: operations["trends_malaysia_context_history"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/trends/snapshot": {
         parameters: {
             query?: never;
@@ -1870,12 +1906,14 @@ export interface components {
              */
             decision: "accept" | "decline" | "request_change";
             /** Reason */
-            reason?: ("already_have_skill" | "pace" | "language" | "accessibility" | "schedule" | "upfront_cost" | "other") | null;
+            reason?: ("already_have_skill" | "pace" | "language" | "accessibility" | "schedule" | "upfront_cost" | "target_role" | "other") | null;
             /**
              * Note
              * @default
              */
             note: string;
+            /** Proposed Role Id */
+            proposed_role_id?: string | null;
             /**
              * Consent
              * @description Explicit consent to share current skill levels and pathway gaps for this programme.
@@ -2216,6 +2254,24 @@ export interface components {
              * @description Set when the member copied this from their personal learning.
              */
             shared_from?: "personal" | null;
+        };
+        /** ConfirmedPreview */
+        ConfirmedPreview: {
+            /** Skills */
+            skills: components["schemas"]["ConfirmedPreviewSkill"][];
+            /**
+             * Scenario
+             * @default moderate
+             * @enum {string}
+             */
+            scenario: "moderate" | "fast";
+        };
+        /** ConfirmedPreviewSkill */
+        ConfirmedPreviewSkill: {
+            /** Skill Id */
+            skill_id: string;
+            /** Level */
+            level: number;
         };
         /** CountBucket */
         CountBucket: {
@@ -2864,6 +2920,8 @@ export interface components {
              * @default 3
              */
             min_cohort: number;
+            /** Learning Progress */
+            learning_progress?: components["schemas"]["TeamSkillProgress"][];
             /** Role Suppressed */
             role_suppressed?: {
                 [key: string]: boolean;
@@ -2962,9 +3020,8 @@ export interface components {
             /**
              * Requires Skill Confirmation
              * @default true
-             * @constant
              */
-            requires_skill_confirmation: true;
+            requires_skill_confirmation: boolean;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -3315,6 +3372,10 @@ export interface components {
         MyProgrammes: {
             /** Assignments */
             assignments: components["schemas"]["ProgrammeAssignment"][];
+            /** Role Labels */
+            role_labels?: {
+                [key: string]: string;
+            };
         };
         /**
          * NormalisedSkill
@@ -3472,6 +3533,13 @@ export interface components {
         PackageOptions: {
             /** Packages */
             packages: components["schemas"]["TeamPackage"][];
+        };
+        /** PackageRoleProposal */
+        PackageRoleProposal: {
+            /** Token */
+            token: string;
+            /** Proposed Role Id */
+            proposed_role_id: string;
         };
         /** Pathway */
         Pathway: {
@@ -3798,12 +3866,16 @@ export interface components {
             /** Decided At */
             decided_at?: string | null;
             /** Change Reason */
-            change_reason?: ("already_have_skill" | "pace" | "language" | "accessibility" | "schedule" | "upfront_cost" | "other") | null;
+            change_reason?: ("already_have_skill" | "pace" | "language" | "accessibility" | "schedule" | "upfront_cost" | "target_role" | "other") | null;
             /**
              * Note
              * @default
              */
             note: string;
+            /** Proposed Role Id */
+            proposed_role_id?: string | null;
+            /** Proposed Role Label */
+            proposed_role_label?: string | null;
         };
         /** ProgrammeBriefIn */
         ProgrammeBriefIn: {
@@ -3864,6 +3936,8 @@ export interface components {
         ProgrammeList: {
             /** Programmes */
             programmes: components["schemas"]["ProgrammeStatus"][];
+            /** Package Assignments */
+            package_assignments?: components["schemas"]["ProgrammeAssignment"][];
         };
         /** ProgrammeMember */
         ProgrammeMember: {
@@ -3965,6 +4039,18 @@ export interface components {
              * @description Share of planned hours completed.
              */
             percent_complete: number;
+            /**
+             * Trackable
+             * @description False when this role was never chosen: the plan is a preview and updates are refused until the learner chooses it.
+             * @default true
+             */
+            trackable: boolean;
+            /**
+             * Estimated Skill Fit
+             * @description Importance-weighted skill overlap including self-reported completions; a learning estimate, not the composite matching score or verified competence.
+             * @default 0
+             */
+            estimated_skill_fit: number;
             /** Skills */
             skills: components["schemas"]["SkillProgress"][];
             /** Gap Closed */
@@ -4319,21 +4405,6 @@ export interface components {
              */
             shortfall: number;
         };
-        /** RoleComparison */
-        RoleComparison: {
-            /** Options */
-            options: components["schemas"]["RoleOption"][];
-            /** Saved Role Id */
-            saved_role_id?: string | null;
-            /**
-             * Snapshot Version
-             * @default
-             */
-            snapshot_version: string;
-            /** Available Snapshots */
-            available_snapshots?: string[];
-            meta: components["schemas"]["RecommendationMeta"];
-        };
         /** RoleMatch */
         RoleMatch: {
             /** Role Id */
@@ -4469,60 +4540,6 @@ export interface components {
             /** Fetched On */
             fetched_on?: string | null;
             meta: components["schemas"]["RecommendationMeta"];
-        };
-        /**
-         * RoleOption
-         * @description One candidate target role, so the learner can compare before choosing.
-         *
-         *     Shows what the move would take (time, cost, gap) and the role's trend outlook. It does not
-         *     rank roles (F4 matching does) and it never decides for the learner.
-         */
-        RoleOption: {
-            /** Role Id */
-            role_id: string;
-            /** Role Label */
-            role_label: string;
-            /** Total Weeks */
-            total_weeks: number;
-            /** Total Hours */
-            total_hours: number;
-            /** Out Of Pocket Myr */
-            out_of_pocket_myr: number;
-            /** Within Budget */
-            within_budget: boolean;
-            /**
-             * Skills To Close
-             * @description Required skills the learner lacks or is below.
-             */
-            skills_to_close: number;
-            /**
-             * Unmet Skills
-             * @description Skills no catalogue course can close.
-             */
-            unmet_skills: number;
-            /**
-             * Trend Signal
-             * @description Importance-weighted trend velocity of the role's skills (estimate); None when the snapshot scores none of them.
-             */
-            trend_signal?: number | null;
-            /**
-             * Trend Direction
-             * @default unknown
-             * @enum {string}
-             */
-            trend_direction: "rising" | "stable" | "declining" | "unknown";
-            /**
-             * Trend Coverage
-             * @description Share of the role's skill importance that has trend data.
-             */
-            trend_coverage: number;
-            /** Sdg Targets */
-            sdg_targets?: components["schemas"]["SdgTarget"][];
-            /**
-             * Is Saved Choice
-             * @default false
-             */
-            is_saved_choice: boolean;
         };
         /** RoleOutlook */
         RoleOutlook: {
@@ -5274,6 +5291,21 @@ export interface components {
             selected_at?: string | null;
             /** Selected By */
             selected_by?: string | null;
+        };
+        /** TeamSkillProgress */
+        TeamSkillProgress: {
+            /** Skill Id */
+            skill_id: string;
+            /** Label */
+            label: string;
+            /** Cohort Size */
+            cohort_size: number;
+            /** Completed Courses */
+            completed_courses?: number | null;
+            /** Planned Courses */
+            planned_courses?: number | null;
+            /** Suppressed */
+            suppressed: boolean;
         };
         /** TopRole */
         TopRole: {
@@ -6735,6 +6767,44 @@ export interface operations {
             };
         };
     };
+    org_propose_package_role: {
+        parameters: {
+            query?: {
+                expected_org?: string | null;
+            };
+            header?: {
+                "x-demo-user"?: string | null;
+                "x-workspace"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PackageRoleProposal"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgrammeAssignment"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     org_programme_options: {
         parameters: {
             query?: never;
@@ -7403,43 +7473,6 @@ export interface operations {
             };
         };
     };
-    pathway_compare_roles: {
-        parameters: {
-            query?: {
-                role_ids?: string[] | null;
-                scenario?: "moderate" | "fast";
-                /** @description Replay an older M1 trend snapshot (YYYY-MM-DD). Omit for the latest. */
-                snapshot_date?: string | null;
-            };
-            header?: {
-                "x-demo-user"?: string | null;
-                "x-workspace"?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RoleComparison"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     pathway_get_catalogue: {
         parameters: {
             query?: {
@@ -7829,6 +7862,7 @@ export interface operations {
             query?: {
                 scenario?: "moderate" | "fast";
                 include_suggestions?: boolean;
+                extract_only?: boolean;
             };
             header?: never;
             path?: never;
@@ -7837,6 +7871,39 @@ export interface operations {
         requestBody: {
             content: {
                 "multipart/form-data": components["schemas"]["Body_preview_preview_cv"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuestPreview"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    preview_confirm_preview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConfirmedPreview"];
             };
         };
         responses: {
@@ -8471,6 +8538,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MalaysiaLabourContext"];
+                };
+            };
+        };
+    };
+    trends_malaysia_context_history: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MalaysiaLabourContext"][];
                 };
             };
         };

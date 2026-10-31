@@ -2156,6 +2156,99 @@
         }
       }
     },
+    "/api/v1/org/packages/assigned/propose-role": {
+      "post": {
+        "tags": [
+          "org"
+        ],
+        "summary": "Propose Package Role",
+        "operationId": "org_propose_package_role",
+        "parameters": [
+          {
+            "name": "expected_org",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Expected Org"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PackageRoleProposal"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgrammeAssignment"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/org/programmes/options": {
       "get": {
         "tags": [
@@ -3752,126 +3845,6 @@
         }
       }
     },
-    "/api/v1/pathway/compare": {
-      "get": {
-        "tags": [
-          "pathway"
-        ],
-        "summary": "Compare Roles",
-        "description": "Time, cost, gap, trend outlook and SDG links of candidate roles, side by side, so the\nlearner can compare before choosing. Omit `role_ids` to compare every target role.",
-        "operationId": "pathway_compare_roles",
-        "parameters": [
-          {
-            "name": "role_ids",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  },
-                  "maxItems": 20
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Role Ids"
-            }
-          },
-          {
-            "name": "scenario",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "enum": [
-                "moderate",
-                "fast"
-              ],
-              "type": "string",
-              "default": "moderate",
-              "title": "Scenario"
-            }
-          },
-          {
-            "name": "snapshot_date",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "format": "date"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Replay an older M1 trend snapshot (YYYY-MM-DD). Omit for the latest.",
-              "title": "Snapshot Date"
-            },
-            "description": "Replay an older M1 trend snapshot (YYYY-MM-DD). Omit for the latest."
-          },
-          {
-            "name": "x-demo-user",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "X-Demo-User"
-            }
-          },
-          {
-            "name": "x-workspace",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "maxLength": 100
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "X-Workspace"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/RoleComparison"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/pathway/catalogue": {
       "get": {
         "tags": [
@@ -4823,6 +4796,16 @@
               "default": true,
               "title": "Include Suggestions"
             }
+          },
+          {
+            "name": "extract_only",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Extract Only"
+            }
           }
         ],
         "requestBody": {
@@ -4834,6 +4817,48 @@
               }
             }
           }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuestPreview"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/preview/cv/confirm": {
+      "post": {
+        "tags": [
+          "preview"
+        ],
+        "summary": "Confirm Preview",
+        "description": "Anonymous, stateless self-assessment; no CV, profile writes or model calls.",
+        "operationId": "preview_confirm_preview",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmedPreview"
+              }
+            }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -6068,6 +6093,32 @@
         }
       }
     },
+    "/api/v1/trends/malaysia-context/history": {
+      "get": {
+        "tags": [
+          "trends"
+        ],
+        "summary": "Malaysia Context History",
+        "description": "Stored monthly survey context (latest 120); never fetches live upstream data.",
+        "operationId": "trends_malaysia_context_history",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MalaysiaLabourContext"
+                  },
+                  "type": "array",
+                  "title": "Response Trends Malaysia Context History"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/trends/snapshot": {
       "get": {
         "tags": [
@@ -6935,6 +6986,7 @@
                   "accessibility",
                   "schedule",
                   "upfront_cost",
+                  "target_role",
                   "other"
                 ]
               },
@@ -6949,6 +7001,18 @@
             "maxLength": 500,
             "title": "Note",
             "default": ""
+          },
+          "proposed_role_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proposed Role Id"
           },
           "consent": {
             "type": "boolean",
@@ -7712,6 +7776,55 @@
           "submitted_at"
         ],
         "title": "CompletionEvidence"
+      },
+      "ConfirmedPreview": {
+        "properties": {
+          "skills": {
+            "items": {
+              "$ref": "#/components/schemas/ConfirmedPreviewSkill"
+            },
+            "type": "array",
+            "maxItems": 200,
+            "minItems": 1,
+            "title": "Skills"
+          },
+          "scenario": {
+            "type": "string",
+            "enum": [
+              "moderate",
+              "fast"
+            ],
+            "title": "Scenario",
+            "default": "moderate"
+          }
+        },
+        "type": "object",
+        "required": [
+          "skills"
+        ],
+        "title": "ConfirmedPreview"
+      },
+      "ConfirmedPreviewSkill": {
+        "properties": {
+          "skill_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Skill Id"
+          },
+          "level": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Level"
+          }
+        },
+        "type": "object",
+        "required": [
+          "skill_id",
+          "level"
+        ],
+        "title": "ConfirmedPreviewSkill"
       },
       "CountBucket": {
         "properties": {
@@ -9315,6 +9428,13 @@
             "title": "Min Cohort",
             "default": 3
           },
+          "learning_progress": {
+            "items": {
+              "$ref": "#/components/schemas/TeamSkillProgress"
+            },
+            "type": "array",
+            "title": "Learning Progress"
+          },
           "role_suppressed": {
             "additionalProperties": {
               "type": "boolean"
@@ -9515,7 +9635,6 @@
           },
           "requires_skill_confirmation": {
             "type": "boolean",
-            "const": true,
             "title": "Requires Skill Confirmation",
             "default": true
           }
@@ -10332,6 +10451,13 @@
             },
             "type": "array",
             "title": "Assignments"
+          },
+          "role_labels": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Role Labels"
           }
         },
         "type": "object",
@@ -10714,6 +10840,28 @@
           "packages"
         ],
         "title": "PackageOptions"
+      },
+      "PackageRoleProposal": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 64,
+            "title": "Token"
+          },
+          "proposed_role_id": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Proposed Role Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token",
+          "proposed_role_id"
+        ],
+        "title": "PackageRoleProposal"
       },
       "Pathway": {
         "properties": {
@@ -11415,6 +11563,7 @@
                   "accessibility",
                   "schedule",
                   "upfront_cost",
+                  "target_role",
                   "other"
                 ]
               },
@@ -11429,6 +11578,28 @@
             "maxLength": 500,
             "title": "Note",
             "default": ""
+          },
+          "proposed_role_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proposed Role Id"
+          },
+          "proposed_role_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proposed Role Label"
           }
         },
         "type": "object",
@@ -11575,6 +11746,13 @@
             },
             "type": "array",
             "title": "Programmes"
+          },
+          "package_assignments": {
+            "items": {
+              "$ref": "#/components/schemas/ProgrammeAssignment"
+            },
+            "type": "array",
+            "title": "Package Assignments"
           }
         },
         "type": "object",
@@ -11830,6 +12008,20 @@
             "minimum": 0.0,
             "title": "Percent Complete",
             "description": "Share of planned hours completed."
+          },
+          "trackable": {
+            "type": "boolean",
+            "title": "Trackable",
+            "description": "False when this role was never chosen: the plan is a preview and updates are refused until the learner chooses it.",
+            "default": true
+          },
+          "estimated_skill_fit": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Estimated Skill Fit",
+            "description": "Importance-weighted skill overlap including self-reported completions; a learning estimate, not the composite matching score or verified competence.",
+            "default": 0
           },
           "skills": {
             "items": {
@@ -12608,50 +12800,6 @@
         ],
         "title": "RoleAllocation"
       },
-      "RoleComparison": {
-        "properties": {
-          "options": {
-            "items": {
-              "$ref": "#/components/schemas/RoleOption"
-            },
-            "type": "array",
-            "title": "Options"
-          },
-          "saved_role_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Saved Role Id"
-          },
-          "snapshot_version": {
-            "type": "string",
-            "title": "Snapshot Version",
-            "default": ""
-          },
-          "available_snapshots": {
-            "items": {
-              "type": "string",
-              "format": "date"
-            },
-            "type": "array",
-            "title": "Available Snapshots"
-          },
-          "meta": {
-            "$ref": "#/components/schemas/RecommendationMeta"
-          }
-        },
-        "type": "object",
-        "required": [
-          "options",
-          "meta"
-        ],
-        "title": "RoleComparison"
-      },
       "RoleMatch": {
         "properties": {
           "role_id": {
@@ -13018,105 +13166,6 @@
           "meta"
         ],
         "title": "RoleOpenings"
-      },
-      "RoleOption": {
-        "properties": {
-          "role_id": {
-            "type": "string",
-            "title": "Role Id"
-          },
-          "role_label": {
-            "type": "string",
-            "title": "Role Label"
-          },
-          "total_weeks": {
-            "type": "integer",
-            "minimum": 0.0,
-            "title": "Total Weeks"
-          },
-          "total_hours": {
-            "type": "number",
-            "minimum": 0.0,
-            "title": "Total Hours"
-          },
-          "out_of_pocket_myr": {
-            "type": "number",
-            "minimum": 0.0,
-            "title": "Out Of Pocket Myr"
-          },
-          "within_budget": {
-            "type": "boolean",
-            "title": "Within Budget"
-          },
-          "skills_to_close": {
-            "type": "integer",
-            "minimum": 0.0,
-            "title": "Skills To Close",
-            "description": "Required skills the learner lacks or is below."
-          },
-          "unmet_skills": {
-            "type": "integer",
-            "minimum": 0.0,
-            "title": "Unmet Skills",
-            "description": "Skills no catalogue course can close."
-          },
-          "trend_signal": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Trend Signal",
-            "description": "Importance-weighted trend velocity of the role's skills (estimate); None when the snapshot scores none of them."
-          },
-          "trend_direction": {
-            "type": "string",
-            "enum": [
-              "rising",
-              "stable",
-              "declining",
-              "unknown"
-            ],
-            "title": "Trend Direction",
-            "default": "unknown"
-          },
-          "trend_coverage": {
-            "type": "number",
-            "maximum": 1.0,
-            "minimum": 0.0,
-            "title": "Trend Coverage",
-            "description": "Share of the role's skill importance that has trend data."
-          },
-          "sdg_targets": {
-            "items": {
-              "$ref": "#/components/schemas/SdgTarget"
-            },
-            "type": "array",
-            "title": "Sdg Targets"
-          },
-          "is_saved_choice": {
-            "type": "boolean",
-            "title": "Is Saved Choice",
-            "default": false
-          }
-        },
-        "type": "object",
-        "required": [
-          "role_id",
-          "role_label",
-          "total_weeks",
-          "total_hours",
-          "out_of_pocket_myr",
-          "within_budget",
-          "skills_to_close",
-          "unmet_skills",
-          "trend_coverage"
-        ],
-        "title": "RoleOption",
-        "description": "One candidate target role, so the learner can compare before choosing.\n\nShows what the move would take (time, cost, gap) and the role's trend outlook. It does not\nrank roles (F4 matching does) and it never decides for the learner."
       },
       "RoleOutlook": {
         "properties": {
@@ -14760,6 +14809,59 @@
           "meta"
         ],
         "title": "TeamPackage"
+      },
+      "TeamSkillProgress": {
+        "properties": {
+          "skill_id": {
+            "type": "string",
+            "title": "Skill Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "cohort_size": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Cohort Size"
+          },
+          "completed_courses": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed Courses"
+          },
+          "planned_courses": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Planned Courses"
+          },
+          "suppressed": {
+            "type": "boolean",
+            "title": "Suppressed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "skill_id",
+          "label",
+          "cohort_size",
+          "suppressed"
+        ],
+        "title": "TeamSkillProgress"
       },
       "TopRole": {
         "properties": {
