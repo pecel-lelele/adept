@@ -3524,6 +3524,12 @@ export interface components {
              * @default false
              */
             hrd_eligible: boolean;
+            /**
+             * Learning Style
+             * @description Learning style used to prefer course delivery formats within budget.
+             * @default mixed
+             */
+            learning_style: string;
             /** Gaps */
             gaps?: components["schemas"]["SkillGap"][];
             /** Unmet */
@@ -3667,8 +3673,11 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "added" | "removed" | "reordered" | "courses_changed";
-            /** Skill Id */
+            kind: "added" | "removed" | "reordered" | "courses_changed" | "schedule_changed" | "cost_changed" | "style_changed";
+            /**
+             * Skill Id
+             * @description Empty for whole-plan changes (schedule, cost, style).
+             */
             skill_id: string;
             /** Detail */
             detail: string;

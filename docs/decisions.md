@@ -733,6 +733,17 @@
 - **Affects**: `GET /api/v1/trends/series`, radar range card (rejected-choice notice, per-day table)
 - **Replaces**: none (refines M1-019)
 - **PR / branch**: feat/trends-range-chart
+
+### M1-021: Compare durable published inputs before skipping a rolling refresh
+- **Date**: 2026-10-31
+- **Feature**: F2 (Trends), data refresh
+- **Type**: method
+- **Change**: The rolling publish guard compares current store-derived measured inputs with the inputs saved atomically with the latest published snapshot, ignoring only the provenance note's rebuild date. Missing or different published inputs cause publication even when the window is unchanged and this run refetched no days.
+- **Why**: A settled-day replacement commits before scoring/publication. If the run then fails, a same-day retry must detect the unpublished correction durably rather than relying on a per-run set of revisited days; the existing measured-input record provides that comparison without a migration.
+- **Pipeline**: Existing arXiv per-day evidence → existing normalized paper/skill store → both rolling windows' counts, totals and provenance → compare with atomically published inputs → evaluation: all four synthetic retry regression cases pass (scoring/publish failures and corrections in either window) → unchanged scorer/validator and atomic snapshot/input publication.
+- **Affects**: Automatic F2 refresh publication guard and retry behaviour; no schema, provider or scoring-formula changes
+- **Replaces**: none; extends M1-018
+- **PR / branch**: feat/trends-rolling-accumulated
 ---
 
 ## M2: Profile Intake & Matching (F1, F4)
@@ -1345,6 +1356,16 @@
 - **Affects**: anyone calling `POST /pathway/verifications` (must send `submitted_at`)
 - **Replaces**: none
 - **PR / branch**: `feat/pathway-sdg-guardrails`
+
+### M3-044: Onboarding settings visibly drive the plan
+- **Date**: 2026-10-31
+- **Feature**: F5 (Pathway), F1 settings
+- **Type**: method | contract | UI
+- **Change**: Learning style now prefers course delivery formats within budget (classroom → in-person/live online/hybrid; video/reading → self-paced; hands-on/mixed → no preference, since courses record only delivery format). `Pathway.learning_style` is returned and shown in plan notes. Re-plan now proposes whole-plan `schedule_changed` (hours per week → weeks) and `cost_changed` (budget, HRD eligibility, estimated cost) changes, which were previously ignored when no step changed. The HRD note no longer says claimable courses cost nothing; the shown cost stays the list price until the employer's grant is approved (M3 out_of_pocket rule unchanged).
+- **Why**: Judges must be able to change the profile and see results change (demo journey step 1). Measured with production code: learning style had no effect and a saved plan kept stale weeks/cost after settings changed.
+- **Affects**: F5 engine course choice and replan diff, `Pathway`/`PlanChange` contracts and generated client, pathway page notes and replan banner (en/ms/zh), fairness allowlist (learning style is a preference, not identity)
+- **Replaces**: none
+- **PR / branch**: fix/pathway-settings-drive-plan
 
 ---
 

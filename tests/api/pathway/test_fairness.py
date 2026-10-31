@@ -30,6 +30,7 @@ def test_learner_input_has_no_identity_fields() -> None:
         "hours_per_week",
         "budget_myr",
         "hrd_eligible",
+        "learning_style",  # a course-format preference, not identity
     }
 
 

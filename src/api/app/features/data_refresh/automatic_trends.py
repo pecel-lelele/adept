@@ -273,7 +273,6 @@ def run(started: float, budget: float, stop: threading.Event) -> service.Outcome
     fetched_on = trend_store.fetched_days()
     stored = set(fetched_on)
     missing = missing_days(fetched_on, today)
-    revisited: set[date] = set()
     fetched_rows = 0
     if missing:
         if _runpod() is None and not trend_fallback.enabled():
@@ -296,7 +295,6 @@ def run(started: float, budget: float, stop: threading.Event) -> service.Outcome
             if calibrated:
                 trend_store.save_calibration(conn, *calibrated, today)
             trend_store.save_days(conn, days, mentions, method, model, today)
-        revisited = set(days) & stored
         stored |= set(days)
     end = snapshot_end(stored)
     if end is None:
@@ -309,12 +307,14 @@ def run(started: float, budget: float, stop: threading.Event) -> service.Outcome
     current = (end - timedelta(days=WINDOW_DAYS - 1), end)
     previous = (current[0] - timedelta(days=WINDOW_DAYS), current[0] - timedelta(days=1))
     latest = refresh.latest_published(repository.bounded_db_url())
-    unchanged = not any(previous[0] <= d <= current[1] for d in revisited)
-    if latest and window_from_note(latest[1]) == current and unchanged:
+    inputs = rolling_inputs(previous, current, today)
+    published = (
+        measurements.load(latest[0]) if latest and window_from_note(latest[1]) == current else None
+    )
+    if published and published.model_dump(exclude={"note"}) == inputs.model_dump(exclude={"note"}):
         return service.Outcome(
             fetched_rows, 0, 0, f"Trends are current through {end}; no new complete day yet."
         )
-    inputs = rolling_inputs(previous, current, today)
     scored = measurements.rows(inputs)
     with repository.write_connection(started + budget) as conn:
         measurements.publish(conn, inputs, scored)
