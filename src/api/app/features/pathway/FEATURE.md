@@ -117,7 +117,7 @@ role-scope migration, reference-only seed upserts and API/UI.
 M3-042 removes 12 soft/clinical requirements from 11 target profiles (M3-045 keeps the nurse prerequisites and one business-analyst edge), retains those skills
 for intake/current-role references, and adds 16 dated free-learning records in `FREE_DIGITAL`.
 The catalogue now has 120 records. Course-presence gaps fall from 19/33 target profiles
-(24 distinct skills) to 0/33; this does not mean courses reach every required level.
+(24 distinct skills) to 2/33 (`business-analyst` and `digital-health-nurse`, whose restored soft/clinical requirements stay `no_catalogue_course`, M3-045); this does not mean courses reach every required level.
 The digital-health nursing focus retains healthcare informatics and AI literacy for
 already qualified nurses; it does not provide a nursing qualification. Existing DBs need
 the exact-pair requirement migration as well as reference seeding. The

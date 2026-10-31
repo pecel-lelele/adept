@@ -1,6 +1,6 @@
 # Digital and green skill-bank coverage (issue #84)
 
-Provider pages opened: **2026-10-31**. Before: **19/33 target profiles** had at least one requirement with no course (**24 distinct skills**). After: **0/33** have a course-presence gap; **0** digital/green skills remain `no_catalogue_course`. The catalogue grows from **104 to 120** entries.
+Provider pages opened: **2026-10-31**. Before: **19/33 target profiles** had at least one requirement with no course (**24 distinct skills**). After: **2/33** have a course-presence gap (`business-analyst` and `digital-health-nurse`, whose restored soft/clinical requirements have no course and stay `no_catalogue_course` by design, M3-045); **0** digital/green skills remain `no_catalogue_course`. The catalogue grows from **104 to 120** entries.
 
 ## Measurement
 
@@ -25,7 +25,7 @@ Percentages below are the **importance-weighted uncovered share**, not the cover
 | `ai-product-manager` | 1.8 / 4.9 | 36.73% | 0.00% | ai-product-management, stakeholder-management |
 | `ux-designer` | 0.4 / 2.7 | 14.81% | 0.00% | stakeholder-management |
 | `digital-marketing-specialist` | 0 / 3.2 | 0.00% | 0.00% | none |
-| `business-analyst` | 0.6 / 3.6 | 16.67% | 0.00% | stakeholder-management |
+| `business-analyst` | 0.6 / 3.6 | 16.67% | 16.67% (restored, M3-045) | stakeholder-management |
 | `solar-pv-engineer` | 0 / 2.4 | 0.00% | 0.00% | none |
 | `energy-manager` | 0.5 / 2.9 | 17.24% | 0.00% | stakeholder-management |
 | `esg-sustainability-analyst` | 1 / 3.4 | 29.41% | 0.00% | regulatory-affairs, stakeholder-management |
@@ -34,7 +34,7 @@ Percentages below are the **importance-weighted uncovered share**, not the cover
 | `supply-chain-analyst` | 0 / 3.8 | 0.00% | 0.00% | none |
 | `precision-agriculture-specialist` | 1.4 / 2.6 | 53.85% | 0.00% | climate-ai, precision-agriculture |
 | `health-informatics-specialist` | 0 / 3.4 | 0.00% | 0.00% | none |
-| `digital-health-nurse` | 2.3 / 3.3 | 69.70% | 0.00% | clinical-judgement, cross-cultural-communication, patient-care |
+| `digital-health-nurse` | 2.3 / 3.3 | 69.70% | 69.70% (restored, M3-045) | clinical-judgement, cross-cultural-communication, patient-care |
 | `learning-experience-designer` | 1.2 / 3.2 | 37.50% | 0.00% | coaching-mentoring, learning-development |
 | `tvet-digital-skills-trainer` | 0.9 / 3.1 | 29.03% | 0.00% | coaching-mentoring, public-speaking |
 | `customer-success-specialist` | 0.5 / 3.2 | 15.62% | 0.00% | stakeholder-management |
@@ -54,7 +54,7 @@ Remove 16 requirement edges across 13 target profiles for stakeholder management
 
 Surviving importance values remain positive and at most one. Their relative priorities remain unchanged; matching and role-trend calculations normalize by the surviving total, and pathway priorities use relative importance. Renormalizing the stored weights would add no information. No role loses all requirements.
 
-**digital-health-nurse stays a target focus for already qualified nurses.** Its remaining requirements are healthcare informatics (level 2, importance 0.6) and AI literacy (level 2, importance 0.4). This is a credible digital-health upskilling direction, not a nursing conversion or clinical qualification. The official Registered Nurses occupation crosswalk is retained. Current `registered-nurses` still includes patient care and clinical judgement.
+**digital-health-nurse stays a target focus for already qualified nurses.** Its requirements are healthcare informatics (level 2, importance 0.6) and AI literacy (level 2, importance 0.4), plus the clinical prerequisites restored in M3-045 (patient care, clinical judgement, cross-cultural communication) so a non-nurse is not shown as qualified. This is a credible digital-health upskilling direction, not a nursing conversion or clinical qualification. The official Registered Nurses occupation crosswalk is retained. Current `registered-nurses` still includes patient care and clinical judgement.
 
 ## Added courses
 

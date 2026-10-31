@@ -73,7 +73,7 @@ def test_digital_focus_migration_removes_only_the_retired_edges_and_rolls_back()
 
         def stored() -> set[tuple[str, str, int, float]]:
             return {
-                (r[0], r[1], r[2], float(r[3]))
+                (r[0], r[1], r[2], round(float(r[3]), 4))
                 for r in conn.execute(
                     "SELECT role_id, skill_id, required_level, importance FROM role_skills"
                 ).fetchall()
@@ -82,7 +82,12 @@ def test_digital_focus_migration_removes_only_the_retired_edges_and_rolls_back()
         before = stored()
         conn.execute(migrate.up_section(sql))
         expected = {
-            (r["role_id"], r["skill_id"], int(r["required_level"]), float(r["importance"]))
+            (
+                r["role_id"],
+                r["skill_id"],
+                int(r["required_level"]),
+                round(float(r["importance"]), 4),
+            )
             for r in current
         }
         assert stored() == expected
