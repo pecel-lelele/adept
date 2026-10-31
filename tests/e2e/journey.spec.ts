@@ -27,19 +27,48 @@ test("synthetic CV reaches radar, an explained match and a saved sourced plan", 
   await page.getByRole("button", { name: "Save and see my skills outlook", exact: true }).click();
   await expect(page).toHaveURL(/\/app\/radar/);
   await expect(page.getByText(/snapshot|data as of|showing.*snapshot/i).first()).toBeVisible();
+  const edition = page.getByLabel("Radar snapshot");
+  await expect(edition).toBeVisible();
+  const dated = await edition.locator('option[value]:not([value=""])').first().getAttribute("value");
+  if (dated) {
+    await edition.selectOption(dated);
+    await expect(page).toHaveURL(new RegExp(`snapshot_date=${dated}`));
+    await expect(page.locator(".a-pagehead-meta")).toContainText(dated);
+    await edition.selectOption("");
+    await expect(page).not.toHaveURL(/snapshot_date=/);
+  }
   const adjust = page.locator(".a-range-editor > summary");
   await expect(adjust).toBeVisible();
   await expect(page.locator(".a-range-editor input[name=from]")).toBeHidden();
   await adjust.click();
   await expect(page.locator(".a-range-editor input[name=from]")).toBeVisible();
   const radarRows = page.locator(".a-explorer .a-row");
+  const names = () => radarRows.locator(".a-row-title").allTextContents();
   await expect(radarRows).toHaveCount(10);
+  const firstPage = await names();
   const pager = page.locator(".a-explorer .a-list-pager");
   await pager.getByRole("button", { name: "Next" }).click();
   await expect(pager.getByRole("status")).toContainText("Page 2", { timeout: 5000 });
   await expect(radarRows).toHaveCount(10);
+  const secondPage = await names();
+  expect(secondPage).not.toEqual(firstPage);
   await pager.getByRole("button", { name: "Previous" }).click();
   await expect(pager.getByRole("status")).toContainText("Page 1", { timeout: 5000 });
+  expect(await names()).toEqual(firstPage);
+  await pager.getByRole("button", { name: "Next" }).click();
+  await expect(pager.getByRole("status")).toContainText("Page 2", { timeout: 5000 });
+  await page.locator(".a-explorer .a-search input").fill(firstPage[0]?.trim() ?? "");
+  await expect.poll(async () => (await names()).some((name) => name.trim() === firstPage[0]?.trim())).toBe(true);
+  await page.locator(".a-explorer .a-search input").fill("");
+  await pager.getByRole("button", { name: "Next" }).click();
+  await expect(pager.getByRole("status")).toContainText("Page 2", { timeout: 5000 });
+  await page.locator('.a-explorer .a-filterseg button[role="radio"]').last().click();
+  if (await pager.count()) await expect(pager.getByRole("status")).toContainText("Page 1", { timeout: 5000 });
+  const directions = await radarRows.locator(".a-trend").evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-dir")));
+  expect(directions.every((direction) => direction === "declining")).toBeTruthy();
+  if (!directions.length) await expect(page.locator(".a-explorer .a-row-empty")).toBeVisible();
+  await page.locator('.a-explorer .a-filterseg button[role="radio"]').first().click();
+  await expect(radarRows).toHaveCount(10);
   if (test.info().project.name === "mobile") {
     await expect(page.locator(".a-explorer .a-mobile-metric-label").first()).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBeTruthy();

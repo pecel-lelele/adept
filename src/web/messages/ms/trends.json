@@ -130,6 +130,8 @@
     }
   },
   "range": {
+    "pageDateLabel": "Snapshot radar",
+    "pageDateHint": "Snapshot yang diterbitkan mengemas kini semua kad radar. Tarikh carta meneroka sejarah penyelidikan.",
     "title": "Trend mengikut masa",
     "hint": "Garisan aliran merumuskan sampel penyelidikan bagi setiap tempoh {days} hari. Bandingkan kemahiran, peranan atau kategori.",
     "adjust": "Laraskan carta",
@@ -139,8 +141,9 @@
     "add": "Tambah garisan…",
     "show": "Tunjukkan trend",
     "reset": "Perubahan terbesar",
-    "empty": "Belum ada sejarah harian disimpan. Ia akan muncul selepas larian data berjadual seterusnya.",
+    "empty": "Sejarah kertas penyelidikan masih dikumpulkan. Teroka radar bertarikh di atas; carta garis muncul selepas kemas kini data yang disahkan.",
     "emptyRange": "Tiada perubahan dalam julat ini. Pilih tarikh atau garisan lain.",
+    "steadyRange": "Kemahiran ini stabil dalam julat ini. Buka carta untuk membandingkan tahapnya.",
     "emptyShort": "Satu titik aliran memerlukan data kertas penyelidikan yang disimpan selama {days} hari. Sejarah masih dikumpulkan.",
     "chartLabel": "Garisan trend, {from} hingga {to}",
     "table": "Tunjukkan setiap titik sebagai jadual",

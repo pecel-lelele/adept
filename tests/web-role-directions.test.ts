@@ -36,6 +36,7 @@ test("organisation radar renders role directions without loading personal intake
   const meta = { snapshot_date: "2026-10-13", scenario: "fast", available_snapshots: ["2026-10-13"] };
   const { RadarView } = loadComponent("src/features/trends/components/RadarView.tsx", {
     "@/components/DataAsOf": { DataAsOf: () => null },
+    "@/components/SnapshotPicker": { SnapshotPicker: () => null },
     "@/lib/auth/account": { getAccount: async () => null },
     "next-intl": intl,
     "next-intl/server": { getTranslations: async (namespace) => intl.useTranslations(namespace) },
@@ -68,4 +69,57 @@ test("organisation radar renders role directions without loading personal intake
   assert.match(html, /Synthetic declining role/);
   assert.match(html, /\/org\/plan\?role=synthetic-up&amp;scenario=fast/);
   assert.doesNotMatch(html, /Unexpected failure/);
+});
+
+test("published snapshot selection updates radar counts, roles and evidence while chart dates stay separate", async () => {
+  const intl = translations("en");
+  const reads: { radar: string[]; roles: string[]; chart: string[] } = { radar: [], roles: [], chart: [] };
+  const dates = ["2026-10-13", "2026-10-20"];
+  const { RadarView } = loadComponent("src/features/trends/components/RadarView.tsx", {
+    "next-intl/server": { getTranslations: async (namespace: string) => intl.useTranslations(namespace) },
+    "@/components": {
+      PageHeader: ({ title, actions, children }) => React.createElement("header", {}, title, actions, children),
+      MetaBar: ({ meta }) => React.createElement("p", { "data-snapshot": meta.snapshot_date }, meta.snapshot_date),
+      Kpis: ({ items }) => React.createElement("p", { "data-counts": true }, items.map((item) => `${item.label}: ${item.value}`).join(" / ")),
+      EstimateLabel: () => null,
+      TrendPill: () => null,
+    },
+    "@/components/SnapshotPicker": { SnapshotPicker: ({ value }) => React.createElement("select", { "data-selection": value }) },
+    "@/components/ErrorState": { ErrorState: () => null },
+    "@/components/viz": { TrendBars: () => null },
+    "@/config/navigation": { journeyStepCount: () => 6 },
+    "@/features/profile/api": { fetchMyProfile: () => { throw new Error("organisation has no personal data"); } },
+    "./SignalExplorer": { SignalExplorer: ({ items }) => React.createElement("p", {}, items[0]?.skill_label) },
+    "./RoleDirectionsCard": { RoleDirectionsCard: ({ meta }) => React.createElement("p", { "data-role-date": true }, meta.snapshot_date) },
+    "./TrendRangeCard": { TrendRangeCard: () => null },
+    "../range": loadComponent("src/features/trends/range.ts"),
+    "../api": {
+      fetchRadar: async (_scenario: string, selected: string) => {
+        reads.radar.push(selected);
+        const date = selected || dates[1];
+        const direction = date === dates[0] ? "rising" : "declining";
+        return { ok: true, data: { items: [{ skill_id: "synthetic-skill", skill_label: `Synthetic ${direction} skill`,
+          velocity_moderate: direction === "rising" ? 0.2 : -0.2, velocity_fast: 0.3,
+          direction_moderate: direction, direction_fast: direction, automation_exposure: 0.3 }],
+          meta: { snapshot_date: date, available_snapshots: dates, scenario: "moderate", sources: [] } } };
+      },
+      fetchRoleDirections: async (_scenario: string, date: string) => {
+        reads.roles.push(date);
+        return { ok: true, data: { items: [], meta: { snapshot_date: date } } };
+      },
+      fetchCompare: async ({ end }: { end: string }) => {
+        reads.chart.push(end);
+        return { ok: false, status: 503, code: "storage_unavailable" };
+      },
+    },
+  });
+  const range = { view: "skills", entities: [], from: "2026-10-01", to: "2026-10-10", mode: "raw", horizon: 90 };
+  const early = renderToStaticMarkup(await resolveTree(await RadarView({ scenario: "moderate", context: "organisation", snapshotDate: dates[0], range })));
+  const late = renderToStaticMarkup(await resolveTree(await RadarView({ scenario: "moderate", context: "organisation", snapshotDate: dates[1], range })));
+  assert.match(early, /Rising: 1/);
+  assert.match(late, /Declining: 1/);
+  assert.match(early, /data-role-date="true">2026-10-13/);
+  assert.match(late, /data-role-date="true">2026-10-20/);
+  assert.match(early, /data-selection="2026-10-13"/);
+  assert.deepEqual(reads, { radar: dates, roles: dates, chart: ["2026-10-10", "2026-10-10"] });
 });

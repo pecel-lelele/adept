@@ -1,12 +1,10 @@
 "use client";
 
 import { Search } from "lucide-react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 
 import type { ScenarioId, Schemas } from "@/lib/api";
-import { useBusy } from "@/components/useBusy";
 
 const DIRS = ["all", "rising", "stable", "declining"] as const;
 type Dir = (typeof DIRS)[number];
@@ -19,27 +17,19 @@ export function pageItems<T>(items: T[], requested: number): { items: T[]; page:
   return { items: items.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE), page, pages };
 }
 
-/** Every tracked skill: search, filter by direction, switch snapshot; each row opens its evidence. */
+/** A bounded, instant explorer of one selected snapshot; each row opens its evidence. */
 export function SignalExplorer({
   items,
   scenario,
-  dates,
 }: {
   items: Schemas["SkillVelocity"][];
   scenario: ScenarioId;
-  dates: string[];
 }) {
   const t = useTranslations("common.design");
   const tp = useTranslations("ui.page");
-  const th = useTranslations("ui.home");
-  const router = useRouter();
-  const pathname = usePathname();
-  const params = useSearchParams();
   const [search, setSearch] = useState("");
   const [direction, setDirection] = useState<Dir>("all");
   const [requestedPage, setRequestedPage] = useState(1);
-  const [pending, startTransition] = useTransition();
-  useBusy(pending);
   const key = scenario === "fast" ? "direction_fast" : "direction_moderate";
   const velocity = scenario === "fast" ? "velocity_fast" : "velocity_moderate";
   const top = Math.max(0.01, ...items.map((i) => Math.abs(i[velocity])));
@@ -51,7 +41,7 @@ export function SignalExplorer({
   const { items: pageRows, page, pages } = pageItems(visible, requestedPage);
 
   return (
-    <div className="a-explorer" aria-busy={pending}>
+    <div className="a-explorer">
       <div className="a-explorer-tools">
         <label className="a-search">
           <Search size={15} aria-hidden />
@@ -64,27 +54,6 @@ export function SignalExplorer({
             </button>
           ))}
         </div>
-        <label className="a-inline-select">
-          {t("snapshot")}
-          <select
-            className="a-select is-small"
-            value={params.get("snapshot_date") ?? ""}
-            disabled={pending}
-            onChange={(e) => {
-              const next = new URLSearchParams(params);
-              if (e.target.value) next.set("snapshot_date", e.target.value);
-              else next.delete("snapshot_date");
-              startTransition(() => router.push(`${pathname}?${next.toString()}`, { scroll: false }));
-            }}
-          >
-            <option value="">{th("latest")}</option>
-            {[...dates].reverse().map((d) => (
-              <option key={d} value={d}>
-                {d}
-              </option>
-            ))}
-          </select>
-        </label>
       </div>
 
       <div className="a-rows" role="table" aria-label={tp("allSkills")}>

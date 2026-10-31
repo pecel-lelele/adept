@@ -100,7 +100,11 @@ a stats table with start, end, change and both projected endpoints. All state is
 native "Adjust chart" disclosure holds dates, line choices, mode and horizon, opening on a
 custom or rejected request. The full skill explorer shows ten sorted rows at a time with
 instant previous/next controls; filtering resets to the first page and mobile metrics keep
-visible labels. `TrendMoversCard` on home deep-links in.
+visible labels. A page-level picker selects a published snapshot for all radar KPIs, role
+outlooks and skill rows; the chart's custom dates separately compare stored paper history.
+A stored flat period with at least two observations still draws its measured line; no
+complete paper window shows a sourced, styled collecting state—not an invented line. A visible historical line requires the paper-store migration and a
+successful dated refresh/backfill. `TrendMoversCard` on home deep-links in.
 
 Role and category lines are derived from arXiv skill signals, not observed role demand. The
 dashed projection reuses the radar's moderate and fast velocities and is labelled "pace

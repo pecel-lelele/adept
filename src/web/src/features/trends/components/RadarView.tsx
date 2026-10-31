@@ -6,6 +6,7 @@ import { journeyStepCount } from "@/config/navigation";
 import { ErrorState } from "@/components/ErrorState";
 import { TrendBars } from "@/components/viz";
 import { fetchMyProfile } from "@/features/profile/api";
+import { SnapshotPicker } from "@/components/SnapshotPicker";
 import type { ScenarioId } from "@/lib/api";
 
 import { fetchCompare, fetchRadar, fetchRoleDirections } from "../api";
@@ -34,6 +35,8 @@ export async function RadarView({
   const t = await getTranslations("trends");
   const d = await getTranslations("common.design");
   const tp = await getTranslations("ui.page");
+  const th = await getTranslations("ui.home");
+  const tf = await getTranslations("common.freshness");
   const compare = (chosen: TrendRange) =>
     fetchCompare({ kind: KIND_OF_VIEW[chosen.view], entities: chosen.entities, preset: chosen.preset, start: chosen.from, end: chosen.to, scenario, horizon: chosen.horizon, mode: chosen.mode });
   const [result, profile, series] = await Promise.all([
@@ -54,6 +57,11 @@ export async function RadarView({
         {snapshotDate ? <span className="a-chip">{tp("asOf", { date: snapshotDate })}</span> : null}
       </PageHeader>
       <ErrorState failure={result} />
+      {snapshotDate ? (
+        <a className="a-btn is-ghost" href={`${context === "organisation" ? "/org/radar" : "/app/radar"}?scenario=${scenario}`}>
+          {tf("backToLatest")}
+        </a>
+      ) : null}
     </div>
   );
   const { items, meta } = result.data;
@@ -79,6 +87,13 @@ export async function RadarView({
         eyebrow={context === "organisation" ? tp("radarEyebrowOrg") : tp("stepOf", { step: 2, total: journeyStepCount() })}
         title={context === "organisation" ? t("orgTitle") : t("title")}
         description={tp("radarDesc")}
+        actions={
+          <div className="a-radar-edition">
+            <SnapshotPicker dates={meta.available_snapshots} value={snapshotDate ?? ""}
+              latestLabel={th("latest")} label={t("range.pageDateLabel")} />
+            <p className="a-small a-muted">{t("range.pageDateHint")}</p>
+          </div>
+        }
       >
         <MetaBar meta={meta} />
       </PageHeader>
@@ -175,7 +190,7 @@ export async function RadarView({
         <div className="a-card-head">
           <h2 id="h-all">{tp("allSkills")}</h2>
         </div>
-        <SignalExplorer key={`${scenario}:${meta.snapshot_date}`} items={items} scenario={scenario} dates={meta.available_snapshots} />
+        <SignalExplorer key={`${scenario}:${meta.snapshot_date}`} items={items} scenario={scenario} />
       </section>
       {meta.data_provenance_note ? <p className="a-small a-muted">{meta.data_provenance_note}</p> : null}
     </div>
