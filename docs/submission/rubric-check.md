@@ -43,7 +43,7 @@ employment/IP declarations without their confirmation.
 - Evaluate fairness against the final scoring revision. Existing checks do not establish
   universal fairness or coverage of every Malaysian occupation.
 - Verify final video/slides access with the [deliverables checklist](submission-deliverables.md).
-- Confirm the [tool declaration](submission-technical-declaration.md#44-content-and-presentation-tools)
+- Confirm the [tool declaration](submission-technical-declaration.md#43-ai-assisted-development-tools)
   and [statistical evidence register](../demo-script.md#evidence-register).
 
 This document does not claim new test results, deployment checks or pipeline refreshes.

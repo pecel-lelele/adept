@@ -74,7 +74,7 @@ or the observation date of Adept's trend snapshot.
 | At least 20% faster planning | Proposed matched manual/Adept evaluation | Target only; no collected baseline or achieved reduction is asserted. |
 
 Presentation production tools and outstanding asset credits are declared in
-[technical declaration section 4.4](submission/submission-technical-declaration.md#44-content-and-presentation-tools).
+[technical declaration section 4.3](submission/submission-technical-declaration.md#43-ai-assisted-development-tools).
 
 ## Combine with the live demo
 
