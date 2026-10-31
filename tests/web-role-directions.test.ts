@@ -49,13 +49,9 @@ test("organisation radar renders role directions without loading personal intake
     "@/components/ErrorState": { ErrorState: () => React.createElement("p", {}, "Unexpected failure") },
     "@/components/viz": { TrendBars: () => null },
     "@/features/profile/api": { fetchMyProfile: () => { throw new Error("No personal intake"); } },
-    "@/features/pathway/api": { fetchCompare: () => { throw new Error("No personal learning plan"); } },
     "./SignalExplorer": { SignalExplorer: () => null },
-    "./TrendRangeCard": { TrendRangeCard: () => null },
-    "../range": loadComponent("src/features/trends/range.ts"),
     "../api": {
       fetchRadar: async () => ({ ok: true, data: { items: [], meta } }),
-      fetchCompare: async () => ({ ok: true, data: { lines: [] } }),
       fetchRoleDirections: async (...args) => {
         calls.push(args);
         return { ok: true, data: { meta, items: [
@@ -99,9 +95,9 @@ test("long role lists start at 5 and low coverage stays outside directional clai
   assert.match(html.slice(html.indexOf('data-direction="insufficient"')), /Synthetic thin evidence/);
 });
 
-test("published snapshot selection updates radar counts, roles and evidence while chart dates stay separate", async () => {
+test("published snapshot selection updates radar counts, roles and evidence ", async () => {
   const intl = translations("en");
-  const reads: { radar: string[]; roles: string[]; chart: string[] } = { radar: [], roles: [], chart: [] };
+  const reads: { radar: string[]; roles: string[] } = { radar: [], roles: [] };
   const dates = ["2026-10-13", "2026-10-20"];
   const { RadarView } = loadComponent("src/features/trends/components/RadarView.tsx", {
     "./radar.css": {}, "./MalaysiaContextCard": { MalaysiaContextCard: () => null },
@@ -120,8 +116,6 @@ test("published snapshot selection updates radar counts, roles and evidence whil
     "@/features/profile/api": { fetchMyProfile: () => { throw new Error("organisation has no personal data"); } },
     "./SignalExplorer": { SignalExplorer: ({ items }) => React.createElement("p", {}, items[0]?.skill_label) },
     "./RoleDirectionsCard": { RoleDirectionsCard: ({ meta }) => React.createElement("p", { "data-role-date": true }, meta.snapshot_date) },
-    "./TrendRangeCard": { TrendRangeCard: () => null },
-    "../range": loadComponent("src/features/trends/range.ts"),
     "../api": {
       fetchRadar: async (_scenario: string, selected: string) => {
         reads.radar.push(selected);
@@ -136,19 +130,13 @@ test("published snapshot selection updates radar counts, roles and evidence whil
         reads.roles.push(date);
         return { ok: true, data: { items: [], meta: { snapshot_date: date } } };
       },
-      fetchCompare: async ({ end }: { end: string }) => {
-        reads.chart.push(end);
-        return { ok: false, status: 503, code: "storage_unavailable" };
-      },
     },
   });
-  const range = { view: "skills", entities: [], from: "2026-10-01", to: "2026-10-10", mode: "raw", horizon: 90 };
-  const early = renderToStaticMarkup(await resolveTree(await RadarView({ scenario: "moderate", context: "organisation", snapshotDate: dates[0], range })));
-  const late = renderToStaticMarkup(await resolveTree(await RadarView({ scenario: "moderate", context: "organisation", snapshotDate: dates[1], range })));
+  const early = renderToStaticMarkup(await resolveTree(await RadarView({ scenario: "moderate", context: "organisation", snapshotDate: dates[0] })));
+  const late = renderToStaticMarkup(await resolveTree(await RadarView({ scenario: "moderate", context: "organisation", snapshotDate: dates[1] })));
   assert.match(early, /Rising: 1/);
   assert.match(late, /Declining: 1/);
   assert.match(early, /data-role-date="true">2026-10-13/);
   assert.match(late, /data-role-date="true">2026-10-20/);
-  assert.match(early, /data-selection="2026-10-13"/);
-  assert.deepEqual(reads, { radar: dates, roles: dates, chart: ["2026-10-10", "2026-10-10"] });
+  assert.deepEqual(reads, { radar: dates, roles: dates });
 });

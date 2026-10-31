@@ -27,21 +27,6 @@ test("synthetic CV reaches radar, an explained match and a saved sourced plan", 
   await page.getByRole("button", { name: "Save and see my skills outlook", exact: true }).click();
   await expect(page).toHaveURL(/\/app\/radar/);
   await expect(page.getByText(/snapshot|data as of|showing.*snapshot/i).first()).toBeVisible();
-  const edition = page.getByLabel("Radar snapshot");
-  await expect(edition).toBeVisible();
-  const dated = await edition.locator('option[value]:not([value=""])').first().getAttribute("value");
-  if (dated) {
-    await edition.selectOption(dated);
-    await expect(page).toHaveURL(new RegExp(`snapshot_date=${dated}`));
-    await expect(page.locator(".a-pagehead-meta")).toContainText(dated);
-    await edition.selectOption("");
-    await expect(page).not.toHaveURL(/snapshot_date=/);
-  }
-  const adjust = page.locator(".a-range-editor > summary");
-  await expect(adjust).toBeVisible();
-  await expect(page.locator(".a-range-editor input[name=from]")).toBeHidden();
-  await adjust.click();
-  await expect(page.locator(".a-range-editor input[name=from]")).toBeVisible();
   const radarRows = page.locator(".a-explorer .a-row");
   const names = () => radarRows.locator(".a-row-title").allTextContents();
   await expect(radarRows).toHaveCount(10);

@@ -27,9 +27,3 @@
 .a-shell .labour-sources li span { display: block; }
 .a-shell .labour-sources a { color: var(--a-ink-2); text-decoration: underline; text-underline-offset: 3px; }
 @media (max-width: 640px) { .a-shell .labour-stats { grid-template-columns: minmax(0, 1fr); } }
-@media (prefers-color-scheme: dark) {
-  .a-shell .labour-context {
-    color-scheme: dark; --a-ink: #edf4ee; --a-ink-2: #cad7ce; --a-muted: #a5b5aa; --a-surface: #18231e; --a-sunken: #202e26; --a-line: #35463b; --a-up: #78d69b;
-    --a-chip-warn-border: #745b30; --a-kpi-warn-bg: #392d19; --a-chip-warn-ink: #edc37d; border-color: var(--a-line);
-  }
-}

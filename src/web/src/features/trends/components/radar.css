@@ -2,25 +2,6 @@
 .a-shell :is(.radar-role-directions, .radar-skills-card) { background: var(--a-surface); color: var(--a-ink); }
 .a-shell .radar-skills-card .a-card-head h2 { color: var(--a-ink); }
 .a-shell .radar-role-meta .a-estimate-label { color: var(--a-muted); }
-@media (prefers-color-scheme: dark) {
-  .a-shell :is(.radar-role-directions, .radar-skills-card) {
-    color-scheme: dark;
-    --a-ink: #edf4ee;
-    --a-ink-2: #cad7ce;
-    --a-muted: #a5b5aa;
-    --a-surface: #18231e;
-    --a-sunken: #202e26;
-    --a-line: #35463b;
-    --a-soft: #293f30;
-    --a-up: #78d69b;
-    --a-down: #f29b91;
-    --a-flat: #a5b5aa;
-    --a-chip-up-ink: #78d69b;
-    --a-chip-down-ink: #f29b91;
-    --a-chip-ink: #cad7ce;
-    border-color: var(--a-line);
-  }
-}
 .a-shell .radar-role-directions { display: grid; gap: 24px; }
 .a-shell .radar-role-directions > h2 { margin: 0; }
 .a-shell .radar-role-meta { display: grid; gap: 12px; }
@@ -84,9 +65,7 @@
 .a-shell .radar-skills .a-filterseg { background: var(--a-sunken); }
 .a-shell .radar-skills .a-filterseg button { padding: 0 9px; color: var(--a-muted); }
 .a-shell .radar-skills .a-filterseg button span { color: var(--a-muted); font-variant-numeric: tabular-nums; }
-.a-shell .radar-skills .a-filterseg button[aria-pressed="true"] { background: var(--a-surface); color: var(--a-ink); font-weight: 600; box-shadow: var(--a-shadow); }
-.a-shell .radar-skills .a-inline-select { margin-left: auto; }
-.a-shell .radar-skills .a-inline-select select { background-color: var(--a-surface); border-color: var(--a-line); color: var(--a-ink); max-width: 100%; }
+.a-shell .radar-skills .a-filterseg button[aria-checked="true"] { background: var(--a-surface); color: var(--a-ink); font-weight: 600; box-shadow: var(--a-shadow); }
 .a-shell .radar-skills .a-rows-head { color: var(--a-muted); }
 .a-shell .radar-skills .a-row > summary:hover, .a-shell .radar-skills .a-row[open] > summary { background: var(--a-sunken); }
 .a-shell .radar-skills .a-signal-track { background: var(--a-sunken); }
@@ -95,6 +74,5 @@
   .a-shell .radar-skills .a-explorer-tools > * { flex: 1 1 100%; }
   .a-shell .radar-skills .a-filterseg { flex-wrap: nowrap; }
   .a-shell .radar-skills .a-filterseg button { min-width: 0; padding: 0 5px; gap: 4px; font-size: 11.5px; }
-  .a-shell .radar-skills .a-inline-select { justify-content: space-between; }
   .a-shell .radar-skills .a-row-title { white-space: normal; }
 }

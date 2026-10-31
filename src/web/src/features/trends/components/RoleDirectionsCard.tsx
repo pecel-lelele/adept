@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
 
-import { MetaBar } from "@/components/MetaBar";
 import type { RecommendationMeta, Schemas } from "@/lib/api";
 
 const ROLE_STEP = 5;
@@ -75,14 +74,6 @@ export function RoleDirectionsCard({ signals, meta, organisation = false, snapsh
   return (
     <section className="a-card a-pad radar-role-directions" aria-labelledby="h-role-directions">
       <h2 id="h-role-directions">{t("roleDirections")}</h2>
-      <div className="radar-role-meta">
-        <MetaBar meta={meta} />
-        <div className="radar-source-chips">
-          {meta.sources.map((source) => source.url ? (
-            <a key={`${source.name}:${source.url}`} href={source.url} target="_blank" rel="noreferrer" title={source.retrieved_at}>{source.name}</a>
-          ) : <span key={source.name} title={source.retrieved_at}>{source.name}</span>)}
-        </div>
-      </div>
       <div className="radar-role-columns">
         {(["rising", "declining"] as const).map((direction) => (
           <RoleList key={`${edition}:${direction}`} direction={direction}
