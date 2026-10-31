@@ -22,7 +22,8 @@ ARXIV_API = "https://export.arxiv.org/api/query"
 
 
 class MeasuredInputs(BaseModel):
-    method: Literal["M1-014"] = "M1-014"
+    # M1-014: RunPod MiniLM; M1-017: calibrated Gemini fallback (trend_fallback).
+    method: Literal["M1-014", "M1-017"] = "M1-014"
     model: str = MODEL_ID
     model_revision: str = MODEL_REVISION
     previous: tuple[date, date]

@@ -292,6 +292,8 @@ def test_new_snapshot_uses_measured_week_not_execution_date(
     def connection(deadline: float) -> Any:
         yield SimpleNamespace(execute=lambda *args: None)
 
+    monkeypatch.setenv("TRENDS_RUNPOD_ENDPOINT_ID", "synthetic-endpoint")
+    monkeypatch.setenv("TRENDS_RUNPOD_API_KEY", "synthetic-test-key")
     monkeypatch.setattr(automatic_trends.refresh, "latest_published", lambda _url: None)
     monkeypatch.setattr(automatic_trends.measurements, "load", lambda *args, **kwargs: None)
     monkeypatch.setattr(automatic_trends, "RunPodEncoder", Encoder)
