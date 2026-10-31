@@ -14,7 +14,13 @@ from app.features.jobs.repository import CertRow, Posting
 TODAY = date.today()
 
 
-def test_csv_read_excludes_stale_openings_even_when_refresh_stops(monkeypatch):
+@pytest.mark.parametrize("stale_days", [7, 14, 30])
+def test_csv_read_excludes_stale_openings_even_when_refresh_stops(
+    monkeypatch: pytest.MonkeyPatch, stale_days: int
+) -> None:
+    from app.core.config import get_settings
+
+    monkeypatch.setattr(get_settings(), "jobs_stale_days", stale_days)
     base = {
         "id": "public-job",
         "source": "greenhouse",
@@ -22,6 +28,7 @@ def test_csv_read_excludes_stale_openings_even_when_refresh_stops(monkeypatch):
         "source_name": "Demo",
         "employer": "Fictional employer",
         "title": "Data Analyst",
+        "location": "Kuala Lumpur, Malaysia",
         "url": "https://example.test/job",
         "api_url": "https://example.test/feed",
         "first_seen": TODAY.isoformat(),
@@ -29,10 +36,17 @@ def test_csv_read_excludes_stale_openings_even_when_refresh_stops(monkeypatch):
     }
     rows = [
         dict(base, id=str(days), last_seen=(TODAY - timedelta(days=days)).isoformat())
-        for days in [0, 14, 15]
+        for days in [0, stale_days, stale_days + 1]
+    ]
+    rows += [
+        dict(base, id="worldwide", location="Worldwide", last_seen=TODAY.isoformat()),
+        dict(base, id="singapore", location="Singapore", last_seen=TODAY.isoformat()),
     ]
     monkeypatch.setattr(repository.refdata, "rows", lambda *args, **kwargs: rows)
-    assert {p.id for p in repository.openings()} == {"0", "14"}
+    assert {p.id for p in repository.openings()} == {"0", str(stale_days)}
+    # Possibly closed ads are not dropped silently: listings receive them flagged stale.
+    labelled = {p.id: p.stale for p in repository.openings(include_stale=True)}
+    assert labelled == {"0": False, str(stale_days): False, str(stale_days + 1): True}
 
 
 def _posting(pid: str, role: str, skills: tuple[str, ...], **kw: object) -> Posting:
@@ -96,7 +110,11 @@ UNRELATED = CertRow(**{**CERT.__dict__, "id": "x", "skill_ids": ("patient-care",
 
 @pytest.fixture
 def feed(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(repository, "openings", lambda: list(POSTINGS))
+    monkeypatch.setattr(
+        repository,
+        "openings",
+        lambda include_stale=False: [p for p in POSTINGS if include_stale or not p.stale],
+    )
     monkeypatch.setattr(repository, "certifications", lambda: [CERT, UNRELATED])
 
 
@@ -159,6 +177,29 @@ def test_board_filters(client: TestClient, feed: None) -> None:
         client.get("/api/v1/jobs/board", params={"q": "acme"}).json()
     )
     assert {o.employer for o in body.openings} == {"Acme"}
+
+
+def test_stale_openings_are_listed_last_with_a_label_but_never_counted(
+    client: TestClient, feed: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    old = TODAY - timedelta(days=20)
+    stale = _posting("9", "data-analyst", ("sql",), employer="Gamma", last_seen=old, stale=True)
+    postings = [*POSTINGS, stale]
+    monkeypatch.setattr(
+        repository,
+        "openings",
+        lambda include_stale=False: [p for p in postings if include_stale or not p.stale],
+    )
+    board = JobBoardPage.model_validate(client.get("/api/v1/jobs/board").json())
+    assert board.openings[-1].id == "9" and board.openings[-1].is_stale
+    assert board.openings[-1].last_seen == old
+    assert not any(o.is_stale for o in board.openings[:-1])
+    analyst = next(r for r in board.roles if r.role_id == "data-analyst")
+    assert analyst.open_count == 3  # the possibly closed ad is not counted as open
+    role = RoleOpenings.model_validate(client.get("/api/v1/jobs/roles/data-analyst").json())
+    assert role.open_count == 3 and role.openings[-1].is_stale
+    summary = OpeningsSummary.model_validate(client.get("/api/v1/jobs/summary").json())
+    assert summary.total_open == 4
 
 
 def test_certifications_for_role(client: TestClient, feed: None) -> None:

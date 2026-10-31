@@ -70,3 +70,14 @@ PostgreSQL upgrades/recovery and the actual root production build/start. Its dep
 smoke uses an explicit disposable loopback database and never calls a model.
 Weekly source/trend jobs and the guarded manual MiniLM publisher stay at `.github/workflows`;
 worker Docker builds use the repository root as context. Public pages read saved snapshots.
+
+## Automatic in-app data refresh
+
+GitHub is only the daily clock. Apply all four refresh migrations explicitly (including `20261031010000_measured_trend_inputs.sql`), then set the
+new `DATA_REFRESH_TOKEN` in Replit and GitHub, and repository variable `DATA_REFRESH_APP_URL`
+to the public HTTPS origin. The app uses its existing private database and dedicated
+`TRENDS_RUNPOD_*` configuration; GitHub needs neither DB nor MiniLM credentials. Keep the
+old workflow/secrets until an automatic publication is proven. Follow the complete
+[activation and verification guide](docs/data-refresh.md); no migration or paid refresh
+is triggered by build/start. Signed-in users can check/attach to the same job from the radar
+or dashboard; failures preserve the last good source snapshot.
