@@ -2646,3 +2646,14 @@
 - **Affects**: Automatic jobs fetch order only; no catalogue, UI, API contract or other feature changes.
 - **Replaces**: M4-095 remote-first fetch ordering only
 - **PR / branch**: feat/jobs-malaysia-focus
+
+### M4-097: Reserve remote refresh time and rotate remote feed priority daily
+- **Date**: 2026-10-31
+- **Feature**: Core (jobs refresh)
+- **Type**: method
+- **Change**: Limit employer/keyed fetching to half of the remaining fetch window when remote feeds are enabled, then restore the original fetch deadline for the remote phase. Rotate remote feeds by calendar day so each leads once every four days; unused employer time is available to remote feeds. A single group uses the full window.
+- **Why**: Greptile identified that employer-first ordering alone could skip every remote feed on every successful daily run, allowing remote openings to age out after 14 days. Separate HTTP/board-loop deadlines protect both groups without extending the run or changing stale/expiry rules.
+- **Pipeline**: existing public feeds → unchanged parsers → unchanged classification → reserved employer/remote windows and daily remote rotation → four-day slow-employer/aging-row regressions plus slow-Himalayas publication regression → existing atomic jobs publication
+- **Affects**: Automatic jobs scheduling and its tests only; no UI, API contract, catalogue, dependency or other feature changes.
+- **Replaces**: M4-096 shared fetch window without a remote reserve
+- **PR / branch**: feat/jobs-malaysia-focus

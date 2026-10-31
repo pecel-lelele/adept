@@ -57,6 +57,8 @@ USER_AGENT = "adept-data-refresh/1.0"
 MAX_BYTES = 40_000_000
 # Share of the run budget the jobs fetch may use; the rest is for classify, FX and the write.
 JOBS_FETCH_SHARE = 0.65
+# When both groups are enabled, keep half of the remaining fetch window for remote feeds.
+JOBS_REMOTE_FETCH_SHARE = 0.5
 # Reject a jobs run when more than this share of fetched ads fail the row checks.
 MAX_REJECTED_SHARE = 0.5
 
@@ -384,30 +386,47 @@ def selected_boards() -> tuple[list[Any], list[str]]:
         else:
             runnable.append(b)
     # Keyed feeds first; rotate employer boards so budget-limited runs share coverage.
-    # Remote feeds run last: Himalayas makes multiple requests and can exhaust the budget.
+    # Remote feeds have a reserved window and daily rotation, so slow employer reads cannot
+    # starve them and Himalayas cannot always consume their window before the other feeds.
     quick = [b for b in runnable if b.board in keyed]
     remote_boards = [b for b in runnable if b in boards.REMOTE]
     employers = [b for b in runnable if b not in quick and b not in remote_boards]
     if employers:
         offset = secrets.randbelow(len(employers))
         employers = employers[offset:] + employers[:offset]
+    if remote_boards:
+        offset = _today().toordinal() % len(remote_boards)
+        remote_boards = remote_boards[offset:] + remote_boards[:offset]
     return quick + employers + remote_boards, skipped
 
 
 def _run_jobs(started: float, budget: float) -> Outcome:
+    from pipelines.jobs import boards
     from pipelines.jobs import run as jobs_run
-    from pipelines.jobs.sources import Fetcher
+    from pipelines.jobs.sources import Fetcher, RawPosting
 
     selected, no_key = selected_boards()
     fetch_deadline = started + budget * JOBS_FETCH_SHARE
+    employers = [b for b in selected if b not in boards.REMOTE]
+    remote = [b for b in selected if b in boards.REMOTE]
+    reserve = (
+        max(0.0, fetch_deadline - time.monotonic()) * JOBS_REMOTE_FETCH_SHARE if remote else 0.0
+    )
+    raw: list[RawPosting] = []
+    log_entries: list[dict[str, Any]] = []
     client = guarded_client()
     try:
-        raw, log_entries = jobs_run.fetch(
-            None,
-            selected=selected,
-            fetcher=Fetcher(client=client, deadline=fetch_deadline),
-            deadline=fetch_deadline,
-        )
+        fetcher = Fetcher(client=client)
+        for group, deadline in ((employers, fetch_deadline - reserve), (remote, fetch_deadline)):
+            if not group:
+                continue
+            # Apply the phase deadline to HTTP/robots/crawl waits as well as the board loop.
+            fetcher.deadline = deadline
+            postings, entries = jobs_run.fetch(
+                None, selected=group, fetcher=fetcher, deadline=deadline
+            )
+            raw.extend(postings)
+            log_entries.extend(entries)
     finally:
         client.close()
     ran = [e["board"] for e in log_entries if e["status"] in ("ok", "partial")]

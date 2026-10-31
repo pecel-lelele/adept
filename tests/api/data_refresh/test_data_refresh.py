@@ -13,7 +13,7 @@ import threading
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from dataclasses import replace
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -442,8 +442,10 @@ def _jobs_world(
     seen: dict[str, Any] = {}
 
     def fetch(only: Any, *, selected: Any, fetcher: Any, deadline: float) -> Any:
-        seen["boards"] = [b.board for b in selected]
+        seen.setdefault("boards", []).extend(b.board for b in selected)
         seen["deadline"] = deadline
+        if not any(b.board == "remotive" for b in selected):
+            return [], []
         log = [{"source": "remotive", "board": "remotive", "employer": "", "status": "ok",
                 "kept": len(postings)}]  # fmt: skip
         log.append(
@@ -488,10 +490,47 @@ def test_employer_rotation_stays_ahead_of_remote_boards(
     employers = list(jobs_boards.EMPLOYERS[:2])
     monkeypatch.setattr(jobs_boards, "ALL", (*jobs_boards.REMOTE, *employers))
     monkeypatch.setattr(service.secrets, "randbelow", lambda size: offset)
+    monkeypatch.setattr(service, "_today", lambda: STORED_ON)
 
     chosen, _ = service.selected_boards()
 
-    assert chosen == employers[offset:] + employers[:offset] + list(jobs_boards.REMOTE)
+    assert chosen[:2] == employers[offset:] + employers[:offset]
+    assert set(chosen[2:]) == set(jobs_boards.REMOTE)
+
+
+def test_every_remote_board_gets_first_priority_within_four_days(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(jobs_boards, "ALL", jobs_boards.REMOTE)
+    first = []
+    for offset in range(len(jobs_boards.REMOTE)):
+        today = STORED_ON + timedelta(days=offset)
+        monkeypatch.setattr(service, "_today", lambda today=today: today)
+        chosen, _ = service.selected_boards()
+        first.append(chosen[0])
+    assert set(first) == set(jobs_boards.REMOTE)
+
+
+@pytest.mark.parametrize("board", [jobs_boards.EMPLOYERS[0], jobs_boards.REMOTE[0]])
+def test_a_single_feed_group_keeps_the_full_fetch_window(
+    monkeypatch: pytest.MonkeyPatch, board: jobs_boards.Board
+) -> None:
+    monkeypatch.setattr(jobs_boards, "ALL", (board,))
+    monkeypatch.setattr(service.time, "monotonic", lambda: 1000.0)
+    monkeypatch.setattr(
+        service, "guarded_client", _mock_client(lambda request: httpx.Response(404))
+    )
+    deadlines = []
+
+    def fetch(only: Any, *, selected: Any, fetcher: Any, deadline: float) -> Any:
+        assert selected == [board]
+        deadlines.append((deadline, fetcher.deadline))
+        return [], []
+
+    monkeypatch.setattr(jobs_run, "fetch", fetch)
+    with pytest.raises(service.RefreshFailed, match="No job board answered"):
+        service._run_jobs(started=1000.0, budget=90)
+    assert deadlines == [(1058.5, 1058.5)]
 
 
 def test_slow_himalayas_cannot_prevent_employer_publication(
@@ -499,6 +538,9 @@ def test_slow_himalayas_cannot_prevent_employer_publication(
 ) -> None:
     employer = jobs_boards.Board("greenhouse", "synthetic-employer", "Synthetic Employer")
     monkeypatch.setattr(jobs_boards, "ALL", (*jobs_boards.REMOTE, employer))
+    # Start on the day Himalayas leads the daily remote rotation.
+    today = date.fromordinal(STORED_ON.toordinal() // 4 * 4)
+    monkeypatch.setattr(service, "_today", lambda: today)
     now = 1000.0
     monkeypatch.setattr(service.time, "monotonic", lambda: now)
     queries: list[str] = []
@@ -541,6 +583,74 @@ def test_slow_himalayas_cannot_prevent_employer_publication(
         ("remoteok", "skipped"),
         ("remotive", "skipped"),
     ]
+
+
+@pytest.mark.parametrize("day_offset", range(4))
+def test_slow_employers_leave_remote_time_and_refresh_aging_openings(
+    store: FakeStore, monkeypatch: pytest.MonkeyPatch, day_offset: int
+) -> None:
+    employers = tuple(
+        jobs_boards.Board("greenhouse", f"synthetic-{n}", "Synthetic Employer") for n in range(13)
+    )
+    monkeypatch.setattr(jobs_boards, "ALL", (*employers, *jobs_boards.REMOTE))
+    today = STORED_ON + timedelta(days=day_offset)
+    monkeypatch.setattr(service, "_today", lambda: today)
+    now = 1000.0
+    monkeypatch.setattr(service.time, "monotonic", lambda: now)
+    first_remote = service.selected_boards()[0][-len(jobs_boards.REMOTE)]
+    old = {
+        "id": f"{first_remote.source}:{first_remote.board}:1",
+        "source": first_remote.source, "board": first_remote.board, "active": "true",
+        "last_seen": (today - timedelta(days=15)).isoformat(), "expires_at": "",
+    }  # fmt: skip
+    fetch_log: list[dict[str, Any]] = []
+
+    def answer(request: httpx.Request) -> httpx.Response:
+        nonlocal now
+        if request.url.path == "/robots.txt":
+            return httpx.Response(404)
+        now += 5
+        posting = {"id": 1, "title": "Data Analyst", "url": "https://example.test/jobs/1"}
+        match request.url.host:
+            case "boards-api.greenhouse.io":
+                payload: Any = {"jobs": [posting | {
+                    "location": {"name": "Kuala Lumpur, Malaysia"},
+                    "absolute_url": posting["url"], "content": "Python and SQL",
+                }]}  # fmt: skip
+            case "himalayas.app":
+                payload = {"jobs": [posting | {"guid": "1", "applicationLink": posting["url"]}]}
+            case "jobicy.com":
+                payload = {"jobs": [posting | {"jobTitle": "Data Analyst", "jobGeo": "APAC"}]}
+            case "remoteok.com":
+                payload = [posting | {"position": "Data Analyst", "location": "Worldwide"}]
+            case "remotive.com":
+                payload = {"jobs": [posting | {"candidate_required_location": "Worldwide"}]}
+            case _:
+                pytest.fail(f"Unexpected feed: {request.url.host}")
+        return httpx.Response(200, json=payload)
+
+    def to_db(
+        rows: list[dict[str, Any]], certs: Any, log: Any, today: date, url: str, conn: Any = None
+    ) -> int:
+        store.writes += 1
+        store.jobs = jobs_run.merge_postings([old], rows, log, today)
+        fetch_log.extend(log)
+        return len(store.jobs)
+
+    monkeypatch.setattr(service, "guarded_client", _mock_client(answer))
+    monkeypatch.setattr(jobs_run, "to_db", to_db)
+
+    result = service._run_jobs(started=now, budget=90)
+
+    assert result.rows_upserted > 1 and store.writes == 1
+    assert any(r["source"] == "greenhouse" for r in store.jobs)
+    refreshed = next(r for r in store.jobs if r["id"] == old["id"])
+    assert refreshed["last_seen"] == today.isoformat() and refreshed["active"] == "true"
+    assert any(e["source"] == "greenhouse" and e["status"] == "ok" for e in fetch_log)
+    assert next(e for e in fetch_log if e["board"] == first_remote.board)["status"] in (
+        "ok",
+        "partial",
+    )
 
 
 def test_jobs_refresh_keeps_remote_open_postings_and_drops_other_places(
