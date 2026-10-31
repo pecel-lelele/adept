@@ -96,7 +96,9 @@ def test_person_contribution_includes_plan_level_links(client: TestClient) -> No
     assert sum(g.link_count for g in body.goals_summary) == len(body.links)
 
 
-def test_org_contribution_counts_contributors(client: TestClient) -> None:
+def test_org_contribution_counts_contributors(
+    planning_cohort: list[str], client: TestClient
+) -> None:
     resp = client.get("/api/v1/sdg/contribution/org", headers={"X-Demo-User": "demo-company"})
     body = SdgContribution.model_validate(resp.json())
     assert body.scope == "organisation" and body.scope_id == "org-demo-bank"
@@ -125,7 +127,7 @@ def test_alignment_ranks_roles_by_chosen_goals(client: TestClient) -> None:
 
 
 def test_org_and_region_contribution_follow_the_selected_role(
-    client: TestClient, monkeypatch
+    planning_cohort: list[str], client: TestClient, monkeypatch
 ) -> None:
     """H05: the role chosen on the team plan drives the organisation's impact view."""
     company = {"X-Demo-User": "demo-company"}

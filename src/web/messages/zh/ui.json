@@ -48,7 +48,8 @@
     "workspace_changed": "您的工作区已更改，请刷新后重试。",
     "funding_conflict": "无法完成资助请求，请联系管理员检查当前状态。",
     "disallowed_content": "请移除输入中不受支持的内容后继续。",
-    "unknown_course": "请从当前计划或目录选择课程。"
+    "unknown_course": "请从当前计划或目录选择课程。",
+    "insufficient_cohort": "已完成档案并同意分享技能的成员太少。请选择更大的知情同意群组，或等待更多成员完成档案。"
   },
   "nav": {
     "home": "首页",
@@ -533,6 +534,8 @@
     "signIn": "重新登录",
     "profile": "完成你的资料",
     "network": "目前无法连接 Adept。",
+    "cohort": "成员人数不足",
+    "members": "查看成员",
     "home": "返回首页",
     "unexpected": "无法加载此页面。请重试或返回首页。",
     "notFoundTitle": "找不到页面",

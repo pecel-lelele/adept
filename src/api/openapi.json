@@ -6137,6 +6137,101 @@
         }
       }
     },
+    "/api/v1/trends/series": {
+      "get": {
+        "tags": [
+          "trends"
+        ],
+        "summary": "Get Series",
+        "description": "Observed 7-day rolling share per skill for each day in [start, end] (max 120 days).\n\nCounted from stored papers (no model call). Without `skill_ids`, the three biggest risers\nand fallers in the range are returned. 422 invalid_range for bad dates or skills.",
+        "operationId": "trends_get_series",
+        "parameters": [
+          {
+            "name": "start",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Start"
+            }
+          },
+          {
+            "name": "end",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "End"
+            }
+          },
+          {
+            "name": "skill_ids",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": [],
+              "title": "Skill Ids"
+            }
+          },
+          {
+            "name": "scenario",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "moderate",
+                "fast"
+              ],
+              "type": "string",
+              "default": "moderate",
+              "title": "Scenario"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrendSeriesResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/trends/radar": {
       "get": {
         "tags": [
@@ -7535,6 +7630,7 @@
             "type": "string",
             "enum": [
               "not_submitted",
+              "submitted",
               "provider_verified",
               "unreachable",
               "not_provider_page"
@@ -15042,6 +15138,138 @@
         ],
         "title": "TrendRescoreResult",
         "description": "Outcome of re-scoring the latest stored signals (no ingest, no model call)."
+      },
+      "TrendSeriesLine": {
+        "properties": {
+          "skill_id": {
+            "type": "string",
+            "title": "Skill Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/TrendSeriesPoint"
+            },
+            "type": "array",
+            "title": "Points"
+          },
+          "change": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change",
+            "description": "Last minus first available share in the range."
+          }
+        },
+        "type": "object",
+        "required": [
+          "skill_id",
+          "label",
+          "points",
+          "change"
+        ],
+        "title": "TrendSeriesLine"
+      },
+      "TrendSeriesPoint": {
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date",
+            "title": "Day"
+          },
+          "share": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Share",
+            "description": "Share of sampled arXiv papers in the 7 days ending on `day` that mention the skill; null when that window is not fully stored."
+          }
+        },
+        "type": "object",
+        "required": [
+          "day",
+          "share"
+        ],
+        "title": "TrendSeriesPoint"
+      },
+      "TrendSeriesResponse": {
+        "properties": {
+          "start": {
+            "type": "string",
+            "format": "date",
+            "title": "Start"
+          },
+          "end": {
+            "type": "string",
+            "format": "date",
+            "title": "End"
+          },
+          "window_days": {
+            "type": "integer",
+            "title": "Window Days",
+            "default": 7
+          },
+          "available_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Available From",
+            "description": "First day a full window is stored."
+          },
+          "available_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Available To",
+            "description": "Newest stored day."
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/TrendSeriesLine"
+            },
+            "type": "array",
+            "title": "Lines"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RecommendationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "start",
+          "end",
+          "available_from",
+          "available_to",
+          "lines",
+          "meta"
+        ],
+        "title": "TrendSeriesResponse",
+        "description": "Observed rolling shares per skill over a chosen date range (M1-018 paper store)."
       },
       "TrendSignal": {
         "properties": {

@@ -8,7 +8,7 @@
     "minilm": "Melalui RunPod: mengaitkan ayat penyelidikan awam dengan kemahiran katalog semasa pengingesan trend latar belakang. Halaman menggunakan petikan tersimpan.",
     "glm": "Model Adi yang dikonfigurasi: memilih blok jawapan pelayan yang disahkan. Nama, angka dan penerangan datang daripada fakta aplikasi yang diperiksa.",
     "gemini": "Sandaran Adi pilihan yang dikonfigurasi berasingan: memilih blok jawapan disahkan yang sama jika penyedia utama gagal.",
-    "embeddings": "Cadangan kemahiran pilihan untuk frasa CV dan carian kemahiran yang dihantar; cadangan memerlukan pengesahan anda.",
+    "embeddings": "Cadangan kemahiran pilihan untuk frasa CV dan carian kemahiran yang dihantar; cadangan memerlukan pengesahan anda. Juga sandaran untuk penyegaran tren apabila pekerja MiniLM tidak tersedia: memadankan penyelidikan awam dengan kemahiran menggunakan ambang yang ditentukur pada kadar MiniLM tersimpan, dilabel dalam nota petikan.",
     "arxiv": "Minggu penyerahan arXiv yang telah lengkap melalui API awam, dengan garis dasar BLS bertarikh. Data ulangan Oktober 2024 dilabel dengan jelas; perhatian penyelidikan bukan permintaan kerja yang diperhatikan.",
     "bls": "Unjuran pekerjaan sebagai garis dasar tenaga kerja bagi anggaran prospek peranan.",
     "onet": "Taksonomi pekerjaan sebagai asas pemetaan peranan Adept yang dikurasi; pengkhususan Adept bukan tajuk rasmi O*NET.",

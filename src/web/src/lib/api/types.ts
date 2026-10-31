@@ -1584,6 +1584,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/trends/series": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Series
+         * @description Observed 7-day rolling share per skill for each day in [start, end] (max 120 days).
+         *
+         *     Counted from stored papers (no model call). Without `skill_ids`, the three biggest risers
+         *     and fallers in the range are returned. 422 invalid_range for bad dates or skills.
+         */
+        get: operations["trends_get_series"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/trends/radar": {
         parameters: {
             query?: never;
@@ -2162,7 +2185,7 @@ export interface components {
              * @default not_submitted
              * @enum {string}
              */
-            link_status: "not_submitted" | "provider_verified" | "unreachable" | "not_provider_page";
+            link_status: "not_submitted" | "submitted" | "provider_verified" | "unreachable" | "not_provider_page";
             /** Link Checked At */
             link_checked_at?: string | null;
             /**
@@ -5397,6 +5420,67 @@ export interface components {
             /** Observed To */
             observed_to?: string | null;
         };
+        /** TrendSeriesLine */
+        TrendSeriesLine: {
+            /** Skill Id */
+            skill_id: string;
+            /** Label */
+            label: string;
+            /** Points */
+            points: components["schemas"]["TrendSeriesPoint"][];
+            /**
+             * Change
+             * @description Last minus first available share in the range.
+             */
+            change: number | null;
+        };
+        /** TrendSeriesPoint */
+        TrendSeriesPoint: {
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /**
+             * Share
+             * @description Share of sampled arXiv papers in the 7 days ending on `day` that mention the skill; null when that window is not fully stored.
+             */
+            share: number | null;
+        };
+        /**
+         * TrendSeriesResponse
+         * @description Observed rolling shares per skill over a chosen date range (M1-018 paper store).
+         */
+        TrendSeriesResponse: {
+            /**
+             * Start
+             * Format: date
+             */
+            start: string;
+            /**
+             * End
+             * Format: date
+             */
+            end: string;
+            /**
+             * Window Days
+             * @default 7
+             */
+            window_days: number;
+            /**
+             * Available From
+             * @description First day a full window is stored.
+             */
+            available_from: string | null;
+            /**
+             * Available To
+             * @description Newest stored day.
+             */
+            available_to: string | null;
+            /** Lines */
+            lines: components["schemas"]["TrendSeriesLine"][];
+            meta: components["schemas"]["RecommendationMeta"];
+        };
         /** TrendSignal */
         TrendSignal: {
             /**
@@ -8412,6 +8496,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TrendSnapshotResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    trends_get_series: {
+        parameters: {
+            query?: {
+                start?: string | null;
+                end?: string | null;
+                skill_ids?: string[];
+                scenario?: "moderate" | "fast";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrendSeriesResponse"];
                 };
             };
             /** @description Validation Error */

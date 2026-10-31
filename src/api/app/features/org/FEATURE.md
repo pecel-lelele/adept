@@ -47,7 +47,12 @@ Fill this in as the feature takes shape (copy it into the `docs/decisions.md` en
 
 ## Learning packages and employer funding
 
-HR chooses a target role and a cohort of 1–50 completed profiles at `/org/plan`.
+HR chooses a target role and up to 50 completed, consenting profiles at `/org/plan`.
+Team plans, package previews/selections, programme options/generation and organisation SDG
+contributions require `ORG_MIN_COHORT` sharing members with usable completed profiles. Selected
+subsets must meet the same configured minimum. Below it, the API returns HTTP 409 with
+`insufficient_cohort`; the web shows a translated "too few members" state without skill-derived
+plans, readiness or assignments. Individual members can still see their own accepted programme.
 `GET /org/packages` returns free-first, member-budget-capped and broader-catalogue proposals
 using F5 for every member. Each proposal includes dated course prices, each member's study
 time, remaining gaps and source metadata. Options can coincide when free courses provide

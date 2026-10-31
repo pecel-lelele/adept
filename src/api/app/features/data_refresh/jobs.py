@@ -88,15 +88,13 @@ def _latest(conn: Any, *, running: bool = False) -> dict[str, Any] | None:
 
 
 def due_sources(moment: datetime) -> list[str]:
-    """Cheap stored-data cadence check: current measured week, then daily source dates."""
+    """Cheap stored-data cadence check: newest fully announced arXiv day, then daily sources."""
+    from app.features.data_refresh.automatic_trends import ARXIV_LAG_DAYS
+
     current = service._trends()
-    last_sunday = moment.date() - timedelta(days=moment.weekday() + 1)
+    newest = moment.date() - timedelta(days=ARXIV_LAG_DAYS)
     due = []
-    if (
-        current.is_historical_replay
-        or current.data_as_of is None
-        or current.data_as_of < last_sunday
-    ):
+    if current.is_historical_replay or current.data_as_of is None or current.data_as_of < newest:
         due.append("trends")
     successes = repository.last_successes()
     for source in ("jobs", "courses", "labour"):

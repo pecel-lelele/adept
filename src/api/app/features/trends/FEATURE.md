@@ -74,3 +74,19 @@ See [operations and source assessment](../../../../../docs/data-refresh.md).
 | Model / method | Research log-ratio blended 0.6/0.4 with labour decay | Moderate and fast scenarios remain estimates |
 | Evaluation | IDs, finite values, two periods and minimum evidence coverage | Failure prevents publication |
 | Serving | Atomic PostgreSQL snapshot/provenance transaction | GET `/api/v1/trends/snapshot` |
+
+## Trend over time (2026-10-31, M1-019)
+
+`GET /trends/series` (`series.py`) counts the stored paper cache (M1-018) to give each skill's
+observed 7-day rolling share for every day in a chosen range. The radar's "Trend over time"
+card (`TrendRangeCard`, `TrendLinesChart` on shadcn chart / Recharts) lets people pick dates
+and skills; the choice lives in the URL (`?from=&to=&skill=`).
+
+The card renders its own series attribution rather than borrowing the radar forecast's
+snapshot and sources. With no stored papers, metadata cites the dated, versioned method
+and explicitly says no paper observations are stored; query dates never become an arXiv
+retrieval date. The observation period remains null until a complete window contributes data.
+
+
+Daily denominators and mention counts use one SQL statement snapshot, so a concurrent
+settled-day replacement cannot mix versions or inflate a displayed sample share.

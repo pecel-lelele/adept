@@ -127,15 +127,16 @@
     "reviewNote": "审核备注：{note}",
     "kind": {
       "self_reported": "自行报告",
-      "certificate_link": "证书链接",
+      "certificate_link": "证书已提交",
       "org_confirmed": "已由您的机构确认",
       "org_rejected": "未被您的机构接受"
     },
     "link": {
       "not_submitted": "尚无链接",
-      "provider_verified": "链接可在提供方网站打开（未核验归属和内容）",
+      "provider_verified": "已提交审核；学习者身份和课程尚未核实",
       "unreachable": "无法打开链接",
-      "not_provider_page": "非官方验证页面：需要人工核对"
+      "not_provider_page": "非官方验证页面：需要人工核对",
+      "submitted": "已提交审核；学习者身份和课程尚未核实"
     }
   },
   "verify": {

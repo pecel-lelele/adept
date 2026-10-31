@@ -216,6 +216,37 @@ def cosine_similarity(a: list[float], b: list[float]) -> float:
     return dot / (norm_a * norm_b)
 
 
+def paper_mentions(
+    papers: list[dict[str, str]],
+    skill_ids: list[str],
+    skill_vectors: dict[str, list[float]],
+    model: Encoder | None,
+) -> list[list[str]]:
+    """Per paper, the skills it mentions (sentence-level cosine >= SIMILARITY_THRESHOLD)."""
+    if model is None:
+        return [[] for _ in papers]  # cannot embed
+    # One encode call for every sentence of every paper: the remote encoder then runs a few
+    # 64-sentence jobs under one deadline instead of one job (and one cold start) per paper.
+    per_paper = [_split_sentences(f"{p['title']}. {p['abstract']}") for p in papers]
+    flat = [sentence for sentences in per_paper for sentence in sentences]
+    vectors = model.encode(flat, batch_size=64, show_progress_bar=False) if flat else []
+    result: list[list[str]] = []
+    offset = 0
+    for sentences in per_paper:
+        sent_vecs = vectors[offset : offset + len(sentences)]
+        offset += len(sentences)
+        found: list[str] = []
+        if sentences:
+            for sid in skill_ids:
+                if sid not in skill_vectors:
+                    continue
+                sv = skill_vectors[sid]
+                if max(cosine_similarity(sv, v) for v in sent_vecs) >= SIMILARITY_THRESHOLD:
+                    found.append(sid)
+        result.append(found)
+    return result
+
+
 def count_mentions(
     papers: list[dict[str, str]],
     skill_ids: list[str],
@@ -227,30 +258,9 @@ def count_mentions(
     Returns {skill_id: count}.
     """
     counts: dict[str, int] = {sid: 0 for sid in skill_ids}
-    if model is None:
-        return counts  # cannot embed
-
-    # One encode call for every sentence of every paper: the remote encoder then runs a few
-    # 64-sentence jobs under one deadline instead of one job (and one cold start) per paper.
-    per_paper = [_split_sentences(f"{p['title']}. {p['abstract']}") for p in papers]
-    flat = [sentence for sentences in per_paper for sentence in sentences]
-    vectors = model.encode(flat, batch_size=64, show_progress_bar=False) if flat else []
-    offset = 0
-    for sentences in per_paper:
-        sent_vecs = vectors[offset : offset + len(sentences)]
-        offset += len(sentences)
-        if not sentences:
-            continue
-
-        # Check each skill
-        for sid in skill_ids:
-            if sid not in skill_vectors:
-                continue
-            sv = skill_vectors[sid]
-            max_sim = max(cosine_similarity(sv, sent_vec) for sent_vec in sent_vecs)
-            if max_sim >= SIMILARITY_THRESHOLD:
-                counts[sid] += 1
-
+    for found in paper_mentions(papers, skill_ids, skill_vectors, model):
+        for sid in found:
+            counts[sid] += 1
     return counts
 
 
