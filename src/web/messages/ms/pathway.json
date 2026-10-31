@@ -127,15 +127,16 @@
     "reviewNote": "Nota penyemak: {note}",
     "kind": {
       "self_reported": "Dilaporkan sendiri",
-      "certificate_link": "Pautan sijil",
+      "certificate_link": "Sijil dihantar",
       "org_confirmed": "Disahkan oleh organisasi anda",
       "org_rejected": "Tidak diterima oleh organisasi anda"
     },
     "link": {
       "not_submitted": "belum ada pautan",
-      "provider_verified": "pautan dibuka di laman penyedia (pemilikan dan kandungan tidak disemak)",
+      "provider_verified": "dihantar untuk semakan; pelajar dan kursus belum disahkan",
       "unreachable": "pautan tidak dapat dibuka",
-      "not_provider_page": "bukan halaman pengesahan rasmi: perlu disemak secara manual"
+      "not_provider_page": "bukan halaman pengesahan rasmi: perlu disemak secara manual",
+      "submitted": "dihantar untuk semakan; pelajar dan kursus belum disahkan"
     }
   },
   "verify": {

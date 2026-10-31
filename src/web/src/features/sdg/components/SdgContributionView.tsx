@@ -60,7 +60,8 @@ async function LinkList({ links, labels }: { links: Schemas["SdgLink"][]; labels
         <li key={`${link.target.target}-${link.via}-${i}`}>
           <SdgBadge target={link.target} />
           <div style={{ display: "grid", gap: 4, minWidth: 0 }}>
-            <p>{link.reason}</p>
+            <p>{link.via === "pathway" && link.target.target === "4.3" && link.strength === "direct"
+              ? t("freeLearningReason") : link.reason}</p>
             <small>
               {via(link.via ?? "")} ·{" "}
               <Badge variant={link.strength === "direct" ? "success" : "secondary"}>

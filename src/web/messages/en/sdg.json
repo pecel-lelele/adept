@@ -30,5 +30,6 @@
   "compareRoles": "Compare roles and choose one",
   "whyLinked": "Why these goals",
   "tooFewMembers": "Regional results are hidden until at least {count} distinct members can be included safely.",
-  "tooFewMembersUnknown": "Regional results are hidden until enough distinct members can be included safely."
+  "tooFewMembersUnknown": "Regional results are hidden until enough distinct members can be included safely.",
+  "freeLearningReason": "Every course in this plan is free to learn (certificate fees may apply)."
 }

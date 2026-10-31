@@ -23,6 +23,8 @@ from app.features.trends import repository as trends_repository
 from app.main import app
 
 PATH_VALUES = {"role_id": "data-analyst", "skill_id": "python", "state": "Kuala Lumpur"}
+pytestmark = pytest.mark.usefixtures("planning_cohort")
+
 QUERY_VALUES = {
     "role_id": "data-analyst",
     # Trend replay compares against an earlier snapshot: use the oldest stored one.
@@ -174,7 +176,10 @@ def _assistant(client: TestClient) -> Any:
 
 
 def _packages_select(client: TestClient) -> Any:
-    params = {"role_id": "data-analyst", "member_ids": ["aisyah"]}
+    params = {
+        "role_id": "data-analyst",
+        "member_ids": ["aisyah", "emp-002", "synthetic-cohort-third", "synthetic-cohort-fourth"],
+    }
     offers = client.get("/api/v1/org/packages", headers=HR, params=params)
     assert offers.status_code == 200, offers.text
     offer = offers.json()["packages"][0]
@@ -182,7 +187,7 @@ def _packages_select(client: TestClient) -> Any:
         "kind": offer["kind"],
         "token": offer["token"],
         "role_id": offer["role_id"],
-        "member_ids": ["aisyah"],
+        "member_ids": ["aisyah", "emp-002", "synthetic-cohort-third", "synthetic-cohort-fourth"],
         "scenario": "moderate",
     }
     return client.post("/api/v1/org/packages/select", headers=HR, json=body)
@@ -265,7 +270,7 @@ def test_every_write_route_with_meta_has_a_fixture() -> None:
     assert _recommendation_writes() == set(WRITE_FIXTURES)
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def _fresh_write_state(monkeypatch: pytest.MonkeyPatch) -> None:
     fixtures.install()
     funding_store._memory.clear()

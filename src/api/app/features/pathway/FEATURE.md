@@ -31,6 +31,10 @@ with intake skills for matching, individual plans/comparisons/re-planning and te
 Undo and rejected evidence still revoke the corresponding credit. Migration `20261022220000`
 backfills existing records from the surviving saved plan, or otherwise the current catalogue.
 
+Only `org_confirmed` completions earn skill credit. A reachable certificate URL is `submitted`,
+pending review of both learner and course; old `provider_verified` links also remain unearned.
+Direct pathway previews require a saved profile, using the same `learner_for` gate as matching.
+
 ## Integration points (M1, M2, M4)
 
 Completed course facts and evidence are read independently of the remaining plan.

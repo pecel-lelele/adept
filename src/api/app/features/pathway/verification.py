@@ -2,10 +2,9 @@
 
 A learner's tick is self-reported. Two ways to strengthen it:
 
-1. **Certificate link, checked automatically.** The learner pastes the provider's own
-   verification link. We accept it as `provider_verified` only if it is on that provider's
-   official verification pages and resolves. We never read the page content: it carries the
-   learner's name, which the reviewer checks by opening it.
+1. **Submitted certificate link.** A reachable verification page remains submitted evidence.
+   Reachability establishes neither the learner's identity nor the course awarded. A reviewer
+   must check both before confirming it; legacy `provider_verified` links also remain unearned.
 2. **Confirmation by the organisation.** HR (company) or a career advisor (institution)
    confirms or rejects. For HRD Corp-claimable courses this is the natural route: the
    employer's claim already requires the provider's attendance record.
@@ -102,7 +101,7 @@ def check_link(url: str, course: Course, check: Probe = probe) -> LinkStatus:
     if not is_provider_page(url, course):
         return "not_provider_page"
     code = check(url)
-    return "provider_verified" if code is not None and 200 <= code < 300 else "unreachable"
+    return "submitted" if code is not None and 200 <= code < 300 else "unreachable"
 
 
 def effective_statuses(
@@ -119,7 +118,7 @@ def effective_statuses(
 def evidence_strength(ev: CompletionEvidence | None) -> str:
     if ev is None:
         return "self_reported"
-    if ev.kind == "certificate_link" and ev.link_status != "provider_verified":
+    if ev.kind == "certificate_link" and ev.link_status not in {"submitted", "provider_verified"}:
         return "self_reported"  # a link we could not check proves nothing yet
     return ev.kind if ev.kind in RANK else "self_reported"
 

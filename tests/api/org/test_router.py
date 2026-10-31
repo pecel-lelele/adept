@@ -61,14 +61,14 @@ def test_gaps(client: TestClient) -> None:
     assert body.meta.scenario == "fast"
 
 
-def test_plan(client: TestClient) -> None:
+def test_plan(planning_cohort: list[str], client: TestClient) -> None:
     resp = client.get("/api/v1/org/plan", headers=COMPANY)
     assert resp.status_code == 200
     body = GroupPlan.model_validate(resp.json())
     assert body.steps and body.assigned_member_ids
 
 
-def test_plan_follows_the_selected_scenario(client: TestClient) -> None:
+def test_plan_follows_the_selected_scenario(planning_cohort: list[str], client: TestClient) -> None:
     for scenario in ("moderate", "fast"):
         resp = client.get("/api/v1/org/plan", params={"scenario": scenario}, headers=COMPANY)
         assert resp.status_code == 200
@@ -87,14 +87,18 @@ def test_heatmap_is_computed_from_member_skills(
     assert body.meta.sources[0].name != "MOCK DATA"
 
 
-def test_group_plan_assigns_steps_to_members_who_need_them(client: TestClient) -> None:
+def test_group_plan_assigns_steps_to_members_who_need_them(
+    planning_cohort: list[str], client: TestClient
+) -> None:
     body = GroupPlan.model_validate(client.get("/api/v1/org/plan", headers=COMPANY).json())
     assert body.target_role_id == "customer-success-specialist"
     assert all(step.member_ids for step in body.steps)
-    assert set(body.assigned_member_ids) <= {"aisyah", "emp-002"}
+    assert set(body.assigned_member_ids) <= set(planning_cohort)
 
 
-def test_group_plan_target_role_can_be_chosen(client: TestClient) -> None:
+def test_group_plan_target_role_can_be_chosen(
+    planning_cohort: list[str], client: TestClient
+) -> None:
     resp = client.get("/api/v1/org/plan", params={"role_id": "data-analyst"}, headers=COMPANY)
     assert GroupPlan.model_validate(resp.json()).target_role_id == "data-analyst"
 
