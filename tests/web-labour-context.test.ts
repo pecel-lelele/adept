@@ -13,7 +13,7 @@ test("month selection updates all rates, source dates and the fallback notice to
   const { MalaysiaContextPanel } = loadComponent("src/features/trends/components/MalaysiaContextPanel.tsx", {
     "next-intl": { ...translations(), useLocale: () => "en" },
     react: { useId: () => "synthetic-labour", useState: (initial) => [selected ?? initial, (value) => { selected = value; }] },
-    "@/components/EstimateLabel": { EstimateLabel: () => null },
+    "@/components/MetaBar": { MetaBar: () => null },
   });
   // Clearly synthetic observations exercise stored history without claiming real survey facts.
   const observations = [
@@ -31,10 +31,14 @@ test("month selection updates all rates, source dates and the fallback notice to
   const first = renderToStaticMarkup(tree);
   assert.match(first, /width:2.9%/);
   assert.match(first, /width:71%/);
+  // Attribution follows the selected month: the panel hands that month's own meta to the one Sources link.
+  const isMeta = (node) => Boolean(node.props?.meta?.sources);
+  assert.equal(find(tree, isMeta).props.meta.snapshot_date, "2026-08-01");
   select.props.onChange({ target: { value: "2026-07-01" } });
   const second = renderToStaticMarkup(MalaysiaContextPanel({ observations }));
   assert.match(second, /width:3.1%/);
   assert.match(second, /width:70.5%/);
+  assert.equal(find(MalaysiaContextPanel({ observations }), isMeta).props.meta.snapshot_date, "2026-07-01");
   assert.doesNotMatch(second, /Showing last good snapshot/);
   assert.doesNotMatch(second, /Retrieved 2026-10-30/);
 });

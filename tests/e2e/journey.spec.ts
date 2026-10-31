@@ -59,8 +59,12 @@ test("synthetic CV reaches radar, an explained match and a saved sourced plan", 
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBeTruthy();
   }
   await page.goto("/app");
-  await expect(page.locator(".a-welcome-main [data-source=trends]")).toBeVisible();
-  await expect(page.locator(".a-view > [data-source=trends]")).toHaveCount(0);
+  // One small Sources link carries the attribution; the estimate label and snapshot date are in its accessible name.
+  const sources = page.locator(".a-view > .a-sourcelink a");
+  await expect(sources).toHaveCount(1);
+  await expect(sources).toHaveAttribute("href", "/about#data-sources");
+  await expect(sources).toHaveAttribute("aria-label", /^Sources\. .*estimate.*\d{4}-\d{2}-\d{2}/i);
+  await expect(page.locator(".a-metabar, .a-welcome-data")).toHaveCount(0);
   const join = page.locator(".a-hero-mobile-join");
   if (test.info().project.name === "mobile") await expect(join).toBeVisible();
   else await expect(join).toBeHidden();
@@ -69,9 +73,11 @@ test("synthetic CV reaches radar, an explained match and a saved sourced plan", 
   await expect(detail).toBeVisible();
   await detail.click();
   await expect(page.getByText(/skills to build|score|match/i).first()).toBeVisible();
-  await page.locator('main a[href^="/app/pathway?role="]').first().click();
-  await page.getByRole("button", { name: "Choose this role and save the plan", exact: true }).click();
-  await expect(page.getByText(/Saved as your plan/)).toBeVisible();
+  // Choosing is explicit: the detail page saves the plan and lands on it.
+  await page.getByRole("button", { name: "Choose this role", exact: true }).click();
+  await expect(page).toHaveURL(/\/app\/pathway\?role=/);
+  // A saved plan swaps the choose button for a link to track it.
+  await expect(page.getByRole("link", { name: "Track progress", exact: true }).first()).toHaveAttribute("href", /^\/app\/progress\?role=/);
   await expect(page.locator('.a-course-row[href^="https://learn.microsoft.com"]').first()).toBeVisible();
   const saved = await request.get(`${api}/api/v1/pathway/plans/me`, { headers: { "X-Demo-User": session.token } });
   expect(saved.ok()).toBeTruthy(); expect((await saved.json()).saved?.role_id).toBeTruthy();

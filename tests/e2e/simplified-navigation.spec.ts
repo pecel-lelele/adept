@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("historical detail is collapsed and the dedicated comparison feature is removed", async ({ page, context, request }) => {
+test("historical detail sits in one Sources link and the dedicated comparison feature is removed", async ({ page, context, request }) => {
   const api = "http://127.0.0.1:18091";
   const signup = await request.post(`${api}/api/v1/auth/signup`, { data: {
     display_name: "Synthetic UI Reviewer", email: `ui-review-${test.info().project.name}-${Date.now()}@example.test`,
@@ -21,12 +21,13 @@ test("historical detail is collapsed and the dedicated comparison feature is rem
     const text = await page.locator("body").innerText();
     expect(text).not.toMatch(/2024-10-(06|12|13|19)|Historical replay:|Historical observations replayed|Frozen offline snapshot exported/);
     await expect(page.getByRole("link", { name: /Compare roles/i })).toHaveCount(0);
-    const meta = page.locator(".a-metabar").first();
-    await expect(meta.locator("summary")).toContainText("Historical estimate");
-    await expect(meta.locator(".a-metabar-body")).not.toBeVisible();
-    await meta.locator("summary").click();
-    await expect(meta.locator(".a-metabar-body")).toContainText("2024-10-19");
-    await meta.locator("summary").click();
+    // Attribution is one small link to the consolidated sources; the estimate label and the
+    // snapshot date stay in its tooltip and accessible name, not in an expander.
+    await expect(page.locator(".a-metabar")).toHaveCount(0);
+    const sources = page.locator('.a-sourcelink a[href="/about#data-sources"]').first();
+    await expect(sources).toHaveText("Sources");
+    await expect(sources).toHaveAttribute("title", /estimates, not facts.*\d{4}-\d{2}-\d{2}/);
+    await expect(sources).toHaveAttribute("aria-label", /^Sources\. .*estimates, not facts.*\d{4}-\d{2}-\d{2}/);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
     await page.screenshot({ path: `tmp/ui-cleanup-${route}-${test.info().project.name}.png` });
   }

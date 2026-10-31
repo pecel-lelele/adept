@@ -1,4 +1,4 @@
-import { expect, test, type APIRequestContext, type BrowserContext } from "@playwright/test";
+import { expect, test, type APIRequestContext, type BrowserContext, type Page } from "@playwright/test";
 
 const api = "http://127.0.0.1:18091";
 const web = "http://127.0.0.1:13091";
@@ -20,6 +20,14 @@ async function profile(request: APIRequestContext, token: string) {
   expect((await request.put(`${api}/api/v1/profile/skills/confirm`, { headers, data: {
     skills: [{ skill_id: "python", level: 1, source: "confirmed" }, { skill_id: "sql", level: 1, source: "confirmed" }],
   } })).ok()).toBe(true);
+}
+
+/** "Mark done" is proof-gated: it reveals a certificate-link field, and saving the link completes the course. */
+async function markFirstCourseDone(page: Page) {
+  await page.getByRole("button", { name: "Mark done", exact: true }).first().click();
+  // A synthetic non-provider link: the API records it as not yet verified without any network call.
+  await page.locator('input[type="url"]').fill("https://example.test/synthetic-certificate");
+  await page.getByRole("button", { name: "Add certificate link", exact: true }).click();
 }
 
 async function session(context: BrowserContext, token: string, org?: string) {
@@ -56,7 +64,7 @@ test("personal locks, explicit choice, course completion and role switching", as
   await page.goto(`/app/progress?role=${role}&scenario=fast`);
   const bar = page.getByRole("progressbar");
   const before = Number(await bar.getAttribute("aria-valuenow"));
-  await page.getByRole("button", { name: "Mark done", exact: true }).first().click();
+  await markFirstCourseDone(page);
   await expect.poll(async () => Number(await bar.getAttribute("aria-valuenow"))).toBeGreaterThan(before);
   await expect(page.getByText("Estimated skill fit", { exact: true })).toBeVisible();
   const headers = { "X-Demo-User": user.token, "X-Workspace": "personal" };
@@ -114,7 +122,7 @@ test("team assignment, proposed role, acceptance and consent-aware team progress
     expect(accepted.ok()).toBe(true);
   }
   await page.getByRole("link", { name: "Programme progress", exact: true }).click();
-  await page.getByRole("button", { name: "Mark done", exact: true }).first().click();
+  await markFirstCourseDone(page);
   await expect(page.getByRole("button", { name: "Undo", exact: true }).first()).toBeVisible();
   await session(context, manager.token, org);
   await page.goto("/org/gaps");
