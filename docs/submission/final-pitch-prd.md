@@ -81,7 +81,7 @@ Whether an Adept subscription itself is HRD-claimable is not established. Vendor
 
 ## 4. Product overview and key features
 
-### 4.1 Individual mode (`/app`)
+### 4.1 Individual mode
 
 - **Skills profile.** The learner uploads a CV (PDF, DOCX or text) or completes a form. Skills are extracted against the catalogue and the learner confirms each one; the CV file is parsed in memory and not stored.
 - **Explained role matches.** Each target role shows a fit score, the skills that match, the weighted gaps, and plain-language **"what would raise this score"** tips instead of raw score arithmetic.
@@ -89,7 +89,7 @@ Whether an Adept subscription itself is HRD-claimable is not established. Vendor
 - **Scenarios.** Moderate and Fast AI-adoption scenarios change trend-based estimates with visible assumptions.
 - **SDG links.** Roles and skills show curated links to UN SDG targets (mainly SDG 4, with SDG 5, 8, 9 and 10) as enabling reasons, not measured outcomes.
 
-### 4.2 Organisation mode (`/org`)
+### 4.2 Organisation mode
 
 - Managers invite members to a workspace; membership and manager permissions are enforced on the server.
 - A **team gap heatmap** aggregates only skills that members have explicitly chosen to share, with small-cohort suppression to prevent identifying individuals.
@@ -106,7 +106,7 @@ Adi answers how-to questions about the product from a set of **fixed, reviewed a
 
 ### 4.5 Sources and transparency
 
-Every recommendation card shows one small **Sources** link, its snapshot date and estimate label; the full source list, model disclosure and methodology are on the **Data and AI use** page (`/about`). The interface is available in English, Malay and Chinese.
+Every recommendation card shows one small **Sources** link, its snapshot date and estimate label; the full source list, model disclosure and methodology are on the in-app **Data and AI use** page. The interface is available in English, Malay and Chinese.
 
 ### 4.6 Core journey
 
@@ -139,7 +139,7 @@ Every recommendation card shows one small **Sources** link, its snapshot date an
 | Area | Requirement |
 |---|---|
 | Grounding | No invented jobs, courses, skills, statistics or SDG targets. Any model-assisted selection passes ID validation against a request-scoped allowlist, with deterministic fallback. |
-| Attribution | Every recommendation, match score and trend projection carries sources (name, URL, retrieval date), snapshot date, scenario and an `is_estimate` flag; an automated regression test checks this on recommendation endpoints. |
+| Attribution | Every recommendation, match score and trend projection carries sources (name, link and retrieval date), snapshot date, scenario and an estimate flag; an automated regression test checks this on recommendation endpoints. |
 | Privacy and consent | Server-side authentication, membership and manager checks; explicit opt-in for skill and progress sharing; CVs parsed in memory and not retained; contact details redacted from skill phrases sent to optional embedding suggestions. The competition prototype uses synthetic people only. |
 | Human in the loop | Outputs support human judgement only; no autonomous hiring, firing, promotion or admission decisions. |
 | Fairness | No age, gender, identity or protected-background attributes in ranking; fairness regression tests are maintained. |
@@ -164,7 +164,7 @@ A daily GitHub Actions schedule sends an authenticated trigger to the deployed a
 
 **Role-fit formula** (documented in the open-source repository; users see plain-language tips rather than the arithmetic): `fit = 0.45 × skill_overlap + 0.25 × trend_fit + 0.30 × interest_fit`, where skill overlap is importance-weighted and capped at the required level. An optional SDG slider `w` blends in an SDG component: `fit_sdg = (1 − w) × fit + w × sdg_impact`.
 
-**Model disclosure.** all-MiniLM-L6-v2 (Apache-2.0) for research embeddings; optional GLM-5.3 and Gemini models for Adi answer-block selection; optional `gemini-embedding-001` for unfamiliar-skill suggestions. The default runtime setting uses no language model.
+**Model disclosure.** all-MiniLM-L6-v2 (Apache-2.0) for research embeddings; optional GLM-5.3 and Gemini models for Adi answer-block selection; optional gemini-embedding-001 for unfamiliar-skill suggestions. The default runtime setting uses no language model.
 
 ## 7. Differentiation and competitive landscape
 
@@ -298,52 +298,52 @@ Source refresh stays at about 30 shared daily checks at every scale, rather than
 
 **Out of scope.** Predicting exact job losses, automated hiring or personnel decisions, certificate equivalence, and model calls on every page view.
 
-## 14. Sources
+## 14. References
 
-All web sources were retrieved on 31 October or 1 November 2026 unless another date is given. Live pages may change after retrieval.
+Web sources were retrieved on 31 October or 1 November 2026 unless another date is given; live pages may change after retrieval.
 
-- **S1** HRD Corp, Media Release: Highlights of 2025, 13 Jan 2026. https://hrdcorp.gov.my/wp-content/uploads/2026/01/Media-Release-Highlights-of-2025.pdf (retrieved 1 Nov 2026)
-- **S2** HRD Corp, Employer Registration. https://hrdcorp.gov.my/employer/ (retrieved 31 Oct 2026)
-- **S3** New Straits Times, HRD Corp registers over 4.8mil employees, 100,000 employers, Aug 2025. https://www.nst.com.my/news/nation/2025/08/1263966/hrd-corp-registers-over-48mil-employees-100000-employers-says-steven (retrieved 31 Oct 2026)
-- **S4** DOSM, Labour Force Statistics, August 2026, 9 Oct 2026. https://www.dosm.gov.my/portal-main/release-content/labour-force-statistics-aug2026 (retrieved 1 Nov 2026)
-- **S5** DOSM, Salaries & Wages Survey Report 2025, 21 Sep 2026. https://www.dosm.gov.my/portal-main/release-content/salaries-and-wages-survey-report- (retrieved 1 Nov 2026)
-- **S6** ISIS Malaysia & World Bank, Novel AI technologies and the future of work in Malaysia, Jul 2025. https://www.isis.org.my/2025/07/06/novel-ai-technologies-and-the-future-of-work-in-malaysia/ (retrieved 1 Nov 2026)
-- **S7** The Edge Malaysia, report on TalentCorp impact study, Nov 2024. https://theedgemalaysia.com/node/734414 (retrieved 1 Nov 2026)
-- **S8** DOSM, Graduates Statistics 2024, 31 Oct 2025. https://www.dosm.gov.my/uploads/release-content/file_20260401145140.pdf (retrieved 1 Nov 2026)
-- **S9** TalentCorp, MyMahir Malaysia Critical Occupations List (MyCOL) 2024/2025. https://www.talentcorp.com.my/resources/publications/mymahir-malaysia-critical-occupations-list-mycol20242025/
-- **S10** New Straits Times, Malaysia targets 300,000 AI jobs by 2030, 22 Oct 2026. https://www.nst.com.my/amp/business/economy/2026/10/1561294/malaysia-targets-300000-ai-jobs-2030 (retrieved 1 Nov 2026)
-- **S11** Bernama, PERKESO EIS re-employment, 18 Oct 2026. https://bernama.com/en/general/news.php?id=2621984 (retrieved 1 Nov 2026)
-- **S12** Aon, Aon survey projects 4.8 percent salary growth for Malaysia in 2026, 11 Dec 2025. https://www.aon.com/apac/in-the-press/asia-newsroom/2025/aon-survey-projects-4-8-percent-salary-growth-for-malaysia-in-2026 (retrieved 1 Nov 2026)
-- **S13** National TVET Portal, institution counters (895 public, 52 state/statutory, 1,049 JPK private). https://www.tvet.gov.my/ (retrieved 31 Oct 2026)
-- **S14** MIDA, Education Services, Feb 2026. https://www.mida.gov.my/industries/services/education-services/ (retrieved 1 Nov 2026)
-- **S15** DOSM, MSME Performance 2025, 30 Jul 2026. https://www.dosm.gov.my/portal-main/release-content/micro-small--medium-enterprises-msmes-performance-2025 (retrieved 31 Oct 2026)
-- **S16** DOSM, Economic Census 2023: Profile of SMEs, 19 Sep 2024. https://www.dosm.gov.my/portal-main/release-content/economic-census-2023-profile-of-small-and-medium-enterprises (retrieved 31 Oct 2026)
-- **S17** The Edge Malaysia, HRD Corp FY2025 financials. https://theedgemalaysia.com/node/809678 ; HRD Corp Financial Report 2025. https://hrdcorp.gov.my/wp-content/uploads/2026/07/HRD-Corp-Financial-Report-2025-Digital-Version.pdf (retrieved 31 Oct 2026)
-- **S18** HRD Corp Support Centre, e-learning programme financial assistance. https://supportcentre.hrdcorp.gov.my/portal/en/kb/articles/e-learning-programme-financial-assistance (retrieved 1 Nov 2026)
-- **S19** HRD Corp, training provider registration and claimable courses. https://supportcentre.hrdcorp.gov.my/portal/en/kb/articles/training-provider-registration ; https://hrdcorp.gov.my/hrdcorp-claimable-courses (retrieved 31 Oct 2026)
-- **S20** Disprz (vendor blog), HRDF digital learning LMS Malaysia. https://disprz.ai/blog/hrdf-digital-learning-lms-malaysia (retrieved 1 Nov 2026)
-- **S21** LinkedIn Help, LinkedIn Learning pricing. https://www.linkedin.com/help/learning/answer/a768297 (retrieved 1 Nov 2026)
-- **S22** Bank Negara Malaysia, exchange rate API (USD selling rate, 30 Oct 2026). https://api.bnm.gov.my/public/exchange-rate/USD
-- **S23** TrainingCost (third party), Coursera for Business pricing. https://trainingcost.com/coursera-for-business-pricing (retrieved 1 Nov 2026)
-- **S24** Gartner Peer Insights, Workday Skills Cloud. https://www.gartner.com/reviews/product/workday-skills-cloud (retrieved 1 Nov 2026)
-- **S25** BrioHR, Malaysia pricing plans. https://briohr.com/pricing-plans-my/ (retrieved 31 Oct 2026)
-- **S26** Swingvy, Malaysia pricing. https://www.swingvy.com/my/pricing (retrieved 31 Oct 2026)
-- **S27** MyFutureJobs https://myfuturejobs.gov.my/ ; UpskillMalaysia https://upskillmalaysia.gov.my/aboutusp (retrieved 31 Oct 2026)
-- **S28** Replit, August 2026 cloud billing updates. https://docs.replit.com/billing/aug-cloud-billing-updates (retrieved 31 Oct 2026)
-- **S29** RunPod, pricing and Serverless billing. https://www.runpod.io/pricing ; https://docs.runpod.io/serverless/pricing (retrieved 31 Oct 2026)
-- **S30** Google, Gemini API pricing. https://ai.google.dev/gemini-api/docs/pricing (retrieved 31 Oct 2026)
-- **S31** IMARC, Malaysia IT training market (USD 347.1m, 2025; not used for sizing). https://www.imarcgroup.com/malaysia-it-training-market
-- **S32** Hays, Asia Salary Guide 2025 (56% AI use, 26% training in Malaysia; cited in Phase 1, survey table not yet verified). https://www.hays.com.my/hays-asia-salary-guide-2025
-- **S33** Coursera for Business and Degreed pricing pages (custom pricing). https://www.coursera.org/business/compare-plans ; https://degreed.com/experience/pricing/ (retrieved 31 Oct 2026)
-- **S34** arXiv API. https://info.arxiv.org/help/api/
-- **S35** US Bureau of Labor Statistics, occupational projections 2023–2033. https://www.bls.gov/emp/tables/occupational-projections-and-characteristics.htm
-- **S36** O*NET Resource Center (O*NET 31.0, CC BY 4.0). https://www.onetcenter.org/
-- **S37** UN Statistics Division, SDG API. https://unstats.un.org/SDGAPI/v1/sdg/Goal/List
-- **S38** OpenDOSM, monthly Labour Force Survey (CC BY 4.0). https://data.gov.my/data-catalogue/lfs_month
+- **S1** HRD Corp. *Media Release: Highlights of 2025.* Published 13 January 2026; retrieved 1 November 2026.
+- **S2** HRD Corp. *Employer Registration.* Retrieved 31 October 2026.
+- **S3** New Straits Times. *HRD Corp registers over 4.8mil employees, 100,000 employers.* Published August 2025; retrieved 31 October 2026.
+- **S4** Department of Statistics Malaysia (DOSM). *Labour Force Statistics, August 2026.* Published 9 October 2026; retrieved 1 November 2026.
+- **S5** DOSM. *Salaries & Wages Survey Report 2025.* Published 21 September 2026; retrieved 1 November 2026.
+- **S6** ISIS Malaysia and World Bank. *Novel AI technologies and the future of work in Malaysia.* Published July 2025; retrieved 1 November 2026.
+- **S7** The Edge Malaysia. Report on the TalentCorp AI, digital and green economy impact study. Published November 2024; retrieved 1 November 2026.
+- **S8** DOSM. *Graduates Statistics 2024.* Published 31 October 2025; retrieved 1 November 2026.
+- **S9** TalentCorp. *MyMahir Malaysia Critical Occupations List (MyCOL) 2024/2025.*
+- **S10** New Straits Times. *Malaysia targets 300,000 AI jobs by 2030.* Published 22 October 2026; retrieved 1 November 2026.
+- **S11** Bernama. Report on PERKESO Employment Insurance System re-employment. Published 18 October 2026; retrieved 1 November 2026.
+- **S12** Aon. *Aon survey projects 4.8 percent salary growth for Malaysia in 2026.* Published 11 December 2025; retrieved 1 November 2026.
+- **S13** National TVET Portal (Malaysia). Institution counters: 895 public, 52 state/statutory and 1,049 JPK private institutions. Retrieved 31 October 2026.
+- **S14** Malaysian Investment Development Authority (MIDA). *Education Services.* Published February 2026; retrieved 1 November 2026.
+- **S15** DOSM. *Micro, Small & Medium Enterprises (MSMEs) Performance 2025.* Published 30 July 2026; retrieved 31 October 2026.
+- **S16** DOSM. *Economic Census 2023: Profile of Small and Medium Enterprises.* Published 19 September 2024; retrieved 31 October 2026.
+- **S17** The Edge Malaysia. Report on HRD Corp FY2025 financials; and HRD Corp. *Financial Report 2025.* Retrieved 31 October 2026.
+- **S18** HRD Corp Support Centre. *E-learning programme financial assistance.* Retrieved 1 November 2026.
+- **S19** HRD Corp Support Centre. *Training provider registration*; and HRD Corp. *HRD Corp claimable courses.* Retrieved 31 October 2026.
+- **S20** Disprz (vendor blog). *HRDF digital learning LMS in Malaysia.* Retrieved 1 November 2026.
+- **S21** LinkedIn Help. *LinkedIn Learning pricing.* Retrieved 1 November 2026.
+- **S22** Bank Negara Malaysia. Exchange-rate API, USD selling rate for 30 October 2026.
+- **S23** TrainingCost (third party). *Coursera for Business pricing.* Retrieved 1 November 2026.
+- **S24** Gartner Peer Insights. *Workday Skills Cloud.* Retrieved 1 November 2026.
+- **S25** BrioHR. *Pricing plans (Malaysia).* Retrieved 31 October 2026.
+- **S26** Swingvy. *Pricing (Malaysia).* Retrieved 31 October 2026.
+- **S27** MyFutureJobs (PERKESO) and UpskillMalaysia. Public portal pages. Retrieved 31 October 2026.
+- **S28** Replit. *August 2026 cloud billing updates* (documentation). Retrieved 31 October 2026.
+- **S29** RunPod. *Pricing* and *Serverless pricing* (documentation). Retrieved 31 October 2026.
+- **S30** Google. *Gemini API pricing* (documentation). Retrieved 31 October 2026.
+- **S31** IMARC Group. *Malaysia IT training market* (USD 347.1m in 2025; not used for sizing).
+- **S32** Hays. *Asia Salary Guide 2025* (56% AI use and 26% training in Malaysia; cited in Phase 1, survey methodology not independently verified).
+- **S33** Coursera. *Coursera for Business plan comparison*; and Degreed. *Pricing.* Custom enterprise pricing. Retrieved 31 October 2026.
+- **S34** arXiv (Cornell University). *arXiv API* documentation and cs.AI listings.
+- **S35** U.S. Bureau of Labor Statistics. *Occupational projections and worker characteristics, 2023–2033.*
+- **S36** O*NET Resource Center (U.S. Department of Labor). O*NET 31.0 database (CC BY 4.0).
+- **S37** United Nations Statistics Division. *SDG API: goals and targets.*
+- **S38** OpenDOSM (DOSM). *Monthly Labour Force Survey* dataset (CC BY 4.0).
 
 ## Appendix A. Prototype evidence
 
 - **A1 — Automated synthetic journeys.** An isolated local test run on 30 Oct 2026 completed 15/15 scripted API journeys across five synthetic profiles, with per-persona median machine times of 0.091–0.236 seconds, using a historical fixture. It excludes browser time, human review, network and paid models, and is not a human time-to-plan result. Human timed trials: 0 attempted to date.
-- **A2 — Catalogue size.** Source catalogue at the reviewed revision: 142 skills; 48 roles, of which 33 are target roles; 104 courses; 1,175 job-posting rows; 88 role-SDG and 167 skill-SDG alignment rows; UN definitions for 17 goals and 169 targets.
+- **A2 — Catalogue size.** Source catalogue files on 1 November 2026: 142 skills; 48 roles, of which 33 are target roles; 104 courses; 1,175 job-posting rows; 88 role-SDG and 167 skill-SDG alignment rows; UN definitions for 17 goals and 169 targets.
 - **A3 — Sponsor proof of use.** Replit: hosting and database screens with a displayed US$6.38 account spend in one billing window. RunPod: an RTX 4090 Pod batch of 110 embeddings in 0.354 seconds and the Serverless MiniLM endpoint set-up. These are historical captures, not current per-learner costs.
-- **A4 — Revision.** This document describes repository revision `0a7868c` (31 October 2026). The deployed prototype is at https://adept-my.replit.app and the source at https://github.com/pecel-lelele/adept.
+- **A4 — Access.** This document describes the prototype as submitted on 1 November 2026. The live prototype and public source-code links are listed in Section 1 of the Final Report and the Technical Declaration.
