@@ -18,8 +18,10 @@ or stale index falls back to exact catalogue matches without optional suggestion
 Implemented: in-memory PDF/DOCX/text parsing, catalogue aliases and user-confirmed skill
 levels, questionnaire intake and PostgreSQL profiles. The web provides a four-step intake.
 
-Future-learning aspirations in English, Malay and Chinese are excluded from current skills and
-unmatched review suggestions. Leadership actions such as "Lead a team" and "Managed people"
+The CV parser records only skills the person already has. Learning wishes in English, Malay
+and Chinese (an intention plus a learning verb: "want to study SQL", "ingin mempelajari",
+"希望掌握") and negations are excluded from current skills and review suggestions; a wish
+ends at its sentence or line boundary. Leadership actions such as "Lead a team" and "Managed people"
 resolve only when the loaded catalogue has one unambiguous leadership/people-management skill;
 they never create a skill or imply project-management experience.
 

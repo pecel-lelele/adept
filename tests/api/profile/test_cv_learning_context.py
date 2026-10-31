@@ -46,8 +46,20 @@ def test_career_objective_keeps_stated_skills_and_review_hints(objective: str) -
         "Seeking to learn",
         "Interested in learning",
         "Aspiring to learn",
+        "Want to study",
+        "Hope to master",
+        "Plan to pick up",
+        "Keen to explore",
+        "Eager to get into",
+        "Would like to upskill in",
+        "Looking forward to learning",
+        "Intend to gain skills in",
         "Ingin belajar",
         "Mahu belajar",
+        "Hendak mempelajari",
+        "Bercadang untuk menguasai",
+        "打算学习",
+        "渴望掌握",
         "希望学习",
         "希望学会",
         "希望掌握",
@@ -74,6 +86,33 @@ def test_learning_list_does_not_hide_later_experience_or_review_hints(boundary: 
     )
     assert {skill.skill_id for skill in skills} == {"python"}
     assert unmatched_terms == ["QlikSense"]
+
+
+@pytest.mark.parametrize("stop", [". ", "! ", "? ", "。"])
+def test_learning_wish_ends_at_full_stop_inside_a_list_item(stop: str) -> None:
+    """Greptile #94: unknown wording after the full stop stays a review hint."""
+    skills, _, unmatched_terms = cv_parser.parse_cv_review(
+        f"Skills: Want to learn Rust, Kubernetes{stop}QlikSense, OtherTool, Python"
+    )
+    assert {skill.skill_id for skill in skills} == {"python"}
+    assert unmatched_terms == ["QlikSense", "OtherTool"]
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Want to study Python and SQL",
+        "Hope to master SQL",
+        "Planning to pick up Python. ",
+        "希望学习 Python",
+    ],
+)
+def test_prose_learning_wish_is_not_a_current_skill(text: str) -> None:
+    assert cv_parser.extract_skills(text) == []
+
+
+def test_dotted_tool_names_do_not_end_a_learning_wish() -> None:
+    assert cv_parser.extract_skills("Want to learn Node.js and Python") == []
 
 
 def test_learning_context_resets_at_next_skills_section() -> None:

@@ -606,15 +606,28 @@ _NEGATION_RE = re.compile(
     re.IGNORECASE,
 )
 
-# Aspirations describe future learning, including lists joined by commas/conjunctions.
-# Sentence and line boundaries keep an aspiration from suppressing later actual experience.
+# A CV records skills the person already has. A learning wish ("want to study SQL") names a
+# skill they do not have yet: an intention followed by a learning verb, in EN/MS/ZH. Wording
+# without a learning verb ("seeking to apply Python") keeps its skills. The wish covers the
+# rest of its clause, including list items, and ends at a sentence or line boundary.
+_LEARN_VERB = (
+    r"(?:learn(?:ing)?|study(?:ing)?|master(?:ing)?|pick(?:ing)? up|acquir(?:e|ing)|"
+    r"get(?:ting)? into|upskill(?:ing)?(?: in)?|explor(?:e|ing)|"
+    r"gain(?:ing)? (?:skills?|knowledge|experience) (?:in|with))"
+)
 _ASPIRATION_RE = re.compile(
-    r"\b(?:(?:seeking|want(?:ing)?|hop(?:e|ing)|wish|plan(?:ning)?|"
-    r"aim(?:ing)?|aspiring) to learn|would like to learn|interested in learning)\b|"
-    r"\bingin belajar\b|\bmahu belajar\b|"
-    r"希望(?:学习|学会|掌握)|想(?:要)?(?:学习|学会|掌握)|计划学习",
+    r"\b(?:(?:seek(?:ing)?|want(?:ing)?|hop(?:e|ing)|wish(?:ing)?|plan(?:ning)?|"
+    r"aim(?:ing)?|aspir(?:e|ing)|intend(?:ing)?|eager|keen|would like|look(?:ing)? forward)"
+    r" to " + _LEARN_VERB + r"|interested in " + _LEARN_VERB + r")\b|"
+    r"\b(?:ingin|mahu|hendak|bercadang(?: untuk)?|berhasrat(?: untuk)?)\s+"
+    r"(?:belajar|mempelajari|menguasai|mendalami)\b|"
+    r"(?:希望|想要?|计划|打算|渴望)(?:学习|学会|掌握|进修|研究)",
     re.IGNORECASE,
 )
+#: Where a learning wish ends: sentence punctuation followed by a space or the end (so not
+#: "Node.js"), semicolons, line breaks and CJK sentence marks.
+_CLAUSE_END = re.compile(r"[.!?](?=\s|$)|[;\n。；！？]")
+_SENTENCE_SPLIT = re.compile(r"(?<=[.!?])\s+|(?<=[。！？])")
 # Inferred action aliases require an actual action, not an intention to perform it.
 # Apply this only to action aliases so career objectives can still name existing skills.
 _FUTURE_ACTION_RE = re.compile(
@@ -655,7 +668,10 @@ def _is_negated(text: str, start: int) -> bool:
 
 
 def _is_aspiration(text: str, start: int) -> bool:
-    left = max(text.rfind(mark, 0, start) for mark in (".", ";", "\n", "。", "；")) + 1
+    """True when a learning wish earlier in the same clause covers this mention."""
+    left = 0
+    for end in _CLAUSE_END.finditer(text, 0, start):
+        left = end.end()
     return bool(_ASPIRATION_RE.search(text, left, start))
 
 
@@ -811,18 +827,20 @@ def skills_section_entries(text: str) -> list[str]:
             else:
                 joined = f"{joined} {part}"  # a wrapped line of a comma-separated list
             prev = part
-        offset = 0
-        for item in _LIST_SEPARATOR.split(joined):
-            item_start = offset
-            offset += len(item) + 1  # separators are single characters
-            # Keep the original clause context: commas must not turn the later
-            # items of "Want to learn Rust, Kubernetes" into current-skill hints.
-            if _is_aspiration(joined, item_start) or _ASPIRATION_RE.search(item):
-                continue
-            item = item.split(":", 1)[1] if re.match(r"^[^:]{2,30}:\s", item.strip()) else item
-            item = re.sub(r"\s+", " ", item).strip(_TRAILING)
-            if item:
-                entries.append(item)
+        # A learning wish covers the later items of its own sentence ("Want to learn Rust,
+        # Kubernetes") but not the next sentence ("... Kubernetes. QlikSense").
+        for sentence in _SENTENCE_SPLIT.split(joined):
+            offset = 0
+            for item in _LIST_SEPARATOR.split(sentence):
+                item_start = offset
+                offset += len(item) + 1  # separators are single characters
+                if _is_aspiration(sentence, item_start) or _ASPIRATION_RE.search(item):
+                    continue
+                if re.match(r"^[^:]{2,30}:\s", item.strip()):
+                    item = item.split(":", 1)[1]
+                item = re.sub(r"\s+", " ", item).strip(_TRAILING)
+                if item:
+                    entries.append(item)
         block.clear()
 
     for raw_line in text.splitlines():
