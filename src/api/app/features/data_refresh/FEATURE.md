@@ -32,3 +32,11 @@ missing or fails and Gemini embeddings are enabled, `trend_fallback` measures th
 threshold calibrated to the stored MiniLM mention rate. The method and model are stored with the
 inputs and named in the snapshot note. No stored measurement means no calibration: the refresh
 fails and the last snapshot stays live. `trends-refresh.yml` is a manual backup, not scheduled.
+
+## Rolling, accumulated trends (2026-10-31, M1-018)
+
+`trend_store` keeps every fetched arXiv paper with the skills it mentions. A refresh fetches
+only days not stored yet (from 6 Oct 2026 to 3 days ago, ≤14 days and ≤50 papers per day per
+run) and matches only those papers. The snapshot compares the last 7 stored days with the 7
+before, so the window moves daily. With no new announced day, a refresh returns immediately
+without network or model calls. Press refresh once after deploying to backfill the history.

@@ -18,14 +18,14 @@ NOW = datetime(2026, 10, 30, 8, tzinfo=UTC)
 TOKEN = "synthetic-refresh-token-for-tests-only"
 
 
-def test_daily_cadence_refreshes_jobs_even_when_weekly_trends_are_current(
+def test_daily_cadence_refreshes_jobs_even_when_trends_are_current(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    sunday = NOW.date() - timedelta(days=NOW.weekday() + 1)
+    newest = NOW.date() - timedelta(days=automatic_trends.ARXIV_LAG_DAYS)
     monkeypatch.setattr(
         service,
         "_trends",
-        lambda: SimpleNamespace(data_as_of=sunday, is_historical_replay=False),
+        lambda: SimpleNamespace(data_as_of=newest, is_historical_replay=False),
     )
     monkeypatch.setattr(
         repository,
@@ -111,7 +111,7 @@ def state(monkeypatch: pytest.MonkeyPatch) -> dict[str, Any]:
     monkeypatch.setattr(
         service,
         "_trends",
-        lambda: SimpleNamespace(data_as_of=date(2026, 10, 25), is_historical_replay=False),
+        lambda: SimpleNamespace(data_as_of=date(2026, 10, 27), is_historical_replay=False),
     )
     monkeypatch.setattr(
         repository, "last_successes", lambda: {s: NOW for s in ("jobs", "courses", "labour")}
@@ -137,7 +137,18 @@ def test_two_users_attach_to_one_database_locked_run(
 def test_fully_current_check_starts_no_job_or_model(state: dict[str, Any]) -> None:
     result = jobs.start()
     assert result.status == "up_to_date" and state["launches"] == 0
-    assert result.data_as_of == date(2026, 10, 25)
+    assert result.data_as_of == date(2026, 10, 27)
+
+
+def test_trends_are_due_once_a_newer_arxiv_day_is_announced(
+    state: dict[str, Any], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(
+        service,
+        "_trends",
+        lambda: SimpleNamespace(data_as_of=date(2026, 10, 26), is_historical_replay=False),
+    )
+    assert jobs.due_sources(NOW) == ["trends"]
 
 
 def test_status_recovers_an_interrupted_worker_without_starting_more_work(
@@ -244,20 +255,6 @@ def test_sources_fail_independently_and_progress_is_persisted(
     assert steps["courses"]["rows"] == 12 and state["held"] is None
 
 
-def test_new_week_skip_precedes_any_runpod_or_network(monkeypatch: pytest.MonkeyPatch) -> None:
-    _previous, current = automatic_trends.periods(datetime.now(UTC).date())
-    note = f"Observed arXiv submissions {current[0]}..{current[1]} against older signals."
-    monkeypatch.setattr(
-        automatic_trends.refresh, "latest_published", lambda _url: (current[1], note)
-    )
-    monkeypatch.setattr(
-        automatic_trends, "RunPodEncoder", lambda *a, **k: pytest.fail("paid constructor invoked")
-    )
-    monkeypatch.setattr(automatic_trends, "fetch_window", lambda *a: pytest.fail("network invoked"))
-    result = automatic_trends.run(0, 600, threading.Event())
-    assert result.rows_upserted == 0 and "no inference" in result.message
-
-
 def test_paper_publication_dates_must_match_the_actual_window() -> None:
     atom = (
         b'<feed xmlns="http://www.w3.org/2005/Atom"><entry>'
@@ -271,58 +268,6 @@ def test_paper_publication_dates_must_match_the_actual_window() -> None:
     assert automatic_trends.parse_window(atom, date(2024, 10, 14), date(2024, 10, 20))[0][
         "published_at"
     ].startswith("2024")
-
-
-def test_new_snapshot_uses_measured_week_not_execution_date(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    import time
-    from contextlib import contextmanager
-
-    latest = []
-
-    class Encoder:
-        def __init__(self, *args: Any, **kwargs: Any) -> None:
-            pass
-
-        def encode(self, texts: list[str], **kwargs: Any) -> list[list[float]]:
-            return [[1.0] * 384 for _ in texts]
-
-    @contextmanager
-    def connection(deadline: float) -> Any:
-        yield SimpleNamespace(execute=lambda *args: None)
-
-    monkeypatch.setenv("TRENDS_RUNPOD_ENDPOINT_ID", "synthetic-endpoint")
-    monkeypatch.setenv("TRENDS_RUNPOD_API_KEY", "synthetic-test-key")
-    monkeypatch.setattr(automatic_trends.refresh, "latest_published", lambda _url: None)
-    monkeypatch.setattr(automatic_trends.measurements, "load", lambda *args, **kwargs: None)
-    monkeypatch.setattr(automatic_trends, "RunPodEncoder", Encoder)
-    monkeypatch.setattr(
-        automatic_trends,
-        "fetch_window",
-        lambda *args: [
-            {
-                "title": "Synthetic test paper",
-                "abstract": "Synthetic sample only.",
-                "arxiv_id": "https://arxiv.org/abs/synthetic-fixture",
-                "published_at": args[0].isoformat() + "T00:00:00Z",
-            }
-        ],
-    )
-    monkeypatch.setattr(repository, "write_connection", connection)
-    monkeypatch.setattr(
-        automatic_trends.pipeline,
-        "publish",
-        lambda rows, day, sources, note, _url, **kwargs: latest.append((rows, day, sources, note)),
-    )
-    monkeypatch.setattr(automatic_trends.refresh, "clear_trend_caches", lambda: None)
-    stop = SimpleNamespace(is_set=lambda: False, wait=lambda _seconds: False)
-    result = automatic_trends.run(time.monotonic(), 600, stop)
-    _previous, current = automatic_trends.periods(datetime.now(UTC).date())
-    assert result.rows_upserted > 0 and latest[0][1] == current[1]
-    assert latest[0][1] != datetime.now(UTC).date()
-    assert latest[0][2][0]["retrieved_at"] == datetime.now(UTC).date().isoformat()
-    assert "2024" not in latest[0][3]
 
 
 def test_database_deadline_cancels_operation_and_prevents_commit(

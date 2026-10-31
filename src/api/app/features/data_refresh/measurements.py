@@ -22,8 +22,9 @@ ARXIV_API = "https://export.arxiv.org/api/query"
 
 
 class MeasuredInputs(BaseModel):
-    # M1-014: RunPod MiniLM; M1-017: calibrated Gemini fallback (trend_fallback).
-    method: Literal["M1-014", "M1-017"] = "M1-014"
+    # M1-014: RunPod MiniLM weeks; M1-017: calibrated Gemini fallback weeks;
+    # M1-018: rolling 7-day windows counted from the accumulated paper store.
+    method: Literal["M1-014", "M1-017", "M1-018"] = "M1-014"
     model: str = MODEL_ID
     model_revision: str = MODEL_REVISION
     previous: tuple[date, date]
@@ -86,7 +87,7 @@ def rows(inputs: MeasuredInputs) -> list[dict[str, Any]]:
         inputs.previous[1] + timedelta(days=1) != inputs.current[0]
         or inputs.previous[1] - inputs.previous[0] != timedelta(days=6)
         or inputs.current[1] - inputs.current[0] != timedelta(days=6)
-        or inputs.previous[0].weekday() != 0
+        or (inputs.method != "M1-018" and inputs.previous[0].weekday() != 0)
         or inputs.fetched < inputs.current[1]
         or any(value < 0 or value > inputs.total_before for value in inputs.counts_before.values())
         or any(value < 0 or value > inputs.total_after for value in inputs.counts_after.values())

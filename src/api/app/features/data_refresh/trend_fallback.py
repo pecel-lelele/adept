@@ -1,18 +1,18 @@
 """Gemini fallback for the on-demand trend refresh when the RunPod MiniLM worker is unavailable.
 
-Method (M1-017). MiniLM's 0.55 sentence threshold does not transfer to another model's cosine
-scale, so the fallback never reuses it:
+Method (M1-017, stored per paper by M1-018). MiniLM's 0.55 sentence threshold does not
+transfer to another model's cosine scale, so the fallback never reuses it:
 
-1. Embed each paper once (title + abstract) and each skill label with Gemini
-   (`app.core.embeddings`, SEMANTIC_SIMILARITY).
+1. Embed each paper once (title + abstract) and each skill label with Gemini at 384
+   dimensions, MiniLM's size (`app.core.embeddings`, SEMANTIC_SIMILARITY). Equal size keeps
+   storage uniform; the two models' vectors are still never compared with each other.
 2. Score paper x skill by cosine similarity.
-3. Calibrate one threshold from stored evidence: the latest stored MiniLM measurement gives the
-   observed mentions per paper; the threshold is the value that reproduces that rate on the
-   previous-week sample.
-4. Apply the same threshold to both weeks, so week-over-week velocity compares like with like.
+3. Calibrate one threshold, once per model, from stored MiniLM evidence: the threshold
+   reproduces MiniLM's mentions per paper on the first fallback batch, then is stored and
+   reused, so later batches keep real changes in mention volume.
 
-Without a stored MiniLM measurement there is nothing to calibrate against, and the refresh
-fails instead of guessing (the last good snapshot stays live).
+Without stored MiniLM evidence there is nothing to calibrate against, and the refresh fails
+instead of guessing (the last good snapshot stays live).
 """
 
 from __future__ import annotations
@@ -25,6 +25,7 @@ from app.core import embeddings
 
 # One request per batch; checking the deadline between batches bounds the whole call.
 BATCH = 100
+DIMS = 384  # MiniLM's vector size
 
 
 class FallbackUnavailable(RuntimeError):
@@ -36,7 +37,7 @@ def enabled() -> bool:
 
 
 def model_label() -> str:
-    return embeddings.model_name()
+    return f"{embeddings.get_settings().embeddings_model}@{DIMS}"
 
 
 def embed_bounded(
@@ -51,7 +52,7 @@ def embed_bounded(
             raise TimeoutError("refresh time budget reached")
         try:
             # The request may not outlive the refresh deadline (that time is kept for saving).
-            out.extend(embeddings.embed(texts[i : i + BATCH], timeout_s=left))
+            out.extend(embeddings.embed(texts[i : i + BATCH], timeout_s=left, dims=DIMS))
         except embeddings.EmbeddingsUnavailable as exc:
             raise FallbackUnavailable(str(exc)) from exc
         if time.monotonic() >= deadline:
@@ -92,3 +93,8 @@ def count(sims: Sequence[dict[str, float]], threshold: float) -> dict[str, int]:
         for sid, value in row.items():
             out[sid] = out.get(sid, 0) + (value >= threshold)
     return out
+
+
+def mentions(sims: Sequence[dict[str, float]], threshold: float) -> list[list[str]]:
+    """Per paper, the skills at or above the threshold."""
+    return [sorted(sid for sid, value in row.items() if value >= threshold) for row in sims]

@@ -212,7 +212,7 @@ trend runner installs pipeline client dependencies and calls RunPod over HTTPS.
 | :----------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [CI](.github/workflows/ci.yml)                         | Pushes to `main`, pull requests and manual runs: lint, tests, real PostgreSQL checks, translations, generated contracts and production web build.              |
 | [Data sources](.github/workflows/data-sources.yml)     | Mondays 02:17 UTC (10:17 MYT) and manual runs: checks upstream SDG/course data and evidence links; does not publish trend snapshots.                          |
-| [Trends refresh](.github/workflows/trends-refresh.yml) | Manual backup only (not scheduled, M1-017): ingest public research → RunPod embeddings → score → validate → publish a dated snapshot. The app's own refresh measures new weeks on demand, with a calibrated Gemini fallback when RunPod is down. |
+| [Trends refresh](.github/workflows/trends-refresh.yml) | Manual backup only (not scheduled, M1-017): ingest public research → RunPod embeddings → score → validate → publish a dated snapshot. The app's own refresh adds new arXiv days on demand to a stored paper cache and publishes rolling 7-day trends (M1-018), with a calibrated Gemini fallback when RunPod is down. |
 | [Publish MiniLM](.github/workflows/publish-minilm.yml) | Manual dispatch on the source repository's `main` only: builds `linux/amd64` and publishes GHCR tags with job-scoped `GITHUB_TOKEN`. PRs/forks do not publish. |
 
 Configure **repository Settings → Secrets and variables → Actions**:

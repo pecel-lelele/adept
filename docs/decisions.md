@@ -702,6 +702,17 @@
 - **Replaces**: none (extends M1-015)
 - **PR / branch**: fix/trends-ondemand-refresh-fallback
 
+
+### M1-018: Accumulated per-paper trend store with rolling 7-day snapshots
+- **Date**: 2026-10-31
+- **Feature**: F2 (Trends), data refresh
+- **Type**: method | schema | data source
+- **Change**: Each arXiv cs.AI paper is matched to skills once and stored with its submission day (`trend_fetched_days`, `trend_paper_mentions`). A refresh (judge's button or any trigger) fetches only days not stored yet, oldest first, up to 14 days per run and 50 newest papers per day, from 6 Oct 2026 to 3 days ago (arXiv lists papers only after announcement). The snapshot compares the 7 days ending on the newest stored day with the 7 days before, counted from stored rows, so windows move daily instead of being cut at fixed Monday weeks. When nothing new is announced, a refresh returns at once with no network or model call. The Gemini fallback (M1-017) now uses 384-dimensional vectors (MiniLM's size) and one stored threshold per model, calibrated once against stored MiniLM evidence; each paper records the model that matched it, and the note names any fallback. Trends are due daily instead of weekly.
+- **Why**: The brief requires refreshing live in the app. Fixed weeks made results depend on where a week starts and made a mid-week refresh add nothing. Storing matches once is the cache: refreshes stay fast and cheap, and any window is a count, never a repeated model call. Equal vector size keeps storage uniform; vectors from different models are still never compared with each other.
+- **Pipeline**: arXiv API per submission day (≤50 newest) → version-free IDs, idempotent inserts → sentence-level MiniLM cosine ≥ 0.55 (or calibrated Gemini paper-level cosine) → skills per paper stored → rolling 7-day counts per skill and papers → existing scorer and validation (unchanged) → atomic snapshot publish with stored inputs. Evaluation: unit tests with an in-memory store (incremental fetch, no-new-day fast path, rebuild without network, three fallback triggers, uncalibratable, unconfigured, missing migration) and the store's SQL checked on a disposable PostgreSQL database.
+- **Affects**: F2 snapshots and their readers (F3–F7 estimates), data refresh due check, migration `20261031180000_trend_paper_store.sql`
+- **Replaces**: M1-015 (fixed completed ISO weeks for the automatic refresh); extends M1-017
+- **PR / branch**: feat/trends-rolling-accumulated
 ---
 
 ## M2: Profile Intake & Matching (F1, F4)

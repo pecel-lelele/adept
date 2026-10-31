@@ -1,8 +1,10 @@
-"""Current arXiv submission weeks -> bounded MiniLM -> production scorer -> atomic snapshot.
+"""On-demand trend refresh (M1-018): new arXiv days -> match once -> store -> rolling snapshot.
 
-When the RunPod MiniLM worker is missing or fails, a calibrated Gemini fallback measures the
-same weeks (`trend_fallback`, M1-017), so an on-demand refresh does not depend on RunPod or
-the weekly GitHub workflow.
+Each refresh fetches only submission days not stored yet (oldest first, bounded per run),
+matches those papers to skills once (RunPod MiniLM, or the calibrated Gemini fallback of
+M1-017 when the worker is missing or fails) and stores them (`trend_store`). The snapshot
+compares the 7 days ending on the newest stored day with the 7 days before, counted from
+stored rows, so the window moves daily instead of being cut at fixed weeks.
 
 A dated sample is never moved to a newer ISO week. Inference is skipped before any network
 operation when that measured week already exists. BLS remains a dated, static baseline.
@@ -11,6 +13,7 @@ operation when that measured week already exists. BLS remains a dated, static ba
 from __future__ import annotations
 
 import os
+import re
 import threading
 import time
 import xml.etree.ElementTree as ET
@@ -19,7 +22,13 @@ from urllib.parse import urlencode
 
 from app.core import refdata
 from app.core.logging import get_logger
-from app.features.data_refresh import measurements, repository, service, trend_fallback
+from app.features.data_refresh import (
+    measurements,
+    repository,
+    service,
+    trend_fallback,
+    trend_store,
+)
 from app.features.trends import refresh
 from app.features.trends.provenance import window_from_note
 from pipelines.trends import arxiv_ingest, score
@@ -34,6 +43,17 @@ MAX_BYTES = 8_000_000
 NS = {"a": "http://www.w3.org/2005/Atom"}
 # Time held back from RunPod so the Gemini fallback can still finish inside the run budget.
 FALLBACK_RESERVE_S = 90.0
+# First stored day: one week before the first live snapshot (13 Oct 2026).
+START_DAY = date(2026, 10, 6)
+# Newest cs.AI submissions kept per day (about the old 350-per-week sample) and days per run,
+# so one refresh stays inside its time budget; later refreshes continue the backfill.
+PER_DAY = 50
+MAX_DAYS_PER_RUN = 14
+WINDOW_DAYS = 7
+ARXIV_SPACING_S = 3.5  # arXiv API cadence
+# arXiv lists a paper only after its announcement (weekend submissions wait until Monday), so a
+# day is fetched once it is complete in the API; stored days are never fetched again.
+ARXIV_LAG_DAYS = 3
 
 
 def periods(today: date) -> tuple[tuple[date, date], tuple[date, date]]:
@@ -46,7 +66,9 @@ def week(day: date) -> str:
     return f"{year}-W{number:02}"
 
 
-def parse_window(xml: bytes, start: date, end: date) -> list[dict[str, str]]:
+def parse_window(
+    xml: bytes, start: date, end: date, *, limit: int = MAX_PAPERS, allow_empty: bool = False
+) -> list[dict[str, str]]:
     root = ET.fromstring(xml)
     papers = []
     for entry in root.findall("a:entry", NS):
@@ -65,12 +87,19 @@ def parse_window(xml: bytes, start: date, end: date) -> list[dict[str, str]]:
         papers.append(
             dict(title=title, abstract=abstract, arxiv_id=identifier, published_at=published)
         )
-    if not papers or len(papers) > MAX_PAPERS:
+    if (not papers and not allow_empty) or len(papers) > limit:
         raise ValueError("arXiv returned an empty or oversized paper sample")
     return papers
 
 
-def fetch_window(start: date, end: date, deadline: float) -> list[dict[str, str]]:
+def fetch_window(
+    start: date,
+    end: date,
+    deadline: float,
+    *,
+    limit: int = MAX_PAPERS,
+    allow_empty: bool = False,
+) -> list[dict[str, str]]:
     query = measurements.arxiv_query(start, end)
     url = (
         ARXIV_API
@@ -79,7 +108,7 @@ def fetch_window(start: date, end: date, deadline: float) -> list[dict[str, str]
             dict(
                 search_query=query,
                 start=0,
-                max_results=MAX_PAPERS,
+                max_results=limit,
                 sortBy="submittedDate",
                 sortOrder="descending",
             )
@@ -98,98 +127,204 @@ def fetch_window(start: date, end: date, deadline: float) -> list[dict[str, str]
                 body.extend(chunk)
                 if len(body) > MAX_BYTES:
                     raise ValueError("arXiv response exceeds its size limit")
-    return parse_window(bytes(body), start, end)
+    return parse_window(bytes(body), start, end, limit=limit, allow_empty=allow_empty)
+
+
+def paper_key(identifier: str) -> str:
+    """Stable arXiv ID without the version suffix (v1, v2 ... are the same paper)."""
+    return re.sub(r"v\d+$", "", identifier.rstrip("/").rsplit("/abs/", 1)[-1])
+
+
+def missing_days(stored: set[date], today: date) -> list[date]:
+    """Oldest unstored days that arXiv has fully announced."""
+    days: list[date] = []
+    day = START_DAY
+    while day <= today - timedelta(days=ARXIV_LAG_DAYS) and len(days) < MAX_DAYS_PER_RUN:
+        if day not in stored:
+            days.append(day)
+        day += timedelta(days=1)
+    return days
+
+
+def snapshot_end(stored: set[date]) -> date | None:
+    """Newest day whose two 7-day windows are fully stored."""
+    for end in sorted(stored, reverse=True):
+        if all(end - timedelta(days=i) in stored for i in range(2 * WINDOW_DAYS)):
+            return end
+    return None
+
+
+def fetch_days(
+    days: list[date], deadline: float, stop: threading.Event
+) -> dict[date, list[dict[str, str]]]:
+    """Fetch as many missing days as the budget allows, oldest first."""
+    fetched: dict[date, list[dict[str, str]]] = {}
+    for i, day in enumerate(days):
+        if i:
+            if deadline - time.monotonic() < ARXIV_SPACING_S + 60:
+                break  # keep time to match and store what we have
+            stop.wait(ARXIV_SPACING_S)
+            if stop.is_set():
+                raise TimeoutError("refresh cancelled")
+        papers = fetch_window(day, day, deadline, limit=PER_DAY, allow_empty=True)
+        fetched[day] = [{**p, "arxiv_id": paper_key(p["arxiv_id"])} for p in papers]
+    return fetched
+
+
+def _runpod() -> tuple[str, str] | None:
+    endpoint = os.environ.get("TRENDS_RUNPOD_ENDPOINT_ID", "")
+    api_key = os.environ.get("TRENDS_RUNPOD_API_KEY", "")
+    backend = os.environ.get("TRENDS_EMBEDDING_BACKEND", "runpod")
+    return (endpoint, api_key) if backend == "runpod" and endpoint and api_key else None
+
+
+Matched = tuple[list[list[str]], str, str, tuple[str, float, float] | None]
+
+
+def match(
+    papers: list[dict[str, str]],
+    skills: list[tuple[str, str]],
+    budget: float,
+    deadline: float,
+    stop: threading.Event,
+    today: date,
+) -> Matched:
+    """Skills per paper, the method, the model and any new fallback calibration."""
+    ids = [sid for sid, _label in skills]
+    runpod = _runpod()
+    if runpod:
+        reserve = FALLBACK_RESERVE_S if trend_fallback.enabled() else 0.0
+        try:
+            model = RunPodEncoder(
+                *runpod,
+                timeout=max(1, min(600, budget)),
+                deadline=deadline - reserve,
+                cancelled=stop.is_set,
+            )
+            labels = model.encode([label for _sid, label in skills], batch_size=64)
+            vectors = dict(zip(ids, labels, strict=True))
+            found = arxiv_ingest.paper_mentions(papers, ids, vectors, model)
+            return found, "M1-014", MODEL_ID, None
+        except Exception as exc:  # noqa: BLE001 - any worker failure may use the fallback
+            if stop.is_set() or not trend_fallback.enabled():
+                raise
+            log.warning("MiniLM worker unavailable (%s); using Gemini fallback", type(exc).__name__)
+    return gemini_match(papers, skills, deadline, stop, today)
+
+
+def _reference_rate(today: date) -> float:
+    rate = trend_store.minilm_rate()
+    if rate is None:
+        reference = measurements.load_minilm_reference(today)
+        if reference is not None:
+            rate = trend_fallback.mentions_per_paper(reference.counts_after, reference.total_after)
+    if rate is None:
+        raise service.RefreshFailed(
+            "refresh_not_supported",
+            "No stored MiniLM evidence to calibrate the fallback; the last snapshot is kept.",
+        )
+    return rate
+
+
+def gemini_match(
+    papers: list[dict[str, str]],
+    skills: list[tuple[str, str]],
+    deadline: float,
+    stop: threading.Event,
+    today: date,
+) -> Matched:
+    """Calibrated Gemini fallback (M1-017): one stored threshold per model."""
+    model = trend_fallback.model_label()
+    threshold = trend_store.calibration(model)
+    rate = _reference_rate(today) if threshold is None else None
+    try:
+        labels = trend_fallback.embed_bounded(
+            [label for _sid, label in skills], deadline, stop.is_set
+        )
+        vectors = dict(zip([sid for sid, _label in skills], labels, strict=True))
+        texts = [trend_fallback.paper_text(p) for p in papers]
+        paper_vectors = trend_fallback.embed_bounded(texts, deadline, stop.is_set)
+    except trend_fallback.FallbackUnavailable as exc:
+        raise service.RefreshFailed(
+            "fetch_failed",
+            "Trend embeddings are unavailable; the last good snapshot is retained.",
+            rows_fetched=len(papers),
+        ) from exc
+    sims = trend_fallback.similarities(paper_vectors, vectors)
+    calibrated = None
+    if threshold is None:
+        assert rate is not None
+        threshold = trend_fallback.calibrated_threshold(sims, rate)
+        calibrated = (model, threshold, rate)
+    return trend_fallback.mentions(sims, threshold), "M1-017", model, calibrated
 
 
 def run(started: float, budget: float, stop: threading.Event) -> service.Outcome:
     deadline = started + budget - 20
     today = datetime.now(UTC).date()
-    previous, current = periods(today)
+    stored = trend_store.fetched_days()
+    missing = missing_days(stored, today)
+    fetched_rows = 0
+    if missing:
+        if _runpod() is None and not trend_fallback.enabled():
+            raise service.RefreshFailed(
+                "refresh_not_configured",
+                "Trend refresh needs the MiniLM worker or the Gemini embedding fallback.",
+            )
+        days = fetch_days(missing, deadline, stop)
+        papers = [paper for day in days.values() for paper in day]
+        fetched_rows = len(papers)
+        skills = [(r["id"], r["label"]) for r in refdata.rows("taxonomy", "skills")]
+        matched: Matched = (
+            match(papers, skills, budget, deadline, stop, today)
+            if papers
+            else ([], "M1-014", MODEL_ID, None)
+        )
+        found, method, model, calibrated = matched
+        mentions = {p["arxiv_id"]: f for p, f in zip(papers, found, strict=True)}
+        with repository.write_connection(started + budget) as conn:
+            if calibrated:
+                trend_store.save_calibration(conn, *calibrated, today)
+            trend_store.save_days(conn, days, mentions, method, model, today)
+        stored |= set(days)
+    end = snapshot_end(stored)
+    if end is None:
+        return service.Outcome(
+            fetched_rows,
+            0,
+            0,
+            f"Stored {len(stored)} days; a snapshot needs {2 * WINDOW_DAYS} consecutive days.",
+        )
+    current = (end - timedelta(days=WINDOW_DAYS - 1), end)
+    previous = (current[0] - timedelta(days=WINDOW_DAYS), current[0] - timedelta(days=1))
     latest = refresh.latest_published(repository.bounded_db_url())
     if latest and window_from_note(latest[1]) == current:
         return service.Outcome(
-            0, 0, 0, "The newest complete measured ISO week is already stored; no inference called."
+            fetched_rows, 0, 0, f"Trends are current through {end}; no new complete day yet."
         )
-    stored = measurements.load(current[1], required_schema=True)
-    if stored:
-        scored = measurements.rows(stored)
-        with repository.write_connection(started + budget) as conn:
-            measurements.publish(conn, stored, scored)
-        refresh.clear_trend_caches()
-        return service.Outcome(
-            0, len(scored), 0, "Rebuilt stored measured inputs; no inference called."
-        )
-    endpoint = os.environ.get("TRENDS_RUNPOD_ENDPOINT_ID", "")
-    api_key = os.environ.get("TRENDS_RUNPOD_API_KEY", "")
-    runpod_ready = (
-        os.environ.get("TRENDS_EMBEDDING_BACKEND", "runpod") == "runpod"
-        and bool(endpoint)
-        and bool(api_key)
+    inputs = rolling_inputs(previous, current, today)
+    scored = measurements.rows(inputs)
+    with repository.write_connection(started + budget) as conn:
+        measurements.publish(conn, inputs, scored)
+    refresh.clear_trend_caches()
+    return service.Outcome(
+        fetched_rows, len(scored), 0, f"Published rolling trends through {current[1]}."
     )
-    if not runpod_ready and not trend_fallback.enabled():
+
+
+def rolling_inputs(
+    previous: tuple[date, date], current: tuple[date, date], today: date
+) -> measurements.MeasuredInputs:
+    """Scorer inputs for two stored 7-day windows (no network or model calls)."""
+    ids = [r["id"] for r in refdata.rows("taxonomy", "skills")]
+    before, total_before, sample_before, models_before = trend_store.window(*previous, ids)
+    after, total_after, sample_after, models_after = trend_store.window(*current, ids)
+    if total_before <= 0 or total_after <= 0:
         raise service.RefreshFailed(
-            "refresh_not_configured",
-            "Automatic trend refresh needs the MiniLM worker or the Gemini embedding fallback.",
+            "validation_failed", "A stored window has no papers; the last snapshot is kept."
         )
-    first = fetch_window(*previous, deadline)
-    if deadline - time.monotonic() < 3.5:
-        raise TimeoutError("refresh time budget reached")
-    stop.wait(3.5)  # arXiv API cadence, interruptible on shutdown
-    if stop.is_set():
-        raise TimeoutError("refresh cancelled")
-    second = fetch_window(*current, deadline)
-    skills = [(r["id"], r["label"]) for r in refdata.rows("taxonomy", "skills")]
-    ids = [sid for sid, _label in skills]
-    counted: tuple[dict[str, int], dict[str, int]] | None = None
-    method, model_id, revision = "M1-014", MODEL_ID, MODEL_REVISION
-    if runpod_ready:
-        reserve = FALLBACK_RESERVE_S if trend_fallback.enabled() else 0.0
-        try:
-            model = RunPodEncoder(
-                endpoint,
-                api_key,
-                timeout=max(1, min(600, budget)),
-                deadline=deadline - reserve,
-                cancelled=stop.is_set,
-            )
-            vectors = dict(
-                zip(
-                    ids,
-                    model.encode([label for _sid, label in skills], batch_size=64),
-                    strict=True,
-                )
-            )
-            counted = (
-                arxiv_ingest.count_mentions(first, ids, vectors, model),
-                arxiv_ingest.count_mentions(second, ids, vectors, model),
-            )
-        except Exception as exc:  # noqa: BLE001 - any worker failure may use the fallback
-            if stop.is_set() or not trend_fallback.enabled():
-                raise
-            log.warning("MiniLM worker unavailable (%s); using Gemini fallback", type(exc).__name__)
-    if counted is None:
-        counted = gemini_counts(first, second, skills, previous, deadline, stop)
-        method, model_id, revision = "M1-017", trend_fallback.model_label(), "api"
-    before, after = counted
-    labor = score.load_labor_decay()
-    exposure = score.load_automation_exposure()
-    rows = score.score_rows(
-        before,
-        len(first),
-        after,
-        len(second),
-        labor,
-        exposure,
-        skill_ids=set(ids),
-    )
-    evidenced = [row for row in rows if row.get("has_evidence", True)]
-    errors = pipeline.validate(evidenced, set(ids), week(previous[0]), week(current[0]))
-    if errors:
-        raise service.RefreshFailed(
-            "validation_failed",
-            "Trend evidence failed validation; the last good snapshot is retained.",
-            rows_fetched=len(first) + len(second),
-        )
+    models = sorted(set(models_before) | set(models_after)) or [MODEL_ID]
+    fallback = any(m != MODEL_ID for m in models)
     bls = pipeline.bls_retrieval()
     sources = [
         dict(
@@ -208,74 +343,27 @@ def run(started: float, budget: float, stop: threading.Event) -> service.Outcome
     ]
     note = (
         f"Observed arXiv submissions {current[0]}..{current[1]} against "
-        f"{previous[0]}..{previous[1]}; fetched {today}. "
-        f"Bounded sample up to {MAX_PAPERS} papers per week; "
-        + (
-            "MiniLM cosine method. "
-            if method == "M1-014"
-            else f"{model_id} fallback, threshold calibrated to the stored MiniLM mention rate. "
-        )
+        f"{previous[0]}..{previous[1]} (rolling 7-day windows); refreshed {today}. "
+        f"Papers matched once and accumulated since {START_DAY}, up to {PER_DAY} newest "
+        f"per day. Models: {', '.join(models)}"
+        + (" (Gemini fallback calibrated to stored MiniLM evidence). " if fallback else ". ")
         + f"BLS 2023-2033 remains a static baseline retrieved {bls['retrieved_at']}."
     )
-    with repository.write_connection(started + budget) as conn:
-        inputs = measurements.MeasuredInputs(
-            method=method,
-            model=model_id,
-            model_revision=revision,
-            previous=previous,
-            current=current,
-            fetched=today,
-            counts_before=before,
-            counts_after=after,
-            total_before=len(first),
-            total_after=len(second),
-            skill_ids=ids,
-            labor_decay=labor,
-            automation_exposure=exposure,
-            sources=sources,
-            note=note,
-            sample=[
-                {"id": paper["arxiv_id"], "published_at": paper["published_at"]}
-                for paper in first + second
-            ],
-        )
-        measurements.publish(conn, inputs, evidenced)
-    refresh.clear_trend_caches()
-    return service.Outcome(
-        len(first) + len(second), len(evidenced), 0, f"Published measured week ending {current[1]}."
+    return measurements.MeasuredInputs(
+        method="M1-018",
+        model=", ".join(models),
+        model_revision="mixed" if fallback else MODEL_REVISION,
+        previous=previous,
+        current=current,
+        fetched=today,
+        counts_before=before,
+        counts_after=after,
+        total_before=total_before,
+        total_after=total_after,
+        skill_ids=ids,
+        labor_decay=score.load_labor_decay(),
+        automation_exposure=score.load_automation_exposure(),
+        sources=sources,
+        note=note,
+        sample=sample_before + sample_after,
     )
-
-
-def gemini_counts(
-    first: list[dict[str, str]],
-    second: list[dict[str, str]],
-    skills: list[tuple[str, str]],
-    previous: tuple[date, date],
-    deadline: float,
-    stop: threading.Event,
-) -> tuple[dict[str, int], dict[str, int]]:
-    """Mention counts for both weeks with the calibrated Gemini fallback (M1-017)."""
-    reference = measurements.load_minilm_reference(previous[1])
-    if reference is None:
-        raise service.RefreshFailed(
-            "refresh_not_supported",
-            "No stored MiniLM measurement to calibrate the fallback; the last snapshot is kept.",
-        )
-    rate = trend_fallback.mentions_per_paper(reference.counts_after, reference.total_after)
-    try:
-        labels = trend_fallback.embed_bounded(
-            [label for _sid, label in skills], deadline, stop.is_set
-        )
-        vectors = dict(zip([sid for sid, _label in skills], labels, strict=True))
-        texts = [trend_fallback.paper_text(p) for p in first + second]
-        papers = trend_fallback.embed_bounded(texts, deadline, stop.is_set)
-    except trend_fallback.FallbackUnavailable as exc:
-        raise service.RefreshFailed(
-            "fetch_failed",
-            "Trend embeddings are unavailable; the last good snapshot is retained.",
-            rows_fetched=len(first) + len(second),
-        ) from exc
-    before_sims = trend_fallback.similarities(papers[: len(first)], vectors)
-    after_sims = trend_fallback.similarities(papers[len(first) :], vectors)
-    threshold = trend_fallback.calibrated_threshold(before_sims, rate)
-    return trend_fallback.count(before_sims, threshold), trend_fallback.count(after_sims, threshold)
