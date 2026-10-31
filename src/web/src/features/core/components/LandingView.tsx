@@ -22,6 +22,7 @@ import { OrgScene } from "@/components/viz/OrgScene";
 import { PathScene } from "@/components/viz/PathScene";
 import { call, getApi, type Schemas } from "@/lib/api";
 import { getAccount } from "@/lib/auth/account";
+import { getSessionToken } from "@/lib/auth/session";
 
 import { teamCtaFor, type TeamCtaLink } from "../team-cta";
 import { AudienceRoot, AudienceToggle, type Audience } from "./AudienceSwitch";
@@ -162,10 +163,13 @@ function visuals(t: T, o: Overview | null, team: boolean): ReactNode[] {
 export async function LandingView({ audience }: { audience: Audience }) {
   const t = await getTranslations("ui.landing");
   const ta = await getTranslations("ui.auth");
-  const [account, overview] = await Promise.all([
+  const [account, overview, sessionToken] = await Promise.all([
     getAccount(),
     getApi().then((api) => call(api.GET("/api/v1/meta/overview"))),
+    getSessionToken(),
   ]);
+  // Not `account`: it is also null during an API outage, when a login prompt would mislead.
+  const signedIn = Boolean(sessionToken);
   const tj = await getTranslations("ui.join");
   // Team CTAs name their destination for each session state (see teamCtaFor).
   const teamCta = teamCtaFor(account);
@@ -273,7 +277,7 @@ export async function LandingView({ audience }: { audience: Audience }) {
             </div>
             <p>{t("startBody")}</p>
           </div>
-          <CvPreview />
+          <CvPreview signedIn={signedIn} />
         </section>
       </div>
 

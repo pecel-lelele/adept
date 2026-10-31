@@ -22,6 +22,11 @@
 .a-upload .cv-assessment-group li b { white-space: nowrap; font-variant-numeric: tabular-nums; }
 .a-upload .a-locked-content { position: absolute; inset: 0; min-height: 0; }
 .a-upload .a-locked-cta { position: relative; min-height: 300px; }
+/* No result exists behind this gate, so its rings are plain and suggest no score. */
+.a-upload .cv-outlook-gate .a-ghost-ring { border-color: var(--a-placeholder); }
+/* The blurred shapes are this panel's only backdrop, so keep them visible behind the message. */
+.a-upload .cv-outlook-gate .a-locked-content { opacity: 1; }
+.a-upload .cv-outlook-gate .a-locked-cta { background: linear-gradient(180deg, #ffffff33, #ffffffa6 55%); }
 @media (max-width: 560px) {
   .a-upload .cv-assessment { grid-template-columns: 1fr; }
   .a-upload .cv-rating-options button { max-width: none; }
