@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
 import { API_URL, call, getApi, type Schemas } from "@/lib/api";
 import { errorBody } from "@/lib/api/client";
@@ -17,7 +16,7 @@ export type IntakeInput = {
   skills: { skill_id: string; level: number }[];
 };
 
-export type IntakeResult = { error?: string };
+export type IntakeResult = { error?: string; redirectTo?: string };
 export type CvResult = { error?: string } & Partial<Pick<Schemas["CvExtractionResult"], "skills" | "unmatched_terms" | "suggestions" | "truncated">>;
 
 /** Only invoked by an explicit search submission; API authentication remains authoritative. */
@@ -62,7 +61,8 @@ export async function saveIntakeAction(input: IntakeInput, returnTo?: string): P
   revalidatePath("/app", "layout");
   revalidatePath("/org", "layout");
   // Intake leads to the Radar first (which skills are rising), then on to matches.
-  redirect(returnTo === "/work/skills" ? returnTo : "/app/radar");
+  // The client clears its session draft before navigating after a successful save.
+  return { redirectTo: returnTo === "/work/skills" ? returnTo : "/app/radar" };
 }
 
 /** Forward a CV to the parser. The file is processed in memory by the API and never stored. */

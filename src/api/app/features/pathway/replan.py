@@ -37,4 +37,38 @@ def diff_plans(old: Pathway, new: Pathway) -> list[PlanChange]:
             changes.append(
                 PlanChange(kind="courses_changed", skill_id=skill, detail="Different courses.")
             )
+    # Profile settings change the whole plan, not one step: hours per week move the weeks,
+    # budget and HRD Corp eligibility move what the learner pays.
+    if (old.hours_per_week, old.total_weeks) != (new.hours_per_week, new.total_weeks):
+        changes.append(
+            PlanChange(
+                kind="schedule_changed",
+                skill_id="",
+                detail=f"{old.total_weeks} weeks at {old.hours_per_week:g} h/week -> "
+                f"{new.total_weeks} weeks at {new.hours_per_week:g} h/week.",
+            )
+        )
+    if (old.budget_myr, old.out_of_pocket_myr, old.hrd_eligible) != (
+        new.budget_myr,
+        new.out_of_pocket_myr,
+        new.hrd_eligible,
+    ):
+        changes.append(
+            PlanChange(
+                kind="cost_changed",
+                skill_id="",
+                detail=f"Budget RM{old.budget_myr:g} -> RM{new.budget_myr:g}; "
+                f"estimated cost RM{old.out_of_pocket_myr:g} -> RM{new.out_of_pocket_myr:g}.",
+            )
+        )
+    # Two styles can prefer the same formats (video, reading), so courses may not move;
+    # the saved plan's style note must still update.
+    if old.learning_style != new.learning_style:
+        changes.append(
+            PlanChange(
+                kind="style_changed",
+                skill_id="",
+                detail=f"Learning style {old.learning_style} -> {new.learning_style}.",
+            )
+        )
     return sorted(changes, key=lambda c: (c.kind, c.skill_id))

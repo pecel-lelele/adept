@@ -91,6 +91,7 @@ def _learner(profile: Profile, user_id: str) -> engine.Learner:
         hours_per_week=float(profile.hours_per_week),
         budget_myr=float(profile.budget_myr),
         hrd_eligible=profile.hrd_eligible,
+        learning_style=profile.learning_style,
     )
 
 
@@ -190,6 +191,7 @@ def build_pathway(
         budget_myr=learner.budget_myr,
         within_budget=plan.out_of_pocket_myr <= learner.budget_myr,
         hrd_eligible=learner.hrd_eligible,
+        learning_style=learner.learning_style,
         gaps=plan.gaps,
         unmet=plan.unmet,
         warnings=plan.warnings + _trend_warnings(trend, [r.skill_id for r in reqs]),

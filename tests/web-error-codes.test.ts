@@ -99,6 +99,15 @@ test("intake actions report local and API validation codes without English messa
   assert.equal((await actions.saveIntakeAction(input)).error, "unknown_skill");
 });
 
+test("successful intake returns a fixed destination so the client can clear its draft first", async () => {
+  const input = { segment: "working", interests: [], hours_per_week: 4, budget_myr: 0, hrd_eligible: false, learning_style: "mixed", skills: [{ skill_id: "python", level: 2 }] };
+  const { saveIntakeAction } = profileActions(async () => ({ ok: true, data: {} }));
+  for (const returnTo of [undefined, "/app/matches", "https://attacker.test"]) {
+    assert.equal((await saveIntakeAction(input, returnTo)).redirectTo, "/app/radar");
+  }
+  assert.equal((await saveIntakeAction(input, "/work/skills")).redirectTo, "/work/skills");
+});
+
 test("CV actions return codes for file validation, parser rejection and connection failure", async (t) => {
   let offline = false;
   t.mock.method(globalThis, "fetch", async () => {

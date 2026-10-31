@@ -17,8 +17,13 @@
     "totalHours": "{hours} h in total",
     "outOfPocket": "You pay RM {amount} of your RM {budget} budget",
     "listPrice": "List price RM {amount}",
-    "hrdNote": "HRD Corp-claimable courses cost you nothing: your employer applies for the levy grant before the course starts.",
-    "overBudget": "Over your budget"
+    "hrdNote": "HRD Corp-claimable courses may be funded if your employer applies for the levy grant before the course starts. The cost above is the list price until that is approved.",
+    "overBudget": "Over your budget",
+    "style": {
+      "classroom": "Classroom learning style: in-person, live online or hybrid courses are chosen first when they fit your budget.",
+      "video": "Video learning style: self-paced online courses are chosen first.",
+      "reading": "Reading learning style: self-paced online courses are chosen first."
+    }
   },
   "step": {
     "levels": "Level {current} → {reaches} (role needs {target})",
@@ -46,14 +51,17 @@
     "viewSaved": "view it"
   },
   "replan": {
-    "title": "New trend data changes your plan",
+    "title": "Your plan can be updated",
     "accept": "Accept the updated plan",
     "keep": "Keep my current plan",
     "change": {
       "added": "Added",
       "removed": "Removed",
       "reordered": "Reordered",
-      "courses_changed": "Courses changed"
+      "courses_changed": "Courses changed",
+      "schedule_changed": "Schedule changed",
+      "style_changed": "Learning style changed",
+      "cost_changed": "Cost changed"
     }
   },
   "progress": {
@@ -165,7 +173,8 @@
     "seeMatches": "See your ranked matches",
     "humanInCharge": "This comparison supports your decision; it does not rank or select roles for you.",
     "emptyTitle": "No roles to compare yet",
-    "emptyHint": "Return to matches to choose a target role."
+    "emptyHint": "Return to matches to choose a target role.",
+    "useBestMatch": "Use my best match"
   },
   "badge": {
     "first": "First course done",

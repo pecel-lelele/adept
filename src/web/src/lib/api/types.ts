@@ -3158,11 +3158,53 @@ export interface components {
             employment_population_ratio: number;
             meta: components["schemas"]["RecommendationMeta"];
         };
+        /** MatchMeta */
+        MatchMeta: {
+            /** Sources */
+            sources: components["schemas"]["Source"][];
+            /**
+             * Snapshot Date
+             * Format: date
+             */
+            snapshot_date: string;
+            /**
+             * Scenario
+             * @description Scenario of the result; 'both' identifies a moderate/fast comparison.
+             */
+            scenario: ("moderate" | "fast") | "both";
+            /**
+             * Is Estimate
+             * @default true
+             */
+            is_estimate: boolean;
+            /** Served From */
+            served_from?: ("db" | "fixture") | null;
+            /**
+             * Is Fallback
+             * @default false
+             */
+            is_fallback: boolean;
+            /**
+             * Observed From
+             * @description Start of the period the source data measures; may predate snapshot_date.
+             */
+            observed_from?: string | null;
+            /**
+             * Observed To
+             * @description End of the period the source data measures.
+             */
+            observed_to?: string | null;
+            /**
+             * Available Snapshots
+             * @description Stored snapshot dates supplied by the trend source used for this ranking.
+             */
+            available_snapshots?: string[];
+        };
         /** MatchResponse */
         MatchResponse: {
             /** Matches */
             matches: components["schemas"]["RoleMatch"][];
-            meta: components["schemas"]["RecommendationMeta"];
+            meta: components["schemas"]["MatchMeta"];
             /**
              * Data Provenance Note
              * @description Trend provider's provenance disclosure, including any demo-fixture caveat.
@@ -3459,6 +3501,12 @@ export interface components {
              * @default false
              */
             hrd_eligible: boolean;
+            /**
+             * Learning Style
+             * @description Learning style used to prefer course delivery formats within budget.
+             * @default mixed
+             */
+            learning_style: string;
             /** Gaps */
             gaps?: components["schemas"]["SkillGap"][];
             /** Unmet */
@@ -3602,8 +3650,11 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "added" | "removed" | "reordered" | "courses_changed";
-            /** Skill Id */
+            kind: "added" | "removed" | "reordered" | "courses_changed" | "schedule_changed" | "cost_changed" | "style_changed";
+            /**
+             * Skill Id
+             * @description Empty for whole-plan changes (schedule, cost, style).
+             */
             skill_id: string;
             /** Detail */
             detail: string;
@@ -4042,9 +4093,9 @@ export interface components {
             snapshot_date: string;
             /**
              * Scenario
-             * @enum {string}
+             * @description Scenario of the result; 'both' identifies a moderate/fast comparison.
              */
-            scenario: "moderate" | "fast";
+            scenario: ("moderate" | "fast") | "both";
             /**
              * Is Estimate
              * @default true
@@ -5252,9 +5303,9 @@ export interface components {
             snapshot_date: string;
             /**
              * Scenario
-             * @enum {string}
+             * @description Scenario of the result; 'both' identifies a moderate/fast comparison.
              */
-            scenario: "moderate" | "fast";
+            scenario: ("moderate" | "fast") | "both";
             /**
              * Is Estimate
              * @default true

@@ -82,7 +82,8 @@
     "funding": "培训预算",
     "myWork": "我的组织",
     "programmes": "项目",
-    "jobs": "职位"
+    "jobs": "职位",
+    "compare": "比较岗位与情景"
   },
   "shell": {
     "disclaimer": "预测是基于公开数据的估计。决定权在你：Adept 从不做招聘决定。",
@@ -531,7 +532,11 @@
     "retry": "重试",
     "signIn": "重新登录",
     "profile": "完成你的资料",
-    "network": "目前无法连接 Adept。"
+    "network": "目前无法连接 Adept。",
+    "home": "返回首页",
+    "unexpected": "无法加载此页面。请重试或返回首页。",
+    "notFoundTitle": "找不到页面",
+    "notFoundHint": "此页面可能已移动，或链接不完整。"
   },
   "page": {
     "stepOf": "第 {step} 步，共 {total} 步",

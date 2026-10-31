@@ -25,7 +25,9 @@ class RecommendationMeta(BaseModel):
 
     sources: list[Source] = Field(min_length=1)
     snapshot_date: date
-    scenario: ScenarioId
+    scenario: ScenarioId | Literal["both"] = Field(
+        description="Scenario of the result; 'both' identifies a moderate/fast comparison."
+    )
     is_estimate: bool = True
     served_from: Literal["db", "fixture"] | None = None
     is_fallback: bool = False

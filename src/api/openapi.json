@@ -9911,6 +9911,107 @@
         ],
         "title": "MalaysiaLabourContext"
       },
+      "MatchMeta": {
+        "properties": {
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/Source"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Sources"
+          },
+          "snapshot_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Snapshot Date"
+          },
+          "scenario": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "moderate",
+                  "fast"
+                ]
+              },
+              {
+                "type": "string",
+                "const": "both"
+              }
+            ],
+            "title": "Scenario",
+            "description": "Scenario of the result; 'both' identifies a moderate/fast comparison."
+          },
+          "is_estimate": {
+            "type": "boolean",
+            "title": "Is Estimate",
+            "default": true
+          },
+          "served_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "db",
+                  "fixture"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Served From"
+          },
+          "is_fallback": {
+            "type": "boolean",
+            "title": "Is Fallback",
+            "default": false
+          },
+          "observed_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed From",
+            "description": "Start of the period the source data measures; may predate snapshot_date."
+          },
+          "observed_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed To",
+            "description": "End of the period the source data measures."
+          },
+          "available_snapshots": {
+            "items": {
+              "type": "string",
+              "format": "date"
+            },
+            "type": "array",
+            "title": "Available Snapshots",
+            "description": "Stored snapshot dates supplied by the trend source used for this ranking."
+          }
+        },
+        "type": "object",
+        "required": [
+          "sources",
+          "snapshot_date",
+          "scenario"
+        ],
+        "title": "MatchMeta"
+      },
       "MatchResponse": {
         "properties": {
           "matches": {
@@ -9921,7 +10022,7 @@
             "title": "Matches"
           },
           "meta": {
-            "$ref": "#/components/schemas/RecommendationMeta"
+            "$ref": "#/components/schemas/MatchMeta"
           },
           "data_provenance_note": {
             "anyOf": [
@@ -10587,6 +10688,12 @@
             "title": "Hrd Eligible",
             "default": false
           },
+          "learning_style": {
+            "type": "string",
+            "title": "Learning Style",
+            "description": "Learning style used to prefer course delivery formats within budget.",
+            "default": "mixed"
+          },
           "gaps": {
             "items": {
               "$ref": "#/components/schemas/SkillGap"
@@ -10905,13 +11012,17 @@
               "added",
               "removed",
               "reordered",
-              "courses_changed"
+              "courses_changed",
+              "schedule_changed",
+              "cost_changed",
+              "style_changed"
             ],
             "title": "Kind"
           },
           "skill_id": {
             "type": "string",
-            "title": "Skill Id"
+            "title": "Skill Id",
+            "description": "Empty for whole-plan changes (schedule, cost, style)."
           },
           "detail": {
             "type": "string",
@@ -11906,12 +12017,21 @@
             "title": "Snapshot Date"
           },
           "scenario": {
-            "type": "string",
-            "enum": [
-              "moderate",
-              "fast"
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "moderate",
+                  "fast"
+                ]
+              },
+              {
+                "type": "string",
+                "const": "both"
+              }
             ],
-            "title": "Scenario"
+            "title": "Scenario",
+            "description": "Scenario of the result; 'both' identifies a moderate/fast comparison."
           },
           "is_estimate": {
             "type": "boolean",
@@ -14685,12 +14805,21 @@
             "title": "Snapshot Date"
           },
           "scenario": {
-            "type": "string",
-            "enum": [
-              "moderate",
-              "fast"
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "moderate",
+                  "fast"
+                ]
+              },
+              {
+                "type": "string",
+                "const": "both"
+              }
             ],
-            "title": "Scenario"
+            "title": "Scenario",
+            "description": "Scenario of the result; 'both' identifies a moderate/fast comparison."
           },
           "is_estimate": {
             "type": "boolean",

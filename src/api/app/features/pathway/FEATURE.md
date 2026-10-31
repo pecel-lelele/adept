@@ -119,3 +119,10 @@ already qualified nurses; it does not provide a nursing qualification. Existing 
 the exact-pair requirement migration as well as reference seeding. The
 [coverage report](../../../../../docs/evidence/skill-bank-coverage.md) lists each target and course;
 `courses/skill_bank_provenance.json` records provider access and duration limitations.
+
+## Settings drive the plan (2026-10-31, M3-044)
+
+Hours per week set the weeks; budget filters paid courses; learning style prefers delivery
+formats within budget (classroom → taught formats, video/reading → self-paced). A saved plan
+proposes `schedule_changed` / `cost_changed` re-plans when these settings change.
+Measure with `.claude/toolbox/onboarding_effects.py` (production code, seed data).
