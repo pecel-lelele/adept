@@ -44,7 +44,8 @@ function fixtures(locale: string) {
     "./SignalExplorer": { SignalExplorer: nothing }, "./RoleDirectionsCard": { RoleDirectionsCard: nothing },
     "./TrendRangeCard": { TrendRangeCard: nothing },
     "../range": loadComponent("src/features/trends/range.ts"),
-    "@/components/DataAsOf": { DataAsOf: nothing }, "@/lib/auth/account": { getAccount: async () => null },
+    "@/components/DataAsOf": { DataAsOf: nothing }, "@/components/SnapshotPicker": { SnapshotPicker: nothing },
+    "@/lib/auth/account": { getAccount: async () => null },
   };
 }
 
@@ -63,6 +64,10 @@ test("failed journey screens keep their translated heading, stage and scenario b
       assert.ok(html.indexOf("<h1") < html.indexOf("data-error"));
       assert.ok(html.includes(translations(locale).useTranslations("ui.page")("stepOf", { step: String(step), total: "6" })));
       assert.ok(html.includes(translations(locale).useTranslations("common.scenario")("fast")));
+      if (path === "trends/components/RadarView") {
+        assert.match(html, /href="\/app\/radar\?scenario=fast"/);
+        assert.ok(html.includes(translations(locale).useTranslations("common.freshness")("backToLatest")));
+      }
       assert.doesNotMatch(html, /undefined/);
     }
   }
@@ -97,7 +102,7 @@ test("matches keep their own snapshot picker and only the three highest ranks ar
 
 test("snapshot selection replaces history and preserves scenario and ranking filters", () => {
   const targets: string[] = [];
-  const { SnapshotPicker } = loadComponent("src/features/matching/components/SnapshotPicker.tsx", {
+  const { SnapshotPicker } = loadComponent("src/components/SnapshotPicker.tsx", {
     react: { useTransition: () => [false, (fn) => fn()] },
     "@/components/useBusy": { useBusy: nothing },
     "next/navigation": {

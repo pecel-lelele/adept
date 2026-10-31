@@ -16,11 +16,10 @@ that guard: restrict who may dispatch, protect the main branch, and move deploym
 to a GitHub environment restricted to reviewed main before treating it as a security
 boundary. Repository secrets without that restriction are not branch-isolated.
 
-1. Review and apply `20261030160000_data_refresh_runs.sql`,
-   `20261030220000_data_refresh_trends.sql`,
-   `20261030221000_background_data_refresh.sql` and
-   `20261031010000_measured_trend_inputs.sql` to the intended production database through
-   the owner's migration procedure. Replit build/start never migrates or seeds.
+1. Review and apply **all pending append-only migrations** to the intended production
+   database through the owner's procedure, including the dated provenance, paper-store
+   (`20261031180000`) and matcher-series (`20261031220000`) migrations. Replit build/start
+   never migrates or seeds; do not run these against an unconfirmed target.
 2. Provision a new random `DATA_REFRESH_TOKEN` in Replit Secrets and GitHub Actions secrets.
    Configure GitHub repository variable `DATA_REFRESH_APP_URL` with the public HTTPS origin.
 3. Keep Replit's existing `TRENDS_RUNPOD_API_KEY`, `TRENDS_RUNPOD_ENDPOINT_ID` and
@@ -28,6 +27,11 @@ boundary. Repository secrets without that restriction are not branch-isolated.
 4. Deploy the reviewed source. Run **Automatic app data refresh** once. Check its conclusion,
    `/api/v1/data/freshness`, and the admin snapshot page's per-source dates/recent runs.
    Verify a later scheduled run succeeds too; a green no-op alone does not prove publication.
+   For the line chart, read `GET /api/v1/trends/compare?kind=skill&entities=skill:python&preset=3M`:
+   a 404 means the chart API is not deployed; a 200 with no non-null observed points means
+   the selected matcher has no complete stored seven-day windows. Record the returned
+   `meta` source and observation dates, then run an authorized refresh/backfill to build
+   actual paper history. Never add a synthetic line to represent missing observations.
 5. Until that proof exists, retain the original `trends-refresh.yml` path and existing secrets.
    After the first successful automatic publication, record the run URL and list
    `TREND_DATABASE_URL` and `TRENDS_RUNPOD_API_KEY` as no longer needed **in GitHub** in the PR.

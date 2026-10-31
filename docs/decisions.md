@@ -912,6 +912,48 @@
 - **Replaces**: none; refines M1-025 radar UI
 - **PR / branch**: fix/core-dashboard-clarity
 
+
+### M1-035: Page the radar's tracked skills without extra network reads
+- **Date**: 2026-10-31
+- **Feature**: F2 (Radar UI)
+- **Type**: UI
+- **Change**: Keep the dated, sorted radar result in memory and render ten rows per page with immediate previous/next feedback; reset to page one after search or direction changes and remount on a new snapshot/scenario. Give signal and exposure values visible mobile labels when desktop column headers disappear.
+- **Why**: Rendering every catalogue skill as one scrolling list buried the next action and left mobile numeric values unexplained. Client-side paging changes no score or attribution and needs no additional model/API request.
+- **Affects**: individual and organisation radar explorers; no data schema, recommendation formula or provider change
+- **Replaces**: none; refines M1-019/M1-025 radar presentation
+- **PR / branch**: fix/trends-radar-paging
+
+### M1-036: Make published radar dates a page-wide choice
+- **Date**: 2026-10-31
+- **Feature**: F2 radar / F4 matching UI
+- **Type**: UI
+- **Change**: Reuse one shared published-snapshot picker at the top of the radar and matching pages; remove the radar explorer's buried duplicate. The selected snapshot feeds all radar KPIs, role directions and skill rows, while the chart's from/to dates remain scoped to stored research observations with a short explicit explanation. Offer a latest-snapshot recovery link when a historical radar read fails.
+- **Why**: Chart dates and published forecast snapshots are different data types; treating an arbitrary calendar day as a published estimate would invent evidence. Moving the supported-date choice above the analysis makes the whole-page replay discoverable without changing the scoring method.
+- **Affects**: individual/organisation radar, matching snapshot picker composition and EN/MS/ZH help copy; no new schema, provider or model call
+- **Replaces**: none; refines M1-025 date-control scope
+- **PR / branch**: fix/trends-radar-paging
+
+### M1-037: Keep missing chart history explicit until a real refresh publishes it
+- **Date**: 2026-10-31
+- **Feature**: F2 (Trend chart and operations)
+- **Type**: UI
+- **Change**: Give an empty paper-series response an illustrated, accessible collecting state and an actionable radar context; document the production acceptance check for non-null paper observations after a reviewed migration and refresh.
+- **Why**: The checked-in seed has no paper-store CSV and the public demo endpoint still returns 404; drawing an unobserved line would misrepresent freshness. The app can ship the chart code, but a visible measured line needs actual stored inputs on the deployed revision.
+- **Affects**: F2 chart empty state and refresh handoff; no method, data, provider or schema change
+- **Replaces**: none; clarifies M1-025 chart readiness
+- **PR / branch**: fix/trends-radar-paging
+
+### M1-038: Show flat measured trendlines when paper history exists
+- **Date**: 2026-10-31
+- **Feature**: F2 (Trend comparison and home summary)
+- **Type**: method
+- **Change**: When no rising or falling line exists but at least two observed values do, choose up to three catalogue entities by latest measured level and render their flat lines. The home card explains steady signals instead of showing an empty container; missing paper observations still yield the collecting state.
+- **Why**: A valid, flat sample previously produced no default chart because movers only selected nonzero changes. Treating a real zero change as missing evidence hid an available line.
+- **Pipeline**: stored per-paper daily counts → unchanged rolling shares → stable-line selection only when movement is zero → existing chart with source dates → flat-series API and home-card regressions → measured flat trends, not invented points
+- **Affects**: F2 compare default lines and dashboard trend summary; no model, schema or external data change
+- **Replaces**: none; refines M1-025 default movers only
+- **PR / branch**: fix/trends-radar-paging
+
 ---
 
 ## M2: Profile Intake & Matching (F1, F4)
