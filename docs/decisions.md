@@ -511,6 +511,16 @@
 - **Replaces**: none (extends M4-081 database verification coverage)
 - **PR / branch**: fix-ui-flaws2
 
+### TEAM-047: Restrict credential-bearing refresh dispatches to reviewed main
+- **Date**: 2026-10-31
+- **Feature**: Core / F2 / data refresh
+- **Type**: other
+- **Change**: Gate automatic, catalogue, jobs and trend-refresh workflow jobs on the source repository's main ref; disable persisted checkout credentials and cover every dispatch workflow in CI syntax checks and an offline guard regression. Correct Replit proxy documentation to distinguish trusted mode from zero-hop best-effort mode.
+- **Why**: A manual dispatch on a feature ref could execute branch code with deployment credentials; a passing workflow review is not evidence that no unsafe branch was selected. Job guards prevent accidental execution; they cannot protect credentials from someone allowed to edit and run workflow code on a branch. Restrict dispatch permissions and use main-restricted GitHub environments for durable credential isolation. Deployment instructions must match actual startup checks.
+- **Affects**: GitHub Actions refresh operations and Replit operations guidance; scheduled runs on the source main remain available
+- **Replaces**: none (refines TEAM-041's proxy guidance)
+- **PR / branch**: fix/core-dispatch-trust
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)

@@ -9,6 +9,13 @@ on HTTP errors, failed sources, due-but-cooling-down work, or timeout. It never 
 
 ## Activation and verification
 
+Manual refresh workflows and the automatic scheduler run only when the Actions ref is
+`main` in the source repository. Do not dispatch from feature refs. The in-workflow guard
+prevents accidental execution, but someone who can edit a workflow on a branch can remove
+that guard: restrict who may dispatch, protect the main branch, and move deployment secrets
+to a GitHub environment restricted to reviewed main before treating it as a security
+boundary. Repository secrets without that restriction are not branch-isolated.
+
 1. Review and apply `20261030160000_data_refresh_runs.sql`,
    `20261030220000_data_refresh_trends.sql`,
    `20261030221000_background_data_refresh.sql` and
