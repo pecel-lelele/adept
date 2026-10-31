@@ -713,6 +713,16 @@
 - **Affects**: F2 snapshots and their readers (F3–F7 estimates), data refresh due check, migration `20261031180000_trend_paper_store.sql`
 - **Replaces**: M1-015 (fixed completed ISO weeks for the automatic refresh); extends M1-017
 - **PR / branch**: feat/trends-rolling-accumulated
+
+### M1-019: Trend over time — date-range line chart from the paper store; Recharts via shadcn chart
+- **Date**: 2026-10-31
+- **Feature**: F2 (Trends radar), Core UI dependency
+- **Type**: contract | UI | dependency
+- **Change**: New `GET /api/v1/trends/series?start&end&skill_ids` returns, for each day in a chosen range (≤120 days, ≤8 skills), each skill's observed share of sampled arXiv papers in the 7 days ending that day, counted from the M1-018 paper store (no model call; null where a window is not fully stored). Without chosen skills it returns the three biggest risers and fallers. The radar gains a "Trend over time" card: native calendar date pickers (limited to stored days), skill chips plus an "add skill" picker, a line chart with legend, hover tooltips and ▲/▼ markers, and an accessible table. Adds `recharts@2.15.4` (exact pin, no install scripts, React 19 peer) wrapped by a lean shadcn `components/ui/chart.tsx`.
+- **Why**: Judges asked to choose any date range and see skills move continuously, not one fixed week at a time. Counting stored rows keeps each view instant and free. shadcn's chart is the stack's standard chart layer and Recharts gives tooltips and legends without bespoke SVG code. Values are labelled as observed research attention (`is_estimate=false`), not job demand or forecasts.
+- **Affects**: F2 trends API and generated client, `/app/radar` and `/org/radar`, `src/web/package.json` and `pnpm-lock.yaml` (recharts and its d3 dependencies only)
+- **Replaces**: none
+- **PR / branch**: feat/trends-range-chart
 ---
 
 ## M2: Profile Intake & Matching (F1, F4)

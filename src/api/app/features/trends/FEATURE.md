@@ -74,3 +74,11 @@ See [operations and source assessment](../../../../../docs/data-refresh.md).
 | Model / method | Research log-ratio blended 0.6/0.4 with labour decay | Moderate and fast scenarios remain estimates |
 | Evaluation | IDs, finite values, two periods and minimum evidence coverage | Failure prevents publication |
 | Serving | Atomic PostgreSQL snapshot/provenance transaction | GET `/api/v1/trends/snapshot` |
+
+## Trend over time (2026-10-31, M1-019)
+
+`GET /trends/series` (`series.py`) counts the stored paper cache (M1-018) to give each skill's
+observed 7-day rolling share for every day in a chosen range. The radar's "Trend over time"
+card (`TrendRangeCard`, `TrendLinesChart` on shadcn chart / Recharts) lets people pick dates
+and skills; the choice lives in the URL (`?from=&to=&skill=`).
+

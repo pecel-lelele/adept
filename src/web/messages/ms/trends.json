@@ -128,5 +128,22 @@
       "failed": "Gagal",
       "skipped": "Terkini"
     }
+  },
+  "range": {
+    "title": "Trend mengikut masa",
+    "hint": "Setiap garis ialah bahagian kertas penyelidikan AI sampel yang menyebut sesuatu kemahiran dalam {days} hari sehingga hari itu. Pilih tarikh dan kemahiran, kemudian tunjukkan.",
+    "from": "Dari",
+    "to": "Hingga",
+    "skills": "Kemahiran",
+    "add": "Tambah kemahiran…",
+    "show": "Tunjuk trend",
+    "reset": "Perubahan terbesar",
+    "empty": "Tiada sejarah harian disimpan lagi. Segar semula data untuk mula mengumpulnya.",
+    "emptyRange": "Tiada kemahiran berubah dalam julat ini. Pilih tarikh atau kemahiran lain.",
+    "chartLabel": "Bahagian kertas yang menyebut setiap kemahiran, {from} hingga {to}",
+    "table": "Tunjuk sebagai jadual",
+    "skill": "Kemahiran",
+    "change": "Perubahan",
+    "note": "Diperhatikan dalam sampel sehingga 50 kertas arXiv cs.AI terbaharu sehari; perhatian penyelidikan, bukan permintaan pekerjaan. Jurang bermaksud tetingkap 7 hari belum disimpan sepenuhnya."
   }
 }

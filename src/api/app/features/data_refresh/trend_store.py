@@ -12,6 +12,7 @@ from typing import Any
 
 import psycopg
 
+from app.core import refdata
 from app.core.db import connection
 from app.features.data_refresh import service
 
@@ -104,3 +105,43 @@ def window(
     sample = [{"id": r["arxiv_id"], "published_at": r["published_on"].isoformat()} for r in papers]
     models = sorted({r["model"] for r in papers})
     return counts, int(total), sample, models
+
+
+def stored_range() -> tuple[date, date, date] | None:
+    """(first day, newest day, latest fetch date), or None when nothing is stored yet.
+
+    Deployments without the app database (CSV demo mode) have no store; a configured but
+    unreachable database still raises, so an outage is never shown as "no history"."""
+    if not refdata.use_postgres():
+        return None
+    try:
+        with connection() as conn:
+            row = conn.execute(
+                "SELECT min(day) AS first, max(day) AS last, max(fetched_on) AS fetched "
+                "FROM trend_fetched_days"
+            ).fetchone()
+    except psycopg.errors.UndefinedTable:
+        return None
+    return (row["first"], row["last"], row["fetched"]) if row and row["first"] else None
+
+
+def daily(
+    start: date, end: date, skill_ids: Iterable[str]
+) -> tuple[dict[date, int], dict[tuple[date, str], int]]:
+    """Papers per stored day and mentions per (day, skill) in [start, end], in one pass."""
+    wanted = list(skill_ids)
+    with connection() as conn:
+        days = conn.execute(
+            "SELECT day, papers FROM trend_fetched_days WHERE day BETWEEN %s AND %s",
+            (start, end),
+        ).fetchall()
+        rows = conn.execute(
+            "SELECT published_on AS day, s AS skill_id, count(*) AS n "
+            "FROM trend_paper_mentions, unnest(skills) s "
+            "WHERE published_on BETWEEN %s AND %s AND s = ANY(%s) GROUP BY 1, 2",
+            (start, end, wanted),
+        ).fetchall()
+    return (
+        {r["day"]: int(r["papers"]) for r in days},
+        {(r["day"], r["skill_id"]): int(r["n"]) for r in rows},
+    )
