@@ -272,12 +272,9 @@ def _swapped_profile(p: Persona, name: str, segment: Segment) -> Profile:
     )
 
 
-def fairness_evidence(personas: Sequence[Persona], snap: TrendSnapshot) -> FairnessEvidence:
+def identity_rank_evidence(personas: Sequence[Persona], snap: TrendSnapshot) -> tuple[int, int]:
     """Swap name and segment on each persona's profile and re-rank through the production
     profile-to-matching boundary and scorer; report the largest position change of any role."""
-    from app.features.guardrails import service as guardrails_service
-    from app.main import app
-
     roles = matching_repository.load_roles()
 
     def positions(profile: Profile) -> dict[str, int]:
@@ -299,7 +296,16 @@ def fairness_evidence(personas: Sequence[Persona], snap: TrendSnapshot) -> Fairn
                 now = positions(_swapped_profile(p, name, segment))
                 variants += 1
                 worst = max(worst, max(abs(now[r] - base[r]) for r in base))
-    report = guardrails_service.get_fairness(app)
+    return worst, variants
+
+
+def fairness_evidence(personas: Sequence[Persona], snap: TrendSnapshot) -> FairnessEvidence:
+    from app.features.guardrails import service as guardrails_service
+    from app.main import app
+
+    worst, variants = identity_rank_evidence(personas, snap)
+    # Reuse this measurement; the live guardrail endpoint invokes the same check itself.
+    report = guardrails_service.get_fairness(app, rank_evidence=(worst, variants))
     return FairnessEvidence(
         variants_tested=variants,
         personas_tested=len(personas),

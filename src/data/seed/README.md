@@ -17,3 +17,12 @@ and SDG targets are real, public, dated records (see their folders). Load with `
 | `pathway/` | M3 (F5) | skill_prerequisites |
 | `sdg/` | M3 (F6) | sdg_goals, sdg_targets (written by `pipelines.sdg`), role_sdg_map, skill_sdg_map, org_regions |
 | `org/` | M4 (F7) | users (employees), organizations, memberships |
+
+`trends/paper_store/` holds the portable trend history (`trend_fetched_days`,
+`trend_paper_mentions`, `trend_matcher_calibration`) and the matcher `equivalence.json`, written by
+`pipelines/trends/backfill.py export-seed`. Public arXiv IDs, dates and catalogue skill IDs only;
+no abstract text. Seed import inserts a trend day and its mentions as one unit: when a live
+(day, method) pair already exists, both its denominator and all seed mentions are skipped.
+A conflicting threshold for an existing matcher model aborts the seed transaction.
+`taxonomy/role_categories.csv` is a reviewed role grouping (M1-025), read by the
+API and not loaded as a database table.

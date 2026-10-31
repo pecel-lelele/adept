@@ -12,22 +12,23 @@ function find(node, predicate) {
   return find(node.props.children, predicate);
 }
 
-test("radar Latest clears snapshot_date and normal journey links never inherit historical mode", () => {
-  let current = new URL("https://example.test/app/radar?scenario=fast");
-  const { SignalExplorer } = loadComponent("src/features/trends/components/SignalExplorer.tsx", {
-    "next-intl": translations(),
+test("radar date edition selects a published snapshot and keeps chart range choices", () => {
+  let current = new URL("https://example.test/app/radar?scenario=fast&view=roles&preset=1M");
+  const { SnapshotPicker } = loadComponent("src/components/SnapshotPicker.tsx", {
     "next/navigation": {
-      useRouter: () => ({ push: (href) => { current = new URL(href, current); } }),
+      useRouter: () => ({ replace: (href) => { current = new URL(href, current); } }),
       usePathname: () => current.pathname,
       useSearchParams: () => current.searchParams,
     },
-    react: { useState: (value) => [value, () => {}], useRef: () => ({ current: null }), useTransition: () => [false, (fn) => fn()] },
+    react: { useTransition: () => [false, (fn) => fn()] },
     "@/components/useBusy": { useBusy: () => {} },
   });
-  const select = () => find(SignalExplorer({ items: [], scenario: "fast", dates: ["2026-10-13"] }), (node) => node.type === "select");
+  const select = () => find(SnapshotPicker({ dates: ["2026-10-13"], value: current.searchParams.get("snapshot_date") ?? "", label: "Radar snapshot", latestLabel: "Latest" }), (node) => node.type === "select");
   assert.equal(select().props.value, "");
   select().props.onChange({ target: { value: "2026-10-13" } });
   assert.equal(current.searchParams.get("snapshot_date"), "2026-10-13");
+  assert.equal(current.searchParams.get("view"), "roles");
+  assert.equal(current.searchParams.get("preset"), "1M");
   assert.equal(journeyHref("/app/pathway?role=data-analyst", current.searchParams), "/app/pathway?role=data-analyst&scenario=fast");
   select().props.onChange({ target: { value: "" } });
   assert.equal(current.searchParams.has("snapshot_date"), false);

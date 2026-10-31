@@ -141,24 +141,76 @@
     }
   },
   "range": {
+    "pageDateLabel": "Radar snapshot",
+    "pageDateHint": "A published snapshot updates every radar card. Chart dates explore research history.",
     "title": "Trend over time",
-    "hint": "Each line is the share of sampled AI research papers mentioning a skill in the {days} days up to that day. Pick dates and skills, then show.",
+    "hint": "Trend lines summarize sampled research over each {days}-day window. Compare skills, roles or categories.",
+    "adjust": "Adjust chart",
     "from": "From",
     "to": "To",
     "skills": "Skills",
-    "add": "Add a skill…",
+    "add": "Add a line…",
     "show": "Show trend",
     "reset": "Biggest movers",
-    "empty": "No daily history is stored yet. Refresh data to start collecting it.",
-    "emptyRange": "No skill moved in this range. Choose other dates or skills.",
+    "empty": "Paper history is still being collected. Explore the dated radar above; a validated refresh will bring this line chart to life.",
+    "emptyRange": "Nothing moved in this range. Choose other dates or lines.",
+    "steadyRange": "These skills held steady in this range. Open the chart to compare their levels.",
     "emptyShort": "A trend point needs {days} stored days of papers. History is still being collected.",
-    "chartLabel": "Share of papers mentioning each skill, {from} to {to}",
-    "table": "Show as a table",
-    "skill": "Skill",
+    "chartLabel": "Trend lines, {from} to {to}",
+    "table": "Show every point as a table",
     "change": "Change",
-    "note": "Observed in a sample of up to 50 newest arXiv cs.AI papers per day; research attention, not job demand. Gaps mean a 7-day window is not fully stored.",
+    "note": "Observed in a sample of up to 50 newest arXiv cs.AI papers per day; research attention, not job demand. Gaps mean a 7-day window is not fully stored and are never filled in.",
     "day": "Day",
-    "limit": "Up to {max} skills. Untick one to add another.",
-    "rejected": "That choice could not be shown (a start after the end, a range over {days} days, an unknown skill, or more than {max} skills). Showing the biggest movers instead."
+    "limit": "Up to {max} lines. Untick one to add another.",
+    "rejected": "That choice could not be shown (dates outside stored data, a start after the end, a range over {days} days, an unknown line, or more than {max} lines). Showing the biggest movers instead.",
+    "dataThrough": "Data through {date}",
+    "viewLabel": "Chart type",
+    "views": {
+      "skills": "Skills",
+      "roles": "Roles",
+      "categories": "Categories"
+    },
+    "legend": {
+      "skills": "Skills on the chart",
+      "roles": "Roles and categories on the chart",
+      "categories": "Categories and roles on the chart"
+    },
+    "presetLabel": "Date range",
+    "presets": {
+      "1W": "1W",
+      "1M": "1M",
+      "3M": "3M",
+      "6M": "6M",
+      "custom": "Custom"
+    },
+    "modeLabel": "Scale",
+    "modeIndexed": "Rebased to 100",
+    "modeRaw": "Raw scores",
+    "horizonLabel": "Projection",
+    "horizons": {
+      "h30": "30 d",
+      "h90": "90 d",
+      "h180": "180 d",
+      "h365": "1 y"
+    },
+    "rawFallback": "These lines have no date where all of them are above 0, so raw scores are shown instead of a rebased comparison.",
+    "rebased": "Rebased to 100 on {date}, the first date with every line above 0.",
+    "derived": "Role and category scores are derived from arXiv skill signals, not observed role demand. They are estimates.",
+    "projected": "If this pace continues",
+    "projectionNote": "Dashed line: the {scenario} pace continued for {days} days. Pace continuation, not a prediction.",
+    "scenario": {
+      "moderate": "moderate",
+      "fast": "fast"
+    },
+    "statsCaption": "Start, end, change and projected endpoints, {from} to {to}",
+    "line": "Line",
+    "start": "Start",
+    "end": "End",
+    "moderateEnd": "Moderate at +{days} d",
+    "fastEnd": "Fast at +{days} d",
+    "moversTitle": "Biggest skill moves",
+    "moversOpen": "Open the chart",
+    "risers": "Rising",
+    "fallers": "Falling"
   }
 }

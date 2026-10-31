@@ -28,6 +28,7 @@ os.environ["APP_ENV"] = "development"
 # Never embed text with a real provider or call the MiniLM RunPod encoder from the suite.
 os.environ["EMBEDDINGS_PROVIDER"] = "none"
 os.environ["TRENDS_EMBEDDING_BACKEND"] = "runpod"
+os.environ["TRENDS_MATCHER"] = "gemini"
 os.environ["TRENDS_RUNPOD_API_KEY"] = ""
 os.environ["TRENDS_RUNPOD_ENDPOINT_ID"] = ""
 # Sync endpoints stay off unless a test enables them; proxy trust uses the documented defaults.
@@ -59,6 +60,38 @@ fixtures.install()
 @pytest.fixture
 def client() -> TestClient:
     return TestClient(app)
+
+
+@pytest.fixture
+def planning_cohort(monkeypatch: pytest.MonkeyPatch) -> list[str]:
+    """Four synthetic sharing members keep planning/consent tests above the default gate.
+
+    Privacy regressions use the original two-member fixture or explicitly vary cohort size.
+    """
+    from app.contracts.org import Member
+    from app.features.org import repository as org_repository
+    from app.features.profile import repository as profile_repository
+
+    additions = []
+    for suffix in ("third", "fourth"):
+        uid = f"synthetic-cohort-{suffix}"
+        additions.append(
+            Member(
+                id=uid,
+                display_name=f"Synthetic {suffix} member",
+                current_role_id=None,
+                intake_status="complete",
+                skills_shared=True,
+            )
+        )
+        monkeypatch.setitem(
+            profile_repository._store,
+            uid,
+            profile_repository._store["emp-002"].model_copy(update={"user_id": uid}),
+        )
+    members = [*org_repository._members["org-demo-bank"], *additions]
+    monkeypatch.setitem(org_repository._members, "org-demo-bank", members)
+    return [m.id for m in members if m.intake_status == "complete" and m.skills_shared]
 
 
 @pytest.fixture(autouse=True)

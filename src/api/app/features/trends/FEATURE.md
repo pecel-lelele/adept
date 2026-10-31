@@ -90,3 +90,25 @@ retrieval date. The observation period remains null until a complete window cont
 
 Daily denominators and mention counts use one SQL statement snapshot, so a concurrent
 settled-day replacement cannot mix versions or inflate a displayed sample share.
+
+## Comparison, projection and history (2026-10-31, M1-024 to M1-027)
+
+The "Trend over time" card uses `GET /trends/compare` (`comparison.py`): a Skills | Roles |
+Categories switch, presets 1W/1M/3M/6M or custom dates, rebased to 100 or raw, up to 8 lines, and
+a stats table with start, end, change and both projected endpoints. All state is in the URL
+(`?view=&preset=&from=&to=&entity=&mode=&horizon=`). Presets and chart stay visible; the
+native "Adjust chart" disclosure holds dates, line choices, mode and horizon, opening on a
+custom or rejected request. The full skill explorer shows ten sorted rows at a time with
+instant previous/next controls; filtering resets to the first page and mobile metrics keep
+visible labels. A page-level picker selects a published snapshot for all radar KPIs, role
+outlooks and skill rows; the chart's custom dates separately compare stored paper history.
+A stored flat period with at least two observations still draws its measured line; no
+complete paper window shows a sourced, styled collecting state—not an invented line. A visible historical line requires the paper-store migration and a
+successful dated refresh/backfill. `TrendMoversCard` on home deep-links in.
+
+Role and category lines are derived from arXiv skill signals, not observed role demand. The
+dashed projection reuses the radar's moderate and fast velocities and is labelled "pace
+continuation, not a prediction". Observed and projected parts have separate attribution. Reads
+never call arXiv or a model. Gemini becomes the matcher after its equivalence test passes, with
+one method per series; see
+`data_refresh/FEATURE.md`, and `src/pipelines/trends/README.md` for the backfill and seed.

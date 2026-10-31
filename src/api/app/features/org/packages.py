@@ -27,9 +27,10 @@ def options(
     org_id = funding.manager_scope(user)
     team = service.member_learners(org_id)
     ids = sorted(set(member_ids if member_ids is not None else team))
-    if not ids or len(ids) > 50 or any(uid not in team for uid in ids):
+    if len(ids) > 50 or any(uid not in team for uid in ids):
         raise AppError("Select 1–50 current members with completed skill profiles.")
     team = {uid: team[uid] for uid in ids}
+    service.require_cohort(len(team))
     role = service.target_role(org_id, role_id, members=team)
     year = funding.current_year()
     budgets = {b.user_id: float(b.available_myr) for b in funding.ledger(user, year).budgets}

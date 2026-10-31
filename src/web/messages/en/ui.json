@@ -49,7 +49,8 @@
     "funding_conflict": "The funding request could not be completed. Check its current status with your manager.",
     "disallowed_content": "Remove unsupported content from your input before continuing.",
     "unknown_course": "Choose a course from the current plan or catalogue.",
-    "invalid_role_proposal": "Choose a catalogue role"
+    "invalid_role_proposal": "Choose a catalogue role",
+    "insufficient_cohort": "Too few sharing members with completed profiles. Select a larger consenting cohort, or wait for more members to finish their profiles."
   },
   "nav": {
     "home": "Home",
@@ -446,7 +447,8 @@
       "fuzzy": "Similar spelling",
       "semantic": "Similar meaning"
     },
-    "saving": "Saving…"
+    "saving": "Saving…",
+    "uploadTypeError": "Use a PDF, Word (.docx) or text file under 5 MB."
   },
   "home": {
     "hello": "Hi {name}",
@@ -554,6 +556,8 @@
     "signIn": "Sign in again",
     "profile": "Complete your profile",
     "network": "We can’t reach Adept right now.",
+    "cohort": "Too few members",
+    "members": "Review members",
     "home": "Back home",
     "unexpected": "We could not load this page. Try again or return home.",
     "notFoundTitle": "Page not found",
@@ -627,6 +631,9 @@
     "exposed": "Highest automation exposure score",
     "exposedHint": "A relative score from 0 to 1 that reviewers assigned using published research (Frey & Osborne, ILO, McKinsey, O*NET task types). It ranks skills against each other; it is not a measured share of tasks.",
     "allSkills": "All tracked skills",
+    "previousPage": "Previous",
+    "nextPage": "Next",
+    "pageOf": "Page {page} of {pages}",
     "noMatch": "No skills match these filters.",
     "rankingOptions": "Ranking options",
     "bestFit": "Best fit",

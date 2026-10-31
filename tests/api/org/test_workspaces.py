@@ -6,6 +6,8 @@ import pytest
 from fastapi.testclient import TestClient
 from harness.workspaces import BANK, work_headers
 
+pytestmark = pytest.mark.usefixtures("planning_cohort")
+
 HR = {"X-Demo-User": "demo-company", "X-Workspace": BANK}
 PERSONAL = {"X-Demo-User": "aisyah", "X-Workspace": "personal"}
 WORK = work_headers()

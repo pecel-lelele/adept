@@ -12,7 +12,8 @@ import json
 import threading
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
-from datetime import date
+from dataclasses import replace
+from datetime import date, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -26,6 +27,7 @@ from app.core.config import get_settings
 from app.core.seed import SEED_DIR
 from app.features.data_refresh import repository, service
 from app.features.pathway import catalogue_sources as src
+from pipelines.jobs import boards as jobs_boards
 from pipelines.jobs import run as jobs_run
 from pipelines.jobs.sources import RawPosting
 from pipelines.trends import malaysia_context as dosm
@@ -440,8 +442,10 @@ def _jobs_world(
     seen: dict[str, Any] = {}
 
     def fetch(only: Any, *, selected: Any, fetcher: Any, deadline: float) -> Any:
-        seen["boards"] = [b.board for b in selected]
+        seen.setdefault("boards", []).extend(b.board for b in selected)
         seen["deadline"] = deadline
+        if not any(b.board == "remotive" for b in selected):
+            return [], []
         log = [{"source": "remotive", "board": "remotive", "employer": "", "status": "ok",
                 "kept": len(postings)}]  # fmt: skip
         log.append(
@@ -469,10 +473,208 @@ def test_only_configured_keyed_boards_run(monkeypatch: pytest.MonkeyPatch) -> No
     monkeypatch.delenv("WEB3_CAREER_TOKEN", raising=False)
     chosen, skipped = service.selected_boards()
     names = [b.board for b in chosen]
-    assert "careerjet-my" in names and "himalayas" not in names
-    assert {b.source for b in chosen} <= {"greenhouse", "lever", "ashby", "careerjet"}
+    assert "careerjet-my" in names and "himalayas" in names
+    assert {b.source for b in chosen} <= {
+        "greenhouse", "lever", "ashby", "careerjet", "himalayas", "jobicy", "remoteok", "remotive"
+    }  # fmt: skip
     assert "jooble-my" not in names and "web3career" not in names
-    assert {"jooble-my", "web3career", "himalayas"} <= set(skipped)
+    assert {"jooble-my", "web3career"} <= set(skipped)
+    # Undocumented career-site endpoints stay out of the automatic refresh.
+    assert any(b.source == "workday" and b.board in skipped for b in jobs_boards.ALL)
+
+
+@pytest.mark.parametrize("offset", [0, 1])
+def test_employer_rotation_stays_ahead_of_remote_boards(
+    monkeypatch: pytest.MonkeyPatch, offset: int
+) -> None:
+    employers = list(jobs_boards.EMPLOYERS[:2])
+    monkeypatch.setattr(jobs_boards, "ALL", (*jobs_boards.REMOTE, *employers))
+    monkeypatch.setattr(service.secrets, "randbelow", lambda size: offset)
+    monkeypatch.setattr(service, "_today", lambda: STORED_ON)
+
+    chosen, _ = service.selected_boards()
+
+    assert chosen[:2] == employers[offset:] + employers[:offset]
+    assert set(chosen[2:]) == set(jobs_boards.REMOTE)
+
+
+def test_every_remote_board_gets_first_priority_within_four_days(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(jobs_boards, "ALL", jobs_boards.REMOTE)
+    first = []
+    for offset in range(len(jobs_boards.REMOTE)):
+        today = STORED_ON + timedelta(days=offset)
+        monkeypatch.setattr(service, "_today", lambda today=today: today)
+        chosen, _ = service.selected_boards()
+        first.append(chosen[0])
+    assert set(first) == set(jobs_boards.REMOTE)
+
+
+@pytest.mark.parametrize("board", [jobs_boards.EMPLOYERS[0], jobs_boards.REMOTE[0]])
+def test_a_single_feed_group_keeps_the_full_fetch_window(
+    monkeypatch: pytest.MonkeyPatch, board: jobs_boards.Board
+) -> None:
+    monkeypatch.setattr(jobs_boards, "ALL", (board,))
+    monkeypatch.setattr(service.time, "monotonic", lambda: 1000.0)
+    monkeypatch.setattr(
+        service, "guarded_client", _mock_client(lambda request: httpx.Response(404))
+    )
+    deadlines = []
+
+    def fetch(only: Any, *, selected: Any, fetcher: Any, deadline: float) -> Any:
+        assert selected == [board]
+        deadlines.append((deadline, fetcher.deadline))
+        return [], []
+
+    monkeypatch.setattr(jobs_run, "fetch", fetch)
+    with pytest.raises(service.RefreshFailed, match="No job board answered"):
+        service._run_jobs(started=1000.0, budget=90)
+    assert deadlines == [(1058.5, 1058.5)]
+
+
+def test_slow_himalayas_cannot_prevent_employer_publication(
+    store: FakeStore, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    employer = jobs_boards.Board("greenhouse", "synthetic-employer", "Synthetic Employer")
+    monkeypatch.setattr(jobs_boards, "ALL", (*jobs_boards.REMOTE, employer))
+    # Start on the day Himalayas leads the daily remote rotation.
+    today = date.fromordinal(STORED_ON.toordinal() // 4 * 4)
+    monkeypatch.setattr(service, "_today", lambda: today)
+    now = 1000.0
+    monkeypatch.setattr(service.time, "monotonic", lambda: now)
+    queries: list[str] = []
+    fetch_log: list[dict[str, Any]] = []
+
+    def answer(request: httpx.Request) -> httpx.Response:
+        nonlocal now
+        if request.url.path == "/robots.txt":
+            return httpx.Response(404)
+        if request.url.host == "himalayas.app":
+            queries.append(request.url.params["q"])
+            now += 5  # Each remote query consumes five seconds of the shared fetch window.
+            return httpx.Response(200, json={"jobs": []})
+        assert request.url.host == "boards-api.greenhouse.io"
+        return httpx.Response(200, json={"jobs": [{
+            "id": 1, "title": "Data Analyst", "location": {"name": "Kuala Lumpur, Malaysia"},
+            "absolute_url": "https://example.test/jobs/1", "content": "Python and SQL",
+        }]})  # fmt: skip
+
+    def to_db(
+        rows: list[dict[str, Any]], certs: Any, log: Any, today: date, url: str, conn: Any = None
+    ) -> int:
+        store.writes += 1
+        store.jobs = rows
+        fetch_log.extend(log)
+        return len(rows)
+
+    monkeypatch.setattr(service, "guarded_client", _mock_client(answer))
+    monkeypatch.setattr(jobs_run, "to_db", to_db)
+
+    result = service._run_jobs(started=now, budget=90)
+
+    assert result.rows_upserted == 1 and store.writes == 1
+    assert store.jobs[0]["id"] == "greenhouse:synthetic-employer:1"
+    assert 0 < len(queries) < len(jobs_boards.REMOTE_QUERIES)
+    assert [(entry["board"], entry["status"]) for entry in fetch_log] == [
+        ("synthetic-employer", "ok"),
+        ("himalayas", "partial"),
+        ("jobicy", "skipped"),
+        ("remoteok", "skipped"),
+        ("remotive", "skipped"),
+    ]
+
+
+@pytest.mark.parametrize("day_offset", range(4))
+def test_slow_employers_leave_remote_time_and_refresh_aging_openings(
+    store: FakeStore, monkeypatch: pytest.MonkeyPatch, day_offset: int
+) -> None:
+    employers = tuple(
+        jobs_boards.Board("greenhouse", f"synthetic-{n}", "Synthetic Employer") for n in range(13)
+    )
+    monkeypatch.setattr(jobs_boards, "ALL", (*employers, *jobs_boards.REMOTE))
+    today = STORED_ON + timedelta(days=day_offset)
+    monkeypatch.setattr(service, "_today", lambda: today)
+    now = 1000.0
+    monkeypatch.setattr(service.time, "monotonic", lambda: now)
+    first_remote = service.selected_boards()[0][-len(jobs_boards.REMOTE)]
+    old = {
+        "id": f"{first_remote.source}:{first_remote.board}:1",
+        "source": first_remote.source, "board": first_remote.board, "active": "true",
+        "last_seen": (today - timedelta(days=15)).isoformat(), "expires_at": "",
+    }  # fmt: skip
+    fetch_log: list[dict[str, Any]] = []
+
+    def answer(request: httpx.Request) -> httpx.Response:
+        nonlocal now
+        if request.url.path == "/robots.txt":
+            return httpx.Response(404)
+        now += 5
+        posting = {"id": 1, "title": "Data Analyst", "url": "https://example.test/jobs/1"}
+        match request.url.host:
+            case "boards-api.greenhouse.io":
+                payload: Any = {"jobs": [posting | {
+                    "location": {"name": "Kuala Lumpur, Malaysia"},
+                    "absolute_url": posting["url"], "content": "Python and SQL",
+                }]}  # fmt: skip
+            case "himalayas.app":
+                payload = {"jobs": [posting | {"guid": "1", "applicationLink": posting["url"]}]}
+            case "jobicy.com":
+                payload = {"jobs": [posting | {"jobTitle": "Data Analyst", "jobGeo": "APAC"}]}
+            case "remoteok.com":
+                payload = [posting | {"position": "Data Analyst", "location": "Worldwide"}]
+            case "remotive.com":
+                payload = {"jobs": [posting | {"candidate_required_location": "Worldwide"}]}
+            case _:
+                pytest.fail(f"Unexpected feed: {request.url.host}")
+        return httpx.Response(200, json=payload)
+
+    def to_db(
+        rows: list[dict[str, Any]], certs: Any, log: Any, today: date, url: str, conn: Any = None
+    ) -> int:
+        store.writes += 1
+        store.jobs = jobs_run.merge_postings([old], rows, log, today)
+        fetch_log.extend(log)
+        return len(store.jobs)
+
+    monkeypatch.setattr(service, "guarded_client", _mock_client(answer))
+    monkeypatch.setattr(jobs_run, "to_db", to_db)
+
+    result = service._run_jobs(started=now, budget=90)
+
+    assert result.rows_upserted > 1 and store.writes == 1
+    assert any(r["source"] == "greenhouse" for r in store.jobs)
+    refreshed = next(r for r in store.jobs if r["id"] == old["id"])
+    assert refreshed["last_seen"] == today.isoformat() and refreshed["active"] == "true"
+    assert any(e["source"] == "greenhouse" and e["status"] == "ok" for e in fetch_log)
+    assert next(e for e in fetch_log if e["board"] == first_remote.board)["status"] in (
+        "ok",
+        "partial",
+    )
+
+
+def test_jobs_refresh_keeps_remote_open_postings_and_drops_other_places(
+    client: TestClient, store: FakeStore, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def posting(n: int, location: str, work_mode: str, scope: str) -> RawPosting:
+        return replace(_posting(n), location=location, work_mode=work_mode, remote_scope=scope)
+
+    _jobs_world(
+        monkeypatch,
+        store,
+        [
+            posting(1, "Kuala Lumpur, Malaysia", "onsite", ""),
+            posting(2, "Remote", "remote", "APAC"),
+            posting(3, "Remote", "remote", "Worldwide"),
+            posting(4, "LATAM - Remote", "remote", "Malaysia"),
+            posting(5, "Singapore", "onsite", ""),
+        ],
+    )
+    body = client.post("/api/v1/data/refresh/jobs", headers=AS_ADMIN).json()
+    assert body["status"] == "ok", body
+    assert {r["title"] for r in store.jobs} == {
+        "Data Analyst 1", "Data Analyst 2", "Data Analyst 3"
+    }  # fmt: skip
 
 
 def test_jobs_refresh_upserts_and_reports_boards(

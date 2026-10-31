@@ -49,6 +49,33 @@ def test_csv_read_excludes_stale_openings_even_when_refresh_stops(
     assert labelled == {"0": False, str(stale_days): False, str(stale_days + 1): True}
 
 
+def test_only_the_new_read_adds_remote_openings(monkeypatch: pytest.MonkeyPatch) -> None:
+    base = {
+        "source": "himalayas",
+        "board": "himalayas",
+        "source_name": "Himalayas",
+        "employer": "Fictional employer",
+        "title": "Data Analyst",
+        "url": "https://example.test/job",
+        "api_url": "https://example.test/feed",
+        "first_seen": TODAY.isoformat(),
+        "last_seen": TODAY.isoformat(),
+        "active": "true",
+    }
+    remote = {"location": "Remote", "work_mode": "remote"}
+    rows = [
+        dict(base, id="kl", location="Kuala Lumpur"),
+        dict(base, id="apac", remote_scope="APAC", **remote),
+        dict(base, id="world", remote_scope="Worldwide", **remote),
+        dict(base, id="unscoped", remote_scope="", **remote),
+        dict(base, id="latam", remote_scope="Malaysia", **{**remote, "location": "LATAM - Remote"}),
+        dict(base, id="singapore", location="Singapore"),
+    ]
+    monkeypatch.setattr(repository.refdata, "rows", lambda *args, **kwargs: rows)
+    assert {p.id for p in repository.openings()} == {"kl"}
+    assert {p.id for p in repository.malaysia_relevant_openings()} == {"kl", "apac", "world"}
+
+
 def _posting(pid: str, role: str, skills: tuple[str, ...], **kw: object) -> Posting:
     base: dict[str, object] = {
         "id": pid,
@@ -106,15 +133,50 @@ CERT = CertRow(
     skill_ids=("data-visualisation", "excel", "statistics"),
 )
 UNRELATED = CertRow(**{**CERT.__dict__, "id": "x", "skill_ids": ("patient-care",)})
+REMOTE_OPEN = _posting(
+    "5",
+    "data-analyst",
+    ("sql",),
+    source="himalayas",
+    source_name="Himalayas",
+    employer="Gamma",
+    location="Remote",
+    work_mode="remote",
+    remote_scope="APAC",
+)
+REMOTE_WORLD = _posting(
+    "6",
+    "data-analyst",
+    ("sql",),
+    source="remoteok",
+    source_name="Remote OK",
+    employer="Delta",
+    location="Remote",
+    work_mode="remote",
+    remote_scope="Worldwide",
+)
+
+
+def _serve(
+    monkeypatch: pytest.MonkeyPatch, located: list[Posting], relevant: list[Posting] | None = None
+) -> None:
+    """`located` for repository.openings; `relevant` (default the same) for the Malaysia read."""
+    for name, postings in (
+        ("openings", located),
+        ("malaysia_relevant_openings", located if relevant is None else relevant),
+    ):
+        monkeypatch.setattr(
+            repository,
+            name,
+            lambda include_stale=False, postings=postings: [
+                p for p in postings if include_stale or not p.stale
+            ],
+        )
 
 
 @pytest.fixture
 def feed(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(
-        repository,
-        "openings",
-        lambda include_stale=False: [p for p in POSTINGS if include_stale or not p.stale],
-    )
+    _serve(monkeypatch, POSTINGS)
     monkeypatch.setattr(repository, "certifications", lambda: [CERT, UNRELATED])
 
 
@@ -184,12 +246,7 @@ def test_stale_openings_are_listed_last_with_a_label_but_never_counted(
 ) -> None:
     old = TODAY - timedelta(days=20)
     stale = _posting("9", "data-analyst", ("sql",), employer="Gamma", last_seen=old, stale=True)
-    postings = [*POSTINGS, stale]
-    monkeypatch.setattr(
-        repository,
-        "openings",
-        lambda include_stale=False: [p for p in postings if include_stale or not p.stale],
-    )
+    _serve(monkeypatch, [*POSTINGS, stale])
     board = JobBoardPage.model_validate(client.get("/api/v1/jobs/board").json())
     assert board.openings[-1].id == "9" and board.openings[-1].is_stale
     assert board.openings[-1].last_seen == old
@@ -198,6 +255,61 @@ def test_stale_openings_are_listed_last_with_a_label_but_never_counted(
     assert analyst.open_count == 3  # the possibly closed ad is not counted as open
     role = RoleOpenings.model_validate(client.get("/api/v1/jobs/roles/data-analyst").json())
     assert role.open_count == 3 and role.openings[-1].is_stale
+    summary = OpeningsSummary.model_validate(client.get("/api/v1/jobs/summary").json())
+    assert summary.total_open == 4
+
+
+def test_role_openings_add_remote_only_when_asked(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _serve(monkeypatch, POSTINGS, [*POSTINGS, REMOTE_OPEN, REMOTE_WORLD])
+    url = "/api/v1/jobs/roles/data-analyst"
+
+    default = RoleOpenings.model_validate(client.get(url).json())
+    assert default.open_count == 3
+    assert {o.malaysia_relevance for o in default.openings} == {"in_malaysia"}
+
+    focused = RoleOpenings.model_validate(
+        client.get(url, params={"malaysia_focus": "true", "limit": 10}).json()
+    )
+    assert focused.open_count == 5
+    assert focused.places.model_dump() == {
+        "in_malaysia": 3,
+        "remote_explicit_my": 1,
+        "remote_assumed_worldwide": 1,
+    }
+    states = {o.employer: o.malaysia_relevance for o in focused.openings}
+    assert states["Gamma"] == "remote_explicit_my" and states["Delta"] == "remote_assumed_worldwide"
+    # Attribution covers the remote boards too, and these stay labelled estimates.
+    assert {"Himalayas", "Remote OK"} <= {s.name for s in focused.meta.sources}
+    assert focused.meta.is_estimate
+
+
+def test_role_without_malaysia_relevant_openings_is_empty_not_padded(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(repository, "fetch_log", lambda: {"fetched_on": TODAY.isoformat()})
+    _serve(monkeypatch, [], [])
+    resp = client.get("/api/v1/jobs/roles/data-analyst", params={"malaysia_focus": "true"})
+    assert resp.status_code == 200, resp.text
+    body = RoleOpenings.model_validate(resp.json())
+    assert body.open_count == 0 and body.openings == []
+    assert body.meta.sources
+
+
+def test_board_splits_counts_and_summary_stays_on_own_location(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _serve(monkeypatch, POSTINGS, [*POSTINGS, REMOTE_OPEN, REMOTE_WORLD])
+    board = JobBoardPage.model_validate(client.get("/api/v1/jobs/board").json())
+    assert board.total == 6
+    assert board.places.model_dump() == {
+        "in_malaysia": 4,
+        "remote_explicit_my": 1,
+        "remote_assumed_worldwide": 1,
+    }
+    analyst = next(r for r in board.roles if r.role_id == "data-analyst")
+    assert analyst.open_count == 5 and analyst.places.in_malaysia == 3
     summary = OpeningsSummary.model_validate(client.get("/api/v1/jobs/summary").json())
     assert summary.total_open == 4
 

@@ -96,16 +96,17 @@ export function AuthView() {
             </div>
           </div>
           <div className="a-auth-body" key={page}>
-          {/* Show title only on Sign in — signup form is compact enough without it.
-              A visually-hidden heading is kept on signup so aria-labelledby="auth-title"
-              always resolves to an accessible name for screen readers. */}
+          {/* Show full title+subtitle on Sign in; signup shows the heading only (no subtitle —
+              the CSS hides .a-auth-head p on the signup card). */}
           {page === "login" ? (
             <div className="a-auth-head">
               <h1 id="auth-title">{t("welcomeBack")}</h1>
               <p>{t(team ? "signInTeamSub" : "signInSub")}</p>
             </div>
           ) : (
-            <h1 id="auth-title" className="sr-only">{t("createTitle")}</h1>
+            <div className="a-auth-head">
+              <h1 id="auth-title">{t("createTitle")}</h1>
+            </div>
           )}
           <form action={action} className="a-auth-form">
             <input type="hidden" name="next" value={next} />

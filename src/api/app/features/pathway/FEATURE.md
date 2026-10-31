@@ -31,6 +31,10 @@ with intake skills for matching, individual plans/re-planning and team gaps/plan
 Undo and rejected evidence still revoke the corresponding credit. Migration `20261022220000`
 backfills existing records from the surviving saved plan, or otherwise the current catalogue.
 
+Only `org_confirmed` completions earn skill credit. A reachable certificate URL is `submitted`,
+pending review of both learner and course; old `provider_verified` links also remain unearned.
+Direct pathway previews require a saved profile, using the same `learner_for` gate as matching.
+
 ## Integration points (M1, M2, M4)
 
 Completed course facts and evidence are read independently of the remaining plan.
@@ -113,7 +117,7 @@ formats within budget (classroom → taught formats, video/reading → self-pace
 proposes `schedule_changed` / `cost_changed` re-plans when these settings change.
 Measure with `.claude/toolbox/onboarding_effects.py` (production code, seed data).
 
-## Target choice and learning estimate (TEAM-049)
+## Target choice and learning estimate (TEAM-052)
 
 Personal Plan and Progress remain locked until an explicit saved role choice. Role cards and
 details save the existing `SavedPlan.role_id` and open Plan; no separate target column is

@@ -22,13 +22,12 @@ from app.contracts.guardrails import (
     SourcesResponse,
 )
 from app.core import embeddings, seed
-from app.core.fairness import PROTECTED_TERMS, counterfactual_diffs, protected_terms_in
+from app.core.fairness import PROTECTED_TERMS, protected_terms_in
 from app.core.llm import CALL_LOG, disclosure
 from app.features.guardrails import datasync
 from app.features.pathway import data as pathway_data
-from app.features.pathway import engine, trend_port
-from app.features.pathway import service as pathway_service
 from app.features.pathway import sync as pathway_sync
+from app.features.pathway import trend_port
 from app.features.sdg import repository as sdg_repository
 from app.features.sdg import sync as sdg_sync_module
 
@@ -74,6 +73,14 @@ def get_disclosure() -> Disclosure:
             "phrases or an explicitly submitted skill-bank search. Only short phrases are sent, "
             "after contact details "
             "are removed; suggestions are added only if you choose them."
+        )
+    from app.features.data_refresh import trend_store
+
+    if trend_store.series_method() == trend_store.GEMINI_METHOD:
+        purpose.append(
+            "Google gemini-embedding-001 (384 dimensions) matches public arXiv papers to catalogue "
+            "skills for trend signals, in background jobs only, with one stored threshold per "
+            "model chosen to match the mentions per paper measured with MiniLM."
         )
     return Disclosure(
         llm_enabled=enabled,
@@ -213,25 +220,26 @@ def _api_inputs(app: FastAPI) -> set[str]:
     return names
 
 
-def get_fairness(app: FastAPI) -> FairnessReport:
+def get_fairness(app: FastAPI, *, rank_evidence: tuple[int, int] | None = None) -> FairnessReport:
+    from app.features.impact import service as impact_service
+    from app.features.matching.trend_port import fetch_snapshot
+
     inputs = _api_inputs(app)
     found = protected_terms_in(inputs)
-    base = engine.Learner({"excel": 4, "process-mapping": 2}, 6.0, 500.0, True)
-
-    def key(learner: engine.Learner) -> object:
-        plan = pathway_service.build_pathway(learner, "process-automation-analyst", "fast")
-        return [(s.skill_id, [c.id for c in s.courses]) for s in plan.steps]
-
-    copy = engine.Learner(dict(base.skill_levels), 6.0, 500.0, True)
-    same = counterfactual_diffs(key, base, {"identity-swapped copy": copy})
+    worst, variants = (
+        rank_evidence
+        if rank_evidence is not None
+        else impact_service.identity_rank_evidence(
+            impact_service.load_personas(), fetch_snapshot("moderate")
+        )
+    )
     checks = [
         CounterfactualResult(
-            name="Same skills, time and budget under a different identity",
-            passed=not same,
-            detail="The pathway engine receives no identity fields, so plans cannot differ "
-            "by who the learner is."
-            if not same
-            else f"Differs: {same}",
+            name="Same skills under swapped synthetic names and career segments",
+            passed=variants > 0 and worst == 0,
+            detail=f"{variants} identity variants through profile-to-matching and the production "
+            f"ranker; largest rank change: {worst}. Limited regression evidence, "
+            "not proof of population fairness.",
         ),
         CounterfactualResult(
             name="Protected attributes absent from every API input",

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { loadComponent, React, renderToStaticMarkup, translations } from "./harness/web-components.ts";
+import { loadComponent, React, renderToStaticMarkup, resolveTree, translations } from "./harness/web-components.ts";
 
 test("radar groups public role signals and keeps dated exploration explicit", () => {
   for (const locale of ["en", "ms", "zh"]) {
@@ -38,8 +38,8 @@ test("organisation radar renders role directions without loading personal intake
     "./radar.css": {},
     "./MalaysiaContextCard": { MalaysiaContextCard: () => null },
     "@/components/DataAsOf": { DataAsOf: () => null },
+    "@/components/SnapshotPicker": { SnapshotPicker: () => null },
     "@/lib/auth/account": { getAccount: async () => null },
-    "./RefreshDataButton": { RefreshDataButton: () => null },
     "next-intl": intl,
     "next-intl/server": { getTranslations: async (namespace) => intl.useTranslations(namespace) },
     "next/link": { default: ({ children, ...props }) => React.createElement("a", props, children) },
@@ -52,9 +52,10 @@ test("organisation radar renders role directions without loading personal intake
     "@/features/pathway/api": { fetchCompare: () => { throw new Error("No personal learning plan"); } },
     "./SignalExplorer": { SignalExplorer: () => null },
     "./TrendRangeCard": { TrendRangeCard: () => null },
+    "../range": loadComponent("src/features/trends/range.ts"),
     "../api": {
       fetchRadar: async () => ({ ok: true, data: { items: [], meta } }),
-      fetchSeries: async () => ({ ok: true, data: { lines: [] } }),
+      fetchCompare: async () => ({ ok: true, data: { lines: [] } }),
       fetchRoleDirections: async (...args) => {
         calls.push(args);
         return { ok: true, data: { meta, items: [
@@ -96,4 +97,58 @@ test("long role lists start at 5 and low coverage stays outside directional clai
   assert.match(directional, /trend data for 75%/);
   assert.doesNotMatch(directional, /Synthetic thin evidence/);
   assert.match(html.slice(html.indexOf('data-direction="insufficient"')), /Synthetic thin evidence/);
+});
+
+test("published snapshot selection updates radar counts, roles and evidence while chart dates stay separate", async () => {
+  const intl = translations("en");
+  const reads: { radar: string[]; roles: string[]; chart: string[] } = { radar: [], roles: [], chart: [] };
+  const dates = ["2026-10-13", "2026-10-20"];
+  const { RadarView } = loadComponent("src/features/trends/components/RadarView.tsx", {
+    "./radar.css": {}, "./MalaysiaContextCard": { MalaysiaContextCard: () => null },
+    "next-intl/server": { getTranslations: async (namespace: string) => intl.useTranslations(namespace) },
+    "@/components": {
+      PageHeader: ({ title, actions, children }) => React.createElement("header", {}, title, actions, children),
+      MetaBar: ({ meta }) => React.createElement("p", { "data-snapshot": meta.snapshot_date }, meta.snapshot_date),
+      Kpis: ({ items }) => React.createElement("p", { "data-counts": true }, items.map((item) => `${item.label}: ${item.value}`).join(" / ")),
+      EstimateLabel: () => null,
+      TrendPill: () => null,
+    },
+    "@/components/SnapshotPicker": { SnapshotPicker: ({ value }) => React.createElement("select", { "data-selection": value }) },
+    "@/components/ErrorState": { ErrorState: () => null },
+    "@/components/viz": { TrendBars: () => null },
+    "@/config/navigation": { journeyStepCount: () => 6 },
+    "@/features/profile/api": { fetchMyProfile: () => { throw new Error("organisation has no personal data"); } },
+    "./SignalExplorer": { SignalExplorer: ({ items }) => React.createElement("p", {}, items[0]?.skill_label) },
+    "./RoleDirectionsCard": { RoleDirectionsCard: ({ meta }) => React.createElement("p", { "data-role-date": true }, meta.snapshot_date) },
+    "./TrendRangeCard": { TrendRangeCard: () => null },
+    "../range": loadComponent("src/features/trends/range.ts"),
+    "../api": {
+      fetchRadar: async (_scenario: string, selected: string) => {
+        reads.radar.push(selected);
+        const date = selected || dates[1];
+        const direction = date === dates[0] ? "rising" : "declining";
+        return { ok: true, data: { items: [{ skill_id: "synthetic-skill", skill_label: `Synthetic ${direction} skill`,
+          velocity_moderate: direction === "rising" ? 0.2 : -0.2, velocity_fast: 0.3,
+          direction_moderate: direction, direction_fast: direction, automation_exposure: 0.3 }],
+          meta: { snapshot_date: date, available_snapshots: dates, scenario: "moderate", sources: [] } } };
+      },
+      fetchRoleDirections: async (_scenario: string, date: string) => {
+        reads.roles.push(date);
+        return { ok: true, data: { items: [], meta: { snapshot_date: date } } };
+      },
+      fetchCompare: async ({ end }: { end: string }) => {
+        reads.chart.push(end);
+        return { ok: false, status: 503, code: "storage_unavailable" };
+      },
+    },
+  });
+  const range = { view: "skills", entities: [], from: "2026-10-01", to: "2026-10-10", mode: "raw", horizon: 90 };
+  const early = renderToStaticMarkup(await resolveTree(await RadarView({ scenario: "moderate", context: "organisation", snapshotDate: dates[0], range })));
+  const late = renderToStaticMarkup(await resolveTree(await RadarView({ scenario: "moderate", context: "organisation", snapshotDate: dates[1], range })));
+  assert.match(early, /Rising: 1/);
+  assert.match(late, /Declining: 1/);
+  assert.match(early, /data-role-date="true">2026-10-13/);
+  assert.match(late, /data-role-date="true">2026-10-20/);
+  assert.match(early, /data-selection="2026-10-13"/);
+  assert.deepEqual(reads, { radar: dates, roles: dates, chart: ["2026-10-10", "2026-10-10"] });
 });

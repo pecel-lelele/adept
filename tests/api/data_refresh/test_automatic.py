@@ -419,7 +419,7 @@ def test_heartbeat_waits_until_a_failed_transaction_has_rolled_back(
         heartbeat.join(timeout=2)
 
 
-def test_failed_trends_backoff_spares_the_paid_step_for_non_admin_checks(
+def test_manual_trigger_is_admin_only_and_can_force_the_paid_step(
     client: TestClient, state: dict[str, Any], monkeypatch: pytest.MonkeyPatch
 ) -> None:
     from harness import fixtures
@@ -431,37 +431,36 @@ def test_failed_trends_backoff_spares_the_paid_step_for_non_admin_checks(
     )
     accounts.create(admin, "")
     monkeypatch.setattr(get_settings(), "admin_user_ids", admin.id)
-    backoff_end = NOW + timedelta(minutes=50)
-    monkeypatch.setattr(jobs, "failed_trends_retry_at", lambda conn: backoff_end)
     monkeypatch.setattr(jobs, "due_sources", lambda moment: ["trends"])
     try:
-        # A signed-in non-admin cannot re-run the failed paid MiniLM step during backoff.
+        # A signed-in learner can no longer start a run at all (M1-026).
         user = client.post("/api/v1/data/refresh/check", json={}, headers={"X-Demo-User": "aisyah"})
-        assert user.status_code == 200
-        assert user.json()["status"] == "cooldown"
-        assert user.json()["retry_at"].startswith(backoff_end.isoformat()[:16])
-        assert state["launches"] == 0
-        # Other due sources still refresh; only the trends step is skipped.
-        monkeypatch.setattr(jobs, "due_sources", lambda moment: ["trends", "jobs"])
-        mixed = client.post(
-            "/api/v1/data/refresh/check", json={}, headers={"X-Demo-User": "aisyah"}
-        ).json()
-        assert mixed["status"] == "queued" and state["launches"] == 1
-        trends = next(step for step in mixed["steps"] if step["source"] == "trends")
-        assert trends["status"] == "skipped"
-        # An administrator can still force the paid step.
-        state["row"]["status"] = "ok"
-        state["held"] = None  # the mixed run finished and released its lock
-        monkeypatch.setattr(jobs, "due_sources", lambda moment: ["trends"])
+        assert user.status_code == 403 and state["launches"] == 0
         forced = client.post(
             "/api/v1/data/refresh/check",
             json={"bypass_cooldown": True},
             headers={"X-Demo-User": admin.id},
         ).json()
-        assert forced["status"] == "queued" and state["launches"] == 2
+        assert forced["status"] == "queued" and state["launches"] == 1
         assert next(s for s in forced["steps"] if s["source"] == "trends")["status"] == "pending"
     finally:
         fixtures.install()
+
+
+def test_failed_trends_backoff_spares_the_paid_step_when_asked(
+    state: dict[str, Any], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    backoff_end = NOW + timedelta(minutes=50)
+    monkeypatch.setattr(jobs, "failed_trends_retry_at", lambda conn: backoff_end)
+    monkeypatch.setattr(jobs, "due_sources", lambda moment: ["trends"])
+    held = jobs.start(trends_backoff=True)
+    assert held.status == "cooldown" and held.retry_at == backoff_end
+    assert state["launches"] == 0
+    # Other due sources still refresh; only the trends step is skipped.
+    monkeypatch.setattr(jobs, "due_sources", lambda moment: ["trends", "jobs"])
+    mixed = jobs.start(trends_backoff=True)
+    assert mixed.status == "queued" and state["launches"] == 1
+    assert next(s for s in mixed.steps if s.source == "trends").status == "skipped"
 
 
 def test_failed_trends_retry_at_reads_only_the_latest_attempted_trends_step(

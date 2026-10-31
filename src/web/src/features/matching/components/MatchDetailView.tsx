@@ -145,7 +145,7 @@ export async function MatchDetailView({
         </aside>
       </div>
 
-      <RoleOpeningsCard roleId={m.role_id} scenario={scenario} limit={5} />
+      <RoleOpeningsCard roleId={m.role_id} scenario={scenario} limit={5} malaysiaFocus />
 
       <section className="a-card" aria-labelledby="h-outlook">
         <div className="a-card-head">

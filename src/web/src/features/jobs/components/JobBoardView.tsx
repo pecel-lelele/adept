@@ -8,7 +8,7 @@ import { DataAsOf } from "@/components/DataAsOf";
 import type { ScenarioId } from "@/lib/api";
 
 import { fetchJobBoard } from "../api";
-import { OpeningItem } from "./OpeningItem";
+import { OpeningItem, placeCounts } from "./OpeningItem";
 
 type Mode = "onsite" | "hybrid" | "remote";
 
@@ -38,13 +38,9 @@ export async function JobBoardView({
     if (workMode) s.set("mode", workMode);
     return `/app/jobs?${s.toString()}`;
   };
-  const total = d.roles.reduce((n, r) => n + r.open_count, 0);
   return (
     <div className="a-view">
-      <PageHeader
-        title={t("board.title")}
-        description={t("board.description", { count: total, roles: d.roles.length, date: d.fetched_on ?? d.meta.snapshot_date })}
-      >
+      <PageHeader title={t("board.title")} description={await placeCounts(d.places)}>
         <MetaBar meta={d.meta} />
       </PageHeader>
       <DataAsOf source="jobs" />
@@ -55,11 +51,14 @@ export async function JobBoardView({
           {t("board.role")}
           <select className="a-select" name="role" defaultValue={roleId ?? ""}>
             <option value="">{t("board.allRoles")}</option>
-            {d.roles.map((r) => (
-              <option key={r.role_id} value={r.role_id}>
-                {r.role_label} ({r.open_count})
-              </option>
-            ))}
+            {d.roles.map((r) => {
+              const remote = r.places.remote_explicit_my + r.places.remote_assumed_worldwide;
+              return (
+                <option key={r.role_id} value={r.role_id}>
+                  {r.role_label} ({remote ? t("board.roleSplit", { inMalaysia: r.places.in_malaysia, remote }) : r.places.in_malaysia})
+                </option>
+              );
+            })}
           </select>
         </label>
         <label className="a-field">
@@ -87,7 +86,7 @@ export async function JobBoardView({
         {d.openings.length ? (
           <ul className="a-jobs">
             {d.openings.map((o) => (
-              <OpeningItem key={o.id} o={o} showFit={Boolean(roleId)} />
+              <OpeningItem key={o.id} o={o} showFit={Boolean(roleId)} malaysiaFocus />
             ))}
           </ul>
         ) : (

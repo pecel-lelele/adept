@@ -75,6 +75,8 @@ next-env.d.ts
 CLAUDE.local.md
 .gemini/settings.json
 .claude/
+# Local agent recollections do not belong in the repository.
+/.agents/memory/
 submission/demo-video/
 # Local pitch planning documents and rendered presentation decks.
 /submission/pitch/

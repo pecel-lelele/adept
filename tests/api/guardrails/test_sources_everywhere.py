@@ -23,6 +23,8 @@ from app.features.trends import repository as trends_repository
 from app.main import app
 
 PATH_VALUES = {"role_id": "data-analyst", "skill_id": "python", "state": "Kuala Lumpur"}
+pytestmark = pytest.mark.usefixtures("planning_cohort")
+
 QUERY_VALUES = {
     "role_id": "data-analyst",
     # Trend replay compares against an earlier snapshot: use the oldest stored one.
@@ -85,12 +87,38 @@ def test_mycol_badge_has_its_own_historical_sources(
         assert meta.sources[0].retrieved_at.isoformat() == "2026-10-29"
 
 
+def test_trend_compare_attributes_observed_and_projected_parts_separately(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The sweep sees the empty store; this exercises a response with lines and a projection."""
+    from datetime import date
+
+    from app.features.data_refresh import trend_store
+
+    days = [date(2026, 1, 1) + timedelta(days=i) for i in range(60)]
+    monkeypatch.setattr(trend_store, "stored_range", lambda: (days[0], days[-1], days[-1]))
+    monkeypatch.setattr(
+        trend_store,
+        "daily",
+        lambda start, end, ids: ({d: 50 for d in days}, {(d, s): 5 for d in days for s in ids}),
+    )
+    body = client.get(
+        "/api/v1/trends/compare", params={"entities": ["role:data-analyst"], "scenario": "fast"}
+    ).json()
+    assert body["lines"] and body["projection_meta"]
+    for raw in (body["meta"], body["projection_meta"]):
+        meta = RecommendationMeta.model_validate(raw)
+        assert meta.sources and all(s.url.startswith("https://") for s in meta.sources)
+        assert meta.snapshot_date == days[-1] and meta.scenario == "fast" and meta.is_estimate
+
+
 def test_sweep_found_the_recommendation_endpoints() -> None:
     paths = {p for p, _ in ENDPOINTS}
     for expected in (
         "/api/v1/matches",
         "/api/v1/pathway",
         "/api/v1/trends/radar",
+        "/api/v1/trends/compare",
         "/api/v1/sdg/contribution/me",
         "/api/v1/org/plan",
         "/api/v1/impact/summary",
@@ -174,7 +202,10 @@ def _assistant(client: TestClient) -> Any:
 
 
 def _packages_select(client: TestClient) -> Any:
-    params = {"role_id": "data-analyst", "member_ids": ["aisyah"]}
+    params = {
+        "role_id": "data-analyst",
+        "member_ids": ["aisyah", "emp-002", "synthetic-cohort-third", "synthetic-cohort-fourth"],
+    }
     offers = client.get("/api/v1/org/packages", headers=HR, params=params)
     assert offers.status_code == 200, offers.text
     offer = offers.json()["packages"][0]
@@ -182,7 +213,7 @@ def _packages_select(client: TestClient) -> Any:
         "kind": offer["kind"],
         "token": offer["token"],
         "role_id": offer["role_id"],
-        "member_ids": ["aisyah"],
+        "member_ids": ["aisyah", "emp-002", "synthetic-cohort-third", "synthetic-cohort-fourth"],
         "scenario": "moderate",
     }
     return client.post("/api/v1/org/packages/select", headers=HR, json=body)
@@ -273,7 +304,7 @@ def test_every_write_route_with_meta_has_a_fixture() -> None:
     assert _recommendation_writes() == set(WRITE_FIXTURES)
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def _fresh_write_state(monkeypatch: pytest.MonkeyPatch) -> None:
     fixtures.install()
     funding_store._memory.clear()

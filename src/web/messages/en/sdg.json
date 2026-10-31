@@ -30,5 +30,6 @@
   "whyLinked": "Why these goals",
   "tooFewMembers": "Regional results are hidden until at least {count} distinct members can be included safely.",
   "tooFewMembersUnknown": "Regional results are hidden until enough distinct members can be included safely.",
-  "chooseRole": "View roles and choose one"
+  "chooseRole": "View roles and choose one",
+  "freeLearningReason": "Every course in this plan is free to learn (certificate fees may apply)."
 }

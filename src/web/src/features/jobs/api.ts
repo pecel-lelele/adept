@@ -8,11 +8,16 @@ export const fetchJobsSummary = cache(async function fetchJobsSummary(scenario: 
   return call(api.GET("/api/v1/jobs/summary", { params: { query: { scenario } } }));
 });
 
-export const fetchRoleOpenings = cache(async function fetchRoleOpenings(roleId: string, scenario: ScenarioId, limit = 8) {
+export const fetchRoleOpenings = cache(async function fetchRoleOpenings(
+  roleId: string,
+  scenario: ScenarioId,
+  limit = 8,
+  malaysiaFocus = false,
+) {
   const api = await getApi();
   return call(
     api.GET("/api/v1/jobs/roles/{role_id}", {
-      params: { path: { role_id: roleId }, query: { scenario, limit } },
+      params: { path: { role_id: roleId }, query: { scenario, limit, malaysia_focus: malaysiaFocus || undefined } },
     }),
   );
 });

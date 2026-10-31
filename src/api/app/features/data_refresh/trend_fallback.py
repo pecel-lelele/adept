@@ -1,18 +1,23 @@
-"""Gemini fallback for the on-demand trend refresh when the RunPod MiniLM worker is unavailable.
+"""Gemini trend matcher (M1-024): primary for the backfill and daily runs after equivalence.
 
-Method (M1-017, stored per paper by M1-018). MiniLM's 0.55 sentence threshold does not
-transfer to another model's cosine scale, so the fallback never reuses it:
+Replaces M1-017's fallback role. RunPod MiniLM remains the series until a passing report exists
+(see `trend_store.series_method`), but one series only ever holds one method; a day is never
+topped up by the other model.
+
+MiniLM's 0.55 sentence threshold does not transfer to another model's cosine scale, so it is
+never reused:
 
 1. Embed each paper once (title + abstract) and each skill label with Gemini at 384
    dimensions, MiniLM's size (`app.core.embeddings`, SEMANTIC_SIMILARITY). Equal size keeps
    storage uniform; the two models' vectors are still never compared with each other.
 2. Score paper x skill by cosine similarity.
-3. Calibrate one threshold, once per model, from stored MiniLM evidence: the threshold
-   reproduces MiniLM's mentions per paper on the first fallback batch, then is stored and
-   reused, so later batches keep real changes in mention volume.
+3. Store one threshold per model, chosen once by a written rule: the threshold that reproduces
+   MiniLM's mentions per paper on the calibration batch (`RULE_MINILM`). Later batches reuse it,
+   so real changes in mention volume still show.
+4. With no stored MiniLM evidence, the rule falls back to `DOCUMENTED_MINILM_RATE`
+   (`RULE_DOCUMENTED`) instead of failing; the row records which rule applied.
 
-Without stored MiniLM evidence there is nothing to calibrate against, and the refresh fails
-instead of guessing (the last good snapshot stays live).
+Downstream scoring only uses mention counts, so nothing after matching changes.
 """
 
 from __future__ import annotations
@@ -27,9 +32,15 @@ from app.core import embeddings
 BATCH = 100
 DIMS = 384  # MiniLM's vector size
 
+RULE_MINILM = "minilm_mentions_per_paper"
+RULE_DOCUMENTED = "documented_minilm_rate"
+# The last stored MiniLM measurements before M1-024: 108 + 87 mentions over 2 x 350 sampled
+# papers (skill_signal_raw, 2026-W42 and 2026-W43, sentence cosine >= 0.55).
+DOCUMENTED_MINILM_RATE = 195 / 700
+
 
 class FallbackUnavailable(RuntimeError):
-    """Gemini is off, failed, or there is no stored measurement to calibrate against."""
+    """Gemini is off or failed."""
 
 
 def enabled() -> bool:
@@ -41,9 +52,15 @@ def model_label() -> str:
 
 
 def embed_bounded(
-    texts: Sequence[str], deadline: float, cancelled: Callable[[], bool] = lambda: False
+    texts: Sequence[str],
+    deadline: float,
+    cancelled: Callable[[], bool] = lambda: False,
+    *,
+    patient: bool = False,
 ) -> list[list[float]]:
+    """`patient` (operator backfill only) waits out rate limits at full batch size."""
     out: list[list[float]] = []
+    extra = {"patient": True, "batch_size": BATCH} if patient else {}
     for i in range(0, len(texts), BATCH):
         if cancelled():
             raise TimeoutError("refresh cancelled")
@@ -52,7 +69,7 @@ def embed_bounded(
             raise TimeoutError("refresh time budget reached")
         try:
             # The request may not outlive the refresh deadline (that time is kept for saving).
-            out.extend(embeddings.embed(texts[i : i + BATCH], timeout_s=left, dims=DIMS))
+            out.extend(embeddings.embed(texts[i : i + BATCH], timeout_s=left, dims=DIMS, **extra))
         except embeddings.EmbeddingsUnavailable as exc:
             raise FallbackUnavailable(str(exc)) from exc
         if time.monotonic() >= deadline:

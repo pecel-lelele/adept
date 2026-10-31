@@ -215,8 +215,9 @@ def _trend_warnings(trend: trend_port.TrendView | None, skill_ids: list[str]) ->
 def get_pathway(
     user: CurrentUser, role_id: str, scenario: ScenarioId, snapshot_date: date | None = None
 ) -> Pathway:
+    learner = learner_for(user)
     profile = profile_service.get_my_profile(user)
-    plan = build_pathway(_learner(profile, user.id), role_id, scenario, snapshot_date=snapshot_date)
+    plan = build_pathway(learner, role_id, scenario, snapshot_date=snapshot_date)
     # Attached after building, so the segment can only change guidance text, never the plan.
     return plan.model_copy(update={"segment": profile.segment})
 
@@ -425,10 +426,9 @@ def _badge_label(
     return "milestone", None, names.get(key, key)
 
 
-# Evidence that lets completed learning raise a skill level for matching (H08, decided
-# 2026-10-22): a reviewer's confirmation, or a certificate link that opens on the provider's
-# own verification page. Self-ticked courses show progress but do not change matches.
-EARNED_EVIDENCE = frozenset({"org_confirmed", "certificate_link"})
+# A reachable URL does not bind the credential to this learner and course. Only a reviewer's
+# confirmation earns skill credit, including for legacy provider_verified link records.
+EARNED_EVIDENCE = frozenset({"org_confirmed"})
 
 
 def earned_levels(

@@ -9,21 +9,18 @@ type Evidence = Schemas["CompletionEvidence"];
 export async function EvidenceBadge({ evidence }: { evidence: Evidence | null }) {
   const t = await getTranslations("pathway");
   if (!evidence) return <Badge variant="outline">{t("evidence.kind.self_reported")}</Badge>;
-  const linkChecked = evidence.link_status === "provider_verified";
   const variant =
     evidence.kind === "org_confirmed"
       ? "success"
       : evidence.kind === "org_rejected"
         ? "danger"
-        : linkChecked
-          ? "secondary"
-          : "outline";
+        : "outline";
   return (
     <span className="flex flex-wrap items-center gap-1 text-xs">
       <Badge variant={variant}>{t(`evidence.kind.${evidence.kind}`)}</Badge>
       {evidence.kind === "certificate_link" ? (
         <span className="text-muted-foreground">
-          {t(`evidence.link.${evidence.link_status ?? "not_submitted"}`)}
+          {t(`evidence.link.${evidence.link_status === "provider_verified" ? "submitted" : evidence.link_status ?? "not_submitted"}`)}
         </span>
       ) : null}
     </span>

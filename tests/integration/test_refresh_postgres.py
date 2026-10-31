@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import csv
 import os
 import threading
 import time
@@ -63,6 +64,7 @@ def pg(monkeypatch: pytest.MonkeyPatch) -> Iterator[Any]:
                     "20261031010000_measured_trend_inputs.sql",
                     "20261031120000_trend_replay_provenance.sql",
                     "20261031180000_trend_paper_store.sql",
+                    "20261031220000_trend_matcher_series.sql",
                 ):
                     setup.execute((MIGRATIONS / filename).read_text().split("-- migrate:down")[0])
 
@@ -229,6 +231,7 @@ def test_series_totals_and_mentions_stay_consistent_during_day_replacement(
         with pg.connect(pg.url, row_factory=dict_row) as conn:
             yield RacingReader(conn)
 
+    monkeypatch.setenv("TRENDS_MATCHER", "minilm")
     monkeypatch.setattr(trend_store, "connection", connection)
     papers, mentions = trend_store.daily(day, day, ["python"])
     assert changed
@@ -243,3 +246,248 @@ def test_series_totals_and_mentions_stay_consistent_during_day_replacement(
     # A later read sees the complete new version, not a mixed 450% result.
     papers, mentions = trend_store.daily(day, day, ["python"])
     assert papers == {day: 10} and mentions == {(day, "python"): 9}
+    # Another method's rows for the same day and papers never enter this series (M1-024).
+    with pg.connect(pg.url) as writer:
+        trend_store.save_days(
+            writer,
+            {day: new[:1]},
+            {new[0]["arxiv_id"]: ["python", "sql"]},
+            "M1-024",
+            "synthetic-gemini@384",
+            day,
+        )
+    assert trend_store.daily(day, day, ["python", "sql"]) == (
+        {day: 10},
+        {(day, "python"): 9},
+    )
+    monkeypatch.setenv("TRENDS_MATCHER", "gemini")
+    assert trend_store.daily(day, day, ["python", "sql"]) == (
+        {day: 1},
+        {(day, "python"): 1, (day, "sql"): 1},
+    )
+
+
+def test_seeding_existing_paper_day_never_mixes_denominators_and_mentions(
+    pg: Any, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    from db import seed as seed_loader
+
+    existing_day = date(2026, 10, 6)
+    new_day = date(2026, 10, 7)
+    method = trend_store.MINILM_METHOD
+    model = "synthetic-seed-model"
+    with pg.connect(pg.url) as conn:
+        trend_store.save_days(
+            conn,
+            {existing_day: [{"arxiv_id": "existing-1"}, {"arxiv_id": "existing-2"}]},
+            {"existing-1": ["python"], "existing-2": ["sql"]},
+            method,
+            model,
+            existing_day,
+        )
+
+    def csv_file(name: str, header: list[str], rows: list[list[str]]) -> Path:
+        path = tmp_path / f"{name}.csv"
+        with path.open("w", encoding="utf-8", newline="") as stream:
+            writer = csv.writer(stream)
+            writer.writerow(header)
+            writer.writerows(rows)
+        return path
+
+    files = {
+        "trend_fetched_days": [
+            csv_file(
+                "trend_fetched_days",
+                ["day", "method", "papers", "fetched_on"],
+                [
+                    [str(existing_day), method, "1", str(existing_day)],
+                    [str(new_day), method, "1", str(new_day)],
+                ],
+            )
+        ],
+        "trend_paper_mentions": [
+            csv_file(
+                "trend_paper_mentions",
+                ["arxiv_id", "published_on", "method", "model", "skills"],
+                [
+                    ["old-export-new-id", str(existing_day), method, model, "{python}"],
+                    ["new-day-id", str(new_day), method, model, "{python}"],
+                ],
+            )
+        ],
+    }
+    monkeypatch.setenv("DATABASE_URL", pg.url)
+    monkeypatch.setattr(seed_loader, "SEED", tmp_path)
+    monkeypatch.setattr(seed_loader, "collect", lambda: files)
+    for _ in range(2):
+        assert seed_loader.main() == 0
+
+    with pg.connect(pg.url, row_factory=dict_row) as check:
+        rows = check.execute(
+            "SELECT day, papers FROM trend_fetched_days WHERE method = %s ORDER BY day", (method,)
+        ).fetchall()
+        assert [(r["day"], r["papers"]) for r in rows] == [(existing_day, 2), (new_day, 1)]
+        paper_rows = check.execute(
+            "SELECT arxiv_id FROM trend_paper_mentions WHERE method = %s ORDER BY arxiv_id",
+            (method,),
+        ).fetchall()
+        assert [r["arxiv_id"] for r in paper_rows] == ["existing-1", "existing-2", "new-day-id"]
+
+    with pg.connect(pg.url) as conn:
+        conn.execute(
+            "INSERT INTO trend_matcher_calibration"
+            "(model, threshold, rule, reference_rate, reference_papers, calibrated_on) "
+            "VALUES (%s, %s, %s, %s, %s, %s)",
+            (model, 0.4, "minilm_mentions_per_paper", 1, 10, existing_day),
+        )
+    files["trend_matcher_calibration"] = [
+        csv_file(
+            "trend_matcher_calibration",
+            ["model", "threshold", "rule", "reference_rate", "reference_papers", "calibrated_on"],
+            [[model, "0.6", "minilm_mentions_per_paper", "1", "10", str(existing_day)]],
+        )
+    ]
+    with pytest.raises(ValueError, match="Seed threshold differs"):
+        seed_loader.main()
+    with pg.connect(pg.url, row_factory=dict_row) as check:
+        assert (
+            check.execute(
+                "SELECT threshold FROM trend_matcher_calibration WHERE model = %s", (model,)
+            ).fetchone()["threshold"]
+            == 0.4
+        )
+
+
+def test_export_uses_one_snapshot_during_concurrent_day_replacement(
+    pg: Any, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    from pipelines.trends import backfill
+
+    day = date(2026, 10, 8)
+    old = [{"arxiv_id": "synthetic-export-old-1"}, {"arxiv_id": "synthetic-export-old-2"}]
+    new = [{"arxiv_id": f"synthetic-export-new-{i}"} for i in range(3)]
+    with pg.connect(pg.url) as setup:
+        trend_store.save_days(
+            setup,
+            {day: old},
+            {p["arxiv_id"]: ["python"] for p in old},
+            trend_store.MINILM_METHOD,
+            "synthetic-model",
+            day,
+        )
+    changed = False
+
+    @contextmanager
+    def racing_connection() -> Iterator[Any]:
+        with pg.connect(pg.url, row_factory=dict_row) as reader:
+
+            class RacingReader:
+                def transaction(self) -> Any:
+                    return reader.transaction()
+
+                def execute(self, query: str, params: Any = None) -> Any:
+                    nonlocal changed
+                    result = reader.execute(query, params)
+                    if "FROM trend_fetched_days" in query and not changed:
+                        with pg.connect(pg.url) as writer:
+                            trend_store.save_days(
+                                writer,
+                                {day: new},
+                                {p["arxiv_id"]: ["sql"] for p in new},
+                                trend_store.MINILM_METHOD,
+                                "synthetic-model",
+                                day,
+                            )
+                        changed = True
+                    return result
+
+            yield RacingReader()
+
+    monkeypatch.setenv("TRENDS_MATCHER", "minilm")
+    monkeypatch.setattr(backfill, "connection", racing_connection)
+    monkeypatch.setattr(backfill, "SEED_DIR", tmp_path / "paper_store")
+    assert backfill.export_seed() == 0
+    assert changed
+    with (backfill.SEED_DIR / "trend_fetched_days.csv").open(newline="") as stream:
+        days = list(csv.DictReader(stream))
+    with (backfill.SEED_DIR / "trend_paper_mentions.csv").open(newline="") as stream:
+        papers = list(csv.DictReader(stream))
+    assert len(days) == 1 and days[0]["papers"] == "2"
+    assert {p["arxiv_id"] for p in papers} == {p["arxiv_id"] for p in old}
+    with pg.connect(pg.url) as check:
+        assert (
+            check.execute(
+                "SELECT papers FROM trend_fetched_days WHERE day = %s AND method = %s",
+                (day, trend_store.MINILM_METHOD),
+            ).fetchone()[0]
+            == 3
+        ), "writer really did replace the day between export reads"
+
+
+def test_concurrent_first_day_writers_do_not_combine_papers_under_one_total(pg: Any) -> None:
+    day = date(2026, 10, 9)
+    method = trend_store.MINILM_METHOD
+    first_saved = threading.Event()
+    second_started = threading.Event()
+    errors: list[Exception] = []
+    first = [{"arxiv_id": "synthetic-race-first"}]
+    second = [{"arxiv_id": f"synthetic-race-last-{i}"} for i in range(3)]
+
+    def first_writer() -> None:
+        try:
+            with pg.connect(pg.url) as conn:
+                trend_store.save_days(
+                    conn,
+                    {day: first},
+                    {first[0]["arxiv_id"]: ["python"]},
+                    method,
+                    "synthetic-model",
+                    day,
+                )
+                first_saved.set()  # insert is uncommitted while the second writer begins
+                if not second_started.wait(timeout=3):
+                    raise TimeoutError("second synthetic writer did not start")
+                time.sleep(0.2)
+        except Exception as exc:
+            errors.append(exc)
+            first_saved.set()
+
+    def second_writer() -> None:
+        try:
+            if not first_saved.wait(timeout=3):
+                raise TimeoutError("first synthetic writer did not start")
+            second_started.set()
+            with pg.connect(pg.url) as conn:
+                trend_store.save_days(
+                    conn,
+                    {day: second},
+                    {p["arxiv_id"]: ["sql"] for p in second},
+                    method,
+                    "synthetic-model",
+                    day,
+                )
+        except Exception as exc:
+            errors.append(exc)
+
+    threads = [threading.Thread(target=first_writer), threading.Thread(target=second_writer)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(timeout=7)
+    assert all(not thread.is_alive() for thread in threads), (
+        "synthetic writers must release their connections"
+    )
+    assert not errors
+    with pg.connect(pg.url, row_factory=dict_row) as check:
+        total = check.execute(
+            "SELECT papers FROM trend_fetched_days WHERE day = %s AND method = %s", (day, method)
+        ).fetchone()["papers"]
+        paper_ids = {
+            row["arxiv_id"]
+            for row in check.execute(
+                "SELECT arxiv_id FROM trend_paper_mentions WHERE published_on = %s AND method = %s",
+                (day, method),
+            ).fetchall()
+        }
+    assert total == len(second) == len(paper_ids)
+    assert paper_ids == {p["arxiv_id"] for p in second}

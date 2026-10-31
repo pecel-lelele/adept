@@ -272,9 +272,13 @@ def test_run_of_another_workflow_is_not_reported(
 
 
 def test_new_snapshot_reaches_replan_and_radar_after_success(
-    client: TestClient, configured: None, github: FakeGitHub, monkeypatch: pytest.MonkeyPatch
+    client: TestClient,
+    configured: None,
+    github: FakeGitHub,
+    monkeypatch: pytest.MonkeyPatch,
+    unavailable_trend_database: None,
 ) -> None:
-    """After the workflow publishes, the re-plan check and radar see the new date at once."""
+    """A simulated fixture publication invalidates caches, even with a live test DB configured."""
     from app.features.pathway import trend_port as pathway_trend_port
 
     pathway_trend_port.reset_cache()

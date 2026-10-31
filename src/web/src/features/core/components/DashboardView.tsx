@@ -1,5 +1,5 @@
 import { MalaysiaContextCard } from "@/features/trends/components/MalaysiaContextCard";
-import { RefreshDataButton } from "@/features/trends/components/RefreshDataButton";
+import { TrendMoversCard } from "@/features/trends/components/TrendMoversCard";
 import { DataAsOf } from "@/components/DataAsOf";
 import { ArrowRight, ArrowUpRight, BookOpen, Building2, Check, Compass, Leaf, Route, Target, TrendingUp } from "lucide-react";
 import Link from "next/link";
@@ -102,7 +102,15 @@ export async function DashboardView({ scenario, query, workspaceError = false }:
     .slice(0, 7);
 
   const isDone = (s: { courses: { id: string }[] }) =>
-    Boolean(p && s.courses.length > 0 && s.courses.every((c) => p.course_status[c.id] === "completed"));
+    Boolean(
+      p &&
+        s.courses.length > 0 &&
+        s.courses.every(
+          (c) =>
+            p.course_status[c.id] === "completed" ||
+            (p.workspace === "personal" && Boolean(p.completed_elsewhere?.[c.id])),
+        ),
+    );
   const steps: TrackStep[] = saved
     ? saved.pathway.steps.slice(0, 6).map((s, i, all) => ({
         id: s.skill_id,
@@ -121,8 +129,6 @@ export async function DashboardView({ scenario, query, workspaceError = false }:
 
   return (
     <div className="a-view">
-      <DataAsOf source="trends" />
-      {account ? <RefreshDataButton dataAsOf={radar.ok ? radar.data.meta.observed_to ?? radar.data.meta.snapshot_date : undefined} /> : null}
       {workspaceError ? <p className="a-chip" data-tone="warn" role="alert">{(await getTranslations("ui.workspace"))("workspaceError")}</p> : null}
       <section className="a-welcome">
         <div className="a-welcome-main">
@@ -134,7 +140,7 @@ export async function DashboardView({ scenario, query, workspaceError = false }:
               {hero.cta} <ArrowRight size={16} aria-hidden />
             </Link>
             {account && !account.org_id ? (
-              <Link className="a-link" href="/app/join">
+              <Link className="a-link a-hero-mobile-join" href="/app/join">
                 <Building2 size={15} aria-hidden /> {tp("joinTeam")}
               </Link>
             ) : null}
@@ -144,6 +150,11 @@ export async function DashboardView({ scenario, query, workspaceError = false }:
               </Link>
             ) : null}
           </div>
+          {radar.ok ? (
+            <div className="a-welcome-data">
+              <DataAsOf source="trends" meta={radar.data.meta} />
+            </div>
+          ) : null}
         </div>
         <nav className="a-journey" aria-label={tp("journey")}>
           <span className="a-eyebrow">{tp("journey")}</span>
@@ -247,6 +258,17 @@ export async function DashboardView({ scenario, query, workspaceError = false }:
           {bars.length ? <TrendBars items={bars} /> : <p className="a-muted a-small">{t("yourSkillsEmpty")}</p>}
         </section>
       </div>
+
+      <TrendMoversCard
+        scenario={scenario}
+        preset={query.get("preset") ?? undefined}
+        radarHref={href("/app/radar")}
+        homeHref={(preset) => {
+          const next = new URLSearchParams(query);
+          next.set("preset", preset);
+          return `/app?${next.toString()}`;
+        }}
+      />
 
       <div className="a-split">
         <section className="a-card" aria-labelledby="h-path">

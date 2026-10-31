@@ -64,7 +64,7 @@ COURSES = {
 }
 
 
-def test_only_reviewed_or_provider_checked_completions_count() -> None:
+def test_only_org_confirmed_completions_count() -> None:
     evidence = {
         "cert-ok": _evidence("cert-ok", "certificate_link", "provider_verified"),
         "cert-bad": _evidence("cert-bad", "certificate_link", "unreachable"),
@@ -74,7 +74,8 @@ def test_only_reviewed_or_provider_checked_completions_count() -> None:
     raw = {cid: "completed" for cid in COURSES if cid != "open"} | {"open": "in_progress"}
     statuses = effective_statuses(raw, evidence)  # type: ignore[arg-type]
     earned = pathway_service.earned_levels(COURSES, statuses, evidence)
-    assert earned == {"python": 3, "sql": 4, "viz": 4}
+    assert earned == {"sql": 4, "viz": 4}
+    assert "python" not in earned  # legacy reachable links also require confirmation
     # self-ticked (sql via "self"), an unreachable link, a rejection and an unfinished course
     # change nothing; the strongest level wins per skill.
     assert "excel" not in earned and "ml" not in earned and "stats" not in earned
@@ -124,7 +125,7 @@ def _closing_course(plan: object) -> tuple[str, Course]:
 
 
 def _complete_and_confirm(client: TestClient) -> tuple[Course, str]:
-    """Personal learning with a provider-checked certificate: it earns matching credit."""
+    """An explicitly confirmed synthetic personal evidence record earns matching credit."""
     response = client.post("/api/v1/pathway/plans", json={"role_id": ROLE})
     assert response.status_code == 200, response.text
     skill, course = _closing_course(SavedPlan.model_validate(response.json()).pathway)
@@ -139,8 +140,18 @@ def _complete_and_confirm(client: TestClient) -> tuple[Course, str]:
             },
         )
     assert response.status_code == 200, response.text
-    assert Progress.model_validate(response.json()).evidence[course.id].link_status == (
-        "provider_verified"
+    assert Progress.model_validate(response.json()).evidence[course.id].link_status == ("submitted")
+    submitted = repository.evidence("aisyah", ROLE)[course.id]
+    assert skill not in pathway_service.evidenced_levels("aisyah")
+    repository.save_evidence(
+        "aisyah",
+        submitted.model_copy(
+            update={
+                "kind": "org_confirmed",
+                "reviewed_by": "synthetic-reviewer",
+                "reviewed_at": NOW,
+            }
+        ),
     )
     return course, skill
 
@@ -393,6 +404,7 @@ def test_rejected_work_course_stays_listed_but_stops_counting(client: TestClient
 
 
 def test_team_earned_learning_is_one_batch_read_and_members_are_loaded_once(
+    planning_cohort: list[str],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     calls: list[list[str]] = []

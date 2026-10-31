@@ -31,12 +31,15 @@ def test_daily_counts_share_one_statement_and_preserve_days_without_mentions(
             calls.append(query)
             assert len(calls) == 1, "Day totals and mentions must not use separate snapshots"
             assert params == (
+                "M1-024",
                 D0,
                 D0 + timedelta(days=1),
+                "M1-024",
                 D0,
                 D0 + timedelta(days=1),
                 ["python", "sql"],
             )
+            assert query.count("method = %s") == 2, "one method per series"
             return SimpleNamespace(fetchall=lambda: rows)
 
     @contextmanager
@@ -108,7 +111,7 @@ def test_chosen_skills_and_range_are_returned_in_order(
     "params",
     [
         {"start": "2026-10-26", "end": "2026-10-20"},
-        {"start": "2026-01-01", "end": "2026-10-26"},
+        {"start": "2025-01-01", "end": "2026-10-26"},
         {"skill_ids": ["not-a-skill"]},
         {"skill_ids": [f"s{i}" for i in range(9)]},
     ],

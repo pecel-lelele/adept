@@ -177,7 +177,9 @@ class ProgressUpdate(BaseModel):
 
 # Evidence ladder for a completed course, weakest first (KerjaCerdas proof-level idea).
 EvidenceKind = Literal["self_reported", "certificate_link", "org_confirmed", "org_rejected"]
-LinkStatus = Literal["not_submitted", "provider_verified", "unreachable", "not_provider_page"]
+LinkStatus = Literal[
+    "not_submitted", "submitted", "provider_verified", "unreachable", "not_provider_page"
+]
 
 
 class CompletionEvidence(BaseModel):

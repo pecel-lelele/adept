@@ -4,6 +4,7 @@ New endpoint:
   GET /api/v1/trends/snapshot?snapshot_date=<date>&scenario=<moderate|fast>
 
   GET /api/v1/trends/series?start=&end=&skill_ids=  (observed rolling shares, M1-018)
+  GET /api/v1/trends/compare?kind=&entities=&preset=&start=&end=&horizon_days=&mode=  (M1-025)
 
 Legacy endpoints (kept for backward compat):
   GET /api/v1/trends/radar?scenario=<moderate|fast>
@@ -20,15 +21,19 @@ from fastapi import APIRouter, Depends, Query
 from app.contracts.common import ScenarioId
 from app.contracts.labour import MalaysiaLabourContext
 from app.contracts.trends import (
+    CompareMode,
     RadarResponse,
     RoleTrendResponse,
+    TrendCompareResponse,
+    TrendEntityKind,
+    TrendRangePreset,
     TrendRefreshStatus,
     TrendRescoreResult,
     TrendSeriesResponse,
     TrendSnapshotResponse,
 )
 from app.core.auth import CurrentUser, CurrentUserDep
-from app.features.trends import labour, refresh, series, service
+from app.features.trends import comparison, labour, refresh, series, service
 
 router = APIRouter(prefix="/trends", tags=["trends"])
 
@@ -71,12 +76,36 @@ def get_series(
     skill_ids: Annotated[list[str], Query()] = [],  # noqa: B006 - FastAPI query list default
     scenario: ScenarioId = "moderate",
 ) -> TrendSeriesResponse:
-    """Observed 7-day rolling share per skill for each day in [start, end] (max 120 days).
+    """Observed 7-day rolling share per skill for each day in [start, end] (max 366 days).
 
     Counted from stored papers (no model call). Without `skill_ids`, the three biggest risers
     and fallers in the range are returned. 422 invalid_range for bad dates or skills.
     """
     return series.get_series(start, end, skill_ids, scenario)
+
+
+@router.get("/compare")
+def get_compare(
+    kind: TrendEntityKind = "skill",
+    entities: Annotated[
+        list[str], Query(description="Up to 8 `kind:id` lines. Omit for the biggest movers.")
+    ] = [],  # noqa: B006 - FastAPI query list default
+    preset: TrendRangePreset | None = None,
+    start: date | None = None,
+    end: date | None = None,
+    scenario: ScenarioId = "moderate",
+    horizon_days: Annotated[int, Query(ge=1, le=comparison.MAX_HORIZON)] = (
+        comparison.DEFAULT_HORIZON
+    ),
+    mode: CompareMode = "indexed",
+) -> TrendCompareResponse:
+    """Skills, roles and categories over a stored range: rebased or raw, with a pace projection.
+
+    Reads stored papers only; never calls arXiv or a model. 422 invalid_range for dates outside
+    stored data, unknown entities or more than 8 lines. Role and category scores are derived
+    from arXiv skill signals, not observed role demand.
+    """
+    return comparison.get_compare(kind, entities, preset, start, end, scenario, horizon_days, mode)
 
 
 # ---------------------------------------------------------------------------

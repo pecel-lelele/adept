@@ -3,7 +3,7 @@
 import { Briefcase, FileCheck2, FileUp, GraduationCap, Repeat, Search, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
-import { startTransition, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { startTransition, useEffect, useMemo, useRef, useState, useTransition, type DragEvent } from "react";
 
 import { errorMessage } from "@/lib/api/error-message";
 
@@ -19,6 +19,14 @@ type Option = Schemas["SkillOption"];
 type Picked = { skill_id: string; level: number; fromCv?: boolean };
 type Segment = IntakeInput["segment"];
 const STYLES = ["video", "reading", "hands-on", "classroom", "mixed"] as const;
+
+const MAX_CV_BYTES = 5 * 1024 * 1024;
+const CV_MIME_TYPES = [
+  "application/pdf",
+  "text/plain",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+];
+const CV_EXTENSIONS = /\.(pdf|docx|txt)$/i;
 
 const SEGMENTS: { id: Segment; icon: typeof Briefcase }[] = [
   { id: "working", icon: Briefcase },
@@ -68,6 +76,37 @@ export function IntakeWizard({
   const [saving, startSave] = useTransition();
   const fileRef = useRef<HTMLInputElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+  const stepHeadingRef = useRef<HTMLHeadingElement>(null);
+  const focusStepOnChange = useRef(false);
+  const [isDragging, setIsDragging] = useState(false);
+
+  function onDragEnter(e: DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!cvBusy) setIsDragging(true);
+  }
+
+  function onDragOver(e: DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!cvBusy) setIsDragging(true);
+  }
+
+  function onDragLeave(e: DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  }
+
+  function onDropFile(e: DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    if (cvBusy) return;
+    const file = e.dataTransfer.files[0];
+    if (!file) return;
+    onFile(file);
+  }
   const [draftReady, setDraftReady] = useState(false);
   const submitted = useRef(false);
 
@@ -103,6 +142,12 @@ export function IntakeWizard({
   }, [catalogue, interests, draftKey, userId, initial]);
 
   useEffect(() => {
+    if (!focusStepOnChange.current) return;
+    stepHeadingRef.current?.focus();
+    focusStepOnChange.current = false;
+  }, [step]);
+
+  useEffect(() => {
     if (!draftReady || submitted.current) return;
     try {
       writeIntakeDraft(window.sessionStorage, draftKey, {
@@ -130,6 +175,7 @@ export function IntakeWizard({
       const found = cvSkillsFromHome();
       if (found.length) setSkills(found);
     }
+    focusStepOnChange.current = true;
     setStep((s) => s + 1);
   }
 
@@ -163,6 +209,10 @@ export function IntakeWizard({
 
   function onFile(file: File | undefined) {
     if (!file) return;
+    if (file.size > MAX_CV_BYTES || !(CV_MIME_TYPES.includes(file.type) || CV_EXTENSIONS.test(file.name))) {
+      setError(t("uploadTypeError"));
+      return;
+    }
     const form = new FormData();
     form.set("file", file);
     setError("");
@@ -227,7 +277,7 @@ export function IntakeWizard({
         {step === 1 ? (
           <fieldset style={{ border: 0, margin: 0, padding: 0 }} className="a-stack">
             <legend className="a-card-head" style={{ marginBottom: 12 }}>
-              <h2>{t("segmentTitle")}</h2>
+              <h2 ref={stepHeadingRef} tabIndex={-1}>{t("segmentTitle")}</h2>
             </legend>
             <div className="a-choice-grid">
               {SEGMENTS.map(({ id, icon: Icon }) => (
@@ -247,7 +297,7 @@ export function IntakeWizard({
         {step === 2 ? (
           <fieldset style={{ border: 0, margin: 0, padding: 0 }} className="a-stack">
             <legend className="a-card-head" style={{ marginBottom: 4 }}>
-              <h2>{t("interestsTitle")}</h2>
+              <h2 ref={stepHeadingRef} tabIndex={-1}>{t("interestsTitle")}</h2>
             </legend>
             <p className="a-muted a-small" style={{ margin: 0 }}>
               {t("interestsHint")}
@@ -272,7 +322,7 @@ export function IntakeWizard({
         {step === 3 ? (
           <div className="a-stack">
             <div className="a-card-head" style={{ marginBottom: 0 }}>
-              <h2>{t("timeTitle")}</h2>
+              <h2 ref={stepHeadingRef} tabIndex={-1}>{t("timeTitle")}</h2>
             </div>
             <label className="a-field">
               {t("hours")}
@@ -305,39 +355,43 @@ export function IntakeWizard({
         {step === 4 ? (
           <div className="a-stack">
             <div className="a-card-head" style={{ marginBottom: 0 }}>
-              <h2>{t("skillsTitle")}</h2>
+              <h2 ref={stepHeadingRef} tabIndex={-1}>{t("skillsTitle")}</h2>
               <span className="a-chip">{t("chosen", { count: skills.length })}</span>
             </div>
             <p className="a-muted a-small" style={{ margin: 0 }}>
               {processedFile ? t("cvLoadedHint") : t("skillsHint")}
             </p>
-            {processedFile ? (
-              <div className="a-notice" role="status" data-tone="info" data-cv-file style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
-                <FileCheck2 size={24} aria-hidden style={{ flexShrink: 0 }} />
-                <div style={{ flex: "1 1 180px", minWidth: 0 }}>
-                  <span className="a-small a-muted">{t("cvReady")}</span>
-                  <strong style={{ display: "block", overflowWrap: "anywhere" }}>{processedFile.name}</strong>
-                  <p className="a-small a-muted" style={{ margin: "4px 0 0" }}>{t("cvFileNote")}</p>
+            <div style={{ display: "contents" }}
+              onDragEnter={onDragEnter} onDragOver={onDragOver}
+              onDragLeave={onDragLeave} onDrop={onDropFile}>
+              {processedFile ? (
+                <div className="a-notice" role="status" data-tone="info" data-cv-file style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
+                  <FileCheck2 size={24} aria-hidden style={{ flexShrink: 0 }} />
+                  <div style={{ flex: "1 1 180px", minWidth: 0 }}>
+                    <span className="a-small a-muted">{t("cvReady")}</span>
+                    <strong style={{ display: "block", overflowWrap: "anywhere" }}>{processedFile.name}</strong>
+                    <p className="a-small a-muted" style={{ margin: "4px 0 0" }}>{t("cvFileNote")}</p>
+                  </div>
+                  <button type="button" className="a-btn is-ghost is-small" onClick={() => fileRef.current?.click()} disabled={cvBusy}>
+                    {cvBusy ? t("uploading") : t("replaceCv")}
+                  </button>
                 </div>
-                <button type="button" className="a-btn is-ghost is-small" onClick={() => fileRef.current?.click()} disabled={cvBusy}>
-                  {cvBusy ? t("uploading") : t("replaceCv")}
-                </button>
-              </div>
-            ) : <button type="button" className="a-drop" onClick={() => fileRef.current?.click()} disabled={cvBusy}>
-              <FileUp size={22} aria-hidden />
-              {cvBusy ? t("uploading") : t("upload")}
-            </button>}
-            <input
-              ref={fileRef}
-              type="file"
-              accept=".pdf,.docx,.txt,application/pdf,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-              hidden
-              onChange={(e) => {
-                onFile(e.target.files?.[0]);
-                // Clear the input so re-uploading the same file still fires a change.
-                e.target.value = "";
-              }}
-            />
+              ) : <button type="button" className="a-drop" data-drag={isDragging} onClick={() => fileRef.current?.click()} disabled={cvBusy}>
+                <FileUp size={22} aria-hidden />
+                {cvBusy ? t("uploading") : t("upload")}
+              </button>}
+              <input
+                ref={fileRef}
+                type="file"
+                accept=".pdf,.docx,.txt,application/pdf,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                hidden
+                onChange={(e) => {
+                  onFile(e.target.files?.[0]);
+                  // Clear the input so re-uploading the same file still fires a change.
+                  e.target.value = "";
+                }}
+              />
+            </div>
             {cvStatus && (cvStatus.empty || cvStatus.truncated) ? (
               <div className="a-notice" role="status">
                 {cvStatus.empty ? <p>{cvText("none")}</p> : null}
@@ -364,7 +418,7 @@ export function IntakeWizard({
               />
             </label>
             {query.trim() ? (
-              <div className="a-results" role="listbox">
+              <div className="a-results" role="listbox" aria-label={t("search")}>
                 {results.length ? (
                   results.map((o) => (
                     <button type="button" role="option" aria-selected={false} key={o.id} onClick={() => addSkill(o.id)}>
@@ -448,7 +502,7 @@ export function IntakeWizard({
       </section>
 
       <div className="a-wizard-nav">
-        <button type="button" className="a-btn is-ghost" disabled={step === 1 || saving} onClick={() => setStep((s) => s - 1)}>
+        <button type="button" className="a-btn is-ghost" disabled={step === 1 || saving} onClick={() => { focusStepOnChange.current = true; setStep((s) => s - 1); }}>
           {t("back")}
         </button>
         {step < TOTAL ? (

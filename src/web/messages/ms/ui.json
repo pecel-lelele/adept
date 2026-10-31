@@ -49,7 +49,8 @@
     "funding_conflict": "Permintaan pembiayaan tidak dapat diselesaikan. Semak status semasanya dengan pengurus anda.",
     "disallowed_content": "Buang kandungan yang tidak disokong daripada input sebelum meneruskan.",
     "unknown_course": "Pilih kursus daripada pelan atau katalog semasa.",
-    "invalid_role_proposal": "Pilih peranan daripada katalog"
+    "invalid_role_proposal": "Pilih peranan daripada katalog",
+    "insufficient_cohort": "Terlalu sedikit ahli yang berkongsi kemahiran dan telah melengkapkan profil. Pilih kohort bersetuju yang lebih besar, atau tunggu lebih ramai ahli melengkapkan profil."
   },
   "nav": {
     "home": "Utama",
@@ -446,7 +447,8 @@
       "fuzzy": "Ejaan serupa",
       "semantic": "Makna serupa"
     },
-    "saving": "Menyimpan…"
+    "saving": "Menyimpan…",
+    "uploadTypeError": "Gunakan fail PDF, Word (.docx) atau teks di bawah 5 MB."
   },
   "home": {
     "hello": "Hai {name}",
@@ -554,6 +556,8 @@
     "signIn": "Log masuk semula",
     "profile": "Lengkapkan profil anda",
     "network": "Kami tidak dapat menghubungi Adept sekarang.",
+    "cohort": "Ahli terlalu sedikit",
+    "members": "Semak ahli",
     "home": "Kembali ke laman utama",
     "unexpected": "Kami tidak dapat memuatkan halaman ini. Cuba lagi atau kembali ke laman utama.",
     "notFoundTitle": "Halaman tidak ditemui",
@@ -627,6 +631,9 @@
     "exposed": "Skor pendedahan automasi tertinggi",
     "exposedHint": "Skor relatif 0 hingga 1 yang diberikan oleh penyemak berdasarkan kajian terbitan (Frey & Osborne, ILO, McKinsey, jenis tugas O*NET). Ia menyusun kemahiran berbanding satu sama lain; ia bukan bahagian tugas yang diukur.",
     "allSkills": "Semua kemahiran dijejak",
+    "previousPage": "Sebelumnya",
+    "nextPage": "Seterusnya",
+    "pageOf": "Halaman {page} daripada {pages}",
     "noMatch": "Tiada kemahiran sepadan dengan penapis ini.",
     "rankingOptions": "Pilihan susunan",
     "bestFit": "Paling sesuai",

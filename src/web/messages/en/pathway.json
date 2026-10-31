@@ -129,15 +129,16 @@
     "reviewNote": "Reviewer's note: {note}",
     "kind": {
       "self_reported": "Self-reported",
-      "certificate_link": "Certificate link",
+      "certificate_link": "Certificate submitted",
       "org_confirmed": "Confirmed by your organisation",
       "org_rejected": "Not accepted by your organisation"
     },
     "link": {
       "not_submitted": "no link yet",
-      "provider_verified": "link opens on the provider's site (ownership and content not checked)",
+      "provider_verified": "submitted for review; learner and course not verified",
       "unreachable": "link could not be opened",
-      "not_provider_page": "not an official verification page: needs a manual check"
+      "not_provider_page": "not an official verification page: needs a manual check",
+      "submitted": "submitted for review; learner and course not verified"
     }
   },
   "verify": {

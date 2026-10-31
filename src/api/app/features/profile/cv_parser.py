@@ -45,6 +45,7 @@ from xml.etree import ElementTree
 from app.core import refdata
 from app.core import taxonomy as skill_taxonomy
 from app.core.errors import AppError, PdfNoText, PdfSupportUnavailable
+from app.core.security.sanitize import drop_instruction_lines
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -187,7 +188,7 @@ def _build_alias_index() -> list[_AliasEntry]:
     # Sort: longest phrase first so "python programming" wins over "python"
     entries.sort(key=lambda t: len(t[0]), reverse=True)
 
-    return [
+    index = [
         _AliasEntry(
             pattern=_phrase_pattern(phrase),
             skill_id=sid,
@@ -196,6 +197,24 @@ def _build_alias_index() -> list[_AliasEntry]:
         )
         for phrase, sid in entries
     ]
+    # Action wording is only an alias for a leadership/people skill the live catalogue
+    # actually contains. It must never create a new skill or imply project management.
+    leadership = {"leadership", "team leadership", "people management", "team management"}
+    candidates = {sid for phrase, sid in entries if phrase in leadership}
+    if len(candidates) == 1:
+        index.insert(
+            0,
+            _AliasEntry(
+                pattern=re.compile(
+                    r"\b(?:(?:lead|led|leading)\s+(?:a\s+|the\s+)?team|"
+                    r"(?:manage|managed|managing)\s+people)\b",
+                    re.IGNORECASE,
+                ),
+                skill_id=next(iter(candidates)),
+                phrase_len=0,
+            ),
+        )
+    return index
 
 
 def _phrase_pattern(phrase: str) -> re.Pattern[str]:
@@ -588,6 +607,36 @@ _NEGATION_RE = re.compile(
     re.IGNORECASE,
 )
 
+# A CV records skills the person already has. A learning wish ("want to study SQL") names a
+# skill they do not have yet: an intention followed by a learning verb, in EN/MS/ZH. Wording
+# without a learning verb ("seeking to apply Python") keeps its skills. The wish covers the
+# rest of its clause, including list items, and ends at a sentence or line boundary.
+_LEARN_VERB = (
+    r"(?:learn(?:ing)?|study(?:ing)?|master(?:ing)?|pick(?:ing)? up|acquir(?:e|ing)|"
+    r"get(?:ting)? into|upskill(?:ing)?(?: in)?|explor(?:e|ing)|"
+    r"gain(?:ing)? (?:skills?|knowledge|experience) (?:in|with))"
+)
+_ASPIRATION_RE = re.compile(
+    r"\b(?:(?:seek(?:ing)?|want(?:ing)?|hop(?:e|ing)|wish(?:ing)?|plan(?:ning)?|"
+    r"aim(?:ing)?|aspir(?:e|ing)|intend(?:ing)?|eager|keen|would like|look(?:ing)? forward)"
+    r" to " + _LEARN_VERB + r"|interested in " + _LEARN_VERB + r")\b|"
+    r"\b(?:ingin|mahu|hendak|bercadang(?: untuk)?|berhasrat(?: untuk)?)\s+"
+    r"(?:belajar|mempelajari|menguasai|mendalami)\b|"
+    r"(?:希望|想要?|计划|打算|渴望)(?:学习|学会|掌握|进修|研究)",
+    re.IGNORECASE,
+)
+#: Where a learning wish ends: sentence punctuation followed by a space or the end (so not
+#: "Node.js"), semicolons, line breaks and CJK sentence marks.
+_CLAUSE_END = re.compile(r"[.!?](?=\s|$)|[;\n。；！？]")
+_SENTENCE_SPLIT = re.compile(r"(?<=[.!?])\s+|(?<=[。！？])")
+# Inferred action aliases require an actual action, not an intention to perform it.
+# Apply this only to action aliases so career objectives can still name existing skills.
+_FUTURE_ACTION_RE = re.compile(
+    r"\b(?:seeking to|want(?:ing)? to|hop(?:e|ing) to|wish to|plan(?:ning)? to|"
+    r"would like to|aim(?:ing)? to|aspiring to|interested in)\s+\Z",
+    re.IGNORECASE,
+)
+
 #: Characters either side of a mention read for level cues. Narrow on purpose: a wider window
 #: picked up "Senior Manager" from a nearby job title.
 _CONTEXT_CHARS = 45
@@ -617,6 +666,14 @@ def _estimate_level(context: str) -> int:
 def _is_negated(text: str, start: int) -> bool:
     """True when the words just before a mention deny it ("no experience in SQL")."""
     return bool(_NEGATION_RE.search(text[max(0, start - 40) : start]))
+
+
+def _is_aspiration(text: str, start: int) -> bool:
+    """True when a learning wish earlier in the same clause covers this mention."""
+    left = 0
+    for end in _CLAUSE_END.finditer(text, 0, start):
+        left = end.end()
+    return bool(_ASPIRATION_RE.search(text, left, start))
 
 
 # ---------------------------------------------------------------------------
@@ -663,7 +720,9 @@ def extract_skills(text: str) -> list[ParsedSkill]:
             # Skip if this match overlaps any already-recorded span for this skill
             if any(s < ex_e and e > ex_s for ex_s, ex_e in existing):
                 continue
-            if _is_negated(normed, s):
+            if _is_negated(normed, s) or _is_aspiration(normed, s):
+                continue
+            if not entry.phrase and _FUTURE_ACTION_RE.search(normed, 0, s):
                 continue
             if sid not in spans:
                 spans[sid] = existing
@@ -746,7 +805,8 @@ def skills_section_entries(text: str) -> list[str]:
     A section starts at a skills heading and ends at the next heading of any kind. Its lines
     are joined first, so an entry broken over two lines ("exception" / "handling.") stays one
     entry, and a word hyphenated at a line break ("val-" / "idation") is rejoined. Sub-labels
-    such as "Tools: Excel, SQL" keep only the list after the colon.
+    such as "Tools: Excel, SQL" keep only the list after the colon. Future-learning entries
+    are excluded with their original clause context before list separators discard it.
     """
     entries: list[str] = []
     block: list[str] = []
@@ -761,6 +821,10 @@ def skills_section_entries(text: str) -> list[str]:
                 part = part[bullet.end() :]
             if not joined:
                 joined = part
+            elif _ASPIRATION_RE.search(prev):
+                # A learning wish ends at the original line boundary, unlike ordinary
+                # wrapped lists. Keep the next line as a separate entry before filtering.
+                joined = f"{joined}; {part}"
             elif joined.endswith("-") and part[:1].islower() and not bullet:
                 joined = joined[:-1] + part  # a word hyphenated at the line break
             elif bullet or (not _LIST_SEPARATOR.search(prev) and len(prev.split()) <= 5):
@@ -768,11 +832,20 @@ def skills_section_entries(text: str) -> list[str]:
             else:
                 joined = f"{joined} {part}"  # a wrapped line of a comma-separated list
             prev = part
-        for item in _LIST_SEPARATOR.split(joined):
-            item = item.split(":", 1)[1] if re.match(r"^[^:]{2,30}:\s", item.strip()) else item
-            item = re.sub(r"\s+", " ", item).strip(_TRAILING)
-            if item:
-                entries.append(item)
+        # A learning wish covers the later items of its own sentence ("Want to learn Rust,
+        # Kubernetes") but not the next sentence ("... Kubernetes. QlikSense").
+        for sentence in _SENTENCE_SPLIT.split(joined):
+            offset = 0
+            for item in _LIST_SEPARATOR.split(sentence):
+                item_start = offset
+                offset += len(item) + 1  # separators are single characters
+                if _is_aspiration(sentence, item_start) or _ASPIRATION_RE.search(item):
+                    continue
+                if re.match(r"^[^:]{2,30}:\s", item.strip()):
+                    item = item.split(":", 1)[1]
+                item = re.sub(r"\s+", " ", item).strip(_TRAILING)
+                if item:
+                    entries.append(item)
         block.clear()
 
     for raw_line in text.splitlines():
@@ -828,6 +901,7 @@ def unmatched_skill_terms(text: str) -> list[str]:
         # text is still untrusted: the web renders these strings as text only.
         if (
             not 2 <= len(term) <= 64
+            or _ASPIRATION_RE.search(term)
             or len(term.split()) > 6
             or not any(c.isalpha() for c in term)
             or not all(c.isalnum() or c in " +#./&()-'" for c in term)
@@ -852,7 +926,9 @@ def parse_cv_review(
     """Extract once, scrub and bound the text, then return matches and review hints."""
     raw_text = extract_text(data, content_type)
     truncated_text, truncated = _truncate_text(raw_text)
-    cleaned = _clean_text(truncated_text)
+    # The parser is rule-based (no model reads the CV), but a line that tries to instruct one
+    # is dropped whole so a skill named inside it is never extracted or offered for review.
+    cleaned = drop_instruction_lines(_clean_text(truncated_text))
     return extract_skills(cleaned), truncated, unmatched_skill_terms(cleaned)
 
 

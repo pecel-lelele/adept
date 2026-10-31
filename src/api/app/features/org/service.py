@@ -415,10 +415,23 @@ def get_gaps(user: CurrentUser, scenario: ScenarioId) -> GapHeatmapResponse:
     )
 
 
+def require_cohort(size: int) -> None:
+    """Gate team-derived disclosures, including explicitly selected subsets."""
+    minimum = get_settings().org_min_cohort
+    if size < minimum:
+        raise AppError(
+            f"Too few members: at least {minimum} sharing members with completed profiles "
+            "are required for team planning.",
+            status_code=409,
+            code="insufficient_cohort",
+        )
+
+
 def get_plan(user: CurrentUser, scenario: ScenarioId, role_id: str | None = None) -> GroupPlan:
     org_id = _require_manager(user)
     org = repository.get_org(org_id)
     members = member_learners(org_id)
+    require_cohort(len(members))
     pathway = pathway_service.group_pathway(
         members,
         target_role(org_id, role_id, members=members),

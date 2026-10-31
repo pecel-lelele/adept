@@ -1,4 +1,4 @@
-import { BookOpen, Building2, LogOut } from "lucide-react";
+import { ArrowLeft, BookOpen, Building2, LogOut } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { Suspense, type ReactNode } from "react";
@@ -71,6 +71,10 @@ export async function Shell({
       <aside className="a-side">
         <BrandLogo href={ws.home} label={t("shell.brandWorkspace")} />
         <span className="a-eyebrow a-side-space">{t(space)}</span>
+        <Link href="/" className="a-auth-back" aria-label={t("auth.backHome")}>
+          <ArrowLeft size={16} aria-hidden />
+          <span>{t("auth.back")}</span>
+        </Link>
         {switcher}
         <Suspense>
           <SideNav ws={ws} doneSteps={doneSteps} roleChosen={roleChosen} />

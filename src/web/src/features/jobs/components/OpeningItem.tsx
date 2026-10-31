@@ -64,11 +64,43 @@ async function MatchBox({ now, after }: { now: number; after: number | null }) {
   );
 }
 
-/** One job: title (links to the employer's ad), company and place, what is left to learn, match. */
-export async function OpeningItem({ o, showFit = true }: { o: Schemas["JobOpening"]; showFit?: boolean }) {
+/** Open ads split by how they relate to Malaysia; empty remote parts are left out. */
+export async function placeCounts(places: Schemas["OpeningPlaceCounts"]) {
+  const t = await getTranslations("jobs.places");
+  return [
+    t("inMalaysia", { count: places.in_malaysia }),
+    places.remote_explicit_my ? t("remoteOpen", { count: places.remote_explicit_my }) : null,
+    places.remote_assumed_worldwide ? t("remoteWorldwide", { count: places.remote_assumed_worldwide }) : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+}
+
+const RELEVANCE_TONE = {
+  in_malaysia: "up",
+  remote_explicit_my: undefined,
+  remote_assumed_worldwide: "warn",
+} as const;
+
+/**
+ * One job: title (links to the employer's ad), company and place, what is left to learn, match.
+ * `malaysiaFocus` shows the ad's raw location, its Malaysia badge and the source it came from.
+ */
+export async function OpeningItem({
+  o,
+  showFit = true,
+  malaysiaFocus = false,
+}: {
+  o: Schemas["JobOpening"];
+  showFit?: boolean;
+  malaysiaFocus?: boolean;
+}) {
   const t = await getTranslations("jobs");
-  const place =
-    o.work_mode === "remote" ? t("remote", { scope: o.remote_scope || t("anywhere") }) : o.location || t("malaysia");
+  const place = malaysiaFocus
+    ? o.location
+    : o.work_mode === "remote"
+      ? t("remote", { scope: o.remote_scope || t("anywhere") })
+      : o.location || t("malaysia");
   const pct = (v: number | null | undefined) => (v == null ? null : Math.round(v * 100));
   const now = pct(o.match_now);
   const after = pct(o.match_after_plan);
@@ -80,9 +112,15 @@ export async function OpeningItem({ o, showFit = true }: { o: Schemas["JobOpenin
           {o.title}
           <ArrowUpRight size={14} aria-hidden />
         </a>
-        <span className="a-job-where">
-          {o.employer}, {place}
-        </span>
+        <span className="a-job-where">{place ? `${o.employer}, ${place}` : o.employer}</span>
+        {malaysiaFocus ? (
+          <span className="a-chips">
+            <span className="a-chip" data-tone={RELEVANCE_TONE[o.malaysia_relevance]}>
+              {t(`relevance.${o.malaysia_relevance}`)}
+            </span>
+            <span className="a-small a-muted">{t("via", { source: o.source_name })}</span>
+          </span>
+        ) : null}
         {o.is_stale ? (
           <span className="a-job-stale a-small a-muted" role="note">
             {t("stale", { date: o.last_seen })}

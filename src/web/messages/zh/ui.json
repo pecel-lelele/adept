@@ -49,7 +49,8 @@
     "funding_conflict": "无法完成资助请求，请联系管理员检查当前状态。",
     "disallowed_content": "请移除输入中不受支持的内容后继续。",
     "unknown_course": "请从当前计划或目录选择课程。",
-    "invalid_role_proposal": "从目录中选择岗位"
+    "invalid_role_proposal": "从目录中选择岗位",
+    "insufficient_cohort": "已完成档案并同意分享技能的成员太少。请选择更大的知情同意群组，或等待更多成员完成档案。"
   },
   "nav": {
     "home": "首页",
@@ -446,7 +447,8 @@
       "fuzzy": "相近拼写",
       "semantic": "相近含义"
     },
-    "saving": "正在保存…"
+    "saving": "正在保存…",
+    "uploadTypeError": "请使用 5 MB 以内的 PDF、Word (.docx) 或文本文件。"
   },
   "home": {
     "hello": "你好，{name}",
@@ -554,6 +556,8 @@
     "signIn": "重新登录",
     "profile": "完成你的资料",
     "network": "目前无法连接 Adept。",
+    "cohort": "成员人数不足",
+    "members": "查看成员",
     "home": "返回首页",
     "unexpected": "无法加载此页面。请重试或返回首页。",
     "notFoundTitle": "找不到页面",
@@ -627,6 +631,9 @@
     "exposed": "自动化影响评分最高",
     "exposedHint": "由审核人员依据已发表的研究（Frey & Osborne、ILO、McKinsey、O*NET 任务类型）给出的 0 到 1 相对评分。用于技能之间的比较，并非实测的任务比例。",
     "allSkills": "所有追踪的技能",
+    "previousPage": "上一页",
+    "nextPage": "下一页",
+    "pageOf": "第 {page} / {pages} 页",
     "noMatch": "没有符合筛选条件的技能。",
     "rankingOptions": "排序选项",
     "bestFit": "最匹配",

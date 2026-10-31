@@ -42,12 +42,12 @@ work, including removal of the dedicated comparison feature, remains in place.
 
 ## Review and handoff
 
-Significant behaviour is recorded as `TEAM-049` in `docs/decisions.md`. Generated OpenAPI and
+Significant behaviour is recorded as `TEAM-052` in `docs/decisions.md`. Generated OpenAPI and
 TypeScript files come from production contracts. There was no commit, push, merge or deploy.
 
 Suggested commit: `feat(pathway): require role choice and add consent-aware team progress`.
 
-## Follow-up corrections (TEAM-050)
+## Follow-up corrections (TEAM-053)
 
 A later review found these problems, and all of them are now fixed:
 

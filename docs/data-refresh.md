@@ -9,11 +9,17 @@ on HTTP errors, failed sources, due-but-cooling-down work, or timeout. It never 
 
 ## Activation and verification
 
-1. Review and apply `20261030160000_data_refresh_runs.sql`,
-   `20261030220000_data_refresh_trends.sql`,
-   `20261030221000_background_data_refresh.sql` and
-   `20261031010000_measured_trend_inputs.sql` to the intended production database through
-   the owner's migration procedure. Replit build/start never migrates or seeds.
+Manual refresh workflows and the automatic scheduler run only when the Actions ref is
+`main` in the source repository. Do not dispatch from feature refs. The in-workflow guard
+prevents accidental execution, but someone who can edit a workflow on a branch can remove
+that guard: restrict who may dispatch, protect the main branch, and move deployment secrets
+to a GitHub environment restricted to reviewed main before treating it as a security
+boundary. Repository secrets without that restriction are not branch-isolated.
+
+1. Review and apply **all pending append-only migrations** to the intended production
+   database through the owner's procedure, including the dated provenance, paper-store
+   (`20261031180000`) and matcher-series (`20261031220000`) migrations. Replit build/start
+   never migrates or seeds; do not run these against an unconfirmed target.
 2. Provision a new random `DATA_REFRESH_TOKEN` in Replit Secrets and GitHub Actions secrets.
    Configure GitHub repository variable `DATA_REFRESH_APP_URL` with the public HTTPS origin.
 3. Keep Replit's existing `TRENDS_RUNPOD_API_KEY`, `TRENDS_RUNPOD_ENDPOINT_ID` and
@@ -21,6 +27,11 @@ on HTTP errors, failed sources, due-but-cooling-down work, or timeout. It never 
 4. Deploy the reviewed source. Run **Automatic app data refresh** once. Check its conclusion,
    `/api/v1/data/freshness`, and the admin snapshot page's per-source dates/recent runs.
    Verify a later scheduled run succeeds too; a green no-op alone does not prove publication.
+   For the line chart, read `GET /api/v1/trends/compare?kind=skill&entities=skill:python&preset=3M`:
+   a 404 means the chart API is not deployed; a 200 with no non-null observed points means
+   the selected matcher has no complete stored seven-day windows. Record the returned
+   `meta` source and observation dates, then run an authorized refresh/backfill to build
+   actual paper history. Never add a synthetic line to represent missing observations.
 5. Until that proof exists, retain the original `trends-refresh.yml` path and existing secrets.
    After the first successful automatic publication, record the run URL and list
    `TREND_DATABASE_URL` and `TRENDS_RUNPOD_API_KEY` as no longer needed **in GitHub** in the PR.
@@ -33,7 +44,7 @@ optional and were not provisioned as part of this change.
 
 - `POST /api/v1/data/refresh/run`: scheduler token (`X-Data-Refresh-Token`), constant-time
   comparison; rejects user-session headers; independently rate limited.
-- `POST /api/v1/data/refresh/check`: signed-in users. Cheap stored-week/daily-cadence check
+- `POST /api/v1/data/refresh/check`: administrators only since M1-026. Cheap stored-week/daily-cadence check
   precedes paid work and cooldown. A successful current-data check starts no worker/network
   request. The under-one-second target assumes a warm app/database; cold starts can exceed it.
 - Both return 202 and a UUID for queued/running work, 200 for up-to-date/cooldown. An existing
@@ -127,7 +138,18 @@ connectors are preserved; automatic refresh is restricted to the documented sour
 | Adzuna | Registration/app ID and key | Malaysia API support not verified | [Overview](https://developer.adzuna.com/overview), [interactive docs](https://developer.adzuna.com/activedocs). Country support and applicable reuse terms remain unverified. Defer; do not invent Malaysian availability. |
 | MyFutureJobs / PERKESO | No permitted documented public feed verified | Malaysian portal | [Official terms PDF](https://myfuturejobs.gov.my/wp-content/uploads/2024/03/TermsAndConditions.pdf), clauses 4.3–4.4 restrict reproduction/server storage without written permission. Do not scrape or add a connector. |
 | Careerjet / Jooble | Optional keys; absent keys logged as skipped board names | Existing MY connectors | Preserve opt-in code; no keys required for automatic operation. No new keyed integration enabled. |
-| Workday / Jibe / generic remote feeds | Historical connectors retained for CLI compatibility | Existing exports may contain credited rows | Undocumented career-site endpoints and worldwide-only remote eligibility are not sufficient for this automatic path. Skip them automatically; serving also requires the stored posting's own Malaysian location. |
+| Workday / Jibe | Historical connectors retained for CLI compatibility | Existing exports may contain credited rows | Undocumented career-site endpoints are not sufficient for this automatic path. Skip them automatically. |
+| Himalayas / Jobicy / Remote OK / Remotive | Public remote-job APIs, no key | Remote ads; a stored "Worldwide" scope may mean the feed named no region, so it is not a claim about Malaysia | Read automatically (M4-095) so remote ads stay live for `/app/jobs` and `/app/matches/[roleId]`, labelled by Malaysia relevance. Terms were not re-verified for this path: only the existing credit and unchanged apply link are kept. All other surfaces still serve only a posting's own Malaysian location. |
 
 Open pages do not establish permission for every future use. Unverified candidates stay
 disabled; the assessment records those limits rather than claiming terms were approved.
+
+## Gemini trend matcher rollout (M1-024, M1-027)
+
+`TRENDS_MATCHER=auto` (the default) keeps the series on MiniLM until a passing
+`src/data/seed/trends/paper_store/equivalence.json` is committed, then uses Gemini, which needs
+`EMBEDDINGS_PROVIDER=gemini` and `GEMINI_API_KEY`. `TRENDS_EMBEDDING_BACKEND` still only configures
+the MiniLM encoder. Apply `20261031220000_trend_matcher_series.sql` before deploying this code. To
+move a database after the switch: run `make seed` against it (it loads the paper store, keeping
+existing rows), set the two settings, then let the daily job continue. `TRENDS_MATCHER=minilm`
+stays on MiniLM; its stored rows are never altered. See `src/pipelines/trends/README.md`.
