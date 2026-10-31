@@ -54,7 +54,9 @@ def _table(rows: list[str]) -> str:
     for i, row in enumerate(body):
         tag = "th" if i == 0 else "td"
         width = f' style="width:{100 // columns}%"' if i == 0 else ""
-        tag_row.append("<tr>" + "".join(f"<{tag}{width}>{_inline(c)}</{tag}>" for c in row) + "</tr>")
+        tag_row.append(
+            "<tr>" + "".join(f"<{tag}{width}>{_inline(c)}</{tag}>" for c in row) + "</tr>"
+        )
     return f'<table class="cols{columns}">' + "".join(tag_row) + "</table>"
 
 
@@ -127,7 +129,15 @@ def architecture_png() -> bytes:
         page.draw_polyline([wing_a, tip, wing_b], color=ink, fill=ink, closePath=True)
 
     box(6, 6, 208, 122, "Public sources", "arXiv, job feeds,\ncourse pages, DOSM,\nUN SDG", green)
-    box(230, 6, 208, 122, "Refresh worker", "Daily GitHub trigger;\nruns in the deployed\napp, validates data", green)
+    box(
+        230,
+        6,
+        208,
+        122,
+        "Refresh worker",
+        "Daily GitHub trigger;\nruns in the deployed\napp, validates data",
+        green,
+    )
     box(454, 6, 208, 122, "RunPod", "MiniLM research\nembeddings", green)
     arrow((214, 67), (230, 67))
     arrow((438, 67), (454, 67))
@@ -139,9 +149,33 @@ def architecture_png() -> bytes:
     arrow((292, 257), (312, 257))
     arrow((462, 257), (482, 257))
     arrow((400, 128), (560, 196))
-    box(6, 400, 208, 154, "Skill suggestions", "Gemini Embedding 001\nsuggests a catalogue\nskill; the person\nconfirms it", green)
-    box(230, 400, 208, 154, "Plan engine", "Deterministic score,\nskills gap, course plan,\nSDG contribution,\ntwo scenarios", green)
-    box(454, 400, 208, 154, "Adi answer gate", "GLM-5.3 or Gemini\nselects answer IDs;\nthe server checks them\nand shows its own text", green)
+    box(
+        6,
+        400,
+        208,
+        154,
+        "Skill suggestions",
+        "Gemini Embedding 001\nsuggests a catalogue\nskill; the person\nconfirms it",
+        green,
+    )
+    box(
+        230,
+        400,
+        208,
+        154,
+        "Plan engine",
+        "Deterministic score,\nskills gap, course plan,\nSDG contribution,\ntwo scenarios",
+        green,
+    )
+    box(
+        454,
+        400,
+        208,
+        154,
+        "Adi answer gate",
+        "GLM-5.3 or Gemini\nselects answer IDs;\nthe server checks them\nand shows its own text",
+        green,
+    )
     arrow((340, 318), (110, 400))
     arrow((370, 318), (334, 400))
     arrow((430, 318), (558, 400))
@@ -177,9 +211,12 @@ def _css(has_fonts: bool) -> str:
     table.cols3 th, table.cols3 td {{ font-size: 8.5pt; }}
     table.cols4 th, table.cols4 td {{ font-size: 8pt; }}
     table.cols5 th, table.cols5 td {{ font-size: 7.5pt; }}
-    th {{ font-weight: bold; text-align: left; padding: 2pt 3pt 3pt 0; border-bottom: 0.6pt solid #000; }}
-    td {{ color: {ANSWER}; padding: 3pt 3pt 3pt 0; border-bottom: 0.3pt solid #b8bcc4; line-height: 1.15; }}
-    pre {{ font-family: monospace; font-size: 7.6pt; line-height: 1.2; color: {ANSWER}; margin: 0 0 9pt 0; }}
+    th {{ font-weight: bold; text-align: left; padding: 2pt 3pt 3pt 0;
+          border-bottom: 0.6pt solid #000; }}
+    td {{ color: {ANSWER}; padding: 3pt 3pt 3pt 0; border-bottom: 0.3pt solid #b8bcc4;
+          line-height: 1.15; }}
+    pre {{ font-family: monospace; font-size: 7.6pt; line-height: 1.2; color: {ANSWER};
+           margin: 0 0 9pt 0; }}
     """
 
 
@@ -197,7 +234,9 @@ def render(source_path: Path, output_path: Path, title: str) -> None:
     media = pymupdf.Rect(0, 0, PAGE_WIDTH, PAGE_HEIGHT)
     body = pymupdf.Rect(MARGIN_X, MARGIN_Y, PAGE_WIDTH - MARGIN_X, PAGE_HEIGHT - MARGIN_Y)
     document = story.write_with_links(lambda _number, _filled: (media, body, None))
-    document.set_metadata({"title": title, "author": "Team Pecel Lele", "subject": "SDC Hackathon 2026"})
+    document.set_metadata(
+        {"title": title, "author": "Team Pecel Lele", "subject": "SDC Hackathon 2026"}
+    )
     document.save(output_path, garbage=4, deflate=True)
     over = [item for item in word_limits(source) if item[1] > item[2]]
     print(f"Exported {len(document)} pages to {output_path}; answers over limit: {over or 'none'}")

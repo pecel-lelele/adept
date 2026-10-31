@@ -68,7 +68,7 @@ def main() -> None:
                 "recommended": recommended,
                 "valid": valid,
                 "validity_percent": validity_percent(valid, recommended),
-                "limits": "ID resolution on synthetic personas; not a check of every price or link.",
+                "limits": "ID resolution on synthetic personas; not a check of prices or links.",
                 "records": records,
             },
             indent=2,
