@@ -153,16 +153,26 @@ test("route and global recovery render translated safe text, retry and a home li
     const notFound = renderToStaticMarkup(await resolveTree(await NotFound({})));
     assert.ok(notFound.includes(t("notFoundTitle")));
     const { default: ErrorPage } = loadComponent("src/app/error.tsx", common);
-    assert.ok(renderToStaticMarkup(await resolveTree(ErrorPage({ retry: props.retry, error: new Error("Do not disclose") }))).includes(t("unexpected")));
+    const routeTree = await resolveTree(ErrorPage({ reset: props.retry, error: new Error("Do not disclose") }));
+    const route = renderToStaticMarkup(routeTree);
+    assert.ok(route.includes(t("unexpected")));
+    assert.ok(route.includes(t("retry")));
+    assert.match(route, /<button/);
+    assert.doesNotMatch(route, /Do not disclose|undefined/);
+    visit(routeTree); assert.equal(retried, 2);
     const messages = Object.fromEntries(i18n.locales.map((id) => [`../../messages/${id}/ui.json`, { default: JSON.parse(readFileSync(`src/web/messages/${id}/ui.json`, "utf8")) }]));
     const { default: GlobalError } = loadComponent("src/app/global-error.tsx", {
       ...common, ...messages, "./globals.css": {}, "./adept.css": {}, "@/lib/i18n/config": i18n,
       react: { useSyncExternalStore: (_subscribe, snapshot) => snapshot() },
     }, { document: { cookie: `${i18n.LOCALE_COOKIE}=${locale}` } });
-    const global = renderToStaticMarkup(await resolveTree(GlobalError({ retry: props.retry, error: new Error("Do not disclose") })));
+    const globalTree = await resolveTree(GlobalError({ reset: props.retry, error: new Error("Do not disclose") }));
+    const global = renderToStaticMarkup(globalTree);
     assert.match(global, new RegExp(`<html lang="${locale}"`));
     assert.ok(global.includes(t("unexpected")));
+    assert.ok(global.includes(t("retry")));
+    assert.match(global, /<button/);
     assert.doesNotMatch(global, /Do not disclose|undefined/);
+    visit(globalTree); assert.equal(retried, 3);
   }
 });
 

@@ -2435,3 +2435,13 @@
 - **Affects**: The additive `MatchMeta.available_snapshots` field passes through dates from the same trend read used for ranking, removing the web's separate radar request; generated OpenAPI/TypeScript contracts are refreshed. The intake server action returns its fixed success destination so the client can clear storage before navigating. No scoring, source dates, privacy thresholds, dependencies or database schema change.
 - **Replaces**: none
 - **PR / branch**: fix/web-ux-gaps / Fixes #85
+
+### M4-094: Wire framework reset props into error recovery
+- **Date**: 2026-10-31
+- **Feature**: Core
+- **Type**: UI
+- **Change**: Route and global error boundaries accept `reset` and forward it to `RouteErrorState.retry`. Recovery tests supply only `error` and `reset`, assert the translated retry button renders, and invoke its handler in en/ms/zh.
+- **Why**: PR #95's Greptile review identified that retry-only test props could conceal a missing recovery button when the framework supplies `reset`.
+- **Affects**: Both app error boundaries and web UX regressions; no API contracts, settings, styling or dependencies change.
+- **Replaces**: M4-093 error callback wiring only
+- **PR / branch**: fix/web-ux-gaps / PR #95

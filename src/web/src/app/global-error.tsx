@@ -22,13 +22,13 @@ function browserLocale() {
   }
 }
 
-export default function GlobalError({ retry }: { error: unknown; retry: () => void }) {
+export default function GlobalError({ reset }: { error: unknown; reset: () => void }) {
   const locale = useSyncExternalStore(subscribe, browserLocale, () => defaultLocale);
   const t = messages[locale].error;
   return (
     <html lang={locale}>
       <body>
-        <RouteErrorState title={t.title} description={t.unexpected} home={t.home} retryLabel={t.retry} retry={retry} />
+        <RouteErrorState title={t.title} description={t.unexpected} home={t.home} retryLabel={t.retry} retry={reset} />
       </body>
     </html>
   );
