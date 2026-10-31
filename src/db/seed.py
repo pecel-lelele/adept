@@ -54,6 +54,11 @@ TABLE_ORDER = [
     "certifications",
     "job_postings",
     "org_regions",
+    # Portable trend paper store (src/data/seed/trends/paper_store, M1-027). Existing rows are
+    # kept, so re-seeding never replaces a day the live job has since refetched.
+    "trend_fetched_days",
+    "trend_paper_mentions",
+    "trend_matcher_calibration",
 ]
 REFERENCE_KEYS = {
     "skills": ("id",),
@@ -71,7 +76,7 @@ REFERENCE_KEYS = {
 
 SERIAL_TABLES = {"snapshots", "trend_signals"}
 # CSVs in src/data/seed/ that are evaluation benchmarks or ground truth, not database tables.
-NON_TABLE_CSVS = {"expected_roles"}
+NON_TABLE_CSVS = {"expected_roles", "role_categories"}
 # Synthetic people and organisations are test / evaluation fixtures only. The database holds
 # reference data (taxonomy, courses, SDGs, trends); every user and organisation in it is
 # created through the app's own sign-up flow.
@@ -81,7 +86,7 @@ FIXTURE_ONLY_TABLES = {"org_regions"}  # regions of the fixture organisations
 
 def collect() -> dict[str, list[Path]]:
     files: dict[str, list[Path]] = defaultdict(list)
-    for path in sorted(SEED.glob("*/*.csv")):
+    for path in sorted([*SEED.glob("*/*.csv"), *SEED.glob("trends/paper_store/*.csv")]):
         if (
             path.stem in NON_TABLE_CSVS | FIXTURE_ONLY_TABLES
             or path.parent.name in FIXTURE_ONLY_DIRS
