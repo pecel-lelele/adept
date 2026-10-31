@@ -33,11 +33,15 @@ class Store:
 
     def __init__(self) -> None:
         self.days: dict[date, int] = {}
+        self.fetched_on: dict[date, date] = {}
         self.papers: dict[str, tuple[date, str, str, list[str]]] = {}
         self.calibrations: dict[str, float] = {}
 
     def install(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        monkeypatch.setattr(trend_store, "fetched_days", lambda: set(self.days))
+        monkeypatch.setattr(
+            trend_store, "fetched_days", lambda: {d: self.fetched_on[d] for d in self.days}
+        )
+        monkeypatch.setattr(trend_store, "last_fetched", self.last_fetched)
         monkeypatch.setattr(trend_store, "calibration", self.calibrations.get)
         monkeypatch.setattr(trend_store, "minilm_rate", self.minilm_rate)
         monkeypatch.setattr(trend_store, "save_calibration", self.save_calibration)
@@ -51,11 +55,17 @@ class Store:
     def save_calibration(self, _conn: Any, model: str, threshold: float, *_rest: Any) -> None:
         self.calibrations.setdefault(model, threshold)
 
+    def last_fetched(self, start: date, end: date) -> date | None:
+        dates = [on for d, on in self.fetched_on.items() if start <= d <= end]
+        return max(dates) if dates else None
+
     def save_days(
-        self, _conn: Any, days: Any, mentions: Any, method: str, model: str, _on: date
+        self, _conn: Any, days: Any, mentions: Any, method: str, model: str, on: date
     ) -> None:
         for day, papers in days.items():
-            self.days.setdefault(day, len(papers))
+            self.papers = {k: v for k, v in self.papers.items() if v[0] != day}
+            self.days[day] = len(papers)
+            self.fetched_on[day] = on
             for p in papers:
                 self.papers.setdefault(
                     p["arxiv_id"], (day, method, model, mentions.get(p["arxiv_id"], []))
@@ -77,6 +87,7 @@ class Store:
         day = first
         while day <= last:
             self.days[day] = 2
+            self.fetched_on[day] = min(day + timedelta(days=automatic_trends.SETTLE_DAYS), TODAY)
             for n in range(2):
                 self.papers[f"{day}-{n}"] = (day, "M1-014", model, skills)
             day += timedelta(days=1)
@@ -128,7 +139,8 @@ def _arxiv(monkeypatch: pytest.MonkeyPatch, calls: list[date] | None = None) -> 
 
 
 def test_missing_days_are_oldest_first_bounded_and_never_include_unannounced_days() -> None:
-    stored = {automatic_trends.START_DAY}
+    start = automatic_trends.START_DAY
+    stored = {start: start + timedelta(days=automatic_trends.SETTLE_DAYS)}
     days = automatic_trends.missing_days(stored, TODAY)
     assert days[0] == automatic_trends.START_DAY + timedelta(days=1)
     assert len(days) <= automatic_trends.MAX_DAYS_PER_RUN
@@ -286,3 +298,69 @@ def test_missing_store_migration_stops_before_paid_inference(
     _no_network(monkeypatch)
     with pytest.raises(service.RefreshFailed, match="migration"):
         automatic_trends.run(time.monotonic(), 60, STOP)
+
+
+def test_settle_days_refetch_an_early_fetched_day_exactly_once() -> None:
+    day = TODAY - timedelta(days=automatic_trends.SETTLE_DAYS)
+    early = day + timedelta(days=automatic_trends.ARXIV_LAG_DAYS)
+    settled = day + timedelta(days=automatic_trends.SETTLE_DAYS)
+    full = {
+        d: d + timedelta(days=automatic_trends.SETTLE_DAYS)
+        for d in (
+            automatic_trends.START_DAY + timedelta(days=i)
+            for i in range((TODAY - automatic_trends.START_DAY).days)
+        )
+    }
+    assert day in automatic_trends.missing_days({**full, day: early}, TODAY)
+    assert day not in automatic_trends.missing_days({**full, day: settled}, TODAY)
+    # Not settled yet: an early fetch stays until its settle date.
+    recent = NEWEST
+    assert recent not in automatic_trends.missing_days({**full, recent: TODAY}, TODAY)
+
+
+def test_refetched_day_replaces_its_papers_and_republishes(
+    store: Store, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    store.fill(automatic_trends.START_DAY, NEWEST, ["python"])
+    day = TODAY - timedelta(days=automatic_trends.SETTLE_DAYS)
+    store.fetched_on[day] = day + timedelta(days=automatic_trends.ARXIV_LAG_DAYS)
+    calls: list[date] = []
+    _arxiv(monkeypatch, calls)
+    monkeypatch.setenv("TRENDS_RUNPOD_ENDPOINT_ID", "synthetic-endpoint")
+    monkeypatch.setenv("TRENDS_RUNPOD_API_KEY", "synthetic-test-key")
+
+    class Encoder:
+        def __init__(self, *args: Any, **kwargs: Any) -> None:
+            pass
+
+        def encode(self, texts: list[str], **kwargs: Any) -> list[list[float]]:
+            return [[1.0] * 384 for _ in texts]
+
+    monkeypatch.setattr(automatic_trends, "RunPodEncoder", Encoder)
+    current = (NEWEST - timedelta(days=6), NEWEST)
+    note = f"Observed arXiv submissions {current[0]}..{current[1]} against older days."
+    monkeypatch.setattr(automatic_trends.refresh, "latest_published", lambda _url: (NEWEST, note))
+    published = _published(monkeypatch)
+    automatic_trends.run(time.monotonic(), 600, STOP)
+    assert calls == [day]
+    assert store.days[day] == 1 and store.fetched_on[day] == TODAY
+    assert [k for k, v in store.papers.items() if v[0] == day] == [f"synthetic-{day}"]
+    assert published, "a refetched day inside the windows must republish"
+
+
+def test_rebuild_reports_the_stored_fetch_date_not_today(
+    store: Store, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Every stored day settled; the newest was fetched yesterday, and nothing is new today.
+    last = TODAY - timedelta(days=automatic_trends.SETTLE_DAYS + 1)
+    store.fill(automatic_trends.START_DAY, last, ["python"])
+    monkeypatch.setattr(automatic_trends, "missing_days", lambda _stored, _today: [])
+    fetched = last + timedelta(days=automatic_trends.SETTLE_DAYS)
+    published = _published(monkeypatch)
+    _no_network(monkeypatch)
+    automatic_trends.run(time.monotonic(), 600, STOP)
+    inputs = published[0]
+    assert inputs.fetched == fetched
+    arxiv = next(s for s in inputs.sources if "arXiv" in s.name)
+    assert str(arxiv.retrieved_at) == fetched.isoformat()
+    assert f"last fetched {fetched}" in inputs.note

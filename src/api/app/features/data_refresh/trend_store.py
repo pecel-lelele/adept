@@ -16,16 +16,26 @@ from app.core.db import connection
 from app.features.data_refresh import service
 
 
-def fetched_days() -> set[date]:
-    """Days already stored. A missing table means the migration is not applied."""
+def fetched_days() -> dict[date, date]:
+    """Stored days and when each was fetched. A missing table means no migration yet."""
     try:
         with connection() as conn:
-            rows = conn.execute("SELECT day FROM trend_fetched_days").fetchall()
+            rows = conn.execute("SELECT day, fetched_on FROM trend_fetched_days").fetchall()
     except psycopg.errors.UndefinedTable as exc:
         raise service.RefreshFailed(
             "refresh_not_configured", "Apply the trend paper-store migration before inference."
         ) from exc
-    return {row["day"] for row in rows}
+    return {row["day"]: row["fetched_on"] for row in rows}
+
+
+def last_fetched(start: date, end: date) -> date | None:
+    """Newest fetch date among stored days in [start, end]."""
+    with connection() as conn:
+        row = conn.execute(
+            "SELECT max(fetched_on) AS d FROM trend_fetched_days WHERE day BETWEEN %s AND %s",
+            (start, end),
+        ).fetchone()
+    return row["d"] if row else None
 
 
 def minilm_rate() -> float | None:
@@ -62,11 +72,17 @@ def save_days(
     model: str,
     fetched_on: date,
 ) -> None:
-    """Store fetched days and their papers in the caller's transaction."""
+    """Store fetched days and their papers in the caller's transaction.
+
+    A refetched day (see `automatic_trends.SETTLE_DAYS`) replaces its earlier papers, so the
+    per-day sample stays the newest PER_DAY papers of a fully announced day.
+    """
     for day, papers in days.items():
+        conn.execute("DELETE FROM trend_paper_mentions WHERE published_on = %s", (day,))
         conn.execute(
             "INSERT INTO trend_fetched_days(day, papers, fetched_on) VALUES (%s, %s, %s) "
-            "ON CONFLICT (day) DO NOTHING",
+            "ON CONFLICT (day) DO UPDATE SET papers = EXCLUDED.papers, "
+            "fetched_on = EXCLUDED.fetched_on",
             (day, len(papers), fetched_on),
         )
         for paper in papers:
