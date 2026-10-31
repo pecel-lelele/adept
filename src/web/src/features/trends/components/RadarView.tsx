@@ -1,7 +1,7 @@
 import { Bot, Minus, Radar, TrendingDown, TrendingUp } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
-import { Kpis, MetaBar, PageHeader, TrendPill } from "@/components";
+import { EstimateLabel, Kpis, MetaBar, PageHeader, TrendPill } from "@/components";
 import { DataAsOf } from "@/components/DataAsOf";
 import { getAccount } from "@/lib/auth/account";
 import { RefreshDataButton } from "./RefreshDataButton";
@@ -37,7 +37,16 @@ export async function RadarView({
     fetchRadar(scenario, snapshotDate),
     context === "individual" ? fetchMyProfile() : Promise.resolve(null),
   ]);
-  if (!result.ok) return <ErrorState failure={result} />;
+  if (!result.ok) return (
+    <div className="a-view">
+      <PageHeader eyebrow={context === "organisation" ? tp("radarEyebrowOrg") : tp("stepOf", { step: 2, total: journeyStepCount() })}
+        title={context === "organisation" ? t("orgTitle") : t("title")} description={tp("radarDesc")}>
+        <EstimateLabel scenario={scenario} />
+        {snapshotDate ? <span className="a-chip">{tp("asOf", { date: snapshotDate })}</span> : null}
+      </PageHeader>
+      <ErrorState failure={result} />
+    </div>
+  );
   const { items, meta } = result.data;
   const directions = await fetchRoleDirections(scenario, meta.snapshot_date);
   const v = scenario === "fast" ? "velocity_fast" : "velocity_moderate";

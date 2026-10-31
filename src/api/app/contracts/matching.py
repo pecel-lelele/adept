@@ -1,5 +1,6 @@
 """F4 Future-role matching (owner M2)."""
 
+from datetime import date
 from typing import Literal
 
 from pydantic import BaseModel, Field
@@ -91,9 +92,16 @@ class RoleMatch(BaseModel):
     meta: RecommendationMeta
 
 
+class MatchMeta(RecommendationMeta):
+    available_snapshots: list[date] = Field(
+        default_factory=list,
+        description="Stored snapshot dates supplied by the trend source used for this ranking.",
+    )
+
+
 class MatchResponse(BaseModel):
     matches: list[RoleMatch]
-    meta: RecommendationMeta
+    meta: MatchMeta
     data_provenance_note: str | None = Field(
         default=None,
         description="Trend provider's provenance disclosure, including any demo-fixture caveat.",

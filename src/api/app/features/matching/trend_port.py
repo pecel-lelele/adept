@@ -19,7 +19,7 @@ import threading
 import time
 from concurrent.futures import Future, ThreadPoolExecutor
 from concurrent.futures import TimeoutError as FuturesTimeout
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date
 
 from app.contracts.common import ScenarioId, Source
@@ -79,6 +79,7 @@ class TrendSnapshot:
     served_from: SourceType = "db"
     is_fallback: bool = False
     reference_velocities: dict[str, float] | None = None
+    available_snapshots: list[date] = field(default_factory=list)
 
 
 def fetch_snapshot(scenario: ScenarioId, snapshot_date: date | None = None) -> TrendSnapshot:
@@ -128,6 +129,7 @@ def fetch_snapshot(scenario: ScenarioId, snapshot_date: date | None = None) -> T
         observed_to=snap.meta.observed_to,
         served_from=snap.meta.served_from,
         is_fallback=snap.meta.is_fallback,
+        available_snapshots=list(snap.meta.available_snapshots),
         reference_velocities={
             item.skill_id: float(
                 getattr(item, "velocity_fast" if scenario == "moderate" else "velocity_moderate")

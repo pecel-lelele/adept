@@ -165,7 +165,8 @@
     "seeMatches": "See your ranked matches",
     "humanInCharge": "This comparison supports your decision; it does not rank or select roles for you.",
     "emptyTitle": "No roles to compare yet",
-    "emptyHint": "Return to matches to choose a target role."
+    "emptyHint": "Return to matches to choose a target role.",
+    "useBestMatch": "Use my best match"
   },
   "badge": {
     "first": "First course done",

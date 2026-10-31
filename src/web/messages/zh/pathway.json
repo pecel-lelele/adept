@@ -165,7 +165,8 @@
     "seeMatches": "查看你的匹配排名",
     "humanInCharge": "此比较仅辅助你的决定，不会替你排序或选择职位。",
     "emptyTitle": "目前没有可比较的职位",
-    "emptyHint": "返回匹配页面以选择目标职位。"
+    "emptyHint": "返回匹配页面以选择目标职位。",
+    "useBestMatch": "使用我的最佳匹配"
   },
   "badge": {
     "first": "完成第一门课程",
