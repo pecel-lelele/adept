@@ -3,6 +3,8 @@
 New endpoint:
   GET /api/v1/trends/snapshot?snapshot_date=<date>&scenario=<moderate|fast>
 
+  GET /api/v1/trends/series?start=&end=&skill_ids=  (observed rolling shares, M1-018)
+
 Legacy endpoints (kept for backward compat):
   GET /api/v1/trends/radar?scenario=<moderate|fast>
   GET /api/v1/trends/roles/{role_id}?scenario=<moderate|fast>
@@ -22,10 +24,11 @@ from app.contracts.trends import (
     RoleTrendResponse,
     TrendRefreshStatus,
     TrendRescoreResult,
+    TrendSeriesResponse,
     TrendSnapshotResponse,
 )
 from app.core.auth import CurrentUser, CurrentUserDep
-from app.features.trends import labour, refresh, service
+from app.features.trends import labour, refresh, series, service
 
 router = APIRouter(prefix="/trends", tags=["trends"])
 
@@ -53,6 +56,21 @@ def get_snapshot(
     All scores are pre-computed by the pipeline; no network call is made here.
     """
     return service.get_snapshot(snapshot_date, scenario)
+
+
+@router.get("/series")
+def get_series(
+    start: date | None = None,
+    end: date | None = None,
+    skill_ids: Annotated[list[str], Query()] = [],  # noqa: B006 - FastAPI query list default
+    scenario: ScenarioId = "moderate",
+) -> TrendSeriesResponse:
+    """Observed 7-day rolling share per skill for each day in [start, end] (max 120 days).
+
+    Counted from stored papers (no model call). Without `skill_ids`, the three biggest risers
+    and fallers in the range are returned. 422 invalid_range for bad dates or skills.
+    """
+    return series.get_series(start, end, skill_ids, scenario)
 
 
 # ---------------------------------------------------------------------------

@@ -714,6 +714,26 @@
 - **Replaces**: M1-015 (fixed completed ISO weeks for the automatic refresh); extends M1-017
 - **PR / branch**: feat/trends-rolling-accumulated
 
+### M1-019: Trend over time — date-range line chart from the paper store; Recharts via shadcn chart
+- **Date**: 2026-10-31
+- **Feature**: F2 (Trends radar), Core UI dependency
+- **Type**: contract | UI | dependency
+- **Change**: New `GET /api/v1/trends/series?start&end&skill_ids` returns, for each day in a chosen range (≤120 days, ≤8 skills), each skill's observed share of sampled arXiv papers in the 7 days ending that day, counted from the M1-018 paper store (no model call; null where a window is not fully stored). Without chosen skills it returns the three biggest risers and fallers. The radar gains a "Trend over time" card: native calendar date pickers (limited to stored days), skill chips plus an "add skill" picker, a line chart with legend, hover tooltips and ▲/▼ markers, and an accessible table. Adds `recharts@2.15.4` (exact pin, no install scripts, React 19 peer) wrapped by a lean shadcn `components/ui/chart.tsx`.
+- **Why**: Judges asked to choose any date range and see skills move continuously, not one fixed week at a time. Counting stored rows keeps each view instant and free. shadcn's chart is the stack's standard chart layer and Recharts gives tooltips and legends without bespoke SVG code. Values are labelled as observed research attention (`is_estimate=false`), not job demand or forecasts.
+- **Affects**: F2 trends API and generated client, `/app/radar` and `/org/radar`, `src/web/package.json` and `pnpm-lock.yaml` (recharts and its d3 dependencies only)
+- **Replaces**: none
+- **PR / branch**: feat/trends-range-chart
+
+### M1-020: Trend series observation period and short-history default range
+- **Date**: 2026-10-31
+- **Feature**: F2 (Trends radar)
+- **Type**: method | contract
+- **Change**: `meta.observed_from`/`observed_to` on `/trends/series` now describe the papers actually counted: first plotted point minus 6 days to the last plotted point, and null when no point has a value (empty store, or a range entirely outside stored history). With no `start`, the default range begins at the first stored day when fewer than 7 days are stored, so it is never later than the end and the response is 200 with gaps rather than 422.
+- **Why**: Review of PR 102 found the old dates ignored the 7-day window behind each point (and could invert), and a first refresh with a low time budget made the default request invalid.
+- **Affects**: `GET /api/v1/trends/series`, radar range card (rejected-choice notice, per-day table)
+- **Replaces**: none (refines M1-019)
+- **PR / branch**: feat/trends-range-chart
+
 ### M1-021: Compare durable published inputs before skipping a rolling refresh
 - **Date**: 2026-10-31
 - **Feature**: F2 (Trends), data refresh
@@ -724,6 +744,30 @@
 - **Affects**: Automatic F2 refresh publication guard and retry behaviour; no schema, provider or scoring-formula changes
 - **Replaces**: none; extends M1-018
 - **PR / branch**: feat/trends-rolling-accumulated
+
+### M1-022: Keep empty-series dates honest and expose the chart's own attribution
+- **Date**: 2026-10-31
+- **Feature**: F2 (Trends radar)
+- **Type**: method | UI
+- **Change**: An empty paper store cites the versioned series method inspected on 31 October 2026, explicitly labelled as having no stored paper observations. It never claims arXiv was retrieved on a user-selected date; observation dates remain null. The range card renders its own series metadata through the existing MetaBar.
+- **Why**: The previous empty-state fallback copied the requested end date into the source retrieval date, including future dates, despite no upstream fetch. The surrounding radar's forecast attribution can describe a different snapshot and does not establish the chart's measured period.
+- **Pipeline**: unchanged stored paper counts or explicit empty store → existing rolling shares/gaps → actual stored fetch dates or dated method-only evidence → unchanged count calculation → future-query empty-state regression and actual MetaBar renders in en/ms/zh → independently attributed chart without fabricated freshness
+- **Affects**: trend-series metadata and radar range card; no schema, provider or migration change
+- **Replaces**: none; completes attribution in M1-019/M1-020
+- **PR / branch**: feat/trends-range-chart / PR #102
+
+
+### M1-023: Read chart denominators and mentions from one database snapshot
+- **Date**: 2026-10-31
+- **Feature**: F2 (Trend series), data refresh
+- **Type**: method
+- **Change**: Count daily paper totals and selected-skill mentions in one SQL statement, using a left join so stored days without mentions remain present. Both quantities come from the same PostgreSQL statement snapshot while a refresh may replace an early-fetched day.
+- **Why**: Two READ COMMITTED statements could observe opposite sides of a correction, pairing old denominators with new mention counts and producing incorrect shares, even above 100 percent. A single statement preserves actual stored sample fractions without changing transaction isolation for other pooled users.
+- **Pipeline**: unchanged stored days and paper mentions → one MVCC statement → day totals plus per-skill counts → existing rolling share calculation → unit mapping/statement regression and opt-in real concurrent-replacement regression → consistent database-derived chart values
+- **Affects**: trend_store.daily and chart readers; no schema, provider or migration change
+- **Replaces**: none; corrects M1-019's split chart read
+- **PR / branch**: feat/trends-range-chart / PR #102
+
 ---
 
 ## M2: Profile Intake & Matching (F1, F4)

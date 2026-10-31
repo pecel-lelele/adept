@@ -178,3 +178,30 @@ class TrendRescoreResult(BaseModel):
     )
     observed_from: date | None = None
     observed_to: date | None = None
+
+
+class TrendSeriesPoint(BaseModel):
+    day: date
+    share: float | None = Field(
+        description="Share of sampled arXiv papers in the 7 days ending on `day` that mention "
+        "the skill; null when that window is not fully stored."
+    )
+
+
+class TrendSeriesLine(BaseModel):
+    skill_id: str
+    label: str
+    points: list[TrendSeriesPoint]
+    change: float | None = Field(description="Last minus first available share in the range.")
+
+
+class TrendSeriesResponse(BaseModel):
+    """Observed rolling shares per skill over a chosen date range (M1-018 paper store)."""
+
+    start: date
+    end: date
+    window_days: int = 7
+    available_from: date | None = Field(description="First day a full window is stored.")
+    available_to: date | None = Field(description="Newest stored day.")
+    lines: list[TrendSeriesLine]
+    meta: RecommendationMeta

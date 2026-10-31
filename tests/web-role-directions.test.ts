@@ -49,8 +49,10 @@ test("organisation radar renders role directions without loading personal intake
     "@/features/profile/api": { fetchMyProfile: () => { throw new Error("No personal intake"); } },
     "@/features/pathway/api": { fetchCompare: () => { throw new Error("No personal learning plan"); } },
     "./SignalExplorer": { SignalExplorer: () => null },
+    "./TrendRangeCard": { TrendRangeCard: () => null },
     "../api": {
       fetchRadar: async () => ({ ok: true, data: { items: [], meta } }),
+      fetchSeries: async () => ({ ok: true, data: { lines: [] } }),
       fetchRoleDirections: async (...args) => {
         calls.push(args);
         return { ok: true, data: { meta, items: [
