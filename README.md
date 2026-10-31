@@ -230,8 +230,8 @@ separate from Adi's `RUNPOD_API_KEY` and Gemini settings.
 The in-app scheduler is the production refresh path. Only for an approved reachable backup
 target, run **Actions → Trends refresh → Run workflow → main**, then open the `refresh` job.
 The database preflight must pass, then `Ingest, score, validate and publish` must report
-`Published snapshot YYYY-MM-DD.` A green run that skipped missing configuration is not a
-publication. Inference success alone does not establish sufficient research history or a
+`Published snapshot YYYY-MM-DD.` Missing manual configuration fails the run; a green
+conclusion alone is not publication. Inference success does not establish research history or a
 successful database write; failures preserve the previous published snapshot.
 
 The first integrated backup fetched 366 papers and counted mentions, then failed saving to
@@ -696,7 +696,8 @@ The Next.js/API pair must receive the same nonempty `PROXY_SHARED_SECRET`. Set
 (one appending edge in front of the single public server).
 Trusted client-IP mode rejects zero hops; the best-effort default permits zero but then
 anonymous visitors share one rate-limit bucket. Replit's verified configuration uses one
-hop. Local direct-socket development may use zero. The public API handler strips caller-supplied internal identity headers.
+hop. Local direct-socket development may use zero. The public API handler strips
+caller-supplied internal identity headers.
 
 `AUTH_MODE=demo` is the legacy name for PostgreSQL-backed local accounts with signed sessions,
 not an automatic demo login. Keep `APP_ENV=production`, `AUTH_RAW_USER_IDS=false` and an empty

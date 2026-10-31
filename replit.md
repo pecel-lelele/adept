@@ -68,7 +68,8 @@ revision and run command for that specific deployment rather than inferring from
 CI checks Python lint/tests, web lint/types/translations, contracts, proxy regressions,
 PostgreSQL upgrades/recovery and the actual root production build/start. Its deployment
 smoke uses an explicit disposable loopback database and never calls a model.
-Weekly source checks, the daily in-app refresh trigger, and manual legacy trend/MiniLM jobs stay at `.github/workflows`;
+Weekly source checks, the daily in-app refresh trigger, and manual legacy trend/MiniLM
+jobs stay at `.github/workflows`;
 worker Docker builds use the repository root as context. Public pages read saved snapshots.
 
 ## Automatic in-app data refresh
