@@ -131,23 +131,71 @@
   },
   "range": {
     "title": "Trend mengikut masa",
-    "hint": "Setiap garis ialah bahagian kertas penyelidikan AI sampel yang menyebut sesuatu kemahiran dalam {days} hari sehingga hari itu. Pilih tarikh dan kemahiran, kemudian tunjukkan.",
+    "hint": "Setiap garisan kemahiran ialah bahagian kertas penyelidikan AI bersampel yang menyebutnya dalam {days} hari sehingga hari itu. Pilih julat dan garisan, atau bandingkan peranan dan kategori.",
     "from": "Dari",
     "to": "Hingga",
     "skills": "Kemahiran",
-    "add": "Tambah kemahiran…",
-    "show": "Tunjuk trend",
+    "add": "Tambah garisan…",
+    "show": "Tunjukkan trend",
     "reset": "Perubahan terbesar",
-    "empty": "Tiada sejarah harian disimpan lagi. Segar semula data untuk mula mengumpulnya.",
-    "emptyRange": "Tiada kemahiran berubah dalam julat ini. Pilih tarikh atau kemahiran lain.",
+    "empty": "Belum ada sejarah harian disimpan. Ia akan muncul selepas larian data berjadual seterusnya.",
+    "emptyRange": "Tiada perubahan dalam julat ini. Pilih tarikh atau garisan lain.",
     "emptyShort": "Satu titik aliran memerlukan data kertas penyelidikan yang disimpan selama {days} hari. Sejarah masih dikumpulkan.",
-    "chartLabel": "Bahagian kertas yang menyebut setiap kemahiran, {from} hingga {to}",
-    "table": "Tunjuk sebagai jadual",
-    "skill": "Kemahiran",
+    "chartLabel": "Garisan trend, {from} hingga {to}",
+    "table": "Tunjukkan setiap titik sebagai jadual",
     "change": "Perubahan",
-    "note": "Diperhatikan dalam sampel sehingga 50 kertas arXiv cs.AI terbaharu sehari; perhatian penyelidikan, bukan permintaan pekerjaan. Jurang bermaksud tetingkap 7 hari belum disimpan sepenuhnya.",
+    "note": "Dicerap daripada sampel sehingga 50 kertas arXiv cs.AI terbaharu sehari; perhatian penyelidikan, bukan permintaan pekerjaan. Jurang bermakna tetingkap 7 hari tidak disimpan sepenuhnya dan tidak sekali-kali diisi.",
     "day": "Hari",
-    "limit": "Sehingga {max} kemahiran. Nyahtanda satu untuk menambah yang lain.",
-    "rejected": "Pilihan itu tidak dapat dipaparkan (tarikh mula selepas tarikh akhir, julat melebihi {days} hari, kemahiran yang tidak dikenali, atau lebih daripada {max} kemahiran). Memaparkan perubahan terbesar."
+    "limit": "Sehingga {max} garisan. Nyahtanda satu untuk menambah yang lain.",
+    "rejected": "Pilihan itu tidak dapat ditunjukkan (tarikh di luar data tersimpan, tarikh mula selepas tarikh akhir, julat melebihi {days} hari, garisan tidak dikenali atau lebih daripada {max} garisan). Menunjukkan perubahan terbesar.",
+    "dataThrough": "Data sehingga {date}",
+    "viewLabel": "Jenis carta",
+    "views": {
+      "skills": "Kemahiran",
+      "roles": "Peranan",
+      "categories": "Kategori"
+    },
+    "legend": {
+      "skills": "Kemahiran pada carta",
+      "roles": "Peranan dan kategori pada carta",
+      "categories": "Kategori dan peranan pada carta"
+    },
+    "presetLabel": "Julat tarikh",
+    "presets": {
+      "1W": "1M",
+      "1M": "1B",
+      "3M": "3B",
+      "6M": "6B",
+      "custom": "Tersuai"
+    },
+    "modeLabel": "Skala",
+    "modeIndexed": "Diasaskan semula kepada 100",
+    "modeRaw": "Skor mentah",
+    "horizonLabel": "Unjuran",
+    "horizons": {
+      "h30": "30 h",
+      "h90": "90 h",
+      "h180": "180 h",
+      "h365": "1 thn"
+    },
+    "rawFallback": "Garisan ini tiada tarikh dengan semua garisan melebihi 0, jadi skor mentah ditunjukkan dan bukan perbandingan yang diasaskan semula.",
+    "rebased": "Diasaskan semula kepada 100 pada {date}, tarikh pertama semua garisan melebihi 0.",
+    "derived": "Skor peranan dan kategori diperoleh daripada isyarat kemahiran arXiv, bukan permintaan peranan yang dicerap. Ia adalah anggaran.",
+    "projected": "Jika rentak ini berterusan",
+    "projectionNote": "Garisan putus-putus: rentak {scenario} diteruskan selama {days} hari. Penerusan rentak, bukan ramalan.",
+    "scenario": {
+      "moderate": "sederhana",
+      "fast": "pantas"
+    },
+    "statsCaption": "Mula, akhir, perubahan dan titik akhir unjuran, {from} hingga {to}",
+    "line": "Garisan",
+    "start": "Mula",
+    "end": "Akhir",
+    "moderateEnd": "Sederhana pada +{days} h",
+    "fastEnd": "Pantas pada +{days} h",
+    "moversTitle": "Perubahan kemahiran terbesar",
+    "moversOpen": "Buka carta",
+    "risers": "Meningkat",
+    "fallers": "Menurun"
   }
 }

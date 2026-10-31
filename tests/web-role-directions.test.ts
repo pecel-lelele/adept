@@ -37,7 +37,6 @@ test("organisation radar renders role directions without loading personal intake
   const { RadarView } = loadComponent("src/features/trends/components/RadarView.tsx", {
     "@/components/DataAsOf": { DataAsOf: () => null },
     "@/lib/auth/account": { getAccount: async () => null },
-    "./RefreshDataButton": { RefreshDataButton: () => null },
     "next-intl": intl,
     "next-intl/server": { getTranslations: async (namespace) => intl.useTranslations(namespace) },
     "next/link": { default: ({ children, ...props }) => React.createElement("a", props, children) },
@@ -50,9 +49,10 @@ test("organisation radar renders role directions without loading personal intake
     "@/features/pathway/api": { fetchCompare: () => { throw new Error("No personal learning plan"); } },
     "./SignalExplorer": { SignalExplorer: () => null },
     "./TrendRangeCard": { TrendRangeCard: () => null },
+    "../range": loadComponent("src/features/trends/range.ts"),
     "../api": {
       fetchRadar: async () => ({ ok: true, data: { items: [], meta } }),
-      fetchSeries: async () => ({ ok: true, data: { lines: [] } }),
+      fetchCompare: async () => ({ ok: true, data: { lines: [] } }),
       fetchRoleDirections: async (...args) => {
         calls.push(args);
         return { ok: true, data: { meta, items: [

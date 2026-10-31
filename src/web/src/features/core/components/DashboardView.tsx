@@ -1,5 +1,5 @@
 import { MalaysiaContextCard } from "@/features/trends/components/MalaysiaContextCard";
-import { RefreshDataButton } from "@/features/trends/components/RefreshDataButton";
+import { TrendMoversCard } from "@/features/trends/components/TrendMoversCard";
 import { DataAsOf } from "@/components/DataAsOf";
 import { ArrowRight, ArrowUpRight, BookOpen, Building2, Check, Compass, Leaf, Route, Target, TrendingUp } from "lucide-react";
 import Link from "next/link";
@@ -122,7 +122,7 @@ export async function DashboardView({ scenario, query, workspaceError = false }:
   return (
     <div className="a-view">
       <DataAsOf source="trends" />
-      {account ? <RefreshDataButton dataAsOf={radar.ok ? radar.data.meta.observed_to ?? radar.data.meta.snapshot_date : undefined} /> : null}
+      {radar.ok ? <p className="a-small a-muted" data-testid="data-through">{(await getTranslations("trends.range"))("dataThrough", { date: radar.data.meta.observed_to ?? radar.data.meta.snapshot_date })}</p> : null}
       {workspaceError ? <p className="a-chip" data-tone="warn" role="alert">{(await getTranslations("ui.workspace"))("workspaceError")}</p> : null}
       <section className="a-welcome">
         <div className="a-welcome-main">
@@ -247,6 +247,17 @@ export async function DashboardView({ scenario, query, workspaceError = false }:
           {bars.length ? <TrendBars items={bars} /> : <p className="a-muted a-small">{t("yourSkillsEmpty")}</p>}
         </section>
       </div>
+
+      <TrendMoversCard
+        scenario={scenario}
+        preset={query.get("preset") ?? undefined}
+        radarHref={href("/app/radar")}
+        homeHref={(preset) => {
+          const next = new URLSearchParams(query);
+          next.set("preset", preset);
+          return `/app?${next.toString()}`;
+        }}
+      />
 
       <div className="a-split">
         <section className="a-card" aria-labelledby="h-path">

@@ -3,15 +3,14 @@ import { getTranslations } from "next-intl/server";
 
 import { EstimateLabel, Kpis, MetaBar, PageHeader, TrendPill } from "@/components";
 import { DataAsOf } from "@/components/DataAsOf";
-import { getAccount } from "@/lib/auth/account";
-import { RefreshDataButton } from "./RefreshDataButton";
 import { journeyStepCount } from "@/config/navigation";
 import { ErrorState } from "@/components/ErrorState";
 import { TrendBars } from "@/components/viz";
 import { fetchMyProfile } from "@/features/profile/api";
 import type { ScenarioId } from "@/lib/api";
 
-import { fetchRadar, fetchRoleDirections, fetchSeries } from "../api";
+import { fetchCompare, fetchRadar, fetchRoleDirections } from "../api";
+import { DEFAULT_HORIZON, DEFAULT_PRESET, KIND_OF_VIEW, type TrendRange } from "../range";
 import { SignalExplorer } from "./SignalExplorer";
 import { RoleDirectionsCard } from "./RoleDirectionsCard";
 import { TrendRangeCard } from "./TrendRangeCard";
@@ -25,27 +24,29 @@ export async function RadarView({
   scenario,
   snapshotDate,
   context = "individual",
-  range = { skillIds: [] },
+  range = { view: "skills", preset: DEFAULT_PRESET, entities: [], mode: "indexed", horizon: DEFAULT_HORIZON },
 }: {
   scenario: ScenarioId;
   snapshotDate?: string;
   context?: "individual" | "organisation";
-  /** Trend over time: chosen dates and skills from the URL (?from=&to=&skill=). */
-  range?: { from?: string; to?: string; skillIds: string[] };
+  /** Trend over time: every choice comes from the URL (see `parseTrendRange`). */
+  range?: TrendRange;
 }) {
-  const account = await getAccount();
   const t = await getTranslations("trends");
   const d = await getTranslations("common.design");
   const tp = await getTranslations("ui.page");
+  const compare = (chosen: TrendRange) =>
+    fetchCompare({ kind: KIND_OF_VIEW[chosen.view], entities: chosen.entities, preset: chosen.preset, start: chosen.from, end: chosen.to, scenario, horizon: chosen.horizon, mode: chosen.mode });
   const [result, profile, series] = await Promise.all([
     fetchRadar(scenario, snapshotDate),
     context === "individual" ? fetchMyProfile() : Promise.resolve(null),
-    fetchSeries({ start: range.from, end: range.to, skillIds: range.skillIds, scenario }),
+    compare(range),
   ]);
-  // A rejected date or skill choice (422) falls back to the default view, so the form and its
+  // A rejected date or line choice (422) falls back to this view's movers, so the form and its
   // reset stay usable and the card explains what was refused.
   const rejected = !series.ok && series.status === 422;
-  const rangeSeries = rejected ? await fetchSeries({ skillIds: [], scenario }) : series;
+  const shownRange: TrendRange = rejected ? { ...range, preset: DEFAULT_PRESET, from: undefined, to: undefined, entities: [] } : range;
+  const rangeSeries = rejected ? await compare(shownRange) : series;
   if (!result.ok) return (
     <div className="a-view">
       <PageHeader eyebrow={context === "organisation" ? tp("radarEyebrowOrg") : tp("stepOf", { step: 2, total: journeyStepCount() })}
@@ -83,7 +84,7 @@ export async function RadarView({
         <MetaBar meta={meta} />
       </PageHeader>
       <DataAsOf source="trends" meta={meta} />
-      {account ? <RefreshDataButton dataAsOf={meta.observed_to ?? meta.snapshot_date} /> : null}
+      <p className="a-small a-muted" data-testid="data-through">{t("range.dataThrough", { date: meta.observed_to ?? meta.snapshot_date })}</p>
 
       {meta.is_replay !== true && meta.observed_to && Date.parse(meta.snapshot_date) - Date.parse(meta.observed_to) > 60 * 864e5 ? (
         <p className="a-notice" role="note">
@@ -157,12 +158,12 @@ export async function RadarView({
 
       {rangeSeries.ok ? (
         <TrendRangeCard
-          series={rangeSeries.data}
+          data={rangeSeries.data}
+          range={shownRange}
           rejected={rejected}
           scenario={scenario}
           snapshotDate={snapshotDate}
           pathname={context === "organisation" ? "/org/radar" : "/app/radar"}
-          allSkills={[...items].sort((a, b) => a.skill_label.localeCompare(b.skill_label)).map((i) => ({ id: i.skill_id, label: i.skill_label }))}
         />
       ) : (
         <>
