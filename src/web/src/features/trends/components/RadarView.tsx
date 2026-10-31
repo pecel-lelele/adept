@@ -2,7 +2,6 @@ import { Bot, Minus, Radar, TrendingDown, TrendingUp } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
 import { EstimateLabel, Kpis, MetaBar, PageHeader, TrendPill } from "@/components";
-import { DataAsOf } from "@/components/DataAsOf";
 import { getAccount } from "@/lib/auth/account";
 import { RefreshDataButton } from "./RefreshDataButton";
 import { journeyStepCount } from "@/config/navigation";
@@ -15,6 +14,8 @@ import { fetchRadar, fetchRoleDirections, fetchSeries } from "../api";
 import { SignalExplorer } from "./SignalExplorer";
 import { RoleDirectionsCard } from "./RoleDirectionsCard";
 import { TrendRangeCard } from "./TrendRangeCard";
+import "./radar.css";
+import { MalaysiaContextCard } from "./MalaysiaContextCard";
 
 /**
  * Step 2, the Future Skills Radar. Hierarchy: how many skills rise / hold / decline → the
@@ -47,7 +48,7 @@ export async function RadarView({
   const rejected = !series.ok && series.status === 422;
   const rangeSeries = rejected ? await fetchSeries({ skillIds: [], scenario }) : series;
   if (!result.ok) return (
-    <div className="a-view">
+    <div className="a-view a-radar-view">
       <PageHeader eyebrow={context === "organisation" ? tp("radarEyebrowOrg") : tp("stepOf", { step: 2, total: journeyStepCount() })}
         title={context === "organisation" ? t("orgTitle") : t("title")} description={tp("radarDesc")}>
         <EstimateLabel scenario={scenario} />
@@ -74,7 +75,7 @@ export async function RadarView({
   const exposed = [...items].sort((a, b) => b.automation_exposure - a.automation_exposure).slice(0, 8);
 
   return (
-    <div className="a-view">
+    <div className="a-view a-radar-view">
       <PageHeader
         eyebrow={context === "organisation" ? tp("radarEyebrowOrg") : tp("stepOf", { step: 2, total: journeyStepCount() })}
         title={context === "organisation" ? t("orgTitle") : t("title")}
@@ -82,14 +83,8 @@ export async function RadarView({
       >
         <MetaBar meta={meta} />
       </PageHeader>
-      <DataAsOf source="trends" meta={meta} />
       {account ? <RefreshDataButton dataAsOf={meta.observed_to ?? meta.snapshot_date} /> : null}
 
-      {meta.is_replay !== true && meta.observed_to && Date.parse(meta.snapshot_date) - Date.parse(meta.observed_to) > 60 * 864e5 ? (
-        <p className="a-notice" role="note">
-          {tp("historical", { from: meta.observed_from ?? meta.observed_to, to: meta.observed_to, date: meta.snapshot_date })}
-        </p>
-      ) : null}
 
       <Kpis
         items={[
@@ -100,10 +95,7 @@ export async function RadarView({
             label: tp("kTracked"),
             value: items.length,
             icon: <Radar size={15} />,
-            note:
-              meta.observed_from && meta.observed_to
-                ? d("observed", { from: meta.observed_from, to: meta.observed_to })
-                : tp("asOf", { date: meta.snapshot_date }),
+            note: tp("asOf", { date: meta.snapshot_date }),
           },
         ]}
       />
@@ -174,13 +166,13 @@ export async function RadarView({
       )}
 
       {directions.ok ? <RoleDirectionsCard signals={directions.data.items} meta={directions.data.meta} organisation={context === "organisation"} snapshotDate={snapshotDate} /> : <ErrorState failure={directions} />}
-      <section className="a-card" aria-labelledby="h-all">
+      <section className="a-card radar-skills-card" aria-labelledby="h-all">
         <div className="a-card-head">
           <h2 id="h-all">{tp("allSkills")}</h2>
         </div>
-        <SignalExplorer items={items} scenario={scenario} dates={meta.available_snapshots} />
+        <SignalExplorer key={`${meta.snapshot_date}:${scenario}`} items={items} scenario={scenario} dates={meta.available_snapshots} />
       </section>
-      {meta.data_provenance_note ? <p className="a-small a-muted">{meta.data_provenance_note}</p> : null}
+      <MalaysiaContextCard />
     </div>
   );
 }

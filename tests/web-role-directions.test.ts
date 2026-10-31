@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { loadComponent, React, renderToStaticMarkup, resolveTree, translations } from "./harness/web-components.ts";
+import { loadComponent, React, renderToStaticMarkup, translations } from "./harness/web-components.ts";
 
 test("radar groups public role signals and keeps dated exploration explicit", () => {
   for (const locale of ["en", "ms", "zh"]) {
@@ -15,15 +15,15 @@ test("radar groups public role signals and keeps dated exploration explicit", ()
         { entity_type: "role", entity_id: "synthetic-down", label: "Synthetic declining role", direction: "declining", growth_rate: -0.2 },
         { entity_type: "role", entity_id: "synthetic-stable", label: "Synthetic stable role", direction: "stable", growth_rate: 0 },
         { entity_type: "skill", entity_id: "synthetic-skill", label: "Synthetic skill", direction: "rising", growth_rate: 0.3 },
-      ], meta: { scenario: "fast" },
+      ], meta: { scenario: "fast", snapshot_date: "2026-10-20", sources: [], is_estimate: true },
     };
     const html = renderToStaticMarkup(React.createElement(RoleDirectionsCard, props));
     assert.match(html, /Synthetic rising role/);
     assert.match(html, /Synthetic declining role/);
     assert.doesNotMatch(html, /Synthetic stable role/);
     assert.doesNotMatch(html, /Synthetic skill/);
-    assert.match(html, /data-dir="rising"/);
-    assert.match(html, /data-dir="declining"/);
+    assert.match(html, /data-direction="rising"/);
+    assert.match(html, /data-direction="declining"/);
     assert.doesNotMatch(html, /snapshot_date/);
     const dated = renderToStaticMarkup(React.createElement(RoleDirectionsCard, { ...props, snapshotDate: "2026-10-13" }));
     assert.match(dated, /snapshot_date=2026-10-13/);
@@ -33,8 +33,10 @@ test("radar groups public role signals and keeps dated exploration explicit", ()
 test("organisation radar renders role directions without loading personal intake or plans", async () => {
   const intl = translations();
   const calls: unknown[] = [];
-  const meta = { snapshot_date: "2026-10-13", scenario: "fast", available_snapshots: ["2026-10-13"] };
+  const meta = { snapshot_date: "2026-10-13", scenario: "fast", sources: [], is_estimate: true, available_snapshots: ["2026-10-13"] };
   const { RadarView } = loadComponent("src/features/trends/components/RadarView.tsx", {
+    "./radar.css": {},
+    "./MalaysiaContextCard": { MalaysiaContextCard: () => null },
     "@/components/DataAsOf": { DataAsOf: () => null },
     "@/lib/auth/account": { getAccount: async () => null },
     "./RefreshDataButton": { RefreshDataButton: () => null },
@@ -62,10 +64,36 @@ test("organisation radar renders role directions without loading personal intake
       },
     },
   });
-  const html = renderToStaticMarkup(await resolveTree(await RadarView({ scenario: "fast", context: "organisation" })));
+  const html = renderToStaticMarkup(await RadarView({ scenario: "fast", context: "organisation" }));
   assert.deepEqual(calls, [["fast", "2026-10-13"]]);
   assert.match(html, /Synthetic rising role/);
   assert.match(html, /Synthetic declining role/);
   assert.match(html, /\/org\/plan\?role=synthetic-up&amp;scenario=fast/);
   assert.doesNotMatch(html, /Unexpected failure/);
+});
+
+test("long role lists start at 5 and low coverage stays outside directional claims", () => {
+  const { RoleDirectionsCard } = loadComponent("src/features/trends/components/RoleDirectionsCard.tsx", {
+    "next-intl": translations(), "@/components/MetaBar": { MetaBar: () => null },
+    "next/link": { default: ({ children, ...props }) => React.createElement("a", props, children) },
+  });
+  const signals = Array.from({ length: 13 }, (_, i) => ({
+    entity_type: "role", entity_id: `synthetic-role-${i}`, label: `Synthetic role ${i}`,
+    direction: "declining", growth_rate: i / 100 - 1, trend_coverage: 0.75,
+  }));
+  signals.push({ entity_type: "role", entity_id: "synthetic-thin", label: "Synthetic thin evidence",
+    direction: "declining", growth_rate: -2, trend_coverage: 0.25 });
+  const html = renderToStaticMarkup(React.createElement(RoleDirectionsCard, {
+    signals, meta: { scenario: "moderate", snapshot_date: "2026-10-20", sources: [] },
+  }));
+  const directional = html.slice(html.indexOf('data-direction="declining"'), html.indexOf('data-direction="insufficient"'));
+  const initialRows = directional.slice(0, directional.indexOf('class="radar-role-reveal"'));
+  assert.equal((initialRows.match(/class="radar-role-row"/g) ?? []).length, 5);
+  assert.match(directional, /View all 13/);
+  assert.match(directional, /aria-expanded="false"/);
+  assert.match(directional, /radar-role-preview/);
+  assert.match(directional, /aria-hidden="true" inert=""/);
+  assert.match(directional, /trend data for 75%/);
+  assert.doesNotMatch(directional, /Synthetic thin evidence/);
+  assert.match(html.slice(html.indexOf('data-direction="insufficient"')), /Synthetic thin evidence/);
 });

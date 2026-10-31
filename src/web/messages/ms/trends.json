@@ -1,4 +1,10 @@
 {
+  "viewAll": "Lihat semua {count}",
+  "pagination": {"range": "{from}–{to} daripada {total} kemahiran", "page": "Halaman {page} daripada {total}", "previous": "Halaman sebelumnya", "next": "Halaman seterusnya", "label": "Halaman kemahiran"},
+  "showMore": "Tunjukkan {count} lagi",
+  "showLess": "Tunjukkan kurang",
+  "remaining": "{count} lagi",
+  "dataEdition": "Edisi data",
   "roleDirections": "Peranan yang meningkat dan menurun",
   "risingRoles": "Peranan yang meningkat",
   "decliningRoles": "Peranan yang menurun",
@@ -50,6 +56,11 @@
     "error": "Permintaan muat semula gagal ({code}). Snapshot semasa kekal aktif."
   },
   "nationalContext": {
+    "heading": "Konteks tenaga buruh Malaysia",
+    "month": "Bulan",
+    "singleMonth": "Hanya bulan ini disimpan.",
+    "asOf": "Data setakat {date}",
+    "retrieved": "Diperoleh {date}",
     "title": "Konteks tenaga buruh Malaysia · {month}",
     "description": "Kadar tinjauan kebangsaan yang diterbitkan memberi konteks. Skor peranan menggunakan bukti yang disenaraikan sendiri; jumlah ini bukan ramalan kekosongan jawatan.",
     "unemployment": "Kadar pengangguran",

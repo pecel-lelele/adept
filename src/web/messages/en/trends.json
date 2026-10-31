@@ -1,4 +1,10 @@
 {
+  "viewAll": "View all {count}",
+  "pagination": {"range": "{from}–{to} of {total} skills", "page": "Page {page} of {total}", "previous": "Previous page", "next": "Next page", "label": "Skills pages"},
+  "showMore": "Show {count} more",
+  "showLess": "Show less",
+  "remaining": "{count} remaining",
+  "dataEdition": "Data edition",
   "title": "Future Skills Radar",
   "roleDirections": "Rising and declining roles",
   "risingRoles": "Rising roles",
@@ -50,6 +56,11 @@
     "error": "The refresh request failed ({code}). The current snapshot stays live."
   },
   "nationalContext": {
+    "heading": "Malaysian labour context",
+    "month": "Month",
+    "singleMonth": "Only this month is stored.",
+    "asOf": "Data as of {date}",
+    "retrieved": "Retrieved {date}",
     "title": "Malaysian labour context · {month}",
     "description": "Published national survey rates provide context. Role scores use their own listed evidence; these totals are not vacancy forecasts.",
     "unemployment": "Unemployment rate",

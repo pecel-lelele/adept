@@ -1,4 +1,10 @@
 {
+  "viewAll": "查看全部 {count} 项",
+  "pagination": {"range": "第 {from}–{to} 项，共 {total} 项技能", "page": "第 {page} 页，共 {total} 页", "previous": "上一页", "next": "下一页", "label": "技能分页"},
+  "showMore": "再显示 {count} 项",
+  "showLess": "收起",
+  "remaining": "剩余 {count} 项",
+  "dataEdition": "数据版本",
   "roleDirections": "需求上升和下降的职位",
   "risingRoles": "需求上升的职位",
   "decliningRoles": "需求下降的职位",
@@ -50,6 +56,11 @@
     "error": "刷新请求失败（{code}）。当前快照保持不变。"
   },
   "nationalContext": {
+    "heading": "马来西亚劳动力概况",
+    "month": "月份",
+    "singleMonth": "目前仅存储该月数据。",
+    "asOf": "数据截至 {date}",
+    "retrieved": "获取日期 {date}",
     "title": "马来西亚劳动力背景 · {month}",
     "description": "已发布的全国调查比率提供背景信息。职业评分使用各自列出的证据；这些全国数据不是职位空缺预测。",
     "unemployment": "失业率",

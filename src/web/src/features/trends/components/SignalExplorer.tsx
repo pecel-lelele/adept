@@ -1,12 +1,14 @@
 "use client";
 
-import { Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 
 import type { ScenarioId, Schemas } from "@/lib/api";
 import { useBusy } from "@/components/useBusy";
+
+const LIMIT = 15;
 
 const DIRS = ["all", "rising", "stable", "declining"] as const;
 type Dir = (typeof DIRS)[number];
@@ -24,11 +26,14 @@ export function SignalExplorer({
   const t = useTranslations("common.design");
   const tp = useTranslations("ui.page");
   const th = useTranslations("ui.home");
+  const tr = useTranslations("trends");
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
   const [search, setSearch] = useState("");
   const [direction, setDirection] = useState<Dir>("all");
+  const [page, setPage] = useState(1);
+  const controls = useRef<HTMLDivElement>(null);
   const [pending, startTransition] = useTransition();
   useBusy(pending);
   const key = scenario === "fast" ? "direction_fast" : "direction_moderate";
@@ -39,23 +44,30 @@ export function SignalExplorer({
     .filter((i) => i.skill_label.toLowerCase().includes(search.trim().toLowerCase()))
     .filter((i) => direction === "all" || i[key] === direction)
     .sort((a, b) => b[velocity] - a[velocity]);
+  const pageCount = Math.max(1, Math.ceil(visible.length / LIMIT));
+  const currentPage = Math.min(page, pageCount);
+  const offset = (currentPage - 1) * LIMIT;
+  const changePage = (next: number) => {
+    setPage(Math.max(1, Math.min(pageCount, next)));
+    controls.current?.scrollIntoView({ block: "start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  };
 
   return (
-    <div className="a-explorer" aria-busy={pending}>
-      <div className="a-explorer-tools">
+    <div className="a-explorer radar-skills" aria-busy={pending}>
+      <div className="a-explorer-tools" ref={controls}>
         <label className="a-search">
           <Search size={15} aria-hidden />
-          <input aria-label={t("search")} placeholder={t("search")} value={search} onChange={(e) => setSearch(e.target.value)} />
+          <input aria-label={t("search")} placeholder={t("search")} value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
         </label>
-        <div className="a-filterseg" role="radiogroup" aria-label={t("filters")}>
+        <div className="a-filterseg" role="group" aria-label={t("filters")}>
           {DIRS.map((d) => (
-            <button key={d} type="button" role="radio" aria-checked={direction === d} onClick={() => setDirection(d)}>
+            <button key={d} type="button" aria-pressed={direction === d} onClick={() => { setDirection(d); setPage(1); }}>
               {d === "all" ? t("all") : t(d)} <span>{count(d)}</span>
             </button>
           ))}
         </div>
         <label className="a-inline-select">
-          {t("snapshot")}
+          {tr("dataEdition")}
           <select
             className="a-select is-small"
             value={params.get("snapshot_date") ?? ""}
@@ -84,11 +96,11 @@ export function SignalExplorer({
           <span role="columnheader">{tp("colSignal")}</span>
           <span role="columnheader">{tp("colExposure")}</span>
         </div>
-        {visible.map((i) => {
+        {visible.slice(offset, offset + LIMIT).map((i) => {
           const v = i[velocity];
           const dir = i[key];
           return (
-            <details className="a-row" key={i.skill_id} role="row">
+            <details className="a-row" key={`${currentPage}:${direction}:${search}:${i.skill_id}`} role="row">
               <summary>
                 <span role="cell" className="a-row-title">
                   {i.skill_label}
@@ -100,7 +112,7 @@ export function SignalExplorer({
                 </span>
                 <span role="cell" className="a-signal">
                   <span className="a-signal-track" aria-hidden>
-                    <i data-dir={dir} data-side={v < 0 ? "left" : "right"} style={{ width: `${Math.max(2, (Math.abs(v) / top) * 50)}%` }} />
+                    <i data-dir={dir} data-side={v < 0 ? "left" : "right"} style={{ width: `${(Math.abs(v) / top) * 50}%` }} />
                   </span>
                   <b>{`${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toFixed(2)}`}</b>
                 </span>
@@ -114,6 +126,14 @@ export function SignalExplorer({
         })}
         {!visible.length ? <p className="a-row-empty">{tp("noMatch")}</p> : null}
       </div>
+      <footer className="radar-pagination">
+        <span aria-live="polite">{tr("pagination.range", { from: visible.length ? offset + 1 : 0, to: Math.min(offset + LIMIT, visible.length), total: visible.length })}</span>
+        <nav aria-label={tr("pagination.label")}>
+          <button type="button" aria-label={tr("pagination.previous")} disabled={currentPage === 1} onClick={() => changePage(currentPage - 1)}><ChevronLeft size={16} aria-hidden /></button>
+          <span aria-live="polite">{tr("pagination.page", { page: currentPage, total: pageCount })}</span>
+          <button type="button" aria-label={tr("pagination.next")} disabled={currentPage === pageCount} onClick={() => changePage(currentPage + 1)}><ChevronRight size={16} aria-hidden /></button>
+        </nav>
+      </footer>
     </div>
   );
 }

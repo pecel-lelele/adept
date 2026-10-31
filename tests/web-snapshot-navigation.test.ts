@@ -21,7 +21,7 @@ test("radar Latest clears snapshot_date and normal journey links never inherit h
       usePathname: () => current.pathname,
       useSearchParams: () => current.searchParams,
     },
-    react: { useState: (value) => [value, () => {}], useTransition: () => [false, (fn) => fn()] },
+    react: { useState: (value) => [value, () => {}], useRef: () => ({ current: null }), useTransition: () => [false, (fn) => fn()] },
     "@/components/useBusy": { useBusy: () => {} },
   });
   const select = () => find(SignalExplorer({ items: [], scenario: "fast", dates: ["2026-10-13"] }), (node) => node.type === "select");
