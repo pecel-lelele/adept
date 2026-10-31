@@ -10,6 +10,7 @@ test("scenario comparison uses server ranks, absolute other score and an estimat
       const html = renderToStaticMarkup(React.createElement(ScenarioDelta, { score: 0.72, rank, otherScore: 0.695, otherRank, otherScenario: "moderate" }));
       assert.ok(html.includes(arrow));
       assert.ok(html.includes("69.5"));
+      assert.equal((html.match(/class="a-chip"/g) ?? []).length, 2);
       assert.ok(html.includes(translations(locale).useTranslations("matching")("otherScenarioRank", { rank: String(otherRank) })));
       assert.doesNotMatch(html, /undefined/);
     }
@@ -46,7 +47,8 @@ test("small-cohort cells and row summaries stay neutral and never become zero-ga
     assert.equal(rows[0].cells[0].value, null);
     const html = renderToStaticMarkup(React.createElement(Heatmap, { rows, columns: skills, legend: ["low", "high"], suppressedLabel: label }));
     assert.ok(html.includes(label));
-    assert.match(html, /background:#ececec/);
+    assert.match(html, /background:var\(--a-heat-suppressed\)/);
+    assert.match(html, /<p[^>]*role="note"[^>]*>[^<]+<\/p>/);
     assert.doesNotMatch(html, /#eef1e7|>0<|>0%/);
     const { GapsView } = loadComponent("src/features/org/components/GapsView.tsx", {
       "next-intl/server": { getTranslations: async (ns) => intl.useTranslations(ns) },

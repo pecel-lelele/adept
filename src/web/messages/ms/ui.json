@@ -83,7 +83,8 @@
     "funding": "Bajet latihan",
     "myWork": "Organisasi saya",
     "programmes": "Program",
-    "jobs": "Pekerjaan"
+    "jobs": "Pekerjaan",
+    "compare": "Banding peranan & senario"
   },
   "shell": {
     "disclaimer": "Unjuran ialah anggaran daripada data awam. Anda yang membuat keputusan: Adept tidak pernah membuat keputusan pengambilan pekerja.",
@@ -534,7 +535,11 @@
     "profile": "Lengkapkan profil anda",
     "network": "Kami tidak dapat menghubungi Adept sekarang.",
     "cohort": "Ahli terlalu sedikit",
-    "members": "Semak ahli"
+    "members": "Semak ahli",
+    "home": "Kembali ke laman utama",
+    "unexpected": "Kami tidak dapat memuatkan halaman ini. Cuba lagi atau kembali ke laman utama.",
+    "notFoundTitle": "Halaman tidak ditemui",
+    "notFoundHint": "Halaman ini mungkin telah dipindahkan atau pautannya tidak lengkap."
   },
   "page": {
     "stepOf": "Langkah {step} daripada {total}",

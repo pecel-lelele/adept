@@ -17,8 +17,13 @@
     "totalHours": "{hours} j keseluruhan",
     "outOfPocket": "Anda bayar RM {amount} daripada bajet RM {budget}",
     "listPrice": "Harga senarai RM {amount}",
-    "hrdNote": "Kursus yang boleh dituntut HRD Corp tiada kos kepada anda: majikan memohon geran levi sebelum kursus bermula.",
-    "overBudget": "Melebihi bajet anda"
+    "hrdNote": "Kursus yang boleh dituntut HRD Corp mungkin dibiayai jika majikan anda memohon geran levi sebelum kursus bermula. Kos di atas ialah harga senarai sehingga permohonan diluluskan.",
+    "overBudget": "Melebihi bajet anda",
+    "style": {
+      "classroom": "Gaya pembelajaran bilik darjah: kursus bersemuka, dalam talian secara langsung atau hibrid dipilih dahulu jika sesuai dengan bajet anda.",
+      "video": "Gaya pembelajaran video: kursus dalam talian kendiri dipilih dahulu.",
+      "reading": "Gaya pembelajaran membaca: kursus dalam talian kendiri dipilih dahulu."
+    }
   },
   "step": {
     "levels": "Tahap {current} → {reaches} (peranan memerlukan {target})",
@@ -46,14 +51,17 @@
     "viewSaved": "lihat pelan itu"
   },
   "replan": {
-    "title": "Data trend baharu mengubah pelan anda",
+    "title": "Pelan anda boleh dikemas kini",
     "accept": "Terima pelan yang dikemas kini",
     "keep": "Kekalkan pelan semasa",
     "change": {
       "added": "Ditambah",
       "removed": "Dibuang",
       "reordered": "Disusun semula",
-      "courses_changed": "Kursus berubah"
+      "courses_changed": "Kursus berubah",
+      "schedule_changed": "Jadual berubah",
+      "style_changed": "Gaya pembelajaran berubah",
+      "cost_changed": "Kos berubah"
     }
   },
   "progress": {
@@ -166,7 +174,8 @@
     "seeMatches": "Lihat padanan anda mengikut kedudukan",
     "humanInCharge": "Perbandingan ini menyokong keputusan anda; ia tidak menyusun atau memilih peranan untuk anda.",
     "emptyTitle": "Belum ada peranan untuk dibandingkan",
-    "emptyHint": "Kembali ke padanan untuk memilih peranan sasaran."
+    "emptyHint": "Kembali ke padanan untuk memilih peranan sasaran.",
+    "useBestMatch": "Guna padanan terbaik saya"
   },
   "badge": {
     "first": "Kursus pertama selesai",

@@ -121,7 +121,7 @@ def test_snapshot_meta_with_frozen_today(
         "observed_from": None,
         "observed_to": None,
     }
-    assert response.json()["meta"] == expected
+    assert response.json()["meta"] == {**expected, "available_snapshots": []}
     from app.features.pathway import data
     from app.features.sdg import repository as sdg_repository
 

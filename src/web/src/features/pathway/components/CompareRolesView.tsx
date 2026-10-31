@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
 import { Badge, EmptyState, ErrorState, MetaBar, PageHeader, SdgBadge } from "@/components";
+import { fetchMatches } from "@/features/matching/api";
 import type { ScenarioId, Schemas } from "@/lib/api";
 
 import { savePlanAction } from "../actions";
@@ -100,19 +101,30 @@ export async function CompareRolesView({
   snapshotDate?: string;
 }) {
   const t = await getTranslations("pathway");
-  const result = await fetchCompare(scenario, roleIds, snapshotDate);
+  const [result, matches] = await Promise.all([
+    fetchCompare(scenario, roleIds, snapshotDate),
+    fetchMatches(scenario, snapshotDate),
+  ]);
+  const bestMatch = matches.ok ? matches.data.matches[0] : undefined;
   return (
     <div className="a-stack" style={{ gap: 24 }}>
       <PageHeader
         title={t("compare.title")}
         description={t("compare.description")}
         actions={
-          <Link
-            href={`/app/matches?scenario=${scenario}${snapshotDate ? "&snapshot_date=" + encodeURIComponent(snapshotDate) : ""}`}
-            className="a-btn is-ghost is-small"
-          >
-            {t("compare.seeMatches")}
-          </Link>
+          <>
+            {bestMatch ? (
+              <Link className="a-btn is-small" href={`/app/pathway?role=${encodeURIComponent(bestMatch.role_id)}&scenario=${scenario}${snapshotDate ? "&snapshot_date=" + encodeURIComponent(snapshotDate) : ""}`}>
+                {t("compare.useBestMatch")}
+              </Link>
+            ) : null}
+            <Link
+              href={`/app/matches?scenario=${scenario}${snapshotDate ? "&snapshot_date=" + encodeURIComponent(snapshotDate) : ""}`}
+              className="a-btn is-ghost is-small"
+            >
+              {t("compare.seeMatches")}
+            </Link>
+          </>
         }
       >
         {result.ok ? <MetaBar meta={result.data.meta} /> : null}

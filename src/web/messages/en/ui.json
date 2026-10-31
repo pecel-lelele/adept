@@ -83,7 +83,8 @@
     "funding": "Training budgets",
     "myWork": "My organisation",
     "programmes": "Programmes",
-    "jobs": "Jobs"
+    "jobs": "Jobs",
+    "compare": "Compare roles & scenarios"
   },
   "shell": {
     "disclaimer": "Projections are estimates from public data. You stay in charge: Adept never makes hiring decisions.",
@@ -534,7 +535,11 @@
     "profile": "Complete your profile",
     "network": "We can’t reach Adept right now.",
     "cohort": "Too few members",
-    "members": "Review members"
+    "members": "Review members",
+    "home": "Back home",
+    "unexpected": "We could not load this page. Try again or return home.",
+    "notFoundTitle": "Page not found",
+    "notFoundHint": "This page may have moved or the link may be incomplete."
   },
   "page": {
     "stepOf": "Step {step} of {total}",

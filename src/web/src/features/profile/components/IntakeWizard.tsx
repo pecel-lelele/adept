@@ -2,8 +2,8 @@
 
 import { Briefcase, FileUp, GraduationCap, Repeat, Search, X } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useSearchParams } from "next/navigation";
-import { useMemo, useRef, useState, useTransition } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { startTransition, useEffect, useMemo, useRef, useState, useTransition } from "react";
 
 import { errorMessage } from "@/lib/api/error-message";
 
@@ -13,6 +13,7 @@ import type { ApiResult, Schemas } from "@/lib/api";
 
 import { resolveSkillAction, saveIntakeAction, uploadCvAction, type IntakeInput } from "../actions";
 import { canResolveSkill, createSessionResolver, filterCatalogueSkills, normaliseSkillQuery } from "../skill-search";
+import { clearIntakeDraft, intakeDraftKey, readIntakeDraft, writeIntakeDraft } from "../intake-draft";
 
 type Option = Schemas["SkillOption"];
 type Picked = { skill_id: string; level: number; fromCv?: boolean };
@@ -31,12 +32,16 @@ export function IntakeWizard({
   catalogue,
   interests,
   initial,
+  userId,
 }: {
   catalogue: Option[];
   interests: string[];
   initial: Schemas["Profile"] | null;
+  userId: string;
 }) {
   const t = useTranslations("ui.intake");
+  const router = useRouter();
+  const draftKey = intakeDraftKey(userId);
   const returnTo = useSearchParams().get("returnTo");
   const te = useTranslations("ui.apiErrors");
   const cvText = useTranslations("ui.cvReview");
@@ -62,6 +67,34 @@ export function IntakeWizard({
   const [saving, startSave] = useTransition();
   const fileRef = useRef<HTMLInputElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+  const [draftReady, setDraftReady] = useState(false);
+  const submitted = useRef(false);
+
+  useEffect(() => {
+    if (!userId) return;
+    let draft = null;
+    try {
+      draft = readIntakeDraft(window.sessionStorage, draftKey, new Set(catalogue.map((s) => s.id)), interests);
+    } catch { /* Storage may be unavailable even before getItem. */ }
+    startTransition(() => {
+      if (draft) {
+        setSegment(draft.segment); setPicked(draft.interests); setHours(draft.hours_per_week);
+        setBudget(draft.budget_myr); setHrd(draft.hrd_eligible); setStyle(draft.learning_style);
+        setSkills(draft.skills); setStep(Math.min(TOTAL, Math.max(1, draft.step)));
+      }
+      setDraftReady(true);
+    });
+  }, [catalogue, interests, draftKey, userId]);
+
+  useEffect(() => {
+    if (!draftReady || submitted.current) return;
+    try {
+      writeIntakeDraft(window.sessionStorage, draftKey, {
+        segment, interests: picked, hours_per_week: hours, budget_myr: budget,
+        hrd_eligible: hrd, learning_style: style, skills: skills.map(({ skill_id, level }) => ({ skill_id, level })), step,
+      });
+    } catch { /* The wizard works without session storage. */ }
+  }, [draftReady, draftKey, segment, picked, hours, budget, hrd, style, skills, step]);
 
   /** Skills found by the CV preview on the home page, before the account existed. */
   function cvSkillsFromHome(): Picked[] {
@@ -146,12 +179,15 @@ export function IntakeWizard({
         skills: skills.map(({ skill_id, level }) => ({ skill_id, level })),
       }, returnTo ?? undefined);
       if (result?.error) setError(errorMessage(te, result.error));
-      else {
+      else if (result.redirectTo) {
+        submitted.current = true;
+        try { clearIntakeDraft(window.sessionStorage, draftKey); } catch { /* Storage disabled. */ }
         try {
           window.localStorage.removeItem(CV_SKILLS_KEY);
         } catch {
           /* ignore */
         }
+        router.replace(result.redirectTo);
       }
     });
   }
@@ -168,7 +204,7 @@ export function IntakeWizard({
         ))}
       </div>
 
-      <section className="a-card a-stack" aria-live="polite">
+      <section className="a-card a-stack">
         {step === 1 ? (
           <fieldset style={{ border: 0, margin: 0, padding: 0 }} className="a-stack">
             <legend className="a-card-head" style={{ marginBottom: 12 }}>
@@ -318,16 +354,16 @@ export function IntakeWizard({
               </button>
             ) : null}
             {resolved ? (
-              <div className="a-stack" aria-live="polite">
+              <div className="a-stack">
                 {resolved.ok ? (
                   <>
-                    <p className="a-small a-muted">{t("suggestionHint")}</p>
+                    <p className="a-small a-muted" role="status">{t("suggestionHint")}</p>
                     {suggestions.length ? suggestions.map((candidate) => (
                       <button type="button" className="a-btn is-ghost" key={candidate.skill_id}
                         onClick={() => addSkill(candidate.skill_id)}>
                         {t("addSuggestion", { label: candidate.label })} · {t(`resolverMethod.${candidate.method}`)}
                       </button>
-                    )) : <p className="a-small a-muted">{t("noSuggestions")}</p>}
+                    )) : <p className="a-small a-muted" role="status">{t("noSuggestions")}</p>}
                     <SourceBadge sources={resolved.data.meta.sources} snapshotDate={resolved.data.meta.snapshot_date} />
                   </>
                 ) : <p className="a-notice" role="alert">{errorMessage(te, resolved.code)}</p>}

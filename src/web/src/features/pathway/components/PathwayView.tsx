@@ -15,7 +15,7 @@ import {
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
-import { ErrorState, Kpis, MetaBar, PageHeader } from "@/components";
+import { ErrorState, EstimateLabel, Kpis, MetaBar, PageHeader } from "@/components";
 import { journeyStepCount } from "@/config/navigation";
 import { Fold } from "@/components/Fold";
 import { HistoricalSnapshotBanner } from "@/components/HistoricalSnapshotBanner";
@@ -85,6 +85,9 @@ async function PlanAside({ plan, query }: { plan: Schemas["Pathway"]; query: str
         <ul className="a-notes a-fold-body">
           <li>{t("summary.outOfPocket", { amount: plan.out_of_pocket_myr ?? 0, budget: plan.budget_myr ?? 0 })}</li>
           {plan.hrd_eligible ? <li>{t("summary.hrdNote")}</li> : null}
+          {plan.learning_style === "classroom" || plan.learning_style === "video" || plan.learning_style === "reading" ? (
+            <li>{t(`summary.style.${plan.learning_style}`)}</li>
+          ) : null}
           {(plan.warnings ?? []).map((w) => (
             <li key={w}>{w}</li>
           ))}
@@ -111,7 +114,8 @@ async function ReplanBanner({ status }: { status: Schemas["ReplanStatus"] }) {
         <ul>
           {status.changes.map((c) => (
             <li key={`${c.kind}-${c.skill_id}`}>
-              {t(`replan.change.${c.kind}`)}: {skillName(c.skill_id)}. {c.detail}
+              {t(`replan.change.${c.kind}`)}
+              {c.skill_id ? `: ${skillName(c.skill_id)}.` : ":"} {c.detail}
             </li>
           ))}
         </ul>
@@ -138,7 +142,15 @@ export async function PathwayView({
   const tp = await getTranslations("ui.page");
   const [result, status] = await Promise.all([fetchPathway(roleId, scenario, snapshotDate), fetchPlanStatus()]);
   const tm = await getTranslations("matching");
-  if (!result.ok) return <ErrorState failure={result} />;
+  if (!result.ok) return (
+    <div className="a-view">
+      <PageHeader eyebrow={tp("stepOf", { step: 4, total: journeyStepCount() })} title={t("title")} description={d("pathBody")}>
+        <EstimateLabel scenario={scenario} />
+        {snapshotDate ? <span className="a-chip">{tp("asOf", { date: snapshotDate })}</span> : null}
+      </PageHeader>
+      <ErrorState failure={result} />
+    </div>
+  );
   const saved = status.ok ? status.data.saved : null;
   // The saved plan is the one progress is tracked against; show it (not a fresh rebuild)
   // whenever it is for this role and scenario. Changes are offered by the re-plan banner.

@@ -8,6 +8,7 @@ Rules:
 
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import date
 from unittest.mock import patch
 
@@ -48,6 +49,27 @@ def _fake_fetch_good(scenario: str) -> TrendSnapshot:  # noqa: ARG001
 
 def _fake_fetch_unavailable(scenario: str) -> TrendSnapshot:  # noqa: ARG001
     raise TrendUnavailable("Trend service is down (test)")
+
+
+def test_available_snapshots_come_from_the_ranking_read(client: TestClient) -> None:
+    dates = [date(2026, 10, 13), _SNAP_DATE]
+    snapshot = replace(_GOOD_SNAPSHOT, available_snapshots=dates)
+    with patch(_FETCH_PATCH, return_value=snapshot) as fetch:
+        response = client.get("/api/v1/matches", params={"scenario": "moderate"})
+    assert response.status_code == 200
+    assert response.json()["meta"]["available_snapshots"] == [d.isoformat() for d in dates]
+    fetch.assert_called_once_with("moderate")
+
+
+def test_trend_adapter_preserves_available_snapshots() -> None:
+    from app.features.matching.trend_port import fetch_snapshot
+    from app.features.trends import mocks
+
+    snapshot = mocks.snapshot("moderate")
+    with patch("app.features.matching.trend_port._call_with_timeout", return_value=snapshot):
+        result = fetch_snapshot("moderate")
+    assert result.available_snapshots == snapshot.meta.available_snapshots
+    assert result.available_snapshots is not snapshot.meta.available_snapshots
 
 
 # ---------------------------------------------------------------------------
