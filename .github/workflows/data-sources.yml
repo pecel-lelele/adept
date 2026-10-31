@@ -23,7 +23,7 @@ permissions:
 jobs:
   catalogue-refresh:
     # Writes to the catalogue database: manual runs only, never the weekly schedule.
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && github.repository == 'pecel-lelele/adept'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -63,6 +63,7 @@ jobs:
         run: PYTHONPATH=src/api:src .venv/bin/python -m pipelines.trends.malaysia_context --db
 
   refresh-dry-run:
+    if: github.ref == 'refs/heads/main' && github.repository == 'pecel-lelele/adept'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -70,6 +71,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
@@ -104,6 +107,7 @@ jobs:
           diff <(cut -d, -f1-5 src/data/seed/courses/courses.csv) <(cut -d, -f1-5 "$RUNNER_TEMP/courses.csv") || echo "::warning::Course catalogue changed upstream; rerun pipelines.pathway"
 
   jobs-refresh:
+    if: github.ref == 'refs/heads/main' && github.repository == 'pecel-lelele/adept'
     runs-on: ubuntu-latest
     defaults:
       run:
