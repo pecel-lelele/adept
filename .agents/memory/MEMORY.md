@@ -1,1 +1,0 @@
-- [Next.js preview origins](next-preview-origins.md) — exact Replit preview hosts avoid nested-subdomain dev-origin blocks.
