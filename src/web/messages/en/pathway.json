@@ -73,7 +73,9 @@
     "noBadges": "No badges yet. Finish a course to earn your first.",
     "skills": "Skills",
     "level": "Level {current} of {target}",
-    "courses": "Courses in your plan"
+    "courses": "Courses in your plan",
+    "estimatedFit": "Estimated skill fit",
+    "fitNote": "Includes self-reported learning. Evidence is required to update role matching."
   },
   "actionFailed": "Not saved: {message}",
   "saving": "Saving…",
@@ -152,30 +154,6 @@
     "notePlaceholder": "Optional note to the learner",
     "confirm": "Confirm",
     "reject": "Reject"
-  },
-  "compare": {
-    "link": "Compare other roles",
-    "title": "Compare roles before you choose",
-    "description": "What each future role would take for you: time, cost, skills to close, its trend outlook and SDG links. You decide; nothing is chosen for you.",
-    "yourChoice": "Your choice",
-    "direction": {
-      "rising": "Demand rising",
-      "stable": "Demand stable",
-      "declining": "Demand declining",
-      "unknown": "No trend data"
-    },
-    "outOfPocket": "you pay RM {amount}",
-    "skillsToClose": "{count} skill(s) to close",
-    "unmet": "{count} not covered by our catalogue",
-    "coverage": "Trend data covers {percent}% of this role's skills; the rest count as neutral.",
-    "preview": "Preview pathway",
-    "choose": "Choose this role",
-    "snapshot": "Trend snapshot {version}.",
-    "seeMatches": "See your ranked matches",
-    "humanInCharge": "This comparison supports your decision; it does not rank or select roles for you.",
-    "emptyTitle": "No roles to compare yet",
-    "emptyHint": "Return to matches to choose a target role.",
-    "useBestMatch": "Use my best match"
   },
   "badge": {
     "first": "First course done",

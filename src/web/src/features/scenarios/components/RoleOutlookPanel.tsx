@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
 
-import { ErrorState, EstimateLabel, SourceBadge } from "@/components";
+import { ErrorState, EstimateLabel } from "@/components";
 import type { ScenarioId } from "@/lib/api";
 
 import { fetchOutlook } from "../api";
@@ -27,6 +27,7 @@ export async function RoleOutlookPanel({
   const pos = (v: number) => `${Math.max(0, Math.min(100, (v / top) * 100))}%`;
   return (
     <div className="a-outlook">
+      <EstimateLabel scenario={scenario} />
       {all.map((o) => (
         <div key={o.scenario} className="a-outlook-row" data-current={o.scenario === scenario || undefined}>
           <span className="a-outlook-name">
@@ -48,10 +49,6 @@ export async function RoleOutlookPanel({
           </span>
         </div>
       ))}
-      <div className="a-chips">
-        <EstimateLabel isEstimate={result.data.meta.is_estimate} />
-        <SourceBadge sources={result.data.meta.sources} snapshotDate={result.data.meta.snapshot_date} />
-      </div>
     </div>
   );
 }

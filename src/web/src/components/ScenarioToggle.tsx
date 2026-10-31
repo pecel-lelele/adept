@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, Gauge, Zap } from "lucide-react";
+import { Activity, Zap } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 
@@ -34,7 +34,7 @@ if (typeof window !== "undefined") {
 }
 
 /**
- * "AI pace" switch shown at the top right of the pages it changes. The value lives in the URL
+ * Scenario switch shown at the top right of the pages it changes. The value lives in the URL
  * (?scenario=moderate|fast); the full scenario names stay in each button's title.
  */
 export function ScenarioToggle() {
@@ -58,7 +58,7 @@ export function ScenarioToggle() {
           <input key={index} type="hidden" name={name} value={value} />
         ))}
         <span className="a-pace-label">
-          <Gauge size={15} aria-hidden /> {t("pace")}
+          {t("label")}
         </span>
         <div role="radiogroup" aria-label={t("label")} className="a-pace-seg">
           {SCENARIOS.map((s) => {
@@ -93,7 +93,6 @@ export function ScenarioToggle() {
           })}
         </div>
       </form>
-      <small className="a-small a-muted a-pace-idle" style={{ maxWidth: 320, textAlign: "right" }}>{t("hint")}</small>
       <small className="a-small a-pace-busy" role="status">{t("updating")}</small>
     </div>
   );

@@ -94,6 +94,15 @@ class GapHeatmapCell(BaseModel):
     suppressed: bool = False
 
 
+class TeamSkillProgress(BaseModel):
+    skill_id: str
+    label: str
+    cohort_size: int = Field(ge=0)
+    completed_courses: int | None = Field(default=None, ge=0)
+    planned_courses: int | None = Field(default=None, ge=0)
+    suppressed: bool
+
+
 class GapHeatmapResponse(BaseModel):
     role_ids: list[str]
     role_labels: dict[str, str] = Field(default_factory=dict, description="role_id -> label")
@@ -101,6 +110,7 @@ class GapHeatmapResponse(BaseModel):
     cells: list[GapHeatmapCell]
     cohort_size: int = Field(default=0, ge=0)
     min_cohort: int = Field(default=3, ge=1)
+    learning_progress: list[TeamSkillProgress] = Field(default_factory=list)
     role_suppressed: dict[str, bool] = Field(default_factory=dict)
     role_gaps: dict[str, float | None] = Field(
         default_factory=dict,

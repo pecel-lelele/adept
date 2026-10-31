@@ -54,7 +54,12 @@
     "description": "Kadar tinjauan kebangsaan yang diterbitkan memberi konteks. Skor peranan menggunakan bukti yang disenaraikan sendiri; jumlah ini bukan ramalan kekosongan jawatan.",
     "unemployment": "Kadar pengangguran",
     "participation": "Penyertaan tenaga buruh",
-    "employmentRatio": "Nisbah guna tenaga kepada penduduk"
+    "employmentRatio": "Nisbah guna tenaga kepada penduduk",
+    "heading": "Konteks tenaga buruh Malaysia",
+    "month": "Bulan",
+    "singleMonth": "Hanya bulan ini disimpan.",
+    "asOf": "Data setakat {date}",
+    "retrieved": "Diperoleh {date}"
   },
   "dataSources": {
     "title": "Sumber data",
@@ -99,7 +104,10 @@
     "lastGood": "Memaparkan snapshot baik terakhir; pemerhatian sehingga {date}.",
     "lastChecked": "Disemak kali terakhir {time}",
     "nextScheduled": "Jadual seterusnya: {time}",
-    "recentRuns": "Muat semula terkini"
+    "recentRuns": "Muat semula terkini",
+    "current": "Data terkini",
+    "lastUpdatedShort": "Kemas kini terakhir {date}",
+    "historicalShort": "Data sejarah · hingga {date}"
   },
   "refreshUser": {
     "title": "Muat semula data",
@@ -129,77 +137,15 @@
       "skipped": "Terkini"
     }
   },
-  "range": {
-    "pageDateLabel": "Snapshot radar",
-    "pageDateHint": "Snapshot yang diterbitkan mengemas kini semua kad radar. Tarikh carta meneroka sejarah penyelidikan.",
-    "title": "Trend mengikut masa",
-    "hint": "Garisan aliran merumuskan sampel penyelidikan bagi setiap tempoh {days} hari. Bandingkan kemahiran, peranan atau kategori.",
-    "adjust": "Laraskan carta",
-    "from": "Dari",
-    "to": "Hingga",
-    "skills": "Kemahiran",
-    "add": "Tambah garisan…",
-    "show": "Tunjukkan trend",
-    "reset": "Perubahan terbesar",
-    "empty": "Sejarah kertas penyelidikan masih dikumpulkan. Teroka radar bertarikh di atas; carta garis muncul selepas kemas kini data yang disahkan.",
-    "emptyRange": "Tiada perubahan dalam julat ini. Pilih tarikh atau garisan lain.",
-    "steadyRange": "Kemahiran ini stabil dalam julat ini. Buka carta untuk membandingkan tahapnya.",
-    "emptyShort": "Satu titik aliran memerlukan data kertas penyelidikan yang disimpan selama {days} hari. Sejarah masih dikumpulkan.",
-    "chartLabel": "Garisan trend, {from} hingga {to}",
-    "table": "Tunjukkan setiap titik sebagai jadual",
-    "change": "Perubahan",
-    "note": "Dicerap daripada sampel sehingga 50 kertas arXiv cs.AI terbaharu sehari; perhatian penyelidikan, bukan permintaan pekerjaan. Jurang bermakna tetingkap 7 hari tidak disimpan sepenuhnya dan tidak sekali-kali diisi.",
-    "day": "Hari",
-    "limit": "Sehingga {max} garisan. Nyahtanda satu untuk menambah yang lain.",
-    "rejected": "Pilihan itu tidak dapat ditunjukkan (tarikh di luar data tersimpan, tarikh mula selepas tarikh akhir, julat melebihi {days} hari, garisan tidak dikenali atau lebih daripada {max} garisan). Menunjukkan perubahan terbesar.",
-    "dataThrough": "Data sehingga {date}",
-    "viewLabel": "Jenis carta",
-    "views": {
-      "skills": "Kemahiran",
-      "roles": "Peranan",
-      "categories": "Kategori"
-    },
-    "legend": {
-      "skills": "Kemahiran pada carta",
-      "roles": "Peranan dan kategori pada carta",
-      "categories": "Kategori dan peranan pada carta"
-    },
-    "presetLabel": "Julat tarikh",
-    "presets": {
-      "1W": "1M",
-      "1M": "1B",
-      "3M": "3B",
-      "6M": "6B",
-      "custom": "Tersuai"
-    },
-    "modeLabel": "Skala",
-    "modeIndexed": "Diasaskan semula kepada 100",
-    "modeRaw": "Skor mentah",
-    "horizonLabel": "Unjuran",
-    "horizons": {
-      "h30": "30 h",
-      "h90": "90 h",
-      "h180": "180 h",
-      "h365": "1 thn"
-    },
-    "rawFallback": "Garisan ini tiada tarikh dengan semua garisan melebihi 0, jadi skor mentah ditunjukkan dan bukan perbandingan yang diasaskan semula.",
-    "rebased": "Diasaskan semula kepada 100 pada {date}, tarikh pertama semua garisan melebihi 0.",
-    "derived": "Skor peranan dan kategori diperoleh daripada isyarat kemahiran arXiv, bukan permintaan peranan yang dicerap. Ia adalah anggaran.",
-    "projected": "Jika rentak ini berterusan",
-    "projectionNote": "Garisan putus-putus: rentak {scenario} diteruskan selama {days} hari. Penerusan rentak, bukan ramalan.",
-    "scenario": {
-      "moderate": "sederhana",
-      "fast": "pantas"
-    },
-    "statsCaption": "Mula, akhir, perubahan dan titik akhir unjuran, {from} hingga {to}",
-    "line": "Garisan",
-    "start": "Mula",
-    "end": "Akhir",
-    "moderateEnd": "Sederhana pada +{days} h",
-    "fastEnd": "Pantas pada +{days} h",
-    "moversTitle": "Perubahan kemahiran terbesar",
-    "moversOpen": "Buka carta",
-    "risers": "Meningkat",
-    "fallers": "Menurun"
-  }
+  "viewAll": "Lihat semua {count}",
+  "pagination": {
+    "range": "{from}–{to} daripada {total} kemahiran",
+    "page": "Halaman {page} daripada {total}",
+    "previous": "Halaman sebelumnya",
+    "next": "Halaman seterusnya",
+    "label": "Halaman kemahiran"
+  },
+  "showMore": "Tunjukkan {count} lagi",
+  "showLess": "Tunjukkan kurang",
+  "remaining": "{count} lagi"
 }

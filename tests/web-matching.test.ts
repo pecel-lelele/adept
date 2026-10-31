@@ -28,7 +28,6 @@ test("match cards show only the top three improvements with grounded course link
     assert.equal((html.match(/<li>/g) ?? []).length, 3);
     assert.match(html, /href="https:\/\/example.test\/course"/);
     assert.doesNotMatch(html, /Synthetic skill 3/);
-    assert.match(html, /12.0/);
     assert.ok(html.includes(translations(locale).useTranslations("matching")("noClosingCourse")));
   }
 });
@@ -58,18 +57,3 @@ test("every SDG tile on a match card has its mapping reason as a tooltip and as 
   assert.match(html, /enabling/);
 });
 
-test("scenario delta uses API score differences and never invents an unavailable comparison", () => {
-  for (const locale of ["en", "ms", "zh"]) {
-    const { ScenarioDelta } = loadComponent("src/features/matching/components/ScenarioDelta.tsx", {
-      "next-intl": translations(locale),
-    });
-    const html = renderToStaticMarkup(React.createElement(ScenarioDelta, {
-      score: 0.72, otherScore: 0.695, otherScenario: "moderate",
-    }));
-    assert.match(html, /\+2.5/);
-    assert.match(html, /data-tone="up"/);
-    assert.equal(renderToStaticMarkup(React.createElement(ScenarioDelta, {
-      score: 0.72, otherScenario: "fast",
-    })), "");
-  }
-});

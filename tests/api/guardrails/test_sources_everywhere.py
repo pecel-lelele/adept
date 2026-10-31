@@ -275,6 +275,13 @@ def _profile_cv(client: TestClient) -> Any:
     )
 
 
+def _preview_confirm(client: TestClient) -> Any:
+    return client.post(
+        "/api/v1/preview/cv/confirm",
+        json={"skills": [{"skill_id": "python", "level": 3}, {"skill_id": "sql", "level": 2}]},
+    )
+
+
 def _skills_resolve(client: TestClient) -> Any:
     return client.post("/api/v1/profile/skills/resolve", json={"query": "Pyhton"}, headers=LEARNER)
 
@@ -287,6 +294,7 @@ WRITE_FIXTURES: dict[tuple[str, str], Callable[[TestClient], Any]] = {
     ("POST", "/api/v1/pathway/progress/evidence"): _progress_evidence,
     ("POST", "/api/v1/pathway/progress/share"): _progress_share,
     ("POST", "/api/v1/preview/cv"): _preview_cv,
+    ("POST", "/api/v1/preview/cv/confirm"): _preview_confirm,
     ("POST", "/api/v1/profile/cv"): _profile_cv,
     ("POST", "/api/v1/profile/skills/resolve"): _skills_resolve,
 }

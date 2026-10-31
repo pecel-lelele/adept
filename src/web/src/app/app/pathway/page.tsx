@@ -1,4 +1,6 @@
-import { CompareRolesView, PathwayView, savedRoleId } from "@/features/pathway";
+import { redirect } from "next/navigation";
+import { ErrorState } from "@/components";
+import { fetchPlanStatus, PathwayView } from "@/features/pathway";
 import { firstParam, parseScenario, type SearchParams } from "@/lib/scenario";
 
 export default async function Page({
@@ -8,12 +10,15 @@ export default async function Page({
 }) {
   const params = await searchParams;
   const scenario = parseScenario(params.scenario);
-  // Never assume a role: use the one in the link, else the learner's saved choice, else let
-  // them compare and choose.
-  const roleId = firstParam(params.role) ?? (await savedRoleId());
+  // A URL role is a preview selector, not a saved choice. Unlock after an explicit save.
+  // A failed check says nothing about the choice, so it must not ask the learner to choose again.
+  const status = await fetchPlanStatus();
+  if (!status.ok) return <ErrorState failure={status} />;
+  const chosen = status.data.saved?.role_id;
+  const roleId = chosen ? firstParam(params.role) || chosen : null;
   const snapshotDate = firstParam(params.snapshot_date);
   if (!roleId)
-    return <CompareRolesView scenario={scenario} snapshotDate={snapshotDate} />;
+    redirect(`/app/matches?scenario=${scenario}&choose_role=1${snapshotDate ? `&snapshot_date=${encodeURIComponent(snapshotDate)}` : ""}`);
   return (
     <><PathwayView
       roleId={roleId}

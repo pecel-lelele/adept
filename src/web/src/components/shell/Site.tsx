@@ -13,7 +13,7 @@ import { SiteMenu } from "./SiteMenu";
 /**
  * Public header (partner design), pinned while scrolling: logo, section links, the audience
  * switch (landing only) and language pill, then sign-in and a green "Create account".
- * Signed-in visitors get a link to their workspace. Phones get a hamburger menu instead.
+ * Signed-in visitors get a workspace link and an explicit sign-out so the demo can return to auth.
  */
 export async function SiteHeader({
   signup,
@@ -53,7 +53,16 @@ export async function SiteHeader({
           <span className="a-site-wide">
             <LocaleSwitcher />
           </span>
-          {homeLink ?? (
+          {homeLink ? (
+            <>
+              {homeLink}
+              <span className="a-site-wide a-site-auth">
+                <form action="/auth/logout?next=/auth/login" method="post">
+                  <button className="a-site-login" type="submit">{t("nav.signOut")}</button>
+                </form>
+              </span>
+            </>
+          ) : (
             <span className="a-site-wide a-site-auth">
               <Link className="a-site-login" href="/auth/login">
                 {t("auth.signIn")}
@@ -71,7 +80,14 @@ export async function SiteHeader({
             </nav>
             <LocaleSwitcher />
             <div className="a-menu-auth">
-              {homeLink ?? (
+              {homeLink ? (
+                <>
+                  {homeLink}
+                  <form action="/auth/logout?next=/auth/login" method="post">
+                    <button className="a-btn is-ghost is-block" type="submit">{t("nav.signOut")}</button>
+                  </form>
+                </>
+              ) : (
                 <>
                   <Link className="a-btn is-ghost is-block" href="/auth/login">
                     {t("auth.signIn")}

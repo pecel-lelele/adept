@@ -18,7 +18,8 @@
   },
   "estimate": {
     "label": "Anggaran",
-    "hint": "Ramalan ialah anggaran, bukan fakta."
+    "hint": "Ramalan ialah anggaran, bukan fakta.",
+    "historical": "Anggaran sejarah"
   },
   "source": {
     "label": "Sumber",
@@ -33,7 +34,11 @@
     "backToLatest": "Kembali ke yang terkini",
     "fallback": "Memaparkan petikan terakhir yang tersedia dari {date}",
     "label": "Data trend setakat {date}",
-    "unavailable": "Data trend tidak tersedia"
+    "unavailable": "Data trend tidak tersedia",
+    "snapshot": "Petikan {date}",
+    "historicalData": "Data sejarah",
+    "unverifiedShort": "Tarikh pemerhatian belum disahkan",
+    "fallbackShort": "Petikan terakhir tersedia"
   },
   "nav": {
     "overview": "Gambaran keseluruhan",
@@ -86,15 +91,12 @@
   "design": {
     "more": "Lagi",
     "signOut": "Log keluar",
-    "details": "Butiran & sumber",
     "filters": "Tapis kursus",
     "courseDetails": "Butiran kursus",
     "continue": "Teruskan belajar",
     "progress": "Kemajuan anda",
-    "evidence": "Sumber & kaedah",
     "options": "Pilihan pembelajaran",
     "pathBody": "Urutan yang jelas. Rentak yang sesuai dengan anda.",
-    "snapshot": "Edisi data",
     "rising": "Meningkat",
     "stable": "Stabil",
     "declining": "Menurun",
@@ -115,6 +117,8 @@
     "review": "Semak",
     "moreSkills": "Tunjuk {count} lagi kemahiran",
     "addSkills": "Semak kemahiran anda",
-    "observed": "data diukur {from} hingga {to}"
+    "observed": "data diukur {from} hingga {to}",
+    "sources": "Sumber",
+    "proof": "Bukti penyelesaian"
   }
 }

@@ -79,6 +79,68 @@ def test_requires_synthetic_consent(client):
     assert response.status_code == 422
 
 
+def test_extract_only_does_not_score_or_fetch_trends(client, monkeypatch):
+    def unexpected(*args, **kwargs):
+        pytest.fail("Extraction must not fetch a trend snapshot or rank roles")
+
+    monkeypatch.setattr(preview, "fetch_snapshot", unexpected)
+    monkeypatch.setattr(preview, "rank_roles", unexpected)
+    response = client.post(
+        "/api/v1/preview/cv?extract_only=true&include_suggestions=false",
+        data={"synthetic_consent": "true"},
+        files={"file": ("synthetic.txt", b"Python", "text/plain")},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert len(body["skills"]) == 1
+    assert body["top_role"] is None
+    assert body["skill_trends"] == []
+    assert body["other_role_count"] == 0
+
+
+def test_confirmed_levels_change_fit_and_keep_attribution(client, monkeypatch):
+    def unexpected(*args, **kwargs):
+        pytest.fail("Saving ratings must not re-read a CV or call extraction providers")
+
+    monkeypatch.setattr(preview, "extract_cv", unexpected)
+    bodies = []
+    for level in (1, 5):
+        response = client.post(
+            "/api/v1/preview/cv/confirm",
+            json={"skills": [{"skill_id": "python", "level": level}]},
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["skills"][0]["level"] == level
+        assert len(body["skills"]) == 1
+        assert body["requires_skill_confirmation"] is False
+        meta = RecommendationMeta.model_validate(body["meta"])
+        assert meta.sources == [SOURCE]
+        assert meta.snapshot_date == SOURCE.retrieved_at
+        assert meta.is_estimate is True
+        bodies.append(body)
+    assert bodies[0]["top_role"]["score"] < bodies[1]["top_role"]["score"]
+
+
+@pytest.mark.parametrize(
+    "skills",
+    [
+        [],
+        [{"skill_id": "python", "level": None}],
+        [{"skill_id": "python"}],
+        [{"skill_id": "python", "level": "3"}],
+        [{"skill_id": "python", "level": True}],
+        [{"skill_id": "python", "level": 0}],
+        [{"skill_id": "python", "level": 6}],
+        [{"skill_id": "invented-skill", "level": 3}],
+        [{"skill_id": "python", "level": 1}, {"skill_id": "python", "level": 5}],
+    ],
+)
+def test_confirmation_rejects_invalid_or_unrated_skills(client, skills):
+    response = client.post("/api/v1/preview/cv/confirm", json={"skills": skills})
+    assert response.status_code == 422
+
+
 def test_rejects_other_formats(client):
     response = client.post(
         "/api/v1/preview/cv",

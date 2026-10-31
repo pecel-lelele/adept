@@ -66,9 +66,8 @@ test("historical pathway Back to latest restores the visible Save plan action", 
   });
   const historical = await PathwayView({ roleId: "data-analyst", scenario: "fast", snapshotDate: "2026-10-13" });
   const html = renderToStaticMarkup(await resolveTree(historical));
-  assert.match(html, /Viewing snapshot 2026-10-13/);
   assert.ok(!html.includes(`<button>${saveLabel}</button>`));
-  const href = html.match(/href="([^"]+)">Back to latest/)[1].replaceAll("&amp;", "&");
+  const href = html.match(/href="([^"]+)"[^>]*>Plan with latest data/)[1].replaceAll("&amp;", "&");
   const destination = new URL(href, "https://example.test");
   assert.equal(destination.searchParams.has("snapshot_date"), false);
   assert.equal(destination.searchParams.get("role"), "data-analyst");

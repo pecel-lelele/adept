@@ -38,6 +38,7 @@ export async function Shell({
   account,
   orgName,
   doneSteps = [],
+  roleChosen = true,
   workspaces = [],
   current = PERSONAL,
   children,
@@ -46,6 +47,7 @@ export async function Shell({
   account: Account | null;
   orgName?: string;
   doneSteps?: number[];
+  roleChosen?: boolean;
   /** Workspaces this account can switch to, and the one shown. */
   workspaces?: WorkspaceOption[];
   current?: string;
@@ -75,7 +77,7 @@ export async function Shell({
         </Link>
         {switcher}
         <Suspense>
-          <SideNav ws={ws} doneSteps={doneSteps} />
+          <SideNav ws={ws} doneSteps={doneSteps} roleChosen={roleChosen} />
         </Suspense>
         <div className="a-side-foot">
           {joinable ? (
@@ -124,6 +126,7 @@ export async function Shell({
       <Suspense>
         <TabBar
           ws={ws}
+          roleChosen={roleChosen}
           tools={
             <>
               <WorkspaceSwitcher workspaces={workspaces} current={current} presentation="list" />

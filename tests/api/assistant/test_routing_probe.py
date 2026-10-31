@@ -147,7 +147,7 @@ def test_near_tie_does_not_allow_an_unrouted_second_block() -> None:
 def test_unresolved_career_subject_does_not_show_another_roles_plan(question: str) -> None:
     ctx = context.build(CurrentUser("weijie", "Synthetic learner", "learner"), "moderate")
     text = guide.reply(question, ctx, "en")
-    assert "[[page:/app/pathway/compare]]" in text
+    assert "[[page:/app/matches]]" in text
     assert "[[role:" not in text and "[[course:" not in text
 
 

@@ -49,7 +49,8 @@
     "funding_conflict": "Permintaan pembiayaan tidak dapat diselesaikan. Semak status semasanya dengan pengurus anda.",
     "disallowed_content": "Buang kandungan yang tidak disokong daripada input sebelum meneruskan.",
     "unknown_course": "Pilih kursus daripada pelan atau katalog semasa.",
-    "insufficient_cohort": "Terlalu sedikit ahli yang berkongsi kemahiran dan telah melengkapkan profil. Pilih kohort bersetuju yang lebih besar, atau tunggu lebih ramai ahli melengkapkan profil."
+    "insufficient_cohort": "Terlalu sedikit ahli yang berkongsi kemahiran dan telah melengkapkan profil. Pilih kohort bersetuju yang lebih besar, atau tunggu lebih ramai ahli melengkapkan profil.",
+    "invalid_role_proposal": "Pilih peranan daripada katalog"
   },
   "nav": {
     "home": "Utama",
@@ -84,7 +85,7 @@
     "myWork": "Organisasi saya",
     "programmes": "Program",
     "jobs": "Pekerjaan",
-    "compare": "Banding peranan & senario"
+    "chooseRoleFirst": "Pilih peranan sasaran dahulu."
   },
   "shell": {
     "disclaimer": "Unjuran ialah anggaran daripada data awam. Anda yang membuat keputusan: Adept tidak pernah membuat keputusan pengambilan pekerja.",
@@ -236,7 +237,7 @@
     "startEyebrow": "Cuba sekarang, tanpa akaun",
     "startTitle": "Muat naik CV.",
     "startTitleMuted": "Lihat keputusan pertama anda.",
-    "startBody": "Tiada akaun diperlukan. Kami tunjukkan kemahiran yang ditemui, trendnya dan peranan masa depan yang paling sesuai. Selebihnya dibuka dengan akaun percuma.",
+    "startBody": "Muat naik CV, sahkan tahap setiap kemahiran, kemudian lihat prospek kemahiran dan peranan masa depan yang paling sesuai. Lebih banyak keputusan tersedia dengan akaun percuma.",
     "howEyebrow": "Cara ia berfungsi",
     "howTitleA": "Daripada CV anda",
     "howTitleB": "kepada pelan yang boleh dimulakan minggu ini.",
@@ -374,7 +375,23 @@
     "sampleNote": "Gunakan CV contoh; jangan muat naik maklumat peribadi sebenar.",
     "tCtaJoin": "Sertai pasukan anda dengan kod",
     "tCtaOpen": "Buka ruang kerja pasukan",
-    "tCtaCreate": "Buat akaun pasukan"
+    "tCtaCreate": "Buat akaun pasukan",
+    "rateTitle": "Nilai tahap kemahiran anda",
+    "rateHelp": "Pilih tahap bagi setiap kemahiran. 1 = pemula, 5 = pakar. Tiada pilihan awal.",
+    "ratedCount": "{rated}/{total} dinilai",
+    "rateLevel": "Tahap {level}",
+    "rateRequired": "Sila nilai setiap kemahiran sebelum menyimpan.",
+    "saveOutlook": "Simpan dan lihat prospek kemahiran saya",
+    "savingOutlook": "Mengira prospek anda…",
+    "outlookTitle": "Prospek kemahiran anda",
+    "editLevels": "Edit tahap kemahiran",
+    "outlookError": "Prospek tidak dapat dikira. Penilaian anda dikekalkan; sila cuba lagi.",
+    "strengths": "Kekuatan kemahiran anda",
+    "gaps": "Kemahiran untuk dibina",
+    "strengthsHelp": "Penilaian kendiri anda: tahap 3–5.",
+    "gapsHelp": "Penilaian kendiri anda: tahap 1–2. Keperluan peranan mungkin berbeza.",
+    "noStrengths": "Belum ada kemahiran pada tahap 3–5. Pelan pembelajaran boleh membantu anda.",
+    "noGaps": "Tiada kemahiran pada tahap 1–2. Keputusan penuh masih boleh menunjukkan jurang bagi peranan tertentu."
   },
   "intake": {
     "title": "Mari bina profil anda",
@@ -427,7 +444,11 @@
       "semantic": "Makna serupa"
     },
     "saving": "Menyimpan…",
-    "uploadTypeError": "Gunakan fail PDF, Word (.docx) atau teks di bawah 5 MB."
+    "uploadTypeError": "Gunakan fail PDF, Word (.docx) atau teks di bawah 5 MB.",
+    "cvLoadedHint": "Kemahiran CV dan tahap yang disahkan sudah tersedia. Anda boleh mengeditnya atau menambah kemahiran.",
+    "cvReady": "CV diproses",
+    "cvFileNote": "Kemahiran diimport daripada fail ini. Kandungan fail asal tidak disimpan.",
+    "replaceCv": "Ganti CV"
   },
   "home": {
     "hello": "Hai {name}",
@@ -459,7 +480,6 @@
     "replan": "Data trend baharu mengubah pelan anda.",
     "review": "Semak",
     "gaps": "{count, plural, =0 {Tiada jurang} other {# jurang}}",
-    "compare": "Bandingkan",
     "latest": "Snapshot terkini",
     "progressErrorTitle": "Kami tidak dapat memuatkan kemajuan anda",
     "progressErrorBody": "Pelan anda telah disimpan. Bukanya untuk cuba lagi.",
@@ -496,7 +516,8 @@
     "saved": "Disimpan",
     "gapsLow": "Dipenuhi",
     "gapsHigh": "Paling kurang",
-    "tooFewMembers": "Terlalu sedikit ahli untuk dipaparkan"
+    "tooFewMembers": "Terlalu sedikit ahli untuk dipaparkan",
+    "assignRole": "Tugaskan peranan sasaran"
   },
   "skills": {
     "title": "Kemahiran saya",
@@ -654,8 +675,6 @@
     "kDirectNote": "Kerja itu sendiri menyumbang",
     "kEnabling": "Pautan pemboleh",
     "kEnablingNote": "Kemahiran membantu orang lain",
-    "kReviewed": "Disemak oleh manusia",
-    "kReviewedNote": "Disemak, bukan sekadar dijana",
     "goalsHint": "Matlamat berwarna disokong oleh laluan anda",
     "backToRoles": "Semua peranan",
     "sdgWeighted": "Matlamat PBB dikira {weight}%",

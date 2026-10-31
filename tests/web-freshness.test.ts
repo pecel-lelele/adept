@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-
 import { loadComponent, React, renderToStaticMarkup, translations } from "./harness/web-components.ts";
 
 const meta = {
@@ -9,36 +8,37 @@ const meta = {
   sources: [{ name: "Synthetic source", url: "https://example.test", retrieved_at: "2026-10-19" }],
 };
 
-test("fallback snapshot notice is visible outside collapsed citations in every locale", () => {
+test("attribution is one small Sources link whose accessible name keeps the estimate and fallback cues", () => {
   for (const locale of ["en", "ms", "zh"]) {
-    const { MetaBar } = loadComponent("src/components/MetaBar.tsx", { "next-intl": translations(locale) });
+    const intl = translations(locale);
+    const { MetaBar } = loadComponent("src/components/MetaBar.tsx", {
+      "next-intl": intl, "next/link": { default: ({ children, ...props }) => React.createElement("a", props, children) },
+    });
     const html = renderToStaticMarkup(React.createElement(MetaBar, { meta }));
-    assert.match(html, /role="status"/);
-    assert.ok(html.match(/<summary>([\s\S]*?)<\/summary>/)?.[1].includes("Synthetic source"));
-    assert.ok(html.indexOf('role="status"') < html.indexOf("<details"));
-    assert.match(html.split("<details")[0], /2026-10-20/);
-    if (locale === "en") assert.match(html, /Showing last good snapshot from 2026-10-20/);
-    const live = renderToStaticMarkup(React.createElement(MetaBar, { meta: { ...meta, is_fallback: false } }));
-    assert.doesNotMatch(live, /role="status"/);
+    assert.match(html, /href="\/about#data-sources"/);
+    assert.doesNotMatch(html, /<details|<summary|Moderate AI change|Fast AI change/);
+    const label = html.match(/aria-label="([^"]*)"/)![1];
+    assert.ok(label.includes(intl.useTranslations("common.estimate")("hint")));
+    assert.ok(label.includes("2026-10-20"));
+    assert.ok(label.includes(intl.useTranslations("common.freshness")("fallbackShort")));
+    assert.ok(html.includes(intl.useTranslations("common.design")("sources")));
   }
 });
 
-test("database and fixture replays show their real observation window outside citations", () => {
-  for (const locale of ["en", "ms", "zh"]) {
-    const { MetaBar } = loadComponent("src/components/MetaBar.tsx", { "next-intl": translations(locale) });
-    for (const served_from of ["db", "fixture"]) {
-      const html = renderToStaticMarkup(React.createElement(MetaBar, { meta: {
-        ...meta, served_from, is_fallback: served_from === "fixture", is_replay: true,
-        observation_window_start: "2024-10-13", observation_window_end: "2024-10-19",
-        retrieved_at: "2026-10-24", retrieved_at_basis: "git_commit_date",
-      } }));
-      const notice = html.split("<details")[0];
-      assert.match(notice, /data-trend-replay="true"/);
-      for (const value of ["2024-10-13", "2024-10-19", "2026-10-24"]) assert.ok(notice.includes(value));
-      if (locale === "en") {
-        assert.match(notice, /Historical replay/);
-        assert.match(notice, /fetch time is unverified/);
-      }
-    }
-  }
+test("the estimate label is announced to screen readers and never drawn as a chip", () => {
+  const intl = translations("en");
+  const { EstimateLabel } = loadComponent("src/components/EstimateLabel.tsx", { "next-intl": intl });
+  const html = renderToStaticMarkup(React.createElement(EstimateLabel, { isEstimate: true }));
+  assert.match(html, /class="a-sr"/);
+  assert.ok(html.includes("Estimate"));
+  assert.equal(renderToStaticMarkup(React.createElement(EstimateLabel, { isEstimate: false })), "");
+});
+
+test("sources are a flat line with names and retrieval dates, not an expander", () => {
+  const intl = translations("en");
+  const { SourceBadge } = loadComponent("src/components/SourceBadge.tsx", { "next-intl": intl });
+  const html = renderToStaticMarkup(React.createElement(SourceBadge, { sources: meta.sources }));
+  assert.doesNotMatch(html, /<details|<summary/);
+  assert.match(html, /Synthetic source/);
+  assert.match(html, /2026-10-19/);
 });

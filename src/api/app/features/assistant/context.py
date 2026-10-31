@@ -27,7 +27,6 @@ PAGES: dict[str, str] = {
     "/app/radar": "Future Skills Radar",
     "/app/matches": "Matched roles",
     "/app/pathway": "Learning plan",
-    "/app/pathway/compare": "Compare roles",
     "/app/progress": "Progress and badges",
     "/app/courses": "Course catalogue",
     "/app/jobs": "Job openings",
@@ -50,6 +49,9 @@ PAGES: dict[str, str] = {
     "/auth/signup": "Create a free account",
     "/about": "How Adept works and its sources",
     "/privacy": "Privacy notice",
+    "/auth/login": "Sign in",
+    "/org/setup": "Organisation settings",
+    "/org/funding": "Funding requests",
 }
 
 

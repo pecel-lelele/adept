@@ -1,11 +1,11 @@
 {
   "eyebrow": "Cara kami mengukur",
-  "title": "Bukti impak",
-  "footerLink": "Bukti impak",
-  "aboutLink": "Lihat liputan katalog dan bukti bersumber",
-  "basis": "Dikira pada {count} persona sintetik daripada katalog dan rakaman trend semasa; tiada ujian manusia.",
-  "honest": "Diukur pada persona sintetik; tiada perintis manusia telah dijalankan.",
-  "estimate": "Bilangan katalog menerangkan rekod rujukan tersimpan. Pelan dan senario ialah anggaran pada profil sintetik. Kelayakan HRD Corp bukan kelulusan pembiayaan.",
+  "title": "Apa yang ditunjukkan oleh bukti",
+  "footerLink": "Impak & bukti",
+  "aboutLink": "Terokai data dan kaedah kami",
+  "basis": "Kami menguji {count} profil contoh dengan katalog kursus dan enjin kerjaya. Ini laluan yang dimodelkan, bukan hasil kerjaya yang diukur.",
+  "honest": "Bukti untuk pendekatan ini—bukan dakwaan impak peribadi yang terbukti.",
+  "estimate": "Angka katalog mengira kursus dan pautan yang disimpan. Laluan dan skor ialah panduan yang dimodelkan, bukan hasil manusia, pembiayaan diluluskan atau keputusan pengambilan kerja.",
   "retrieved": "diambil {date}",
   "source": {
     "catalogue": "Sumber: katalog kursus Adept, disahkan {date}",
@@ -18,7 +18,7 @@
   },
   "hours": {
     "label": "Median jam laluan",
-    "note": "Senario Sederhana. Senario Pantas: {fast} jam.",
+    "note": "Pada kadar yang lebih pantas: {fast} jam.",
     "formula": "Jumlah jam kursus berbeza yang dipilih enjin laluan; median merentas persona."
   },
   "sdg": {
@@ -28,24 +28,24 @@
   },
   "scenario": {
     "label": "Peranan yang berubah mengikut senario",
-    "note": "Median bilangan 5 peranan teratas yang berbeza antara Sederhana dan Pantas. Peranan teratas berubah bagi {count} persona.",
+    "note": "Membandingkan dua senario AI; peranan teratas berubah untuk {count} profil contoh.",
     "formula": "Peranan dalam 5 teratas Sederhana yang tiada dalam 5 teratas Pantas, profil dan pemarkahan sama."
   },
   "fairness": {
     "label": "Perubahan pangkat terbesar apabila identiti ditukar",
-    "note": "{variants} pertukaran nama dan segmen disusun semula. Laporan kawalan lulus: {passed}.",
+    "note": "{variants} pertukaran nama dan tahap kerjaya sintetik menguji sama ada kedudukan berubah.",
     "formula": "Perubahan terbesar pangkat mana-mana peranan selepas nama dan segmen ditukar, dijalankan melalui pemadan pengeluaran sekarang."
   },
   "coverage": {
     "label": "Kursus dalam katalog",
-    "note": "{roles} peranan, {skills} kemahiran. {fresh} kursus disahkan dalam {days} hari sebelum tarikh katalog {date}.",
+    "note": "{roles} peranan dan {skills} kemahiran. {fresh} kursus disahkan dalam tempoh {days} hari sebelum semakan katalog terkini.",
     "formula": "Bilangan merujuk rekod tersimpan. Tetingkap pengesahan berakhir pada tarikh pengesahan kursus terkini, berasingan daripada snapshot trend.",
     "title": "Liputan katalog",
     "language": "Mengikut bahasa",
     "provider": "Mengikut jenis penyedia"
   },
   "personas": {
-    "title": "Keputusan setiap persona (senario Sederhana)",
+    "title": "Apa yang ditawarkan laluan contoh",
     "persona": "Persona",
     "role": "Peranan teratas",
     "hours": "Jam",
@@ -56,8 +56,8 @@
     "note": "Persona ialah profil demo sintetik dalam repositori. Setiap satu dijalankan melalui fungsi padanan dan laluan sebenar."
   },
   "why": {
-    "title": "Mengapa ini penting",
-    "lead": "Angka dipetik daripada laman awam, dengan penerbit dan tarikh.",
+    "title": "Gambaran lebih luas",
+    "lead": "Baca sumber dan konteks",
     "labour": "Konteks buruh (Tinjauan Tenaga Buruh DOSM, {month}): pengangguran {rate}%. Diambil {date}."
   },
   "feature": {
@@ -70,6 +70,7 @@
     "org": "Pelan pasukan menunjukkan kursus yang mungkin boleh dituntut HRD Corp; kelayakan bukan pembiayaan yang diluluskan."
   },
   "published": "diterbitkan {date}",
+  "historicalLabel": "Ulangan sejarah",
   "historical": "Pengiraan senario menggunakan pemerhatian arXiv bersejarah dari {from} hingga {to}, diulang di bawah label snapshot demo; ini bukan penyelidikan semasa.",
   "catalogueFree": {
     "label": "Liputan katalog percuma",
@@ -80,5 +81,6 @@
     "label": "Sasaran SDG dipautkan",
     "note": "{links} pautan peranan-ke-sasaran · {targets} peranan sasaran.",
     "formula": "Sasaran rasmi berbeza daripada draf pemetaan peranan dan kemahiran yang menunggu semakan manusia; penjajaran bukan hasil pembangunan yang diukur."
-  }
+  },
+  "basisArchived": "Kami menguji {count} profil contoh menggunakan penyelidikan arkib dan katalog kursus. Ini laluan yang dimodelkan, bukan hasil kerjaya atau statistik pasaran kerja semasa."
 }

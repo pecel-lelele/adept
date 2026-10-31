@@ -1,10 +1,10 @@
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import Form from "next/form";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
 import { ErrorState } from "@/components/ErrorState";
-import { MetaBar, PageHeader } from "@/components";
-import { DataAsOf } from "@/components/DataAsOf";
+import { PageHeader } from "@/components";
 import type { ScenarioId } from "@/lib/api";
 
 import { fetchJobBoard } from "../api";
@@ -40,10 +40,7 @@ export async function JobBoardView({
   };
   return (
     <div className="a-view">
-      <PageHeader title={t("board.title")} description={await placeCounts(d.places)}>
-        <MetaBar meta={d.meta} />
-      </PageHeader>
-      <DataAsOf source="jobs" />
+      <PageHeader title={t("board.title")} description={await placeCounts(d.places)} />
 
       <Form action="/app/jobs" className="a-card a-controls a-jobfilters">
         <input type="hidden" name="scenario" value={scenario} />
@@ -94,9 +91,9 @@ export async function JobBoardView({
         )}
         {pages > 1 ? (
           <nav className="a-pager" aria-label={t("board.pages")}>
-            {d.page > 1 ? <Link href={href(d.page - 1)}>← {t("board.prev")}</Link> : <span />}
-            <span className="a-small a-muted">{t("board.page", { page: d.page, pages })}</span>
-            {d.page < pages ? <Link href={href(d.page + 1)}>{t("board.next")} →</Link> : <span />}
+            {d.page > 1 ? <Link href={href(d.page - 1)}><ChevronLeft size={16} aria-hidden />{t("board.prev")}</Link> : <span className="a-pager-disabled" aria-disabled="true"><ChevronLeft size={16} aria-hidden />{t("board.prev")}</span>}
+            <span className="a-pager-current" aria-live="polite">{t("board.page", { page: d.page, pages })}</span>
+            {d.page < pages ? <Link href={href(d.page + 1)}>{t("board.next")}<ChevronRight size={16} aria-hidden /></Link> : <span className="a-pager-disabled" aria-disabled="true">{t("board.next")}<ChevronRight size={16} aria-hidden /></span>}
           </nav>
         ) : null}
         {roleId ? null : <p className="a-small a-muted">{t("board.pickRole")}</p>}
