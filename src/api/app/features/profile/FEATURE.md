@@ -18,6 +18,9 @@ or stale index falls back to exact catalogue matches without optional suggestion
 Implemented: in-memory PDF/DOCX/text parsing, catalogue aliases and user-confirmed skill
 levels, questionnaire intake and PostgreSQL profiles. The web provides a four-step intake.
 
+The web checks CV type/size on both file selection and drag/drop before upload; the API
+enforces actual byte limits. Keyboard navigation focuses each newly selected step heading.
+
 The CV parser records only skills the person already has. Learning wishes in English, Malay
 and Chinese (an intention plus a learning verb: "want to study SQL", "ingin mempelajari",
 "希望掌握") and negations are excluded from current skills and review suggestions; a wish

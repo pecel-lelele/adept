@@ -75,6 +75,8 @@ export function IntakeWizard({
   const [saving, startSave] = useTransition();
   const fileRef = useRef<HTMLInputElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+  const stepHeadingRef = useRef<HTMLHeadingElement>(null);
+  const focusStepOnChange = useRef(false);
   const [isDragging, setIsDragging] = useState(false);
 
   function onDragEnter(e: DragEvent) {
@@ -102,10 +104,6 @@ export function IntakeWizard({
     if (cvBusy) return;
     const file = e.dataTransfer.files[0];
     if (!file) return;
-    if (file.size > MAX_CV_BYTES || !(CV_MIME_TYPES.includes(file.type) || CV_EXTENSIONS.test(file.name))) {
-      setError(t("uploadTypeError"));
-      return;
-    }
     onFile(file);
   }
   const [draftReady, setDraftReady] = useState(false);
@@ -126,6 +124,12 @@ export function IntakeWizard({
       setDraftReady(true);
     });
   }, [catalogue, interests, draftKey, userId]);
+
+  useEffect(() => {
+    if (!focusStepOnChange.current) return;
+    stepHeadingRef.current?.focus();
+    focusStepOnChange.current = false;
+  }, [step]);
 
   useEffect(() => {
     if (!draftReady || submitted.current) return;
@@ -156,6 +160,7 @@ export function IntakeWizard({
       const found = cvSkillsFromHome();
       if (found.length) setSkills(found);
     }
+    focusStepOnChange.current = true;
     setStep((s) => s + 1);
   }
 
@@ -189,6 +194,10 @@ export function IntakeWizard({
 
   function onFile(file: File | undefined) {
     if (!file) return;
+    if (file.size > MAX_CV_BYTES || !(CV_MIME_TYPES.includes(file.type) || CV_EXTENSIONS.test(file.name))) {
+      setError(t("uploadTypeError"));
+      return;
+    }
     const form = new FormData();
     form.set("file", file);
     setError("");
@@ -249,7 +258,7 @@ export function IntakeWizard({
         {step === 1 ? (
           <fieldset style={{ border: 0, margin: 0, padding: 0 }} className="a-stack">
             <legend className="a-card-head" style={{ marginBottom: 12 }}>
-              <h2>{t("segmentTitle")}</h2>
+              <h2 ref={stepHeadingRef} tabIndex={-1}>{t("segmentTitle")}</h2>
             </legend>
             <div className="a-choice-grid">
               {SEGMENTS.map(({ id, icon: Icon }) => (
@@ -269,7 +278,7 @@ export function IntakeWizard({
         {step === 2 ? (
           <fieldset style={{ border: 0, margin: 0, padding: 0 }} className="a-stack">
             <legend className="a-card-head" style={{ marginBottom: 4 }}>
-              <h2>{t("interestsTitle")}</h2>
+              <h2 ref={stepHeadingRef} tabIndex={-1}>{t("interestsTitle")}</h2>
             </legend>
             <p className="a-muted a-small" style={{ margin: 0 }}>
               {t("interestsHint")}
@@ -294,7 +303,7 @@ export function IntakeWizard({
         {step === 3 ? (
           <div className="a-stack">
             <div className="a-card-head" style={{ marginBottom: 0 }}>
-              <h2>{t("timeTitle")}</h2>
+              <h2 ref={stepHeadingRef} tabIndex={-1}>{t("timeTitle")}</h2>
             </div>
             <label className="a-field">
               {t("hours")}
@@ -327,7 +336,7 @@ export function IntakeWizard({
         {step === 4 ? (
           <div className="a-stack">
             <div className="a-card-head" style={{ marginBottom: 0 }}>
-              <h2>{t("skillsTitle")}</h2>
+              <h2 ref={stepHeadingRef} tabIndex={-1}>{t("skillsTitle")}</h2>
               <span className="a-chip">{t("chosen", { count: skills.length })}</span>
             </div>
             <p className="a-muted a-small" style={{ margin: 0 }}>
@@ -382,7 +391,7 @@ export function IntakeWizard({
               />
             </label>
             {query.trim() ? (
-              <div className="a-results" role="listbox">
+              <div className="a-results" role="listbox" aria-label={t("search")}>
                 {results.length ? (
                   results.map((o) => (
                     <button type="button" role="option" aria-selected={false} key={o.id} onClick={() => addSkill(o.id)}>
@@ -466,7 +475,7 @@ export function IntakeWizard({
       </section>
 
       <div className="a-wizard-nav">
-        <button type="button" className="a-btn is-ghost" disabled={step === 1 || saving} onClick={() => setStep((s) => s - 1)}>
+        <button type="button" className="a-btn is-ghost" disabled={step === 1 || saving} onClick={() => { focusStepOnChange.current = true; setStep((s) => s - 1); }}>
           {t("back")}
         </button>
         {step < TOTAL ? (
