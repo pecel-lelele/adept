@@ -144,14 +144,14 @@ def run(started: float, budget: float, stop: threading.Event) -> service.Outcome
     method, model_id, revision = "M1-014", MODEL_ID, MODEL_REVISION
     if runpod_ready:
         reserve = FALLBACK_RESERVE_S if trend_fallback.enabled() else 0.0
-        model = RunPodEncoder(
-            endpoint,
-            api_key,
-            timeout=max(1, min(600, budget)),
-            deadline=deadline - reserve,
-            cancelled=stop.is_set,
-        )
         try:
+            model = RunPodEncoder(
+                endpoint,
+                api_key,
+                timeout=max(1, min(600, budget)),
+                deadline=deadline - reserve,
+                cancelled=stop.is_set,
+            )
             vectors = dict(
                 zip(
                     ids,
@@ -255,13 +255,12 @@ def gemini_counts(
     stop: threading.Event,
 ) -> tuple[dict[str, int], dict[str, int]]:
     """Mention counts for both weeks with the calibrated Gemini fallback (M1-017)."""
-    reference = measurements.load(previous[1]) or measurements.load()
+    reference = measurements.load_minilm_reference(previous[1])
     if reference is None:
         raise service.RefreshFailed(
             "refresh_not_supported",
             "No stored MiniLM measurement to calibrate the fallback; the last snapshot is kept.",
         )
-    # Prefer the stored week that equals our previous window; otherwise the latest stored rate.
     rate = trend_fallback.mentions_per_paper(reference.counts_after, reference.total_after)
     try:
         labels = trend_fallback.embed_bounded(

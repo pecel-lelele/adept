@@ -36,6 +36,22 @@ def test_embedding_calls_stop_at_the_deadline(monkeypatch: pytest.MonkeyPatch) -
         trend_fallback.embed_bounded(["x"], time.monotonic() - 1)
 
 
+def test_each_embedding_request_is_capped_by_the_time_left(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    seen: list[float] = []
+
+    def slow(texts: list[str], *args: Any, timeout_s: float, **kwargs: Any) -> list[list[float]]:
+        seen.append(timeout_s)
+        time.sleep(0.06)  # the request returns after the deadline
+        return [[1.0] for _ in texts]
+
+    monkeypatch.setattr(embeddings, "embed", slow)
+    with pytest.raises(TimeoutError):
+        trend_fallback.embed_bounded(["x"] * 150, time.monotonic() + 0.05)
+    assert len(seen) == 1 and 0 < seen[0] <= 0.05
+
+
 def _setup(monkeypatch: pytest.MonkeyPatch, *, runpod: bool, reference: object | None) -> list[Any]:
     published: list[Any] = []
 
@@ -43,9 +59,12 @@ def _setup(monkeypatch: pytest.MonkeyPatch, *, runpod: bool, reference: object |
     def connection(deadline: float) -> Any:
         yield SimpleNamespace(execute=lambda *args: None)
 
-    loads = iter([None, reference, reference])  # stored-week check, then calibration lookups
     monkeypatch.setattr(automatic_trends.refresh, "latest_published", lambda _url: None)
-    monkeypatch.setattr(automatic_trends.measurements, "load", lambda *a, **k: next(loads))
+    # No stored inputs for the current week; calibration may only read a MiniLM week.
+    monkeypatch.setattr(automatic_trends.measurements, "load", lambda *a, **k: None)
+    monkeypatch.setattr(
+        automatic_trends.measurements, "load_minilm_reference", lambda _day: reference
+    )
     monkeypatch.setattr(
         automatic_trends,
         "fetch_window",
@@ -98,6 +117,17 @@ def test_refresh_falls_back_to_gemini_and_labels_the_method(
     assert inputs.model == "gemini-embedding-001@768"
     assert "MiniLM cosine method" not in inputs.note
     assert "fallback" in inputs.note
+
+
+def test_bad_worker_settings_still_reach_the_fallback(monkeypatch: pytest.MonkeyPatch) -> None:
+    published = _setup(monkeypatch, runpod=True, reference=REFERENCE)
+
+    def bad_endpoint(*args: Any, **kwargs: Any) -> None:
+        raise ValueError("Set TRENDS_RUNPOD_ENDPOINT_ID and TRENDS_RUNPOD_API_KEY")
+
+    monkeypatch.setattr(automatic_trends, "RunPodEncoder", bad_endpoint)
+    automatic_trends.run(time.monotonic(), 600, STOP)
+    assert published[0].method == "M1-017"
 
 
 def test_fallback_without_a_stored_measurement_keeps_the_last_snapshot(

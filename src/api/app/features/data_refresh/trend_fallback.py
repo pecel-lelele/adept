@@ -46,12 +46,16 @@ def embed_bounded(
     for i in range(0, len(texts), BATCH):
         if cancelled():
             raise TimeoutError("refresh cancelled")
-        if time.monotonic() >= deadline:
+        left = deadline - time.monotonic()
+        if left <= 0:
             raise TimeoutError("refresh time budget reached")
         try:
-            out.extend(embeddings.embed(texts[i : i + BATCH]))
+            # The request may not outlive the refresh deadline (that time is kept for saving).
+            out.extend(embeddings.embed(texts[i : i + BATCH], timeout_s=left))
         except embeddings.EmbeddingsUnavailable as exc:
             raise FallbackUnavailable(str(exc)) from exc
+        if time.monotonic() >= deadline:
+            raise TimeoutError("refresh time budget reached")
     return out
 
 
