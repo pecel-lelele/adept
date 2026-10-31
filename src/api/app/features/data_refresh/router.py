@@ -2,6 +2,7 @@
 
 GET  /api/v1/data/freshness              public, read-only: per-source freshness
 POST /api/v1/data/refresh/{source}       admin only: courses | jobs | labour, in process
+POST /api/v1/data/refresh/check          admin only: the manual trigger (M1-026)
 """
 
 from __future__ import annotations
@@ -21,7 +22,6 @@ from app.contracts.data_refresh import (
 )
 from app.core.admin import require_admin
 from app.core.auth import CurrentUser, CurrentUserDep, get_current_user
-from app.core.errors import ForbiddenError
 from app.features.data_refresh import jobs, service
 
 router = APIRouter(prefix="/data", tags=["data"])
@@ -63,17 +63,10 @@ def scheduled_run(response: Response) -> BackgroundRefresh:
     return result
 
 
-@router.post("/refresh/check", status_code=202)
-def user_refresh(data: RefreshCheck, user: CurrentUserDep, response: Response) -> BackgroundRefresh:
-    if data.bypass_cooldown:
-        require_admin(user)
-    try:
-        require_admin(user)
-        privileged = True
-    except ForbiddenError:
-        privileged = False
-    # Cost policy: non-admin checks never re-run a recently failed paid trends step.
-    result = jobs.start(bypass_cooldown=data.bypass_cooldown, trends_backoff=not privileged)
+@router.post("/refresh/check", dependencies=[Depends(_admin)], status_code=202)
+def admin_refresh(data: RefreshCheck, response: Response) -> BackgroundRefresh:
+    """Admin-only manual trigger; people see "Data through <date>" and the daily job runs."""
+    result = jobs.start(bypass_cooldown=data.bypass_cooldown)
     if result.status in ("up_to_date", "cooldown"):
         response.status_code = 200
     return result
