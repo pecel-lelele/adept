@@ -12,7 +12,7 @@ import {
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
-import { ErrorState, Kpis, PageHeader } from "@/components";
+import { ErrorState, Kpis, MetaBar, PageHeader } from "@/components";
 import { Fold } from "@/components/Fold";
 import { CareerRoadmap, CertificationsCard, RoleOpeningsCard } from "@/features/jobs";
 import type { ScenarioId, Schemas } from "@/lib/api";
@@ -185,6 +185,7 @@ export async function PathwayView({
         description={t("totalWeeks", { weeks: plan.total_weeks })}
         actions={action}
       >
+        <MetaBar meta={plan.meta} />
       </PageHeader>
       {savedOtherScenario ? (
         <p className="a-notice" data-tone="info">

@@ -2,7 +2,7 @@ import { Circle, CircleCheck, CircleDashed, Leaf } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
-import { PageHeader } from "@/components";
+import { MetaBar, PageHeader } from "@/components";
 import { ErrorState } from "@/components/ErrorState";
 import { scoreColour } from "@/components/viz";
 import { RoleOpeningsCard } from "@/features/jobs";
@@ -81,6 +81,7 @@ export async function MatchDetailView({
               <Leaf size={12} aria-hidden /> {tp("sdgWeighted", { weight: Math.round(sdgWeight * 100) })}
             </span>
           ) : null}
+          <MetaBar meta={m.meta} />
         </div>
       </PageHeader>
       <ProfileNote note={m.profile_note} />

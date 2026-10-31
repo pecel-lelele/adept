@@ -3,7 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
-import { Kpis } from "@/components";
+import { Kpis, MetaBar } from "@/components";
 import { ErrorState } from "@/components/ErrorState";
 import { ScoreBar, SdgTiles, StepTrack, TrendBars, type TrackStep, type TrendBar } from "@/components/viz";
 import { fetchMatches } from "@/features/matching/api";
@@ -302,6 +302,7 @@ export async function DashboardView({ scenario, query, workspaceError = false }:
           {spotlight ? <div className="a-home-sdg-card"><SdgLinkCards links={[spotlight]} labels={sdgLabels} /></div> : goals.length ? <SdgTiles goals={goals} /> : <p className="a-muted a-small">{t("noImpact")}</p>}
         </section>
       </div>
+      {matches.ok ? <MetaBar meta={matches.data.meta} /> : radar.ok ? <MetaBar meta={radar.data.meta} /> : null}
     </div>
   );
 }

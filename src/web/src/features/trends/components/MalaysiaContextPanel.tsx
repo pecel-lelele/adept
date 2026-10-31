@@ -3,6 +3,7 @@
 import { useId, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 
+import { MetaBar } from "@/components/MetaBar";
 import type { Schemas } from "@/lib/api";
 
 type Observation = Schemas["MalaysiaLabourContext"];
@@ -43,6 +44,7 @@ export function MalaysiaContextPanel({ observations }: { observations: Observati
           </div>
         ))}
       </dl>
+      <MetaBar meta={data.meta} />
     </section>
   );
 }

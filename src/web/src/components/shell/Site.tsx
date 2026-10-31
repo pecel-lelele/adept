@@ -54,12 +54,14 @@ export async function SiteHeader({
             <LocaleSwitcher />
           </span>
           {homeLink ? (
-            <span className="a-site-wide a-site-auth">
+            <>
               {homeLink}
-              <form action="/auth/logout?next=/auth/login" method="post">
-                <button className="a-site-login" type="submit">{t("nav.signOut")}</button>
-              </form>
-            </span>
+              <span className="a-site-wide a-site-auth">
+                <form action="/auth/logout?next=/auth/login" method="post">
+                  <button className="a-site-login" type="submit">{t("nav.signOut")}</button>
+                </form>
+              </span>
+            </>
           ) : (
             <span className="a-site-wide a-site-auth">
               <Link className="a-site-login" href="/auth/login">

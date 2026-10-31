@@ -2,7 +2,7 @@ import { CircleDashed, Circle } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
-import { EmptyState, PageHeader } from "@/components";
+import { EmptyState, MetaBar, PageHeader } from "@/components";
 import { ErrorState } from "@/components/ErrorState";
 import { HistoricalSnapshotBanner } from "@/components/HistoricalSnapshotBanner";
 import { scoreColour } from "@/components/viz";
@@ -66,6 +66,7 @@ export async function MatchesView({
   return (
     <div className="a-view">
       <PageHeader title={t("title")} description={t("description")}>
+        {result.ok ? <MetaBar meta={result.data.meta} /> : null}
       </PageHeader>
       {chooseRoleFirst ? <p className="a-notice" role="status">{t("chooseRoleFirst")}</p> : null}
       <HistoricalSnapshotBanner date={snapshotDate} latestHref={`/app/matches?scenario=${scenario}${sdgWeight > 0 ? `&sdg=${sdgWeight.toFixed(2)}` : ""}`} />

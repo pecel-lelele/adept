@@ -3041,3 +3041,12 @@
 - **Replaces**: none; extends M4-084
 - **PR / branch**: fix/core-dashboard-cleanup
 
+### M4-102: Sources link restored on recommendation pages; browser journeys follow the simplified UI
+- **Date**: 2026-11-01
+- **Feature**: Core / F2 radar / F4 matches / F5 pathway / F6 SDG
+- **Type**: UI
+- **Change**: M4-100 reduced attribution to one small "Sources" link, but the page views that carry it (dashboard, radar, matches, match detail, plan, progress, SDG contribution and the Malaysian labour panel) had lost their `MetaBar`. It is restored on those pages, so each recommendation, score or trend card again has a link whose tooltip and accessible name hold the estimate cue and snapshot date. The public header shows the workspace link on phones again (sign-out stays in the menu). The Playwright journeys were updated to the simplified UI: the Sources link replaces the `.a-metabar` expander, radar filters are radios with 10 rows per page, "Mark done" is proof-gated, choosing a role is an explicit button, and the radar cards stay on the light theme in both colour schemes.
+- **Why**: AGENTS.md section 3.4 requires attribution on every recommendation or trend card; a link-only design satisfies it only if the link is present. Tests were updated to assert the new behaviour rather than dropped.
+- **Affects**: dashboard, radar, matches, plan, progress, SDG and public header views; `tests/e2e/*`, `tests/web-labour-context.test.ts`; no API schema change
+- **Replaces**: none; completes M4-100
+- **PR / branch**: fix/core-dashboard-cleanup

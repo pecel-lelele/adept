@@ -2,7 +2,7 @@ import { Globe2, Link2, Target } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
-import { ErrorState, Kpis, PageHeader, SdgBadge } from "@/components";
+import { ErrorState, Kpis, MetaBar, PageHeader, SdgBadge } from "@/components";
 import type { ApiResult, ScenarioId, Schemas } from "@/lib/api";
 import { SDG_COLOURS } from "@/components/viz";
 
@@ -67,6 +67,7 @@ async function ContributionBody({
   return (
     <div className="a-view">
       <PageHeader eyebrow={data.scope === "person" ? undefined : t("goals")} title={title} description={t("description")}>
+        <MetaBar meta={data.meta} />
       </PageHeader>
       {data.role_ids && data.role_ids.length > 0 ? (
         <p className="a-notice" data-tone="info">

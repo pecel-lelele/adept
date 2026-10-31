@@ -1,7 +1,7 @@
 import { Bot, Minus, Radar, TrendingDown, TrendingUp } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
-import { Kpis, PageHeader, TrendPill } from "@/components";
+import { Kpis, MetaBar, PageHeader, TrendPill } from "@/components";
 import { ErrorState } from "@/components/ErrorState";
 import { TrendBars } from "@/components/viz";
 import { fetchMyProfile } from "@/features/profile/api";
@@ -72,6 +72,7 @@ export async function RadarView({
         title={context === "organisation" ? t("orgTitle") : t("title")}
         description={tp("radarDesc")}
       >
+        <MetaBar meta={meta} />
       </PageHeader>
 
       <Kpis

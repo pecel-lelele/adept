@@ -2,7 +2,7 @@ import { ArrowUpRight, Award, BookOpen, Building2, Check, Layers, Target } from 
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
-import { ErrorState, Kpis, PageHeader } from "@/components";
+import { ErrorState, Kpis, MetaBar, PageHeader } from "@/components";
 import type { ScenarioId } from "@/lib/api";
 
 import { shareCompletionAction, submitEvidenceAction, updateProgressAction } from "../actions";
@@ -69,6 +69,7 @@ export async function ProgressView({
             <Building2 size={13} aria-hidden /> {tw("assignedByTeam", { org: orgName ?? "" })}
           </span>
         ) : null}
+        <MetaBar meta={p.meta} />
       </PageHeader>
 
       <Kpis
