@@ -48,7 +48,8 @@
     "workspace_changed": "Your workspace changed. Refresh before trying again.",
     "funding_conflict": "The funding request could not be completed. Check its current status with your manager.",
     "disallowed_content": "Remove unsupported content from your input before continuing.",
-    "unknown_course": "Choose a course from the current plan or catalogue."
+    "unknown_course": "Choose a course from the current plan or catalogue.",
+    "insufficient_cohort": "Too few sharing members with completed profiles. Select a larger consenting cohort, or wait for more members to finish their profiles."
   },
   "nav": {
     "home": "Home",
@@ -533,6 +534,8 @@
     "signIn": "Sign in again",
     "profile": "Complete your profile",
     "network": "We can’t reach Adept right now.",
+    "cohort": "Too few members",
+    "members": "Review members",
     "home": "Back home",
     "unexpected": "We could not load this page. Try again or return home.",
     "notFoundTitle": "Page not found",

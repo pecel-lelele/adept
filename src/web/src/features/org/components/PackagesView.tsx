@@ -21,7 +21,7 @@ export async function PackagesView({ scenario, roleId, memberIds }: {
       role_id: roleId, member_ids: memberIds, scenario,
     } } })),
   ]);
-  const people = members.ok ? members.data.members.filter(m => m.intake_status === "complete") : [];
+  const people = members.ok ? members.data.members.filter(m => m.intake_status === "complete" && m.skills_shared) : [];
   const names = Object.fromEntries(people.map(m => [m.id, m.display_name]));
   const selected = memberIds ?? people.map(m => m.id);
   const chosenRole = roleId ?? (result.ok ? result.data.packages[0]?.role_id : undefined);

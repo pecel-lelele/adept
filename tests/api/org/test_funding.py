@@ -90,7 +90,7 @@ def test_member_reimbursement_routes_are_gone(client: TestClient, path: str):
     assert client.post(ROOT + path, headers=MEMBER, json={}).status_code in (404, 405)
 
 
-def test_budget_caps_the_budget_capped_package(client: TestClient):
+def test_budget_caps_the_budget_capped_package(planning_cohort: list[str], client: TestClient):
     client.put(ROOT + "/budget", headers=HR, json={"user_id": "aisyah", "amount_myr": "150.00"})
     response = client.get("/api/v1/org/packages", headers=HR, params={"role_id": "data-analyst"})
     assert response.status_code == 200, response.text

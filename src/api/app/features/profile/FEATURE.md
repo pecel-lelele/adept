@@ -17,6 +17,16 @@ or stale index falls back to exact catalogue matches without optional suggestion
 
 Implemented: in-memory PDF/DOCX/text parsing, catalogue aliases and user-confirmed skill
 levels, questionnaire intake and PostgreSQL profiles. The web provides a four-step intake.
+
+The CV parser records only skills the person already has. Learning wishes in English, Malay
+and Chinese (an intention plus a learning verb: "want to study SQL", "ingin mempelajari",
+"希望掌握") and negations are excluded from current skills and review suggestions; a wish
+ends at its sentence or line boundary. The parser is rule-based (no model reads the CV); lines that
+try to instruct a model ("Ignore previous instructions...", "System:") are dropped whole
+before extraction (`core/security/sanitize.drop_instruction_lines`). Leadership actions such as "Lead a team" and "Managed people"
+resolve only when the loaded catalogue has one unambiguous leadership/people-management skill;
+they never create a skill or imply project-management experience.
+
 Empty extraction and truncation remain visible in both upload screens; uploads never mutate saved skills before
 confirmation. See `cv_parser.py`, `service.py` and `tests/api/profile/`.
 

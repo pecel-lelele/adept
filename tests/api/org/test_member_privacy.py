@@ -31,7 +31,9 @@ def test_members_are_refused_team_data(client: TestClient, path: str) -> None:
 
 
 @pytest.mark.parametrize("path", TEAM_ONLY)
-def test_managers_still_see_their_team(client: TestClient, path: str) -> None:
+def test_managers_still_see_their_team(
+    planning_cohort: list[str], client: TestClient, path: str
+) -> None:
     assert client.get(path, headers=MANAGER).status_code == 200
 
 

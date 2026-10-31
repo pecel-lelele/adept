@@ -48,7 +48,8 @@
     "workspace_changed": "Ruang kerja anda telah berubah. Muat semula sebelum mencuba lagi.",
     "funding_conflict": "Permintaan pembiayaan tidak dapat diselesaikan. Semak status semasanya dengan pengurus anda.",
     "disallowed_content": "Buang kandungan yang tidak disokong daripada input sebelum meneruskan.",
-    "unknown_course": "Pilih kursus daripada pelan atau katalog semasa."
+    "unknown_course": "Pilih kursus daripada pelan atau katalog semasa.",
+    "insufficient_cohort": "Terlalu sedikit ahli yang berkongsi kemahiran dan telah melengkapkan profil. Pilih kohort bersetuju yang lebih besar, atau tunggu lebih ramai ahli melengkapkan profil."
   },
   "nav": {
     "home": "Utama",
@@ -533,6 +534,8 @@
     "signIn": "Log masuk semula",
     "profile": "Lengkapkan profil anda",
     "network": "Kami tidak dapat menghubungi Adept sekarang.",
+    "cohort": "Ahli terlalu sedikit",
+    "members": "Semak ahli",
     "home": "Kembali ke laman utama",
     "unexpected": "Kami tidak dapat memuatkan halaman ini. Cuba lagi atau kembali ke laman utama.",
     "notFoundTitle": "Halaman tidak ditemui",

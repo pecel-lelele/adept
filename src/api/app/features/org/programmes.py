@@ -128,6 +128,7 @@ def route_for(share: float) -> Route:
 def options(user: CurrentUser) -> ProgrammeOptions:
     org_id = funding.manager_scope(user)
     team = service.member_learners(org_id)
+    service.require_cohort(len(team))
     names = {m.id: m.display_name for m in repository.list_members(org_id)}
     labels = data.role_labels()
     skill_labels = data.skill_labels()
@@ -201,6 +202,7 @@ def generate(user: CurrentUser, brief: ProgrammeBriefIn) -> ProgrammePlan:
             status_code=422,
             code="unknown_member",
         )
+    service.require_cohort(len(member_ids))
     known = set(data.target_role_ids())
     roles = {}
     for target in brief.roles:
