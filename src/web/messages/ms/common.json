@@ -18,7 +18,8 @@
   },
   "estimate": {
     "label": "Anggaran",
-    "hint": "Ramalan ialah anggaran, bukan fakta."
+    "hint": "Ramalan ialah anggaran, bukan fakta.",
+    "historical": "Anggaran sejarah"
   },
   "source": {
     "label": "Sumber",
@@ -33,7 +34,11 @@
     "backToLatest": "Kembali ke yang terkini",
     "fallback": "Memaparkan petikan terakhir yang tersedia dari {date}",
     "label": "Data trend setakat {date}",
-    "unavailable": "Data trend tidak tersedia"
+    "unavailable": "Data trend tidak tersedia",
+    "snapshot": "Petikan {date}",
+    "historicalData": "Data sejarah",
+    "unverifiedShort": "Tarikh pemerhatian belum disahkan",
+    "fallbackShort": "Petikan terakhir tersedia"
   },
   "nav": {
     "overview": "Gambaran keseluruhan",

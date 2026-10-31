@@ -18,7 +18,8 @@
   },
   "estimate": {
     "label": "估计值",
-    "hint": "预测仅为估计，并非事实。"
+    "hint": "预测仅为估计，并非事实。",
+    "historical": "历史估计"
   },
   "source": {
     "label": "来源",
@@ -33,7 +34,11 @@
     "backToLatest": "返回最新数据",
     "fallback": "正在显示 {date} 的最近可用快照",
     "label": "趋势数据截至 {date}",
-    "unavailable": "趋势数据不可用"
+    "unavailable": "趋势数据不可用",
+    "snapshot": "快照 {date}",
+    "historicalData": "历史数据",
+    "unverifiedShort": "观测日期未核实",
+    "fallbackShort": "最近可用快照"
   },
   "nav": {
     "overview": "总览",

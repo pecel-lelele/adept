@@ -18,7 +18,8 @@
   },
   "estimate": {
     "label": "Estimate",
-    "hint": "Predictions are estimates, not facts."
+    "hint": "Predictions are estimates, not facts.",
+    "historical": "Historical estimate"
   },
   "source": {
     "label": "Source",
@@ -33,7 +34,11 @@
     "backToLatest": "Back to latest",
     "fallback": "Showing last good snapshot from {date}",
     "label": "Trend data as of {date}",
-    "unavailable": "Trend data unavailable"
+    "unavailable": "Trend data unavailable",
+    "snapshot": "Snapshot {date}",
+    "historicalData": "Historical data",
+    "unverifiedShort": "Observation dates unverified",
+    "fallbackShort": "Last available snapshot"
   },
   "nav": {
     "overview": "Overview",
