@@ -457,6 +457,50 @@
 - **Replaces**: TEAM-040's statement about 0 production hops (the rest of TEAM-040 stands)
 - **PR / branch**: fix/core-review-regressions (PR #66)
 
+### TEAM-042: Shared in-app refresh with GitHub as clock
+- **Date**: 2026-10-30
+- **Feature**: Core, F2/F4/F5/F6
+- **Type**: schema
+- **Change**: Add token-authenticated scheduler triggers, short signed-in check/status endpoints, durable per-source progress and one site-wide PostgreSQL advisory lease. Apply append-only run-log migrations explicitly; publish each validated source atomically.
+- **Why**: GitHub cannot reach Replit's private database; the app can. Separate scheduler credentials from users/Adi, bound/cancel model/network/SQL operations, share active work, enforce cooldown/admin-only bypass and preserve last good data.
+- **Pipeline**: public sources → bounded validation → catalogue/mention features → existing production methods → mocked auth/concurrency/failure/date regressions → saved snapshots and freshness
+- **Affects**: Core, trends, matching/pathway attribution, jobs, catalogue
+- **Replaces**: none (legacy workflow retained until automatic publication is proven)
+- **PR / branch**: feat/core-automatic-data-refresh
+
+### TEAM-043: Fence refresh publication and retain reproducible measured inputs
+- **Date**: 2026-10-31
+- **Feature**: Core, F2/F5
+- **Type**: method
+- **Change**: Keep publication on the original advisory-lock session, heartbeat/cancel on lease loss, fence replacement work through the maximum provider lifetime, re-read status under the lock, and check deadlines inside the owning transaction before commit. Persist measured counts/windows/baselines/sample IDs atomically for inference-free reconstruction via an append-only input migration.
+- **Why**: A dropped idle lock must not permit a second paid worker or an unfenced write; a completion race must not turn success into interruption. Partial-source successes must update cards. Incomplete course checks rotate and fail without claiming daily success; due-but-cooling-down scheduler work fails visibly; zero-row DB reads keep their true origin.
+- **Pipeline**: dated arXiv/BLS/catalogue inputs → bounded checks and canonical IDs → retained mention/baseline features → production scoring/reconstruction → mocked race/cancellation/rebuild tests plus two real PostgreSQL lease/rollback regressions (passed) → fenced atomic snapshots, truthful status/freshness and partial-success UI refresh
+- **Affects**: Core worker/clock, F2 publication and stored rescore, F5 course verification, refresh UX
+- **Replaces**: none (hardens TEAM-042)
+- **PR / branch**: feat/core-automatic-data-refresh
+
+
+### TEAM-044: Keep empty labour freshness aligned with the served frozen export
+- **Date**: 2026-10-31
+- **Feature**: F2 and Core (data refresh)
+- **Type**: method
+- **Change**: Preserve zero-row database freshness for jobs/courses while recognising that an empty labour table serves the frozen DOSM export. Labour freshness retains the export's actual dates and fallback flag.
+- **Why**: Empty-source behaviour differs by serving adapter; a successful aggregate SQL query does not establish that the database supplied the displayed content.
+- **Affects**: refresh freshness metadata and empty-labour regression; no schema/provider change
+- **Replaces**: none (narrows TEAM-043's zero-row handling to match serving behaviour)
+- **PR / branch**: feat/core-automatic-data-refresh / PR #75
+
+### TEAM-045: Combine explicit replay provenance with automatic refresh and date static artifacts by content
+- **Date**: 2026-10-31
+- **Feature**: F2 and Core (data refresh)
+- **Type**: schema
+- **Change**: Integrates PR #73 (explicit `is_replay`, observation window, `retrieved_at`/basis/evidence columns on raw signals, snapshots and snapshot metadata; validator; per-date advisory lock; live/replay origin guard; replay rows excluded from live scoring) with PR #75 (in-app background refresh and measured inputs). Automatic measured publications are stored as live: observation window = measured ISO week, `retrieved_at` = real fetch day, basis `pipeline_fetch`, evidence = arXiv query, windows and a SHA-256 of the sampled paper IDs. Freshness uses the stored `is_replay` (the 60-day heuristic only for unclassified legacy rows) and counts only `pipeline_fetch`/`fetch_log` sources as "last fetched". Git-commit retrieval fallbacks now follow renames and skip pure moves, so the BLS baseline dates from its content commit 750fa30 (2026-10-20) and the replay fixtures from data commit 8005c5f (2026-10-20), not the 8a5a460 re-layout move (2026-10-24); the BLS sidecar is read at runtime without Git. The provenance migration is renamed to `20261031120000` (after #75's migrations) and uses a portable unique constraint plus a partial unique index instead of PostgreSQL 15+ `UNIQUE NULLS NOT DISTINCT`. After a failed trends step, signed-in non-admin refresh checks skip the paid MiniLM step for `TRENDS_FAILURE_BACKOFF_MINUTES` (default 60); administrators and the scheduler are exempt.
+- **Why**: A move or metadata commit is not an acquisition; dating an artifact by it overstated freshness by four days. Live refresh rows must satisfy #73's live-classification constraint, and a user-visible refresh button must not repeatedly bill a failing paid step. Production PostgreSQL version is unconfirmed, so the migration stays portable.
+- **Pipeline**: arXiv submission API (bounded weekly samples) → existing MiniLM/score/validate → provenance validator (live: fetch basis + evidence) → fenced atomic publish with advisory lock and origin guard → disposable-DB migrate up/down/up, provenance/refresh/backoff regressions → dated freshness and trend metadata
+- **Affects**: trend snapshot schema and seed fixtures, data refresh service/jobs/router, settings and `.env.example`, freshness API
+- **Replaces**: none (extends TEAM-042/TEAM-043 and M1-015)
+- **PR / branch**: integ/refresh-provenance (PR #73 + PR #75)
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)
@@ -624,6 +668,17 @@
 - **Affects**: F2 radar growth rate, F5 pathway growth term, F4 match trend component, F3 scenario toggle
 - **Replaces**: refines the N1 scale in M1-012
 - **PR / branch**: fix/core-review-regressions (PR #66)
+
+### M1-015: Measure real completed arXiv weeks and retire backdating
+- **Date**: 2026-10-30
+- **Feature**: F2 (Trends)
+- **Type**: method
+- **Change**: Read exact prior completed cs.AI submission weeks through the public query API, capped at 350 papers/week. Reuse dedicated MiniLM and production scoring/validation; snapshot date is measured Sunday and acquisition dates remain distinct. Reject out-of-window papers and retire the bootstrap backdating command.
+- **Why**: October 2024 replay observations must never be presented as 2026 research. Skip RunPod before any I/O if the completed week is stored; preserve static BLS acquisition dates. Bounded samples remain disclosed estimates.
+- **Pipeline**: arXiv API + versioned BLS → publication-date/window validation → MiniLM cosine mentions → production scorer → measured-date/no-inference/failure tests → atomic PostgreSQL snapshot with historical fallback disclosure
+- **Affects**: F2/F3, downstream F4/F5 scores, legacy rescore date semantics
+- **Replaces**: none (corrects earlier replay bootstrap practice; historical entries remain)
+- **PR / branch**: feat/core-automatic-data-refresh
 
 ---
 
@@ -1393,6 +1448,16 @@
 - **Affects**: public impact evidence validation; no schema, source or provider change
 - **Replaces**: M3-036 numeric support rule only
 - **PR / branch**: fix/core-greptile-followups / Fixes #86
+### M3-039: Complete Adi question routing and check the rendered answer
+- **Date**: 2026-10-31
+- **Feature**: F8 (guardrails), Core (Adi assistant)
+- **Type**: method | UI
+- **Change**: Complete the partial routing fixes for top-match explanations, weekly hours, progress, freshness, profiles, visibility, capabilities, unsupported actions, career changes and declining jobs in EN/MS/ZH. Keep decision/injection/other-person/invention checks first and off-topic detection before scoring unless a clear career term is present. Require the capability block and restrict model-selected second blocks to routed near ties.
+- **Why**: Correct intent IDs alone hid unrelated answers: profile questions returned only upload instructions, named roles borrowed the top score, and named skills borrowed another plan step. Render own saved skills, resolve named catalogue roles/skills without inventing aliases or scores, state missing data, restrict SDG definitions to the requested goal and send hiring/enrolment questions to the appropriate pages. Keep career specialisations outside the catalogue explicit instead of asserting unrelated matches.
+- **Pipeline**: n/a (deterministic rules and existing F8 validated answer-block selection). Evaluation uses production routing/rendering, synthetic accounts, checked catalogue references and the expanded TSV regression fixture; no live provider or database writes.
+- **Affects**: assistant guide/service, assistant FEATURE.md, routing fixtures and rendered-text/model-selection regressions; local probe gains working rendered-text output and dotenv isolation. No public API/schema, dependency, provider, catalogue or scoring change.
+- **Replaces**: none (refines M3-038 and TEAM-014; existing entries remain unchanged)
+- **PR / branch**: fix/core-adi-routing (M3-039 reserved by the job brief)
 
 ### M3-040: Measure identity swaps and keep submitted credentials unearned
 - **Date**: 2026-10-31
@@ -1853,7 +1918,7 @@
 - **Replaces**: none
 - **PR / branch**: https://github.com/pecel-lelele/adept/pull/10 / feat/catalogue-roles-skills-courses
 
-### M4-031: Free-to-learn courses in plans, 27 more verified courses, honest "tops out" gaps
+### M4-090: Free-to-learn courses in plans, 27 more verified courses, honest "tops out" gaps
 - **Date**: 2026-10-23
 - **Feature**: F5, F4 (Core integration)
 - **Type**: data source | method
@@ -2341,6 +2406,17 @@
 - **Replaces**: none
 - **PR / branch**: worktree-agent-a30a3ff3fc8019a74
 
+### M4-087: Shared refresh progress and documented Malaysian job sources
+- **Date**: 2026-10-30
+- **Feature**: Core (refresh UX and jobs)
+- **Type**: data source
+- **Change**: Dashboard/radar users check/attach to the shared worker with translated accessible progress, last-good failure/retry, cooldown timing and visibility-aware backoff. Automatic jobs use documented Greenhouse/Lever/Ashby APIs plus optional configured keyed sources; serving requires the posting's own Malaysian location and 14-day freshness.
+- **Why**: Refresh must remain responsive and honestly dated. Worldwide-only eligibility and undocumented endpoints do not establish a permitted Malaysian feed. DOSM LFS remains cited national context; unsupported/unverified alternatives are deferred in docs/data-refresh.md.
+- **Pipeline**: documented public employer APIs/provider pages/DOSM → own-location and bounded URL/fact checks → existing job/catalogue features → production classifier/sync → mocked sources/UI-state/i18n tests → dated cards, saved rows and source assessment
+- **Affects**: dashboard/radar/admin, job board, matches/pathway freshness, about/source declaration
+- **Replaces**: none (narrows automatic path of M4-059; historical connectors retained)
+- **PR / branch**: feat/core-automatic-data-refresh
+
 ### M4-088: Suppress small consenting cohorts in team heatmaps
 - **Date**: 2026-10-31
 - **Feature**: F7 (Organisation mode), Core
@@ -2351,6 +2427,16 @@
 - **Affects**: org contracts, settings/env example, shared heatmap and en/ms/zh views; no migration
 - **Replaces**: none (M4-087 is reserved by refresh PR #75)
 - **PR / branch**: fix/matching-org-review-fixes
+
+### M4-089: Label stale job ads instead of letting them vanish
+- **Date**: 2026-10-31
+- **Feature**: Core (jobs board), F4 role openings
+- **Type**: contract
+- **Change**: Job ads not re-seen within `JOBS_STALE_DAYS` (default 14) remain last in board and role listings with `is_stale`, `last_seen` and a translated "may have closed" note; counts/readiness use fresh ads. The daily automatic job includes job feeds. Freshness exposes actual posting `last_seen` as `data_as_of`, independently of the latest fetch log, counts the served labelled ads, and retains empty database results and frozen labour dates. Runtime trend provenance requires a byte-bound committed/fetched sidecar instead of invoking Git; the dev-only toolbox generator follows content history. Final-page course deadlines fail as incomplete before any catalogue publication.
+- **Why**: When automatic reads stop, the board would otherwise empty without explanation; showing an old ad as current would be fake freshness. Labelled, uncounted ads are honest about both.
+- **Affects**: jobs contract (`JobOpening.last_seen`, `is_stale`), jobs service/repository, OpeningItem and en/ms/zh messages, freshness/settings/env example, trend provenance and course-check regressions. The pre-existing duplicate free-course M4-031 heading is uniquely identified as M4-090; its recorded decision text is preserved.
+- **Replaces**: none (keeps M4-087's 14-day rule for counts)
+- **PR / branch**: integ/refresh-provenance
 
 ### M4-092: Connect the technical-declaration export
 - **Date**: 2026-10-31

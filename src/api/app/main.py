@@ -50,6 +50,9 @@ def _operation_id(route: APIRoute) -> str:
 @asynccontextmanager
 async def _lifespan(_: FastAPI) -> AsyncIterator[None]:
     yield
+    from app.features.data_refresh.jobs import shutdown
+
+    shutdown()
     close_pools()
 
 

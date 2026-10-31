@@ -7,7 +7,7 @@ import os
 import re
 import sys
 import time
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from functools import lru_cache
 from typing import Any, Protocol
 
@@ -88,7 +88,15 @@ class RunPodEncoder:
     existed and the job could not be cancelled.
     """
 
-    def __init__(self, endpoint_id: str, api_key: str, timeout: float = DEFAULT_TIMEOUT_S) -> None:
+    def __init__(
+        self,
+        endpoint_id: str,
+        api_key: str,
+        timeout: float = DEFAULT_TIMEOUT_S,
+        *,
+        deadline: float | None = None,
+        cancelled: Callable[[], bool] | None = None,
+    ) -> None:
         if not re.fullmatch(r"[A-Za-z0-9_-]+", endpoint_id) or not api_key:
             raise ValueError("Set TRENDS_RUNPOD_ENDPOINT_ID and TRENDS_RUNPOD_API_KEY")
         if not math.isfinite(timeout) or timeout <= 0 or timeout > MAX_TIMEOUT_S:
@@ -96,9 +104,12 @@ class RunPodEncoder:
         self.url = f"https://api.runpod.ai/v2/{endpoint_id}"
         self.api_key = api_key
         self.timeout = timeout
+        self.deadline = deadline
+        self.cancelled = cancelled
 
-    @staticmethod
-    def _remaining(deadline: float) -> float:
+    def _remaining(self, deadline: float) -> float:
+        if self.cancelled and self.cancelled():
+            raise TimeoutError("RunPod MiniLM operation cancelled")
         remaining = deadline - time.monotonic()
         if remaining <= 0:
             raise TimeoutError("RunPod MiniLM inference exceeded its deadline")
@@ -218,7 +229,7 @@ class RunPodEncoder:
     ) -> list[list[float]]:
         size = min(MAX_BATCH, max(1, batch_size))
         vectors: list[list[float]] = []
-        deadline = time.monotonic() + self.timeout
+        deadline = self.deadline or time.monotonic() + self.timeout
         for start in range(0, len(texts), size):
             vectors.extend(self._batch(list(texts[start : start + size]), deadline=deadline))
         return vectors

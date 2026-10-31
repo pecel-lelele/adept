@@ -53,6 +53,7 @@ remote boards' terms require.
 | Features | skills named (CV parser's catalogue matcher), certifications named (exam code / name), seniority | every skill id exists in the taxonomy |
 | Model / method | role = ordered job-title patterns per Adept role; unmatched ads stay unassigned | a skills-only fallback was dropped for poor precision |
 | Evaluation | per-source counts, share assigned, skills per ad, unassigned job families; title rules >= 95% on a hand-labelled set | `tests/pipelines/jobs`, `fetch_log.json` |
-| Serving | seed CSVs + `--db` upsert; openings not listed in a successful re-read are closed; stale after 14 days | `GET /jobs/*` |
+| Serving | seed CSVs + `--db` upsert; openings not listed in a successful re-read are closed; `JOBS_STALE_DAYS` defaults to 14. Older active ads remain labelled in listings but excluded from open/readiness counts. Freshness reports posting `last_seen` independently of later fetches. | `GET /jobs/*` |
 
 Refresh: `PYTHONPATH=src/api:src .venv/bin/python -m pipelines.jobs.run --db`.
+The shared daily automatic refresh also checks job feeds through the app's database session.

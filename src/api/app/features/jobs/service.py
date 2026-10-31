@@ -144,6 +144,8 @@ def _opening(p: Posting, ctx: Context | None, labels: Mapping[str, str]) -> JobO
         source_name=p.source_name,
         posted_at=p.posted_at,
         first_seen=p.first_seen,
+        last_seen=p.last_seen,
+        is_stale=p.stale,
         role_method=p.role_method or "title",  # type: ignore[arg-type]
         skills=[
             SkillAsk(skill_id=s, label=labels.get(s, s), status=st)  # type: ignore[arg-type]
@@ -200,6 +202,12 @@ def role_openings(
     ctx = _context(user, role_id, scenario)
     skill_labels = pathway_data.skill_labels()
     cards = [_opening(p, ctx, skill_labels) for p in rows]
+    # Possibly closed ads stay visible, labelled and after every open one; stats ignore them.
+    stale_cards = [
+        _opening(p, ctx, skill_labels)
+        for p in repository.openings(include_stale=True)
+        if p.stale and p.role_id == role_id
+    ]
     # Closest first after the plan, then today, then newest; unrated ads last.
     cards.sort(
         key=lambda o: (
@@ -220,7 +228,7 @@ def role_openings(
         employer_count=len(employers),
         remote_count=sum(p.work_mode == "remote" for p in rows),
         employers=[e for e, _ in sorted(employers.items(), key=lambda kv: (-kv[1], kv[0]))[:8]],
-        openings=cards[: max(1, min(limit, 50))],
+        openings=(cards + stale_cards)[: max(1, min(limit, 50))],
         skill_demand=[
             SkillDemand(
                 skill_id=s,
@@ -250,8 +258,10 @@ def board(
     page: int = 1,
     page_size: int = 20,
 ) -> JobBoardPage:
-    rows = [p for p in repository.openings() if p.role_id]
-    counts = _counts(rows)
+    listed = [p for p in repository.openings(include_stale=True) if p.role_id]
+    # Counts are open (fresh) ads only; the listing keeps stale ads last, labelled.
+    counts = _counts([p for p in listed if not p.stale])
+    rows = listed
     if role_id:
         rows = [p for p in rows if p.role_id == role_id]
     if work_mode:
@@ -275,7 +285,7 @@ def board(
         page_size=page_size,
         roles=counts,
         fetched_on=_meta(rows, scenario).snapshot_date if rows else None,
-        meta=_meta(rows or repository.openings(), scenario),
+        meta=_meta(rows or listed or repository.openings(), scenario),
     )
 
 
