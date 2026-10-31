@@ -1152,6 +1152,17 @@
 - **Replaces**: M2-032 prompt-injection line-dropping scope only
 - **PR / branch**: fix/core-privacy-and-trust (PR #94)
 
+### M2-034: Preserve line boundaries after CV learning wishes
+- **Date**: 2026-10-31
+- **Feature**: F1 (Skills Profile Intake)
+- **Type**: method
+- **Change**: Preserve an original line boundary after a future-learning entry before skills-list clause filtering. Ordinary wrapped and hyphenated skill entries still rejoin as before.
+- **Why**: Joining a wish such as "Want to learn Rust, Kubernetes" to a following unbulleted QlikSense entry incorrectly removed the latter from review even though extraction already ends wishes at line breaks.
+- **Pipeline**: synthetic multilingual CV text → bounded cleaning and section detection → original learning-clause boundaries → existing aspiration filtering and catalogue extraction → EN/MS/ZH and LF/CRLF review regressions → human skill confirmation
+- **Affects**: F1 CV skills-list review; no contract, provider, dependency or catalogue change
+- **Replaces**: M2-032 skills-list line-boundary handling only
+- **PR / branch**: fix/profile-pr94-review / PR #94
+
 ---
 
 ## M3: Pathway, SDG & Guardrails (F5, F6, F8)

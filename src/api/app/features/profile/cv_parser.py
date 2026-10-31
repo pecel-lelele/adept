@@ -821,6 +821,10 @@ def skills_section_entries(text: str) -> list[str]:
                 part = part[bullet.end() :]
             if not joined:
                 joined = part
+            elif _ASPIRATION_RE.search(prev):
+                # A learning wish ends at the original line boundary, unlike ordinary
+                # wrapped lists. Keep the next line as a separate entry before filtering.
+                joined = f"{joined}; {part}"
             elif joined.endswith("-") and part[:1].islower() and not bullet:
                 joined = joined[:-1] + part  # a word hyphenated at the line break
             elif bullet or (not _LIST_SEPARATOR.search(prev) and len(prev.split()) <= 5):

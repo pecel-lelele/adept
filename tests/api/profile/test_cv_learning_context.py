@@ -79,13 +79,22 @@ def test_learning_wish_covers_every_list_item(wish: str, separator: str) -> None
     assert unmatched_terms == []
 
 
-@pytest.mark.parametrize("boundary", ["; ", ". ", "。", "；", "\n- "])
+@pytest.mark.parametrize("boundary", ["; ", ". ", "。", "；", "\n- ", "\n", "\r\n"])
 def test_learning_list_does_not_hide_later_experience_or_review_hints(boundary: str) -> None:
     skills, _, unmatched_terms = cv_parser.parse_cv_review(
         f"Skills: Want to learn Rust, Kubernetes, SQL{boundary}Python, QlikSense"
     )
     assert {skill.skill_id for skill in skills} == {"python"}
     assert unmatched_terms == ["QlikSense"]
+
+
+@pytest.mark.parametrize("wish", ["Want to learn", "Ingin belajar", "希望学习"])
+def test_learning_list_keeps_the_original_line_boundary(wish: str) -> None:
+    text = f"Skills: {wish} Rust, Kubernetes\nQlikSense\nOtherTool, Python"
+    assert cv_parser.skills_section_entries(text) == ["QlikSense", "OtherTool", "Python"]
+    skills, _, unmatched_terms = cv_parser.parse_cv_review(text)
+    assert {skill.skill_id for skill in skills} == {"python"}
+    assert unmatched_terms == ["QlikSense", "OtherTool"]
 
 
 @pytest.mark.parametrize("stop", [". ", "! ", "? ", "。"])
