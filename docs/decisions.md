@@ -691,6 +691,83 @@
 - **Replaces**: M1-009 (magnitude guard and compensating range clamp only)
 - **PR / branch**: fix/matching-interest-and-fast-scenario / Fixes #80
 
+### M1-017: On-demand trend refresh with a calibrated Gemini fallback; weekly workflow unscheduled
+- **Date**: 2026-10-31
+- **Feature**: F2 (Trends), data refresh, Core workflow
+- **Type**: method | model | other
+- **Change**: The app's own trend refresh (`automatic_trends.run`) no longer depends on RunPod. It tries the MiniLM worker first, holding back 90 s of the run budget; if the worker is missing or fails and Gemini embeddings are enabled, it measures the same two arXiv weeks with `gemini-embedding-001` (one vector per paper). MiniLM's 0.55 threshold is not reused: one threshold is calibrated so the previous week reproduces the mentions per paper of the stored MiniLM measurement, then applied to both weeks. Stored inputs record method `M1-017`, the model, and the note says "fallback". With no stored measurement to calibrate against, the refresh fails and the last snapshot stays live. `trends-refresh.yml` loses its Monday schedule and stays as a manual backup.
+- **Why**: Judges may refresh on the demo day; the refresh must work on demand inside the app, finish within its budget, and never wait on a weekly GitHub job or a cold RunPod worker. Reusing the MiniLM threshold on another model's cosine scale would inflate or deflate mention counts; rate calibration keeps counts on the stored evidence's scale, and a shared threshold keeps week-over-week velocity comparable.
+- **Pipeline**: arXiv cs.AI API (two completed ISO weeks) → title + abstract per paper → Gemini 768-d unit vectors, cosine to skill labels → threshold from stored MiniLM mentions-per-paper → existing scorer and validation (unchanged) → atomic snapshot publish with method/model in the stored inputs and note. Evaluation: unit tests for calibration, deadline, both fallback triggers, the uncalibratable case and the not-configured case. Not yet compared against MiniLM on the same live weeks (needs paid inference).
+- **Affects**: F2 snapshots and everything that reads them (F3–F7 estimates), /about disclosure, README, `trends-refresh.yml`
+- **Replaces**: none (extends M1-015)
+- **PR / branch**: fix/trends-ondemand-refresh-fallback
+
+
+### M1-018: Accumulated per-paper trend store with rolling 7-day snapshots
+- **Date**: 2026-10-31
+- **Feature**: F2 (Trends), data refresh
+- **Type**: method | schema | data source
+- **Change**: Each arXiv cs.AI paper is matched to skills once and stored with its submission day (`trend_fetched_days`, `trend_paper_mentions`). A refresh (judge's button or any trigger) fetches only days not stored yet, oldest first, up to 14 days per run and 50 newest papers per day, from 6 Oct 2026 to 3 days ago (arXiv lists papers only after announcement). A day fetched before it is 5 days old is fetched once more after that and its papers are replaced, so late announcements are not lost. The arXiv `retrieved_at` is the newest stored fetch date in the two windows, not the rebuild date. The snapshot compares the 7 days ending on the newest stored day with the 7 days before, counted from stored rows, so windows move daily instead of being cut at fixed Monday weeks. When nothing new is announced, a refresh returns at once with no network or model call. The Gemini fallback (M1-017) now uses 384-dimensional vectors (MiniLM's size) and one stored threshold per model, calibrated once against stored MiniLM evidence; each paper records the model that matched it, and the note names any fallback. Trends are due daily instead of weekly.
+- **Why**: The brief requires refreshing live in the app. Fixed weeks made results depend on where a week starts and made a mid-week refresh add nothing. Storing matches once is the cache: refreshes stay fast and cheap, and any window is a count, never a repeated model call. Equal vector size keeps storage uniform; vectors from different models are still never compared with each other.
+- **Pipeline**: arXiv API per submission day (≤50 newest) → version-free IDs, idempotent inserts → sentence-level MiniLM cosine ≥ 0.55 (or calibrated Gemini paper-level cosine) → skills per paper stored → rolling 7-day counts per skill and papers → existing scorer and validation (unchanged) → atomic snapshot publish with stored inputs. Evaluation: unit tests with an in-memory store (incremental fetch, no-new-day fast path, rebuild without network, three fallback triggers, uncalibratable, unconfigured, missing migration) and the store's SQL checked on a disposable PostgreSQL database.
+- **Affects**: F2 snapshots and their readers (F3–F7 estimates), data refresh due check, migration `20261031180000_trend_paper_store.sql`
+- **Replaces**: M1-015 (fixed completed ISO weeks for the automatic refresh); extends M1-017
+- **PR / branch**: feat/trends-rolling-accumulated
+
+### M1-019: Trend over time — date-range line chart from the paper store; Recharts via shadcn chart
+- **Date**: 2026-10-31
+- **Feature**: F2 (Trends radar), Core UI dependency
+- **Type**: contract | UI | dependency
+- **Change**: New `GET /api/v1/trends/series?start&end&skill_ids` returns, for each day in a chosen range (≤120 days, ≤8 skills), each skill's observed share of sampled arXiv papers in the 7 days ending that day, counted from the M1-018 paper store (no model call; null where a window is not fully stored). Without chosen skills it returns the three biggest risers and fallers. The radar gains a "Trend over time" card: native calendar date pickers (limited to stored days), skill chips plus an "add skill" picker, a line chart with legend, hover tooltips and ▲/▼ markers, and an accessible table. Adds `recharts@2.15.4` (exact pin, no install scripts, React 19 peer) wrapped by a lean shadcn `components/ui/chart.tsx`.
+- **Why**: Judges asked to choose any date range and see skills move continuously, not one fixed week at a time. Counting stored rows keeps each view instant and free. shadcn's chart is the stack's standard chart layer and Recharts gives tooltips and legends without bespoke SVG code. Values are labelled as observed research attention (`is_estimate=false`), not job demand or forecasts.
+- **Affects**: F2 trends API and generated client, `/app/radar` and `/org/radar`, `src/web/package.json` and `pnpm-lock.yaml` (recharts and its d3 dependencies only)
+- **Replaces**: none
+- **PR / branch**: feat/trends-range-chart
+
+### M1-020: Trend series observation period and short-history default range
+- **Date**: 2026-10-31
+- **Feature**: F2 (Trends radar)
+- **Type**: method | contract
+- **Change**: `meta.observed_from`/`observed_to` on `/trends/series` now describe the papers actually counted: first plotted point minus 6 days to the last plotted point, and null when no point has a value (empty store, or a range entirely outside stored history). With no `start`, the default range begins at the first stored day when fewer than 7 days are stored, so it is never later than the end and the response is 200 with gaps rather than 422.
+- **Why**: Review of PR 102 found the old dates ignored the 7-day window behind each point (and could invert), and a first refresh with a low time budget made the default request invalid.
+- **Affects**: `GET /api/v1/trends/series`, radar range card (rejected-choice notice, per-day table)
+- **Replaces**: none (refines M1-019)
+- **PR / branch**: feat/trends-range-chart
+
+### M1-021: Compare durable published inputs before skipping a rolling refresh
+- **Date**: 2026-10-31
+- **Feature**: F2 (Trends), data refresh
+- **Type**: method
+- **Change**: The rolling publish guard compares current store-derived measured inputs with the inputs saved atomically with the latest published snapshot, ignoring only the provenance note's rebuild date. Missing or different published inputs cause publication even when the window is unchanged and this run refetched no days.
+- **Why**: A settled-day replacement commits before scoring/publication. If the run then fails, a same-day retry must detect the unpublished correction durably rather than relying on a per-run set of revisited days; the existing measured-input record provides that comparison without a migration.
+- **Pipeline**: Existing arXiv per-day evidence → existing normalized paper/skill store → both rolling windows' counts, totals and provenance → compare with atomically published inputs → evaluation: all four synthetic retry regression cases pass (scoring/publish failures and corrections in either window) → unchanged scorer/validator and atomic snapshot/input publication.
+- **Affects**: Automatic F2 refresh publication guard and retry behaviour; no schema, provider or scoring-formula changes
+- **Replaces**: none; extends M1-018
+- **PR / branch**: feat/trends-rolling-accumulated
+
+### M1-022: Keep empty-series dates honest and expose the chart's own attribution
+- **Date**: 2026-10-31
+- **Feature**: F2 (Trends radar)
+- **Type**: method | UI
+- **Change**: An empty paper store cites the versioned series method inspected on 31 October 2026, explicitly labelled as having no stored paper observations. It never claims arXiv was retrieved on a user-selected date; observation dates remain null. The range card renders its own series metadata through the existing MetaBar.
+- **Why**: The previous empty-state fallback copied the requested end date into the source retrieval date, including future dates, despite no upstream fetch. The surrounding radar's forecast attribution can describe a different snapshot and does not establish the chart's measured period.
+- **Pipeline**: unchanged stored paper counts or explicit empty store → existing rolling shares/gaps → actual stored fetch dates or dated method-only evidence → unchanged count calculation → future-query empty-state regression and actual MetaBar renders in en/ms/zh → independently attributed chart without fabricated freshness
+- **Affects**: trend-series metadata and radar range card; no schema, provider or migration change
+- **Replaces**: none; completes attribution in M1-019/M1-020
+- **PR / branch**: feat/trends-range-chart / PR #102
+
+
+### M1-023: Read chart denominators and mentions from one database snapshot
+- **Date**: 2026-10-31
+- **Feature**: F2 (Trend series), data refresh
+- **Type**: method
+- **Change**: Count daily paper totals and selected-skill mentions in one SQL statement, using a left join so stored days without mentions remain present. Both quantities come from the same PostgreSQL statement snapshot while a refresh may replace an early-fetched day.
+- **Why**: Two READ COMMITTED statements could observe opposite sides of a correction, pairing old denominators with new mention counts and producing incorrect shares, even above 100 percent. A single statement preserves actual stored sample fractions without changing transaction isolation for other pooled users.
+- **Pipeline**: unchanged stored days and paper mentions → one MVCC statement → day totals plus per-skill counts → existing rolling share calculation → unit mapping/statement regression and opt-in real concurrent-replacement regression → consistent database-derived chart values
+- **Affects**: trend_store.daily and chart readers; no schema, provider or migration change
+- **Replaces**: none; corrects M1-019's split chart read
+- **PR / branch**: feat/trends-range-chart / PR #102
+
 ---
 
 ## M2: Profile Intake & Matching (F1, F4)

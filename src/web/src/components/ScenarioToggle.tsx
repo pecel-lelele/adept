@@ -9,6 +9,29 @@ import { parseScenario, SCENARIO_PARAM, SCENARIOS } from "@/lib/scenario";
 import { onRadioKeyDown, radioTabIndex } from "./radioGroup";
 
 const ICON = { moderate: Turtle, fast: Rabbit } as const;
+/** Undo the busy look if the page never unloads (e.g. a failed request). */
+const PENDING_RESET_MS = 20_000;
+
+/** Marks the page busy while the next scenario loads (styled in adept.css). */
+function markBusy(form: HTMLFormElement | null | undefined) {
+  if (!form || typeof window === "undefined") return;
+  setNavigating(form, true);
+  window.setTimeout(() => setNavigating(form, false), PENDING_RESET_MS);
+}
+
+function setNavigating(form: HTMLFormElement | null, on: boolean) {
+  if (on) document.documentElement.dataset.navigating = "true";
+  else delete document.documentElement.dataset.navigating;
+  form?.setAttribute("aria-busy", String(on));
+}
+
+if (typeof window !== "undefined") {
+  // Back/forward can restore this page from the cache while it still looks busy.
+  window.addEventListener("pageshow", () => {
+    delete document.documentElement.dataset.navigating;
+    document.querySelectorAll(".a-pace[aria-busy]").forEach((f) => f.setAttribute("aria-busy", "false"));
+  });
+}
 
 /**
  * "AI pace" switch shown at the top right of the pages it changes. The value lives in the URL
@@ -23,7 +46,12 @@ export function ScenarioToggle() {
 
   return (
     <div className="a-stack" style={{ gap: 4, alignItems: "flex-end" }}>
-      <form className="a-pace" action={pathname} method="get" title={t("hint")}>
+      <form
+        className="a-pace"
+        action={pathname}
+        method="get"
+        title={t("hint")}
+      >
         {/* A native GET replaces the document even if an RSC transition is stranded.
             Keep repeated filters and replay context; only replace the scenario. */}
         {preserved.map(([name, value], index) => (
@@ -45,11 +73,17 @@ export function ScenarioToggle() {
                 aria-checked={current === s}
                 tabIndex={radioTabIndex(current === s)}
                 title={t(s)}
-                onClick={(e) => { if (s === current) e.preventDefault(); }}
+                onClick={(e) => {
+                  if (s === current) e.preventDefault();
+                  else markBusy((e.currentTarget as HTMLButtonElement | undefined)?.form); // never blocks the browser's own submit
+                }}
                 onKeyDown={(e) => onRadioKeyDown(e, SCENARIOS, current, (next) => {
                   if (next === current) return;
                   const button = e.currentTarget.form?.querySelector<HTMLButtonElement>(`button[value="${next}"]`);
-                  if (button) button.form?.requestSubmit(button);
+                  if (button) {
+                    markBusy(button.form);
+                    button.form?.requestSubmit(button);
+                  }
                 })}
               >
                 <Icon size={14} aria-hidden />
@@ -59,7 +93,8 @@ export function ScenarioToggle() {
           })}
         </div>
       </form>
-      <small className="a-small a-muted" style={{ maxWidth: 320, textAlign: "right" }}>{t("hint")}</small>
+      <small className="a-small a-muted a-pace-idle" style={{ maxWidth: 320, textAlign: "right" }}>{t("hint")}</small>
+      <small className="a-small a-pace-busy" role="status">{t("updating")}</small>
     </div>
   );
 }

@@ -22,7 +22,9 @@ ARXIV_API = "https://export.arxiv.org/api/query"
 
 
 class MeasuredInputs(BaseModel):
-    method: Literal["M1-014"] = "M1-014"
+    # M1-014: RunPod MiniLM weeks; M1-017: calibrated Gemini fallback weeks;
+    # M1-018: rolling 7-day windows counted from the accumulated paper store.
+    method: Literal["M1-014", "M1-017", "M1-018"] = "M1-014"
     model: str = MODEL_ID
     model_revision: str = MODEL_REVISION
     previous: tuple[date, date]
@@ -59,6 +61,23 @@ def load(day: date | None = None, *, required_schema: bool = False) -> MeasuredI
     return MeasuredInputs.model_validate(row["payload"]) if row else None
 
 
+def load_minilm_reference(day: date) -> MeasuredInputs | None:
+    """Stored MiniLM (M1-014) inputs to calibrate the Gemini fallback, never a fallback run.
+
+    Prefers the week ending on `day`, otherwise the latest MiniLM week."""
+    try:
+        with connection() as conn:
+            row = conn.execute(
+                "SELECT payload FROM measured_trend_inputs "
+                "WHERE COALESCE(payload->>'method', 'M1-014') = 'M1-014' "
+                "ORDER BY (measured_date = %s) DESC, measured_date DESC LIMIT 1",
+                (day,),
+            ).fetchone()
+    except psycopg.errors.UndefinedTable:
+        return None
+    return MeasuredInputs.model_validate(row["payload"]) if row else None
+
+
 def rows(inputs: MeasuredInputs) -> list[dict[str, Any]]:
     known = {r["id"] for r in refdata.rows("taxonomy", "skills")}
     ids = set(inputs.skill_ids)
@@ -68,7 +87,7 @@ def rows(inputs: MeasuredInputs) -> list[dict[str, Any]]:
         inputs.previous[1] + timedelta(days=1) != inputs.current[0]
         or inputs.previous[1] - inputs.previous[0] != timedelta(days=6)
         or inputs.current[1] - inputs.current[0] != timedelta(days=6)
-        or inputs.previous[0].weekday() != 0
+        or (inputs.method != "M1-018" and inputs.previous[0].weekday() != 0)
         or inputs.fetched < inputs.current[1]
         or any(value < 0 or value > inputs.total_before for value in inputs.counts_before.values())
         or any(value < 0 or value > inputs.total_after for value in inputs.counts_after.values())

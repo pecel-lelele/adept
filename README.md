@@ -177,6 +177,7 @@ instance does not prove that a newer attempted release succeeded.
 | Adi fallback         | Google **Gemini 3.5 Flash Lite**, with Gemini 3.6 Flash / 3.1 Flash Lite backups | Handles provider failure; a built-in guide remains available.                                                        |
 | Trend encoder        | Sentence Transformers **all-MiniLM-L6-v2** through RunPod                        | Relates public research sentences to catalogue skills. Deployed worker verified with two 384-dimensional embeddings. |
 | CV / skill-search suggestions | Google **gemini-embedding-001**                                          | Suggests one catalogue match for unfamiliar skill phrases or an explicitly submitted search; the user confirms additions. Manual search uses approved aliases locally. |
+| Trend refresh fallback | Google **gemini-embedding-001**                                          | Only when the RunPod MiniLM worker is missing or fails: embeds public arXiv papers and skill labels; the match threshold is calibrated to the stored MiniLM mention rate, and the snapshot note names the fallback (M1-017). |
 
 Model features are configurable; the default assistant uses the built-in guide. Role scores, learning plans and trend calculations use deterministic rules. Model-selected IDs pass through `validate_ids` before display.
 
@@ -211,7 +212,7 @@ trend runner installs pipeline client dependencies and calls RunPod over HTTPS.
 | :----------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [CI](.github/workflows/ci.yml)                         | Pushes to `main`, pull requests and manual runs: lint, tests, real PostgreSQL checks, translations, generated contracts and production web build.              |
 | [Data sources](.github/workflows/data-sources.yml)     | Mondays 02:17 UTC (10:17 MYT) and manual runs: checks upstream SDG/course data and evidence links; does not publish trend snapshots.                          |
-| [Trends refresh](.github/workflows/trends-refresh.yml) | Mondays 03:41 UTC (11:41 MYT) and manual runs: ingest public research → RunPod embeddings → score → validate → publish a dated database snapshot.             |
+| [Trends refresh](.github/workflows/trends-refresh.yml) | Manual backup only (not scheduled, M1-017): ingest public research → RunPod embeddings → score → validate → publish a dated snapshot. The app's own refresh adds new arXiv days on demand to a stored paper cache and publishes rolling 7-day trends (M1-018), with a calibrated Gemini fallback when RunPod is down. |
 | [Publish MiniLM](.github/workflows/publish-minilm.yml) | Manual dispatch on the source repository's `main` only: builds `linux/amd64` and publishes GHCR tags with job-scoped `GITHUB_TOKEN`. PRs/forks do not publish. |
 
 Configure **repository Settings → Secrets and variables → Actions**:
