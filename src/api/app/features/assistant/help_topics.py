@@ -294,14 +294,14 @@ TOPICS: tuple[Topic, ...] = (
         ms="Di [[page:/app/progress]] anda boleh menandakan kursus sebagai selesai dan menambah bukti seperti sijil. Kemajuan, lencana dan jurang kemahiran yang tinggal dikemas kini di situ. Menamatkan kursus tidak menjamin setiap kemahiran peranan. Dalam program majikan, HR menyemak bukti.",
         zh="在 [[page:/app/progress]] 可以把课程标记为完成，并添加证书等证明。你的进度、徽章和剩余技能差距会在那里更新。完成课程并不保证掌握职位所需的每项技能。在雇主项目中，由 HR 审核证明。",
         employee={
-            "en": "Record each finished course and its evidence on [[page:/work/progress]]. Your employer's HR reviews the evidence before it counts toward the programme.",
-            "ms": "Rekod setiap kursus yang selesai beserta buktinya di [[page:/work/progress]]. HR majikan anda menyemak bukti sebelum ia dikira dalam program.",
-            "zh": "在 [[page:/work/progress]] 记录每门完成的课程及其证明。雇主的 HR 审核后才会计入项目进度。",
+            "en": "Record each finished course and its evidence on [[page:/work/progress]]. It counts toward programme progress straight away as self-reported; HR then reviews the evidence. Approval gives you earned skill credit, and a rejected completion stops counting.",
+            "ms": "Rekod setiap kursus yang selesai beserta buktinya di [[page:/work/progress]]. Ia terus dikira dalam kemajuan program sebagai lapor sendiri; HR kemudian menyemak bukti. Kelulusan memberi anda kredit kemahiran, dan penyelesaian yang ditolak tidak lagi dikira.",
+            "zh": "在 [[page:/work/progress]] 记录每门完成的课程及其证明。它会先以自我报告的形式立即计入项目进度，之后由 HR 审核证明。获批后你才能获得技能认证；被拒绝的完成将不再计入。",
         },
         manager={
-            "en": "Review members' completions and evidence on [[page:/org/verify]]. Only approved completions count toward programme progress, and the decision stays with you.",
-            "ms": "Semak penyelesaian dan bukti ahli di [[page:/org/verify]]. Hanya penyelesaian yang diluluskan dikira dalam kemajuan program, dan keputusan kekal pada anda.",
-            "zh": "在 [[page:/org/verify]] 审核成员的完成情况和证明。只有获批的完成才计入项目进度，决定权在你。",
+            "en": "Review members' completions and evidence on [[page:/org/verify]]. Self-reported completions count toward progress and team course totals until you reject them; approving one gives the member earned skill credit. Treat unreviewed totals as self-reported. The decision stays with you.",
+            "ms": "Semak penyelesaian dan bukti ahli di [[page:/org/verify]]. Penyelesaian lapor sendiri dikira dalam kemajuan dan jumlah kursus pasukan sehingga anda menolaknya; meluluskannya memberi ahli kredit kemahiran. Anggap jumlah yang belum disemak sebagai lapor sendiri. Keputusan kekal pada anda.",
+            "zh": "在 [[page:/org/verify]] 审核成员的完成情况和证明。自我报告的完成会计入进度和团队课程总数，直到你拒绝为止；批准后成员才获得技能认证。未审核的总数应视为自我报告。决定权在你。",
         },
     ),
     Topic(

@@ -40,5 +40,6 @@
   "currentTarget": "你的目标岗位",
   "openPlan": "打开计划",
   "skillsToBuild": "{count, plural, other {需培养 # 项技能}}",
-  "raiseFallback": "你已具备该职位要求的技能。保持这些技能的更新即可维持分数。"
+  "raiseFallback": "你已具备该职位要求的技能。保持这些技能的更新即可维持分数。",
+  "planStatusUnavailable": "暂时无法查看您已保存的计划。请刷新后再选择职位。"
 }

@@ -40,5 +40,6 @@
   "currentTarget": "Your target role",
   "openPlan": "Open plan",
   "skillsToBuild": "{count, plural, one {# skill to build} other {# skills to build}}",
-  "raiseFallback": "You already hold the skills this role asks for. Keep them current to hold your score."
+  "raiseFallback": "You already hold the skills this role asks for. Keep them current to hold your score.",
+  "planStatusUnavailable": "We couldn't check your saved plan. Refresh to choose a role."
 }

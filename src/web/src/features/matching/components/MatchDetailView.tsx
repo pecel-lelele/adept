@@ -64,8 +64,10 @@ export async function MatchDetailView({
               <Link className="a-btn" href={`/app/pathway?role=${encodeURIComponent(m.role_id)}&scenario=${saved.scenario}`}>
                 {t("currentTarget")} · {t("openPlan")}
               </Link>
-            ) : (
+            ) : status.ok ? (
               <ActionForm action={savePlanAction} fields={{ role_id: m.role_id, scenario }} label={t("chooseRole")} />
+            ) : (
+              <p className="a-muted a-small" role="status">{t("planStatusUnavailable")}</p>
             )}
           </>
         }

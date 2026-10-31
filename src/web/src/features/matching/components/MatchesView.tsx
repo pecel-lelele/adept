@@ -52,8 +52,10 @@ export async function MatchesView({
     fetchJobsSummary(scenario),
     fetchPlanStatus(),
   ]);
-  // Choosing again would silently replace the saved plan and skip re-plan review.
+  // Choosing again would silently replace the saved plan and skip re-plan review,
+  // so offer no choice until the saved plan is known.
   const saved = status.ok ? status.data.saved : null;
+  const planKnown = status.ok;
   const tj = await getTranslations("jobs");
   const openings = new Map(jobs.ok ? jobs.data.roles.map((r) => [r.role_id, r.open_count]) : []);
   // The detail page must explain the same ranking: carry the snapshot and the UN Goals weight.
@@ -170,8 +172,10 @@ export async function MatchesView({
                         <Link className="a-btn is-small" href={`/app/pathway?role=${encodeURIComponent(m.role_id)}&scenario=${saved.scenario}`}>
                           {t("openPlan")}
                         </Link>
-                      ) : (
+                      ) : planKnown ? (
                         <ActionForm action={savePlanAction} fields={{ role_id: m.role_id, scenario }} label={t("chooseRole")} className="a-inline-form" />
+                      ) : (
+                        <p className="a-muted a-small" role="status">{t("planStatusUnavailable")}</p>
                       )}
                     </footer>
                   </article>

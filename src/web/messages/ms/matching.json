@@ -40,5 +40,6 @@
   "currentTarget": "Peranan sasaran anda",
   "openPlan": "Buka pelan",
   "skillsToBuild": "{count, plural, other {# kemahiran untuk dibina}}",
-  "raiseFallback": "Anda sudah memiliki kemahiran yang diminta peranan ini. Pastikan ia sentiasa terkini untuk mengekalkan skor."
+  "raiseFallback": "Anda sudah memiliki kemahiran yang diminta peranan ini. Pastikan ia sentiasa terkini untuk mengekalkan skor.",
+  "planStatusUnavailable": "Kami tidak dapat menyemak pelan tersimpan anda. Muat semula untuk memilih peranan."
 }
