@@ -43,8 +43,8 @@ function fixtures(locale: string) {
     "./ActionForm": { ActionForm: nothing }, "../actions": {},
     "./SignalExplorer": { SignalExplorer: nothing }, "./RoleDirectionsCard": { RoleDirectionsCard: nothing },
     "./TrendRangeCard": { TrendRangeCard: nothing },
+    "../range": loadComponent("src/features/trends/range.ts"),
     "@/components/DataAsOf": { DataAsOf: nothing }, "@/lib/auth/account": { getAccount: async () => null },
-    "./RefreshDataButton": { RefreshDataButton: nothing },
   };
 }
 
@@ -52,7 +52,7 @@ test("failed journey screens keep their translated heading, stage and scenario b
   for (const locale of ["en", "ms", "zh"]) {
     const common = fixtures(locale);
     const cases = [
-      ["trends/components/RadarView", "RadarView", 2, { fetchRadar: async () => failure, fetchSeries: async () => failure }],
+      ["trends/components/RadarView", "RadarView", 2, { fetchRadar: async () => failure, fetchCompare: async () => failure }],
       ["profile/components/ProfileView", "ProfileView", 1, { fetchMyProfile: async () => failure, fetchSkillCatalogue: async () => failure }],
       ["pathway/components/PathwayView", "PathwayView", 4, { fetchPathway: async () => failure, fetchPlanStatus: async () => failure }],
       ["matching/components/MatchDetailView", "MatchDetailView", 3, { fetchMatch: async () => failure, fetchMatches: async () => failure }],

@@ -788,6 +788,119 @@
 - **Replaces**: none; corrects M1-019's split chart read
 - **PR / branch**: feat/trends-range-chart / PR #102
 
+### M1-024: Gemini embeddings as the primary trend matcher, one method per series
+- **Date**: 2026-10-31
+- **Feature**: F2 (AI-trend signal layer)
+- **Type**: model
+- **Change**: `gemini-embedding-001` at 384 dimensions becomes the matcher for the backfill and daily runs once a passing equivalence report is committed (`TRENDS_MATCHER=auto`, the default); until then the series stays on RunPod MiniLM, and `minilm` or `gemini` select explicitly. **Status 2026-10-31: the live equivalence test has not been run, so the code is in place but the switch has not happened.** Days and papers are stored per method and every read names one method, so no window mixes MiniLM and Gemini days. A failed matcher is never topped up by the other one.
+- **Why**: requested primary matcher without a cold RunPod worker per run. Per-method rows keep MiniLM evidence intact and make rollback a config change; replacing rows in place was rejected because it destroys the evidence the equivalence test needs. MiniLM's 0.55 sentence threshold does not transfer to another cosine scale, so it is not reused.
+- **Threshold rule**: one stored threshold per model, chosen once: the threshold that reproduces MiniLM's mentions per paper on the calibration papers (`minilm_mentions_per_paper`), then reused so real volume changes still show. With no stored MiniLM evidence the rule uses the last stored MiniLM rate, 195 mentions over 700 sampled papers from `skill_signal_raw` 2026-W42 and W43 (`documented_minilm_rate`), instead of failing. The row records which rule applied.
+- **Equivalence pass bar (fixed before any live comparison)**: on the same papers, at least 500 papers, Spearman of per-skill mention counts >= 0.60, and share of all catalogue skills keeping the same rising/stable/declining label >= 0.70 under moderate and under fast, on the radar's two 7-day windows. If it fails or has not run, the switch does not happen. `python -m pipelines.trends.backfill equivalence` writes the result to `src/data/seed/trends/paper_store/equivalence.json`, and the backfill refuses to start without a passing report for the model.
+- **Pipeline** (data/ML only): arXiv cs.AI submissions, newest 50 per day → title + abstract → Gemini embeddings, 384 dimensions, SEMANTIC_SIMILARITY → cosine >= stored threshold → equivalence against MiniLM (bar above; result in `equivalence.json`) → per-paper rows counted by the unchanged scorer.
+- **Affects**: F2 refresh, `/about`, README; schema (`trend_fetched_days` and `trend_paper_mentions` keyed by method, new `trend_matcher_calibration`). `trend_fallback_calibration` is no longer read. Scoring after matching is unchanged because it only uses mention counts.
+- **Replaces**: M1-017
+- **PR / branch**: feat/trends-calendar-projection
+
+### M1-025: Trend comparison across skills, roles and categories, with a pace projection
+- **Date**: 2026-10-31
+- **Feature**: F2 (AI-trend signal layer)
+- **Type**: formula
+- **Change**: `GET /trends/compare` and the radar's existing "Trend over time" card chart skills, roles and categories over any stored range (up to 366 days, weekly points above 120 days). Role = per-day importance-weighted average of its skills' 7-day shares, empty if any skill is empty. Category = equal-weight mean of its roles. Rebase = 100 at the first date with every line above 0, else raw scores and say so. Projection = `share * (1 + v * days / 7)`, kept between 0 and 1, where `v` is the radar's own moderate or fast velocity from the last two 7-day windows, computed per skill and combined like the observed line.
+- **Why**: `v` is per 7-day step because research velocity compares consecutive 7-day windows, so no new multiplier is introduced. The radar's windows are used rather than the selected range so a skill the radar calls rising also projects upward. A linear continuation was chosen over compounding, which reaches absurd values within a year. Weekly points cannot hide a gap because a gap is at least one full 7-day window. Observed and projected parts have separate `RecommendationMeta`; role and category scores are `is_estimate=true`.
+- **Categories**: `role_categories.csv` is hand-reviewed, one category per role, validated against `roles.csv` in tests, never created at runtime or by a model. O*NET SOC major groups were checked first and rejected: group 15 would hold about a third of the roles, which removes the comparison people need. `production-workers-all-other` has no rows in `role_skills.csv`, so it has no line and is left out of its category's mean; no profile was invented for it.
+- **Pipeline** (data/ML only): stored per-paper mentions → daily counts → 7-day rolling shares → weighted role and mean category lines → rebase and projection → `RecommendationMeta` on each part. Evaluation: unit tests on each formula; no accuracy claim is made for the projection, which is labelled "pace continuation, not a prediction".
+- **Affects**: F2 API, radar and home pages, `series.MAX_DAYS` (120 to 366, mirrored in the card)
+- **Replaces**: none
+- **PR / branch**: feat/trends-calendar-projection
+
+### M1-026: Replace the user refresh button with "Data through" and an admin-only trigger
+- **Date**: 2026-10-31
+- **Feature**: F2 (AI-trend signal layer)
+- **Type**: UI
+- **Change**: radar and home show "Data through <date>" instead of the refresh button. `POST /data/refresh/check` now requires an admin, and the button stays on the admin data page. The daily scheduler is unchanged.
+- **Why**: a learner should not be able to start paid work, and the daily job keeps data current. Page reads and the date controls never call arXiv or a model. The unmerged `fix/trends-visible-refresh-controls` branch contradicts this and was not merged.
+- **Affects**: Core dashboard, F2 radar, refresh API
+- **Replaces**: none
+- **PR / branch**: feat/trends-calendar-projection
+
+### M1-027: History from 2026-01-01 with a resumable catch-up and a portable seed
+- **Date**: 2026-10-31
+- **Feature**: F2 (AI-trend signal layer)
+- **Type**: data source
+- **Change**: `START_DAY` moves to 2026-01-01 for the Gemini series; the MiniLM series keeps 2026-10-06, so the daily job can never turn the history into an unapproved RunPod catch-up. **Status 2026-10-31: the backfill has not been run and the seed is not yet exported.** Catch-up commits every 14 days, has no per-run cap, and resumes after a timeout. A rolling snapshot is published only once catch-up is complete, so an old window never becomes the newest. An operator CLI (`pipelines/trends/backfill.py`) runs the one-time backfill and exports the series to `src/data/seed/trends/paper_store/`, which `make seed` loads into any database with no arXiv or model call. Existing rows are kept when seeding.
+- **Why**: the 600 s trends step fits several 14-day chunks (about 50 s of arXiv spacing plus 7 embedding batches), so a daily job could finish a backfill over a few runs, and the CLI does it in one sitting. The seed holds only public arXiv IDs, dates and catalogue skill IDs, no abstract text. An empty arXiv answer is re-checked once before a day is stored empty, because settled days are never fetched again.
+- **Pipeline** (data/ML only): see M1-024; serving adds the CSV seed.
+- **Affects**: F2 refresh, `src/db/seed.py`, `docs/data-refresh.md`
+- **Replaces**: none
+- **PR / branch**: feat/trends-calendar-projection
+
+
+### M1-028: Bound empty history and retain the chart baseline
+- **Date**: 2026-10-31
+- **Feature**: F2 (Trend comparison)
+- **Type**: method
+- **Change**: Apply the 366-day and date-order checks even without a stored series, before allocating dates; weekly samples include the first day of the selected range along with points counted back from the end.
+- **Why**: Empty storage previously permitted an unbounded public allocation. Long charts could omit the baseline date even as the API reported that day's rebased start value.
+- **Pipeline**: stored paper dates or explicit empty store → bounded range validation → unchanged rolling-share calculation → baseline-preserving weekly selection → extreme-date, empty-store and 180/300-day regression tests → dated chart points
+- **Affects**: F2 comparison API; no provider, catalogue or schema change
+- **Replaces**: none; corrects M1-025 range/sampling details
+- **PR / branch**: feat/trends-calendar-projection / PR #105
+
+### M1-029: Reuse calibration and keep complete Gemini days during equivalence
+- **Date**: 2026-10-31
+- **Feature**: F2 (Trend backfill)
+- **Type**: method
+- **Change**: Equivalence reuses the model's stored threshold, compares only papers with common MiniLM evidence, but matches and writes every fetched paper for Gemini. A concurrent threshold conflict aborts before storing any Gemini day or writing a passing report.
+- **Why**: Recalibrating on a new sample changed live scoring despite an immutable stored threshold. Writing the filtered comparison intersection as a production day silently deleted valid rows and reduced denominators.
+- **Pipeline**: public arXiv daily samples + stored MiniLM evidence → shared-paper intersection for evaluation, full samples for Gemini → stable persisted threshold → existing rank/label pass bar → mocked partial-day, rerun and concurrent-conflict regressions → complete method-specific paper rows
+- **Affects**: F2 operator equivalence tool and backfill guide; no migration, provider switch or paid verification in this change
+- **Replaces**: none; corrects M1-024 equivalence persistence
+- **PR / branch**: feat/trends-calendar-projection / PR #105
+
+### M1-030: Seed trend days and mentions atomically without mixing live counts
+- **Date**: 2026-10-31
+- **Feature**: F2 (Portable trend seed)
+- **Type**: method
+- **Change**: Insert each `(day, method)` only if absent and import paper mentions only for newly inserted pairs; reject an exported matcher calibration that conflicts with the model's stored threshold.
+- **Why**: Generic conflict-ignore imports could add new paper IDs to an existing live-refetched day while leaving its old paper denominator, inflating skill shares. A mismatched threshold would likewise mix scoring methods across imported days.
+- **Pipeline**: public dated paper-store export → CSV day/mention/calibration validation → per-pair insert-returning gate → unchanged stored series scoring → isolated PostgreSQL re-seed and conflict regression → consistent day totals and mentions
+- **Affects**: F2 seed loader, seed reference guide; no migration or live database operation in this PR
+- **Replaces**: none; corrects M1-027's generic seed conflict behavior
+- **PR / branch**: feat/trends-calendar-projection / PR #105
+
+### M1-031: Require recent evidence in matcher approval and export one database snapshot
+- **Date**: 2026-10-31
+- **Feature**: F2 (Trend equivalence and paper-store export)
+- **Type**: method
+- **Change**: Require at least 50 shared papers in each of the two recent 7-day comparison windows in addition to the pre-existing 500 total and rank/label bars; publish the per-window counts in the report. Read day totals, mentions and calibration inside one repeatable-read, read-only transaction for portable export.
+- **Why**: With zero recent overlap, both matchers yielded the same default labels and could falsely pass without testing any current movement. Separate read-committed export queries could pair a pre-correction denominator with post-correction papers.
+- **Pipeline**: public arXiv sample + stored MiniLM rows → shared-paper recent windows → unchanged scorer and stable threshold → required sample coverage and rank/label evaluation → zero-recent unit and concurrent PostgreSQL export regressions → truthful equivalence report and consistent dated CSVs
+- **Affects**: F2 operator equivalence and seed export; no live matcher switch or paid inference performed
+- **Replaces**: M1-024's pass-bar definition only (recorded before a live equivalence run)
+- **PR / branch**: feat/trends-calendar-projection / PR #105
+
+### M1-032: Serialize trend day replacement before deleting papers
+- **Date**: 2026-10-31
+- **Feature**: F2 (Trend paper store)
+- **Type**: method
+- **Change**: Upsert and lock the `(day, method)` row first, then delete and replace its paper mentions inside the caller's transaction, including on the first insertion of a day.
+- **Why**: Two writers could both delete before the other committed, then insert disjoint paper sets under only the later writer's denominator, producing impossible shares.
+- **Pipeline**: matched public paper batches → day-key row lock → method-specific paper replacement → existing rolling-share calculation → opt-in concurrent PostgreSQL first-day regression → one consistent final day sample
+- **Affects**: F2 manual backfill and automatic refresh publication; no migration, provider or API contract change
+- **Replaces**: none; hardens M1-018/M1-024 day replacement
+- **PR / branch**: feat/trends-calendar-projection / PR #105
+
+### M1-033: Reject out-of-store comparison dates before applying presets
+- **Date**: 2026-10-31
+- **Feature**: F2 (Trend comparison)
+- **Type**: method
+- **Change**: Validate the requested end date against stored bounds before subtracting a preset window.
+- **Why**: A valid ISO date near year one previously underflowed Python date arithmetic and returned HTTP 500 instead of an actionable invalid-range response.
+- **Pipeline**: stored paper bounds + requested date → early range validation → unchanged comparison/projection → extreme-year API regression → HTTP 422 for unsupported dates
+- **Affects**: F2 compare endpoint; no method scoring, provider or schema change
+- **Replaces**: none; extends M1-028 range validation
+- **PR / branch**: feat/trends-calendar-projection / PR #105
+
 ---
 
 ## M2: Profile Intake & Matching (F1, F4)

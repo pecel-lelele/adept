@@ -175,9 +175,9 @@ instance does not prove that a newer attempted release succeeded.
 | :------------------- | :------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------- |
 | Adi                  | Z.ai **GLM-5.3** (`glm-5.3`) through RunPod                                      | Selects validated answer blocks using the user's Adept data.                                                         |
 | Adi fallback         | Google **Gemini 3.5 Flash Lite**, with Gemini 3.6 Flash / 3.1 Flash Lite backups | Handles provider failure; a built-in guide remains available.                                                        |
-| Trend encoder        | Sentence Transformers **all-MiniLM-L6-v2** through RunPod                        | Relates public research sentences to catalogue skills. Deployed worker verified with two 384-dimensional embeddings. |
+| Trend encoder        | Sentence Transformers **all-MiniLM-L6-v2** through RunPod                        | Relates public research sentences to catalogue skills, until the Gemini matcher passes its equivalence test. One method per series: a window never mixes MiniLM and Gemini days. |
+| Trend matcher        | Google **gemini-embedding-001** at 384 dimensions                                | Becomes the primary matcher for the backfill and daily runs once a passing equivalence report is committed (M1-024; not yet run): embeds public arXiv papers and skill labels and counts mentions at or above one stored threshold per model, chosen to match MiniLM's mentions per paper. Background jobs only, never on a page read. |
 | CV / skill-search suggestions | Google **gemini-embedding-001**                                          | Suggests one catalogue match for unfamiliar skill phrases or an explicitly submitted search; the user confirms additions. Manual search uses approved aliases locally. |
-| Trend refresh fallback | Google **gemini-embedding-001**                                          | Only when the RunPod MiniLM worker is missing or fails: embeds public arXiv papers and skill labels; the match threshold is calibrated to the stored MiniLM mention rate, and the snapshot note names the fallback (M1-017). |
 
 Model features are configurable; the default assistant uses the built-in guide. Role scores, learning plans and trend calculations use deterministic rules. Model-selected IDs pass through `validate_ids` before display.
 
@@ -212,14 +212,14 @@ trend runner installs pipeline client dependencies and calls RunPod over HTTPS.
 | :----------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [CI](.github/workflows/ci.yml)                         | Pushes to `main`, pull requests and manual runs: lint, tests, real PostgreSQL checks, translations, generated contracts and production web build.              |
 | [Data sources](.github/workflows/data-sources.yml)     | Mondays 02:17 UTC (10:17 MYT) and manual runs: checks upstream SDG/course data and evidence links; does not publish trend snapshots.                          |
-| [Trends refresh](.github/workflows/trends-refresh.yml) | Manual backup only (not scheduled, M1-017): ingest public research → RunPod embeddings → score → validate → publish a dated snapshot. The app's own refresh adds new arXiv days on demand to a stored paper cache and publishes rolling 7-day trends (M1-018), with a calibrated Gemini fallback when RunPod is down. |
+| [Trends refresh](.github/workflows/trends-refresh.yml) | Manual backup only (not scheduled, M1-017): ingest public research → RunPod embeddings → score → validate → publish a dated snapshot. The daily in-app refresh adds arXiv days to a method-specific paper store; it uses MiniLM until a passing, reviewed Gemini equivalence report is committed. There is no cross-method top-up on matcher failure. |
 | [Publish MiniLM](.github/workflows/publish-minilm.yml) | Manual dispatch on the source repository's `main` only: builds `linux/amd64` and publishes GHCR tags with job-scoped `GITHUB_TOKEN`. PRs/forks do not publish. |
 
 Configure **repository Settings → Secrets and variables → Actions**:
 
 | Kind     | Exact name                  | Value                                                                                                                                                    |
 | :------- | :-------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Secret   | `TREND_DATABASE_URL`        | The published app's production PostgreSQL connection string, reachable from GitHub Actions. Replit's development `helium` URL cannot be used externally. |
+| Secret   | `TREND_DATABASE_URL`        | Only an explicitly approved PostgreSQL target reachable from GitHub Actions for the manual backup. Replit's private app database is not reachable from the runner. |
 | Secret   | `TRENDS_RUNPOD_API_KEY`     | A dedicated MiniLM key permitted to invoke the endpoint.                                                                                                 |
 | Variable | `TRENDS_RUNPOD_ENDPOINT_ID` | `ta14jd0by2ijl2`                                                                                                                                         |
 
@@ -227,17 +227,18 @@ The workflow maps `TREND_DATABASE_URL` to the process variable `DATABASE_URL`. A
 secret named only `DATABASE_URL` does not satisfy that workflow. MiniLM credentials are
 separate from Adi's `RUNPOD_API_KEY` and Gemini settings.
 
-Run **Actions → Trends refresh → Run workflow → main**, then open the `refresh` job.
+The in-app scheduler is the production refresh path. Only for an approved reachable backup
+target, run **Actions → Trends refresh → Run workflow → main**, then open the `refresh` job.
 The database preflight must pass, then `Ingest, score, validate and publish` must report
-`Published snapshot YYYY-MM-DD.` A green run that skipped missing configuration is not a
-publication. Inference success alone does not establish sufficient research history or a
+`Published snapshot YYYY-MM-DD.` Missing manual configuration fails the run; a green
+conclusion alone is not publication. Inference success does not establish research history or a
 successful database write; failures preserve the previous published snapshot.
 
-The first integrated refresh fetched 366 papers and counted mentions, then failed saving to
-Replit's private development host `helium`. To use Replit's production database, publish the
-app, then open **Database → Production → Settings / Connection details** and update the
-GitHub secret. Development and production are separate databases. Preflight now rejects
-this configuration before fetching papers or invoking paid inference.
+The first integrated backup fetched 366 papers and counted mentions, then failed saving to
+Replit's private development host `helium`. Replit's private database must be reached by the
+app's in-process refresh, not by putting its connection string in a GitHub runner secret.
+Development and production are separate databases. The backup preflight rejects an
+unreachable target before fetching papers or invoking paid inference.
 
 The documented batch configuration uses **Active workers = 0** and **Max workers = 1**; verify current RunPod settings and costs in the owner's account. A request starts
 the worker when needed; no manually running test is required to keep the integration alive.
@@ -366,7 +367,9 @@ sequenceDiagram
   A->>DB: Review decision (members see it)
 ```
 
-### Trend data pipeline (weekly, validated)
+### Legacy manual trend snapshot pipeline (validated)
+
+The diagram describes the backup publisher, not the daily method-specific paper-store catch-up.
 
 ```mermaid
 flowchart TB
@@ -691,8 +694,10 @@ static CSS, health, CORS preflight and a read-only failed login through the publ
 The Next.js/API pair must receive the same nonempty `PROXY_SHARED_SECRET`. Set
 `TRUSTED_PROXY_HOPS` from the real forwarding chain; do not guess it. Replit production uses 1
 (one appending edge in front of the single public server).
-Production rejects missing/zero trust configuration. Local direct-socket development may
-use zero. The public API handler strips caller-supplied internal identity headers.
+Trusted client-IP mode rejects zero hops; the best-effort default permits zero but then
+anonymous visitors share one rate-limit bucket. Replit's verified configuration uses one
+hop. Local direct-socket development may use zero. The public API handler strips
+caller-supplied internal identity headers.
 
 `AUTH_MODE=demo` is the legacy name for PostgreSQL-backed local accounts with signed sessions,
 not an automatic demo login. Keep `APP_ENV=production`, `AUTH_RAW_USER_IDS=false` and an empty
@@ -703,7 +708,7 @@ requires a guarded image build and RunPod redeployment. The historical verified 
 is not evidence that those newer dependencies are already deployed. Keep all keys and
 connection strings in secret stores, never in this README or submission PDFs.
 
-Final-round review: [refresh and demo runbook](docs/review-runbook.md). Dashboard refresh uses the existing published RunPod MiniLM model through an admin-only workflow dispatch; production configuration and paid-run acceptance remain explicit rollout steps.
+Final-round review: [refresh and demo runbook](docs/review-runbook.md). The dashboard shows the measured data date; manual refresh is admin-only and the daily in-app scheduler is separate from the optional legacy GitHub backup. Production configuration and paid-run acceptance remain explicit rollout steps.
 
 ### Final-round disclosure and measurement notes (30 October 2026)
 

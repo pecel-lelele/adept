@@ -161,7 +161,8 @@ def task_dev() -> None:
         "API": subprocess.Popen(
             py("-m", "uvicorn", "app.main:app", "--reload", "--port", api_port),
             cwd=API,
-            env=os.environ,
+            # Like the Replit supervisor: trend scoring and refresh jobs import `pipelines`.
+            env={**os.environ, "PYTHONPATH": os.pathsep.join([str(API), str(ROOT / "src")])},
         ),
         "web": subprocess.Popen([*pnpm(), "dev"], cwd=WEB, env=os.environ),
     }

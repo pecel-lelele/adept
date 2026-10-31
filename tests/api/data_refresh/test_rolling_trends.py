@@ -1,6 +1,7 @@
-"""Accumulated per-paper trend store and rolling 7-day snapshots (M1-018).
+"""Accumulated per-paper trend store and rolling 7-day snapshots (M1-018, M1-024).
 
 A fake in-memory store mirrors `trend_store`'s SQL semantics; arXiv and models are mocked.
+Tests use the MiniLM series unless they select Gemini, the default primary matcher.
 """
 
 from __future__ import annotations
@@ -36,6 +37,7 @@ class Store:
         self.fetched_on: dict[date, date] = {}
         self.papers: dict[str, tuple[date, str, str, list[str]]] = {}
         self.calibrations: dict[str, float] = {}
+        self.calibration_rows: dict[str, tuple[Any, ...]] = {}
 
     def install(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr(
@@ -52,8 +54,9 @@ class Store:
         rows = [p for p in self.papers.values() if p[1] == "M1-014"]
         return sum(len(p[3]) for p in rows) / len(rows) if rows else None
 
-    def save_calibration(self, _conn: Any, model: str, threshold: float, *_rest: Any) -> None:
+    def save_calibration(self, _conn: Any, model: str, threshold: float, *rest: Any) -> None:
         self.calibrations.setdefault(model, threshold)
+        self.calibration_rows.setdefault(model, rest)
 
     def last_fetched(self, start: date, end: date) -> date | None:
         dates = [on for d, on in self.fetched_on.items() if start <= d <= end]
@@ -91,6 +94,11 @@ class Store:
             for n in range(2):
                 self.papers[f"{day}-{n}"] = (day, "M1-014", model, skills)
             day += timedelta(days=1)
+
+
+@pytest.fixture(autouse=True)
+def minilm_series(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("TRENDS_MATCHER", "minilm")
 
 
 @pytest.fixture
@@ -139,12 +147,40 @@ def _arxiv(monkeypatch: pytest.MonkeyPatch, calls: list[date] | None = None) -> 
     monkeypatch.setattr(automatic_trends, "fetch_window", fetch)
 
 
-def test_missing_days_are_oldest_first_bounded_and_never_include_unannounced_days() -> None:
+def test_series_stays_on_minilm_until_a_passing_report_exists(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Any
+) -> None:
+    monkeypatch.setenv("TRENDS_MATCHER", "auto")
+    report = tmp_path / "equivalence.json"
+    monkeypatch.setattr(trend_store, "EQUIVALENCE_REPORT", report)
+    assert trend_store.series_method() == "M1-014", "no report: not switched"
+    model = trend_fallback.model_label()
+    report.write_text(f'{{"passed": false, "model": "{model}"}}', encoding="utf-8")
+    assert trend_store.series_method() == "M1-014", "failed: not switched"
+    report.write_text('{"passed": true, "model": "another-model@384"}', encoding="utf-8")
+    assert trend_store.series_method() == "M1-014", "another model's pass does not count"
+    report.write_text(f'{{"passed": true, "model": "{model}"}}', encoding="utf-8")
+    assert trend_store.series_method() == "M1-024"
+    monkeypatch.setenv("TRENDS_MATCHER", "minilm")
+    assert trend_store.series_method() == "M1-014", "the explicit choice wins"
+
+
+def test_the_daily_job_never_starts_a_january_catch_up_on_minilm() -> None:
+    assert trend_store.series_method() == "M1-014"
+    days = automatic_trends.missing_days({}, TODAY)
+    assert days[0] == automatic_trends.MINILM_START_DAY == date(2026, 10, 6)
+
+
+def test_missing_days_are_oldest_first_uncapped_and_never_include_unannounced_days(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("TRENDS_MATCHER", "gemini")
     start = automatic_trends.START_DAY
+    assert start == date(2026, 1, 1)
     stored = {start: start + timedelta(days=automatic_trends.SETTLE_DAYS)}
     days = automatic_trends.missing_days(stored, TODAY)
     assert days[0] == automatic_trends.START_DAY + timedelta(days=1)
-    assert len(days) <= automatic_trends.MAX_DAYS_PER_RUN
+    assert days[-1] == NEWEST, "a long catch-up is not capped at 14 days"
     assert all(d <= NEWEST for d in days)
     assert automatic_trends.paper_key("https://arxiv.org/abs/2410.11582v3") == "2410.11582"
 
@@ -232,48 +268,133 @@ def _gemini(monkeypatch: pytest.MonkeyPatch, dims: list[int]) -> None:
     monkeypatch.setattr(embeddings, "embed", embed)
 
 
-@pytest.mark.parametrize("runpod", ["failed", "missing", "bad-settings"])
-def test_gemini_fallback_at_minilm_size_is_calibrated_once_and_labelled(
-    store: Store, monkeypatch: pytest.MonkeyPatch, runpod: str
+def test_gemini_is_primary_at_minilm_size_with_one_stored_threshold(
+    store: Store, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    monkeypatch.setenv("TRENDS_MATCHER", "gemini")
     store.fill(automatic_trends.START_DAY, NEWEST - timedelta(days=1), ["python"])
     _arxiv(monkeypatch)
     dims: list[int] = []
     _gemini(monkeypatch, dims)
-    if runpod != "missing":
-        monkeypatch.setenv("TRENDS_RUNPOD_ENDPOINT_ID", "synthetic-endpoint")
-        monkeypatch.setenv("TRENDS_RUNPOD_API_KEY", "synthetic-test-key")
-
-        class Down:
-            def __init__(self, *args: Any, **kwargs: Any) -> None:
-                if runpod == "bad-settings":
-                    raise ValueError("Set TRENDS_RUNPOD_ENDPOINT_ID and TRENDS_RUNPOD_API_KEY")
-
-            def encode(self, texts: list[str], **kwargs: Any) -> list[list[float]]:
-                raise TimeoutError("RunPod MiniLM inference exceeded its deadline")
-
-        monkeypatch.setattr(automatic_trends, "RunPodEncoder", Down)
+    monkeypatch.setattr(
+        automatic_trends, "RunPodEncoder", lambda *a, **k: pytest.fail("MiniLM called")
+    )
     published = _published(monkeypatch)
     automatic_trends.run(time.monotonic(), 600, STOP)
     assert set(dims) == {384}  # same vector size as MiniLM
     model = trend_fallback.model_label()
     assert model.endswith("@384") and model in store.calibrations
-    assert store.papers[f"synthetic-{NEWEST}"][1:3] == ("M1-017", model)
-    assert "Gemini fallback calibrated" in published[0].note
-    assert published[0].model_revision == "mixed"
+    assert store.papers[f"synthetic-{NEWEST}"][1:3] == ("M1-024", model)
+    rule = store.calibration_rows[model][0]
+    assert rule == trend_fallback.RULE_MINILM, "stored MiniLM evidence sets the threshold"
+    assert "threshold stored per model" in published[0].note
 
 
-def test_fallback_without_minilm_evidence_keeps_the_last_snapshot(
+def test_threshold_uses_the_documented_rate_without_minilm_evidence(
     store: Store, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    monkeypatch.setenv("TRENDS_MATCHER", "gemini")
     _arxiv(monkeypatch)
     _gemini(monkeypatch, [])
     monkeypatch.setattr(measurements, "load_minilm_reference", lambda _day: None)
+    _published(monkeypatch)
+    automatic_trends.run(time.monotonic(), 600, STOP)
+    model = trend_fallback.model_label()
+    assert store.calibration_rows[model][:2] == (
+        trend_fallback.RULE_DOCUMENTED,
+        trend_fallback.DOCUMENTED_MINILM_RATE,
+    )
+    assert store.days, "the run stores papers instead of failing"
+
+
+def test_a_stored_threshold_is_reused_never_recalibrated(
+    store: Store, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("TRENDS_MATCHER", "gemini")
+    store.calibrations[trend_fallback.model_label()] = 0.42
+    _arxiv(monkeypatch)
+    _gemini(monkeypatch, [])
+    monkeypatch.setattr(automatic_trends, "reference_rate", lambda _t: pytest.fail("recalibrated"))
+    _published(monkeypatch)
+    automatic_trends.run(time.monotonic(), 600, STOP)
+    assert store.calibration_rows == {}
+
+
+def test_a_failed_matcher_is_never_topped_up_by_the_other_model(
+    store: Store, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("TRENDS_MATCHER", "gemini")
+    monkeypatch.setenv("TRENDS_RUNPOD_ENDPOINT_ID", "synthetic-endpoint")
+    monkeypatch.setenv("TRENDS_RUNPOD_API_KEY", "synthetic-test-key")
+    _arxiv(monkeypatch)
+    monkeypatch.setattr(trend_fallback, "enabled", lambda: True)
+
+    def down(*args: Any, **kwargs: Any) -> list[list[float]]:
+        raise embeddings.EmbeddingsUnavailable("Synthetic outage")
+
+    monkeypatch.setattr(embeddings, "embed", down)
+    monkeypatch.setattr(
+        automatic_trends, "RunPodEncoder", lambda *a, **k: pytest.fail("mixed methods")
+    )
     published = _published(monkeypatch)
     with pytest.raises(service.RefreshFailed) as failed:
         automatic_trends.run(time.monotonic(), 600, STOP)
-    assert failed.value.code == "refresh_not_supported"
+    assert failed.value.code == "fetch_failed"
     assert published == [] and store.days == {}
+
+
+def test_an_interrupted_catch_up_keeps_committed_chunks_and_resumes(
+    store: Store, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("TRENDS_MATCHER", "gemini")
+    calls: list[date] = []
+    _arxiv(monkeypatch, calls)
+    _gemini(monkeypatch, [])
+    monkeypatch.setattr(measurements, "load_minilm_reference", lambda _day: None)
+    published = _published(monkeypatch)
+    real = automatic_trends.fetch_days
+    fetched = 0
+
+    def interrupted(days: list[date], deadline: float, stop: Any) -> Any:
+        nonlocal fetched
+        fetched += 1
+        if fetched == 3:
+            raise TimeoutError("Synthetic budget end")
+        return real(days, deadline, stop)
+
+    monkeypatch.setattr(automatic_trends, "fetch_days", interrupted)
+    first = automatic_trends.run(time.monotonic(), 600, STOP)
+    assert len(store.days) == 2 * automatic_trends.CHUNK_DAYS, "two chunks stayed committed"
+    assert "next run resumes" in first.message and published == []
+    # The next run starts at the first missing day and finishes; the snapshot follows.
+    monkeypatch.setattr(automatic_trends, "fetch_days", real)
+    calls.clear()
+    automatic_trends.run(time.monotonic(), 600, STOP)
+    assert calls[0] == automatic_trends.START_DAY + timedelta(days=2 * automatic_trends.CHUNK_DAYS)
+    assert published and published[0].current[1] == NEWEST
+
+
+def test_a_timeout_before_any_progress_is_still_a_failure(
+    store: Store, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("TRENDS_MATCHER", "gemini")
+    _gemini(monkeypatch, [])
+
+    def expired(*args: Any) -> Any:
+        raise TimeoutError("Synthetic budget end")
+
+    monkeypatch.setattr(automatic_trends, "fetch_days", expired)
+    with pytest.raises(TimeoutError):
+        automatic_trends.run(time.monotonic(), 600, STOP)
+
+
+def test_an_empty_answer_is_checked_again_before_a_day_is_stored_empty(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    answers = [[], [{"title": "t", "abstract": "a", "arxiv_id": "https://arxiv.org/abs/1v1"}]]
+    monkeypatch.setattr(automatic_trends, "fetch_window", lambda *a, **k: answers.pop(0))
+    days = automatic_trends.fetch_days([NEWEST], time.monotonic() + 600, STOP)
+    assert days[NEWEST][0]["arxiv_id"] == "1"
 
 
 def test_nothing_configured_is_reported_before_any_fetch(
@@ -281,9 +402,11 @@ def test_nothing_configured_is_reported_before_any_fetch(
 ) -> None:
     monkeypatch.setattr(trend_fallback, "enabled", lambda: False)
     _no_network(monkeypatch)
-    with pytest.raises(service.RefreshFailed) as failed:
-        automatic_trends.run(time.monotonic(), 600, STOP)
-    assert failed.value.code == "refresh_not_configured"
+    for matcher in ("gemini", "minilm"):
+        monkeypatch.setenv("TRENDS_MATCHER", matcher)
+        with pytest.raises(service.RefreshFailed) as failed:
+            automatic_trends.run(time.monotonic(), 600, STOP)
+        assert failed.value.code == "refresh_not_configured"
 
 
 def test_missing_store_migration_stops_before_paid_inference(
@@ -374,7 +497,7 @@ def test_retry_republishes_corrected_counts_after_a_failed_refresh(
     monkeypatch.setattr(
         automatic_trends,
         "match",
-        lambda papers, *args: (
+        lambda papers, *args, **kwargs: (
             [["python"] for _ in papers],
             "M1-014",
             automatic_trends.MODEL_ID,

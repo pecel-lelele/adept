@@ -74,6 +74,14 @@ def get_disclosure() -> Disclosure:
             "after contact details "
             "are removed; suggestions are added only if you choose them."
         )
+    from app.features.data_refresh import trend_store
+
+    if trend_store.series_method() == trend_store.GEMINI_METHOD:
+        purpose.append(
+            "Google gemini-embedding-001 (384 dimensions) matches public arXiv papers to catalogue "
+            "skills for trend signals, in background jobs only, with one stored threshold per "
+            "model chosen to match the mentions per paper measured with MiniLM."
+        )
     return Disclosure(
         llm_enabled=enabled,
         provider=provider,

@@ -90,3 +90,17 @@ retrieval date. The observation period remains null until a complete window cont
 
 Daily denominators and mention counts use one SQL statement snapshot, so a concurrent
 settled-day replacement cannot mix versions or inflate a displayed sample share.
+
+## Comparison, projection and history (2026-10-31, M1-024 to M1-027)
+
+The "Trend over time" card uses `GET /trends/compare` (`comparison.py`): a Skills | Roles |
+Categories switch, presets 1W/1M/3M/6M or custom dates, rebased to 100 or raw, up to 8 lines, and
+a stats table with start, end, change and both projected endpoints. All state is in the URL
+(`?view=&preset=&from=&to=&entity=&mode=&horizon=`). `TrendMoversCard` on home deep-links in.
+
+Role and category lines are derived from arXiv skill signals, not observed role demand. The
+dashed projection reuses the radar's moderate and fast velocities and is labelled "pace
+continuation, not a prediction". Observed and projected parts have separate attribution. Reads
+never call arXiv or a model. Gemini becomes the matcher after its equivalence test passes, with
+one method per series; see
+`data_refresh/FEATURE.md`, and `src/pipelines/trends/README.md` for the backfill and seed.
