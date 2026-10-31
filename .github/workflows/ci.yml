@@ -41,7 +41,7 @@ jobs:
         env:
           GOTOOLCHAIN: auto
           GOSUMDB: sum.golang.org
-        run: go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7 -shellcheck= -pyflakes= .github/workflows/ci.yml .github/workflows/publish-minilm.yml .github/workflows/data-sources.yml .github/workflows/trends-refresh.yml
+        run: go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7 -shellcheck= -pyflakes= .github/workflows/ci.yml .github/workflows/publish-minilm.yml .github/workflows/automatic-data-refresh.yml .github/workflows/data-sources.yml .github/workflows/trends-refresh.yml
 
       - name: Test unsafe workflow fixtures (offline)
         run: uv run --no-project --python "$PYTHON_VERSION" --with PyYAML==6.0.3 python -m unittest discover -s tests/pipelines/trends -p test_minilm_publish_workflow.py -v
