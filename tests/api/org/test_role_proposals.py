@@ -12,6 +12,10 @@ from app.features.pathway import repository
 
 HR = {"X-Demo-User": "demo-company", "X-Workspace": BANK}
 WORK = work_headers()
+# Keep planning above the default privacy cohort gate.
+pytestmark = pytest.mark.usefixtures("planning_cohort")
+# Aisyah plus the two synthetic sharing members added by planning_cohort.
+COHORT = ["aisyah", "synthetic-cohort-third", "synthetic-cohort-fourth"]
 
 
 @pytest.fixture(autouse=True)
@@ -24,7 +28,7 @@ def send(client: TestClient) -> str:
         "title": "Synthetic GBS learning team",
         "objectives": ["data_driven"],
         "roles": [{"role_id": "data-analyst", "headcount": 1}],
-        "member_ids": ["aisyah"],
+        "member_ids": COHORT,
         "target_date": (date.today() + timedelta(weeks=12)).isoformat(),
         "hours_per_week": 4,
         "budget_total_myr": 1000,
@@ -99,14 +103,14 @@ def test_quick_package_proposal_is_visible_to_hr_and_can_be_accepted(client: Tes
     offer = client.get(
         "/api/v1/org/packages",
         headers=HR,
-        params={"role_id": "data-analyst", "member_ids": ["aisyah"]},
+        params={"role_id": "data-analyst", "member_ids": COHORT},
     ).json()["packages"][0]
     selected = client.post(
         "/api/v1/org/packages/select",
         headers=HR,
         json={
             "role_id": "data-analyst",
-            "member_ids": ["aisyah"],
+            "member_ids": COHORT,
             "kind": offer["kind"],
             "token": offer["token"],
             "scenario": "moderate",

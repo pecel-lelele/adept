@@ -10,6 +10,10 @@ from app.features.pathway import repository
 
 HR = {"X-Demo-User": "demo-company", "X-Workspace": BANK}
 WORK = work_headers()
+# Keep planning above the default privacy cohort gate.
+pytestmark = pytest.mark.usefixtures("planning_cohort")
+# Aisyah plus the two synthetic sharing members added by planning_cohort.
+COHORT = ["aisyah", "synthetic-cohort-third", "synthetic-cohort-fourth"]
 PROPOSAL = {
     "decision": "request_change",
     "reason": "target_role",
@@ -27,7 +31,7 @@ def _accepted_programme(client: TestClient) -> str:
         "title": "Synthetic GBS learning team",
         "objectives": ["data_driven"],
         "roles": [{"role_id": "data-analyst", "headcount": 1}],
-        "member_ids": ["aisyah"],
+        "member_ids": COHORT,
         "target_date": (date.today() + timedelta(weeks=12)).isoformat(),
         "hours_per_week": 4,
         "budget_total_myr": 1000,
@@ -78,7 +82,7 @@ def test_quick_package_proposal_keeps_an_existing_acceptance(client: TestClient)
     offer = client.get(
         "/api/v1/org/packages",
         headers=HR,
-        params={"role_id": "data-analyst", "member_ids": ["aisyah"]},
+        params={"role_id": "data-analyst", "member_ids": COHORT},
     ).json()["packages"][0]
     assert (
         client.post(
@@ -86,7 +90,7 @@ def test_quick_package_proposal_keeps_an_existing_acceptance(client: TestClient)
             headers=HR,
             json={
                 "role_id": "data-analyst",
-                "member_ids": ["aisyah"],
+                "member_ids": COHORT,
                 "kind": offer["kind"],
                 "token": offer["token"],
                 "scenario": "moderate",
