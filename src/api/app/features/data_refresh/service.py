@@ -383,14 +383,15 @@ def selected_boards() -> tuple[list[Any], list[str]]:
             skipped.append(b.board)
         else:
             runnable.append(b)
-    # Quick single-request feeds first; employer boards rotated so repeated runs that hit
-    # the time budget do not always leave the same boards unread.
-    quick = [b for b in runnable if b in boards.REMOTE or b.board in keyed]
-    employers = [b for b in runnable if b not in quick]
+    # Keyed feeds first; rotate employer boards so budget-limited runs share coverage.
+    # Remote feeds run last: Himalayas makes multiple requests and can exhaust the budget.
+    quick = [b for b in runnable if b.board in keyed]
+    remote_boards = [b for b in runnable if b in boards.REMOTE]
+    employers = [b for b in runnable if b not in quick and b not in remote_boards]
     if employers:
         offset = secrets.randbelow(len(employers))
         employers = employers[offset:] + employers[:offset]
-    return quick + employers, skipped
+    return quick + employers + remote_boards, skipped
 
 
 def _run_jobs(started: float, budget: float) -> Outcome:

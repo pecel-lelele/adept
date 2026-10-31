@@ -2635,3 +2635,14 @@
 - **Affects**: jobs contracts (`JobOpening.malaysia_relevance`, `places` counts, additive), jobs service/repository/router, automatic jobs refresh, `OpeningItem`, `RoleOpeningsCard`, `JobBoardView`, `MatchDetailView`, the existing `warn` chip tone on the worldwide badge (neutral tones are too close in colour to read apart at a glance; no new CSS), en/ms/zh jobs and about messages, `docs/data-refresh.md`. Known gaps accepted for this branch: the `/app/matches` chip and pathway "View all N" count in-Malaysia ads only while the board they link to also counts remote ones; `CareerRoadmap` shows a blended count; certification "asked for in N ads" stays in-Malaysia only; `stored_freshness` and `_seed_jobs` counts exclude remote ads, so their "same as the visible board" comment no longer holds; match and skill-demand numbers on the role detail page can differ from `/app/pathway`, breaking FEATURE.md's former "numbers match the plan page". The remote boards' terms were not re-verified for automatic reads.
 - **Replaces**: M4-087, partly: only serving on `/app/jobs` and `/app/matches/[roleId]`, and its exclusion of remote boards and remote-open postings from the automatic refresh. This is not a full reversal: all other surfaces keep the own-location rule, and undocumented career-site endpoints stay excluded.
 - **PR / branch**: feat/jobs-malaysia-focus
+
+### M4-096: Give employer boards priority over remote feeds during jobs refresh
+- **Date**: 2026-10-31
+- **Feature**: Core (jobs refresh)
+- **Type**: method
+- **Change**: Fetch remote boards after the rotating employer boards, keeping configured keyed feeds first and the existing shared deadline. A slow multi-request Himalayas read can no longer consume the fetch window before employer boards run.
+- **Why**: Greptile's P1 finding showed that fourteen five-second remote queries could exhaust the 58.5-second fetch budget and leave no completed board to publish.
+- **Pipeline**: existing public job feeds → unchanged parsing → unchanged classification → employer-before-remote scheduling → mocked slow-feed publication and employer-rotation regressions → existing atomic jobs publication
+- **Affects**: Automatic jobs fetch order only; no catalogue, UI, API contract or other feature changes.
+- **Replaces**: M4-095 remote-first fetch ordering only
+- **PR / branch**: feat/jobs-malaysia-focus

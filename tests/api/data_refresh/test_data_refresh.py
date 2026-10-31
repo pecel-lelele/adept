@@ -481,6 +481,68 @@ def test_only_configured_keyed_boards_run(monkeypatch: pytest.MonkeyPatch) -> No
     assert any(b.source == "workday" and b.board in skipped for b in jobs_boards.ALL)
 
 
+@pytest.mark.parametrize("offset", [0, 1])
+def test_employer_rotation_stays_ahead_of_remote_boards(
+    monkeypatch: pytest.MonkeyPatch, offset: int
+) -> None:
+    employers = list(jobs_boards.EMPLOYERS[:2])
+    monkeypatch.setattr(jobs_boards, "ALL", (*jobs_boards.REMOTE, *employers))
+    monkeypatch.setattr(service.secrets, "randbelow", lambda size: offset)
+
+    chosen, _ = service.selected_boards()
+
+    assert chosen == employers[offset:] + employers[:offset] + list(jobs_boards.REMOTE)
+
+
+def test_slow_himalayas_cannot_prevent_employer_publication(
+    store: FakeStore, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    employer = jobs_boards.Board("greenhouse", "synthetic-employer", "Synthetic Employer")
+    monkeypatch.setattr(jobs_boards, "ALL", (*jobs_boards.REMOTE, employer))
+    now = 1000.0
+    monkeypatch.setattr(service.time, "monotonic", lambda: now)
+    queries: list[str] = []
+    fetch_log: list[dict[str, Any]] = []
+
+    def answer(request: httpx.Request) -> httpx.Response:
+        nonlocal now
+        if request.url.path == "/robots.txt":
+            return httpx.Response(404)
+        if request.url.host == "himalayas.app":
+            queries.append(request.url.params["q"])
+            now += 5  # Each remote query consumes five seconds of the shared fetch window.
+            return httpx.Response(200, json={"jobs": []})
+        assert request.url.host == "boards-api.greenhouse.io"
+        return httpx.Response(200, json={"jobs": [{
+            "id": 1, "title": "Data Analyst", "location": {"name": "Kuala Lumpur, Malaysia"},
+            "absolute_url": "https://example.test/jobs/1", "content": "Python and SQL",
+        }]})  # fmt: skip
+
+    def to_db(
+        rows: list[dict[str, Any]], certs: Any, log: Any, today: date, url: str, conn: Any = None
+    ) -> int:
+        store.writes += 1
+        store.jobs = rows
+        fetch_log.extend(log)
+        return len(rows)
+
+    monkeypatch.setattr(service, "guarded_client", _mock_client(answer))
+    monkeypatch.setattr(jobs_run, "to_db", to_db)
+
+    result = service._run_jobs(started=now, budget=90)
+
+    assert result.rows_upserted == 1 and store.writes == 1
+    assert store.jobs[0]["id"] == "greenhouse:synthetic-employer:1"
+    assert 0 < len(queries) < len(jobs_boards.REMOTE_QUERIES)
+    assert [(entry["board"], entry["status"]) for entry in fetch_log] == [
+        ("synthetic-employer", "ok"),
+        ("himalayas", "partial"),
+        ("jobicy", "skipped"),
+        ("remoteok", "skipped"),
+        ("remotive", "skipped"),
+    ]
+
+
 def test_jobs_refresh_keeps_remote_open_postings_and_drops_other_places(
     client: TestClient, store: FakeStore, monkeypatch: pytest.MonkeyPatch
 ) -> None:
