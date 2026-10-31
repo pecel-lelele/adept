@@ -27,6 +27,12 @@ test("synthetic CV reaches radar, an explained match and a saved sourced plan", 
   await page.getByRole("button", { name: "Save and see my skills outlook", exact: true }).click();
   await expect(page).toHaveURL(/\/app\/radar/);
   await expect(page.getByText(/snapshot|data as of|showing.*snapshot/i).first()).toBeVisible();
+  await page.goto("/app");
+  await expect(page.locator(".a-welcome-main [data-source=trends]")).toBeVisible();
+  await expect(page.locator(".a-view > [data-source=trends]")).toHaveCount(0);
+  const join = page.locator(".a-hero-mobile-join");
+  if (test.info().project.name === "mobile") await expect(join).toBeVisible();
+  else await expect(join).toBeHidden();
   await page.goto("/app/matches");
   const detail = page.locator('a[href^="/app/matches/"]').first();
   await expect(detail).toBeVisible();

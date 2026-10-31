@@ -2810,3 +2810,13 @@
 - **Affects**: Automatic jobs scheduling and its tests only; no UI, API contract, catalogue, dependency or other feature changes.
 - **Replaces**: M4-096 shared fetch window without a remote reserve
 - **PR / branch**: feat/jobs-malaysia-focus
+
+### M4-098: Put freshness with the learner's next action
+- **Date**: 2026-10-31
+- **Feature**: Core dashboard / F2 radar
+- **Type**: UI
+- **Change**: Render one trend observation/source line inside the learner's next-action card, using that page's selected snapshot even if the separate freshness service fails. Radar keeps its existing full MetaBar but removes two redundant date lines. The join link stays directly reachable on mobile and in the mobile menu; desktop uses the existing sidebar link instead of repeating it beside the primary task.
+- **Why**: Repeated loose dates above the dashboard delayed the next action, and the duplicated join CTA competed with planning. The selected snapshot metadata is already attributed and must remain visible on a freshness outage.
+- **Affects**: Individual dashboard, radar and shared DataAsOf; no attribution schema, permission or data calculation change
+- **Replaces**: none; refines M1-026's user-facing freshness placement
+- **PR / branch**: fix/core-dashboard-clarity

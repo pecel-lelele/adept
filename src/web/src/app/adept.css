@@ -1583,6 +1583,11 @@ html[data-navigating="true"] .a-pace-busy { display: block; color: var(--a-up); 
 .a-shell .a-welcome-main { display: grid; align-content: center; gap: 4px; padding: 32px 34px; border-radius: var(--a-radius); background: #fff; border: 1px solid #e3e9e0; box-shadow: var(--a-shadow); min-width: 0; }
 .a-shell .a-welcome-main h1 { margin: 8px 0 6px; font-size: clamp(26px, 2.4vw, 34px); font-weight: 500; letter-spacing: -0.04em; line-height: 1.15; overflow-wrap: anywhere; }
 .a-shell .a-welcome-main p { margin: 0 0 18px; color: var(--a-muted); font-size: 14.5px; line-height: 1.7; max-width: 560px; }
+/* Freshness belongs to the next action it qualifies, not a loose line above the page. */
+.a-shell .a-welcome-main .a-welcome-data { border-top: 1px solid var(--a-line); padding-top: 12px; margin-top: 14px; max-width: 560px; }
+.a-shell .a-welcome-main .a-welcome-data p { margin: 0; font-size: 12px; line-height: 1.5; }
+.a-hero-mobile-join { display: none; }
+@media (max-width: 900px) { .a-hero-mobile-join { display: inline-flex; } }
 .a-shell .a-journey { display: grid; align-content: start; gap: 12px; padding: 24px; border-radius: var(--a-radius); background: #eff5e9; border: 1px solid #e2eadb; min-width: 0; }
 .a-shell .a-journey ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
 .a-shell .a-journey li a { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 9px 10px; border-radius: 10px; font-size: 13.5px; color: var(--a-ink-2); transition: background var(--a-fast); }

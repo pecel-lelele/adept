@@ -2,7 +2,6 @@ import { Bot, Minus, Radar, TrendingDown, TrendingUp } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
 import { EstimateLabel, Kpis, MetaBar, PageHeader, TrendPill } from "@/components";
-import { DataAsOf } from "@/components/DataAsOf";
 import { journeyStepCount } from "@/config/navigation";
 import { ErrorState } from "@/components/ErrorState";
 import { TrendBars } from "@/components/viz";
@@ -83,9 +82,6 @@ export async function RadarView({
       >
         <MetaBar meta={meta} />
       </PageHeader>
-      <DataAsOf source="trends" meta={meta} />
-      <p className="a-small a-muted" data-testid="data-through">{t("range.dataThrough", { date: meta.observed_to ?? meta.snapshot_date })}</p>
-
       {meta.is_replay !== true && meta.observed_to && Date.parse(meta.snapshot_date) - Date.parse(meta.observed_to) > 60 * 864e5 ? (
         <p className="a-notice" role="note">
           {tp("historical", { from: meta.observed_from ?? meta.observed_to, to: meta.observed_to, date: meta.snapshot_date })}

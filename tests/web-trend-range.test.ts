@@ -170,11 +170,12 @@ test("url state parses safely and links keep the other choices", () => {
   assert.ok(href.includes("entity=role%3Aa") && href.endsWith("#trend"));
 });
 
-test("no user-facing page imports the refresh button; only the admin panel does", () => {
-  for (const path of ["src/web/src/features/trends/components/RadarView.tsx", "src/web/src/features/core/components/DashboardView.tsx"]) {
-    const source = readFileSync(path, "utf8");
-    assert.doesNotMatch(source, /RefreshDataButton/, path);
-    assert.match(source, /dataThrough/, path);
-  }
+test("one contextual trend date replaces duplicate page-level freshness lines", () => {
+  const radar = readFileSync("src/web/src/features/trends/components/RadarView.tsx", "utf8");
+  const home = readFileSync("src/web/src/features/core/components/DashboardView.tsx", "utf8");
+  for (const source of [radar, home]) assert.doesNotMatch(source, /RefreshDataButton|dataThrough/);
+  assert.match(radar, /<MetaBar meta=\{meta\}/);
+  assert.doesNotMatch(radar, /<DataAsOf/);
+  assert.match(home, /<DataAsOf source="trends" meta=\{radar.data.meta\}/);
   assert.match(readFileSync("src/web/src/features/trends/components/DataSourcesPanel.tsx", "utf8"), /RefreshDataButton/);
 });

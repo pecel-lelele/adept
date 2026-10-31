@@ -91,6 +91,22 @@ test("the date line uses the selected snapshot's observations, not a newer globa
   assert.doesNotMatch(html, /Data as of 2026-10-25/);
 });
 
+test("selected snapshot date and source remain visible when global freshness is unavailable", async () => {
+  const intl = translations("en");
+  const { DataAsOf } = loadComponent("src/components/DataAsOf.tsx", {
+    "next-intl/server": { getTranslations: async (namespace) => intl.useTranslations(namespace) },
+    "@/lib/data-sources": { fetchDataSources: async () => ({ ok: false, code: "storage_unavailable" }) },
+  });
+  const html = renderToStaticMarkup(await DataAsOf({ source: "trends", meta: {
+    snapshot_date: "2026-10-20", observed_to: "2026-10-19", is_fallback: true,
+    sources: [{ name: "Synthetic trend source", url: "https://example.test", retrieved_at: "2026-10-20" }],
+  } }));
+  assert.match(html, /Data as of 2026-10-19/);
+  assert.match(html, /Synthetic trend source/);
+  assert.doesNotMatch(html, /undefined/);
+  assert.equal(await DataAsOf({ source: "trends" }), null);
+});
+
 test("a partially failed run refreshes successful cards and retains its failed state", async () => {
   const phases: string[] = [];
   let refreshed = 0;
