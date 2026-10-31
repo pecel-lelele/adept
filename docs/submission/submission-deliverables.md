@@ -1,6 +1,6 @@
 # Submission deliverables
 
-Reviewed 1 November 2026 against `main` `1e1073f` and the PR #113 submission sources. The three written products are separate: [Phase 2 final report](submission-final-report.md), [technical declaration](submission-technical-declaration.md), and [product PRD / pitch brief](final-pitch-prd.md). The three written products each have a public **PDF copy**. A historical proof screenshot is not a current build/usage verification; no document is marked submitted or signed.
+Reviewed 1 November 2026 against `main` `1e1073f` and the PR #113 submission sources. The three written products are separate: [Phase 2 final report](submission-final-report.md), [technical declaration](submission-technical-declaration.md), and [product PRD / pitch brief](final-pitch-prd.md). The report and declaration are unsigned Word files, and the PRD has a PDF copy. A historical proof screenshot is not a current build/usage verification; no document is marked submitted or signed.
 
 | Deliverable | Location | Before submission |
 |---|---|---|
