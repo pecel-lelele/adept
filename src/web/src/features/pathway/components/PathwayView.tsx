@@ -85,6 +85,9 @@ async function PlanAside({ plan, query }: { plan: Schemas["Pathway"]; query: str
         <ul className="a-notes a-fold-body">
           <li>{t("summary.outOfPocket", { amount: plan.out_of_pocket_myr ?? 0, budget: plan.budget_myr ?? 0 })}</li>
           {plan.hrd_eligible ? <li>{t("summary.hrdNote")}</li> : null}
+          {plan.learning_style === "classroom" || plan.learning_style === "video" || plan.learning_style === "reading" ? (
+            <li>{t(`summary.style.${plan.learning_style}`)}</li>
+          ) : null}
           {(plan.warnings ?? []).map((w) => (
             <li key={w}>{w}</li>
           ))}
@@ -111,7 +114,8 @@ async function ReplanBanner({ status }: { status: Schemas["ReplanStatus"] }) {
         <ul>
           {status.changes.map((c) => (
             <li key={`${c.kind}-${c.skill_id}`}>
-              {t(`replan.change.${c.kind}`)}: {skillName(c.skill_id)}. {c.detail}
+              {t(`replan.change.${c.kind}`)}
+              {c.skill_id ? `: ${skillName(c.skill_id)}.` : ":"} {c.detail}
             </li>
           ))}
         </ul>

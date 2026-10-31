@@ -107,3 +107,10 @@ URLs, durations and crosswalks while preserving existing records → estimated r
 and prerequisites → F4 scoring and F5 budgeted topological plans → graph, coverage,
 prerequisite and finance concurrency regressions → shared reference loader, append-only
 role-scope migration, reference-only seed upserts and API/UI.
+
+## Settings drive the plan (2026-10-31, M3-044)
+
+Hours per week set the weeks; budget filters paid courses; learning style prefers delivery
+formats within budget (classroom → taught formats, video/reading → self-paced). A saved plan
+proposes `schedule_changed` / `cost_changed` re-plans when these settings change.
+Measure with `.claude/toolbox/onboarding_effects.py` (production code, seed data).
