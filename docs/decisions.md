@@ -2670,3 +2670,36 @@
 - **Affects**: Both app error boundaries and web UX regressions; no API contracts, settings, styling or dependencies change.
 - **Replaces**: M4-093 error callback wiring only
 - **PR / branch**: fix/web-ux-gaps / PR #95
+
+### M4-095: Show remote openings open to Malaysia on the job board and role detail page
+- **Date**: 2026-10-31
+- **Feature**: Core (jobs board), F4 role openings
+- **Type**: method
+- **Change**: A derived `malaysia_relevance` classifier (`in_malaysia`, `remote_explicit_my`, `remote_assumed_worldwide`, `not_malaysia`) now decides what `/app/jobs` and `/app/matches/[roleId]` serve, through `repository.malaysia_relevant_openings()` and an opt-in `malaysia_focus` query/prop. Each card shows the raw location, a separate badge per state and the source; counts are split rather than blended. `repository.openings()` keeps its location rule (its row mapping moved to a private helper with no behaviour change). The automatic refresh now reads the Himalayas, Jobicy, Remote OK and Remotive boards and keeps any posting the classifier does not reject.
+- **Why**: The previous rule was too strict and hid Malaysia-relevant remote openings. Refresh had to change too: `pipelines/jobs/run.py` closes rows unseen for 14 days, so unread remote boards would have vanished from PostgreSQL. A stored "Worldwide" can mean the feed named no region (`remote_scope()` returns it for empty input), so it gets a separate, plainer badge and is not presented as a claim about Malaysia. No migration: every input is an existing column, and a stored copy would drift when `MY_PLACES` changes.
+- **Pipeline**: remote-board and employer APIs → own-location and scope parsing → relevance state from location, work mode and scope → ordered rule-based classifier → unit and API regressions; seed CSV at this change: 1,053 in Malaysia, 17 explicit remote, 100 assumed worldwide, 5 not Malaysia (role-assigned: 407, 3, 36, 3) → `/jobs/board` and `/jobs/roles/{id}?malaysia_focus=true`
+- **Affects**: jobs contracts (`JobOpening.malaysia_relevance`, `places` counts, additive), jobs service/repository/router, automatic jobs refresh, `OpeningItem`, `RoleOpeningsCard`, `JobBoardView`, `MatchDetailView`, the existing `warn` chip tone on the worldwide badge (neutral tones are too close in colour to read apart at a glance; no new CSS), en/ms/zh jobs and about messages, `docs/data-refresh.md`. Known gaps accepted for this branch: the `/app/matches` chip and pathway "View all N" count in-Malaysia ads only while the board they link to also counts remote ones; `CareerRoadmap` shows a blended count; certification "asked for in N ads" stays in-Malaysia only; `stored_freshness` and `_seed_jobs` counts exclude remote ads, so their "same as the visible board" comment no longer holds; match and skill-demand numbers on the role detail page can differ from `/app/pathway`, breaking FEATURE.md's former "numbers match the plan page". The remote boards' terms were not re-verified for automatic reads.
+- **Replaces**: M4-087, partly: only serving on `/app/jobs` and `/app/matches/[roleId]`, and its exclusion of remote boards and remote-open postings from the automatic refresh. This is not a full reversal: all other surfaces keep the own-location rule, and undocumented career-site endpoints stay excluded.
+- **PR / branch**: feat/jobs-malaysia-focus
+
+### M4-096: Give employer boards priority over remote feeds during jobs refresh
+- **Date**: 2026-10-31
+- **Feature**: Core (jobs refresh)
+- **Type**: method
+- **Change**: Fetch remote boards after the rotating employer boards, keeping configured keyed feeds first and the existing shared deadline. A slow multi-request Himalayas read can no longer consume the fetch window before employer boards run.
+- **Why**: Greptile's P1 finding showed that fourteen five-second remote queries could exhaust the 58.5-second fetch budget and leave no completed board to publish.
+- **Pipeline**: existing public job feeds → unchanged parsing → unchanged classification → employer-before-remote scheduling → mocked slow-feed publication and employer-rotation regressions → existing atomic jobs publication
+- **Affects**: Automatic jobs fetch order only; no catalogue, UI, API contract or other feature changes.
+- **Replaces**: M4-095 remote-first fetch ordering only
+- **PR / branch**: feat/jobs-malaysia-focus
+
+### M4-097: Reserve remote refresh time and rotate remote feed priority daily
+- **Date**: 2026-10-31
+- **Feature**: Core (jobs refresh)
+- **Type**: method
+- **Change**: Limit employer/keyed fetching to half of the remaining fetch window when remote feeds are enabled, then restore the original fetch deadline for the remote phase. Rotate remote feeds by calendar day so each leads once every four days; unused employer time is available to remote feeds. A single group uses the full window.
+- **Why**: Greptile identified that employer-first ordering alone could skip every remote feed on every successful daily run, allowing remote openings to age out after 14 days. Separate HTTP/board-loop deadlines protect both groups without extending the run or changing stale/expiry rules.
+- **Pipeline**: existing public feeds → unchanged parsers → unchanged classification → reserved employer/remote windows and daily remote rotation → four-day slow-employer/aging-row regressions plus slow-Himalayas publication regression → existing atomic jobs publication
+- **Affects**: Automatic jobs scheduling and its tests only; no UI, API contract, catalogue, dependency or other feature changes.
+- **Replaces**: M4-096 shared fetch window without a remote reserve
+- **PR / branch**: feat/jobs-malaysia-focus

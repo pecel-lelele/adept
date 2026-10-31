@@ -41,10 +41,12 @@ def role_openings(
     user: CurrentUserDep,
     scenario: ScenarioId = "moderate",
     limit: Annotated[int, Query(ge=1, le=50)] = 8,
+    malaysia_focus: bool = False,
 ) -> RoleOpenings:
     """Current openings for one role, the skills they ask for most, and how many are within the
-    learner's reach today and after their plan."""
-    return service.role_openings(user, role_id, scenario, limit)
+    learner's reach today and after their plan. With `malaysia_focus`, remote ads open to
+    Malaysia or to anyone are included too, each labelled with its Malaysia relevance."""
+    return service.role_openings(user, role_id, scenario, limit, malaysia_focus)
 
 
 @router.get("/certifications")

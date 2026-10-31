@@ -12,7 +12,7 @@
     "arxiv": "Real completed arXiv submission weeks, retrieved through the public API, with a dated BLS baseline. Frozen October 2024 replay data is explicitly labelled; research attention is not observed job demand.",
     "bls": "Occupational projections used as a labour baseline for estimated role outlooks.",
     "onet": "Occupation taxonomy used to anchor curated Adept role mappings; Adept specialisations are not official O*NET titles.",
-    "jobs": "Automatic refresh uses documented Greenhouse, Lever and Ashby employer APIs, filtered by each posting’s Malaysian location and expiring after 14 days. Careerjet, Jooble and web3.career stay optional. Older exports may include other credited feeds; generic worldwide-only listings are excluded.",
+    "jobs": "Automatic refresh uses documented Greenhouse, Lever and Ashby employer APIs, filtered by each posting’s Malaysian location and expiring after 14 days. Careerjet, Jooble and web3.career stay optional. Older exports may include other credited feeds. Remote-job boards (Himalayas, Jobicy, Remote OK, Remotive) are also read for the job board and role pages, each ad labelled “Remote · open to Malaysia” or “Remote · worldwide”; other pages list only postings located in Malaysia.",
     "mscert": "Official certification descriptions and dated Malaysia exam fees; courses and certification exams are separate.",
     "awscert": "Official AWS certification descriptions and exam fees.",
     "googlecert": "Official Google Cloud certification descriptions and exam fees.",

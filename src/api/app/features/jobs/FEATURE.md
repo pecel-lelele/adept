@@ -22,8 +22,16 @@ show the path to a job after training, not only the learning.
   title, the skills the ads ask for most, and how many ads are within reach today and after the
   learner's plan (an ad is within reach at >= 60% of the catalogue skills it names; ads naming
   fewer than two are not rated). Uses the saved plan when it is for this role and scenario, else
-  the plan F5 would build, so the numbers match the plan page.
+  the plan F5 would build, so the numbers match the plan page. With `malaysia_focus=true` (the
+  role detail page only), remote ads are included too, so its numbers can differ from the plan
+  page's.
 - **Job board** (`GET /jobs/board`): every matched opening, filtered by role, work mode and text.
+- **Malaysia relevance** (`pipelines.jobs.sources.malaysia_relevance`, derived, not stored):
+  `in_malaysia`, `remote_explicit_my` (the feed names Malaysia, Southeast Asia, APAC or Asia),
+  `remote_assumed_worldwide` (a stored "Worldwide", which may mean no region was named) and
+  `not_malaysia` (hidden, including remote ads naming another place). `/app/jobs` and
+  `/app/matches/[roleId]` show the first three, badged and counted apart. Every other surface
+  uses `repository.openings()`, which keeps the own-location rule.
 - **Counts** (`GET /jobs/summary`): openings per role, for the matches list.
 - **Certifications** (`GET /jobs/certifications?role_id=&payer=`): paid exams that cover the
   role's required skills, with the official fee for Malaysia, the page it was read from, its

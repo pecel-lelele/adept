@@ -11,6 +11,7 @@ SkillStatus = Literal["have", "in_plan", "missing", "not_rated"]
 WorkMode = Literal["onsite", "hybrid", "remote"]
 Seniority = Literal["intern", "entry", "mid", "senior", "lead", "unknown"]
 Payer = Literal["learner", "employer"]
+MalaysiaRelevance = Literal["in_malaysia", "remote_explicit_my", "remote_assumed_worldwide"]
 
 
 class SkillAsk(BaseModel):
@@ -32,6 +33,13 @@ class JobOpening(BaseModel):
     location: str
     work_mode: WorkMode
     remote_scope: str = Field(default="", description="Remote only: who may apply.")
+    malaysia_relevance: MalaysiaRelevance = Field(
+        description=(
+            "in_malaysia: the ad's own location is in Malaysia; remote_explicit_my: remote, and "
+            "the feed names Malaysia or a region including it; remote_assumed_worldwide: remote "
+            "with no Malaysian claim (the feed said worldwide or named no region)."
+        )
+    )
     employment_type: str = ""
     seniority: Seniority = "unknown"
     url: str = Field(description="The employer's or job board's own ad; applications go there.")
@@ -70,12 +78,21 @@ class SkillDemand(BaseModel):
     status: SkillStatus
 
 
+class OpeningPlaceCounts(BaseModel):
+    """Open ads by Malaysia-relevance state, kept apart so no blended Malaysia number is shown."""
+
+    in_malaysia: int = Field(ge=0)
+    remote_explicit_my: int = Field(ge=0)
+    remote_assumed_worldwide: int = Field(ge=0)
+
+
 class RoleOpenings(BaseModel):
     role_id: str
     role_label: str
     open_count: int = Field(ge=0)
     employer_count: int = Field(ge=0)
     remote_count: int = Field(ge=0)
+    places: OpeningPlaceCounts
     employers: list[str] = Field(description="Employers with the most openings, most first.")
     openings: list[JobOpening]
     skill_demand: list[SkillDemand] = Field(description="Skills these ads ask for most.")
@@ -96,6 +113,7 @@ class RoleOpeningCount(BaseModel):
     open_count: int = Field(ge=0)
     employer_count: int = Field(ge=0)
     remote_count: int = Field(ge=0)
+    places: OpeningPlaceCounts
 
 
 class OpeningsSummary(BaseModel):
@@ -113,6 +131,7 @@ class JobBoardPage(BaseModel):
     total: int = Field(ge=0)
     page: int = Field(ge=1)
     page_size: int = Field(ge=1)
+    places: OpeningPlaceCounts = Field(description="Open ads on the whole board, by state.")
     roles: list[RoleOpeningCount]
     fetched_on: date | None = None
     meta: RecommendationMeta

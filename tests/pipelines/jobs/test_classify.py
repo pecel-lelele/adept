@@ -106,6 +106,29 @@ def test_seniority(title: str, hint: str, expected: str) -> None:
     assert seniority(title, hint) == expected
 
 
+@pytest.mark.parametrize(
+    ("location", "work_mode", "scope", "expected"),
+    [
+        ("Kuala Lumpur, Malaysia", "onsite", "", "in_malaysia"),
+        ("Abu Dhabi, UAE; Kuala Lumpur, Malaysia", "onsite", "", "in_malaysia"),
+        ("Malaysia-Remote Location", "remote", "Malaysia", "in_malaysia"),
+        ("Remote", "remote", "Malaysia", "remote_explicit_my"),
+        ("Remote", "remote", "APAC", "remote_explicit_my"),
+        ("Anywhere", "remote", "Southeast Asia", "remote_explicit_my"),
+        ("", "remote", "Asia", "remote_explicit_my"),
+        ("Remote", "remote", "Worldwide", "remote_assumed_worldwide"),
+        ("Remote", "remote", "", "not_malaysia"),
+        ("LATAM - Remote", "remote", "Malaysia", "not_malaysia"),
+        ("Singapore-Yishun", "remote", "Malaysia", "not_malaysia"),
+        ("APAC - Remote; Hong Kong SAR", "remote", "Malaysia", "not_malaysia"),
+        ("Singapore", "onsite", "", "not_malaysia"),
+        ("Remote", "hybrid", "Worldwide", "not_malaysia"),
+    ],
+)
+def test_malaysia_relevance(location: str, work_mode: str, scope: str, expected: str) -> None:
+    assert sources.malaysia_relevance(location, work_mode, scope) == expected
+
+
 def test_location_filters() -> None:
     assert sources.in_malaysia("Bayan Lepas, Penang")
     assert not sources.in_malaysia("Singapore", "Fab 10A")

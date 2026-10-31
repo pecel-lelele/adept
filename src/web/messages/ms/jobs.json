@@ -11,11 +11,24 @@
   "malaysia": "Malaysia",
   "hybrid": "Hibrid",
   "posted": "Disiarkan {date}",
+  "via": "melalui {source}",
+  "relevance": {
+    "in_malaysia": "Di Malaysia",
+    "remote_explicit_my": "Jarak jauh · terbuka untuk Malaysia",
+    "remote_assumed_worldwide": "Jarak jauh · seluruh dunia"
+  },
+  "places": {
+    "inMalaysia": "{count} di Malaysia",
+    "remoteOpen": "{count} jarak jauh terbuka untuk Malaysia",
+    "remoteWorldwide": "{count} jarak jauh seluruh dunia"
+  },
   "openings": {
     "title": "Kekosongan jawatan",
     "meta": "{count, plural, other {# kekosongan}} di {employers, plural, other {# syarikat}}",
     "metaNone": "Tiada kekosongan buat masa ini",
+    "metaNoneMalaysia": "Tiada kekosongan berkaitan Malaysia buat masa ini",
     "none": "Tiada kekosongan untuk {role} buat masa ini. Kerja baharu ditambah setiap hari.",
+    "noneMalaysia": "Tiada kekosongan aktif yang berpangkalan di Malaysia atau terbuka untuk Malaysia bagi peranan ini.",
     "asked": "Kemahiran yang diminta majikan",
     "all": "Lihat semua {count}"
   },
@@ -54,8 +67,8 @@
   },
   "board": {
     "title": "Pekerjaan",
-    "description": "{count} kekosongan di Malaysia dan kerja jarak jauh yang boleh anda mohon.",
     "role": "Peranan",
+    "roleSplit": "{inMalaysia} · {remote} jarak jauh",
     "allRoles": "Semua peranan",
     "where": "Jenis kerja",
     "anyMode": "Semua",
