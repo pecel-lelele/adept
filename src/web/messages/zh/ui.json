@@ -426,7 +426,8 @@
       "fuzzy": "相近拼写",
       "semantic": "相近含义"
     },
-    "saving": "正在保存…"
+    "saving": "正在保存…",
+    "uploadTypeError": "请使用 5 MB 以内的 PDF、Word (.docx) 或文本文件。"
   },
   "home": {
     "hello": "你好，{name}",

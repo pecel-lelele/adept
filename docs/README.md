@@ -16,6 +16,7 @@ New here? Read the [project README](../README.md) first, then [architecture](arc
 
 | Guide | Purpose |
 |---|---|
+| [Testing](testing.md) | Offline checks, skip reasons and isolated PostgreSQL verification |
 | [Tasks](tasks.md) | Feature areas and scope |
 | [Team rules](team-rules.md) | Collaboration and engineering agreements |
 | [Decisions](decisions.md) | Append-only record of methods, data and implementation choices |

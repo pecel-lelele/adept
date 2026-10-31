@@ -1,6 +1,6 @@
 "use client";
 
-import { Gauge, Rabbit, Turtle } from "lucide-react";
+import { Activity, Gauge, Zap } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 
@@ -8,7 +8,7 @@ import { parseScenario, SCENARIO_PARAM, SCENARIOS } from "@/lib/scenario";
 
 import { onRadioKeyDown, radioTabIndex } from "./radioGroup";
 
-const ICON = { moderate: Turtle, fast: Rabbit } as const;
+const ICON = { moderate: Activity, fast: Zap } as const;
 /** Undo the busy look if the page never unloads (e.g. a failed request). */
 const PENDING_RESET_MS = 20_000;
 
@@ -45,7 +45,7 @@ export function ScenarioToggle() {
   const preserved = [...params.entries()].filter(([key]) => key !== SCENARIO_PARAM);
 
   return (
-    <div className="a-stack" style={{ gap: 4, alignItems: "flex-end" }}>
+    <div className="a-stack" style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "flex-end" }}>
       <form
         className="a-pace"
         action={pathname}

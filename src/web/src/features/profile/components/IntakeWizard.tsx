@@ -3,7 +3,7 @@
 import { Briefcase, FileUp, GraduationCap, Repeat, Search, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
-import { startTransition, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { startTransition, useEffect, useMemo, useRef, useState, useTransition, type DragEvent } from "react";
 
 import { errorMessage } from "@/lib/api/error-message";
 
@@ -19,6 +19,14 @@ type Option = Schemas["SkillOption"];
 type Picked = { skill_id: string; level: number; fromCv?: boolean };
 type Segment = IntakeInput["segment"];
 const STYLES = ["video", "reading", "hands-on", "classroom", "mixed"] as const;
+
+const MAX_CV_BYTES = 5 * 1024 * 1024;
+const CV_MIME_TYPES = [
+  "application/pdf",
+  "text/plain",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+];
+const CV_EXTENSIONS = /\.(pdf|docx|txt)$/i;
 
 const SEGMENTS: { id: Segment; icon: typeof Briefcase }[] = [
   { id: "working", icon: Briefcase },
@@ -67,6 +75,39 @@ export function IntakeWizard({
   const [saving, startSave] = useTransition();
   const fileRef = useRef<HTMLInputElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  function onDragEnter(e: DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!cvBusy) setIsDragging(true);
+  }
+
+  function onDragOver(e: DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!cvBusy) setIsDragging(true);
+  }
+
+  function onDragLeave(e: DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  }
+
+  function onDropFile(e: DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    if (cvBusy) return;
+    const file = e.dataTransfer.files[0];
+    if (!file) return;
+    if (file.size > MAX_CV_BYTES || !(CV_MIME_TYPES.includes(file.type) || CV_EXTENSIONS.test(file.name))) {
+      setError(t("uploadTypeError"));
+      return;
+    }
+    onFile(file);
+  }
   const [draftReady, setDraftReady] = useState(false);
   const submitted = useRef(false);
 
@@ -292,21 +333,29 @@ export function IntakeWizard({
             <p className="a-muted a-small" style={{ margin: 0 }}>
               {t("skillsHint")}
             </p>
-            <button type="button" className="a-drop" onClick={() => fileRef.current?.click()} disabled={cvBusy}>
-              <FileUp size={22} aria-hidden />
-              {cvBusy ? t("uploading") : t("upload")}
-            </button>
-            <input
-              ref={fileRef}
-              type="file"
-              accept=".pdf,.docx,.txt,application/pdf,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-              hidden
-              onChange={(e) => {
-                onFile(e.target.files?.[0]);
-                // Clear the input so re-uploading the same file still fires a change.
-                e.target.value = "";
-              }}
-            />
+            <div
+              style={{ display: "contents" }}
+              onDragEnter={onDragEnter}
+              onDragOver={onDragOver}
+              onDragLeave={onDragLeave}
+              onDrop={onDropFile}
+            >
+              <button type="button" className="a-drop" data-drag={isDragging} onClick={() => fileRef.current?.click()} disabled={cvBusy}>
+                <FileUp size={22} aria-hidden />
+                {cvBusy ? t("uploading") : t("upload")}
+              </button>
+              <input
+                ref={fileRef}
+                type="file"
+                accept=".pdf,.docx,.txt,application/pdf,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                hidden
+                onChange={(e) => {
+                  onFile(e.target.files?.[0]);
+                  // Clear the input so re-uploading the same file still fires a change.
+                  e.target.value = "";
+                }}
+              />
+            </div>
             {cvStatus && (cvStatus.empty || cvStatus.truncated) ? (
               <div className="a-notice" role="status">
                 {cvStatus.empty ? <p>{cvText("none")}</p> : null}
