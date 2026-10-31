@@ -8,10 +8,10 @@
   },
   "scenario": {
     "label": "情景",
-    "moderate": "AI 稳步变化",
+    "moderate": "AI 温和变化",
     "fast": "AI 快速变化",
     "pace": "AI 速度",
-    "moderateShort": "稳步",
+    "moderateShort": "温和",
     "fastShort": "快速",
     "hint": "AI 改变工作的速度。排名和前景都是在各速度下的估计。"
   },

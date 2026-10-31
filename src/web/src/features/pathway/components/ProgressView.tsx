@@ -10,6 +10,7 @@ import { fetchProgress } from "../api";
 import { ActionForm } from "./ActionForm";
 import { EvidenceBadge } from "./EvidenceBadge";
 import { EvidenceForm } from "./EvidenceForm";
+import { MarkDoneFlow } from "./MarkDoneFlow";
 
 /**
  * Progress on one plan. Personal workspace: the saved plan, counting the person's own work
@@ -164,13 +165,20 @@ export async function ProgressView({
                       </details>
                     ) : null}
                   </div>
-                  <ActionForm
-                    action={updateProgressAction}
-                    className="a-inline-form"
-                    fields={{ workspace: p.workspace, role_id: roleId, scenario, course_id: c.id, status: complete ? "not_started" : "completed" }}
-                    label={complete ? t("progress.markUndone") : t("progress.markDone")}
-                    variant={complete ? "outline" : "default"}
-                  />
+                  {complete ? (
+                    <ActionForm
+                      action={updateProgressAction}
+                      className="a-inline-form"
+                      fields={{ workspace: p.workspace, role_id: roleId, scenario, course_id: c.id, status: "not_started" }}
+                      label={t("progress.markUndone")}
+                      variant="outline"
+                    />
+                  ) : (
+                    <MarkDoneFlow
+                      action={submitEvidenceAction}
+                      fields={{ workspace: p.workspace, role_id: roleId, scenario, course_id: c.id }}
+                    />
+                  )}
                 </li>
               );
             })}

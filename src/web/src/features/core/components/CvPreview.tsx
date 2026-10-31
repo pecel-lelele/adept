@@ -86,8 +86,15 @@ export function CvPreview() {
     }
   }
 
+  function onDragEnter(e: DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!busy) setDrag(true);
+  }
+
   function onDrop(e: DragEvent) {
     e.preventDefault();
+    e.stopPropagation();
     setDrag(false);
     if (!busy) pick(e.dataTransfer.files[0]);
   }
@@ -110,11 +117,17 @@ export function CvPreview() {
           className="a-upload-drop"
           data-drag={drag}
           onSubmit={submit}
+          onDragEnter={onDragEnter}
           onDragOver={(e) => {
             e.preventDefault();
-            setDrag(true);
+            e.stopPropagation();
+            if (!busy) setDrag(true);
           }}
-          onDragLeave={() => setDrag(false)}
+          onDragLeave={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setDrag(false);
+          }}
           onDrop={onDrop}
           aria-busy={busy}
         >

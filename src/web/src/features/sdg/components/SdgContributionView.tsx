@@ -2,7 +2,7 @@ import { Globe2, Link2, ShieldCheck, Target } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
-import { Badge, ErrorState, Kpis, MetaBar, PageHeader, SdgBadge } from "@/components";
+import { ErrorState, Kpis, MetaBar, PageHeader, SdgBadge } from "@/components";
 import { journeyStepCount } from "@/config/navigation";
 import type { ApiResult, ScenarioId, Schemas } from "@/lib/api";
 import { SDG_COLOURS } from "@/components/viz";
@@ -14,6 +14,7 @@ import {
   fetchRegions,
 } from "../api";
 import { entityLabels } from "./entityLabels";
+import { SdgLinkCards } from "./SdgLinkCards";
 
 type Contribution = Schemas["SdgContribution"];
 
@@ -43,44 +44,6 @@ async function GoalGrid({ data }: { data: Contribution }) {
         </div>
       ))}
     </div>
-  );
-}
-
-async function LinkList({ links, labels }: { links: Schemas["SdgLink"][]; labels: Map<string, string> }) {
-  const t = await getTranslations("sdg");
-  const via = (v: string) => {
-    const [kind, id] = v.split(":");
-    const known = kind === "role" || kind === "skill" || kind === "pathway";
-    // Show the catalogue label; an id without one stays the id (never an invented name).
-    return known ? `${t(`via.${kind}`)}${id ? `: ${labels.get(v) ?? id}` : ""}` : v;
-  };
-  return (
-    <ul className="a-links">
-      {links.map((link, i) => (
-        <li key={`${link.target.target}-${link.via}-${i}`}>
-          <SdgBadge target={link.target} />
-          <div style={{ display: "grid", gap: 4, minWidth: 0 }}>
-            <p>{link.reason}</p>
-            <small>
-              {via(link.via ?? "")} ·{" "}
-              <Badge variant={link.strength === "direct" ? "success" : "secondary"}>
-                {link.strength === "direct" ? t("direct") : t("enabling")}
-              </Badge>{" "}
-              {link.reviewed ? null : <span>· {t("draft")}</span>}
-            </small>
-            {link.evidence ? (
-              <small>
-                {t("evidence")}:{" "}
-                <a href={link.evidence.source.url} className="a-link" target="_blank" rel="noreferrer">
-                  {link.evidence.source.name}
-                </a>
-                . {link.evidence.note}
-              </small>
-            ) : null}
-          </div>
-        </li>
-      ))}
-    </ul>
   );
 }
 
@@ -152,7 +115,7 @@ async function ContributionBody({
           <h2 id="h-links">{t("links")}</h2>
         </div>
         <p className="a-card-sub">{t("strengthHint")}</p>
-        <LinkList links={data.links} labels={labels} />
+        <SdgLinkCards links={data.links} labels={labels} />
       </section>
     </div>
   );

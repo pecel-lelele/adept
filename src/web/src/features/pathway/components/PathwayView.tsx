@@ -22,7 +22,7 @@ import { CareerRoadmap, CertificationsCard, RoleOpeningsCard } from "@/features/
 import type { ScenarioId, Schemas } from "@/lib/api";
 
 import { acceptReplanAction, savePlanAction } from "../actions";
-import { fetchPathway, fetchPlanStatus } from "../api";
+import { fetchPathway, fetchPlanStatus, fetchProgress } from "../api";
 import { ActionForm } from "./ActionForm";
 import { PathwaySteps } from "./PathwaySteps";
 
@@ -144,6 +144,10 @@ export async function PathwayView({
   const savedHere =
     !snapshotDate && saved && saved.role_id === roleId && saved.scenario === scenario ? saved : null;
   const plan = savedHere ? savedHere.pathway : result.data;
+
+  // Fetch progress for vertical timeline node state (only when the user has saved this plan)
+  const progressResult = savedHere ? await fetchProgress(roleId, scenario) : null;
+  const courseStatus: Record<string, string> = progressResult?.ok ? progressResult.data.course_status : {};
   const query = `?role=${encodeURIComponent(roleId)}&scenario=${scenario}`;
   // Same role, other scenario: point back to the saved plan rather than implying none exists.
   const savedOtherScenario =
@@ -188,7 +192,7 @@ export async function PathwayView({
 
       <div className="a-split is-wide">
         <div className="a-stack">
-          <PathwaySteps steps={plan.steps} />
+          <PathwaySteps steps={plan.steps} courseStatus={courseStatus} />
           {(plan.unmet ?? []).length > 0 ? (
             <Fold title={t("unmet.title")} meta={t("unmet.count", { count: (plan.unmet ?? []).length })}>
               <ul className="a-jobs">

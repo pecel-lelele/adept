@@ -1,4 +1,4 @@
-import { ArrowUpRight, BookOpen, Clock3 } from "lucide-react";
+import { ArrowUpRight, BookOpen, Check, Clock3 } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
 import { SdgBadge } from "@/components";
@@ -33,19 +33,37 @@ export async function CourseLine({ course }: { course: Schemas["Course"] }) {
 export async function PathwaySteps({
   steps,
   memberNames,
+  courseStatus = {},
 }: {
   steps: Schemas["PathwayStep"][];
   memberNames?: Record<string, string>;
+  courseStatus?: Record<string, string>;
 }) {
   const t = await getTranslations("pathway");
   const d = await getTranslations("common.design");
   const label = (id: string) => steps.find((s) => s.skill_id === id)?.skill_label || id;
   return (
     <ol className="a-steps">
-      {steps.map((step) => (
-        <li key={step.order} className="a-step-item">
+      {steps.map((step, i) => {
+        const stepDone =
+          step.courses.length > 0 &&
+          step.courses.every((c) => courseStatus[c.id] === "completed");
+        const allPrevDone = steps
+          .slice(0, i)
+          .every(
+            (prev) =>
+              prev.courses.length > 0 &&
+              prev.courses.every((c) => courseStatus[c.id] === "completed"),
+          );
+        const stepState: "done" | "current" | "todo" = stepDone
+          ? "done"
+          : allPrevDone
+            ? "current"
+            : "todo";
+        return (
+        <li key={step.order} className="a-step-item" data-state={stepState}>
           <span className="a-step-num" aria-hidden>
-            {String(step.order).padStart(2, "0")}
+            {stepDone ? "✓" : String(step.order).padStart(2, "0")}
           </span>
           <article className="a-card a-step-card">
             <header className="a-step-head">
@@ -116,7 +134,8 @@ export async function PathwaySteps({
             ) : null}
           </article>
         </li>
-      ))}
+        );
+      })}
     </ol>
   );
 }

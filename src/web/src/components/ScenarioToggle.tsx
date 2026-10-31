@@ -1,6 +1,6 @@
 "use client";
 
-import { Gauge, Rabbit, Turtle } from "lucide-react";
+import { Activity, Gauge, Zap } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 
@@ -8,7 +8,7 @@ import { parseScenario, SCENARIO_PARAM, SCENARIOS } from "@/lib/scenario";
 
 import { onRadioKeyDown, radioTabIndex } from "./radioGroup";
 
-const ICON = { moderate: Turtle, fast: Rabbit } as const;
+const ICON = { moderate: Activity, fast: Zap } as const;
 
 /**
  * "AI pace" switch shown at the top right of the pages it changes. The value lives in the URL
@@ -22,7 +22,7 @@ export function ScenarioToggle() {
   const preserved = [...params.entries()].filter(([key]) => key !== SCENARIO_PARAM);
 
   return (
-    <div className="a-stack" style={{ gap: 4, alignItems: "flex-end" }}>
+    <div className="a-stack" style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "flex-end" }}>
       <form className="a-pace" action={pathname} method="get" title={t("hint")}>
         {/* A native GET replaces the document even if an RSC transition is stranded.
             Keep repeated filters and replay context; only replace the scenario. */}
