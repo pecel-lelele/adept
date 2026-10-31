@@ -1,0 +1,280 @@
+{
+  "opened_at": "2026-10-31",
+  "scope": "Issue #84 digital and green skill-bank additions. Levels and skill mappings are Adept estimates; course presence does not mean full role readiness. Free prices use the existing MYR zero-price convention; no FX conversion applies.",
+  "courses": [
+    {
+      "course_id": "mslearn-cloud-ai-postgresql",
+      "title": "Integrate AI services to enrich your applications with intelligent features in Azure Database for PostgreSQL",
+      "provider": "Microsoft Learn",
+      "url": "https://learn.microsoft.com/en-us/training/modules/integrate-ai-services-enrich-azure-database-postgresql/",
+      "source_url": "https://learn.microsoft.com/en-us/training/modules/integrate-ai-services-enrich-azure-database-postgresql/",
+      "opened_at": "2026-10-31",
+      "hours": 1.2,
+      "estimated_level": 3,
+      "provider_level": [
+        "intermediate"
+      ],
+      "duration_evidence": "Microsoft Learn Catalog API lists 72 minutes; rounded to one decimal hour. Page and API opened 2026-10-31.",
+      "price_evidence": "Microsoft Learn describes its asynchronous training as free; separate resource and licensing costs are excluded.",
+      "price_source_url": "https://learn.microsoft.com/en-us/training/support/learn-content-types",
+      "metadata_source_url": "https://learn.microsoft.com/api/learn/catalog?locale=en-us&type=modules,learningPaths",
+      "skill_mapping": "Azure AI Language, Translator and ML endpoint integration; SQL and Azure provisioning prerequisites.",
+      "access_note": "Course page opened; duration cross-checked against the provider Catalog API."
+    },
+    {
+      "course_id": "mslearn-architecture-infrastructure",
+      "title": "AZ-305: Design infrastructure solutions",
+      "provider": "Microsoft Learn",
+      "url": "https://learn.microsoft.com/en-us/training/paths/design-infranstructure-solutions/",
+      "source_url": "https://learn.microsoft.com/en-us/training/paths/design-infranstructure-solutions/",
+      "opened_at": "2026-10-31",
+      "hours": 3.6,
+      "estimated_level": 3,
+      "provider_level": [
+        "advanced"
+      ],
+      "duration_evidence": "Microsoft Learn Catalog API lists 219 minutes; rounded to one decimal hour. Page and API opened 2026-10-31.",
+      "price_evidence": "Microsoft Learn describes its asynchronous training as free; separate resource and licensing costs are excluded.",
+      "price_source_url": "https://learn.microsoft.com/en-us/training/support/learn-content-types",
+      "metadata_source_url": "https://learn.microsoft.com/api/learn/catalog?locale=en-us&type=modules,learningPaths",
+      "skill_mapping": "Compute, application, network and migration architecture; partial systems-design coverage, not a complete enterprise architecture qualification.",
+      "access_note": "Course page opened; duration cross-checked against the provider Catalog API."
+    },
+    {
+      "course_id": "mslearn-evaluate-genai-safety",
+      "title": "Evaluate generative AI applications",
+      "provider": "Microsoft Learn",
+      "url": "https://learn.microsoft.com/en-us/training/paths/evaluate-generative-ai-apps/",
+      "source_url": "https://learn.microsoft.com/en-us/training/paths/evaluate-generative-ai-apps/",
+      "opened_at": "2026-10-31",
+      "hours": 1.6,
+      "estimated_level": 2,
+      "provider_level": [
+        "beginner"
+      ],
+      "duration_evidence": "Microsoft Learn Catalog API lists 96 minutes; rounded to one decimal hour. Page and API opened 2026-10-31.",
+      "price_evidence": "Microsoft Learn describes its asynchronous training as free; separate resource and licensing costs are excluded.",
+      "price_source_url": "https://learn.microsoft.com/en-us/training/support/learn-content-types",
+      "metadata_source_url": "https://learn.microsoft.com/api/learn/catalog?locale=en-us&type=modules,learningPaths",
+      "skill_mapping": "Risk and safety metrics, evaluation SDK and synthetic evaluation datasets; requires Python, Azure and GitHub.",
+      "access_note": "Course page opened; duration cross-checked against the provider Catalog API."
+    },
+    {
+      "course_id": "mslearn-security-copilot-operations",
+      "title": "Enhance security operations by using Microsoft Security Copilot",
+      "provider": "Microsoft Learn",
+      "url": "https://learn.microsoft.com/en-us/training/paths/security-copilot-and-ai/",
+      "source_url": "https://learn.microsoft.com/en-us/training/paths/security-copilot-and-ai/",
+      "opened_at": "2026-10-31",
+      "hours": 6.2,
+      "estimated_level": 2,
+      "provider_level": [
+        "beginner"
+      ],
+      "duration_evidence": "Microsoft Learn Catalog API lists 372 minutes; rounded to one decimal hour. Page and API opened 2026-10-31.",
+      "price_evidence": "Microsoft Learn describes its asynchronous training as free; separate resource and licensing costs are excluded.",
+      "price_source_url": "https://learn.microsoft.com/en-us/training/support/learn-content-types",
+      "metadata_source_url": "https://learn.microsoft.com/api/learn/catalog?locale=en-us&type=modules,learningPaths",
+      "skill_mapping": "AI-assisted security analysis and response; requires security operations and Microsoft security product knowledge.",
+      "access_note": "Course page opened; duration cross-checked against the provider Catalog API."
+    },
+    {
+      "course_id": "mslearn-ai-business-strategy",
+      "title": "Transform your business with AI",
+      "provider": "Microsoft Learn",
+      "url": "https://learn.microsoft.com/en-us/training/paths/transform-your-business-with-microsoft-ai/",
+      "source_url": "https://learn.microsoft.com/en-us/training/paths/transform-your-business-with-microsoft-ai/",
+      "opened_at": "2026-10-31",
+      "hours": 2.6,
+      "estimated_level": 2,
+      "provider_level": [
+        "beginner"
+      ],
+      "duration_evidence": "Microsoft Learn Catalog API lists 154 minutes; rounded to one decimal hour. Page and API opened 2026-10-31.",
+      "price_evidence": "Microsoft Learn describes its asynchronous training as free; separate resource and licensing costs are excluded.",
+      "price_source_url": "https://learn.microsoft.com/en-us/training/support/learn-content-types",
+      "metadata_source_url": "https://learn.microsoft.com/api/learn/catalog?locale=en-us&type=modules,learningPaths",
+      "skill_mapping": "AI value identification, project strategy, responsibility and scaling; introductory product-lifecycle coverage.",
+      "access_note": "Course page opened; duration cross-checked against the provider Catalog API."
+    },
+    {
+      "course_id": "mslearn-ai-compliance-design",
+      "title": "Design responsible AI security, governance, risk management, and compliance",
+      "provider": "Microsoft Learn",
+      "url": "https://learn.microsoft.com/en-us/training/modules/design-responsible-ai-security-governance-risk-management-compliance/",
+      "source_url": "https://learn.microsoft.com/en-us/training/modules/design-responsible-ai-security-governance-risk-management-compliance/",
+      "opened_at": "2026-10-31",
+      "hours": 0.9,
+      "estimated_level": 3,
+      "provider_level": [
+        "advanced"
+      ],
+      "duration_evidence": "Microsoft Learn Catalog API lists 53 minutes; rounded to one decimal hour. Page and API opened 2026-10-31.",
+      "price_evidence": "Microsoft Learn describes its asynchronous training as free; separate resource and licensing costs are excluded.",
+      "price_source_url": "https://learn.microsoft.com/en-us/training/support/learn-content-types",
+      "metadata_source_url": "https://learn.microsoft.com/api/learn/catalog?locale=en-us&type=modules,learningPaths",
+      "skill_mapping": "Translates compliance requirements into technical AI controls; does not qualify the learner in Malaysian law or regulatory practice.",
+      "access_note": "Course page opened; duration cross-checked against the provider Catalog API."
+    },
+    {
+      "course_id": "mslearn-digital-learning-design",
+      "title": "21st century learning design",
+      "provider": "Microsoft Learn",
+      "url": "https://learn.microsoft.com/en-us/training/paths/21st-century-learning-design/",
+      "source_url": "https://learn.microsoft.com/en-us/training/paths/21st-century-learning-design/",
+      "opened_at": "2026-10-31",
+      "hours": 6.7,
+      "estimated_level": 2,
+      "provider_level": [
+        "intermediate"
+      ],
+      "duration_evidence": "Microsoft Learn Catalog API lists 401 minutes; rounded to one decimal hour. Page and API opened 2026-10-31.",
+      "price_evidence": "Microsoft Learn describes its asynchronous training as free; separate resource and licensing costs are excluded.",
+      "price_source_url": "https://learn.microsoft.com/en-us/training/support/learn-content-types",
+      "metadata_source_url": "https://learn.microsoft.com/api/learn/catalog?locale=en-us&type=modules,learningPaths",
+      "skill_mapping": "Design and redesign learning activities with digital tools and rubrics; educator-focused foundation, not a complete corporate L&D programme qualification.",
+      "access_note": "Course page opened; duration cross-checked against the provider Catalog API."
+    },
+    {
+      "course_id": "mslearn-ai-workforce-planning",
+      "title": "Optimize staffing with workforce management in Dynamics 365 Contact Center",
+      "provider": "Microsoft Learn",
+      "url": "https://learn.microsoft.com/en-us/training/modules/optimize-staffing-workforce-management-contact-center/",
+      "source_url": "https://learn.microsoft.com/en-us/training/modules/optimize-staffing-workforce-management-contact-center/",
+      "opened_at": "2026-10-31",
+      "hours": 0.7,
+      "estimated_level": 2,
+      "provider_level": [
+        "intermediate"
+      ],
+      "duration_evidence": "Microsoft Learn Catalog API lists 42 minutes; rounded to one decimal hour. Page and API opened 2026-10-31.",
+      "price_evidence": "Microsoft Learn describes its asynchronous training as free; separate resource and licensing costs are excluded.",
+      "price_source_url": "https://learn.microsoft.com/en-us/training/support/learn-content-types",
+      "metadata_source_url": "https://learn.microsoft.com/api/learn/catalog?locale=en-us&type=modules,learningPaths",
+      "skill_mapping": "AI-based demand forecasting, capacity and shift planning in a contact centre; limited domain coverage, human staffing decisions remain required.",
+      "access_note": "Course page opened; duration cross-checked against the provider Catalog API."
+    },
+    {
+      "course_id": "kaggle-advanced-sql",
+      "title": "Advanced SQL",
+      "provider": "Kaggle Learn",
+      "url": "https://www.kaggle.com/learn/advanced-sql/course",
+      "source_url": "https://www.kaggle.com/learn/advanced-sql/course",
+      "opened_at": "2026-10-31",
+      "hours": 4,
+      "estimated_level": 3,
+      "duration_evidence": "Provider estimates 4 hours.",
+      "price_evidence": "No cost for Kaggle Learn courses.",
+      "skill_mapping": "Window functions, nested data, joins and efficient BigQuery queries; assumes Intro to SQL.",
+      "access_note": "Opened course URL; live HTML is a JavaScript shell. Title, syllabus, duration and free-price facts are from the indexed official Kaggle course page; authenticated exercises were not verified."
+    },
+    {
+      "course_id": "kaggle-ml-explainability",
+      "title": "Machine Learning Explainability",
+      "provider": "Kaggle Learn",
+      "url": "https://www.kaggle.com/learn/machine-learning-explainability/course",
+      "source_url": "https://www.kaggle.com/learn/machine-learning-explainability/course",
+      "opened_at": "2026-10-31",
+      "hours": 4,
+      "estimated_level": 3,
+      "duration_evidence": "Provider estimates 4 hours.",
+      "price_evidence": "No cost for Kaggle Learn courses.",
+      "skill_mapping": "Permutation importance, partial dependence and SHAP; assumes introductory machine learning.",
+      "access_note": "Opened course URL; live HTML is a JavaScript shell. Title, syllabus, duration and free-price facts are from the indexed official Kaggle course page; authenticated exercises were not verified."
+    },
+    {
+      "course_id": "kaggle-ai-ethics-bias",
+      "title": "Intro to AI Ethics",
+      "provider": "Kaggle Learn",
+      "url": "https://www.kaggle.com/learn/intro-to-ai-ethics/course",
+      "source_url": "https://www.kaggle.com/learn/intro-to-ai-ethics/course",
+      "opened_at": "2026-10-31",
+      "hours": 4,
+      "estimated_level": 2,
+      "duration_evidence": "Provider estimates 4 hours.",
+      "price_evidence": "No cost for Kaggle Learn courses.",
+      "skill_mapping": "Bias identification, fairness measures and model cards with practical examples; introductory auditing coverage.",
+      "access_note": "Opened course URL; live HTML is a JavaScript shell. Title, syllabus, duration and free-price facts are from the indexed official Kaggle course page; authenticated exercises were not verified."
+    },
+    {
+      "course_id": "cfte-ai-finance-masterclass",
+      "title": "AI in Finance Masterclass",
+      "provider": "CFTE",
+      "url": "https://courses.cfte.education/online-artificial-intelligence-in-finance-masterclass-learn-ai-for-free/",
+      "source_url": "https://courses.cfte.education/online-artificial-intelligence-in-finance-masterclass-learn-ai-for-free/",
+      "opened_at": "2026-10-31",
+      "hours": 0.8,
+      "estimated_level": 1,
+      "duration_evidence": "FAQ and free-masterclass panel specify about 45 minutes (0.8 hours rounded). Hero also says under 2 hours; use the more specific masterclass duration.",
+      "price_evidence": "Provider explicitly confirms free immediate access without payment details.",
+      "skill_mapping": "AI use cases in financial services, risk and governance; introductory awareness, not algorithmic-trading proficiency.",
+      "access_note": "Public provider course page opened; no enrolment or paid account used."
+    },
+    {
+      "course_id": "openlearn-energy-financial-modelling",
+      "title": "Financial Modelling for Energy Transitions MINFin, FinTrack & FinCoRE",
+      "provider": "OpenLearn Create (Climate Compatible Growth)",
+      "url": "https://www.open.edu/openlearncreate/course/view.php?id=17735",
+      "source_url": "https://www.open.edu/openlearncreate/course/view.php?id=17735",
+      "opened_at": "2026-10-31",
+      "hours": 15,
+      "estimated_level": 3,
+      "duration_evidence": "Provider lists 15 hours study and intermediate level.",
+      "price_evidence": "Provider confirms free learning and participation statement.",
+      "skill_mapping": "Excel cashflow models, climate finance gaps and cost of capital; general financial-modelling coverage, not Islamic finance certification.",
+      "access_note": "Public provider course page opened; no enrolment or paid account used."
+    },
+    {
+      "course_id": "eit-precision-farming-basics",
+      "title": "Precision Farming ? Basics",
+      "provider": "28DIGITAL (Agri-Digital Growth consortium)",
+      "url": "https://28digital.ea.education/courses/precision-farming-basics/",
+      "source_url": "https://eit-campus.eu/course/digital/precision-farming-basics",
+      "opened_at": "2026-10-31",
+      "hours": 48,
+      "estimated_level": 2,
+      "duration_evidence": "EIT Campus lists 20-48 hours; 48 hours is the upper-bound planning estimate, not an exact provider duration.",
+      "price_evidence": "EIT Campus and enrolment page both list Free.",
+      "skill_mapping": "Precision farming, field data, sensors, robotics and AI in agriculture; introductory skill estimate despite intermediate provider classification.",
+      "access_note": "Opened both EIT Campus source and linked 28DIGITAL course page. Free registration required."
+    },
+    {
+      "course_id": "ecmwf-ml-earth-systems-applications",
+      "title": "Machine Learning for Earth Systems Modelling - Course 3",
+      "provider": "ECMWF",
+      "url": "https://learning.ecmwf.int/course/view.php?id=100",
+      "source_url": "https://learning.ecmwf.int/tag/index.php?tag=Machine+learning&tc=2",
+      "opened_at": "2026-10-31",
+      "hours": 24,
+      "estimated_level": 3,
+      "duration_evidence": "Provider lists approximately 16-24 hours; 24 hours is the upper-bound planning estimate.",
+      "price_evidence": "Provider catalogue states free participation open to anyone meeting prerequisites.",
+      "skill_mapping": "ML workflows for weather/climate, downscaling and coupled Earth systems. Advanced Python/ML and Earth-system knowledge required; not a beginner farming course.",
+      "access_note": "Opened public provider course description; course URL redirects to ECMWF login. Authenticated materials not inspected."
+    },
+    {
+      "course_id": "freecodecamp-selenium-bot",
+      "title": "Use Selenium to Create a Web Scraping Bot",
+      "provider": "freeCodeCamp",
+      "url": "https://www.freecodecamp.org/news/use-selenium-to-create-a-web-scraping-bot/",
+      "source_url": "https://www.freecodecamp.org/news/use-selenium-to-create-a-web-scraping-bot/",
+      "opened_at": "2026-10-31",
+      "hours": 3,
+      "estimated_level": 2,
+      "duration_evidence": "Provider course page states a 3-hour watch; practice time is additional.",
+      "price_evidence": "Public course video and transcript are freely accessible.",
+      "skill_mapping": "Selenium browser automation, selectors, waits and project structure; assumes Python. Published 2021; learners must check current Selenium API compatibility.",
+      "access_note": "Public provider course page opened; no enrolment or paid account used."
+    }
+  ],
+  "not_added": [
+    {
+      "url": "https://www.futurelearn.com/courses/innovation-in-arable-farming",
+      "reason": "Provider says course is not currently running."
+    },
+    {
+      "url": "https://testautomationu.applitools.com/selenium-webdriver-tutorial-java/",
+      "reason": "No duration established from the opened provider page; use the dated freeCodeCamp course instead."
+    }
+  ]
+}

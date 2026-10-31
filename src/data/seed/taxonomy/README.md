@@ -41,3 +41,17 @@ spreadsheet/logistics reporting). It replaces their weaker third direction in th
 benchmark; Aisyah retains Business Analyst, while Ravi retains Data Analyst and Supply Chain
 Analyst. These are curated fixture judgments, not human study outcomes. The ranking formula
 and evaluation thresholds are unchanged.
+
+
+## Digital and green focus (2026-10-31, issue #84)
+
+The 33 target profiles now exclude the eight soft/clinical skill categories specified
+in M3-042: 16 edges removed across 13 profiles. Surviving relative importance estimates
+are retained; scoring normalizes by the remaining sum. All eight skill records remain
+for intake/CV aliases, job reference data, SDG links and current-role requirements.
+`provenance.json` records removed pairs, original values and the digital-health decision.
+The digital-health nursing profile remains a focus for qualified nurses with healthcare
+informatics and AI literacy only; it does not establish clinical or professional readiness.
+An append-only exact-pair migration removes the old edges in existing databases;
+reference upserts alone cannot delete them. Current-role clinical requirements remain.
+See the [before/after report](../../../../docs/skill-bank-coverage.md) for every target profile.

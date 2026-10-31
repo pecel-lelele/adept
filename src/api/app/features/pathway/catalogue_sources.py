@@ -814,6 +814,531 @@ FREE_DIGITAL: tuple[CourseRow, ...] = (
         provider_type="mooc",
         location="Online",
     ),
+    CourseRow(
+        id="mslearn-cloud-ai-postgresql",
+        title=(
+            "Integrate AI services to enrich your applications with intelligent features in "
+            "Azure Database for PostgreSQL"
+        ),
+        provider="Microsoft Learn",
+        url="https://learn.microsoft.com/en-us/training/modules/integrate-ai-services-enrich-azure-database-postgresql/",
+        hours=1.2,
+        cost_myr=0,
+        hrd_claimable=False,
+        verified_at=date(2026, 10, 31),
+        skill_ids=("cloud-ai-services",),
+        level=3,
+        source_name="Microsoft Learn course page and Catalog API",
+        source_url="https://learn.microsoft.com/en-us/training/modules/integrate-ai-services-enrich-azure-database-postgresql/",
+        hrd_note="Free self-paced learning; nothing to claim.",
+        language="en",
+        duration_note=(
+            "Microsoft Learn Catalog API lists 72 minutes; rounded to one decimal hour. Page "
+            "and API opened 2026-10-31."
+        ),
+        provider_ref="learn.wwl.integrate-ai-services-enrich-azure-database-postgresql",
+        format="self_paced",
+        audience="both",
+        price_basis="per_course",
+        currency="MYR",
+        list_price=None,
+        provider_type="mooc",
+        location="Online",
+        price_note=(
+            "RM0 covers learning content. Azure resource usage or licensed product access can "
+            "cost extra; exams are separate. Azure AI Language, Translator and ML endpoint "
+            "integration; SQL and Azure provisioning prerequisites."
+        ),
+    ),
+    CourseRow(
+        id="mslearn-architecture-infrastructure",
+        title="AZ-305: Design infrastructure solutions",
+        provider="Microsoft Learn",
+        url="https://learn.microsoft.com/en-us/training/paths/design-infranstructure-solutions/",
+        hours=3.6,
+        cost_myr=0,
+        hrd_claimable=False,
+        verified_at=date(2026, 10, 31),
+        skill_ids=("enterprise-architecture",),
+        level=3,
+        source_name="Microsoft Learn course page and Catalog API",
+        source_url="https://learn.microsoft.com/en-us/training/paths/design-infranstructure-solutions/",
+        hrd_note="Free self-paced learning; nothing to claim.",
+        language="en",
+        duration_note=(
+            "Microsoft Learn Catalog API lists 219 minutes; rounded to one decimal hour. Page "
+            "and API opened 2026-10-31."
+        ),
+        provider_ref="learn.wwl.design-infranstructure-solutions",
+        format="self_paced",
+        audience="both",
+        price_basis="per_course",
+        currency="MYR",
+        list_price=None,
+        provider_type="mooc",
+        location="Online",
+        price_note=(
+            "RM0 covers learning content. Azure resource usage or licensed product access can "
+            "cost extra; exams are separate. Compute, application, network and migration "
+            "architecture; partial systems-design coverage, not a complete enterprise "
+            "architecture qualification."
+        ),
+    ),
+    CourseRow(
+        id="mslearn-evaluate-genai-safety",
+        title="Evaluate generative AI applications",
+        provider="Microsoft Learn",
+        url="https://learn.microsoft.com/en-us/training/paths/evaluate-generative-ai-apps/",
+        hours=1.6,
+        cost_myr=0,
+        hrd_claimable=False,
+        verified_at=date(2026, 10, 31),
+        skill_ids=("ai-safety",),
+        level=2,
+        source_name="Microsoft Learn course page and Catalog API",
+        source_url="https://learn.microsoft.com/en-us/training/paths/evaluate-generative-ai-apps/",
+        hrd_note="Free self-paced learning; nothing to claim.",
+        language="en",
+        duration_note=(
+            "Microsoft Learn Catalog API lists 96 minutes; rounded to one decimal hour. Page "
+            "and API opened 2026-10-31."
+        ),
+        provider_ref="learn.azure-evaluate-generative-ai-apps",
+        format="self_paced",
+        audience="both",
+        price_basis="per_course",
+        currency="MYR",
+        list_price=None,
+        provider_type="mooc",
+        location="Online",
+        price_note=(
+            "RM0 covers learning content. Azure resource usage or licensed product access can "
+            "cost extra; exams are separate. Risk and safety metrics, evaluation SDK and "
+            "synthetic evaluation datasets; requires Python, Azure and GitHub."
+        ),
+    ),
+    CourseRow(
+        id="mslearn-security-copilot-operations",
+        title="Enhance security operations by using Microsoft Security Copilot",
+        provider="Microsoft Learn",
+        url="https://learn.microsoft.com/en-us/training/paths/security-copilot-and-ai/",
+        hours=6.2,
+        cost_myr=0,
+        hrd_claimable=False,
+        verified_at=date(2026, 10, 31),
+        skill_ids=("security-ai",),
+        level=2,
+        source_name="Microsoft Learn course page and Catalog API",
+        source_url="https://learn.microsoft.com/en-us/training/paths/security-copilot-and-ai/",
+        hrd_note="Free self-paced learning; nothing to claim.",
+        language="en",
+        duration_note=(
+            "Microsoft Learn Catalog API lists 372 minutes; rounded to one decimal hour. Page "
+            "and API opened 2026-10-31."
+        ),
+        provider_ref="learn.wwl.security-copilot-and-ai",
+        format="self_paced",
+        audience="both",
+        price_basis="per_course",
+        currency="MYR",
+        list_price=None,
+        provider_type="mooc",
+        location="Online",
+        price_note=(
+            "RM0 covers learning content. Azure resource usage or licensed product access can "
+            "cost extra; exams are separate. AI-assisted security analysis and response; "
+            "requires security operations and Microsoft security product knowledge."
+        ),
+    ),
+    CourseRow(
+        id="mslearn-ai-business-strategy",
+        title="Transform your business with AI",
+        provider="Microsoft Learn",
+        url="https://learn.microsoft.com/en-us/training/paths/transform-your-business-with-microsoft-ai/",
+        hours=2.6,
+        cost_myr=0,
+        hrd_claimable=False,
+        verified_at=date(2026, 10, 31),
+        skill_ids=("ai-product-management",),
+        level=2,
+        source_name="Microsoft Learn course page and Catalog API",
+        source_url="https://learn.microsoft.com/en-us/training/paths/transform-your-business-with-microsoft-ai/",
+        hrd_note="Free self-paced learning; nothing to claim.",
+        language="en",
+        duration_note=(
+            "Microsoft Learn Catalog API lists 154 minutes; rounded to one decimal hour. Page "
+            "and API opened 2026-10-31."
+        ),
+        provider_ref="learn.wwl.transform-your-business-with-microsoft-ai",
+        format="self_paced",
+        audience="both",
+        price_basis="per_course",
+        currency="MYR",
+        list_price=None,
+        provider_type="mooc",
+        location="Online",
+        price_note=(
+            "RM0 covers learning content. Azure resource usage or licensed product access can "
+            "cost extra; exams are separate. AI value identification, project strategy, "
+            "responsibility and scaling; introductory product-lifecycle coverage."
+        ),
+    ),
+    CourseRow(
+        id="mslearn-ai-compliance-design",
+        title="Design responsible AI security, governance, risk management, and compliance",
+        provider="Microsoft Learn",
+        url="https://learn.microsoft.com/en-us/training/modules/design-responsible-ai-security-governance-risk-management-compliance/",
+        hours=0.9,
+        cost_myr=0,
+        hrd_claimable=False,
+        verified_at=date(2026, 10, 31),
+        skill_ids=("regulatory-affairs",),
+        level=3,
+        source_name="Microsoft Learn course page and Catalog API",
+        source_url="https://learn.microsoft.com/en-us/training/modules/design-responsible-ai-security-governance-risk-management-compliance/",
+        hrd_note="Free self-paced learning; nothing to claim.",
+        language="en",
+        duration_note=(
+            "Microsoft Learn Catalog API lists 53 minutes; rounded to one decimal hour. Page "
+            "and API opened 2026-10-31."
+        ),
+        provider_ref="learn.wwl.design-responsible-ai-security-governance-risk-management-compliance",
+        format="self_paced",
+        audience="both",
+        price_basis="per_course",
+        currency="MYR",
+        list_price=None,
+        provider_type="mooc",
+        location="Online",
+        price_note=(
+            "RM0 covers learning content. Azure resource usage or licensed product access can "
+            "cost extra; exams are separate. Translates compliance requirements into "
+            "technical AI controls; does not qualify the learner in Malaysian law or "
+            "regulatory practice."
+        ),
+    ),
+    CourseRow(
+        id="mslearn-digital-learning-design",
+        title="21st century learning design",
+        provider="Microsoft Learn",
+        url="https://learn.microsoft.com/en-us/training/paths/21st-century-learning-design/",
+        hours=6.7,
+        cost_myr=0,
+        hrd_claimable=False,
+        verified_at=date(2026, 10, 31),
+        skill_ids=("learning-development",),
+        level=2,
+        source_name="Microsoft Learn course page and Catalog API",
+        source_url="https://learn.microsoft.com/en-us/training/paths/21st-century-learning-design/",
+        hrd_note="Free self-paced learning; nothing to claim.",
+        language="en",
+        duration_note=(
+            "Microsoft Learn Catalog API lists 401 minutes; rounded to one decimal hour. Page "
+            "and API opened 2026-10-31."
+        ),
+        provider_ref="learn.mec.21st-century-learning-design",
+        format="self_paced",
+        audience="both",
+        price_basis="per_course",
+        currency="MYR",
+        list_price=None,
+        provider_type="mooc",
+        location="Online",
+        price_note=(
+            "RM0 covers learning content. Azure resource usage or licensed product access can "
+            "cost extra; exams are separate. Design and redesign learning activities with "
+            "digital tools and rubrics; educator-focused foundation, not a complete corporate "
+            "L&D programme qualification."
+        ),
+    ),
+    CourseRow(
+        id="mslearn-ai-workforce-planning",
+        title="Optimize staffing with workforce management in Dynamics 365 Contact Center",
+        provider="Microsoft Learn",
+        url="https://learn.microsoft.com/en-us/training/modules/optimize-staffing-workforce-management-contact-center/",
+        hours=0.7,
+        cost_myr=0,
+        hrd_claimable=False,
+        verified_at=date(2026, 10, 31),
+        skill_ids=("workforce-planning",),
+        level=2,
+        source_name="Microsoft Learn course page and Catalog API",
+        source_url="https://learn.microsoft.com/en-us/training/modules/optimize-staffing-workforce-management-contact-center/",
+        hrd_note="Free self-paced learning; nothing to claim.",
+        language="en",
+        duration_note=(
+            "Microsoft Learn Catalog API lists 42 minutes; rounded to one decimal hour. Page "
+            "and API opened 2026-10-31."
+        ),
+        provider_ref="learn-dynamics.optimize-staffing-workforce-management-contact-center",
+        format="self_paced",
+        audience="both",
+        price_basis="per_course",
+        currency="MYR",
+        list_price=None,
+        provider_type="mooc",
+        location="Online",
+        price_note=(
+            "RM0 covers learning content. Azure resource usage or licensed product access can "
+            "cost extra; exams are separate. AI-based demand forecasting, capacity and shift "
+            "planning in a contact centre; limited domain coverage, human staffing decisions "
+            "remain required."
+        ),
+    ),
+    CourseRow(
+        id="kaggle-advanced-sql",
+        title="Advanced SQL",
+        provider="Kaggle Learn",
+        url="https://www.kaggle.com/learn/advanced-sql/course",
+        hours=4,
+        cost_myr=0,
+        hrd_claimable=False,
+        verified_at=date(2026, 10, 31),
+        skill_ids=("sql-advanced",),
+        level=3,
+        source_name="Kaggle Learn course page",
+        source_url="https://www.kaggle.com/learn/advanced-sql/course",
+        hrd_note="Free learning; no HRD Corp reimbursement assumed.",
+        language="en",
+        duration_note="Provider estimates 4 hours.",
+        provider_ref="kaggle-advanced-sql",
+        format="self_paced",
+        audience="both",
+        price_basis="per_course",
+        currency="MYR",
+        list_price=None,
+        provider_type="mooc",
+        location="Online",
+        price_note=(
+            "No cost for Kaggle Learn courses. No professional certification entitlement "
+            "assumed. Window functions, nested data, joins and efficient BigQuery queries; "
+            "assumes Intro to SQL."
+        ),
+    ),
+    CourseRow(
+        id="kaggle-ml-explainability",
+        title="Machine Learning Explainability",
+        provider="Kaggle Learn",
+        url="https://www.kaggle.com/learn/machine-learning-explainability/course",
+        hours=4,
+        cost_myr=0,
+        hrd_claimable=False,
+        verified_at=date(2026, 10, 31),
+        skill_ids=("explainable-ai",),
+        level=3,
+        source_name="Kaggle Learn course page",
+        source_url="https://www.kaggle.com/learn/machine-learning-explainability/course",
+        hrd_note="Free learning; no HRD Corp reimbursement assumed.",
+        language="en",
+        duration_note="Provider estimates 4 hours.",
+        provider_ref="kaggle-ml-explainability",
+        format="self_paced",
+        audience="both",
+        price_basis="per_course",
+        currency="MYR",
+        list_price=None,
+        provider_type="mooc",
+        location="Online",
+        price_note=(
+            "No cost for Kaggle Learn courses. No professional certification entitlement "
+            "assumed. Permutation importance, partial dependence and SHAP; assumes "
+            "introductory machine learning."
+        ),
+    ),
+    CourseRow(
+        id="kaggle-ai-ethics-bias",
+        title="Intro to AI Ethics",
+        provider="Kaggle Learn",
+        url="https://www.kaggle.com/learn/intro-to-ai-ethics/course",
+        hours=4,
+        cost_myr=0,
+        hrd_claimable=False,
+        verified_at=date(2026, 10, 31),
+        skill_ids=("bias-auditing",),
+        level=2,
+        source_name="Kaggle Learn course page",
+        source_url="https://www.kaggle.com/learn/intro-to-ai-ethics/course",
+        hrd_note="Free learning; no HRD Corp reimbursement assumed.",
+        language="en",
+        duration_note="Provider estimates 4 hours.",
+        provider_ref="kaggle-ai-ethics-bias",
+        format="self_paced",
+        audience="both",
+        price_basis="per_course",
+        currency="MYR",
+        list_price=None,
+        provider_type="mooc",
+        location="Online",
+        price_note=(
+            "No cost for Kaggle Learn courses. No professional certification entitlement "
+            "assumed. Bias identification, fairness measures and model cards with practical "
+            "examples; introductory auditing coverage."
+        ),
+    ),
+    CourseRow(
+        id="cfte-ai-finance-masterclass",
+        title="AI in Finance Masterclass",
+        provider="CFTE",
+        url="https://courses.cfte.education/online-artificial-intelligence-in-finance-masterclass-learn-ai-for-free/",
+        hours=0.8,
+        cost_myr=0,
+        hrd_claimable=False,
+        verified_at=date(2026, 10, 31),
+        skill_ids=("fintech-ai",),
+        level=1,
+        source_name="CFTE course page",
+        source_url="https://courses.cfte.education/online-artificial-intelligence-in-finance-masterclass-learn-ai-for-free/",
+        hrd_note="Free learning; no HRD Corp reimbursement assumed.",
+        language="en",
+        duration_note=(
+            "FAQ and free-masterclass panel specify about 45 minutes (0.8 hours rounded). "
+            "Hero also says under 2 hours; use the more specific masterclass duration."
+        ),
+        provider_ref="cfte-ai-finance-masterclass",
+        format="self_paced",
+        audience="both",
+        price_basis="per_course",
+        currency="MYR",
+        list_price=None,
+        provider_type="mooc",
+        location="Online",
+        price_note=(
+            "Provider explicitly confirms free immediate access without payment details. No "
+            "professional certification entitlement assumed. AI use cases in financial "
+            "services, risk and governance; introductory awareness, not algorithmic-trading "
+            "proficiency."
+        ),
+    ),
+    CourseRow(
+        id="openlearn-energy-financial-modelling",
+        title="Financial Modelling for Energy Transitions MINFin, FinTrack & FinCoRE",
+        provider="OpenLearn Create (Climate Compatible Growth)",
+        url="https://www.open.edu/openlearncreate/course/view.php?id=17735",
+        hours=15,
+        cost_myr=0,
+        hrd_claimable=False,
+        verified_at=date(2026, 10, 31),
+        skill_ids=("financial-analysis",),
+        level=3,
+        source_name="OpenLearn Create (Climate Compatible Growth) course page",
+        source_url="https://www.open.edu/openlearncreate/course/view.php?id=17735",
+        hrd_note="Free learning; no HRD Corp reimbursement assumed.",
+        language="en",
+        duration_note="Provider lists 15 hours study and intermediate level.",
+        provider_ref="openlearn-energy-financial-modelling",
+        format="self_paced",
+        audience="both",
+        price_basis="per_course",
+        currency="MYR",
+        list_price=None,
+        provider_type="mooc",
+        location="Online",
+        price_note=(
+            "Provider confirms free learning and participation statement. No professional "
+            "certification entitlement assumed. Excel cashflow models, climate finance gaps "
+            "and cost of capital; general financial-modelling coverage, not Islamic finance "
+            "certification."
+        ),
+    ),
+    CourseRow(
+        id="eit-precision-farming-basics",
+        title="Precision Farming ? Basics",
+        provider="28DIGITAL (Agri-Digital Growth consortium)",
+        url="https://28digital.ea.education/courses/precision-farming-basics/",
+        hours=48,
+        cost_myr=0,
+        hrd_claimable=False,
+        verified_at=date(2026, 10, 31),
+        skill_ids=("precision-agriculture",),
+        level=2,
+        source_name="28DIGITAL (Agri-Digital Growth consortium) course page",
+        source_url="https://eit-campus.eu/course/digital/precision-farming-basics",
+        hrd_note="Free learning; no HRD Corp reimbursement assumed.",
+        language="en",
+        duration_note=(
+            "EIT Campus lists 20-48 hours; 48 hours is the upper-bound planning estimate, not "
+            "an exact provider duration."
+        ),
+        provider_ref="eit-precision-farming-basics",
+        format="self_paced",
+        audience="both",
+        price_basis="per_course",
+        currency="MYR",
+        list_price=None,
+        provider_type="mooc",
+        location="Online",
+        price_note=(
+            "EIT Campus and enrolment page both list Free. No professional certification "
+            "entitlement assumed. Precision farming, field data, sensors, robotics and AI in "
+            "agriculture; introductory skill estimate despite intermediate provider "
+            "classification."
+        ),
+    ),
+    CourseRow(
+        id="ecmwf-ml-earth-systems-applications",
+        title="Machine Learning for Earth Systems Modelling - Course 3",
+        provider="ECMWF",
+        url="https://learning.ecmwf.int/course/view.php?id=100",
+        hours=24,
+        cost_myr=0,
+        hrd_claimable=False,
+        verified_at=date(2026, 10, 31),
+        skill_ids=("climate-ai",),
+        level=3,
+        source_name="ECMWF course page",
+        source_url="https://learning.ecmwf.int/tag/index.php?tag=Machine+learning&tc=2",
+        hrd_note="Free learning; no HRD Corp reimbursement assumed.",
+        language="en",
+        duration_note=(
+            "Provider lists approximately 16-24 hours; 24 hours is the upper-bound planning "
+            "estimate."
+        ),
+        provider_ref="ecmwf-ml-earth-systems-applications",
+        format="self_paced",
+        audience="both",
+        price_basis="per_course",
+        currency="MYR",
+        list_price=None,
+        provider_type="mooc",
+        location="Online",
+        price_note=(
+            "Provider catalogue states free participation open to anyone meeting "
+            "prerequisites. No professional certification entitlement assumed. ML workflows "
+            "for weather/climate, downscaling and coupled Earth systems. Advanced Python/ML "
+            "and Earth-system knowledge required; not a beginner farming course."
+        ),
+    ),
+    CourseRow(
+        id="freecodecamp-selenium-bot",
+        title="Use Selenium to Create a Web Scraping Bot",
+        provider="freeCodeCamp",
+        url="https://www.freecodecamp.org/news/use-selenium-to-create-a-web-scraping-bot/",
+        hours=3,
+        cost_myr=0,
+        hrd_claimable=False,
+        verified_at=date(2026, 10, 31),
+        skill_ids=("selenium",),
+        level=2,
+        source_name="freeCodeCamp course page",
+        source_url="https://www.freecodecamp.org/news/use-selenium-to-create-a-web-scraping-bot/",
+        hrd_note="Free learning; no HRD Corp reimbursement assumed.",
+        language="en",
+        duration_note="Provider course page states a 3-hour watch; practice time is additional.",
+        provider_ref="freecodecamp-selenium-bot",
+        format="self_paced",
+        audience="both",
+        price_basis="per_course",
+        currency="MYR",
+        list_price=None,
+        provider_type="mooc",
+        location="Online",
+        price_note=(
+            "Public course video and transcript are freely accessible. No professional "
+            "certification entitlement assumed. Selenium browser automation, selectors, waits "
+            "and project structure; assumes Python. Published 2021; learners must check "
+            "current Selenium API compatibility."
+        ),
+    ),
 )
 
 # Free Bahasa Melayu courses (language="ms", the existing catalogue language code).

@@ -111,7 +111,7 @@
       "retrieved_at": "2026-10-31",
       "mapping": "Official O*NET occupation title plus the skill focus of Adept's estimated profile, so profiles sharing one occupation stay distinguishable. The focus describes a skill emphasis, not a separate occupation or a verified growth forecast.",
       "legacy_label": "Cloud Solutions Architect",
-      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification. Issue #84 (2026-10-31): retain only digital/green reskilling requirements; remove general soft/clinical requirements. Surviving importance values retain their relative priorities (scoring divides by the surviving total); levels and importance remain Adept estimates, not complete occupational qualifications."
     },
     {
       "role_id": "cybersecurity-analyst",
@@ -122,7 +122,7 @@
       "retrieved_at": "2026-10-31",
       "mapping": "Official O*NET occupation title. Stable legacy ID retains an Adept estimated digital-skill profile, not a separate occupation or a verified growth forecast.",
       "legacy_label": "Cybersecurity Analyst",
-      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification. Issue #84 (2026-10-31): retain only digital/green reskilling requirements; remove general soft/clinical requirements. Surviving importance values retain their relative priorities (scoring divides by the surviving total); levels and importance remain Adept estimates, not complete occupational qualifications."
     },
     {
       "role_id": "ai-product-manager",
@@ -133,7 +133,7 @@
       "retrieved_at": "2026-10-31",
       "mapping": "Official O*NET occupation title. Stable legacy ID retains an Adept estimated digital-skill profile, not a separate occupation or a verified growth forecast.",
       "legacy_label": "AI Product Manager",
-      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification. Issue #84 (2026-10-31): retain only digital/green reskilling requirements; remove general soft/clinical requirements. Surviving importance values retain their relative priorities (scoring divides by the surviving total); levels and importance remain Adept estimates, not complete occupational qualifications."
     },
     {
       "role_id": "ux-designer",
@@ -144,7 +144,7 @@
       "retrieved_at": "2026-10-31",
       "mapping": "Official O*NET occupation title. Stable legacy ID retains an Adept estimated digital-skill profile, not a separate occupation or a verified growth forecast.",
       "legacy_label": "UX / UI Designer",
-      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification. Issue #84 (2026-10-31): retain only digital/green reskilling requirements; remove general soft/clinical requirements. Surviving importance values retain their relative priorities (scoring divides by the surviving total); levels and importance remain Adept estimates, not complete occupational qualifications."
     },
     {
       "role_id": "digital-marketing-specialist",
@@ -166,7 +166,7 @@
       "retrieved_at": "2026-10-31",
       "mapping": "Official O*NET occupation title plus the skill focus of Adept's estimated profile, so profiles sharing one occupation stay distinguishable. The focus describes a skill emphasis, not a separate occupation or a verified growth forecast.",
       "legacy_label": "Business Analyst",
-      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification. Issue #84 (2026-10-31): retain only digital/green reskilling requirements; remove general soft/clinical requirements. Surviving importance values retain their relative priorities (scoring divides by the surviving total); levels and importance remain Adept estimates, not complete occupational qualifications."
     },
     {
       "role_id": "solar-pv-engineer",
@@ -188,7 +188,7 @@
       "retrieved_at": "2026-10-31",
       "mapping": "Official O*NET occupation title. Stable legacy ID retains an Adept estimated digital-skill profile, not a separate occupation or a verified growth forecast.",
       "legacy_label": "Energy Manager",
-      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification. Issue #84 (2026-10-31): retain only digital/green reskilling requirements; remove general soft/clinical requirements. Surviving importance values retain their relative priorities (scoring divides by the surviving total); levels and importance remain Adept estimates, not complete occupational qualifications."
     },
     {
       "role_id": "esg-sustainability-analyst",
@@ -199,7 +199,7 @@
       "retrieved_at": "2026-10-31",
       "mapping": "Official O*NET occupation title. Stable legacy ID retains an Adept estimated digital-skill profile, not a separate occupation or a verified growth forecast.",
       "legacy_label": "ESG & Sustainability Analyst",
-      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification. Issue #84 (2026-10-31): retain only digital/green reskilling requirements; remove general soft/clinical requirements. Surviving importance values retain their relative priorities (scoring divides by the surviving total); levels and importance remain Adept estimates, not complete occupational qualifications."
     },
     {
       "role_id": "smart-manufacturing-engineer",
@@ -265,7 +265,7 @@
       "retrieved_at": "2026-10-31",
       "mapping": "Official O*NET occupation title plus the skill focus of Adept's estimated profile, so profiles sharing one occupation stay distinguishable. The focus describes a skill emphasis, not a separate occupation or a verified growth forecast.",
       "legacy_label": "Digital Health Nurse",
-      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification. Issue #84 (2026-10-31): retain only digital/green reskilling requirements; remove general soft/clinical requirements. Surviving importance values retain their relative priorities (scoring divides by the surviving total); levels and importance remain Adept estimates, not complete occupational qualifications. Retained as a digital-health upskilling focus for already qualified nurses: healthcare informatics (importance 0.6) and AI literacy (0.4). This pathway does not teach or certify nursing practice or clinical judgement."
     },
     {
       "role_id": "learning-experience-designer",
@@ -276,7 +276,7 @@
       "retrieved_at": "2026-10-31",
       "mapping": "Official O*NET occupation title. Stable legacy ID retains an Adept estimated digital-skill profile, not a separate occupation or a verified growth forecast.",
       "legacy_label": "Learning Experience Designer",
-      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification. Issue #84 (2026-10-31): retain only digital/green reskilling requirements; remove general soft/clinical requirements. Surviving importance values retain their relative priorities (scoring divides by the surviving total); levels and importance remain Adept estimates, not complete occupational qualifications."
     },
     {
       "role_id": "tvet-digital-skills-trainer",
@@ -287,7 +287,7 @@
       "retrieved_at": "2026-10-31",
       "mapping": "Official O*NET occupation title. Stable legacy ID retains an Adept estimated digital-skill profile, not a separate occupation or a verified growth forecast.",
       "legacy_label": "TVET & Digital Skills Trainer",
-      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification. Issue #84 (2026-10-31): retain only digital/green reskilling requirements; remove general soft/clinical requirements. Surviving importance values retain their relative priorities (scoring divides by the surviving total); levels and importance remain Adept estimates, not complete occupational qualifications."
     },
     {
       "role_id": "customer-success-specialist",
@@ -298,7 +298,7 @@
       "retrieved_at": "2026-10-31",
       "mapping": "Official O*NET occupation title plus the skill focus of Adept's estimated profile, so profiles sharing one occupation stay distinguishable. The focus describes a skill emphasis, not a separate occupation or a verified growth forecast.",
       "legacy_label": "Customer Success Specialist",
-      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification. Issue #84 (2026-10-31): retain only digital/green reskilling requirements; remove general soft/clinical requirements. Surviving importance values retain their relative priorities (scoring divides by the surviving total); levels and importance remain Adept estimates, not complete occupational qualifications."
     },
     {
       "role_id": "islamic-finance-analyst",
@@ -320,7 +320,7 @@
       "retrieved_at": "2026-10-31",
       "mapping": "Official O*NET occupation title. Stable legacy ID retains an Adept estimated digital-skill profile, not a separate occupation or a verified growth forecast.",
       "legacy_label": "People Analytics Specialist",
-      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification. Issue #84 (2026-10-31): retain only digital/green reskilling requirements; remove general soft/clinical requirements. Surviving importance values retain their relative priorities (scoring divides by the surviving total); levels and importance remain Adept estimates, not complete occupational qualifications."
     },
     {
       "role_id": "hospitality-experience-manager",
@@ -331,7 +331,7 @@
       "retrieved_at": "2026-10-31",
       "mapping": "Official O*NET occupation title. Stable legacy ID retains an Adept estimated digital-skill profile, not a separate occupation or a verified growth forecast.",
       "legacy_label": "Hospitality Experience Manager",
-      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification."
+      "requirements_basis": "Existing Adept estimated digital-skill requirements retained; not official O*NET proficiency ratings or a complete occupational qualification. Issue #84 (2026-10-31): retain only digital/green reskilling requirements; remove general soft/clinical requirements. Surviving importance values retain their relative priorities (scoring divides by the surviving total); levels and importance remain Adept estimates, not complete occupational qualifications."
     },
     {
       "role_id": "responsible-ai-officer",
@@ -539,5 +539,119 @@
   ],
   "role_profile_count": 48,
   "distinct_occupation_count": 41,
-  "label_method": "All displayed role titles are official O*NET occupation titles. Stable legacy IDs may retain different estimated digital-skill profiles for the same official occupation; these are not distinct occupations. Former editorial labels are retained only as historical legacy_label values."
+  "label_method": "All displayed role titles are official O*NET occupation titles. Stable legacy IDs may retain different estimated digital-skill profiles for the same official occupation; these are not distinct occupations. Former editorial labels are retained only as historical legacy_label values.",
+  "skill_bank_focus": {
+    "changed_at": "2026-10-31",
+    "removed_target_requirements": [
+      {
+        "role_id": "cloud-solutions-architect",
+        "skill_id": "stakeholder-management",
+        "required_level": "3",
+        "importance": "0.6"
+      },
+      {
+        "role_id": "cybersecurity-analyst",
+        "skill_id": "critical-thinking",
+        "required_level": "3",
+        "importance": "0.5"
+      },
+      {
+        "role_id": "ai-product-manager",
+        "skill_id": "stakeholder-management",
+        "required_level": "3",
+        "importance": "0.8"
+      },
+      {
+        "role_id": "ux-designer",
+        "skill_id": "stakeholder-management",
+        "required_level": "2",
+        "importance": "0.4"
+      },
+      {
+        "role_id": "business-analyst",
+        "skill_id": "stakeholder-management",
+        "required_level": "3",
+        "importance": "0.6"
+      },
+      {
+        "role_id": "energy-manager",
+        "skill_id": "stakeholder-management",
+        "required_level": "3",
+        "importance": "0.5"
+      },
+      {
+        "role_id": "esg-sustainability-analyst",
+        "skill_id": "stakeholder-management",
+        "required_level": "3",
+        "importance": "0.5"
+      },
+      {
+        "role_id": "digital-health-nurse",
+        "skill_id": "patient-care",
+        "required_level": "3",
+        "importance": "1"
+      },
+      {
+        "role_id": "digital-health-nurse",
+        "skill_id": "clinical-judgement",
+        "required_level": "3",
+        "importance": "0.9"
+      },
+      {
+        "role_id": "digital-health-nurse",
+        "skill_id": "cross-cultural-communication",
+        "required_level": "3",
+        "importance": "0.4"
+      },
+      {
+        "role_id": "learning-experience-designer",
+        "skill_id": "coaching-mentoring",
+        "required_level": "2",
+        "importance": "0.4"
+      },
+      {
+        "role_id": "tvet-digital-skills-trainer",
+        "skill_id": "coaching-mentoring",
+        "required_level": "3",
+        "importance": "0.5"
+      },
+      {
+        "role_id": "tvet-digital-skills-trainer",
+        "skill_id": "public-speaking",
+        "required_level": "3",
+        "importance": "0.4"
+      },
+      {
+        "role_id": "customer-success-specialist",
+        "skill_id": "stakeholder-management",
+        "required_level": "2",
+        "importance": "0.5"
+      },
+      {
+        "role_id": "people-analytics-specialist",
+        "skill_id": "change-management",
+        "required_level": "2",
+        "importance": "0.5"
+      },
+      {
+        "role_id": "hospitality-experience-manager",
+        "skill_id": "cross-cultural-communication",
+        "required_level": "3",
+        "importance": "0.6"
+      }
+    ],
+    "intake_skills_retained": [
+      "change-management",
+      "clinical-judgement",
+      "coaching-mentoring",
+      "critical-thinking",
+      "cross-cultural-communication",
+      "patient-care",
+      "public-speaking",
+      "stakeholder-management"
+    ],
+    "retention_reason": "Existing canonical intake/CV aliases, dated trend signals and SDG skill mappings still reference these skills; clinical/coaching skills also occur in current-role profiles. Removing them would break reference history and intake recognition.",
+    "importance_policy": "Keep surviving relative weights; they are positive and <=1, and matching/pathway aggregate weights are normalized by each role total. No renormalization needed.",
+    "digital_health_nurse": "Retain target digital focus for qualified nurses; healthcare informatics plus AI literacy, not a nursing qualification."
+  }
 }

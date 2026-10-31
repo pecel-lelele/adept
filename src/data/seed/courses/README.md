@@ -63,3 +63,22 @@ remain unverified. In particular, the three Pepper Labs pages do not establish a
 Existing course fee/hour verification dates remain 2026-10-30; certificate verification does
 not refresh unrelated facts. Certificate restrictions apply to selected courses and all
 alternatives through the same filtered catalogue. Personal learning remains available.
+
+
+## Digital and green skill-bank pass (2026-10-31)
+
+Adds 16 free-learning records (120 catalogue rows total), frozen in `FREE_DIGITAL` for both
+pipeline regeneration and live sync. Each provider course URL was opened on 2026-10-31.
+[skill_bank_provenance.json](skill_bank_provenance.json) records exact titles, dates,
+duration/price evidence, skill mapping estimates and access limitations; the
+[coverage report](../../../../docs/skill-bank-coverage.md) lists every course with its URL.
+Microsoft Learn durations are from its Catalog API retrieved the same day. Older rows
+retain their historical dates and facts. Kaggle live pages are JavaScript shells; their
+metadata came from indexed official course pages. ECMWF materials require login.
+Precision Farming and ECMWF use disclosed upper bounds of provider duration ranges.
+RM0 describes learning only; resource usage, licensed software and exams may cost extra.
+No new certificate entitlement or HRD reimbursement is assumed.
+
+All target requirements now have at least one course record. This is course presence,
+not proof that a learner can reach every required level: introductory FinTech AI and
+Selenium courses still leave higher proficiency explicitly unmet.

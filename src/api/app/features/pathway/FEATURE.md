@@ -107,3 +107,15 @@ URLs, durations and crosswalks while preserving existing records → estimated r
 and prerequisites → F4 scoring and F5 budgeted topological plans → graph, coverage,
 prerequisite and finance concurrency regressions → shared reference loader, append-only
 role-scope migration, reference-only seed upserts and API/UI.
+
+## Digital and green focus (2026-10-31)
+
+M3-042 removes 16 soft/clinical requirements from 13 target profiles, retains those skills
+for intake/current-role references, and adds 16 dated free-learning records in `FREE_DIGITAL`.
+The catalogue now has 120 records. Course-presence gaps fall from 19/33 target profiles
+(24 distinct skills) to 0/33; this does not mean courses reach every required level.
+The digital-health nursing focus retains healthcare informatics and AI literacy for
+already qualified nurses; it does not provide a nursing qualification. Existing DBs need
+the exact-pair requirement migration as well as reference seeding. The
+[coverage report](../../../../../docs/skill-bank-coverage.md) lists each target and course;
+`courses/skill_bank_provenance.json` records provider access and duration limitations.

@@ -17,3 +17,11 @@ and SDG targets are real, public, dated records (see their folders). Load with `
 | `pathway/` | M3 (F5) | skill_prerequisites |
 | `sdg/` | M3 (F6) | sdg_goals, sdg_targets (written by `pipelines.sdg`), role_sdg_map, skill_sdg_map, org_regions |
 | `org/` | M4 (F7) | users (employees), organizations, memberships |
+
+
+The 2026-10-31 digital/green focus release removes out-of-scope target requirements while
+retaining intake and current-role references, and adds 16 dated free course records.
+See [coverage and course evidence](../../../docs/skill-bank-coverage.md),
+[catalogue provenance](courses/skill_bank_provenance.json) and
+[taxonomy provenance](taxonomy/provenance.json). Coverage means course presence, not
+complete professional qualification or attainment of every required skill level.

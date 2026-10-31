@@ -89,8 +89,9 @@ def test_untracked_tech_skills_are_unknown_and_unavailable_courses_stay_unmet(ro
     )
     assert any("no signal" in warning and "neutral" in warning for warning in plan.warnings)
     if role_id == "software-quality-assurance-testers":
+        assert any("selenium" in course.skill_ids for course in data.catalogue())
         assert any(
-            g.skill_id == "selenium" and g.reason == "no_catalogue_course" for g in plan.unmet
+            g.skill_id == "selenium" and g.reason == "catalogue_tops_out" for g in plan.unmet
         )
 
 

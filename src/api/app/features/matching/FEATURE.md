@@ -62,3 +62,12 @@ all attribution dates, fallback disclosures and catalogue resolution are preserv
 Detail requests still rank the full role catalogue, but build explanations, course options
 and top-three improvement counterfactuals only for the requested role. This preserves the
 same ranks as the list without discarding responses built for every unrelated role.
+
+## Digital and green target scope (2026-10-31)
+
+M3-042 removes the eight specified soft/clinical skill categories from target requirements
+(16 edges), preserving the surviving relative importance weights and all intake/current-role
+skill records. Matching continues to normalize over the surviving requirement weights;
+no ranking formula or evaluation threshold changes. The digital-health nursing focus
+requires healthcare informatics and AI literacy for qualified nurses, not clinical training.
+See the [coverage report](../../../../../docs/skill-bank-coverage.md) and taxonomy provenance.
