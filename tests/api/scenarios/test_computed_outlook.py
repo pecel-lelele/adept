@@ -53,8 +53,11 @@ def test_all_fixture_outlooks_equal_their_own_weighted_signals(
         assert outlook.outlook == round(1 + service.clip(signal), 3), outlook.role_id
         assert outlook.low <= outlook.outlook <= outlook.high
     assert response.meta.snapshot_date == snapshot_date
-    assert [s.model_dump() for s in response.meta.sources] == [
-        s.model_dump() for s in snapshot.meta.sources
+    # RecommendationMeta carries the shared attribution fields; retrieval basis and
+    # evidence stay on the trends snapshot (TrendSource).
+    attribution = ("name", "url", "retrieved_at")
+    assert [s.model_dump(include=set(attribution)) for s in response.meta.sources] == [
+        s.model_dump(include=set(attribution)) for s in snapshot.meta.sources
     ]
     assert response.meta.is_fallback == snapshot.meta.is_fallback
 
