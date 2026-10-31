@@ -9927,12 +9927,21 @@
             "title": "Snapshot Date"
           },
           "scenario": {
-            "type": "string",
-            "enum": [
-              "moderate",
-              "fast"
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "moderate",
+                  "fast"
+                ]
+              },
+              {
+                "type": "string",
+                "const": "both"
+              }
             ],
-            "title": "Scenario"
+            "title": "Scenario",
+            "description": "Scenario of the result; 'both' identifies a moderate/fast comparison."
           },
           "is_estimate": {
             "type": "boolean",
@@ -10679,6 +10688,12 @@
             "title": "Hrd Eligible",
             "default": false
           },
+          "learning_style": {
+            "type": "string",
+            "title": "Learning Style",
+            "description": "Learning style used to prefer course delivery formats within budget.",
+            "default": "mixed"
+          },
           "gaps": {
             "items": {
               "$ref": "#/components/schemas/SkillGap"
@@ -10997,13 +11012,16 @@
               "added",
               "removed",
               "reordered",
-              "courses_changed"
+              "courses_changed",
+              "schedule_changed",
+              "cost_changed"
             ],
             "title": "Kind"
           },
           "skill_id": {
             "type": "string",
-            "title": "Skill Id"
+            "title": "Skill Id",
+            "description": "Empty for whole-plan changes (schedule, cost)."
           },
           "detail": {
             "type": "string",

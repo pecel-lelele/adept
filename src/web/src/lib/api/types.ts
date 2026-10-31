@@ -3169,9 +3169,9 @@ export interface components {
             snapshot_date: string;
             /**
              * Scenario
-             * @enum {string}
+             * @description Scenario of the result; 'both' identifies a moderate/fast comparison.
              */
-            scenario: "moderate" | "fast";
+            scenario: ("moderate" | "fast") | "both";
             /**
              * Is Estimate
              * @default true
@@ -3501,6 +3501,12 @@ export interface components {
              * @default false
              */
             hrd_eligible: boolean;
+            /**
+             * Learning Style
+             * @description Learning style used to prefer course delivery formats within budget.
+             * @default mixed
+             */
+            learning_style: string;
             /** Gaps */
             gaps?: components["schemas"]["SkillGap"][];
             /** Unmet */
@@ -3644,8 +3650,11 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "added" | "removed" | "reordered" | "courses_changed";
-            /** Skill Id */
+            kind: "added" | "removed" | "reordered" | "courses_changed" | "schedule_changed" | "cost_changed";
+            /**
+             * Skill Id
+             * @description Empty for whole-plan changes (schedule, cost).
+             */
             skill_id: string;
             /** Detail */
             detail: string;

@@ -17,8 +17,13 @@
     "totalHours": "共 {hours} 小时",
     "outOfPocket": "您需支付 RM {amount}（预算 RM {budget}）",
     "listPrice": "标价 RM {amount}",
-    "hrdNote": "可申请 HRD Corp 的课程对您免费：雇主须在课程开始前申请培训税补助。",
-    "overBudget": "超出预算"
+    "hrdNote": "若雇主在课程开始前申请培训税补助，可申请 HRD Corp 的课程或可获资助。获批前，上述费用按标价计算。",
+    "overBudget": "超出预算",
+    "style": {
+      "classroom": "课堂学习方式：在预算内优先选择面授、线上直播或混合课程。",
+      "video": "视频学习方式：优先选择自定进度的线上课程。",
+      "reading": "阅读学习方式：优先选择自定进度的线上课程。"
+    }
   },
   "step": {
     "levels": "水平 {current} → {reaches}（职位要求 {target}）",
@@ -46,14 +51,16 @@
     "viewSaved": "查看该计划"
   },
   "replan": {
-    "title": "新的趋势数据改变了您的计划",
+    "title": "您的计划可以更新",
     "accept": "接受更新后的计划",
     "keep": "保留当前计划",
     "change": {
       "added": "新增",
       "removed": "移除",
       "reordered": "顺序调整",
-      "courses_changed": "课程变更"
+      "courses_changed": "课程变更",
+      "schedule_changed": "时间安排已变更",
+      "cost_changed": "费用已变更"
     }
   },
   "progress": {

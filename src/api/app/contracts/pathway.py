@@ -113,6 +113,10 @@ class Pathway(BaseModel):
     budget_myr: float = Field(default=0, ge=0)
     within_budget: bool = True
     hrd_eligible: bool = False
+    learning_style: str = Field(
+        default="mixed",
+        description="Learning style used to prefer course delivery formats within budget.",
+    )
     gaps: list[SkillGap] = Field(default_factory=list)
     unmet: list[UnmetSkill] = Field(default_factory=list)
     warnings: list[str] = Field(default_factory=list)
@@ -142,8 +146,10 @@ class SavedPlan(BaseModel):
 
 
 class PlanChange(BaseModel):
-    kind: Literal["added", "removed", "reordered", "courses_changed"]
-    skill_id: str
+    kind: Literal[
+        "added", "removed", "reordered", "courses_changed", "schedule_changed", "cost_changed"
+    ]
+    skill_id: str = Field(description="Empty for whole-plan changes (schedule, cost).")
     detail: str
 
 
