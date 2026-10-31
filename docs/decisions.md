@@ -501,6 +501,61 @@
 - **Replaces**: none (extends TEAM-042/TEAM-043 and M1-015)
 - **PR / branch**: integ/refresh-provenance (PR #73 + PR #75)
 
+
+### TEAM-046: Confirm every CV skill before showing the guest outlook
+- **Date**: 2026-10-31
+- **Feature**: Core, F1 (intake), F4 (matching)
+- **Type**: contract
+- **Change**: The landing preview extracts catalogue skills first, starts each rating unselected, and requires all ratings before showing fit, self-assessed strengths (3-5), development areas (1-2), and the signup gate. Edit preserves ratings and hides results until saved again. Add optional `extract_only` to the existing CV endpoint and stateless `POST /preview/cv/confirm` with strict 1-5 levels, distinct catalogue IDs and the existing preview rate bucket; the web proxy relays ratings through PUT.
+- **Why**: Upload-derived estimates do not confirm proficiency. Reuse production role matching with confirmed levels rather than inventing a percentage formula; keep role-specific requirement gaps distinct from the simple self-assessment buckets. No database writes, raw CV storage, CV re-upload on edit or new provider calls. Only saved ratings enter the existing signup handoff.
+- **Pipeline**: Synthetic CV in memory -> existing bounded extraction -> catalogue skill IDs -> explicit self-assessment and existing role scorer -> API and browser regressions -> attributed estimate outlook and confirmed-level onboarding handoff.
+- **Affects**: Guest preview API/proxy/UI, generated contracts, English/Malay/Chinese copy; existing API clients retain the original upload behaviour unless they opt into extraction only.
+- **Replaces**: none
+- **PR / branch**: feat/trends-radar-lists
+
+
+### TEAM-047: Bound the assessment body independently of Content-Length
+- **Date**: 2026-10-31
+- **Feature**: Core (guest CV preview)
+- **Type**: method
+- **Change**: Accept assessment JSON without Content-Length and enforce the existing 32 KiB limit against bytes read from the request stream. Cancel oversized streams, reject malformed JSON with HTTP 400, and preserve same-origin and upstream validation/error handling.
+- **Why**: A missing length header previously rejected valid streaming requests with HTTP 413. The reported localhost failure was separately reproduced as HTTP 404 from an API still serving the pre-confirmation routes; restarting that verified local API loaded the new endpoint and restored HTTP 200 through the web proxy.
+- **Affects**: Save outlook proxy and request-boundary regressions; no scoring, schema, database or provider changes.
+- **Replaces**: none (corrects TEAM-046 request framing)
+- **PR / branch**: feat/trends-radar-lists
+
+
+### TEAM-048: Carry processed CV metadata through signup into the account draft
+- **Date**: 2026-10-31
+- **Feature**: Core, F1 (onboarding)
+- **Type**: UI
+- **Change**: Save the processed CV basename and confirmed catalogue levels in a same-tab guest handoff. Onboarding consumes it into the signed-in account's session draft, shows a CV processed card instead of an empty upload box, and restores filename, provenance and levels on reload. Replace CV updates the file metadata and CV-derived skills only after successful parsing, retaining manually selected skills and preserving the original state on failure.
+- **Why**: Signup previously carried levels but lost the filename, incorrectly suggesting a second upload. Keep the existing no-raw-file-storage promise: only filename metadata and catalogue IDs/levels survive navigation, not PDF bytes or extracted text. The UI explicitly describes this as a processed file, without offering a misleading download attachment.
+- **Affects**: Landing CV preview, onboarding session draft and handoff validation, EN/MS/ZH copy and regression coverage; no API, database, provider or scoring change.
+- **Replaces**: none (extends TEAM-046)
+- **PR / branch**: feat/trends-radar-lists
+
+### TEAM-049: Explicit role choice and consent-aware learning progress
+- **Date**: 2026-10-31
+- **Feature**: Core, F4, F5 and F7
+- **Type**: UI | contract | method
+- **Change**: Personal Plan and Progress show clickable locks until a role is explicitly saved; redirect to Roles with a translated explanation, including when a URL supplies a role. Role cards and details save the target in the existing saved-plan record and open Plan. Reuse catalogue steps, weeks, MYR costs and verified HRD flags, with a bottom total. Progress retrieves archived role plans after switching targets and exposes a labelled skill-fit estimate using production importance-weighted skill overlap and self-reported completions. Actual matching still requires the existing evidence gate.
+- **Why**: A URL selector does not establish a learner's choice, and a self-ticked course does not establish verified competence. Employer assignments remain separate from personal plans. Members explicitly accept or propose a catalogue role; proposals retain the current target until HR sends a reviewed programme and the member accepts. Quick team plans support the same proposal/review path. Manager entry points preselect a member/role while retaining review of objectives, cohort, time and budgets.
+- **Pipeline**: Existing catalogue and synthetic test profiles -> membership, explicit sharing and completion-evidence filters -> stored course facts and role requirements -> existing pathway engine and matching skill-overlap method -> role switching, undo, proposal ownership, workspace isolation and consent/suppression regressions -> attributed personal/work progress and team skill course counts.
+- **Affects**: Personal desktop/mobile navigation, role selection, Plan/Progress, member agreements, quick packages, HR programmes/members/dashboard/heatmap, English/Malay/Chinese messages and generated contracts. Team course totals read only this employer's accepted routes and consenting completed profiles, deduplicate courses per member/skill and suppress each skill below ORG_MIN_COHORT. They are distinct from the evidenced skill-gap heatmap. Additive assignment fields persist in the existing JSON ledger; no database migration, provider, invented catalogue entity, funding approval or paid workload.
+- **Replaces**: none (extends existing target-choice, evidence, workspace and cohort-suppression decisions)
+- **PR / branch**: feat/trends-radar-lists
+
+### TEAM-050: Enforce the role lock on the server and keep acceptance when proposing a role
+- **Date**: 2026-10-31
+- **Feature**: Core, F4, F5 and F7
+- **Type**: contract | method | UI
+- **Change**: Progress and evidence writes now return 409 `role_required` for a personal role the person never chose. A role counts as chosen if it is the saved target, in plan history, has learning records, or is an accepted programme route. `Progress.trackable` reports the same rule, and the web redirects to Roles when it is false. Proposing a different role on an accepted programme or package keeps the acceptance and records the proposal beside it. A failed plan-status check shows an error instead of a lock or a "choose a role" redirect. The current target shows "Open plan" instead of "Choose this role". A programme link for an ineligible member preselects nobody instead of the whole team.
+- **Why**: The lock was enforced only by the web pages, so a direct API call could track an unchosen role. A proposal after acceptance withdrew the acceptance and removed work Progress, which contradicted "the current target stays until HR sends a reviewed programme and the member accepts". Re-choosing the current role replaced the saved plan and skipped re-plan review. GET stays a read-only preview because existing readers rely on it; only writes are refused.
+- **Affects**: Pathway progress and evidence endpoints, the Progress contract and generated clients, programme and package responses, personal navigation, Roles, Plan, Progress, the member agreement card, the programme wizard and English/Malay/Chinese messages. No migration: proposal fields already exist in the JSON ledger. HR still has no explicit "reject proposal" action, and that remains a product decision.
+- **Replaces**: none (extends TEAM-049)
+- **PR / branch**: feat/trends-radar-lists
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)
@@ -767,6 +822,61 @@
 - **Affects**: trend_store.daily and chart readers; no schema, provider or migration change
 - **Replaces**: none; corrects M1-019's split chart read
 - **PR / branch**: feat/trends-range-chart / PR #102
+
+### M1-024: Scan radar roles and skills with bounded lists
+- **Date**: 2026-10-31
+- **Feature**: F2 (Radar UI)
+- **Type**: UI
+- **Change**: Present role directions in two columns with counts, source chips, coverage bars and a separate insufficient-evidence section. Show the first 15 entries in each independent role list and the skills table, with incremental expansion; reset skill pagination on search, direction, scenario or data edition changes. Use theme tokens and responsive layouts.
+- **Why**: Make long catalogue-backed lists easier to scan on desktop and mobile without introducing placeholder entities. Preserve real coverage, evidence gates, source attribution, snapshot navigation and scoring.
+- **Validation**: Production build, lint, translation parity, TypeScript, contract sync, 119 web regressions and desktop/mobile browser checks passed. The full Python run reported 1,966 passed, 50 skipped and four PDF-preview timeouts; all 11 tests in that integration module passed when rerun alone. Reviewed light/dark screenshots and corrected heading contrast.
+- **Affects**: Individual and organisation radar; English, Malay and Chinese labels. No API, schema, dependency or provider changes.
+- **Replaces**: none
+- **PR / branch**: feat/trends-radar-lists
+
+### M1-025: Expand radar roles five at a time
+- **Date**: 2026-10-31
+- **Feature**: F2 (Radar UI)
+- **Type**: UI
+- **Change**: Set ROLE_STEP=5 for the initial size and expansion increment of all three role lists. Show the smaller remaining count on the last button, hide it when exhausted, and retain 15-item batches for the skills table.
+- **Why**: Tall role rows should not push the skills table too far down the page; each list expands independently on demand.
+- **Validation**: Full quality gate passed (1,970 Python tests passed, 50 skipped; 119 web tests passed), production build passed, and desktop/mobile browser checks passed with assertions for each expansion, the final partial batch and unchanged 15-skill batches.
+- **Affects**: Individual and organisation radar; no data, scoring, source, contract or dependency changes.
+- **Replaces**: M1-024's 15-item role-list batch size only
+- **PR / branch**: feat/trends-radar-lists
+
+### M1-026: Collapse expanded radar lists on demand
+- **Date**: 2026-10-31
+- **Feature**: F2 (Radar UI)
+- **Type**: UI
+- **Change**: Add a translated Show less button whenever a role list or skills table is expanded, including after its last batch. Collapse only that list to its initial five roles or 15 skills, retaining incremental Show more controls while entries remain.
+- **Why**: Let people restore the compact view at any point without changing the current filters or data edition.
+- **Validation**: Full quality gate passed (1,970 Python tests passed, 50 skipped; 119 web regressions passed), production build passed and both desktop/mobile browser checks passed, including collapse during partial expansion, after the last batch and re-expansion.
+- **Affects**: Individual and organisation radar; English, Malay and Chinese labels. No data, scoring, source, contract or dependency changes.
+- **Replaces**: none; extends M1-024 and M1-025
+- **PR / branch**: feat/trends-radar-lists
+
+### M1-027: Compact three-column role toggles and paged skills
+- **Date**: 2026-10-31
+- **Feature**: F2 (Radar UI)
+- **Type**: UI
+- **Change**: Put rising, declining and insufficient-evidence roles in equal columns with compact name/coverage/status rows, a thin coverage line and a faded inert sixth-row preview. Keep extra rows mounted in an animated reveal; each list toggles from five to all, with aligned desktop footer pills and the evidence note below the third list. Use three/two/one columns and a maximum 1200px content width. Replace skills expansion with 15-row pages, filtered range/page counts and bounded arrow navigation; reset on filters/search and close evidence rows and scroll to controls on page changes.
+- **Why**: Keep the radar compact and comparable while supporting long real catalogues with accessible controls, preserved attribution and reduced-motion support.
+- **Validation**: Full gate ran: 1,970 Python tests passed, 50 skipped, 119 web regressions passed, lint/translation parity/contracts passed. Fixed the TypeScript check's optional-preview guard and reran TypeScript plus affected component regressions successfully. Production build and desktop/mobile browser checks passed, including page edges, empty filters, evidence resets, scroll-to-controls, three/two/one columns and footer alignment during expansion. Reviewed light/dark screenshots.
+- **Affects**: Individual and organisation radar, English/Malay/Chinese labels and navigation regressions. No data, ranking, API, schema or dependency changes.
+- **Replaces**: M1-024/M1-025/M1-026 list expansion behaviour and role layout only
+- **PR / branch**: feat/trends-radar-lists
+
+### M1-028: Present stored Malaysian labour observations as a compact card
+- **Date**: 2026-10-31
+- **Feature**: F2 (National labour context), Core/F7 dashboards
+- **Type**: UI
+- **Change**: Reuse an always-visible three-tile labour card on dashboards and at the bottom of both radar modes, with 0-100 percent bars, a small dated fallback pill and expandable source details. Add a public read-only history endpoint returning at most 120 stored months, newest first, retaining the existing latest-month endpoint. A client month selector changes values and their own metadata together; a single stored month is explicitly labelled and disables the selector.
+- **Why**: Separate national observed survey rates from role estimates, improve visual hierarchy and support real month selection without inventing historical observations or changing freshness dates. History requests read existing local storage only and preserve the dated frozen fallback on database failure.
+- **Validation**: Full gate passed (1,973 Python tests passed, 50 skipped; 120 web regressions passed), including stored-history bounds and per-month source/date preservation. Production build passed. Browser testing caught the month label including its option text; added an explicit accessible label and associated single-month help, then reran lint, TypeScript, the month-selection regression, production build and desktop/mobile browser checks successfully. Reviewed light/dark tile, fallback-pill and footer screenshots.
+- **Affects**: Trends labour reader/router and generated contracts; individual/organisation radar and dashboard; English/Malay/Chinese labels. No database migration, data ingestion, model or scoring changes.
+- **Replaces**: none; supersedes the disclosure-only labour card presentation
+- **PR / branch**: feat/trends-radar-lists
 
 ---
 
