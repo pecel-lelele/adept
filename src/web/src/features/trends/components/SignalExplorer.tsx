@@ -10,6 +10,14 @@ import { useBusy } from "@/components/useBusy";
 
 const DIRS = ["all", "rising", "stable", "declining"] as const;
 type Dir = (typeof DIRS)[number];
+const PAGE_SIZE = 10;
+
+/** Keep a bounded, stable page without fetching or rebuilding the selected snapshot. */
+export function pageItems<T>(items: T[], requested: number): { items: T[]; page: number; pages: number } {
+  const pages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
+  const page = Math.min(Math.max(1, requested), pages);
+  return { items: items.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE), page, pages };
+}
 
 /** Every tracked skill: search, filter by direction, switch snapshot; each row opens its evidence. */
 export function SignalExplorer({
@@ -29,6 +37,7 @@ export function SignalExplorer({
   const params = useSearchParams();
   const [search, setSearch] = useState("");
   const [direction, setDirection] = useState<Dir>("all");
+  const [requestedPage, setRequestedPage] = useState(1);
   const [pending, startTransition] = useTransition();
   useBusy(pending);
   const key = scenario === "fast" ? "direction_fast" : "direction_moderate";
@@ -39,17 +48,18 @@ export function SignalExplorer({
     .filter((i) => i.skill_label.toLowerCase().includes(search.trim().toLowerCase()))
     .filter((i) => direction === "all" || i[key] === direction)
     .sort((a, b) => b[velocity] - a[velocity]);
+  const { items: pageRows, page, pages } = pageItems(visible, requestedPage);
 
   return (
     <div className="a-explorer" aria-busy={pending}>
       <div className="a-explorer-tools">
         <label className="a-search">
           <Search size={15} aria-hidden />
-          <input aria-label={t("search")} placeholder={t("search")} value={search} onChange={(e) => setSearch(e.target.value)} />
+          <input aria-label={t("search")} placeholder={t("search")} value={search} onChange={(e) => { setSearch(e.target.value); setRequestedPage(1); }} />
         </label>
         <div className="a-filterseg" role="radiogroup" aria-label={t("filters")}>
           {DIRS.map((d) => (
-            <button key={d} type="button" role="radio" aria-checked={direction === d} onClick={() => setDirection(d)}>
+            <button key={d} type="button" role="radio" aria-checked={direction === d} onClick={() => { setDirection(d); setRequestedPage(1); }}>
               {d === "all" ? t("all") : t(d)} <span>{count(d)}</span>
             </button>
           ))}
@@ -84,7 +94,7 @@ export function SignalExplorer({
           <span role="columnheader">{tp("colSignal")}</span>
           <span role="columnheader">{tp("colExposure")}</span>
         </div>
-        {visible.map((i) => {
+        {pageRows.map((i) => {
           const v = i[velocity];
           const dir = i[key];
           return (
@@ -99,12 +109,14 @@ export function SignalExplorer({
                   </span>
                 </span>
                 <span role="cell" className="a-signal">
+                  <span className="a-mobile-metric-label">{tp("colSignal")}</span>
                   <span className="a-signal-track" aria-hidden>
                     <i data-dir={dir} data-side={v < 0 ? "left" : "right"} style={{ width: `${Math.max(2, (Math.abs(v) / top) * 50)}%` }} />
                   </span>
                   <b>{`${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toFixed(2)}`}</b>
                 </span>
                 <span role="cell" className="a-row-num">
+                  <span className="a-mobile-metric-label">{tp("colExposure")}</span>
                   {i.automation_exposure.toFixed(2)}
                 </span>
               </summary>
@@ -114,6 +126,15 @@ export function SignalExplorer({
         })}
         {!visible.length ? <p className="a-row-empty">{tp("noMatch")}</p> : null}
       </div>
+      {pages > 1 ? (
+        <nav className="a-list-pager" aria-label={tp("allSkills")}>
+          <button type="button" className="a-btn is-ghost is-small" disabled={page === 1}
+            onClick={() => setRequestedPage(page - 1)}>{tp("previousPage")}</button>
+          <span role="status" aria-live="polite">{tp("pageOf", { page, pages })}</span>
+          <button type="button" className="a-btn is-ghost is-small" disabled={page === pages}
+            onClick={() => setRequestedPage(page + 1)}>{tp("nextPage")}</button>
+        </nav>
+      ) : null}
     </div>
   );
 }

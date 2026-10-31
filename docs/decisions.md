@@ -912,6 +912,17 @@
 - **Replaces**: none; refines M1-025 radar UI
 - **PR / branch**: fix/core-dashboard-clarity
 
+
+### M1-035: Page the radar's tracked skills without extra network reads
+- **Date**: 2026-10-31
+- **Feature**: F2 (Radar UI)
+- **Type**: UI
+- **Change**: Keep the dated, sorted radar result in memory and render ten rows per page with immediate previous/next feedback; reset to page one after search or direction changes and remount on a new snapshot/scenario. Give signal and exposure values visible mobile labels when desktop column headers disappear.
+- **Why**: Rendering every catalogue skill as one scrolling list buried the next action and left mobile numeric values unexplained. Client-side paging changes no score or attribution and needs no additional model/API request.
+- **Affects**: individual and organisation radar explorers; no data schema, recommendation formula or provider change
+- **Replaces**: none; refines M1-019/M1-025 radar presentation
+- **PR / branch**: fix/trends-radar-paging
+
 ---
 
 ## M2: Profile Intake & Matching (F1, F4)

@@ -1683,9 +1683,16 @@ html[data-navigating="true"] .a-pace-busy { display: block; color: var(--a-up); 
 .a-shell .a-signal-track i[data-dir="rising"] { background: var(--a-up); }
 .a-shell .a-signal-track i[data-dir="declining"] { background: var(--a-down); }
 .a-shell .a-row-empty { margin: 0; padding: 18px 8px; font-size: 13px; color: var(--a-muted); }
+.a-mobile-metric-label { display: none; }
+.a-list-pager { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; margin-top: 16px; }
+.a-list-pager > span { min-width: 95px; text-align: center; color: var(--a-muted); font-size: 12.5px; font-variant-numeric: tabular-nums; }
 @media (max-width: 760px) {
+  .a-shell .a-row > summary .a-signal, .a-shell .a-row > summary .a-row-num { position: relative; min-width: 0; padding-top: 30px; }
+  .a-shell .a-mobile-metric-label { display: block; position: absolute; top: 0; left: 0; max-width: 100%; color: var(--a-muted); font-size: 11.5px; line-height: 1.2; font-weight: 500; overflow-wrap: anywhere; }
+  .a-shell .a-row-num .a-mobile-metric-label { left: auto; right: 0; text-align: right; }
+
   .a-shell .a-rows-head { display: none; }
-  .a-shell .a-row > summary { grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; }
+  .a-shell .a-row > summary { grid-template-columns: minmax(0, 1fr) minmax(86px, 105px); gap: 8px 12px; }
   .a-shell .a-explorer-tools > * { flex: 1 1 100%; }
   .a-shell .a-filterseg { justify-content: space-between; }
   .a-shell .a-filterseg button { flex: 1; justify-content: center; padding: 0 6px; }

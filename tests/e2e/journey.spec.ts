@@ -32,6 +32,18 @@ test("synthetic CV reaches radar, an explained match and a saved sourced plan", 
   await expect(page.locator(".a-range-editor input[name=from]")).toBeHidden();
   await adjust.click();
   await expect(page.locator(".a-range-editor input[name=from]")).toBeVisible();
+  const radarRows = page.locator(".a-explorer .a-row");
+  await expect(radarRows).toHaveCount(10);
+  const pager = page.locator(".a-explorer .a-list-pager");
+  await pager.getByRole("button", { name: "Next" }).click();
+  await expect(pager.getByRole("status")).toContainText("Page 2", { timeout: 5000 });
+  await expect(radarRows).toHaveCount(10);
+  await pager.getByRole("button", { name: "Previous" }).click();
+  await expect(pager.getByRole("status")).toContainText("Page 1", { timeout: 5000 });
+  if (test.info().project.name === "mobile") {
+    await expect(page.locator(".a-explorer .a-mobile-metric-label").first()).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBeTruthy();
+  }
   await page.goto("/app");
   await expect(page.locator(".a-welcome-main [data-source=trends]")).toBeVisible();
   await expect(page.locator(".a-view > [data-source=trends]")).toHaveCount(0);

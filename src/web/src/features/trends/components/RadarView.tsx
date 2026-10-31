@@ -175,7 +175,7 @@ export async function RadarView({
         <div className="a-card-head">
           <h2 id="h-all">{tp("allSkills")}</h2>
         </div>
-        <SignalExplorer items={items} scenario={scenario} dates={meta.available_snapshots} />
+        <SignalExplorer key={`${scenario}:${meta.snapshot_date}`} items={items} scenario={scenario} dates={meta.available_snapshots} />
       </section>
       {meta.data_provenance_note ? <p className="a-small a-muted">{meta.data_provenance_note}</p> : null}
     </div>
