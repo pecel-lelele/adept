@@ -134,8 +134,10 @@ class TestSnapshotEndpoint:
         assert "error" in data
         assert data["error"]["code"] == "not_found"
 
-    def test_unheld_date_during_an_outage_returns_503(self, client: TestClient) -> None:
-        """N5: the test database is unreachable, so an unheld replay date is unavailable."""
+    def test_unheld_date_during_an_outage_returns_503(
+        self, client: TestClient, unavailable_trend_database: None
+    ) -> None:
+        """N5: explicitly simulate an outage; do not depend on the integration DB being absent."""
         resp = client.get("/api/v1/trends/snapshot?snapshot_date=1999-01-01")
         assert resp.status_code == 503
         assert resp.json()["error"]["code"] == "trend_unavailable"

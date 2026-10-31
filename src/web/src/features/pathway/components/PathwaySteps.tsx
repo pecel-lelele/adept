@@ -1,4 +1,4 @@
-import { ArrowUpRight, BookOpen, Check, Clock3 } from "lucide-react";
+import { ArrowUpRight, BookOpen, Clock3 } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
 import { SdgBadge } from "@/components";

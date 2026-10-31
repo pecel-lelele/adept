@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 
@@ -33,13 +33,7 @@ export function MarkDoneFlow({ action, fields }: Props) {
     return res;
   }, {});
 
-  useEffect(() => {
-    if (state.done && !pending) {
-      setShowForm(false);
-    }
-  }, [state.done, pending]);
-
-  if (state.done && !showForm) {
+  if (state.done && !pending) {
     return (
       <span aria-live="polite" className="a-form-msg">
         <span className="a-ok">{t("evidence.sent")}</span>

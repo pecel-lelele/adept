@@ -501,6 +501,16 @@
 - **Replaces**: none (extends TEAM-042/TEAM-043 and M1-015)
 - **PR / branch**: integ/refresh-provenance (PR #73 + PR #75)
 
+### TEAM-046: Run database regressions without silent integration skips
+- **Date**: 2026-10-31
+- **Feature**: Core / all
+- **Type**: method
+- **Change**: Add an explicit local PostgreSQL test runner that creates two disposable databases on an existing server, migrates/seeds only its new primary database, disables paid providers, rejects remaining skips and cleans up only verified created database identities. Use it in the database CI job and include previously omitted refresh and workspace-integrity regressions; document the offline suite's intentional database skips. Two trend unit tests now explicitly simulate their intended database outage instead of assuming every test run has no reachable database; their assertions remain unchanged.
+- **Why**: All 50 skips in the offline baseline were unmet PostgreSQL prerequisites. Preserve the safe opt-in boundary while making real persistence, lease, provenance and RLS coverage repeatable and visible rather than removing skip guards or borrowing application data.
+- **Affects**: Test tooling, database CI, testing documentation and the existing test-admin environment example; no application API, scoring, schema, dependency or container changes.
+- **Replaces**: none (extends M4-081 database verification coverage)
+- **PR / branch**: fix-ui-flaws2
+
 ---
 
 ## M1: Trends & Scenarios (F2, F3)
@@ -1615,6 +1625,16 @@
 - **Affects**: F1/F4 matching boundary, F5 evidence/history, F6 contribution UI, F7 team gaps and generated contracts; migration `20261031140000_evidence_link_submitted.sql` widens the `course_evidence.link_status` check to allow `submitted` (down maps it back to `provider_verified`); no provider change
 - **Replaces**: automatic certificate-link trust in M3-022; prior decisions remain historical
 - **PR / branch**: fix/core-privacy-and-trust / Fixes #81, Fixes #83
+
+### M3-045: Derive progress success and subscribe to queued toast feedback
+- **Date**: 2026-10-31
+- **Feature**: F5 (Pathway progress)
+- **Type**: UI
+- **Change**: Render the successful evidence form result directly from action state and use useSyncExternalStore for session-backed progress notifications, with an empty server snapshot, event subscription, timed dismissal and memory fallback when storage is unavailable. Remove the unused Check icon import.
+- **Why**: Frontend CI rejected synchronous state updates in effects. Avoid derived-state effects while preserving queued feedback across revalidation and keeping failed submissions editable.
+- **Affects**: MarkDoneFlow, ProgressToast, PathwaySteps and progress-feedback regressions; no API, schema, dependency, scoring or provider change.
+- **Replaces**: none
+- **PR / branch**: fix-ui-flaws2
 
 ---
 
