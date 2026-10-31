@@ -349,8 +349,9 @@
 .a-results button:hover, .a-results button:focus-visible { background: var(--a-soft); }
 .a-results small { color: var(--a-muted); font-size: 11px; white-space: nowrap; }
 @media (max-width: 520px) { .a-results small { display: none; } }
-.a-drop { display: grid; justify-items: center; gap: 8px; padding: 22px; border: 1.5px dashed var(--a-line); border-radius: 16px; text-align: center; font-size: 13px; color: var(--a-muted); cursor: pointer; background: var(--a-surface); }
+.a-drop { display: grid; justify-items: center; gap: 8px; padding: 22px; border: 1.5px dashed var(--a-line); border-radius: 16px; text-align: center; font-size: 13px; color: var(--a-muted); cursor: pointer; background: var(--a-surface); transition: border-color var(--a-fast), background var(--a-fast); }
 .a-drop:hover { border-color: #84c88d; color: var(--a-ink); background: #f9fcf8; }
+.a-drop[data-drag="true"] { border-color: #84c88d; background: #f3faf0; color: var(--a-ink); }
 @media (max-width: 520px) { .a-skillrow { grid-template-columns: minmax(0, 1fr) auto; } .a-skillrow .a-levels { grid-column: 1 / -1; } }
 
 /* ---------- 3D scenes (CSS only, looping; paused for reduced motion) ---------- */
@@ -1075,7 +1076,7 @@ html[data-locale-switching] .a-page, html[data-locale-switching] .a-shell { opac
 
 /* "AI pace" switch: top right of the pages it changes */
 .a-pagebar { display: flex; justify-content: flex-end; width: 100%; max-width: 1320px; padding: 22px clamp(24px, 3.4vw, 48px) 0; margin-bottom: -22px; position: relative; z-index: 2; }
-.a-pace { display: inline-flex; align-items: center; gap: 10px; padding: 4px 4px 4px 12px; border: 1px solid var(--a-line); border-radius: 999px; background: var(--a-surface); box-shadow: 0 2px 6px #1e35250a; }
+.a-pace { display: inline-flex; align-items: center; gap: 10px; padding: 4px 4px 4px 12px; border: 1px solid var(--a-line); border-radius: 999px; background: var(--a-surface); box-shadow: 0 2px 6px #1e35250a; width: fit-content; justify-self: end; }
 .a-pace[aria-busy="true"] { opacity: .65; }
 .a-pace[aria-busy="true"] .a-pace-seg button { cursor: progress; }
 /* Scenario switch: keep the old page visible but clearly busy until the new one arrives. */
@@ -1126,6 +1127,14 @@ html[data-navigating="true"] .a-pace-busy { display: block; color: var(--a-up); 
 .a-step-item { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 16px; align-items: start; position: relative; }
 .a-step-num { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--a-surface); border: 1px solid var(--a-line); font-family: var(--a-mono); font-size: 12px; color: var(--a-up); position: relative; z-index: 1; }
 .a-step-item:first-child .a-step-num { background: var(--a-accent); border-color: var(--a-accent-edge); color: var(--a-accent-ink); }
+/* Step node states driven by derived completion data */
+.a-step-item[data-state="done"] .a-step-num { background: var(--a-accent); border-color: var(--a-accent-edge); color: var(--a-accent-ink); }
+.a-step-item[data-state="current"] .a-step-num { background: var(--a-accent); border-color: var(--a-accent-edge); color: var(--a-accent-ink); }
+/* toast notification */
+.a-toast { position: fixed; bottom: 24px; right: 24px; z-index: 9999; background: var(--a-accent); color: var(--a-accent-ink); padding: 12px 20px; border-radius: 10px; font-size: 14px; font-weight: 500; box-shadow: 0 4px 20px rgba(0,0,0,.15); pointer-events: none; animation: a-toast-in 240ms var(--a-ease) both; }
+@keyframes a-toast-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+/* mark-done proof form wrapper */
+.a-mark-done-flow { display: contents; }
 .a-step-card { display: grid; gap: 14px; }
 .a-step-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .a-step-head h2 { margin: 6px 0 0; font-size: 20px; }
@@ -1201,6 +1210,243 @@ html[data-navigating="true"] .a-pace-busy { display: block; color: var(--a-up); 
 .a-links li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; padding: 14px 0; border-top: 1px solid var(--a-line); }
 .a-links p { margin: 0; font-size: 13.5px; line-height: 1.6; }
 .a-links small { font-size: 11.5px; color: var(--a-muted); }
+
+/* ── SDG flip-card grid ─────────────────────────────────────────────────── */
+.a-sdg-cardgrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+}
+@media (min-width: 768px) {
+  .a-sdg-cardgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 1280px) {
+  .a-sdg-cardgrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* Outer wrapper: fixed height + perspective for 3D */
+.a-sdg-flipwrap {
+  height: 288px;
+  perspective: 1000px;
+  cursor: pointer;
+}
+
+/* Inner container that rotates */
+.a-sdg-flipinner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 560ms cubic-bezier(.4,0,.2,1);
+}
+.a-sdg-flipwrap:hover .a-sdg-flipinner,
+.a-sdg-flipwrap:focus-within .a-sdg-flipinner {
+  transform: rotateY(180deg);
+}
+
+/* Shared face rules */
+.a-sdg-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  overflow: hidden;
+  border: 1px solid rgba(0,0,0,.07);
+}
+
+/* ── FRONT FACE ── */
+.a-sdg-front {
+  background: var(--a-surface);
+  box-shadow: 0 2px 8px #1e35250a;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  transition: box-shadow var(--a-fast);
+}
+.a-sdg-flipwrap:hover .a-sdg-front { box-shadow: 0 12px 32px #1e352520; }
+
+.a-sdg-face-badge {
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  box-shadow: inset 0 -8px 14px #0000001a, 0 4px 12px #0000001a;
+  flex-shrink: 0;
+}
+.a-sdg-face-label {
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .4px;
+  text-transform: uppercase;
+  text-align: center;
+  line-height: 1.3;
+}
+
+.a-sdg-face-reason {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--a-ink);
+  flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.a-sdg-face-pills {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: auto;
+}
+.a-sdg-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.a-sdg-pill-via { background: #f0f4ef; color: #4a6349; }
+.a-sdg-pill-draft { background: #fef3c7; color: #92400e; }
+
+/* ── BACK FACE ── */
+.a-sdg-back {
+  background: #18231c;
+  color: #e8ede7;
+  transform: rotateY(180deg);
+  display: flex;
+  flex-direction: column;
+  padding: 18px 20px 16px;
+  gap: 10px;
+}
+
+.a-sdg-back-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-left: 10px;
+  border-left: 3px solid currentColor;
+  flex-shrink: 0;
+}
+.a-sdg-back-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 6px;
+  font-size: 10.5px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: .3px;
+}
+.a-sdg-back-strength {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: #9db89a;
+}
+
+/* Scrollable evidence area */
+.a-sdg-back-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #3d5240 transparent;
+  padding-right: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.a-sdg-back-scroll::-webkit-scrollbar { width: 4px; }
+.a-sdg-back-scroll::-webkit-scrollbar-track { background: transparent; }
+.a-sdg-back-scroll::-webkit-scrollbar-thumb { background: #3d5240; border-radius: 4px; }
+
+.a-sdg-back-evlabel {
+  margin: 0;
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  color: #6b9168;
+  flex-shrink: 0;
+}
+.a-sdg-back-evtext {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: #c8d8c6;
+}
+.a-sdg-back-target-label {
+  margin: 0 0 2px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.45;
+  color: #e8ede7;
+}
+.a-sdg-back-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+}
+
+.a-sdg-back-src {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #6dbe72;
+  text-decoration: none;
+  flex-shrink: 0;
+  transition: color var(--a-fast);
+}
+.a-sdg-back-src:hover { color: #9dda9f; }
+
+.a-sdg-back-noev {
+  margin: 0;
+  font-size: 12px;
+  color: #6b9168;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .a-sdg-flipinner {
+    transition: none !important;
+  }
+  .a-sdg-flipwrap:hover .a-sdg-flipinner,
+  .a-sdg-flipwrap:focus-within .a-sdg-flipinner {
+    transform: none !important;
+  }
+  .a-sdg-flipwrap:hover .a-sdg-front,
+  .a-sdg-flipwrap:focus-within .a-sdg-front {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .a-sdg-flipwrap:hover .a-sdg-back,
+  .a-sdg-flipwrap:focus-within .a-sdg-back {
+    transform: none !important;
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .a-sdg-back {
+    transform: none !important;
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+/* ── end SDG flip-card grid ─────────────────────────────────────────────── */
 .a-scopes { display: flex; flex-wrap: wrap; gap: 8px; }
 .a-scopes a { padding: 8px 14px; border-radius: 999px; border: 1px solid var(--a-line); background: var(--a-surface); font-size: 12.5px; transition: background var(--a-fast); }
 .a-scopes a:hover { background: #f4f8f3; }
@@ -1835,6 +2081,7 @@ html { scrollbar-gutter: stable; }
 /* Back-to-home link inside the auth card (auth pages only). */
 .a-auth-back { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 500; color: var(--a-muted); text-decoration: none; padding: 2px 0; margin-bottom: 12px; width: fit-content; transition: color var(--a-fast); }
 .a-auth-back:hover { color: var(--a-ink); }
+.a-side .a-auth-back { padding: 2px 12px; margin-bottom: 0; }
 .a-tabswitch { position: relative; isolation: isolate; }
 .a-tabswitch::before { content: ""; position: absolute; z-index: -1; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 4px); border-radius: 11px; background: var(--a-surface); box-shadow: 0 1px 4px #0000001a; transition: transform 360ms var(--a-ease); }
 .a-tabswitch[data-active="signup"]::before { transform: translateX(100%); }
@@ -1933,7 +2180,7 @@ html[data-busy] .a-main::after { content: ""; }
 /* Create account is the long form: it keeps the compact layout that fits one frame, so the
    subtitle, extra top space and trust row only appear on Sign in (where there is room). */
 .a-authpage .a-auth-card[data-page="signup"] { grid-template-rows: auto minmax(0, 1fr); }
-.a-authpage .a-auth-card[data-page="signup"] .a-auth-body { align-content: center; padding-top: 0; }
+.a-authpage .a-auth-card[data-page="signup"] .a-auth-body { align-content: start; padding-top: clamp(8px, 2vh, 20px); }
 .a-authpage .a-auth-card[data-page="signup"] .a-auth-head p,
 .a-authpage .a-auth-card[data-page="signup"] .a-auth-trust { display: none; }
 
@@ -1942,7 +2189,7 @@ html[data-busy] .a-main::after { content: ""; }
 @media (min-width: 861px) {
   .a-authpage .a-auth { --auth-h: clamp(620px, calc(100dvh - 110px), 800px); }
   .a-authpage .a-auth > .a-auth-card, .a-authpage .a-auth-art { height: var(--auth-h); min-height: 0; }
-  .a-authpage .a-auth-body { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; padding-right: 2px; }
+  .a-authpage .a-auth-body { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; padding-left: 2px; padding-right: 2px; }
 }
 /* Team-only signup flow (role=team) has no title so content fits naturally — no scroll needed.
    Using overflow: visible also un-clips the box-shadow on the selected choice button. */
@@ -1952,11 +2199,11 @@ html[data-busy] .a-main::after { content: ""; }
   /* Single choice in the grid — span both columns so the button isn't marooned at half-width. */
   .a-authpage[data-role-team] .a-auth-form .a-choice-grid { grid-template-columns: minmax(0, 1fr); }
 }
-/* Signup pages show no visible title (a hidden heading names the form), so it fits without scroll.
-   overflow: visible also un-clips the box-shadow border on the selected choice button. */
+/* Signup card stretches to the same fixed height as the art panel so the bottom borders align.
+   The form body scrolls when the viewport is too short to show all inputs. */
 @media (min-width: 861px) {
-  .a-authpage .a-auth-card[data-page="signup"] { height: auto; }
-  .a-authpage .a-auth-card[data-page="signup"] .a-auth-body { overflow: visible; scrollbar-width: auto; padding-right: 0; }
+  .a-authpage .a-auth-card[data-page="signup"] { height: var(--auth-h); }
+  .a-authpage .a-auth-card[data-page="signup"] .a-auth-body { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; padding-left: 2px; padding-right: 2px; }
 }
 
 /* Grouped sections inside a page (e.g. Ready now / Worth exploring). */

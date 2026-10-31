@@ -426,7 +426,8 @@
       "fuzzy": "Ejaan serupa",
       "semantic": "Makna serupa"
     },
-    "saving": "Menyimpan…"
+    "saving": "Menyimpan…",
+    "uploadTypeError": "Gunakan fail PDF, Word (.docx) atau teks di bawah 5 MB."
   },
   "home": {
     "hello": "Hai {name}",

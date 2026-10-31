@@ -426,7 +426,8 @@
       "fuzzy": "Similar spelling",
       "semantic": "Similar meaning"
     },
-    "saving": "Saving…"
+    "saving": "Saving…",
+    "uploadTypeError": "Use a PDF, Word (.docx) or text file under 5 MB."
   },
   "home": {
     "hello": "Hi {name}",

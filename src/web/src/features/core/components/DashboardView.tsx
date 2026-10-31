@@ -102,7 +102,15 @@ export async function DashboardView({ scenario, query, workspaceError = false }:
     .slice(0, 7);
 
   const isDone = (s: { courses: { id: string }[] }) =>
-    Boolean(p && s.courses.length > 0 && s.courses.every((c) => p.course_status[c.id] === "completed"));
+    Boolean(
+      p &&
+        s.courses.length > 0 &&
+        s.courses.every(
+          (c) =>
+            p.course_status[c.id] === "completed" ||
+            (p.workspace === "personal" && Boolean(p.completed_elsewhere?.[c.id])),
+        ),
+    );
   const steps: TrackStep[] = saved
     ? saved.pathway.steps.slice(0, 6).map((s, i, all) => ({
         id: s.skill_id,
