@@ -27,7 +27,6 @@ PAGES: dict[str, str] = {
     "/app/radar": "Future Skills Radar",
     "/app/matches": "Matched roles",
     "/app/pathway": "Learning plan",
-    "/app/pathway/compare": "Compare roles",
     "/app/progress": "Progress and badges",
     "/app/courses": "Course catalogue",
     "/app/jobs": "Job openings",

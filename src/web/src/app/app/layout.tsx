@@ -23,8 +23,10 @@ export default async function Layout({ children }: { children: ReactNode }) {
     getWorkspaces(),
   ]);
   const doneSteps = !account.has_profile ? [] : status?.ok && status.data.saved ? [1, 2, 3] : [1];
+  // Only lock on a known answer. If the check failed, the page itself reports the error.
+  const roleChosen = status && !status.ok ? true : Boolean(status?.data.saved);
   return (
-    <Shell ws={learnerWorkspace} account={account} doneSteps={doneSteps} workspaces={workspaces} current={PERSONAL}>
+    <Shell ws={learnerWorkspace} account={account} doneSteps={doneSteps} roleChosen={roleChosen} workspaces={workspaces} current={PERSONAL}>
       {children}
     </Shell>
   );

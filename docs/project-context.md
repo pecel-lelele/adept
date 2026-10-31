@@ -142,7 +142,7 @@ Scenario toggle, source labels and "estimate" labels appear in steps 2–4.
 /app/profile        step 1 result: my skills, organisation
 /app/radar          step 2
 /app/matches        step 3 (+ /app/matches/[roleId])
-/app/pathway        step 4 (+ /app/pathway/compare, /app/progress, /app/courses, /app/sdg)
+/app/pathway        step 4 (+ /app/progress, /app/courses, /app/sdg)
 /org                organisation home: invite → waiting → act
 /org/members        join code, intake status, remove members
 /org/radar          step 2 (organisation context)

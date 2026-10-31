@@ -83,7 +83,7 @@
     "myWork": "My organisation",
     "programmes": "Programmes",
     "jobs": "Jobs",
-    "compare": "Compare roles & scenarios"
+    "chooseRoleFirst": "Choose a target role first."
   },
   "shell": {
     "disclaimer": "Projections are estimates from public data. You stay in charge: Adept never makes hiring decisions.",
@@ -477,7 +477,6 @@
     "replan": "New trend data changed your plan.",
     "review": "Review",
     "gaps": "{count, plural, =0 {No gaps} one {# gap} other {# gaps}}",
-    "compare": "Compare",
     "latest": "Latest snapshot",
     "progressErrorTitle": "We couldn’t load your progress",
     "progressErrorBody": "Your plan is saved. Open it to try again.",

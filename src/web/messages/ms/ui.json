@@ -83,7 +83,7 @@
     "myWork": "Organisasi saya",
     "programmes": "Program",
     "jobs": "Pekerjaan",
-    "compare": "Banding peranan & senario"
+    "chooseRoleFirst": "Pilih peranan sasaran dahulu."
   },
   "shell": {
     "disclaimer": "Unjuran ialah anggaran daripada data awam. Anda yang membuat keputusan: Adept tidak pernah membuat keputusan pengambilan pekerja.",
@@ -477,7 +477,6 @@
     "replan": "Data trend baharu mengubah pelan anda.",
     "review": "Semak",
     "gaps": "{count, plural, =0 {Tiada jurang} other {# jurang}}",
-    "compare": "Bandingkan",
     "latest": "Snapshot terkini",
     "progressErrorTitle": "Kami tidak dapat memuatkan kemajuan anda",
     "progressErrorBody": "Pelan anda telah disimpan. Bukanya untuk cuba lagi.",

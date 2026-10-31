@@ -6,7 +6,6 @@ import {
   CalendarRange,
   Check,
   Clock3,
-  GitCompareArrows,
   Hourglass,
   Leaf,
   Target,
@@ -26,6 +25,7 @@ import { acceptReplanAction, savePlanAction } from "../actions";
 import { fetchPathway, fetchPlanStatus } from "../api";
 import { ActionForm } from "./ActionForm";
 import { PathwaySteps } from "./PathwaySteps";
+import { PlanTotals } from "./PlanTotals";
 
 /** The plan's four numbers: how long, how many hours a week, hours in total, what it costs. */
 async function Summary({ plan }: { plan: Schemas["Pathway"] }) {
@@ -58,7 +58,6 @@ async function PlanAside({ plan, query }: { plan: Schemas["Pathway"]; query: str
     { to: `/app/progress${query}`, icon: <Target size={16} aria-hidden />, label: t("plan.progressLink") },
     { to: `/app/sdg${query}`, icon: <Leaf size={16} aria-hidden />, label: t("plan.sdgLink") },
     { to: `/app/courses${query}`, icon: <BookOpen size={16} aria-hidden />, label: t("catalogue.browse") },
-    { to: `/app/pathway/compare${query.replace("?role=", "?roles=")}`, icon: <GitCompareArrows size={16} aria-hidden />, label: t("compare.link") },
   ];
   return (
     <aside className="a-aside is-sticky">
@@ -203,6 +202,7 @@ export async function PathwayView({
       <div className="a-split is-wide">
         <div className="a-stack">
           <PathwaySteps steps={plan.steps} />
+          <PlanTotals plan={plan} />
           {(plan.unmet ?? []).length > 0 ? (
             <Fold title={t("unmet.title")} meta={t("unmet.count", { count: (plan.unmet ?? []).length })}>
               <ul className="a-jobs">

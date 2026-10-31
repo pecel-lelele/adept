@@ -1,4 +1,5 @@
-import { ArrowUpRight, Award, BookOpen, Building2, Check, Layers, ShieldCheck, Target } from "lucide-react";
+import { ArrowUpRight, Award, BookOpen, Building2, Check, Layers, Target } from "lucide-react";
+import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
 import { ErrorState, Kpis, MetaBar, PageHeader } from "@/components";
@@ -32,6 +33,8 @@ export async function ProgressView({
   const progress = await fetchProgress(roleId, scenario);
   if (!progress.ok) return <ErrorState failure={progress} />;
   const p = progress.data;
+  // Same rule the API applies to updates: a role in the URL does not start tracking it.
+  if (p.trackable === false) redirect(`/app/matches?scenario=${scenario}&choose_role=1`);
   const isWork = p.workspace !== "personal";
   const elsewhere = p.completed_elsewhere ?? {};
   const reviewed = Object.values(p.evidence ?? {}).filter((e) => e.kind === "org_confirmed").length;
@@ -61,7 +64,7 @@ export async function ProgressView({
       >
         {isWork ? (
           <span className="a-chip a-workchip">
-            <Building2 size={13} aria-hidden /> {tw("fundedLabel", { org: orgName ?? "" })}
+            <Building2 size={13} aria-hidden /> {tw("assignedByTeam", { org: orgName ?? "" })}
           </span>
         ) : null}
         <MetaBar meta={p.meta} />
@@ -75,7 +78,7 @@ export async function ProgressView({
             icon: <Target size={15} />,
             tone: p.percent_complete >= 1 ? "up" : undefined,
             note: (
-              <span className="a-kpi-bar" aria-hidden>
+              <span className="a-kpi-bar" role="progressbar" aria-label={tp("kComplete")} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(p.percent_complete * 100)}>
                 <i style={{ width: `${Math.round(p.percent_complete * 100)}%` }} />
               </span>
             ),
@@ -88,15 +91,18 @@ export async function ProgressView({
             note: tp("kHoursWeighted"),
           },
           {
+            label: t("progress.estimatedFit"),
+            value: `${Math.round((p.estimated_skill_fit ?? 0) * 100)}%`,
+            icon: <Target size={15} />,
+            note: t("progress.fitNote"),
+          },
+          {
             label: tp("kGapClosed"),
             value: p.gap_closed,
             unit: `/ ${p.gap_total}`,
             icon: <Layers size={15} />,
             note: tp("gapClosedNote"),
           },
-          isWork
-            ? { label: tw("kReviewed"), value: reviewed, icon: <ShieldCheck size={15} />, note: tw("kReviewedNote") }
-            : { label: tp("kBadges"), value: p.badges.length, icon: <Award size={15} />, note: tp("badgeNote") },
         ]}
       />
 
@@ -195,6 +201,7 @@ export async function ProgressView({
           </div>
           {isWork ? (
             <div className="a-card is-sage">
+              <p className="a-small">{tw("kReviewed")}: {reviewed}</p>
               <p className="a-small" style={{ margin: 0 }}>
                 {tw("privacyNote", { org: orgName ?? "" })}
               </p>

@@ -73,7 +73,9 @@
     "noBadges": "还没有徽章。完成一门课程即可获得第一枚。",
     "skills": "技能",
     "level": "水平 {current}/{target}",
-    "courses": "计划中的课程"
+    "courses": "计划中的课程",
+    "estimatedFit": "技能匹配度估计",
+    "fitNote": "包含自行申报的学习成果。更新岗位匹配评分需要证据。"
   },
   "actionFailed": "未保存：{message}",
   "saving": "正在保存…",
@@ -151,30 +153,6 @@
     "notePlaceholder": "给学员的备注（可选）",
     "confirm": "确认",
     "reject": "拒绝"
-  },
-  "compare": {
-    "link": "比较其他职位",
-    "title": "选择前先比较职位",
-    "description": "每个未来职位对你意味着什么：时间、费用、需补足的技能、趋势展望和SDG关联。由你决定，系统不会替你选择。",
-    "yourChoice": "你的选择",
-    "direction": {
-      "rising": "需求上升",
-      "stable": "需求稳定",
-      "declining": "需求下降",
-      "unknown": "无趋势数据"
-    },
-    "outOfPocket": "你需支付 RM {amount}",
-    "skillsToClose": "需补足 {count} 项技能",
-    "unmet": "{count} 项不在我们的课程目录中",
-    "coverage": "趋势数据覆盖该职位 {percent}% 的技能；其余按中性计算。",
-    "preview": "预览学习路径",
-    "choose": "选择此职位",
-    "snapshot": "趋势快照 {version}。",
-    "seeMatches": "查看你的匹配排名",
-    "humanInCharge": "此比较仅辅助你的决定，不会替你排序或选择职位。",
-    "emptyTitle": "目前没有可比较的职位",
-    "emptyHint": "返回匹配页面以选择目标职位。",
-    "useBestMatch": "使用我的最佳匹配"
   },
   "badge": {
     "first": "完成第一门课程",

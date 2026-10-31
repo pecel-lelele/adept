@@ -1,4 +1,4 @@
-import { ArrowRight, Circle, CircleCheck, CircleDashed, Leaf } from "lucide-react";
+import { Circle, CircleCheck, CircleDashed, Leaf } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
@@ -10,8 +10,11 @@ import { scoreColour } from "@/components/viz";
 import { RoleOpeningsCard } from "@/features/jobs";
 import { RoleOutlookPanel } from "@/features/scenarios/components/RoleOutlookPanel";
 import type { ScenarioId } from "@/lib/api";
+import { savePlanAction } from "@/features/pathway/actions";
+import { fetchPlanStatus } from "@/features/pathway/api";
+import { ActionForm } from "@/features/pathway/components/ActionForm";
 
-import { fetchMatch, fetchMatches } from "../api";
+import { fetchMatch } from "../api";
 import { componentLabels } from "./labels";
 import { MatchImprovements } from "./MatchImprovements";
 import { MatchSdgTargets } from "./MatchSdgTargets";
@@ -34,13 +37,13 @@ export async function MatchDetailView({
   sdgWeight?: number;
 }) {
   const t = await getTranslations("matching");
-  const th = await getTranslations("ui.home");
   const tp = await getTranslations("ui.page");
   const tsc = await getTranslations("scenarios");
-  const [result, list] = await Promise.all([
+  const [result, status] = await Promise.all([
     fetchMatch(roleId, scenario, snapshotDate, sdgWeight),
-    fetchMatches(scenario, snapshotDate, sdgWeight),
+    fetchPlanStatus(),
   ]);
+  const saved = status.ok ? status.data.saved : null;
   if (!result.ok) return (
     <div className="a-view">
       <PageHeader eyebrow={tp("stepOf", { step: 3, total: journeyStepCount() })} title={t("title")} description={t("description")}>
@@ -51,11 +54,6 @@ export async function MatchDetailView({
     </div>
   );
   const m = result.data;
-  // Compare this role with the next-best matches from the same ranking (three roles in total).
-  const compareRoles = [
-    m.role_id,
-    ...(list.ok ? list.data.matches.map((x) => x.role_id).filter((id) => id !== m.role_id) : []),
-  ].slice(0, 3);
   const pct = (m.score * 100).toFixed(1);
   const back =
     `/app/matches?scenario=${scenario}` +
@@ -69,12 +67,13 @@ export async function MatchDetailView({
         title={m.label}
         actions={
           <>
-            <Link className="a-btn is-ghost" href={`/app/pathway/compare?scenario=${scenario}&roles=${compareRoles.map(encodeURIComponent).join(",")}`}>
-              {th("compare")}
-            </Link>
-            <Link className="a-btn" href={`/app/pathway?role=${encodeURIComponent(m.role_id)}&scenario=${scenario}`}>
-              {t(snapshotDate ? "viewLatestPathway" : "viewPathway")} <ArrowRight size={16} aria-hidden />
-            </Link>
+            {saved?.role_id === m.role_id ? (
+              <Link className="a-btn" href={`/app/pathway?role=${encodeURIComponent(m.role_id)}&scenario=${saved.scenario}`}>
+                {t("currentTarget")} · {t("openPlan")}
+              </Link>
+            ) : (
+              <ActionForm action={savePlanAction} fields={{ role_id: m.role_id, scenario }} label={t("chooseRole")} />
+            )}
           </>
         }
       >

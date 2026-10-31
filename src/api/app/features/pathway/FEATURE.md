@@ -18,7 +18,7 @@ refreshed live by `sync.py` (`POST /pathway/catalogue/sync`, `python -m app.feat
 Endpoints: `GET /pathway`, `GET /pathway/catalogue` (filters: skill, format, audience,
 provider_type, hrd_claimable, max_cost_myr), `POST /pathway/plans`,
 `GET /pathway/plans/me` (re-plan check), `POST /pathway/plans/me/accept-replan`,
-`GET /pathway/compare` (compare target roles before choosing), `GET|POST /pathway/progress`, `POST /pathway/progress/evidence` (certificate link, checked by
+`GET|POST /pathway/progress`, `POST /pathway/progress/evidence` (certificate link, checked by
 `verification.py`), `GET|POST /pathway/verifications` (HR / advisor review of their own org's
 members; evidence in `course_evidence`). F7 uses `group_pathway` and `team_gaps`.
 Web: `/app/pathway`, `/app/progress`, `/app/courses`, `/org/plan`, `/org/courses`, `/org/verify`.
@@ -27,7 +27,7 @@ Current routes and flows: `docs/project-context.md` and `docs/solution-design.md
 Progress stores immutable course facts in `course_progress.course_snapshot`. Accepted course
 evidence across all target roles contributes to `service.evidenced_levels`; changing the saved
 target or retiring a course does not erase earned credit. `service.combined_levels` merges it
-with intake skills for matching, individual plans/comparisons/re-planning and team gaps/plans.
+with intake skills for matching, individual plans/re-planning and team gaps/plans.
 Undo and rejected evidence still revoke the corresponding credit. Migration `20261022220000`
 backfills existing records from the surviving saved plan, or otherwise the current catalogue.
 
@@ -43,10 +43,8 @@ choosing the default target.
 | Port | Who calls it | What it gives |
 |---|---|---|
 | `trend_port.current(scenario, snapshot_date=None)` | F5, F6, F8 internally | M1's snapshot (in process, 3 s timeout, 60 s back-off) or the seed fallback; `growth`, sources, `available_dates`, `uncovered()` |
-| `GET /pathway/compare?role_ids=&scenario=&snapshot_date=` | web `/app/pathway/compare`; M2 matches page should link here | weeks, cost, skills to close, trend outlook + coverage, F6 SDG targets per role; never ranks |
 | `GET /pathway?snapshot_date=` | M1 trend replay | the plan on an older M1 snapshot |
 | `service.skills_gap(levels, role_id)` | M2 matching, M4 heatmap | have / partial / missing by `required_level` (one gap rule for the app) |
-| `service.role_trend(reqs, trend)` | M2 if it wants the same role outlook | importance-weighted velocity and coverage |
 
 Still waiting on others: M1 `connect_timeout` in `trends/repository.resolve_context` (it can hang);
 M1 skill IDs for `excel`, `rpa`, `sql` (shown as "no trend data"); M2 matching to use the saved
@@ -114,3 +112,24 @@ Hours per week set the weeks; budget filters paid courses; learning style prefer
 formats within budget (classroom → taught formats, video/reading → self-paced). A saved plan
 proposes `schedule_changed` / `cost_changed` re-plans when these settings change.
 Measure with `.claude/toolbox/onboarding_effects.py` (production code, seed data).
+
+## Target choice and learning estimate (TEAM-049)
+
+Personal Plan and Progress remain locked until an explicit saved role choice. Role cards and
+details save the existing `SavedPlan.role_id` and open Plan; no separate target column is
+needed. Links with only a `role` query do not unlock these screens. Progress reuses the last
+archived plan for a previously chosen role/scenario, retaining its course facts and progress.
+
+`Progress.estimated_skill_fit` uses F4's production importance-weighted skill overlap,
+including self-reported completed courses and excluding rejected evidence. It is a learning
+estimate, separate from the composite matching score. Self-ticking never bypasses the
+evidence gate for actual matching. Estimates start from the saved plan's skill baseline.
+Employer estimates add only that organisation's learning records; personal estimates can use
+all of the person's learning.
+Shared Plan/Progress actions retain workspace-bound writes and display catalogue costs,
+weeks, sources and HRD flags without implying grant approval.
+
+The server enforces the role lock on writes: `POST` progress and evidence return 409
+`role_required` for a personal role that is not the saved target, in plan history, backed by
+learning records, or an accepted programme route. `GET /pathway/progress` stays a read-only
+preview and reports the same rule in `Progress.trackable`, so the web can redirect to Roles.

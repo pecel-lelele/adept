@@ -83,7 +83,7 @@
     "myWork": "我的组织",
     "programmes": "项目",
     "jobs": "职位",
-    "compare": "比较岗位与情景"
+    "chooseRoleFirst": "请先选择目标岗位。"
   },
   "shell": {
     "disclaimer": "预测是基于公开数据的估计。决定权在你：Adept 从不做招聘决定。",
@@ -477,7 +477,6 @@
     "replan": "新的趋势数据改变了你的计划。",
     "review": "查看",
     "gaps": "{count, plural, =0 {无差距} other {# 个差距}}",
-    "compare": "比较",
     "latest": "最新快照",
     "progressErrorTitle": "暂时无法加载你的进度",
     "progressErrorBody": "你的计划已保存。打开它再试一次。",

@@ -49,5 +49,9 @@
   "scenarioRankDelta": "{movement} vs {scenario} · estimate",
   "otherScenarioScore": "other score {score}% (estimate)",
   "otherScenarioRank": "other rank {rank}",
-  "newRank": "→ rank {rank} (estimate)"
+  "newRank": "→ rank {rank} (estimate)",
+  "chooseRole": "Choose this role",
+  "chooseRoleFirst": "Choose a target role first.",
+  "currentTarget": "Your target role",
+  "openPlan": "Open plan"
 }

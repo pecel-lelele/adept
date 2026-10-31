@@ -73,7 +73,9 @@
     "noBadges": "Belum ada lencana. Selesaikan satu kursus untuk lencana pertama.",
     "skills": "Kemahiran",
     "level": "Tahap {current} daripada {target}",
-    "courses": "Kursus dalam pelan anda"
+    "courses": "Kursus dalam pelan anda",
+    "estimatedFit": "Anggaran padanan kemahiran",
+    "fitNote": "Termasuk pembelajaran yang dilaporkan sendiri. Bukti diperlukan untuk mengemas kini padanan peranan."
   },
   "actionFailed": "Tidak disimpan: {message}",
   "saving": "Menyimpan…",
@@ -151,30 +153,6 @@
     "notePlaceholder": "Nota pilihan kepada pelajar",
     "confirm": "Sahkan",
     "reject": "Tolak"
-  },
-  "compare": {
-    "link": "Bandingkan peranan lain",
-    "title": "Bandingkan peranan sebelum anda memilih",
-    "description": "Apa yang diperlukan oleh setiap peranan masa depan untuk anda: masa, kos, kemahiran yang perlu dicapai, unjuran trend dan pautan SDG. Anda yang membuat keputusan; tiada apa dipilih untuk anda.",
-    "yourChoice": "Pilihan anda",
-    "direction": {
-      "rising": "Permintaan meningkat",
-      "stable": "Permintaan stabil",
-      "declining": "Permintaan menurun",
-      "unknown": "Tiada data trend"
-    },
-    "outOfPocket": "anda bayar RM {amount}",
-    "skillsToClose": "{count} kemahiran perlu dicapai",
-    "unmet": "{count} tidak diliputi katalog kami",
-    "coverage": "Data trend meliputi {percent}% kemahiran peranan ini; selebihnya dikira neutral.",
-    "preview": "Pratonton laluan",
-    "choose": "Pilih peranan ini",
-    "snapshot": "Petikan trend {version}.",
-    "seeMatches": "Lihat padanan anda mengikut kedudukan",
-    "humanInCharge": "Perbandingan ini menyokong keputusan anda; ia tidak menyusun atau memilih peranan untuk anda.",
-    "emptyTitle": "Belum ada peranan untuk dibandingkan",
-    "emptyHint": "Kembali ke padanan untuk memilih peranan sasaran.",
-    "useBestMatch": "Guna padanan terbaik saya"
   },
   "badge": {
     "first": "Kursus pertama selesai",

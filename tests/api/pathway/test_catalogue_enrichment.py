@@ -83,7 +83,6 @@ def test_untracked_tech_skills_are_unknown_and_unavailable_courses_stay_unmet(ro
         name="Synthetic empty signal", url="https://example.test", retrieved_at="2026-10-20"
     )
     view = trend_port.TrendView(data.Snapshot("synthetic", "synthetic", source), {}, True)
-    assert service.role_trend(data.requirements(role_id), view) == (None, 0.0)
     plan = service.build_pathway(
         engine.Learner({}, 5, 1000, False), role_id, "moderate", trend=view
     )

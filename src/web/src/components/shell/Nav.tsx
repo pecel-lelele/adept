@@ -13,6 +13,7 @@ import {
   Layers,
   Leaf,
   LogOut,
+  LockKeyhole,
   Menu,
   Radar,
   Route,
@@ -64,7 +65,7 @@ function isCurrent(ws: Workspace, item: NavItem, pathname: string): boolean {
 }
 
 /** Desktop sidebar: every page always visible, in labelled groups (journey first). */
-export function SideNav({ ws, doneSteps }: { ws: Workspace; doneSteps: number[] }) {
+export function SideNav({ ws, doneSteps, roleChosen = true }: { ws: Workspace; doneSteps: number[]; roleChosen?: boolean }) {
   const t = useTranslations("ui.nav");
   const pathname = usePathname();
   const href = useHref();
@@ -72,15 +73,20 @@ export function SideNav({ ws, doneSteps }: { ws: Workspace; doneSteps: number[] 
   const link = (item: NavItem) => {
     const Icon = ICONS[item.icon];
     const done = item.step ? doneSteps.includes(item.step) : false;
+    const locked = ws.mode === "individual" && !roleChosen && (item.key === "plan" || item.key === "progress");
     return (
       <Link
         key={item.href}
-        href={href(item.href)}
+        href={href(locked ? "/app/matches?choose_role=1" : item.href)}
         className="a-navlink"
         aria-current={isCurrent(ws, item, pathname) ? "page" : undefined}
+        title={locked ? t("chooseRoleFirst") : undefined}
+        aria-label={locked ? `${t(item.key)} · ${t("chooseRoleFirst")}` : undefined}
+        data-locked={locked || undefined}
       >
         <Icon size={18} strokeWidth={1.8} aria-hidden />
         <span className="a-navlink-text">{t(item.key)}</span>
+        {locked ? <LockKeyhole size={14} aria-hidden /> : null}
         {item.step ? (
           <span className="a-step" data-done={done} title={t("journey")}>
             {done ? <Check size={11} strokeWidth={3} aria-hidden /> : item.step}
@@ -116,7 +122,7 @@ export function ScenarioSlot({ ws, children }: { ws: Workspace; children: ReactN
  * Mobile: a fixed bottom bar with four destinations + "More". "More" opens a bottom sheet
  * with every other page as a grid of large targets, so nothing scrolls sideways.
  */
-export function TabBar({ ws, tools }: { ws: Workspace; tools: ReactNode }) {
+export function TabBar({ ws, tools, roleChosen = true }: { ws: Workspace; tools: ReactNode; roleChosen?: boolean }) {
   const t = useTranslations("ui.nav");
   const pathname = usePathname();
   const href = useHref();
@@ -172,6 +178,7 @@ export function TabBar({ ws, tools }: { ws: Workspace; tools: ReactNode }) {
     .filter((i): i is NavItem => Boolean(i));
   const rest = items.filter((i) => !tabs.includes(i));
   const restActive = rest.some((i) => isCurrent(ws, i, pathname));
+  const locked = (item: NavItem) => ws.mode === "individual" && !roleChosen && (item.key === "plan" || item.key === "progress");
 
   return (
     <>
@@ -181,12 +188,16 @@ export function TabBar({ ws, tools }: { ws: Workspace; tools: ReactNode }) {
           return (
             <Link
               key={item.href}
-              href={href(item.href)}
+              href={href(locked(item) ? "/app/matches?choose_role=1" : item.href)}
               className="a-tab"
               aria-current={isCurrent(ws, item, pathname) ? "page" : undefined}
+              title={locked(item) ? t("chooseRoleFirst") : undefined}
+              aria-label={locked(item) ? `${t(item.key)} · ${t("chooseRoleFirst")}` : undefined}
+              data-locked={locked(item) || undefined}
             >
               <span className="a-tab-icon">
                 <Icon size={20} strokeWidth={1.8} aria-hidden />
+                {locked(item) ? <LockKeyhole className="a-nav-lock" size={12} aria-hidden /> : null}
               </span>
               <span>{t(item.key)}</span>
             </Link>
@@ -218,12 +229,15 @@ export function TabBar({ ws, tools }: { ws: Workspace; tools: ReactNode }) {
                 return (
                   <Link
                     key={item.href}
-                    href={href(item.href)}
+                    href={href(locked(item) ? "/app/matches?choose_role=1" : item.href)}
                     aria-current={isCurrent(ws, item, pathname) ? "page" : undefined}
+                    title={locked(item) ? t("chooseRoleFirst") : undefined}
+                    aria-label={locked(item) ? `${t(item.key)} · ${t("chooseRoleFirst")}` : undefined}
                     onClick={() => setOpenedAt(null)}
                   >
                     <Icon size={22} strokeWidth={1.7} aria-hidden />
                     {t(item.key)}
+                    {locked(item) ? <LockKeyhole size={14} aria-hidden /> : null}
                   </Link>
                 );
               })}

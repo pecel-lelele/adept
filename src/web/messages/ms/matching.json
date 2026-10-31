@@ -49,5 +49,9 @@
   "scenarioRankDelta": "{movement} berbanding {scenario} · anggaran",
   "otherScenarioScore": "skor lain {score}% (anggaran)",
   "otherScenarioRank": "kedudukan lain {rank}",
-  "newRank": "→ kedudukan {rank} (anggaran)"
+  "newRank": "→ kedudukan {rank} (anggaran)",
+  "chooseRole": "Pilih peranan ini",
+  "chooseRoleFirst": "Pilih peranan sasaran dahulu.",
+  "currentTarget": "Peranan sasaran anda",
+  "openPlan": "Buka pelan"
 }

@@ -115,8 +115,8 @@ async function ContributionBody({
       ) : data.scope === "person" ? (
         <p className="a-notice" data-tone="info">
           {t("noRoleYet")}{" "}
-          <Link href={`/app/pathway/compare?scenario=${scenario}`} className="a-link">
-            {t("compareRoles")}
+          <Link href={`/app/matches?scenario=${scenario}`} className="a-link">
+            {t("chooseRole")}
           </Link>
         </p>
       ) : null}

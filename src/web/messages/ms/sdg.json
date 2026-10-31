@@ -27,8 +27,8 @@
   },
   "evidence": "Bukti",
   "noRoleYet": "Anda belum memilih peranan sasaran, jadi tiada sumbangan untuk dipaparkan.",
-  "compareRoles": "Bandingkan peranan dan pilih satu",
   "whyLinked": "Mengapa matlamat ini",
   "tooFewMembers": "Keputusan wilayah disembunyikan sehingga sekurang-kurangnya {count} ahli berbeza boleh disertakan dengan selamat.",
-  "tooFewMembersUnknown": "Keputusan wilayah disembunyikan sehingga bilangan ahli berbeza yang mencukupi dapat disertakan dengan selamat."
+  "tooFewMembersUnknown": "Keputusan wilayah disembunyikan sehingga bilangan ahli berbeza yang mencukupi dapat disertakan dengan selamat.",
+  "chooseRole": "Lihat peranan dan pilih satu"
 }

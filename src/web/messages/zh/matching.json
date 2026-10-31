@@ -49,5 +49,9 @@
   "scenarioRankDelta": "{movement} 相较{scenario} · 估计",
   "otherScenarioScore": "另一情景得分 {score}%（估计）",
   "otherScenarioRank": "另一情景排名 {rank}",
-  "newRank": "→ 排名 {rank}（估计）"
+  "newRank": "→ 排名 {rank}（估计）",
+  "chooseRole": "选择此岗位",
+  "chooseRoleFirst": "请先选择目标岗位。",
+  "currentTarget": "你的目标岗位",
+  "openPlan": "打开计划"
 }

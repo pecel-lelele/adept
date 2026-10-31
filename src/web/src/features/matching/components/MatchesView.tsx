@@ -1,5 +1,4 @@
-import { DataAsOf } from "@/components/DataAsOf";
-import { ArrowRight, CircleDashed, Circle } from "lucide-react";
+import { CircleDashed, Circle } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
@@ -11,6 +10,9 @@ import { scoreColour } from "@/components/viz";
 import { fetchJobsSummary } from "@/features/jobs";
 import { Fold } from "@/components/Fold";
 import type { ScenarioId, Schemas } from "@/lib/api";
+import { savePlanAction } from "@/features/pathway/actions";
+import { fetchPlanStatus } from "@/features/pathway/api";
+import { ActionForm } from "@/features/pathway/components/ActionForm";
 
 import { fetchMatches, fetchReplay } from "../api";
 import { ReplayChanges } from "./ReplayChanges";
@@ -62,19 +64,24 @@ export async function MatchesView({
   scenario,
   snapshotDate,
   sdgWeight = 0,
+  chooseRoleFirst = false,
 }: {
   scenario: ScenarioId;
   snapshotDate?: string;
   sdgWeight?: number;
+  chooseRoleFirst?: boolean;
 }) {
   const t = await getTranslations("matching");
   const th = await getTranslations("ui.home");
   const tp = await getTranslations("ui.page");
-  const [result, changes, jobs] = await Promise.all([
+  const [result, changes, jobs, status] = await Promise.all([
     fetchMatches(scenario, snapshotDate, sdgWeight),
     snapshotDate ? fetchReplay(scenario, snapshotDate, sdgWeight) : Promise.resolve(null),
     fetchJobsSummary(scenario),
+    fetchPlanStatus(),
   ]);
+  // Choosing again would silently replace the saved plan and skip re-plan review.
+  const saved = status.ok ? status.data.saved : null;
   const tj = await getTranslations("jobs");
   const openings = new Map(jobs.ok ? jobs.data.roles.map((r) => [r.role_id, r.open_count]) : []);
   const labels = await componentLabels();
@@ -88,7 +95,7 @@ export async function MatchesView({
       <PageHeader eyebrow={tp("stepOf", { step: 3, total: journeyStepCount() })} title={t("title")} description={t("description")}>
         {result.ok ? <MetaBar meta={result.data.meta} /> : null}
       </PageHeader>
-      <DataAsOf source="trends" meta={result.ok ? result.data.meta : undefined} />
+      {chooseRoleFirst ? <p className="a-notice" role="status">{t("chooseRoleFirst")}</p> : null}
       <HistoricalSnapshotBanner date={snapshotDate} latestHref={`/app/matches?scenario=${scenario}${sdgWeight > 0 ? `&sdg=${sdgWeight.toFixed(2)}` : ""}`} />
 
       <section className="a-card a-controls" aria-label={tp("rankingOptions")}>
@@ -145,6 +152,7 @@ export async function MatchesView({
                           <Link href={detail}>{m.label}</Link>
                         </h2>
                         <span className="a-chips">
+                          {saved?.role_id === m.role_id ? <span className="a-chip" data-tone="up">{t("currentTarget")}</span> : null}
                           <ScenarioDelta score={m.score} rank={m.rank} otherScore={m.other_score} otherRank={m.other_rank} otherScenario={m.other_scenario} />
                           <span className="a-chip" data-tone={m.missing_skills.length ? "down" : "up"}>
                             {tp("toLearn", { count: m.missing_skills.length })}
@@ -203,12 +211,13 @@ export async function MatchesView({
                       <Link className="a-btn is-ghost is-small" href={detail}>
                         {t("viewDetail")}
                       </Link>
-                      <Link
-                        className="a-btn is-small"
-                        href={`/app/pathway?role=${encodeURIComponent(m.role_id)}&scenario=${scenario}`}
-                      >
-                        {t(snapshotDate ? "viewLatestPathway" : "viewPathway")} <ArrowRight size={14} aria-hidden />
-                      </Link>
+                      {saved?.role_id === m.role_id ? (
+                        <Link className="a-btn is-small" href={`/app/pathway?role=${encodeURIComponent(m.role_id)}&scenario=${saved.scenario}`}>
+                          {t("openPlan")}
+                        </Link>
+                      ) : (
+                        <ActionForm action={savePlanAction} fields={{ role_id: m.role_id, scenario }} label={t("chooseRole")} className="a-inline-form" />
+                      )}
                     </footer>
                   </article>
               );

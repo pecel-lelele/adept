@@ -192,7 +192,7 @@ def test_target_change_and_retired_course_keep_earned_levels(
     assert pathway_service.verification_queue(hr).items == [], "personal learning is private"
 
 
-def test_plans_comparisons_and_team_gaps_use_the_matching_levels(
+def test_plans_and_team_gaps_use_the_matching_levels(
     client: TestClient, learning_backend: None
 ) -> None:
     course, skill = _complete_and_confirm(client)
@@ -203,8 +203,6 @@ def test_plans_comparisons_and_team_gaps_use_the_matching_levels(
     proposed = pathway_service.get_pathway(LEARNER, ROLE, "moderate")
     assert next(g for g in proposed.gaps if g.skill_id == skill).status == "have"
     assert skill not in {s.skill_id for s in proposed.steps}
-    compared = pathway_service.compare_roles(LEARNER, [ROLE], "moderate")
-    assert compared.options[0].skills_to_close == sum(g.status != "have" for g in proposed.gaps)
     response = client.post("/api/v1/pathway/plans", json={"role_id": ROLE})
     assert response.status_code == 200, response.text
     saved = SavedPlan.model_validate(response.json()).pathway
