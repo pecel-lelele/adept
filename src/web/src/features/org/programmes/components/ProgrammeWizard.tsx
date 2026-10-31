@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useMemo, useState, useTransition } from "react";
 
 import { errorMessage } from "@/lib/api/error-message";
+import type { ScenarioId } from "@/lib/api";
 
 import { Kpis } from "@/components/Kpis";
 import { MetaBar } from "@/components/MetaBar";
@@ -24,20 +25,27 @@ function money(n: number): string {
   return `RM ${Math.round(n).toLocaleString("en-MY")}`;
 }
 
+/** A link for one person must never widen to the whole team if that person can't be selected. */
+export function initialMemberSelection(members: { user_id: string }[], initialMember?: string): string[] {
+  if (!initialMember) return members.map((m) => m.user_id);
+  return members.some((m) => m.user_id === initialMember) ? [initialMember] : [];
+}
+
 /**
  * HR builds an employer programme outcome-first: business objective → roles and headcount →
  * people (only members who share their skills) → date, paid learning time, budgets and course
  * restrictions. Adept then proposes one route per person from the catalogue; HR reviews and
  * sends it. Nothing is enrolled, bought or approved here.
  */
-export function ProgrammeWizard({ options, orgId }: { options: ProgrammeOptions; orgId?: string }) {
+export function ProgrammeWizard({ options, orgId, initialRole, initialMember, initialScenario = "moderate" }: { options: ProgrammeOptions; orgId?: string; initialRole?: string; initialMember?: string; initialScenario?: ScenarioId }) {
   const t = useTranslations("org.programmes");
   const te = useTranslations("ui.apiErrors");
   const [step, setStep] = useState(0);
   const [title, setTitle] = useState("");
   const [objectives, setObjectives] = useState<Objective[]>([]);
-  const [heads, setHeads] = useState<Record<string, number>>({});
-  const [members, setMembers] = useState<string[]>(() => options.members.map((m) => m.user_id));
+  const [heads, setHeads] = useState<Record<string, number>>(() => initialRole && options.roles.some((r) => r.role_id === initialRole) ? { [initialRole]: initialMember ? 1 : options.members.length } : {});
+  const memberUnavailable = Boolean(initialMember) && !options.members.some((m) => m.user_id === initialMember);
+  const [members, setMembers] = useState<string[]>(() => initialMemberSelection(options.members, initialMember));
   const [targetDate, setTargetDate] = useState(options.default_target_date);
   const [hours, setHours] = useState(4);
   const [total, setTotal] = useState(10000);
@@ -72,7 +80,7 @@ export function ProgrammeWizard({ options, orgId }: { options: ProgrammeOptions;
     certificate_required: certificate,
     hrd_claimable_only: hrdOnly,
     formats,
-    scenario: "moderate",
+    scenario: initialScenario,
   };
 
   const canNext = [
@@ -344,6 +352,7 @@ export function ProgrammeWizard({ options, orgId }: { options: ProgrammeOptions;
           <p className="a-small a-muted">
             <Users size={14} aria-hidden /> {t("peopleHint")}
           </p>
+          {memberUnavailable ? <p className="a-notice" data-tone="warn" role="status">{t("memberNotEligible")}</p> : null}
           {options.members.length ? (
             <>
               <label className="a-check">

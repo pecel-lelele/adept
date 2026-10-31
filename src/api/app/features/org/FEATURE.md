@@ -117,3 +117,21 @@ heatmaps are therefore suppressed at the safe default. They are test fixtures, n
 production seed accounts. A meaningful demo of numeric heatmap data requires at least three
 completed synthetic member profiles with explicit sharing consent; the above-threshold
 regressions install a third synthetic bank learner without lowering the threshold.
+
+## Target proposals and shared learning progress (TEAM-049)
+
+Members can propose a different catalogue role on full programme agreements and quick team
+plans. The original target stays in place; a proposal is a `change_requested` response, never
+acceptance or a change to the personal saved plan. HR reviews the proposed role and can
+prepare a new member/cohort programme. Members must accept its agreement before tracking
+it. Quick-package responses are included separately in `ProgrammeList.package_assignments`.
+New optional proposal fields use the existing JSON ledger and default safely for old records.
+A proposal on an already accepted programme or package keeps the acceptance and its Progress;
+the proposed role is recorded beside it for HR to review.
+
+`GET /org/gaps` includes `learning_progress` course counts by skill for accepted programmes.
+Only consenting completed-profile members and this organisation's progress scope count.
+Courses are deduplicated per member/skill. Every skill applies `ORG_MIN_COHORT` to its own
+participant count and returns null totals below it. Self-reported course completion and
+evidenced skill gains are labelled separately in the dashboard and heatmap view; withdrawing
+sharing removes the member from these counts on the next read.

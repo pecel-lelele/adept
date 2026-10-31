@@ -23,6 +23,7 @@ from app.contracts.org import (
     Organization,
     OrganizationIn,
     SharingIn,
+    TeamSkillProgress,
     Workspace,
     WorkspaceList,
 )
@@ -300,6 +301,58 @@ def member_plans(
     }
 
 
+def _team_learning_progress(
+    org_id: str, member_ids: list[str], min_cohort: int
+) -> list[TeamSkillProgress]:
+    """Self-reported course counts, only for consenting members and this employer's routes.
+
+    Suppression applies to each skill's participating cohort, not just the whole team.
+    No personal or other employer records are read.
+    """
+    from app.features.org import funding_store
+    from app.features.pathway import verification
+
+    rows = pathway_repository.learning_records(member_ids, [pathway_repository.org_scope(org_id)])
+    done = {
+        (r.user_id, r.role_id, r.course_id)
+        for r in rows
+        if verification.effective_statuses(
+            {r.course_id: r.status}, {r.course_id: r.evidence} if r.evidence else {}
+        ).get(r.course_id)
+        == "completed"
+    }
+    planned: dict[str, set[tuple[str, str]]] = {}
+    completed: dict[str, set[tuple[str, str]]] = {}
+    seen: set[tuple[str, str]] = set()
+    for assignment in reversed(funding_store.snapshot(org_id).assignments):
+        uid, rid = assignment.user_id, assignment.agreement.role_id
+        if uid not in member_ids or assignment.status != "accepted" or (uid, rid) in seen:
+            continue
+        seen.add((uid, rid))
+        for step in assignment.pathway.steps:
+            for course in step.courses:
+                key = (uid, course.id)
+                planned.setdefault(step.skill_id, set()).add(key)
+                if (uid, rid, course.id) in done:
+                    completed.setdefault(step.skill_id, set()).add(key)
+    labels = pathway_data.skill_labels()
+    result = []
+    for sid, courses in sorted(planned.items()):
+        cohort = len({uid for uid, _cid in courses})
+        hidden = cohort < min_cohort
+        result.append(
+            TeamSkillProgress(
+                skill_id=sid,
+                label=labels.get(sid, sid),
+                cohort_size=cohort,
+                planned_courses=None if hidden else len(courses),
+                completed_courses=None if hidden else len(completed.get(sid, set())),
+                suppressed=hidden,
+            )
+        )
+    return result
+
+
 def get_gaps(user: CurrentUser, scenario: ScenarioId) -> GapHeatmapResponse:
     org_id = _require_manager(user)
     members = member_learners(org_id)
@@ -335,6 +388,7 @@ def get_gaps(user: CurrentUser, scenario: ScenarioId) -> GapHeatmapResponse:
             # Same average as _team_gap_by_role, so the page ranks roles like the backend.
             "cohort_size": len(members),
             "min_cohort": min_cohort,
+            "learning_progress": _team_learning_progress(org_id, list(members), min_cohort),
             "role_suppressed": {r: suppressed for r in roles},
             "role_gaps": {
                 r: None if suppressed else (round(sum(v) / len(v), 4) if v else 0.0)

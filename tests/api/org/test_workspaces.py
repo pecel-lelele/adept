@@ -18,7 +18,10 @@ def _option_members(client: TestClient) -> set[str]:
 
 def test_the_personal_workspace_cannot_reach_organisation_data(client: TestClient) -> None:
     assert client.get("/api/v1/org/me", headers=PERSONAL).status_code == 404
-    assert client.get("/api/v1/org/programmes/mine", headers=PERSONAL).json() == {"assignments": []}
+    assert client.get("/api/v1/org/programmes/mine", headers=PERSONAL).json() == {
+        "assignments": [],
+        "role_labels": {},
+    }
     assert client.get("/api/v1/org/me", headers=WORK).json()["name"] == "Demo Bank Berhad"
 
 

@@ -48,7 +48,8 @@
     "workspace_changed": "Your workspace changed. Refresh before trying again.",
     "funding_conflict": "The funding request could not be completed. Check its current status with your manager.",
     "disallowed_content": "Remove unsupported content from your input before continuing.",
-    "unknown_course": "Choose a course from the current plan or catalogue."
+    "unknown_course": "Choose a course from the current plan or catalogue.",
+    "invalid_role_proposal": "Choose a catalogue role"
   },
   "nav": {
     "home": "Home",
@@ -513,7 +514,8 @@
     "saved": "Saved",
     "gapsLow": "Covered",
     "gapsHigh": "Most missing",
-    "tooFewMembers": "Too few members to show"
+    "tooFewMembers": "Too few members to show",
+    "assignRole": "Assign a target role"
   },
   "skills": {
     "title": "My skills",

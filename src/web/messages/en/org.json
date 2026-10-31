@@ -134,7 +134,8 @@
       "accessibility": "Accessibility needs",
       "schedule": "Schedule conflict",
       "upfront_cost": "I cannot pay upfront",
-      "other": "Other"
+      "other": "Other",
+      "target_role": "Target role"
     },
     "noteLabel": "Note for HR (optional)",
     "planTitle": "Programme plans",
@@ -153,7 +154,13 @@
     "noAccepted": "No accepted programme yet",
     "noAcceptedHint": "Accept a programme agreement to track its progress here.",
     "programmesNav": "Your programmes",
-    "acceptConsent": "Use my current skill levels to tailor this route. {org} will see the resulting course plan, not your skill levels."
+    "acceptConsent": "Use my current skill levels to tailor this route. {org} will see the resulting course plan, not your skill levels.",
+    "assignedByTeam": "Assigned by your team · {org}",
+    "proposeRole": "Propose a different role",
+    "proposalHint": "HR will review your proposal. Your personal target and saved progress stay yours.",
+    "alternativeRole": "Preferred target role",
+    "selectRole": "Choose a catalogue role",
+    "proposedRole": "Proposed role: {role}"
   },
   "programmes": {
     "eyebrow": "Programmes",
@@ -272,6 +279,18 @@
     "hrdOnlyHint": "Claimability is not funding approval: confirm with HRD Corp.",
     "back": "Back",
     "next": "Next",
-    "generate": "Generate programme"
+    "generate": "Generate programme",
+    "packageDecisions": "Team plan responses",
+    "reviewProposal": "Review proposed role",
+    "memberNotEligible": "This member can't be preselected because they aren't sharing skill levels or haven't finished their profile. Nobody has been selected. Ask them to switch on sharing, or choose people below."
+  },
+  "learning": {
+    "title": "Team learning progress",
+    "description": "Course completions for accepted team programmes, grouped by skill. Only members sharing their data count. Self-reported completion is separate from evidenced skill gains in the heatmap.",
+    "skill": "Skill",
+    "courses": "Courses done / planned",
+    "completion": "Completion",
+    "suppressed": "Too few sharing members for this skill",
+    "empty": "No accepted programmes from sharing members yet."
   }
 }

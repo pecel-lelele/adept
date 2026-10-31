@@ -48,7 +48,8 @@
     "workspace_changed": "Ruang kerja anda telah berubah. Muat semula sebelum mencuba lagi.",
     "funding_conflict": "Permintaan pembiayaan tidak dapat diselesaikan. Semak status semasanya dengan pengurus anda.",
     "disallowed_content": "Buang kandungan yang tidak disokong daripada input sebelum meneruskan.",
-    "unknown_course": "Pilih kursus daripada pelan atau katalog semasa."
+    "unknown_course": "Pilih kursus daripada pelan atau katalog semasa.",
+    "invalid_role_proposal": "Pilih peranan daripada katalog"
   },
   "nav": {
     "home": "Utama",
@@ -513,7 +514,8 @@
     "saved": "Disimpan",
     "gapsLow": "Dipenuhi",
     "gapsHigh": "Paling kurang",
-    "tooFewMembers": "Terlalu sedikit ahli untuk dipaparkan"
+    "tooFewMembers": "Terlalu sedikit ahli untuk dipaparkan",
+    "assignRole": "Tugaskan peranan sasaran"
   },
   "skills": {
     "title": "Kemahiran saya",

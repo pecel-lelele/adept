@@ -13,6 +13,7 @@ import type { ScenarioId, Schemas } from "@/lib/api";
 
 import { fetchGaps, fetchMembers, fetchMyOrg, fetchPlan } from "../api";
 import { JoinCodeCard } from "./JoinCodeCard";
+import { TeamLearningProgress } from "./TeamLearningProgress";
 
 /** The most useful columns of a heatmap: skills with the largest gap anywhere, max `n`. */
 export function topGapSkills(gaps: Schemas["GapHeatmapResponse"], n: number) {
@@ -252,6 +253,7 @@ export async function OrgDashboardView({ scenario }: { scenario: ScenarioId }) {
         </section>
       </div>
       {gaps.ok ? <MetaBar meta={gaps.data.meta} /> : null}
+      {gaps.ok ? <TeamLearningProgress rows={gaps.data.learning_progress ?? []} /> : null}
       <MalaysiaContextCard />
     </div>
   );

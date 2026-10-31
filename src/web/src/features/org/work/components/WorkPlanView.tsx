@@ -1,18 +1,21 @@
-import { ArrowUpRight, Building2, CalendarDays, Clock3, Wallet } from "lucide-react";
+import { Building2, CalendarDays, Clock3, Wallet } from "lucide-react";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 
 import { EmptyState, ErrorState, MetaBar, PageHeader } from "@/components";
 import { AssignedPackageView } from "@/features/org/components/AssignedPackageView";
 import { ActionForm } from "@/features/pathway/components/ActionForm";
+import { PathwaySteps } from "@/features/pathway/components/PathwaySteps";
+import { PlanTotals } from "@/features/pathway/components/PlanTotals";
 import type { WorkspaceOption } from "@/lib/auth/workspaces";
 
 import { decideProgrammeAction } from "../actions";
 import { type Assignment, byStatus, fetchMyProgrammes } from "../api";
+import { RoleProposalForm } from "./RoleProposalForm";
 
 const REASONS = ["already_have_skill", "pace", "language", "accessibility", "schedule", "upfront_cost", "other"] as const;
 
-async function AgreementCard({ a, org, orgId, shared }: { a: Assignment; org: string; orgId: string; shared: boolean }) {
+async function AgreementCard({ a, org, orgId, shared, roles }: { a: Assignment; org: string; orgId: string; shared: boolean; roles: Record<string, string> }) {
   const t = await getTranslations("org.work");
   const tp = await getTranslations("org.programmes");
   const g = a.agreement;
@@ -28,7 +31,7 @@ async function AgreementCard({ a, org, orgId, shared }: { a: Assignment; org: st
         <div>
           <div className="a-work-origin">
             <Building2 size={19} strokeWidth={1.6} aria-hidden />
-            <div><strong>{org}</strong><small>{t("fundedLabel")}</small></div>
+            <div><strong>{org}</strong><small>{t("assignedByTeam", { org })}</small></div>
           </div>
           <h2>{g.title}</h2>
         </div>
@@ -67,29 +70,35 @@ async function AgreementCard({ a, org, orgId, shared }: { a: Assignment; org: st
         <span>{g.mandatory ? t("required") : t("optional")}</span>
         {g.objectives.length ? <p>{g.objectives.map((o) => tp(`objective.${o}`)).join(" · ")}</p> : null}
       </div>
-      <details className="a-disclosure">
+      {a.status !== "accepted" ? <details className="a-disclosure">
         <summary>{t("courses", { count: unique.length, weeks: a.pathway.total_weeks })}</summary>
-        <ol className="a-rows">
-          {unique.map((c) => (
-            <li key={c.id}>
-              <a href={c.url} target="_blank" rel="noreferrer">
-                {c.title} <ArrowUpRight size={12} aria-hidden />
-              </a>
-              <span className="a-muted a-small">
-                {c.skill} · {c.provider} · {t("courseLine", { hours: c.hours, cost: Math.round(c.cost_myr) })}
-              </span>
-            </li>
-          ))}
-        </ol>
+        <PathwaySteps steps={a.pathway.steps} />
+        <PlanTotals plan={a.pathway} />
         {(a.pathway.unmet ?? []).length ? (
           <p className="a-small a-muted">{t("unmet", { skills: (a.pathway.unmet ?? []).map((u) => u.label).join(", ") })}</p>
         ) : null}
-      </details>
+      </details> : null}
       <MetaBar meta={a.pathway.meta} />
+      {a.status === "accepted" ? (
+        <>
+          <PathwaySteps steps={a.pathway.steps} />
+          <PlanTotals plan={a.pathway} />
+          <Link className="a-btn" href={`/work/progress?role=${encodeURIComponent(g.role_id)}&scenario=${a.pathway.meta.scenario}`}>
+            {t("progressTitle")}
+          </Link>
+        </>
+      ) : null}
       {a.status === "change_requested" ? (
         <p className="a-small a-muted">
           {t("changeSent", { reason: a.change_reason ? t(`reason.${a.change_reason}`) : "" })}
+          {a.proposed_role_label ? ` · ${t("proposedRole", { role: a.proposed_role_label })}` : ""}
         </p>
+      ) : null}
+      {a.status === "accepted" && a.proposed_role_label ? (
+        <p className="a-small a-muted">{t("proposedRole", { role: a.proposed_role_label })} · {t("proposalHint")}</p>
+      ) : null}
+      {a.status !== "declined" ? (
+        <RoleProposalForm action={decideProgrammeAction} fields={{ programme_id: g.programme_id, org_id: orgId, decision: "request_change", reason: "target_role" }} roleId={g.role_id} roles={roles} />
       ) : null}
       {open ? (
         <footer className="a-agreement-actions">
@@ -151,9 +160,9 @@ export async function WorkPlanView({ org }: { org: WorkspaceOption }) {
   return (
     <div className="a-view">
       <PageHeader eyebrow={org.name} title={t("planTitle")} description={t("planDesc", { org: org.name })} />
-      <AssignedPackageView acceptedIds={accepted.map((a) => a.agreement.programme_id)} orgId={org.id} />
+      <AssignedPackageView acceptedIds={all.map((a) => a.agreement.programme_id)} orgId={org.id} roles={result.data.role_labels ?? {}} />
       {all.length ? (
-        all.map((a) => <AgreementCard key={a.agreement.programme_id} a={a} org={org.name} orgId={org.id} shared={org.skills_shared} />)
+        all.map((a) => <AgreementCard key={a.agreement.programme_id} a={a} org={org.name} orgId={org.id} shared={org.skills_shared} roles={result.data.role_labels ?? {}} />)
       ) : (
         <EmptyState
           title={t("noProgrammes", { org: org.name })}

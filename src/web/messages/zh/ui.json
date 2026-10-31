@@ -48,7 +48,8 @@
     "workspace_changed": "您的工作区已更改，请刷新后重试。",
     "funding_conflict": "无法完成资助请求，请联系管理员检查当前状态。",
     "disallowed_content": "请移除输入中不受支持的内容后继续。",
-    "unknown_course": "请从当前计划或目录选择课程。"
+    "unknown_course": "请从当前计划或目录选择课程。",
+    "invalid_role_proposal": "从目录中选择岗位"
   },
   "nav": {
     "home": "首页",
@@ -513,7 +514,8 @@
     "saved": "已保存",
     "gapsLow": "已具备",
     "gapsHigh": "最缺乏",
-    "tooFewMembers": "成员人数过少，无法显示"
+    "tooFewMembers": "成员人数过少，无法显示",
+    "assignRole": "分配目标岗位"
   },
   "skills": {
     "title": "我的技能",

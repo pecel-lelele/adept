@@ -10,6 +10,7 @@ import type { ScenarioId } from "@/lib/api";
 
 import { fetchGaps } from "../api";
 import { heatRows, topGapSkills } from "./OrgDashboardView";
+import { TeamLearningProgress } from "./TeamLearningProgress";
 
 /**
  * Step 3 for organisations: the team skills-gap heatmap (rows = target roles, columns = the
@@ -92,6 +93,7 @@ export async function GapsView({ scenario }: { scenario: ScenarioId }) {
           ))}
         </ol>
       </section>
+      <TeamLearningProgress rows={data.learning_progress ?? []} />
     </div>
   );
 }
