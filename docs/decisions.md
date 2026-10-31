@@ -847,6 +847,17 @@
 - **Replaces**: none; corrects M1-024 equivalence persistence
 - **PR / branch**: feat/trends-calendar-projection / PR #105
 
+### M1-030: Seed trend days and mentions atomically without mixing live counts
+- **Date**: 2026-10-31
+- **Feature**: F2 (Portable trend seed)
+- **Type**: method
+- **Change**: Insert each `(day, method)` only if absent and import paper mentions only for newly inserted pairs; reject an exported matcher calibration that conflicts with the model's stored threshold.
+- **Why**: Generic conflict-ignore imports could add new paper IDs to an existing live-refetched day while leaving its old paper denominator, inflating skill shares. A mismatched threshold would likewise mix scoring methods across imported days.
+- **Pipeline**: public dated paper-store export → CSV day/mention/calibration validation → per-pair insert-returning gate → unchanged stored series scoring → isolated PostgreSQL re-seed and conflict regression → consistent day totals and mentions
+- **Affects**: F2 seed loader, seed reference guide; no migration or live database operation in this PR
+- **Replaces**: none; corrects M1-027's generic seed conflict behavior
+- **PR / branch**: feat/trends-calendar-projection / PR #105
+
 ---
 
 ## M2: Profile Intake & Matching (F1, F4)

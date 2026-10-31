@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import csv
 import os
 import threading
 import time
@@ -264,3 +265,94 @@ def test_series_totals_and_mentions_stay_consistent_during_day_replacement(
         {day: 1},
         {(day, "python"): 1, (day, "sql"): 1},
     )
+
+
+def test_seeding_existing_paper_day_never_mixes_denominators_and_mentions(
+    pg: Any, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    from db import seed as seed_loader
+
+    existing_day = date(2026, 10, 6)
+    new_day = date(2026, 10, 7)
+    method = trend_store.MINILM_METHOD
+    model = "synthetic-seed-model"
+    with pg.connect(pg.url) as conn:
+        trend_store.save_days(
+            conn,
+            {existing_day: [{"arxiv_id": "existing-1"}, {"arxiv_id": "existing-2"}]},
+            {"existing-1": ["python"], "existing-2": ["sql"]},
+            method,
+            model,
+            existing_day,
+        )
+
+    def csv_file(name: str, header: list[str], rows: list[list[str]]) -> Path:
+        path = tmp_path / f"{name}.csv"
+        with path.open("w", encoding="utf-8", newline="") as stream:
+            writer = csv.writer(stream)
+            writer.writerow(header)
+            writer.writerows(rows)
+        return path
+
+    files = {
+        "trend_fetched_days": [
+            csv_file(
+                "trend_fetched_days",
+                ["day", "method", "papers", "fetched_on"],
+                [
+                    [str(existing_day), method, "1", str(existing_day)],
+                    [str(new_day), method, "1", str(new_day)],
+                ],
+            )
+        ],
+        "trend_paper_mentions": [
+            csv_file(
+                "trend_paper_mentions",
+                ["arxiv_id", "published_on", "method", "model", "skills"],
+                [
+                    ["old-export-new-id", str(existing_day), method, model, "{python}"],
+                    ["new-day-id", str(new_day), method, model, "{python}"],
+                ],
+            )
+        ],
+    }
+    monkeypatch.setenv("DATABASE_URL", pg.url)
+    monkeypatch.setattr(seed_loader, "SEED", tmp_path)
+    monkeypatch.setattr(seed_loader, "collect", lambda: files)
+    for _ in range(2):
+        assert seed_loader.main() == 0
+
+    with pg.connect(pg.url, row_factory=dict_row) as check:
+        rows = check.execute(
+            "SELECT day, papers FROM trend_fetched_days WHERE method = %s ORDER BY day", (method,)
+        ).fetchall()
+        assert [(r["day"], r["papers"]) for r in rows] == [(existing_day, 2), (new_day, 1)]
+        paper_rows = check.execute(
+            "SELECT arxiv_id FROM trend_paper_mentions WHERE method = %s ORDER BY arxiv_id",
+            (method,),
+        ).fetchall()
+        assert [r["arxiv_id"] for r in paper_rows] == ["existing-1", "existing-2", "new-day-id"]
+
+    with pg.connect(pg.url) as conn:
+        conn.execute(
+            "INSERT INTO trend_matcher_calibration"
+            "(model, threshold, rule, reference_rate, reference_papers, calibrated_on) "
+            "VALUES (%s, %s, %s, %s, %s, %s)",
+            (model, 0.4, "minilm_mentions_per_paper", 1, 10, existing_day),
+        )
+    files["trend_matcher_calibration"] = [
+        csv_file(
+            "trend_matcher_calibration",
+            ["model", "threshold", "rule", "reference_rate", "reference_papers", "calibrated_on"],
+            [[model, "0.6", "minilm_mentions_per_paper", "1", "10", str(existing_day)]],
+        )
+    ]
+    with pytest.raises(ValueError, match="Seed threshold differs"):
+        seed_loader.main()
+    with pg.connect(pg.url, row_factory=dict_row) as check:
+        assert (
+            check.execute(
+                "SELECT threshold FROM trend_matcher_calibration WHERE model = %s", (model,)
+            ).fetchone()["threshold"]
+            == 0.4
+        )

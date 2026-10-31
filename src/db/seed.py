@@ -222,9 +222,26 @@ def main() -> int:
     url = os.environ.get("DATABASE_URL", DEFAULT_URL)
     files = collect()
     with psycopg.connect(url) as conn:
+        # A live-refetched day wins as a whole pair: its original denominator and mentions
+        # must never be mixed with new IDs from an older CSV export.
+        inserted_days: set[tuple[str, str]] = set()
         for table in TABLE_ORDER:
             for path in files.get(table, []):
                 header, rows = read_rows(path)
+                if table == "trend_paper_mentions":
+                    day_index, method_index = header.index("published_on"), header.index("method")
+                    rows = [
+                        row for row in rows if (row[day_index], row[method_index]) in inserted_days
+                    ]
+                if table == "trend_matcher_calibration":
+                    model_index, threshold_index = header.index("model"), header.index("threshold")
+                    for row in rows:
+                        current = conn.execute(
+                            "SELECT threshold FROM trend_matcher_calibration WHERE model = %s",
+                            (row[model_index],),
+                        ).fetchone()
+                        if current and float(current[0]) != float(row[threshold_index]):
+                            raise ValueError("Seed threshold differs from stored model calibration")
                 query = sql.SQL("INSERT INTO {} ({}) VALUES ({}) ON CONFLICT DO NOTHING").format(
                     sql.Identifier(table),
                     sql.SQL(", ").join(map(sql.Identifier, header)),
@@ -246,7 +263,16 @@ def main() -> int:
                         ),
                     )
                 with conn.cursor() as cur:
-                    cur.executemany(query, rows)
+                    if table == "trend_fetched_days":
+                        # RETURNING tells us whether each (day, method) was inserted, not merely
+                        # present: only those pairs may receive the seed's paper mentions.
+                        inserted = query + sql.SQL(" RETURNING day, method")
+                        for row in rows:
+                            created = cur.execute(inserted, row).fetchone()
+                            if created:
+                                inserted_days.add((created[0].isoformat(), created[1]))
+                    else:
+                        cur.executemany(query, rows)
                 print(f"{path.relative_to(SEED).as_posix()}: {len(rows)} row(s)")
             if table in SERIAL_TABLES and table in files:
                 conn.execute(
