@@ -1466,7 +1466,7 @@
 - **Change**: Share the impact service's synthetic name/segment swap through profile-to-matching and the production ranker with the live fairness report; disclose the limited regression scope. Reachable certificate links return submitted, and only org_confirmed completions earn skill levels, including for legacy provider_verified links. Direct pathway previews require a saved profile. SDG 4.3 free-learning wording discloses possible certificate fees in en/ms/zh without implying HRD funding.
 - **Why**: Byte-identical learner copies cannot detect identity leakage. HTTP reachability proves neither course nor learner ownership, and zero learning price establishes neither free certificates nor approved funding.
 - **Pipeline**: synthetic profiles and completion records -> production profile whitelist and evidence classification -> role ranks and confirmed skill levels -> shared ranker/earned-level method -> biased-scorer and submitted-versus-confirmed matching/team-gap regressions -> attributed fairness, pathway and SDG API/web
-- **Affects**: F1/F4 matching boundary, F5 evidence/history, F6 contribution UI, F7 team gaps and generated contracts; no migration or provider change
+- **Affects**: F1/F4 matching boundary, F5 evidence/history, F6 contribution UI, F7 team gaps and generated contracts; migration `20261031140000_evidence_link_submitted.sql` widens the `course_evidence.link_status` check to allow `submitted` (down maps it back to `provider_verified`); no provider change
 - **Replaces**: automatic certificate-link trust in M3-022; prior decisions remain historical
 - **PR / branch**: fix/core-privacy-and-trust / Fixes #81, Fixes #83
 
