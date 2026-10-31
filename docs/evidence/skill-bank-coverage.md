@@ -4,9 +4,9 @@ Provider pages opened: **2026-10-31**. Before: **19/33 target profiles** had at 
 
 ## Measurement
 
-For each target role, uncovered share = sum of importance for requirements absent from every course / sum of importance for all requirements. The toolbox script reads the CSV graph and uses production skill canonicalization (Excel/RPA aliases); it excludes current roles and does not change the data. Course presence is distinct from required-level attainment, prerequisites, budget, availability after login, or certificate entitlement. Existing pathway logic still reports those limitations.
+For each target role, uncovered share = sum of importance for requirements absent from every course / sum of importance for all requirements. The `src/scripts/course_coverage.py` script reads the CSV graph and uses production skill canonicalization (Excel/RPA aliases); it excludes current roles and does not change the data. Course presence is distinct from required-level attainment, prerequisites, budget, availability after login, or certificate entitlement. Existing pathway logic still reports those limitations.
 
-Run `uv run --frozen python .claude/toolbox/course_coverage.py --out REPORT.json`. The original and updated JSON evidence are `.claude/jobs/out/07-skill-bank.before.json` and `07-skill-bank.after.json` (local job artifacts).
+Run `uv run --frozen python src/scripts/course_coverage.py --out REPORT.json`. The original and updated JSON evidence are `.claude/jobs/out/07-skill-bank.before.json` and `07-skill-bank.after.json` (local job artifacts).
 
 ## Per-target-role coverage
 
@@ -111,4 +111,8 @@ CSV fallback uses the revised requirements immediately. PostgreSQL reference ups
 - [x] Changed tests named and failing-then-passing: four `test_skill_bank_focus.py` regressions failed before implementation and passed after; Selenium/provenance regressions and the optional PostgreSQL migration regression are included above.
 - [x] UI screenshot/rendered text: **not applicable**, data/source change with catalogue API assertions.
 - [x] Intended status and commit evidence: 16 intended paths, diff whitespace check passed; no worker commit permitted. Existing HEAD and runner-owned branch are recorded above; commit message prepared.
-- [x] Reusable script saved and registered: `.claude/toolbox/course_coverage.py`, registered in `TOOLBOX.md` and linked from `feature-change.md`.
+- [x] Reusable script committed: `src/scripts/course_coverage.py`.
+
+## Update (M3-045)
+
+Four edges were restored after review (business-analyst stakeholder-management; digital-health-nurse patient-care, clinical-judgement, cross-cultural-communication). They have no catalogue course and are reported as uncovered, so the audit now shows **2/33** target profiles with an uncovered requirement (business-analyst and digital-health-nurse) instead of 0/33. Rerun with `uv run --frozen python src/scripts/course_coverage.py --out REPORT.json`.

@@ -66,7 +66,7 @@ same ranks as the list without discarding responses built for every unrelated ro
 ## Digital and green target scope (2026-10-31)
 
 M3-042 removes the eight specified soft/clinical skill categories from target requirements
-(16 edges), preserving the surviving relative importance weights and all intake/current-role
+(12 edges), preserving the surviving relative importance weights and all intake/current-role
 skill records. Matching continues to normalize over the surviving requirement weights;
 no ranking formula or evaluation threshold changes. The digital-health nursing focus
 requires healthcare informatics and AI literacy for qualified nurses, not clinical training.

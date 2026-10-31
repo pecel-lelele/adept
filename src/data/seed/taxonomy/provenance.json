@@ -568,12 +568,6 @@
         "importance": "0.4"
       },
       {
-        "role_id": "business-analyst",
-        "skill_id": "stakeholder-management",
-        "required_level": "3",
-        "importance": "0.6"
-      },
-      {
         "role_id": "energy-manager",
         "skill_id": "stakeholder-management",
         "required_level": "3",
@@ -584,24 +578,6 @@
         "skill_id": "stakeholder-management",
         "required_level": "3",
         "importance": "0.5"
-      },
-      {
-        "role_id": "digital-health-nurse",
-        "skill_id": "patient-care",
-        "required_level": "3",
-        "importance": "1"
-      },
-      {
-        "role_id": "digital-health-nurse",
-        "skill_id": "clinical-judgement",
-        "required_level": "3",
-        "importance": "0.9"
-      },
-      {
-        "role_id": "digital-health-nurse",
-        "skill_id": "cross-cultural-communication",
-        "required_level": "3",
-        "importance": "0.4"
       },
       {
         "role_id": "learning-experience-designer",
@@ -652,6 +628,6 @@
     ],
     "retention_reason": "Existing canonical intake/CV aliases, dated trend signals and SDG skill mappings still reference these skills; clinical/coaching skills also occur in current-role profiles. Removing them would break reference history and intake recognition.",
     "importance_policy": "Keep surviving relative weights; they are positive and <=1, and matching/pathway aggregate weights are normalized by each role total. No renormalization needed.",
-    "digital_health_nurse": "Retain target digital focus for qualified nurses; healthcare informatics plus AI literacy, not a nursing qualification."
+    "digital_health_nurse": "Digital-health nurse keeps its clinical prerequisites (patient care, clinical judgement, cross-cultural communication) alongside healthcare informatics and AI literacy, so a non-nurse is not shown as qualified (review of PR 96). Business Analyst keeps stakeholder management as a requirement because removing it changed the matching benchmark ranking (M3-045)."
   }
 }

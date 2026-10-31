@@ -114,7 +114,7 @@ role-scope migration, reference-only seed upserts and API/UI.
 
 ## Digital and green focus (2026-10-31)
 
-M3-042 removes 16 soft/clinical requirements from 13 target profiles, retains those skills
+M3-042 removes 12 soft/clinical requirements from 11 target profiles (M3-045 keeps the nurse prerequisites and one business-analyst edge), retains those skills
 for intake/current-role references, and adds 16 dated free-learning records in `FREE_DIGITAL`.
 The catalogue now has 120 records. Course-presence gaps fall from 19/33 target profiles
 (24 distinct skills) to 0/33; this does not mean courses reach every required level.

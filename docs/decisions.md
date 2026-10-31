@@ -1627,6 +1627,16 @@
 - **Replaces**: none (narrows target requirements; intake and current-role history remain)
 - **PR / branch**: feat/pathway-skill-bank-focus / Fixes #84
 
+### M3-045: Keep nurse prerequisites and one business-analyst edge; require ML before climate AI
+- **Date**: 2026-10-31
+- **Feature**: F5 (Pathway), F4 (Matching)
+- **Type**: data source
+- **Change**: Refines M3-042. Four of its 16 removed edges are restored: `business-analyst` -> stakeholder-management and `digital-health-nurse` -> patient-care, clinical-judgement, cross-cultural-communication (12 edges removed across 11 profiles remain). Add the prerequisite climate-ai -> machine-learning. Add the committed audit script `src/scripts/course_coverage.py`, replacing the untracked toolbox path.
+- **Why**: (1) The matching benchmark (`test_synthetic_personas_evaluation_benchmark`) fell to nDCG@3 0.8899 (< 0.90) because dropping the business-analyst edge pushed that role above `business-intelligence-analysts` for persona 1; restoring only that edge returns it to 1.0, and restoring any other removed edge does not. The benchmark labels are not edited. (2) Greptile review: without the clinical edges a non-nurse with level-2 healthcare informatics and AI literacy was credited for the nurse target. (3) The ECMWF course is advanced; a beginner is now routed through machine learning first.
+- **Affects**: target requirements, prerequisite graph, coverage audit. The four restored edges have no catalogue course and are reported as no course, not invented, so the weighted audit shows 2/33 target profiles with an uncovered requirement instead of 0/33. No API contract, dependency or runtime provider change.
+- **Replaces**: none (narrows M3-042)
+- **PR / branch**: feat/pathway-skill-bank-focus
+
 ---
 
 ## M4: Core & Organisation (Core, F7)

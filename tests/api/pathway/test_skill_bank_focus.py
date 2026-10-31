@@ -18,6 +18,14 @@ OUT_OF_SCOPE = {
     "patient-care",
     "clinical-judgement",
 }
+# Edges kept on purpose: clinical gating for the nurse target, and the edge whose removal
+# changed the matching benchmark (M3-045).
+RETAINED_EDGES = {
+    ("business-analyst", "stakeholder-management"),
+    ("digital-health-nurse", "patient-care"),
+    ("digital-health-nurse", "clinical-judgement"),
+    ("digital-health-nurse", "cross-cultural-communication"),
+}
 DIGITAL_GAPS = {
     "cloud-ai-services",
     "enterprise-architecture",
@@ -41,22 +49,42 @@ DIGITAL_GAPS = {
 def test_targets_only_require_in_scope_skills_but_intake_keeps_existing_skills() -> None:
     for role in data.target_role_ids():
         requirements = data.requirements(role)
-        assert requirements and not OUT_OF_SCOPE & {r.skill_id for r in requirements}, role
+        present = {(role, r.skill_id) for r in requirements} - RETAINED_EDGES
+        assert requirements and not [e for e in present if e[1] in OUT_OF_SCOPE], role
         assert all(0 < r.importance <= 1 for r in requirements)
     assert OUT_OF_SCOPE <= data.skill_labels().keys()
     assert {"patient-care", "clinical-judgement"} <= {
         r.skill_id for r in data.requirements("registered-nurses")
     }
+    # A non-nurse must not look qualified: the clinical prerequisites stay on this target.
     assert {r.skill_id for r in data.requirements("digital-health-nurse")} == {
         "healthcare-informatics",
         "ai-literacy",
+        "patient-care",
+        "clinical-judgement",
+        "cross-cultural-communication",
     }
+    assert ("business-analyst", "stakeholder-management") in {
+        ("business-analyst", r.skill_id) for r in data.requirements("business-analyst")
+    }
+
+
+def test_climate_ai_requires_machine_learning_first() -> None:
+    # The ECMWF course is advanced: a beginner is sent through machine learning (and Python).
+    rows = (seed.SEED_DIR / "pathway/skill_prerequisites.csv").read_text(encoding="utf-8")
+    assert "climate-ai,machine-learning," in rows
 
 
 def test_every_target_requirement_has_a_catalogue_entry_without_claiming_level_closure() -> None:
     offered = {taxonomy.canonical(s) for c in data.catalogue() for s in c.skill_ids}
     for role in data.target_role_ids():
-        assert {taxonomy.canonical(r.skill_id) for r in data.requirements(role)} <= offered, role
+        # Retained edges have no course; they are reported as no_catalogue_course, never invented.
+        needed = {
+            taxonomy.canonical(r.skill_id)
+            for r in data.requirements(role)
+            if (role, r.skill_id) not in RETAINED_EDGES
+        }
+        assert needed <= offered, role
     assert DIGITAL_GAPS <= offered
     # The introductory finance masterclass must not pretend to satisfy level-3 finance AI.
     plan = engine.build(

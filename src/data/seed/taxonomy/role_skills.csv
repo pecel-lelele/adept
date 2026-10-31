@@ -48,6 +48,7 @@ business-analyst,business-analysis,3,1
 business-analyst,process-mapping,3,0.8
 business-analyst,data-visualisation,3,0.6
 business-analyst,sql,2,0.6
+business-analyst,stakeholder-management,3,0.6
 solar-pv-engineer,renewable-energy-systems,3,1
 solar-pv-engineer,energy-efficiency,3,0.6
 solar-pv-engineer,project-management,2,0.4
@@ -87,6 +88,9 @@ health-informatics-specialist,data-visualisation,2,0.5
 health-informatics-specialist,healthcare-ai,2,0.5
 digital-health-nurse,healthcare-informatics,2,0.6
 digital-health-nurse,ai-literacy,2,0.4
+digital-health-nurse,patient-care,3,1
+digital-health-nurse,clinical-judgement,3,0.9
+digital-health-nurse,cross-cultural-communication,3,0.4
 learning-experience-designer,instructional-design,3,1
 learning-experience-designer,learning-development,3,0.8
 learning-experience-designer,ai-literacy,2,0.5

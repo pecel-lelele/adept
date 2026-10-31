@@ -46,7 +46,7 @@ and evaluation thresholds are unchanged.
 ## Digital and green focus (2026-10-31, issue #84)
 
 The 33 target profiles now exclude the eight soft/clinical skill categories specified
-in M3-042: 16 edges removed across 13 profiles. Surviving relative importance estimates
+in M3-042: 12 edges removed across 11 profiles. Surviving relative importance estimates
 are retained; scoring normalizes by the remaining sum. All eight skill records remain
 for intake/CV aliases, job reference data, SDG links and current-role requirements.
 `provenance.json` records removed pairs, original values and the digital-health decision.

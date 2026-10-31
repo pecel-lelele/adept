@@ -11,3 +11,4 @@ vector-databases,rag-systems,The selected vector database module applies retriev
 ai-agents,ai-literacy,Understand AI limitations before designing agent workflows.
 llm-evaluation,ai-literacy,Evaluation requires understanding model limitations.
 digital-twin,iot-systems,The selected digital twin course connects physical sensor data.
+climate-ai,machine-learning,The ECMWF course applies machine learning to weather and climate data; learn machine learning first.
