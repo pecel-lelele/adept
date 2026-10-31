@@ -1,15 +1,4 @@
 {
-  "viewAll": "View all {count}",
-  "pagination": {
-    "range": "{from}–{to} of {total} skills",
-    "page": "Page {page} of {total}",
-    "previous": "Previous page",
-    "next": "Next page",
-    "label": "Skills pages"
-  },
-  "showMore": "Show {count} more",
-  "showLess": "Show less",
-  "remaining": "{count} remaining",
   "title": "Future Skills Radar",
   "roleDirections": "Rising and declining roles",
   "risingRoles": "Rising roles",
@@ -61,16 +50,16 @@
     "error": "The refresh request failed ({code}). The current snapshot stays live."
   },
   "nationalContext": {
-    "heading": "Malaysian labour context",
-    "month": "Month",
-    "singleMonth": "Only this month is stored.",
-    "asOf": "Data as of {date}",
-    "retrieved": "Retrieved {date}",
     "title": "Malaysian labour context · {month}",
     "description": "Published national survey rates provide context. Role scores use their own listed evidence; these totals are not vacancy forecasts.",
     "unemployment": "Unemployment rate",
     "participation": "Labour-force participation",
-    "employmentRatio": "Employment-to-population ratio"
+    "employmentRatio": "Employment-to-population ratio",
+    "heading": "Malaysian labour context",
+    "month": "Month",
+    "singleMonth": "Only this month is stored.",
+    "asOf": "Data as of {date}",
+    "retrieved": "Retrieved {date}"
   },
   "dataSources": {
     "title": "Data sources",
@@ -97,9 +86,6 @@
     "resultFailed": "Not refreshed; the last good data stays live.",
     "boards": "({ran} boards read, {skipped} skipped)",
     "asOf": "Data as of {date}",
-    "current": "Data is up to date",
-    "lastUpdatedShort": "Last updated {date}",
-    "historicalShort": "Historical data · through {date}",
     "asOfFrozen": "Data as of {date} (frozen export)",
     "codes": {
       "fetch_failed": "The source did not answer.",
@@ -118,7 +104,10 @@
     "lastGood": "Showing the last good snapshot; observations through {date}.",
     "lastChecked": "Last checked {time}",
     "nextScheduled": "Next scheduled run: {time}",
-    "recentRuns": "Recent refresh runs"
+    "recentRuns": "Recent refresh runs",
+    "current": "Data is up to date",
+    "lastUpdatedShort": "Last updated {date}",
+    "historicalShort": "Historical data · through {date}"
   },
   "refreshUser": {
     "title": "Refresh data",
@@ -147,5 +136,16 @@
       "failed": "Failed",
       "skipped": "Up to date"
     }
-  }
+  },
+  "viewAll": "View all {count}",
+  "pagination": {
+    "range": "{from}–{to} of {total} skills",
+    "page": "Page {page} of {total}",
+    "previous": "Previous page",
+    "next": "Next page",
+    "label": "Skills pages"
+  },
+  "showMore": "Show {count} more",
+  "showLess": "Show less",
+  "remaining": "{count} remaining"
 }

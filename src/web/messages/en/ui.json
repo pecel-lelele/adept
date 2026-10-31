@@ -49,8 +49,8 @@
     "funding_conflict": "The funding request could not be completed. Check its current status with your manager.",
     "disallowed_content": "Remove unsupported content from your input before continuing.",
     "unknown_course": "Choose a course from the current plan or catalogue.",
-    "invalid_role_proposal": "Choose a catalogue role",
-    "insufficient_cohort": "Too few sharing members with completed profiles. Select a larger consenting cohort, or wait for more members to finish their profiles."
+    "insufficient_cohort": "Too few sharing members with completed profiles. Select a larger consenting cohort, or wait for more members to finish their profiles.",
+    "invalid_role_proposal": "Choose a catalogue role"
   },
   "nav": {
     "home": "Home",
@@ -414,10 +414,6 @@
     "hrd": "My employer is registered with HRD Corp",
     "skillsTitle": "What can you already do?",
     "skillsHint": "Upload a CV to find skills automatically, or search the skill bank.",
-    "cvLoadedHint": "Your CV skills and confirmed levels are ready. You can edit them below or add more skills.",
-    "cvReady": "CV processed",
-    "cvFileNote": "Skills imported from this file. The original file contents are not stored.",
-    "replaceCv": "Replace CV",
     "upload": "Upload CV (PDF, Word or text)",
     "uploading": "Reading your CV…",
     "search": "Search the skill bank",
@@ -448,7 +444,11 @@
       "semantic": "Similar meaning"
     },
     "saving": "Saving…",
-    "uploadTypeError": "Use a PDF, Word (.docx) or text file under 5 MB."
+    "uploadTypeError": "Use a PDF, Word (.docx) or text file under 5 MB.",
+    "cvLoadedHint": "Your CV skills and confirmed levels are ready. You can edit them below or add more skills.",
+    "cvReady": "CV processed",
+    "cvFileNote": "Skills imported from this file. The original file contents are not stored.",
+    "replaceCv": "Replace CV"
   },
   "home": {
     "hello": "Hi {name}",

@@ -1,15 +1,4 @@
 {
-  "viewAll": "查看全部 {count} 项",
-  "pagination": {
-    "range": "第 {from}–{to} 项，共 {total} 项技能",
-    "page": "第 {page} 页，共 {total} 页",
-    "previous": "上一页",
-    "next": "下一页",
-    "label": "技能分页"
-  },
-  "showMore": "再显示 {count} 项",
-  "showLess": "收起",
-  "remaining": "剩余 {count} 项",
   "roleDirections": "需求上升和下降的职位",
   "risingRoles": "需求上升的职位",
   "decliningRoles": "需求下降的职位",
@@ -61,16 +50,16 @@
     "error": "刷新请求失败（{code}）。当前快照保持不变。"
   },
   "nationalContext": {
-    "heading": "马来西亚劳动力概况",
-    "month": "月份",
-    "singleMonth": "目前仅存储该月数据。",
-    "asOf": "数据截至 {date}",
-    "retrieved": "获取日期 {date}",
     "title": "马来西亚劳动力背景 · {month}",
     "description": "已发布的全国调查比率提供背景信息。职业评分使用各自列出的证据；这些全国数据不是职位空缺预测。",
     "unemployment": "失业率",
     "participation": "劳动力参与率",
-    "employmentRatio": "就业人口比率"
+    "employmentRatio": "就业人口比率",
+    "heading": "马来西亚劳动力概况",
+    "month": "月份",
+    "singleMonth": "目前仅存储该月数据。",
+    "asOf": "数据截至 {date}",
+    "retrieved": "获取日期 {date}"
   },
   "dataSources": {
     "title": "数据来源",
@@ -97,9 +86,6 @@
     "resultFailed": "未刷新；仍使用上一次的有效数据。",
     "boards": "（读取 {ran} 个职位板，跳过 {skipped} 个）",
     "asOf": "数据截至 {date}",
-    "current": "数据已更新",
-    "lastUpdatedShort": "最近更新于 {date}",
-    "historicalShort": "历史数据 · 截至 {date}",
     "asOfFrozen": "数据截至 {date}（固定导出文件）",
     "codes": {
       "fetch_failed": "数据来源没有响应。",
@@ -118,7 +104,10 @@
     "lastGood": "正在显示最近有效快照；观测数据截至 {date}。",
     "lastChecked": "上次检查 {time}",
     "nextScheduled": "下次计划运行：{time}",
-    "recentRuns": "最近的刷新任务"
+    "recentRuns": "最近的刷新任务",
+    "current": "数据已更新",
+    "lastUpdatedShort": "最近更新于 {date}",
+    "historicalShort": "历史数据 · 截至 {date}"
   },
   "refreshUser": {
     "title": "刷新数据",
@@ -147,5 +136,16 @@
       "failed": "失败",
       "skipped": "已是最新"
     }
-  }
+  },
+  "viewAll": "查看全部 {count} 项",
+  "pagination": {
+    "range": "第 {from}–{to} 项，共 {total} 项技能",
+    "page": "第 {page} 页，共 {total} 页",
+    "previous": "上一页",
+    "next": "下一页",
+    "label": "技能分页"
+  },
+  "showMore": "再显示 {count} 项",
+  "showLess": "收起",
+  "remaining": "剩余 {count} 项"
 }

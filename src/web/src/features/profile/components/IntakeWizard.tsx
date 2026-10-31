@@ -147,6 +147,12 @@ export function IntakeWizard({
   }, [step]);
 
   useEffect(() => {
+    if (!focusStepOnChange.current) return;
+    stepHeadingRef.current?.focus();
+    focusStepOnChange.current = false;
+  }, [step]);
+
+  useEffect(() => {
     if (!draftReady || submitted.current) return;
     try {
       writeIntakeDraft(window.sessionStorage, draftKey, {

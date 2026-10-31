@@ -29,6 +29,6 @@
   "whyLinked": "为何关联这些目标",
   "tooFewMembers": "至少有 {count} 位不同成员可安全纳入时，才会显示地区汇总结果。",
   "tooFewMembersUnknown": "在有足够多的不同成员可安全纳入之前，地区汇总结果不会显示。",
-  "chooseRole": "查看并选择职位",
-  "freeLearningReason": "此计划中的每门课程均可免费学习（证书可能另收费）。"
+  "freeLearningReason": "此计划中的每门课程均可免费学习（证书可能另收费）。",
+  "chooseRole": "查看并选择职位"
 }

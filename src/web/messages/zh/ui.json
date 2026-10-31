@@ -49,8 +49,8 @@
     "funding_conflict": "无法完成资助请求，请联系管理员检查当前状态。",
     "disallowed_content": "请移除输入中不受支持的内容后继续。",
     "unknown_course": "请从当前计划或目录选择课程。",
-    "invalid_role_proposal": "从目录中选择岗位",
-    "insufficient_cohort": "已完成档案并同意分享技能的成员太少。请选择更大的知情同意群组，或等待更多成员完成档案。"
+    "insufficient_cohort": "已完成档案并同意分享技能的成员太少。请选择更大的知情同意群组，或等待更多成员完成档案。",
+    "invalid_role_proposal": "从目录中选择岗位"
   },
   "nav": {
     "home": "首页",
@@ -414,10 +414,6 @@
     "hrd": "我的雇主已在 HRD Corp 注册",
     "skillsTitle": "你已经会做什么？",
     "skillsHint": "上传简历自动找出技能，或在技能库中搜索。",
-    "cvLoadedHint": "您的简历技能和已确认等级已准备好。您可以在下方修改或添加技能。",
-    "cvReady": "简历已处理",
-    "cvFileNote": "技能已从此文件导入。原始文件内容不会被保存。",
-    "replaceCv": "更换简历",
     "upload": "上传简历（PDF、Word 或文本）",
     "uploading": "正在读取你的简历…",
     "search": "搜索技能库",
@@ -448,7 +444,11 @@
       "semantic": "相近含义"
     },
     "saving": "正在保存…",
-    "uploadTypeError": "请使用 5 MB 以内的 PDF、Word (.docx) 或文本文件。"
+    "uploadTypeError": "请使用 5 MB 以内的 PDF、Word (.docx) 或文本文件。",
+    "cvLoadedHint": "您的简历技能和已确认等级已准备好。您可以在下方修改或添加技能。",
+    "cvReady": "简历已处理",
+    "cvFileNote": "技能已从此文件导入。原始文件内容不会被保存。",
+    "replaceCv": "更换简历"
   },
   "home": {
     "hello": "你好，{name}",

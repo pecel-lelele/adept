@@ -541,6 +541,7 @@
 - **Affects**: Guest preview API/proxy/UI, generated contracts, English/Malay/Chinese copy; existing API clients retain the original upload behaviour unless they opt into extraction only.
 - **Replaces**: none
 - **PR / branch**: feat/trends-radar-lists
+
 ### TEAM-050: Bound the assessment body independently of Content-Length
 - **Date**: 2026-10-31
 - **Feature**: Core (guest CV preview)
@@ -550,6 +551,7 @@
 - **Affects**: Save outlook proxy and request-boundary regressions; no scoring, schema, database or provider changes.
 - **Replaces**: none (corrects TEAM-049 request framing)
 - **PR / branch**: feat/trends-radar-lists
+
 ### TEAM-051: Carry processed CV metadata through signup into the account draft
 - **Date**: 2026-10-31
 - **Feature**: Core, F1 (onboarding)
@@ -559,6 +561,7 @@
 - **Affects**: Landing CV preview, onboarding session draft and handoff validation, EN/MS/ZH copy and regression coverage; no API, database, provider or scoring change.
 - **Replaces**: none (extends TEAM-049)
 - **PR / branch**: feat/trends-radar-lists
+
 ### TEAM-052: Explicit role choice and consent-aware learning progress
 - **Date**: 2026-10-31
 - **Feature**: Core, F4, F5 and F7
@@ -569,6 +572,7 @@
 - **Affects**: Personal desktop/mobile navigation, role selection, Plan/Progress, member agreements, quick packages, HR programmes/members/dashboard/heatmap, English/Malay/Chinese messages and generated contracts. Team course totals read only this employer's accepted routes and consenting completed profiles, deduplicate courses per member/skill and suppress each skill below ORG_MIN_COHORT. They are distinct from the evidenced skill-gap heatmap. Additive assignment fields persist in the existing JSON ledger; no database migration, provider, invented catalogue entity, funding approval or paid workload.
 - **Replaces**: none (extends existing target-choice, evidence, workspace and cohort-suppression decisions)
 - **PR / branch**: feat/trends-radar-lists
+
 ### TEAM-053: Enforce the role lock on the server and keep acceptance when proposing a role
 - **Date**: 2026-10-31
 - **Feature**: Core, F4, F5 and F7
@@ -578,7 +582,6 @@
 - **Affects**: Pathway progress and evidence endpoints, the Progress contract and generated clients, programme and package responses, personal navigation, Roles, Plan, Progress, the member agreement card, the programme wizard and English/Malay/Chinese messages. No migration: proposal fields already exist in the JSON ledger. HR still has no explicit "reject proposal" action, and that remains a product decision.
 - **Replaces**: none (extends TEAM-052)
 - **PR / branch**: feat/trends-radar-lists
-
 
 ### TEAM-054: Keep attribution opt-in and make public evidence scannable
 - **Date**: 2026-11-01
@@ -1033,6 +1036,7 @@
 - **Affects**: Individual and organisation radar; English, Malay and Chinese labels. No API, schema, dependency or provider changes.
 - **Replaces**: none
 - **PR / branch**: feat/trends-radar-lists
+
 ### M1-040: Expand radar roles five at a time
 - **Date**: 2026-10-31
 - **Feature**: F2 (Radar UI)
@@ -1043,6 +1047,7 @@
 - **Affects**: Individual and organisation radar; no data, scoring, source, contract or dependency changes.
 - **Replaces**: M1-039's 15-item role-list batch size only
 - **PR / branch**: feat/trends-radar-lists
+
 ### M1-041: Collapse expanded radar lists on demand
 - **Date**: 2026-10-31
 - **Feature**: F2 (Radar UI)
@@ -1053,6 +1058,7 @@
 - **Affects**: Individual and organisation radar; English, Malay and Chinese labels. No data, scoring, source, contract or dependency changes.
 - **Replaces**: none; extends M1-039 and M1-040
 - **PR / branch**: feat/trends-radar-lists
+
 ### M1-042: Compact three-column role toggles and paged skills
 - **Date**: 2026-10-31
 - **Feature**: F2 (Radar UI)
@@ -1063,6 +1069,7 @@
 - **Affects**: Individual and organisation radar, English/Malay/Chinese labels and navigation regressions. No data, ranking, API, schema or dependency changes.
 - **Replaces**: M1-039/M1-040/M1-041 list expansion behaviour and role layout only
 - **PR / branch**: feat/trends-radar-lists
+
 ### M1-043: Present stored Malaysian labour observations as a compact card
 - **Date**: 2026-10-31
 - **Feature**: F2 (National labour context), Core/F7 dashboards
@@ -1073,7 +1080,6 @@
 - **Affects**: Trends labour reader/router and generated contracts; individual/organisation radar and dashboard; English/Malay/Chinese labels. No database migration, data ingestion, model or scoring changes.
 - **Replaces**: none; supersedes the disclosure-only labour card presentation
 - **PR / branch**: feat/trends-radar-lists
-
 
 ### M1-044: Refuse empty or incomplete portable trend history
 - **Date**: 2026-11-01
@@ -3015,7 +3021,6 @@
 - **Affects**: Shared DataAsOf output with selected metadata; no API schema or source date changed
 - **Replaces**: none; refines M4-098 provenance display
 - **PR / branch**: fix/core-dashboard-clarity
-
 ### M4-100: Plain-language dashboard cards, one sources link and no radar chart cards
 - **Date**: 2026-11-01
 - **Feature**: Core dashboard / F2 radar / F4 matches / F6 SDG
@@ -3035,3 +3040,4 @@
 - **Affects**: assistant guide, service, context page table; new tests `tests/api/assistant/test_help_topics.py`
 - **Replaces**: none; extends M4-084
 - **PR / branch**: fix/core-dashboard-cleanup
+

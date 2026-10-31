@@ -62,24 +62,11 @@ with `PYTHONPATH=src/api:src` and the provider settings for that process only:
    chunks, then publishes the rolling snapshot. Run it again to resume. It refuses to start
    without a passing report. Committing that report is what switches `TRENDS_MATCHER=auto` to
    Gemini.
-4. `... export-seed --target host:port/db` validates the active method's measured dates,
-   checks that days are contiguous **within the exported range** and each day's paper count
-   equals its stored rows, then writes portable CSVs from one repeatable-read transaction.
-   An empty, unannounced, gapped or method-mixed store is refused; a shorter range can still
-   be exported with its actual first/last dates and never pretends to cover a full year.
-   Keep the passing equivalence report beside Gemini CSVs for `TRENDS_MATCHER=auto` on the
-   destination. This step does not call arXiv or a model.
+4. `... export-seed` writes the series to `src/data/seed/trends/paper_store/` from one
+   repeatable-read transaction, so a concurrent daily correction cannot mix totals and papers.
 
-**Preparing a later Replit migration:** Run `estimate` first against a deliberately selected
-local/disposable PostgreSQL target. `equivalence` and `run` can call configured model providers
-and incur cost; only start them with separately approved credentials and budget. Export and
-review the actual dated CSVs and passing report before transporting them. Later, on an
-explicitly approved destination, apply the append-only migrations and import with `make seed`
-using that destination's private `DATABASE_URL`. The graph reads the imported paper days;
-`make seed` does not calculate a new rolling snapshot or silently invoke any model. Run a
-reviewed refresh to publish a new forecast snapshot, and verify the chart range and sources
-on the deployed revision. Until a measured export exists, leave the chart's no-observations
-state intact rather than inserting invented points.
+To load the history elsewhere, apply migrations and run `make seed` with `DATABASE_URL` set to
+that database. No arXiv or model call is made and existing rows are kept.
 
 Stages: arXiv cs.AI submissions → title + abstract → Gemini embeddings (384 dimensions) → cosine
 at or above one stored threshold per model → equivalence against MiniLM → per-paper rows counted

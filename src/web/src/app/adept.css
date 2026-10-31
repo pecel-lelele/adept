@@ -2559,6 +2559,8 @@ html[data-busy] .a-main::after { content: ""; }
 @media (prefers-reduced-motion: reduce) { .a-refresh-spinner { animation: none; } }
 
 /* Trend over time: preset range is immediate; advanced controls open when needed. */
+
+
 /* shadcn chart (components/ui/chart.tsx) */
 .a-chart { width: 100%; height: 320px; font-size: 11px; }
 .a-chart .recharts-cartesian-grid line { stroke: var(--a-line); }
@@ -2572,6 +2574,8 @@ html[data-busy] .a-main::after { content: ""; }
 .a-chart-legend li { display: inline-flex; align-items: center; gap: 6px; }
 .a-chart-marker { color: var(--a-muted); }
 @media (max-width: 600px) { .a-chart { height: 260px; } }
+
+
 
 
 /* Dashboard clean-up: attribution link, role cards, SDG shares and the MyCOL card. */

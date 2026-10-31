@@ -1,15 +1,4 @@
 {
-  "viewAll": "Lihat semua {count}",
-  "pagination": {
-    "range": "{from}–{to} daripada {total} kemahiran",
-    "page": "Halaman {page} daripada {total}",
-    "previous": "Halaman sebelumnya",
-    "next": "Halaman seterusnya",
-    "label": "Halaman kemahiran"
-  },
-  "showMore": "Tunjukkan {count} lagi",
-  "showLess": "Tunjukkan kurang",
-  "remaining": "{count} lagi",
   "roleDirections": "Peranan yang meningkat dan menurun",
   "risingRoles": "Peranan yang meningkat",
   "decliningRoles": "Peranan yang menurun",
@@ -61,16 +50,16 @@
     "error": "Permintaan muat semula gagal ({code}). Snapshot semasa kekal aktif."
   },
   "nationalContext": {
-    "heading": "Konteks tenaga buruh Malaysia",
-    "month": "Bulan",
-    "singleMonth": "Hanya bulan ini disimpan.",
-    "asOf": "Data setakat {date}",
-    "retrieved": "Diperoleh {date}",
     "title": "Konteks tenaga buruh Malaysia · {month}",
     "description": "Kadar tinjauan kebangsaan yang diterbitkan memberi konteks. Skor peranan menggunakan bukti yang disenaraikan sendiri; jumlah ini bukan ramalan kekosongan jawatan.",
     "unemployment": "Kadar pengangguran",
     "participation": "Penyertaan tenaga buruh",
-    "employmentRatio": "Nisbah guna tenaga kepada penduduk"
+    "employmentRatio": "Nisbah guna tenaga kepada penduduk",
+    "heading": "Konteks tenaga buruh Malaysia",
+    "month": "Bulan",
+    "singleMonth": "Hanya bulan ini disimpan.",
+    "asOf": "Data setakat {date}",
+    "retrieved": "Diperoleh {date}"
   },
   "dataSources": {
     "title": "Sumber data",
@@ -97,9 +86,6 @@
     "resultFailed": "Tidak dimuat semula; data baik terakhir terus dipaparkan.",
     "boards": "({ran} papan dibaca, {skipped} dilangkau)",
     "asOf": "Data setakat {date}",
-    "current": "Data terkini",
-    "lastUpdatedShort": "Kemas kini terakhir {date}",
-    "historicalShort": "Data sejarah · hingga {date}",
     "asOfFrozen": "Data setakat {date} (eksport beku)",
     "codes": {
       "fetch_failed": "Sumber tidak memberi respons.",
@@ -118,7 +104,10 @@
     "lastGood": "Memaparkan snapshot baik terakhir; pemerhatian sehingga {date}.",
     "lastChecked": "Disemak kali terakhir {time}",
     "nextScheduled": "Jadual seterusnya: {time}",
-    "recentRuns": "Muat semula terkini"
+    "recentRuns": "Muat semula terkini",
+    "current": "Data terkini",
+    "lastUpdatedShort": "Kemas kini terakhir {date}",
+    "historicalShort": "Data sejarah · hingga {date}"
   },
   "refreshUser": {
     "title": "Muat semula data",
@@ -147,5 +136,16 @@
       "failed": "Gagal",
       "skipped": "Terkini"
     }
-  }
+  },
+  "viewAll": "Lihat semua {count}",
+  "pagination": {
+    "range": "{from}–{to} daripada {total} kemahiran",
+    "page": "Halaman {page} daripada {total}",
+    "previous": "Halaman sebelumnya",
+    "next": "Halaman seterusnya",
+    "label": "Halaman kemahiran"
+  },
+  "showMore": "Tunjukkan {count} lagi",
+  "showLess": "Tunjukkan kurang",
+  "remaining": "{count} lagi"
 }
