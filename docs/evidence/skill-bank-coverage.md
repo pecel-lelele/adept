@@ -81,7 +81,7 @@ All rows use the existing self-paced, English, `hrd_claimable=false`, `currency=
 
 ## Evidence and limits
 
-Exact provider facts, source URLs, access notes, duration evidence and mapping rationale are in [skill_bank_provenance.json](../src/data/seed/courses/skill_bank_provenance.json). Microsoft durations came from its Catalog API, retrieved on the same date as the opened course pages. New entries are frozen in the existing `FREE_DIGITAL` source group, so a later sync date cannot refresh manual verification dates.
+Exact provider facts, source URLs, access notes, duration evidence and mapping rationale are in [skill_bank_provenance.json](../../src/data/seed/courses/skill_bank_provenance.json). Microsoft durations came from its Catalog API, retrieved on the same date as the opened course pages. New entries are frozen in the existing `FREE_DIGITAL` source group, so a later sync date cannot refresh manual verification dates.
 
 Kaggle URLs were opened, but their live HTML is a JavaScript shell; metadata was available in the indexed official course pages. Authenticated exercises were not inspected. ECMWF course 3 redirects to login; its public provider catalogue supplies the title, free price, prerequisites and 16?24-hour estimate. The course is stored with 24 hours as a disclosed upper-bound planning estimate. Precision Farming uses 48 hours as the disclosed upper bound of the provider's 20?48-hour range; both its EIT Campus and 28DIGITAL pages were opened. CFTE specifies about 45 minutes in its FAQ (rounded to 0.8 hours), despite a broader ?under 2 hours? hero.
 
@@ -91,7 +91,7 @@ The inactive FutureLearn agriculture course and the TAU Selenium page without es
 
 ## Serving and rollout
 
-CSV fallback uses the revised requirements immediately. PostgreSQL reference upserts do not remove old edges, so the append-only migration `20261031120000_pathway_digital_skill_focus.sql` deletes only the 16 exact removed pairs. Its rollback restores their original estimated values without overwriting later edits. Apply migrations and seed reference data only to an explicitly selected authorized database; this job did not touch an ambient database. Course source definitions and generated CSV share the existing pipeline/live-sync path. No API contract or environment setting changed.
+CSV fallback uses the revised requirements immediately. PostgreSQL reference upserts do not remove old edges, so the append-only migration `20261031130000_pathway_digital_skill_focus.sql` deletes only the 16 exact removed pairs. Its rollback restores their original estimated values without overwriting later edits. Apply migrations and seed reference data only to an explicitly selected authorized database; this job did not touch an ambient database. Course source definitions and generated CSV share the existing pipeline/live-sync path. No API contract or environment setting changed.
 
 ## Verification
 

@@ -117,5 +117,5 @@ The catalogue now has 120 records. Course-presence gaps fall from 19/33 target p
 The digital-health nursing focus retains healthcare informatics and AI literacy for
 already qualified nurses; it does not provide a nursing qualification. Existing DBs need
 the exact-pair requirement migration as well as reference seeding. The
-[coverage report](../../../../../docs/skill-bank-coverage.md) lists each target and course;
+[coverage report](../../../../../docs/evidence/skill-bank-coverage.md) lists each target and course;
 `courses/skill_bank_provenance.json` records provider access and duration limitations.

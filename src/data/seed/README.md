@@ -21,7 +21,7 @@ and SDG targets are real, public, dated records (see their folders). Load with `
 
 The 2026-10-31 digital/green focus release removes out-of-scope target requirements while
 retaining intake and current-role references, and adds 16 dated free course records.
-See [coverage and course evidence](../../../docs/skill-bank-coverage.md),
+See [coverage and course evidence](../../../docs/evidence/skill-bank-coverage.md),
 [catalogue provenance](courses/skill_bank_provenance.json) and
 [taxonomy provenance](taxonomy/provenance.json). Coverage means course presence, not
 complete professional qualification or attainment of every required skill level.

@@ -59,7 +59,7 @@ def test_digital_focus_migration_removes_only_the_retired_edges_and_rolls_back()
     manifest = json.loads((seed.SEED_DIR / "taxonomy/provenance.json").read_text(encoding="utf-8"))
     removed = manifest["skill_bank_focus"]["removed_target_requirements"]
     current = seed.rows("taxonomy", "role_skills")
-    sql = (migrate.MIGRATIONS / "20261031120000_pathway_digital_skill_focus.sql").read_text(
+    sql = (migrate.MIGRATIONS / "20261031130000_pathway_digital_skill_focus.sql").read_text(
         encoding="utf-8"
     )
     with psycopg.connect(get_settings().database_url) as conn:

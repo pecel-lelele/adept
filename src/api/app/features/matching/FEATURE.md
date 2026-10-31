@@ -70,4 +70,4 @@ M3-042 removes the eight specified soft/clinical skill categories from target re
 skill records. Matching continues to normalize over the surviving requirement weights;
 no ranking formula or evaluation threshold changes. The digital-health nursing focus
 requires healthcare informatics and AI literacy for qualified nurses, not clinical training.
-See the [coverage report](../../../../../docs/skill-bank-coverage.md) and taxonomy provenance.
+See the [coverage report](../../../../../docs/evidence/skill-bank-coverage.md) and taxonomy provenance.

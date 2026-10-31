@@ -71,7 +71,7 @@ Adds 16 free-learning records (120 catalogue rows total), frozen in `FREE_DIGITA
 pipeline regeneration and live sync. Each provider course URL was opened on 2026-10-31.
 [skill_bank_provenance.json](skill_bank_provenance.json) records exact titles, dates,
 duration/price evidence, skill mapping estimates and access limitations; the
-[coverage report](../../../../docs/skill-bank-coverage.md) lists every course with its URL.
+[coverage report](../../../../docs/evidence/skill-bank-coverage.md) lists every course with its URL.
 Microsoft Learn durations are from its Catalog API retrieved the same day. Older rows
 retain their historical dates and facts. Kaggle live pages are JavaScript shells; their
 metadata came from indexed official course pages. ECMWF materials require login.

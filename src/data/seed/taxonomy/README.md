@@ -54,4 +54,4 @@ The digital-health nursing profile remains a focus for qualified nurses with hea
 informatics and AI literacy only; it does not establish clinical or professional readiness.
 An append-only exact-pair migration removes the old edges in existing databases;
 reference upserts alone cannot delete them. Current-role clinical requirements remain.
-See the [before/after report](../../../../docs/skill-bank-coverage.md) for every target profile.
+See the [before/after report](../../../../docs/evidence/skill-bank-coverage.md) for every target profile.
