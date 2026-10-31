@@ -6,7 +6,7 @@ type ProxyOptions = Omit<ReturnType<typeof proxyConfig>, "clientIpMode"> & {
   clientIpMode?: "trusted" | "best-effort"; apiUrl: string; timeoutMs?: number;
 };
 const FORWARDED_HEADERS = [
-  "content-type", "accept", "authorization", "x-demo-user", "x-workspace", "x-sync-token",
+  "content-type", "accept", "authorization", "x-demo-user", "x-workspace", "x-sync-token", "x-data-refresh-token",
   "origin", "access-control-request-method", "access-control-request-headers",
 ];
 const HOP_HEADERS = new Set([

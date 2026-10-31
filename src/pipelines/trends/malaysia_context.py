@@ -11,6 +11,7 @@ import calendar
 import csv
 import io
 import os
+from contextlib import nullcontext
 from datetime import UTC, date, datetime
 from pathlib import Path
 
@@ -71,8 +72,15 @@ def fetch() -> MalaysiaLabourContext:
     return parse_latest(data.decode("utf-8-sig"), datetime.now(UTC).date())
 
 
-def publish(value: MalaysiaLabourContext, url: str) -> None:
-    with psycopg.connect(url, connect_timeout=5, options="-c statement_timeout=10000") as conn:
+def publish(
+    value: MalaysiaLabourContext, url: str, *, conn: psycopg.Connection | None = None
+) -> None:
+    connection = (
+        nullcontext(conn)
+        if conn is not None
+        else psycopg.connect(url, connect_timeout=5, options="-c statement_timeout=10000")
+    )
+    with connection as conn:
         conn.execute(
             "INSERT INTO malaysia_labour_context(observed_month,payload) VALUES (%s,%s) "
             "ON CONFLICT(observed_month) DO UPDATE SET payload=EXCLUDED.payload",

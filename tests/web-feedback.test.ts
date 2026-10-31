@@ -27,6 +27,7 @@ test("zero matches and zero compare options render actionable empty states in ev
       "@/config/navigation": navigation,
       "@/components": { EmptyState, ErrorState, PageHeader, MetaBar: nothing, EstimateLabel: nothing, Badge: nothing, SdgBadge: nothing },
       "@/components/ErrorState": { ErrorState },
+      "@/components/DataAsOf": { DataAsOf: () => null },
       "@/components/HistoricalSnapshotBanner": { HistoricalSnapshotBanner: nothing },
       "@/components/viz": { scoreColour: () => "inherit" },
       "@/features/jobs": { fetchJobsSummary: async () => ({ ok: true, data: { roles: [] } }) },

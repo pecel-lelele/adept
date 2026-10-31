@@ -513,6 +513,393 @@
         }
       }
     },
+    "/api/v1/data/freshness": {
+      "get": {
+        "tags": [
+          "data"
+        ],
+        "summary": "Data Freshness",
+        "description": "When each data source was last fetched (from stored data or run logs) and where it is\nserved from. Page requests never fetch upstream data.",
+        "operationId": "data_data_freshness",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataFreshnessResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/data/refresh/run": {
+      "post": {
+        "tags": [
+          "data"
+        ],
+        "summary": "Scheduled Run",
+        "operationId": "data_scheduled_run",
+        "parameters": [
+          {
+            "name": "x-data-refresh-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Data-Refresh-Token"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackgroundRefresh"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/data/refresh/check": {
+      "post": {
+        "tags": [
+          "data"
+        ],
+        "summary": "User Refresh",
+        "operationId": "data_user_refresh",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshCheck"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackgroundRefresh"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/data/refresh/status/{run_id}": {
+      "get": {
+        "tags": [
+          "data"
+        ],
+        "summary": "Run Status",
+        "operationId": "data_run_status",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "x-data-refresh-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Data-Refresh-Token"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackgroundRefresh"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/data/refresh/recent": {
+      "get": {
+        "tags": [
+          "data"
+        ],
+        "summary": "Recent Runs",
+        "operationId": "data_recent_runs",
+        "parameters": [
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefreshHistory"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/data/refresh/{source}": {
+      "post": {
+        "tags": [
+          "data"
+        ],
+        "summary": "Refresh Source",
+        "description": "Fetch, validate and upsert one source into the app database (admin only).\n\n409 refresh_in_progress while that source is running; 501 refresh_not_supported when the\npipeline is not installed here; 503 when the database is not available. A failed run\n(status \"failed\") wrote nothing and the last good data stays served.",
+        "operationId": "data_refresh_source",
+        "parameters": [
+          {
+            "name": "source",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "courses",
+                "catalogue",
+                "jobs",
+                "labour",
+                "trends"
+              ],
+              "type": "string",
+              "title": "Source"
+            }
+          },
+          {
+            "name": "x-demo-user",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-User"
+            }
+          },
+          {
+            "name": "x-workspace",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataRefreshResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/guardrails/disclosure": {
       "get": {
         "tags": [
@@ -6638,6 +7025,111 @@
         ],
         "title": "AssistantReply"
       },
+      "BackgroundRefresh": {
+        "properties": {
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "running",
+              "ok",
+              "failed",
+              "up_to_date",
+              "cooldown"
+            ],
+            "title": "Status"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "checked_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Checked At"
+          },
+          "data_as_of": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data As Of"
+          },
+          "retry_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retry At"
+          },
+          "next_scheduled_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Scheduled At"
+          },
+          "shared": {
+            "type": "boolean",
+            "title": "Shared",
+            "default": false
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/RefreshStep"
+            },
+            "type": "array",
+            "title": "Steps"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "started_at",
+          "checked_at"
+        ],
+        "title": "BackgroundRefresh"
+      },
       "Badge": {
         "properties": {
           "id": {
@@ -7492,14 +7984,108 @@
       },
       "DataFreshness": {
         "properties": {
+          "observation_window_start": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observation Window Start"
+          },
+          "observation_window_end": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observation Window End"
+          },
+          "retrieved_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieved At"
+          },
+          "retrieved_at_basis": {
+            "type": "string",
+            "enum": [
+              "pipeline_fetch",
+              "fetch_log",
+              "git_commit_date",
+              "unknown"
+            ],
+            "title": "Retrieved At Basis",
+            "default": "unknown"
+          },
+          "retrieval_evidence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieval Evidence"
+          },
+          "is_replay": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Replay"
+          },
+          "observed_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed From"
+          },
+          "observed_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed To"
+          },
           "snapshot_date": {
             "type": "string",
             "format": "date",
-            "title": "Snapshot Date"
+            "title": "Snapshot Date",
+            "description": "Snapshot version/slot label; see observation_window_* for the measured period."
           },
           "sources": {
             "items": {
-              "$ref": "#/components/schemas/Source"
+              "$ref": "#/components/schemas/TrendSource"
             },
             "type": "array",
             "title": "Sources"
@@ -7530,6 +8116,303 @@
           "is_fallback"
         ],
         "title": "DataFreshness"
+      },
+      "DataFreshnessResponse": {
+        "properties": {
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/DataSourceFreshness"
+            },
+            "type": "array",
+            "title": "Sources"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sources"
+        ],
+        "title": "DataFreshnessResponse"
+      },
+      "DataRefreshResult": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "enum": [
+              "courses",
+              "catalogue",
+              "jobs",
+              "labour",
+              "trends"
+            ],
+            "title": "Source"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At"
+          },
+          "finished_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Finished At"
+          },
+          "rows_fetched": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Rows Fetched"
+          },
+          "rows_upserted": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Rows Upserted"
+          },
+          "rows_rejected": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Rows Rejected"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "boards_run": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Boards Run"
+          },
+          "boards_skipped": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Boards Skipped"
+          },
+          "freshness": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DataSourceFreshness"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "source",
+          "status",
+          "started_at",
+          "finished_at",
+          "rows_fetched",
+          "rows_upserted",
+          "rows_rejected",
+          "message"
+        ],
+        "title": "DataRefreshResult",
+        "description": "Outcome of one admin refresh. A failed run wrote nothing; the last good data stays."
+      },
+      "DataSourceFreshness": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "enum": [
+              "trends",
+              "courses",
+              "jobs",
+              "labour"
+            ],
+            "title": "Source"
+          },
+          "source_name": {
+            "type": "string",
+            "title": "Source Name"
+          },
+          "source_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Url"
+          },
+          "last_fetched_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Fetched At",
+            "description": "Date the stored data was last fetched/observed from its source."
+          },
+          "data_as_of": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data As Of",
+            "description": "Period the data describes (snapshot date, observed month), if distinct."
+          },
+          "snapshot_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snapshot Date"
+          },
+          "observed_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed From"
+          },
+          "observed_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed To"
+          },
+          "is_historical_replay": {
+            "type": "boolean",
+            "title": "Is Historical Replay",
+            "default": false
+          },
+          "last_success": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Success"
+          },
+          "last_checked_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Checked At"
+          },
+          "age_days": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age Days"
+          },
+          "is_stale": {
+            "type": "boolean",
+            "title": "Is Stale",
+            "default": false
+          },
+          "rows": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Rows"
+          },
+          "served_from": {
+            "type": "string",
+            "enum": [
+              "database",
+              "seed"
+            ],
+            "title": "Served From"
+          },
+          "is_fallback": {
+            "type": "boolean",
+            "title": "Is Fallback",
+            "description": "True when the frozen seed export is being served."
+          },
+          "refreshable": {
+            "type": "boolean",
+            "title": "Refreshable",
+            "description": "An administrator can refresh this source in the app."
+          },
+          "last_run": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RefreshRunSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "source",
+          "source_name",
+          "rows",
+          "served_from",
+          "is_fallback",
+          "refreshable"
+        ],
+        "title": "DataSourceFreshness",
+        "description": "How fresh the data behind one page is, from stored data or run logs (never the clock)."
       },
       "DataSourceInfo": {
         "properties": {
@@ -8857,6 +9740,18 @@
             "format": "date",
             "title": "First Seen"
           },
+          "last_seen": {
+            "type": "string",
+            "format": "date",
+            "title": "Last Seen",
+            "description": "Last day a source read still listed the ad."
+          },
+          "is_stale": {
+            "type": "boolean",
+            "title": "Is Stale",
+            "description": "Not re-seen by a source read in the last 14 days; it may have closed. Shown labelled, never counted as open.",
+            "default": false
+          },
           "role_method": {
             "type": "string",
             "enum": [
@@ -8921,6 +9816,7 @@
           "url",
           "source_name",
           "first_seen",
+          "last_seen",
           "role_method",
           "skills"
         ],
@@ -10984,7 +11880,7 @@
             "title": "Items"
           },
           "meta": {
-            "$ref": "#/components/schemas/RecommendationMeta"
+            "$ref": "#/components/schemas/TrendRecommendationMeta"
           }
         },
         "type": "object",
@@ -11077,6 +11973,139 @@
         ],
         "title": "RecommendationMeta",
         "description": "Attached to every response that contains a recommendation, score or trend."
+      },
+      "RefreshCheck": {
+        "properties": {
+          "bypass_cooldown": {
+            "type": "boolean",
+            "title": "Bypass Cooldown",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "RefreshCheck"
+      },
+      "RefreshHistory": {
+        "properties": {
+          "runs": {
+            "items": {
+              "$ref": "#/components/schemas/BackgroundRefresh"
+            },
+            "type": "array",
+            "title": "Runs"
+          },
+          "next_scheduled_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Next Scheduled At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "runs",
+          "next_scheduled_at"
+        ],
+        "title": "RefreshHistory"
+      },
+      "RefreshRunSummary": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "finished_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Finished At"
+          },
+          "rows_fetched": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Rows Fetched"
+          },
+          "rows_upserted": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Rows Upserted"
+          },
+          "rows_rejected": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Rows Rejected"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "finished_at",
+          "rows_fetched",
+          "rows_upserted",
+          "rows_rejected"
+        ],
+        "title": "RefreshRunSummary",
+        "description": "The most recent in-app refresh of one source (no secrets, no raw error text)."
+      },
+      "RefreshStep": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "enum": [
+              "trends",
+              "courses",
+              "jobs",
+              "labour"
+            ],
+            "title": "Source"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "running",
+              "done",
+              "failed",
+              "skipped"
+            ],
+            "title": "Status",
+            "default": "pending"
+          },
+          "rows": {
+            "type": "integer",
+            "title": "Rows",
+            "default": 0
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source"
+        ],
+        "title": "RefreshStep"
       },
       "RegionListResponse": {
         "properties": {
@@ -11996,7 +13025,7 @@
             "$ref": "#/components/schemas/TrendSignal"
           },
           "meta": {
-            "$ref": "#/components/schemas/RecommendationMeta"
+            "$ref": "#/components/schemas/TrendRecommendationMeta"
           }
         },
         "type": "object",
@@ -13283,16 +14312,42 @@
         "properties": {
           "name": {
             "type": "string",
-            "title": "Name"
+            "title": "Name",
+            "examples": [
+              "MOCK DATA"
+            ]
           },
           "url": {
             "type": "string",
-            "title": "Url"
+            "title": "Url",
+            "description": "Empty only for mock data."
           },
           "retrieved_at": {
             "type": "string",
             "format": "date",
             "title": "Retrieved At"
+          },
+          "retrieved_at_basis": {
+            "type": "string",
+            "enum": [
+              "pipeline_fetch",
+              "fetch_log",
+              "git_commit_date",
+              "unknown"
+            ],
+            "title": "Retrieved At Basis",
+            "default": "unknown"
+          },
+          "retrieval_evidence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieval Evidence"
           }
         },
         "type": "object",
@@ -13301,7 +14356,8 @@
           "url",
           "retrieved_at"
         ],
-        "title": "SourceRef"
+        "title": "SourceRef",
+        "description": "Source retrieval basis is part of the trend response, not just its export."
       },
       "SourcesResponse": {
         "properties": {
@@ -13517,6 +14573,159 @@
           "trend_coverage"
         ],
         "title": "TopRole"
+      },
+      "TrendRecommendationMeta": {
+        "properties": {
+          "observation_window_start": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observation Window Start"
+          },
+          "observation_window_end": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observation Window End"
+          },
+          "retrieved_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieved At"
+          },
+          "retrieved_at_basis": {
+            "type": "string",
+            "enum": [
+              "pipeline_fetch",
+              "fetch_log",
+              "git_commit_date",
+              "unknown"
+            ],
+            "title": "Retrieved At Basis",
+            "default": "unknown"
+          },
+          "retrieval_evidence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieval Evidence"
+          },
+          "is_replay": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Replay"
+          },
+          "observed_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed From",
+            "description": "Start of the period the source data measures; may predate snapshot_date."
+          },
+          "observed_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed To",
+            "description": "End of the period the source data measures."
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/TrendSource"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Sources"
+          },
+          "snapshot_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Snapshot Date"
+          },
+          "scenario": {
+            "type": "string",
+            "enum": [
+              "moderate",
+              "fast"
+            ],
+            "title": "Scenario"
+          },
+          "is_estimate": {
+            "type": "boolean",
+            "title": "Is Estimate",
+            "default": true
+          },
+          "served_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "db",
+                  "fixture"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Served From"
+          },
+          "is_fallback": {
+            "type": "boolean",
+            "title": "Is Fallback",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "sources",
+          "snapshot_date",
+          "scenario"
+        ],
+        "title": "TrendRecommendationMeta",
+        "description": "Legacy trend endpoints retain the same explicit origin as snapshot/freshness."
       },
       "TrendRefreshStatus": {
         "properties": {
@@ -13791,6 +15000,99 @@
       },
       "TrendSnapshotMeta": {
         "properties": {
+          "observation_window_start": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observation Window Start"
+          },
+          "observation_window_end": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observation Window End"
+          },
+          "retrieved_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieved At"
+          },
+          "retrieved_at_basis": {
+            "type": "string",
+            "enum": [
+              "pipeline_fetch",
+              "fetch_log",
+              "git_commit_date",
+              "unknown"
+            ],
+            "title": "Retrieved At Basis",
+            "default": "unknown"
+          },
+          "retrieval_evidence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieval Evidence"
+          },
+          "is_replay": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Replay"
+          },
+          "observed_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed From"
+          },
+          "observed_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed To"
+          },
           "sources": {
             "items": {
               "$ref": "#/components/schemas/SourceRef"
@@ -13801,7 +15103,8 @@
           "snapshot_date": {
             "type": "string",
             "format": "date",
-            "title": "Snapshot Date"
+            "title": "Snapshot Date",
+            "description": "Snapshot version/slot label, not its observation or retrieval date."
           },
           "scenario": {
             "type": "string",
@@ -13862,32 +15165,6 @@
             ],
             "title": "Data Provenance Note",
             "description": "Optional explanation of data provenance, e.g. for historical arXiv date-window pulls or demo calibration."
-          },
-          "observed_from": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Observed From",
-            "description": "Start of the period the source data measures; may predate snapshot_date."
-          },
-          "observed_to": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Observed To",
-            "description": "End of the period the source data measures."
           }
         },
         "type": "object",
@@ -13919,6 +15196,56 @@
           "items"
         ],
         "title": "TrendSnapshotResponse"
+      },
+      "TrendSource": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "examples": [
+              "MOCK DATA"
+            ]
+          },
+          "url": {
+            "type": "string",
+            "title": "Url",
+            "description": "Empty only for mock data."
+          },
+          "retrieved_at": {
+            "type": "string",
+            "format": "date",
+            "title": "Retrieved At"
+          },
+          "retrieved_at_basis": {
+            "type": "string",
+            "enum": [
+              "pipeline_fetch",
+              "fetch_log",
+              "git_commit_date",
+              "unknown"
+            ],
+            "title": "Retrieved At Basis",
+            "default": "unknown"
+          },
+          "retrieval_evidence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieval Evidence"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "url",
+          "retrieved_at"
+        ],
+        "title": "TrendSource"
       },
       "UnmetSkill": {
         "properties": {

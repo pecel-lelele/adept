@@ -11,7 +11,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from app.contracts.common import RecommendationMeta
+from app.contracts.common import RecommendationMeta, TrendProvenance, TrendSource
 
 # ---------------------------------------------------------------------------
 # Legacy contracts (skeleton – kept for backward compat with existing tests)
@@ -19,6 +19,12 @@ from app.contracts.common import RecommendationMeta
 
 EntityType = Literal["role", "skill"]
 Direction = Literal["rising", "stable", "declining"]
+
+
+class TrendRecommendationMeta(RecommendationMeta, TrendProvenance):
+    """Legacy trend endpoints retain the same explicit origin as snapshot/freshness."""
+
+    sources: list[TrendSource] = Field(min_length=1)
 
 
 class TrendSignal(BaseModel):
@@ -44,12 +50,12 @@ class TrendSignal(BaseModel):
 
 class RadarResponse(BaseModel):
     items: list[TrendSignal]
-    meta: RecommendationMeta
+    meta: TrendRecommendationMeta
 
 
 class RoleTrendResponse(BaseModel):
     signal: TrendSignal
-    meta: RecommendationMeta
+    meta: TrendRecommendationMeta
 
 
 # ---------------------------------------------------------------------------
@@ -58,10 +64,8 @@ class RoleTrendResponse(BaseModel):
 # ---------------------------------------------------------------------------
 
 
-class SourceRef(BaseModel):
-    name: str
-    url: str
-    retrieved_at: date
+class SourceRef(TrendSource):
+    """Source retrieval basis is part of the trend response, not just its export."""
 
 
 class SkillVelocity(BaseModel):
@@ -101,9 +105,11 @@ class SkillVelocity(BaseModel):
     )
 
 
-class TrendSnapshotMeta(BaseModel):
+class TrendSnapshotMeta(TrendProvenance):
     sources: list[SourceRef]
-    snapshot_date: date
+    snapshot_date: date = Field(
+        description="Snapshot version/slot label, not its observation or retrieval date."
+    )
     scenario: Literal["moderate", "fast"]
     is_estimate: bool = True
     served_from: Literal["db", "fixture"] = "db"
@@ -124,13 +130,6 @@ class TrendSnapshotMeta(BaseModel):
             "Optional explanation of data provenance, e.g. for historical "
             "arXiv date-window pulls or demo calibration."
         ),
-    )
-    observed_from: date | None = Field(
-        default=None,
-        description="Start of the period the source data measures; may predate snapshot_date.",
-    )
-    observed_to: date | None = Field(
-        default=None, description="End of the period the source data measures."
     )
 
 
