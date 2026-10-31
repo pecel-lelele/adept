@@ -60,6 +60,7 @@
       "reordered": "Reordered",
       "courses_changed": "Courses changed",
       "schedule_changed": "Schedule changed",
+      "style_changed": "Learning style changed",
       "cost_changed": "Cost changed"
     }
   },

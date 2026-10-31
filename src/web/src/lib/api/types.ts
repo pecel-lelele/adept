@@ -3650,10 +3650,10 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "added" | "removed" | "reordered" | "courses_changed" | "schedule_changed" | "cost_changed";
+            kind: "added" | "removed" | "reordered" | "courses_changed" | "schedule_changed" | "cost_changed" | "style_changed";
             /**
              * Skill Id
-             * @description Empty for whole-plan changes (schedule, cost).
+             * @description Empty for whole-plan changes (schedule, cost, style).
              */
             skill_id: string;
             /** Detail */

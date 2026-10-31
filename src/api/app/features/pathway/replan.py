@@ -61,4 +61,14 @@ def diff_plans(old: Pathway, new: Pathway) -> list[PlanChange]:
                 f"estimated cost RM{old.out_of_pocket_myr:g} -> RM{new.out_of_pocket_myr:g}.",
             )
         )
+    # Two styles can prefer the same formats (video, reading), so courses may not move;
+    # the saved plan's style note must still update.
+    if old.learning_style != new.learning_style:
+        changes.append(
+            PlanChange(
+                kind="style_changed",
+                skill_id="",
+                detail=f"Learning style {old.learning_style} -> {new.learning_style}.",
+            )
+        )
     return sorted(changes, key=lambda c: (c.kind, c.skill_id))

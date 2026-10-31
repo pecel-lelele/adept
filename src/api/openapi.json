@@ -11014,14 +11014,15 @@
               "reordered",
               "courses_changed",
               "schedule_changed",
-              "cost_changed"
+              "cost_changed",
+              "style_changed"
             ],
             "title": "Kind"
           },
           "skill_id": {
             "type": "string",
             "title": "Skill Id",
-            "description": "Empty for whole-plan changes (schedule, cost)."
+            "description": "Empty for whole-plan changes (schedule, cost, style)."
           },
           "detail": {
             "type": "string",

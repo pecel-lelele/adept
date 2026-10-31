@@ -60,6 +60,7 @@
       "reordered": "顺序调整",
       "courses_changed": "课程变更",
       "schedule_changed": "时间安排已变更",
+      "style_changed": "学习方式已变更",
       "cost_changed": "费用已变更"
     }
   },

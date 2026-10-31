@@ -53,3 +53,13 @@ def test_replan_proposes_schedule_and_cost_changes() -> None:
     kinds = {c.kind for c in replan.diff_plans(plan(5, 0), plan(5, 500))}
     assert "cost_changed" in kinds
     assert replan.diff_plans(plan(5, 0), plan(5, 0)) == []
+
+
+def test_replan_reports_a_style_change_even_when_courses_stay() -> None:
+    def plan(style: str) -> Pathway:
+        learner = engine.Learner({"python": 1}, 5, 0, False, style)
+        return service.build_pathway(learner, "cloud-solutions-architect", "moderate")
+
+    video, reading = plan("video"), plan("reading")
+    assert [s.courses for s in video.steps] == [s.courses for s in reading.steps]
+    assert [c.kind for c in replan.diff_plans(video, reading)] == ["style_changed"]

@@ -147,9 +147,15 @@ class SavedPlan(BaseModel):
 
 class PlanChange(BaseModel):
     kind: Literal[
-        "added", "removed", "reordered", "courses_changed", "schedule_changed", "cost_changed"
+        "added",
+        "removed",
+        "reordered",
+        "courses_changed",
+        "schedule_changed",
+        "cost_changed",
+        "style_changed",
     ]
-    skill_id: str = Field(description="Empty for whole-plan changes (schedule, cost).")
+    skill_id: str = Field(description="Empty for whole-plan changes (schedule, cost, style).")
     detail: str
 
 
