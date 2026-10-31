@@ -124,7 +124,8 @@ test("an empty store says so instead of drawing an invented chart", async () => 
   const charted: unknown[] = [];
   const html = await render("en", { data: { ...data, lines: [], available_to: null, available_from: null, projection_meta: null }, range: { ...range, view: "skills", entities: [] } }, charted);
   assert.equal(charted.length, 0);
-  assert.match(html, /No daily history is stored yet/);
+  assert.ok(html.includes(translations("en").useTranslations("trends.range")("empty")));
+  assert.match(html, /class="a-range-empty" role="status"/);
   assert.doesNotMatch(html, /Refresh data/);
 });
 
@@ -201,4 +202,25 @@ test("quick range stays visible while advanced filters open only for custom choi
     const rejected = await render(locale, { range: simple, rejected: true });
     assert.match(rejected, /<details class="a-range-editor" open=""><summary/);
   }
+});
+
+test("home trend card explains genuine steady history instead of rendering an empty list", async () => {
+  const intl = translations("en");
+  const { TrendMoversCard } = loadComponent("src/features/trends/components/TrendMoversCard.tsx", {
+    "next-intl/server": { getTranslations: async (namespace: string) => intl.useTranslations(namespace) },
+    "next/link": { default: ({ href, children, ...props }) => React.createElement("a", { href, ...props }, children) },
+    "@/components": { MetaBar: () => null },
+    "@/components/ErrorState": { ErrorState: () => null },
+    "../range": loadComponent("src/features/trends/range.ts"),
+    "../api": { fetchCompare: async () => ({ ok: true, data: {
+      lines: [{ entity: "skill:python", label: "Python", change: 0 }],
+      meta: data.meta, available_to: "2026-10-26",
+    } }) },
+  });
+  const html = renderToStaticMarkup(await resolveTree(await TrendMoversCard({
+    scenario: "moderate", preset: "3M", homeHref: () => "/app?preset=3M", radarHref: "/app/radar",
+  })));
+  assert.ok(html.includes(intl.useTranslations("trends.range")("steadyRange")));
+  assert.match(html, /href="\/app\/radar\?view=skills/);
+  assert.doesNotMatch(html, /class="a-split"><\/div>/);
 });

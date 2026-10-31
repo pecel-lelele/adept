@@ -63,13 +63,13 @@ export async function TrendMoversCard({
         ))}
       </div>
       {through ? <p className="a-small a-muted">{t("dataThrough", { date: through })}</p> : null}
-      {lines.length ? (
+      {rising.length || falling.length ? (
         <div className="a-split">
           {rising.length ? <Movers title={t("risers")} icon={<TrendingUp size={14} aria-hidden />} lines={rising} link={lineHref} /> : null}
           {falling.length ? <Movers title={t("fallers")} icon={<TrendingDown size={14} aria-hidden />} lines={falling} link={lineHref} /> : null}
         </div>
       ) : (
-        <p className="a-muted a-small">{through ? t("emptyRange") : t("empty")}</p>
+        <p className="a-muted a-small">{through ? lines.length ? t("steadyRange") : t("emptyRange") : t("empty")}</p>
       )}
       <MetaBar meta={meta} />
     </section>

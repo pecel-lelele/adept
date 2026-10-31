@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { ChartNoAxesCombined } from "lucide-react";
 
 import { MetaBar } from "@/components";
 import type { ScenarioId, Schemas } from "@/lib/api";
@@ -157,7 +158,10 @@ export async function TrendRangeCard({
       </details>
 
       {!lines.length ? (
-        <p className="a-muted a-small">{!data.available_to ? t("empty") : !data.available_from ? t("emptyShort", { days: data.window_days }) : t("emptyRange")}</p>
+        <div className="a-range-empty" role="status">
+          <ChartNoAxesCombined size={22} aria-hidden />
+          <p>{!data.available_to ? t("empty") : !data.available_from ? t("emptyShort", { days: data.window_days }) : t("emptyRange")}</p>
+        </div>
       ) : (
         <>
           {data.raw_fallback ? <p className="a-small" role="note">{t("rawFallback")}</p> : null}

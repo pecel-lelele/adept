@@ -130,6 +130,8 @@
     }
   },
   "range": {
+    "pageDateLabel": "Radar snapshot",
+    "pageDateHint": "A published snapshot updates every radar card. Chart dates explore research history.",
     "title": "Trend over time",
     "hint": "Trend lines summarize sampled research over each {days}-day window. Compare skills, roles or categories.",
     "adjust": "Adjust chart",
@@ -139,8 +141,9 @@
     "add": "Add a line…",
     "show": "Show trend",
     "reset": "Biggest movers",
-    "empty": "No daily history is stored yet. It appears after the next scheduled data run.",
+    "empty": "Paper history is still being collected. Explore the dated radar above; a validated refresh will bring this line chart to life.",
     "emptyRange": "Nothing moved in this range. Choose other dates or lines.",
+    "steadyRange": "These skills held steady in this range. Open the chart to compare their levels.",
     "emptyShort": "A trend point needs {days} stored days of papers. History is still being collected.",
     "chartLabel": "Trend lines, {from} to {to}",
     "table": "Show every point as a table",

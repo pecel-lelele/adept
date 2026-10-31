@@ -273,7 +273,21 @@ def _movers(entities: list[Entity], values: Mapping[str, list[float | None]]) ->
     )
     rising = [e for e, c in reversed(moved) if (c or 0) > 0][:DEFAULT_MOVERS]
     falling = [e for e, c in moved if (c or 0) < 0][:DEFAULT_MOVERS]
-    return rising + falling
+    if rising or falling:
+        return rising + falling
+    # A measured, flat period still has a real line. Show the best-supported levels
+    # instead of an empty chart; never plot a single incomplete observation as history.
+    levels = [
+        (entity, known[-1])
+        for entity in entities
+        if len(known := [value for value in values[entity.key] if value is not None]) >= 2
+    ]
+    return [
+        entity
+        for entity, _level in sorted(levels, key=lambda item: item[1], reverse=True)[
+            :DEFAULT_MOVERS
+        ]
+    ]
 
 
 def _empty_source() -> Source:

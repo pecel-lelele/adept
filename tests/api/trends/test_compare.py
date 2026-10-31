@@ -255,6 +255,32 @@ def test_movers_lead_with_risers_then_fallers(client: TestClient, stored: dict[s
     assert changes[: len(rising)] == rising
 
 
+def test_flat_measured_history_keeps_a_real_line_instead_of_an_empty_chart(
+    client: TestClient, stored: dict[str, Any], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    days = [D0 + timedelta(days=i) for i in range(80)]
+    monkeypatch.setattr(
+        trend_store,
+        "daily",
+        lambda _start, _end, ids: (
+            {day: 50 for day in days},
+            {(day, "python"): 5 for day in days} if "python" in ids else {},
+        ),
+    )
+    response = client.get(
+        COMPARE,
+        params={"kind": "skill", "start": "2026-01-08", "end": "2026-03-20", "mode": "raw"},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["lines"] and len(body["lines"]) <= comparison.DEFAULT_MOVERS
+    python = next(line for line in body["lines"] if line["entity"] == "skill:python")
+    assert python["change"] == 0
+    assert len(python["points"]) > 1
+    assert all(point["value"] == pytest.approx(0.1) for point in python["points"])
+    assert body["meta"]["sources"][0]["name"] == "arXiv cs.AI submission API"
+
+
 def test_chart_reads_make_no_network_or_model_call(
     client: TestClient, stored: dict[str, Any], monkeypatch: pytest.MonkeyPatch
 ) -> None:
