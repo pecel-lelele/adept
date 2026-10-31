@@ -10,7 +10,7 @@ flowchart LR
     S[sdg: targets + role/skill mapping]
   end
   subgraph DB["PostgreSQL 16 + pgvector"]
-    snap[(snapshots, trend_signals)]
+    snap[(trend_snapshots, trend_fetched_days, trend_paper_mentions)]
     tax[(skills, roles, role_skills)]
     prof[(users, profiles, user_skills)]
     cat[(courses)]
@@ -22,6 +22,7 @@ flowchart LR
     r5[profile] --> r3
     r6[sdg] --> r3
     r7[org]
+    r8[data_refresh: bounded in-app worker]
     llm[core/llm gateway: select IDs → validate]
   end
   subgraph Web["src/web (Next.js)"]
@@ -30,9 +31,12 @@ flowchart LR
     employee[/work: agreements → learning → progress/]
   end
   encoder["RunPod Serverless<br/>pinned MiniLM · 384 dimensions"]
-  T -- "authenticated embedding batches" --> encoder
-  encoder -- "validated vectors" --> T
-  T --> snap
+  clock["GitHub Actions<br/>daily scheduler trigger"]
+  clock -- "authenticated public app request" --> r8
+  r8 -- "bounded embedding batches" --> encoder
+  encoder -- "validated vectors" --> r8
+  r8 --> snap
+  T -- "manual backup only" --> snap
   M --> tax
   S --> sdg
   DB --> API
@@ -47,8 +51,9 @@ flowchart LR
 5. **Pathway (F5)**: ordered steps from the course catalogue, weeks from hours per week.
 6. **SDG (F6)**: every role and skill links to ≥1 SDG target with a one-line reason.
 7. **Organisation (F7)**: aggregates of the same engine for a team or cohort.
-8. **Guardrails (F8)**: an LLM, if used, only selects IDs already in the database; `validate_ids`
-   rejects anything else before it reaches the user.
+8. **Guardrails (F8)**: an optional LLM selects only allowlisted IDs or validated,
+   server-authored answer blocks. `validate_ids` and workspace permissions reject unknown or
+   unauthorized choices; ID validation alone does not prove a factual claim.
 
 ## Public server and root deployment
 
@@ -64,9 +69,9 @@ and return 503 while unavailable. The supervisor validates production secrets,
 waits for API readiness and stops both processes if either exits.
 
 Production startup does not migrate, seed or invoke models. CI exercises the exact
-root build and supervised startup against disposable PostgreSQL. Local Compose
-provides only the database. Product code stays under `src/`; artifact metadata,
-the Express supervisor, Drizzle scaffold and mockup app are no longer needed.
+root build and supervised startup against disposable PostgreSQL. The database-only
+Compose file is separate from the optional full local stack. Product code stays under
+`src/`; artifact metadata, the Express supervisor, Drizzle scaffold and mockup app are no longer needed.
 See [Replit operations](../replit.md) for required configuration and saved-command
 overrides to check before publishing.
 
@@ -80,7 +85,7 @@ conversations remain separate.
 Adi uses Runpod `glm-5.3` as the configured primary and separately authenticated Gemini
 only on primary failure. Catalogue IDs pass through the validation gateway; provider
 failure can fall back to the deterministic guide. Keys stay in server environment variables.
-See [configuration](../README.md#getting-started) and the
+See [configuration](../README.md#how-to-run) and the
 [provider guide](../src/api/app/core/llm/FEATURE.md).
 
 ## Hosted trend inference and scheduled publication
@@ -90,17 +95,19 @@ MiniLM is deployed at `https://api.runpod.ai/v2/ta14jd0by2ijl2` using the public
 model weights, loads them offline and returns 384-dimensional embeddings. It does not
 connect to the database. Adi's GLM endpoint and Gemini CV embeddings are separate services.
 
-GitHub Actions separates CI checks, upstream source audits, worker image publication and
-trend refresh. The refresh runs Mondays at 03:41 UTC or by manual dispatch. It verifies
-database access before ingestion or paid inference, then scores, validates and atomically
-writes `trend_snapshots` and `trend_snapshot_meta`. Missing settings skip the refresh
-with a notice, so a green run alone does not establish publication.
+GitHub Actions separates CI checks, source audits, worker image publication and the
+daily refresh clock. `automatic-data-refresh.yml` sends an authenticated request to the
+public app; its bounded in-app worker validates and writes the measured paper store and
+snapshot through the app's own private database. It does not open a database connection
+from the GitHub runner. Page reads perform no upstream inference. User-triggered paid
+checks are admin-only; failure retains the last good source data.
 
-The refresh maps repository secret `TREND_DATABASE_URL` to process `DATABASE_URL` and
-uses secret `TRENDS_RUNPOD_API_KEY` plus variable `TRENDS_RUNPOD_ENDPOINT_ID`.
-Replit's published API must read that same production database. The development hostname
-`helium` is private to Replit; the first integrated refresh failed saving there despite
-successful embedding work. Publishing Replit creates a separate production database.
+`trends-refresh.yml` is an optional **manual backup**, not a Monday schedule. It requires
+`TREND_DATABASE_URL` pointing to an explicitly approved database reachable by the GitHub
+runner, plus its dedicated MiniLM credentials. Missing configuration fails that run.
+Neither Replit's development `helium` host nor its private production database should
+be configured as the runner target; the first integrated backup failed at `helium` after
+successful embedding work. See [refresh operations](data-refresh.md).
 
 The live inference test passed on 24 October 2026. This does not establish fresh two-week
 research history, sufficient skill coverage or a published snapshot. Page requests serve

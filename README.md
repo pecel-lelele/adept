@@ -1,99 +1,89 @@
 <div align="center">
 
-<img src="src/web/src/app/icon.svg" width="76" height="80" alt="Adept logo">
+<img src="src/web/src/app/icon.svg" width="68" height="72" alt="Adept logo">
 
 <h1>Adept</h1>
 
 <strong>Find your next role. Build the skills to get there.</strong>
 
-<p>Career matching and personalised reskilling for the AI era.</p>
+<p>A sourced, human-led career and reskilling guide for the AI era.</p>
 
-[![Next.js](https://img.shields.io/badge/Next.js-16.4.2-000000?logo=nextdotjs&logoColor=white)](https://nextjs.org/)
-[![React](https://img.shields.io/badge/React-19-20232A?logo=react&logoColor=61DAFB)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
-[![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-Pydantic_v2-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16_%2B_pgvector-4169E1?logo=postgresql&logoColor=white)](https://github.com/pgvector/pgvector)
-[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://docs.docker.com/compose/)
-[![License](https://img.shields.io/badge/License-Apache_2.0-18231c)](LICENSE)
-
-<p><a href="#features">Features</a> · <a href="#getting-started">Getting started</a> · <a href="#diagrams">Diagrams</a> · <a href="#ai-and-data">AI and data</a> · <a href="#project-structure">Project structure</a></p>
+[![CI](https://github.com/pecel-lelele/adept/actions/workflows/ci.yml/badge.svg)](https://github.com/pecel-lelele/adept/actions/workflows/ci.yml)
+[![Next.js](https://img.shields.io/badge/Next.js-16-18231c)](src/web/package.json)
+[![FastAPI](https://img.shields.io/badge/FastAPI-Python%203.11-087E78)](src/api/app/main.py)
+[![License](https://img.shields.io/badge/License-Apache%202.0-294E37)](LICENSE)
 
 </div>
 
-Adept connects your current skills to future roles, explains the gaps, and builds a learning plan around your time and budget. Individuals and organisations use the same engine, with dedicated workspaces for learners, employees and HR teams.
+> **Submission hub:** [Proposal PDF](submission/SDC2026_Pecel-Lele_Preliminary.pdf) ·
+> [Technical declaration PDF](submission/SDC2026_Pecel-Lele_TechDeclaration.pdf) ·
+> [Replit proof of use](submission/SDC2026_Pecel%20Lele_Replit_POU.pdf) ·
+> [RunPod proof of use](submission/SDC2026_Pecel%20Lele_Runpod_POU.pdf) ·
+> [Deliverables and remaining checks](docs/submission/submission-deliverables.md).
+> The checked-in PDFs are historical exports. Use the deliverables checklist to confirm
+> final versions, signatures and judge access before submitting.
 
-<p align="center"><strong>Your skills → AI signals → Role matches → Learning plan → Job openings</strong></p>
+## Team and track
 
-## Team
-
-| Field       | Details                                                       |
-| :---------- | :------------------------------------------------------------ |
-| Team        | **Pecel Lele**                                                |
-| University  | Xiamen University Malaysia                                    |
-| Team leader | David Kurniawan                                               |
-| Members     | 4                                                             |
-| Competition | SDC XMUM Hackathon 2026                                       |
-| Domain      | **Domain 1 — The Aiversecity Future-Ready Workforce**         |
-| SDG track   | **SDG 4 — Quality Education**; supporting SDGs 5, 8, 9 and 10 |
+| Field | Details |
+|---|---|
+| Team | **Pecel Lele** · four members |
+| University | Xiamen University Malaysia |
+| Team leader | David Kurniawan |
+| Event | SDC XMUM Hackathon 2026 |
+| Domain | 1 · The Aiversecity Future-Ready Workforce |
+| Main goal | **SDG 4 · Quality Education** (especially targets 4.3 and 4.4) |
+| Supporting goals | SDGs 5, 8, 9 and 10 |
 
 ## Links
 
-| Resource                            | Link / status                                                                        |
-| :---------------------------------- | :----------------------------------------------------------------------------------- |
-| GitHub repository                   | https://github.com/pecel-lelele/adept                                                |
-| Replit project                      | https://replit.com/@kylomaxcellino/adept                                             |
-| Live demo                           | https://adept-my.replit.app                                                          |
-| RunPod · Adi / GLM-5.3              | https://api.runpod.ai/v2/b1dd8hy2hqo1nb/openai/v1                                    |
-| RunPod · MiniLM-L6-v2               | https://api.runpod.ai/v2/ta14jd0by2ijl2                                              |
-| Submission proposal                 | [PDF source](submission/SDC2026_Pecel-Lele_Preliminary.pdf)                          |
-| Technical tools / stack declaration | [PDF source](submission/SDC2026_Pecel-Lele_TechDeclaration.pdf)                      |
-| Slide deck                          | https://drive.google.com/drive/folders/1oNEOcD5OXCK-iAAPoj3aXihO1cW77bTn?usp=sharing |
-| Demo video                          | https://drive.google.com/drive/folders/1tdSaHsHd1towg-bKghHUuSNn7jbI-LfN?usp=sharing |
-| Pitching video                      | https://drive.google.com/drive/folders/1tdSaHsHd1towg-bKghHUuSNn7jbI-LfN?usp=sharing |
+| Resource | Destination |
+|---|---|
+| Source code | [GitHub repository](https://github.com/pecel-lelele/adept) |
+| Hosted demo | [Adept on Replit](https://adept-my.replit.app) · verify the deployed revision before presenting |
+| Replit project | [Project page](https://replit.com/@kylomaxcellino/adept) |
+| RunPod endpoints | [MiniLM](https://api.runpod.ai/v2/ta14jd0by2ijl2) · [Adi](https://api.runpod.ai/v2/b1dd8hy2hqo1nb/openai/v1) (requests need their own credentials) |
+| Slides | [Team folder](https://drive.google.com/drive/folders/1oNEOcD5OXCK-iAAPoj3aXihO1cW77bTn?usp=sharing) · check judge access |
+| Demo and pitch videos | [Team folder](https://drive.google.com/drive/folders/1tdSaHsHd1towg-bKghHUuSNn7jbI-LfN?usp=sharing) · select final files |
+| Written sources | [Proposal](docs/submission/submission-proposal.md) · [technical declaration](docs/submission/submission-technical-declaration.md) |
+| Operations | [Replit](replit.md) · [RunPod/MiniLM](src/pipelines/trends/runpod/DEPLOYMENT_HANDOFF.md) |
 
-The queue-based endpoint ID is `ta14jd0by2ijl2` with base URL
-`https://api.runpod.ai/v2/ta14jd0by2ijl2`. Authenticate with the MiniLM-specific
-`TRENDS_RUNPOD_API_KEY` bearer token; do not substitute Adi's GLM `RUNPOD_API_KEY`.
+## Overview
 
-- `POST /runsync` submits a batch and waits for its embeddings.
-- `POST /run` queues a batch; poll `GET /status/{job_id}`.
-- `GET /health` reports endpoint and worker health.
+### The problem
 
-```bash
-curl --fail-with-body --silent --show-error \
-  --request POST 'https://api.runpod.ai/v2/ta14jd0by2ijl2/runsync' \
-  --header "Authorization: Bearer ${TRENDS_RUNPOD_API_KEY}" \
-  --header 'Content-Type: application/json' \
-  --data '{"input":{"texts":["Human-AI collaboration design"]}}'
-```
+AI changes work faster than a one-time skills assessment or a static course list can
+reflect. Learners need a credible next step; managers need a cohort view without taking
+career choices away from people. See the [competition context](docs/project-context.md).
 
-A completed response contains the pinned model/revision and one finite 384-dimensional
-vector per input. The inference smoke test passed on 24 October 2026; publishing a snapshot
-still requires a separate successful **Trends refresh** run. Store the key in a secret manager.
+### What Adept does
 
-## Features
+One backend supports a personal workspace (`/app`), a member's work view (`/work`) and
+an organisation workspace (`/org`). The journey connects **confirmed skills → dated
+AI and labour signals → explained role matches → a chosen learning plan → progress
+and links to the 17 UN SDGs**. Forecasts and match scores are *estimates*,
+not hiring, promotion, admission or firing decisions.
 
-| Step                       | What you can do                                                                            |
-| :------------------------- | :----------------------------------------------------------------------------------------- |
-| **Understand your skills** | Upload a synthetic CV or complete the questionnaire, then confirm the extracted skills.    |
-| **Explore AI signals**     | See dated skill trends, compare moderate and fast scenarios, and replay earlier snapshots. |
-| **Find a direction**       | Compare roles with a score breakdown, skills gap and SDG links.                            |
-| **Build a plan**           | Choose courses around your hours and budget; track progress and supporting evidence.       |
-| **Connect to work**        | Explore job openings and relevant certification exams alongside your target role.          |
-| **Plan for a team**        | Review team gaps, create training programmes, manage funding and review evidence.          |
+| For an individual | For a team or career centre |
+|---|---|
+| Upload a synthetic PDF/DOCX/text CV or answer four short intake steps; confirm catalogue skills. | Create an organisation and invite people with a join code. |
+| Compare dated skill/role trends under moderate and fast AI scenarios. | See member progress and privacy-gated aggregate gaps from consenting profiles. |
+| Inspect score components and missing skills, then choose a target role and sourced courses. | Select a training programme and review evidence; members decide whether to accept it. |
+| Track progress, explore openings and see why a role/path maps to UN goals. | Manage training budgets and view sourced, aggregate SDG links. |
 
-English, Bahasa Melayu and Chinese are supported. Adi explains the information in your signed-in workspace.
+The demonstration uses **public reference data and synthetic people/CVs only**. It does not
+store raw CVs. Every displayed recommendation resolves to a catalogue record and carries
+source names, URLs, retrieval dates, the selected snapshot date, scenario and estimate
+status. Members explicitly choose whether to share skills or progress with an employer.
 
-<a name="12-getting-started"></a>
-
+<a name="getting-started"></a>
 <a name="quick-start"></a>
 
-## Getting started
+## How to run
 
-**Requirements:** Python 3.11, [uv](https://docs.astral.sh/uv/), Node.js 24, pnpm 10.29.3,
-and Docker Desktop if you want the local PostgreSQL container.
+**Requirements:** Python 3.11, [uv](https://docs.astral.sh/uv/), Node.js 24 and pnpm
+10.29.3. PostgreSQL 16 with pgvector is needed for persistent local accounts; the
+established Compose configuration supplies it. No model key is needed for offline tests.
 
 From the repository root:
 
@@ -102,160 +92,110 @@ uv sync --frozen
 npx --yes pnpm@10.29.3 install --frozen-lockfile
 ```
 
-Copy [`.env.example`](.env.example) to a local, ignored `.env`. For the Python task runner,
-put local settings in `.env`; use that directory's template and
-set your own database password/connection. Platform production secrets are separate.
-
-For the optional **database-only** local Compose service:
+Copy [`.env.example`](.env.example) to an ignored `.env` and set **your own local**
+database password and URL. Never use a production or shared database for setup,
+migration, seeding or tests. Start only the established Compose services if needed;
+`make setup` also migrates and seeds its selected database, so inspect the target first.
 
 ```bash
-# Export POSTGRES_PASSWORD in your shell first; never commit it.
+# For an explicitly selected local development database; supply its password privately.
 docker compose -f docker-compose.db.yml up -d --wait db
 uv run --frozen python src/scripts/dev.py db-migrate
 uv run --frozen python src/scripts/dev.py seed
 uv run --frozen python src/scripts/dev.py dev
 ```
 
-Open [Adept](http://localhost:3000) or [API documentation](http://localhost:8000/docs).
-Next.js defaults to port 3000 and honors `PORT`; FastAPI honors `API_PORT` (default 8000).
-For a custom API port, also point `API_URL` at it. Use the same commands in PowerShell;
-setting an environment variable there uses `$env:NAME='value'`.
+Open [the web app](http://localhost:3000) or [API documentation](http://localhost:8000/docs).
+The separate full stack is defined in [`docker-compose.yml`](docker-compose.yml); it
+also binds published ports to loopback. Neither build nor startup migrates by itself.
 
-Database-only commands (`make setup`, `make dev`, `make db-up`, and `make db-down`) use
-`docker-compose.db.yml` and do not require `SESSION_SECRET`. The full local stack in
-`docker-compose.yml` reuses that database definition and requires a private, generated
-`SESSION_SECRET` for its API container. Both files use the same project database volume.
+### Try a synthetic journey
 
-Replit Preview uses the root development command in [replit.md](replit.md).
-Migrations/seeding are explicit setup operations, not production startup actions.
+Create a synthetic account, use one of the [five demo CVs and their editable intake
+profiles](docs/demo-cvs/README.md), then follow **Radar → Roles → Plan → Progress → Jobs**.
+For a team, create an organisation, invite a synthetic member, and choose sharing
+separately from membership. CV extraction and course suggestions need human review.
 
-Run `make check` (or `.venv/Scripts/python.exe src/scripts/dev.py check` on Windows)
-for the quality gate. Tests isolate the database by default, so PostgreSQL checks skip.
-To include them, set `ADEPT_TEST_DATABASE_URL` to an explicitly selected disposable
-PostgreSQL database after applying migrations and seeds to that same database. Tests
-write data and terminate their own pooled sessions; use neither a shared nor a production
-database. The CI database job runs these integration checks and trend export comparisons.
-Passed subtests are successful cases inside workflow-security tests, not skipped checks.
+### Run checks
 
-**Try the app:** choose one of the [five complete synthetic demo CVs and intake profiles](docs/demo-cvs/),
-create an invented `example.test` account, and follow **Radar → Roles → Plan → Progress → Jobs**.
-Create a team account to try programmes, funding decisions and completion reviews, and join
-with a synthetic learner using its join code. Personal and organisation learning stay separate.
+```bash
+uv run --no-project python src/scripts/dev.py check
+```
 
-| Synthetic demo profile                     | CV                                                                            |
-| :----------------------------------------- | :---------------------------------------------------------------------------- |
-| Imran Hakim · Compliance Analytics Officer | [Download PDF](docs/demo-cvs/cv_imran_hakim_compliance_analytics_officer.pdf) |
-| Sofia Tan · Process Automation Analyst     | [Download PDF](docs/demo-cvs/cv_sofia_tan_process_automation_analyst.pdf)     |
-| Meera Anand · Logistics Supervisor         | [Download PDF](docs/demo-cvs/cv_meera_anand_logistics_supervisor.pdf)         |
-| Adrian Lim · Data Analyst                  | [Download PDF](docs/demo-cvs/cv_adrian_lim_data_analyst.pdf)                  |
-| Nur Hana · Bank Operations Executive       | [Download PDF](docs/demo-cvs/cv_nur_hana_bank_operations_executive.pdf)       |
-
-The demo guide supplies editable synthetic intake settings; time, budget and proficiency
-choices are not verified CV facts. Parser regression fixtures remain under `tests/`.
-
-**Publish on Replit:** use the root `.replit` build/start commands and
-[publishing handoff](replit.md#publishing-handoff). The web starts with the monorepo standalone
-launcher, not `next start`. One public Next.js server relays `/api/v1/*` to private FastAPI; the root supervisor waits for API/database readiness before opening the web port.
-Provide stable `SESSION_SECRET`, matching `PROXY_SHARED_SECRET`, Replit's managed
-PostgreSQL `DATABASE_URL` and exact production origin. The Replit deployment runs with
-`TRUSTED_PROXY_HOPS=1`: the client is the right-most `X-Forwarded-For` entry appended by
-Replit's edge, and caller-supplied entries to its left are ignored. Production refuses to start
-in trusted mode with 0 hops. With 0 hops (local development) no client IP is forwarded and
-anonymous visitors share one rate-limit bucket. If the ingress chain changes, recheck it with
-[docs/replit-proxy-verification.md](docs/replit-proxy-verification.md). Authenticated rate limits
-use verified session IDs; anonymous requests without a forwarded address share their direct
-peer's allowance. Both modes require the shared secret.
-Importing GitHub files copies neither database contents nor secrets. Pull the merged source
-into the correct Replit project before making a fresh publish attempt. A working public
-instance does not prove that a newer attempted release succeeded.
+This runs lint, Python and web component tests, TypeScript, translation parity and
+contract drift. PostgreSQL integration tests deliberately **skip** without an explicit
+disposable target; a skip is not a pass. To run them against an existing local server,
+set `ADEPT_TEST_PG_ADMIN_URL` to its loopback **postgres admin database** in your
+private environment, then run `.venv/Scripts/python.exe src/scripts/test_postgres.py`
+(Windows) or `.venv/bin/python src/scripts/test_postgres.py` (Unix). The runner creates,
+migrates, seeds and removes only its verified disposable databases. Read
+[testing and isolation](docs/testing.md) before using it. [CI](https://github.com/pecel-lelele/adept/actions/workflows/ci.yml)
+also runs the production build, browser journeys, contracts and isolated PostgreSQL
+migration/seed checks; local checks do not prove a live deployment.
 
 ## AI and data
 
-| Component            | Provider / model                                                                 | Purpose                                                                                                              |
-| :------------------- | :------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------- |
-| Adi                  | Z.ai **GLM-5.3** (`glm-5.3`) through RunPod                                      | Selects validated answer blocks using the user's Adept data.                                                         |
-| Adi fallback         | Google **Gemini 3.5 Flash Lite**, with Gemini 3.6 Flash / 3.1 Flash Lite backups | Handles provider failure; a built-in guide remains available.                                                        |
-| Trend encoder        | Sentence Transformers **all-MiniLM-L6-v2** through RunPod                        | Relates public research sentences to catalogue skills, until the Gemini matcher passes its equivalence test. One method per series: a window never mixes MiniLM and Gemini days. |
-| Trend matcher        | Google **gemini-embedding-001** at 384 dimensions                                | Becomes the primary matcher for the backfill and daily runs once a passing equivalence report is committed (M1-024; not yet run): embeds public arXiv papers and skill labels and counts mentions at or above one stored threshold per model, chosen to match MiniLM's mentions per paper. Background jobs only, never on a page read. |
-| CV / skill-search suggestions | Google **gemini-embedding-001**                                          | Suggests one catalogue match for unfamiliar skill phrases or an explicitly submitted search; the user confirms additions. Manual search uses approved aliases locally. |
+| Component | Provider and model | Purpose and boundary |
+|---|---|---|
+| Adi guide | Built-in deterministic guide by default (`LLM_PROVIDER=none`) | Answers without a paid model when none is configured. |
+| Adi, optional | Z.ai `glm-5.3` via RunPod; Google `gemini-3.5-flash-lite`, `gemini-3.6-flash`, `gemini-3.1-flash-lite` | Selects validated, server-authored answer blocks; separately authenticated failover. No unchecked model prose or people decisions. |
+| Trend matcher | Sentence Transformers **all-MiniLM-L6-v2**, pinned on RunPod; optional Google **gemini-embedding-001** (384 dimensions) | Matches public arXiv research to catalogue skills in a background job. Gemini becomes primary only after a passing, reviewed equivalence report; **no live switch is claimed**. |
+| Skill suggestions | Google **gemini-embedding-001** (768 dimensions), optional | Proposes catalogue IDs for short, redacted unmatched skill phrases; the person confirms every addition. Full CVs are not sent to this model. |
 
-Model features are configurable; the default assistant uses the built-in guide. Role scores, learning plans and trend calculations use deterministic rules. Model-selected IDs pass through `validate_ids` before display.
+Matching, scenarios, pathways and SDG links use documented deterministic methods and
+catalogue IDs. Adi's optional LLM gateway validates choices and falls back to the
+built-in guide when a provider fails. The [/about page](src/web/src/app/about/page.tsx) is the in-app model
+and data register; [decisions](docs/decisions.md) record method changes.
 
-Data comes from arXiv, BLS projections, the UN SDG API, Microsoft Learn, verified course and certification providers, public job-board APIs, and Bank Negara Malaysia exchange rates. Recommendations show sources, dates, scenarios and estimate labels. The prototype uses public data and synthetic profiles/CVs; people choose their own next steps.
+Research signals use public arXiv cs.AI papers with a dated BLS labour baseline.
+Additional sources include official Malaysian labour data, the UN SDG API, verified
+learning providers and credited public job feeds. Job ads are not a census; research
+attention is not a measured vacancy forecast. The UI shows the selected data window,
+citations and fallback/estimate labels rather than inventing freshness. Read the
+[source assessment and refresh method](docs/data-refresh.md).
 
-## Development
+## Replit deployment
 
-| Command (repository root)                                       | Purpose                                                                 |
-| :-------------------------------------------------------------- | :---------------------------------------------------------------------- |
-| `uv run --frozen python src/scripts/dev.py check`               | Ruff, ESLint, TypeScript, translation parity, pytest and contract drift |
-| `uv run --frozen python src/scripts/dev.py test`                | Python regression suite                                                 |
-| `uv run --frozen python src/scripts/dev.py contracts`           | OpenAPI and typed web client generation                                 |
-| `uv run --frozen python src/scripts/dev.py db-migrate` / `seed` | Explicit local database preparation                                     |
-| `npx --yes pnpm@10.29.3 test:proxy`                             | Public proxy, CORS and startup regressions                              |
-| `npx --yes pnpm@10.29.3 typecheck`                              | Product TypeScript checks                                               |
-| `npx --yes pnpm@10.29.3 build`                                  | Build the Next.js standalone product; no mockup/artifact build          |
+The root [`.replit`](.replit) runs `python3 src/scripts/replit.py build` and then
+`python3 src/scripts/replit.py start`. The supervisor starts private FastAPI and one
+public Next.js server, checks API/database readiness, and does **not** migrate, seed or
+start inference automatically. Production requires its own stable session and proxy
+secrets, an exact origin, a verified proxy-hop count and an explicitly initialized
+PostgreSQL database. A code push is not a successful publish; verify the deployed
+revision and signed-in synthetic journey. See the [publishing handoff](replit.md),
+[proxy verification](docs/replit-proxy-verification.md) and
+[Replit proof of use](submission/SDC2026_Pecel%20Lele_Replit_POU.pdf).
 
-CI also checks PostgreSQL upgrades/recovery, navigation/read retries and the worker publisher.
-The merged hardening revision passed 940 Python tests (32 environment-dependent skips),
-44 database integration tests, 11 proxy/startup tests, 12 navigation/retry tests and all CI jobs.
-These are tested source results, not a claim that every deployed release matches this commit.
+## RunPod and refresh
 
-### RunPod Serverless and GitHub Actions
+RunPod hosts the separately authenticated Adi provider and the pinned MiniLM worker;
+their keys are not interchangeable. The worker's
+[deployment handoff](src/pipelines/trends/runpod/DEPLOYMENT_HANDOFF.md) records its
+image, endpoint, setup and verified historical inference result, not proof of a current
+snapshot. The [RunPod proof of use](submission/SDC2026_Pecel%20Lele_Runpod_POU.pdf)
+is a checked-in export; verify it against the final setup.
 
-MiniLM is deployed as a **queue-based RunPod Serverless worker** using the public image
-`ghcr.io/pecel-lelele/adept-minilm:latest`. Its pinned model revision is
-`1110a243fdf4706b3f48f1d95db1a4f5529b4d41`. A completed live test returned two
-384-dimensional embeddings. The container includes model weights and PyTorch; GitHub's
-trend runner installs pipeline client dependencies and calls RunPod over HTTPS.
-
-| Workflow                                               | Trigger and responsibility                                                                                                                                     |
-| :----------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [CI](.github/workflows/ci.yml)                         | Pushes to `main`, pull requests and manual runs: lint, tests, real PostgreSQL checks, translations, generated contracts and production web build.              |
-| [Data sources](.github/workflows/data-sources.yml)     | Mondays 02:17 UTC (10:17 MYT) and manual runs: checks upstream SDG/course data and evidence links; does not publish trend snapshots.                          |
-| [Trends refresh](.github/workflows/trends-refresh.yml) | Manual backup only (not scheduled, M1-017): ingest public research → RunPod embeddings → score → validate → publish a dated snapshot. The daily in-app refresh adds arXiv days to a method-specific paper store; it uses MiniLM until a passing, reviewed Gemini equivalence report is committed. There is no cross-method top-up on matcher failure. |
-| [Publish MiniLM](.github/workflows/publish-minilm.yml) | Manual dispatch on the source repository's `main` only: builds `linux/amd64` and publishes GHCR tags with job-scoped `GITHUB_TOKEN`. PRs/forks do not publish. |
-
-Configure **repository Settings → Secrets and variables → Actions**:
-
-| Kind     | Exact name                  | Value                                                                                                                                                    |
-| :------- | :-------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Secret   | `TREND_DATABASE_URL`        | Only an explicitly approved PostgreSQL target reachable from GitHub Actions for the manual backup. Replit's private app database is not reachable from the runner. |
-| Secret   | `TRENDS_RUNPOD_API_KEY`     | A dedicated MiniLM key permitted to invoke the endpoint.                                                                                                 |
-| Variable | `TRENDS_RUNPOD_ENDPOINT_ID` | `ta14jd0by2ijl2`                                                                                                                                         |
-
-The workflow maps `TREND_DATABASE_URL` to the process variable `DATABASE_URL`. A repository
-secret named only `DATABASE_URL` does not satisfy that workflow. MiniLM credentials are
-separate from Adi's `RUNPOD_API_KEY` and Gemini settings.
-
-The in-app scheduler is the production refresh path. Only for an approved reachable backup
-target, run **Actions → Trends refresh → Run workflow → main**, then open the `refresh` job.
-The database preflight must pass, then `Ingest, score, validate and publish` must report
-`Published snapshot YYYY-MM-DD.` Missing manual configuration fails the run; a green
-conclusion alone is not publication. Inference success does not establish research history or a
-successful database write; failures preserve the previous published snapshot.
-
-The first integrated backup fetched 366 papers and counted mentions, then failed saving to
-Replit's private development host `helium`. Replit's private database must be reached by the
-app's in-process refresh, not by putting its connection string in a GitHub runner secret.
-Development and production are separate databases. The backup preflight rejects an
-unreachable target before fetching papers or invoking paid inference.
-
-The documented batch configuration uses **Active workers = 0** and **Max workers = 1**; verify current RunPod settings and costs in the owner's account. A request starts
-the worker when needed; no manually running test is required to keep the integration alive.
-Replit serves saved database snapshots, so app page loads do not call MiniLM directly.
-Keeping the same database does not require a Replit redeployment for each trend refresh.
-See the [operations and recovery guide](src/pipelines/trends/runpod/DEPLOYMENT_HANDOFF.md)
-for image access, worker recovery, first-run validation and deployment evidence.
-
-**Submission and technical guides:** [Proposal](docs/submission/submission-proposal.md) · [Technical declaration](docs/submission/submission-technical-declaration.md) · [Diagrams](docs/diagrams/index.html) · [Decisions](docs/decisions.md) · [MiniLM operations](src/pipelines/trends/runpod/DEPLOYMENT_HANDOFF.md) · [Replit publishing](replit.md). Background: [architecture](docs/architecture.md) · [solution design](docs/solution-design.md).
+GitHub's daily scheduler calls the app, which fetches and publishes against **its own**
+private database. Page reads only load saved data; user-facing pages show the data date
+instead of starting paid work. Manual refresh is admin-only. The legacy GitHub trend
+backup needs a separately approved, runner-reachable database and must not be pointed
+at Replit's private host. Provider calls and production migrations are **not** part of
+local verification. See [refresh operations](docs/data-refresh.md).
 
 <a name="interactive-diagrams"></a>
 
 ## Diagrams
 
-The architecture is shown below. Expand the other sections for the user journeys, pipeline, matching logic and database views. The [interactive diagram viewer](docs/diagrams/index.html) supports zoom, pan and SVG download; download the HTML file and open it locally.
+Open a diagram only when you need its detail. These selected schematics include an
+optional legacy manual trend publisher; daily production refresh runs inside the app.
+The [interactive diagram explorer](docs/diagrams/index.html) supports zoom, pan and
+SVG download (download the HTML to view it locally). For operational behavior, use
+[architecture](docs/architecture.md), [data refresh](docs/data-refresh.md) and the code.
 
 <a name="3-system-architecture"></a>
+
+<details>
+<summary><strong>System architecture</strong></summary>
 
 ### System architecture
 
@@ -282,6 +222,8 @@ flowchart TB
   job <--> minilm
   job -- "reachable deployment database required" --> db
 ```
+
+</details>
 
 <details>
 <summary><strong>User journeys, sequences and trend pipeline · 4 diagrams</strong></summary>
@@ -425,7 +367,7 @@ graph TB
   OR(("Organisation")) -- "members" --> U
 ```
 
-The catalogue holds 31 roles (28 targets), 140 skills and 98 sourced courses, plus all 17 goals and 169 targets with 61 role-target and 165 skill-target links.
+Versioned [taxonomy, course and SDG records](src/data/seed/README.md) are the authority for every surfaced ID. Counts change as reviewed source records are added; the application never invents a catalogue entity.
 
 </details>
 
@@ -656,70 +598,46 @@ Migrations are in [`src/db/migrations`](src/db/migrations). New changes always g
 
 ## Project structure
 
-| Path                                          | Current contents                                                        |
-| :-------------------------------------------- | :---------------------------------------------------------------------- |
-| `src/web/`                                    | Next.js product, shared UI, translations and standalone scripts         |
-| `src/api/`                                    | FastAPI contracts and feature services                                  |
-| `src/pipelines/`                              | Research, job, course, SDG and validation jobs                          |
-| `src/data/seed/`                              | Dated public reference data and synthetic fixtures                      |
-| `src/db/`                                     | Append-only SQL migrations and explicit seed loader                     |
-| `tests/`                                      | API, pipeline, public proxy and deployment regression suites            |
-| `.github/workflows/`                          | CI, source audit, trend refresh and guarded MiniLM image publisher      |
-| `docs/`                                       | Current submission sources, decisions and diagram explorer              |
-| `src/scripts/`                                | Cross-platform setup/check runner and supervised production build/start |
-| `pyproject.toml`, `uv.lock`, `pnpm-lock.yaml` | Python and JavaScript dependency manifests/locks                        |
-| `.replit`                                     | Root build/start commands and one public port (3000 → 80)               |
+| Path | Contents |
+|---|---|
+| `src/web/` | Next.js routes, feature components, translations and the shared shell |
+| `src/api/` | FastAPI contracts, authentication and feature services |
+| `src/pipelines/` | Public-source preparation, evaluation and publication tools |
+| `src/db/migrations/` | Append-only SQL; apply explicitly to the intended database |
+| `src/data/seed/` | Versioned public references and synthetic demonstration fixtures |
+| `tests/` | API, component, browser, pipeline and isolated database regressions |
+| `docs/` | Architecture, methods, sources, decisions and submission writing |
+| `.github/workflows/` | CI, source checks, guarded manual jobs and daily trigger |
 
-## Root production deployment
+## What works, and what comes next
 
-The root configuration uses exactly these commands:
+- **One connected journey:** confirmed skills feed the radar, explained role matches,
+  a chosen plan, progress and SDG reasons. The organisation workspace uses the same
+  engine with explicit sharing and small-cohort privacy gates.
+- **Traceable data:** the app shows observation windows and sources; its daily refresh
+  writes through the private Replit database. CI checks the build, synthetic browser
+  journeys and disposable PostgreSQL migrations without starting paid inference.
+- **Next evidence step:** verify the exact hosted revision, production migrations and
+  dated snapshot with synthetic accounts before the final demo. A model inference result
+  by itself does not establish that a snapshot was published.
+- **Next evaluation step:** run and review Gemini trend equivalence before switching
+  matchers. Human impact/KPI trials remain unrun (0 testers, 0 trials in the last
+  recorded review on 30 October 2026); the proposed 20% time-saving goal is a target,
+  not a measured result. See the [evidence checklist](docs/submission/rubric-check.md#evidence-still-outstanding).
 
-```bash
-python3 src/scripts/replit.py build
-python3 src/scripts/replit.py start
-```
+## Submission checklist
 
-Build installs frozen uv/pnpm dependencies (Python requirements fallback when uv is absent),
-builds Next.js with webpack and copies standalone
-assets. Start launches FastAPI privately on loopback, waits for API/database readiness,
-then runs the generated Next.js server on the single public port. Neither operation runs
-migrations, seeding or model inference. `artifacts/`, the Express proxy, Drizzle scaffold,
-mockup sandbox and generated scaffold clients are not part of this product.
+- [x] Source, synthetic demo CVs, proposal and technical-declaration exports linked.
+- [x] Replit and RunPod proof-of-use exports linked; their historical state is disclosed.
+- [ ] Confirm final PDFs/signatures and selected slide/video files against the latest app.
+- [ ] Check anonymous access to shared folders and the live demo revision.
+- [ ] Record the observed snapshot, source dates and actual demo/recording date.
+- [ ] Measure human KPI results before making any time-savings claim.
 
-`GET /api/healthz` and `GET /api/v1` are readiness aliases; an unavailable database returns 503. `/api/v1/health` preserves the FastAPI health response. Unknown API paths still return 404. CI starts this exact production pair against disposable PostgreSQL and checks pages,
-static CSS, health, CORS preflight and a read-only failed login through the public proxy.
+The [deliverables guide](docs/submission/submission-deliverables.md) tracks further
+submission checks; a checked box above describes a repository link, not a final upload.
 
-## Production boundaries
+## License
 
-The Next.js/API pair must receive the same nonempty `PROXY_SHARED_SECRET`. Set
-`TRUSTED_PROXY_HOPS` from the real forwarding chain; do not guess it. Replit production uses 1
-(one appending edge in front of the single public server).
-Trusted client-IP mode rejects zero hops; the best-effort default permits zero but then
-anonymous visitors share one rate-limit bucket. Replit's verified configuration uses one
-hop. Local direct-socket development may use zero. The public API handler strips
-caller-supplied internal identity headers.
-
-`AUTH_MODE=demo` is the legacy name for PostgreSQL-backed local accounts with signed sessions,
-not an automatic demo login. Keep `APP_ENV=production`, `AUTH_RAW_USER_IDS=false` and an empty
-`AUTH_DEFAULT_USER`. Authentication uses Adept's signed local accounts stored in Replit PostgreSQL.
-
-The hardened MiniLM dependency pins are source changes. Applying them to the live worker
-requires a guarded image build and RunPod redeployment. The historical verified worker image
-is not evidence that those newer dependencies are already deployed. Keep all keys and
-connection strings in secret stores, never in this README or submission PDFs.
-
-Final-round review: [refresh and demo runbook](docs/review-runbook.md). The dashboard shows the measured data date; manual refresh is admin-only and the daily in-app scheduler is separate from the optional legacy GitHub backup. Production configuration and paid-run acceptance remain explicit rollout steps.
-
-### Final-round disclosure and measurement notes (30 October 2026)
-
-The About registry and technical declaration identify RunPod MiniLM, RunPod GLM-5.3
-with separately authenticated Gemini failover, and Replit hosting. Google Fonts'
-Inter assets are available through `@fontsource-variable/inter`; current app styles
-use Arial/system fallbacks, without a live Google Fonts request. ElevenLabs was
-confirmed used for presentation audio, not application recommendations.
-
-The MyCOL 2024/2025 badge uses only the reviewed stored `data-analyst` ID and cites
-TalentCorp's restricted title list; it does not change ranking or claim current vacancies.
-See [mapping evidence](docs/reference/critical-occupations.md).
-Human KPI trials remain unrun (0 testers, 0 trials); automated local API timings
-are separate evidence: [journey measurements](docs/evidence/kpi-automated-journeys.md).
+[Apache License 2.0](LICENSE). Source records and third-party assets keep their own
+provider terms and attribution.
