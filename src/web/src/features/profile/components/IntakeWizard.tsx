@@ -1,6 +1,6 @@
 "use client";
 
-import { Briefcase, FileUp, GraduationCap, Repeat, Search, X } from "lucide-react";
+import { Briefcase, FileCheck2, FileUp, GraduationCap, Repeat, Search, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { startTransition, useEffect, useMemo, useRef, useState, useTransition } from "react";
@@ -8,12 +8,12 @@ import { startTransition, useEffect, useMemo, useRef, useState, useTransition } 
 import { errorMessage } from "@/lib/api/error-message";
 
 import { SourceBadge } from "@/components/SourceBadge";
-import { CV_SKILLS_KEY } from "@/features/core/components/CvPreview";
 import type { ApiResult, Schemas } from "@/lib/api";
 
 import { resolveSkillAction, saveIntakeAction, uploadCvAction, type IntakeInput } from "../actions";
 import { canResolveSkill, createSessionResolver, filterCatalogueSkills, normaliseSkillQuery } from "../skill-search";
-import { clearIntakeDraft, intakeDraftKey, readIntakeDraft, writeIntakeDraft } from "../intake-draft";
+import { clearIntakeDraft, intakeDraftKey, readIntakeDraft, writeIntakeDraft, type IntakeDraft } from "../intake-draft";
+import { CV_SKILLS_KEY, clearCvHandoff, confirmedCvSkills, cvFile, readCvHandoff, type CvFile } from "../cv-handoff";
 
 type Option = Schemas["SkillOption"];
 type Picked = { skill_id: string; level: number; fromCv?: boolean };
@@ -64,6 +64,7 @@ export function IntakeWizard({
   const [error, setError] = useState("");
   const [cvBusy, startCv] = useTransition();
   const [cvStatus, setCvStatus] = useState<{ empty: boolean; truncated: boolean } | null>(null);
+  const [processedFile, setProcessedFile] = useState<CvFile | null>(null);
   const [saving, startSave] = useTransition();
   const fileRef = useRef<HTMLInputElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -72,29 +73,45 @@ export function IntakeWizard({
 
   useEffect(() => {
     if (!userId) return;
-    let draft = null;
+    let draft: IntakeDraft | null = null;
     try {
       draft = readIntakeDraft(window.sessionStorage, draftKey, new Set(catalogue.map((s) => s.id)), interests);
+      if (!initial && (!draft || (!draft.skills.length && !draft.cvFile))) {
+        const handoff = readCvHandoff(window.sessionStorage, new Set(catalogue.map((s) => s.id)));
+        if (handoff) {
+          draft = {
+            ...(draft ?? { segment: "working", interests: [], hours_per_week: 6, budget_myr: 300, hrd_eligible: false, learning_style: "mixed", step: 1 }),
+            skills: handoff.skills.map((s) => ({ ...s, fromCv: true })), cvFile: handoff.file,
+          };
+          // Move into the signed-in account's draft before consuming the guest handoff.
+          writeIntakeDraft(window.sessionStorage, draftKey, draft);
+          clearCvHandoff(window.sessionStorage);
+          try { window.localStorage.removeItem(CV_SKILLS_KEY); } catch { /* Storage disabled. */ }
+        }
+      }
     } catch { /* Storage may be unavailable even before getItem. */ }
     startTransition(() => {
       if (draft) {
         setSegment(draft.segment); setPicked(draft.interests); setHours(draft.hours_per_week);
         setBudget(draft.budget_myr); setHrd(draft.hrd_eligible); setStyle(draft.learning_style);
         setSkills(draft.skills); setStep(Math.min(TOTAL, Math.max(1, draft.step)));
+        setProcessedFile(draft.cvFile ?? null);
+        if (draft.cvFile) setCvStatus({ empty: !draft.skills.length, truncated: draft.cvFile.truncated });
       }
       setDraftReady(true);
     });
-  }, [catalogue, interests, draftKey, userId]);
+  }, [catalogue, interests, draftKey, userId, initial]);
 
   useEffect(() => {
     if (!draftReady || submitted.current) return;
     try {
       writeIntakeDraft(window.sessionStorage, draftKey, {
         segment, interests: picked, hours_per_week: hours, budget_myr: budget,
-        hrd_eligible: hrd, learning_style: style, skills: skills.map(({ skill_id, level }) => ({ skill_id, level })), step,
+        hrd_eligible: hrd, learning_style: style, skills: skills.map(({ skill_id, level, fromCv }) => ({ skill_id, level, ...(fromCv ? { fromCv } : {}) })), step,
+        ...(processedFile ? { cvFile: processedFile } : {}),
       });
     } catch { /* The wizard works without session storage. */ }
-  }, [draftReady, draftKey, segment, picked, hours, budget, hrd, style, skills, step]);
+  }, [draftReady, draftKey, segment, picked, hours, budget, hrd, style, skills, step, processedFile]);
 
   /** Skills found by the CV preview on the home page, before the account existed. */
   function cvSkillsFromHome(): Picked[] {
@@ -102,9 +119,7 @@ export function IntakeWizard({
       const raw = window.localStorage.getItem(CV_SKILLS_KEY);
       if (!raw) return [];
       const known = new Set(catalogue.map((o) => o.id));
-      return (JSON.parse(raw) as { skill_id: string; level: number }[])
-        .filter((s) => known.has(s.skill_id))
-        .map((s) => ({ skill_id: s.skill_id, level: Math.min(5, Math.max(1, s.level || 3)), fromCv: true }));
+      return confirmedCvSkills(JSON.parse(raw) as unknown, known).map((s) => ({ ...s, fromCv: true }));
     } catch {
       return [];
     }
@@ -151,7 +166,6 @@ export function IntakeWizard({
     const form = new FormData();
     form.set("file", file);
     setError("");
-    setCvStatus(null);
     startCv(async () => {
       const result = await uploadCvAction(form);
       if (result.error) {
@@ -159,7 +173,12 @@ export function IntakeWizard({
         return;
       }
       setCvStatus({ empty: !result.skills?.length, truncated: result.truncated ?? false });
-      for (const s of result.skills ?? []) addSkill(s.skill_id, s.level, true);
+      setProcessedFile(cvFile(file.name, result.truncated ?? false));
+      setSkills((previous) => {
+        const manual = previous.filter((s) => !s.fromCv);
+        return [...manual, ...(result.skills ?? []).filter((s) => !manual.some((m) => m.skill_id === s.skill_id))
+          .map((s) => ({ skill_id: s.skill_id, level: s.level, fromCv: true }))];
+      });
     });
   }
 
@@ -290,12 +309,24 @@ export function IntakeWizard({
               <span className="a-chip">{t("chosen", { count: skills.length })}</span>
             </div>
             <p className="a-muted a-small" style={{ margin: 0 }}>
-              {t("skillsHint")}
+              {processedFile ? t("cvLoadedHint") : t("skillsHint")}
             </p>
-            <button type="button" className="a-drop" onClick={() => fileRef.current?.click()} disabled={cvBusy}>
+            {processedFile ? (
+              <div className="a-notice" role="status" data-tone="info" data-cv-file style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
+                <FileCheck2 size={24} aria-hidden style={{ flexShrink: 0 }} />
+                <div style={{ flex: "1 1 180px", minWidth: 0 }}>
+                  <span className="a-small a-muted">{t("cvReady")}</span>
+                  <strong style={{ display: "block", overflowWrap: "anywhere" }}>{processedFile.name}</strong>
+                  <p className="a-small a-muted" style={{ margin: "4px 0 0" }}>{t("cvFileNote")}</p>
+                </div>
+                <button type="button" className="a-btn is-ghost is-small" onClick={() => fileRef.current?.click()} disabled={cvBusy}>
+                  {cvBusy ? t("uploading") : t("replaceCv")}
+                </button>
+              </div>
+            ) : <button type="button" className="a-drop" onClick={() => fileRef.current?.click()} disabled={cvBusy}>
               <FileUp size={22} aria-hidden />
               {cvBusy ? t("uploading") : t("upload")}
-            </button>
+            </button>}
             <input
               ref={fileRef}
               type="file"

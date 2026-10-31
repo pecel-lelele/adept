@@ -9,11 +9,14 @@ import { Ring, scoreColour } from "@/components/viz/Ring";
 import { EstimateLabel } from "@/components/EstimateLabel";
 import { MetaBar } from "@/components/MetaBar";
 import type { Schemas } from "@/lib/api";
+import { CV_SKILLS_KEY, clearCvHandoff, cvFile, writeCvHandoff, type CvFile } from "@/features/profile/cv-handoff";
+import "./cv-preview.css";
 
 type Preview = Schemas["GuestPreview"];
+type RatedSkill = { skill_id: string; label: string; level: number | null };
 
 /** Skills found on the landing page, picked up by the intake after sign-up. */
-export const CV_SKILLS_KEY = "adept.cv-skills";
+export { CV_SKILLS_KEY } from "@/features/profile/cv-handoff";
 const MAX_BYTES = 5 * 1024 * 1024;
 const DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 const TYPES = ["application/pdf", "text/plain", DOCX];
@@ -21,9 +24,8 @@ const TYPES = ["application/pdf", "text/plain", DOCX];
 const EXTENSIONS = /\.(pdf|docx|txt)$/i;
 
 /**
- * Landing CV preview: anyone can upload a CV and see part of the result straight away (skills
- * found, how they trend, the best-fit role). Everything else is shown blurred with a sign-up
- * prompt. The CV is read in memory by the API and never stored.
+ * Upload → explicit self-assessment → saved outlook. Only confirmed levels reach matching
+ * or the sign-up handoff. The CV is read in memory by the API and never stored.
  */
 export function CvPreview() {
   const t = useTranslations("ui.landing");
@@ -34,12 +36,27 @@ export function CvPreview() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState<Preview | null>(null);
+  const [step, setStep] = useState<"upload" | "rate" | "results">("upload");
+  const [skills, setSkills] = useState<RatedSkill[]>([]);
+  const [truncated, setTruncated] = useState(false);
+  const [processedFile, setProcessedFile] = useState<CvFile | null>(null);
   const input = useRef<HTMLInputElement>(null);
+  const firstUnrated = useRef<HTMLButtonElement>(null);
+
+  function clearHandoff() {
+    try { window.localStorage.removeItem(CV_SKILLS_KEY); } catch { /* Storage disabled. */ }
+    try { clearCvHandoff(window.sessionStorage); } catch { /* Storage disabled. */ }
+  }
+
+  function reset() {
+    setStep("upload"); setResult(null); setFile(null); setSkills([]); setError("");
+    setTruncated(false); setProcessedFile(null); clearHandoff();
+  }
 
   function pick(next: File | undefined) {
     setError("");
-    setResult(null);
     if (!next) return;
+    setResult(null); setSkills([]); clearHandoff();
     if (next.size > MAX_BYTES || !(TYPES.includes(next.type) || EXTENSIONS.test(next.name))) {
       setFile(null);
       setError(t("errorType"));
@@ -70,17 +87,51 @@ export function CvPreview() {
         return;
       }
       const data = (await response.json()) as Preview;
+      setSkills(data.skills.map((s) => ({ skill_id: s.skill_id, label: s.label, level: null })));
+      setTruncated(data.truncated);
+      setProcessedFile(cvFile(file.name, data.truncated));
+      setFile(null);
+      setStep("rate");
+      clearHandoff();
+    } catch {
+      setError(t("errorGeneric"));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function save(e: FormEvent) {
+    e.preventDefault();
+    if (!skills.length || !skills.every((s) => s.level !== null)) {
+      setError(t("rateRequired"));
+      firstUnrated.current?.focus();
+      return;
+    }
+    setBusy(true); setError("");
+    try {
+      const response = await fetch("/api/preview", {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ skills: skills.map(({ skill_id, level }) => ({ skill_id, level })) }),
+      });
+      if (!response.ok) { setError(t("outlookError")); return; }
+      const data = (await response.json()) as Preview;
       setResult(data);
+      setStep("results");
+      if (processedFile) {
+        try { writeCvHandoff(window.sessionStorage, { file: processedFile, skills: data.skills.map(({ skill_id, level }) => ({ skill_id, level })) }); }
+        catch { /* Storage disabled. */ }
+      }
       try {
         window.localStorage.setItem(
           CV_SKILLS_KEY,
-          JSON.stringify(data.skills.map((s) => ({ skill_id: s.skill_id, level: s.level }))),
+          JSON.stringify(skills.map(({ skill_id, level }) => ({ skill_id, level }))),
         );
       } catch {
         /* storage blocked: the intake simply starts empty */
       }
     } catch {
-      setError(t("errorGeneric"));
+      setError(t("outlookError"));
     } finally {
       setBusy(false);
     }
@@ -98,18 +149,21 @@ export function CvPreview() {
   return (
     <section className="a-upload" id="start" aria-labelledby="start-title">
       <header className="a-upload-head">
-        <span className="a-upload-step">1</span>
+        <span className="a-upload-step">{step === "upload" ? 1 : step === "rate" ? 2 : 3}</span>
         <strong id="start-title">{t("startHere")}</strong>
         <span className="a-muted a-small" style={{ marginLeft: "auto" }}>
           {t("free")}
         </span>
       </header>
 
-      {!result ? (
+      {step === "upload" ? (
         <form
           className="a-upload-drop"
           data-drag={drag}
           onSubmit={submit}
+          onClick={(e) => {
+            if (!busy && e.target instanceof HTMLElement && !e.target.closest("button, label, input")) input.current?.click();
+          }}
           onDragOver={(e) => {
             e.preventDefault();
             setDrag(true);
@@ -155,9 +209,48 @@ export function CvPreview() {
             </p>
           ) : null}
         </form>
-      ) : (
+      ) : step === "rate" ? (
+        <form className="cv-rating a-stack" onSubmit={save} aria-busy={busy}>
+          {truncated ? <p className="a-notice" role="status">{cvText("truncated")}</p> : null}
+          {skills.length ? <>
+            <div className="cv-rating-heading">
+              <div><h2>{t("rateTitle")}</h2><p className="a-muted a-small" id="cv-level-help">{t("rateHelp")}</p></div>
+              <span className="a-chip" role="status">{t("ratedCount", { rated: skills.filter((s) => s.level !== null).length, total: skills.length })}</span>
+            </div>
+            <div className="cv-rating-list">
+              {skills.map((skill) => (
+                <fieldset key={skill.skill_id} className="cv-rating-row" aria-describedby="cv-level-help">
+                  <legend>{skill.label}</legend>
+                  <div className="cv-rating-options">
+                    {[1, 2, 3, 4, 5].map((level) => (
+                      <button type="button" key={level} aria-pressed={skill.level === level} disabled={busy}
+                        ref={skill === skills.find((s) => s.level === null) && level === 1 ? firstUnrated : undefined}
+                        aria-label={t("rateLevel", { level })}
+                        onClick={() => { setSkills((prev) => prev.map((s) => s.skill_id === skill.skill_id ? { ...s, level } : s)); setError(""); }}>
+                        {level}
+                      </button>
+                    ))}
+                  </div>
+                </fieldset>
+              ))}
+            </div>
+            {error ? <p id="cv-rating-error" className="a-notice" data-tone="error" role="alert">{error}</p> : null}
+            <button type="submit" className="a-btn" disabled={busy} aria-describedby={error ? "cv-rating-error" : undefined}>
+              {busy ? t("savingOutlook") : t("saveOutlook")} <ArrowRight size={16} aria-hidden />
+            </button>
+          </> : <>
+            <p className="a-notice" role="status">{t("noneFound")}</p>
+            <Link className="a-btn" href="/app/onboarding">{t("manualSkills")} <ArrowRight size={16} aria-hidden /></Link>
+          </>}
+          <button type="button" className="a-link cv-text-button" disabled={busy} onClick={reset}>{t("tryAgain")}</button>
+        </form>
+      ) : step === "results" && result ? (
         <div className="a-upload-result" aria-live="polite">
-          {result.truncated ? <p className="a-notice" role="status">{cvText("truncated")}</p> : null}
+          <div className="cv-rating-heading">
+            <h2>{t("outlookTitle")}</h2>
+            <button type="button" className="a-link cv-text-button" onClick={() => { setStep("rate"); setError(""); clearHandoff(); }}>{t("editLevels")}</button>
+          </div>
+          {truncated ? <p className="a-notice" role="status">{cvText("truncated")}</p> : null}
           <div className="a-free">
             <div className="a-free-role">
               {result.top_role ? (
@@ -192,6 +285,15 @@ export function CvPreview() {
               </div>
             ) : null}
           </div>
+          <div className="cv-assessment">
+            {(["strengths", "gaps"] as const).map((group) => {
+              const items = result.skills.filter((s) => group === "strengths" ? s.level >= 3 : s.level <= 2);
+              return <section key={group} className="cv-assessment-group" data-kind={group}>
+                <h3>{t(group)}</h3><p className="a-muted a-small">{t(group === "strengths" ? "strengthsHelp" : "gapsHelp")}</p>
+                {items.length ? <ul>{items.map((s) => <li key={s.skill_id}><span>{s.label}</span><b>{s.level}/5</b></li>)}</ul> : <p className="a-muted a-small">{t(group === "strengths" ? "noStrengths" : "noGaps")}</p>}
+              </section>;
+            })}
+          </div>
           {result.top_role ? <div className="a-locked">
             <div className="a-locked-content" aria-hidden="true">
               {[t("lockedRoles"), t("lockedGap"), t("lockedPlan"), t("lockedImpact")].map((label, i) => (
@@ -223,11 +325,11 @@ export function CvPreview() {
             <Link className="a-btn" href="/app/onboarding">{t("manualSkills")} <ArrowRight size={16} aria-hidden /></Link>
           )}
           <MetaBar meta={result.meta} />
-          <button type="button" className="a-link" style={{ border: 0, background: "none", cursor: "pointer", justifySelf: "start" }} onClick={() => { setResult(null); setFile(null); }}>
+          <button type="button" className="a-link cv-text-button" onClick={reset}>
             {t("tryAgain")}
           </button>
         </div>
-      )}
+      ) : null}
       <footer className="a-upload-foot">
         <ShieldCheck size={14} aria-hidden /> {t("safe")}{" "}
         <Link className="a-link" href="/privacy">
