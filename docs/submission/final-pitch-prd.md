@@ -106,7 +106,7 @@ Adi answers how-to questions about the product from a set of **fixed, reviewed a
 
 ### 4.5 Sources and transparency
 
-Every recommendation card shows one small **Sources** link, its snapshot date and estimate label; the full source list, model disclosure and methodology are on the in-app **Data and AI use** page. The interface is available in English, Malay and Chinese.
+Recommendation views keep a compact **Sources** link to the in-app **Data and AI use** page; its tooltip and accessible name carry the estimate cue and snapshot date. Courses and jobs also link directly to their provider or employer pages. Recommendation API responses retain their source, snapshot, scenario and estimate metadata. The interface is available in English, Malay and Chinese.
 
 ### 4.6 Core journey
 
@@ -199,7 +199,7 @@ RM6 is set below BrioHR's RM7 Talent Essentials bundle [S25] because Adept is po
 
 ### 9.1 TAM, SAM and SOM (estimates)
 
-All values use RM72 per seat per year (RM6 × 12).
+TAM and SAM use RM72 per seat per year (RM6 × 12). The year-5 SOM follows the pricing scenario in Section 9.2: 30,000 seats × RM8 × 12 + 25 institution licences × RM25,000 = RM3,505,000 per year. These are unvalidated pricing and adoption assumptions, not observed revenue.
 
 | Measure | Basis | Estimate |
 |---|---|---|
@@ -221,7 +221,7 @@ Revenue = employers × seats × price × 12 + institutions × flat licence. Pric
 | 2030 | 150 × 100 | 15 | 1,815,000 | 1,132,680 | 682,320 |
 | 2031 | 300 × 100 | 25 | 3,505,000 | 1,808,360 | 1,696,640 |
 
-- **Sensitivity:** a low case (half the customers) reaches RM1.74m revenue in 2031; a high case (1.5×) reaches RM5.27m.
+- **Sensitivity:** a low case of 150 employers × 100 seats at RM8/month plus 12 institution licences at RM25,000/year reaches RM1.74m revenue in 2031. A high case of 450 employers with the same seat count and price plus 38 institution licences reaches RM5.27m. These approximate half/1.5× customer scenarios use whole institution counts.
 - **Funding need:** cumulative pre-break-even need in the base case is about **RM0.30m** (estimate).
 - **Share required:** 300 employers in year 5 is 0.3% of more than 100,000 registered employers [S3].
 - **Why the cost curve is favourable:** reads are deterministic, so there is no model cost per page view; one shared daily refresh serves all customers; and the catalogue and Malaysian sources are reused across customers. Marginal cost per seat is mainly support time.

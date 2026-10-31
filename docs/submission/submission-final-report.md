@@ -91,7 +91,7 @@ Describe what was successfully built, integrated, and deployed during the 48-hou
 
 > **Trust.** The team added session revocation, a verified proxy boundary, a public privacy notice, a public impact page and fixed answers for Adi that always link to the right page. The CV step now records only skills the CV states and asks the person to confirm them.
 
-> **Simplification.** On 1 November the team removed cluttered score arithmetic and the radar's trend-chart cards, which failed where migration data was missing. Cards now give plain reasons, what would raise the score and one Sources link.
+> **Simplification.** On 1 November the team removed cluttered score arithmetic and the radar's trend-chart cards, which failed where migration data was missing. Cards now give plain reasons, what would raise the score and a compact Sources link.
 
 > Browser journeys for desktop and mobile, source-attribution checks and generated contract checks guard this work. The prototype is published on Replit Autoscale at the link in Section 1.
 <!-- answer:end final-implementation -->

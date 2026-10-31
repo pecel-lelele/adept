@@ -30,7 +30,6 @@ Each feature also has a `FEATURE.md` next to its code describing its API and met
 | [Replit deployment](replit-deployment.md) | Production deployment and configuration |
 | [Replit proxy verification](replit-proxy-verification.md) | Checking the trusted-proxy setup |
 | [Review runbook](review-runbook.md) | Data refresh and demo preparation |
-| [Demo script](demo-script.md) | Live demo walkthrough |
 
 ## Folders
 

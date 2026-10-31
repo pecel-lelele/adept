@@ -7,7 +7,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src" / "scripts"))
 
-from template_pdf import word_count, word_limits  # noqa: E402
+from fill_submission_docx import word_count, word_limits  # noqa: E402
 
 EXPECTED = {
     "docs/submission/submission-final-report.md": {

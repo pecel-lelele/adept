@@ -1,4 +1,4 @@
-"""Export the declaration in the organisers' template layout (see ``template_pdf``).
+"""Fill the declaration template (see ``fill_submission_docx``).
 
 Run from the repository root. No network, model, or office automation is needed.
 ``render_pdf`` is the styled A4 layout used by ``export_prd.py``.
@@ -13,56 +13,52 @@ from pathlib import Path
 import pymupdf
 
 ROOT = Path(__file__).resolve().parents[2]
-SOURCE = ROOT / "docs/submission/submission-technical-declaration.md"
-OUTPUT = ROOT / "submission/SDC2026_Pecel-Lele_TechDeclaration.pdf"
 
 TEAM = "Pecel Lele"
 PRODUCT = "Adept"
 EVENT = "SDC XMUM Hackathon 2026"
 
-GREEN = "#174a39"
-GREEN_2 = "#176148"
-INK = "#1f2d27"
-MUTED = "#5f6f67"
+GREEN = "#000000"
+GREEN_2 = "#000000"
+INK = "#000000"
+MUTED = "#444444"
 
 MM = 72 / 25.4
-MARGIN_X = 20 * MM
-MARGIN_TOP = 22 * MM
-MARGIN_BOTTOM = 20 * MM
+MARGIN_X = 72
+MARGIN_TOP = 72
+MARGIN_BOTTOM = 72
 
 BODY_CSS = f"""
-body {{ font-family: sans-serif; font-size: 9.6pt; line-height: 1.42; color: {INK}; }}
-h2 {{ font-size: 13.5pt; color: {GREEN}; margin: 16pt 0 6pt 0; padding-bottom: 3pt;
-      border-bottom: 0.8pt solid #b9d0c3; }}
-h3 {{ font-size: 11pt; color: {GREEN_2}; margin: 12pt 0 4pt 0; }}
-h4 {{ font-size: 10pt; color: {GREEN_2}; margin: 10pt 0 3pt 0; }}
+body {{ font-family: serif; font-size: 11pt; line-height: 1.3; color: {INK}; }}
+h2 {{ font-size: 20pt; color: {GREEN}; margin: 20pt 0 8pt 0; }}
+h3 {{ font-size: 13pt; color: {GREEN_2}; margin: 14pt 0 5pt 0; }}
+h4 {{ font-size: 11.5pt; color: {GREEN_2}; margin: 10pt 0 3pt 0; }}
 p {{ margin: 0 0 6pt 0; }}
 ul, ol {{ margin: 0 0 6pt 0; padding-left: 14pt; }}
 li {{ margin: 0 0 3pt 0; }}
 ul.check {{ list-style-type: none; padding-left: 2pt; }}
-table {{ width: 100%; border-collapse: collapse; margin: 4pt 0 10pt 0; font-size: 8.5pt; }}
-th {{ font-weight: bold; color: {GREEN}; border-top: 1.4pt solid {GREEN};
-      text-align: left; padding: 4pt 5pt; border-bottom: 1pt solid {GREEN}; }}
-td {{ line-height: 1.32; padding: 4pt 5pt; border-bottom: 0.5pt solid #d5e2da; }}
+table {{ width: 100%; border-collapse: collapse; margin: 4pt 0 10pt 0; font-size: 9.5pt; }}
+th {{ font-weight: bold; color: {GREEN}; border-top: 0.6pt solid {GREEN};
+      text-align: left; padding: 4pt 5pt; border-bottom: 0.6pt solid {GREEN}; }}
+td {{ line-height: 1.25; padding: 4pt 5pt; border-bottom: 0.4pt solid #999999; }}
 .r {{ text-align: right; }}
 a:link {{ color: {GREEN_2}; text-decoration: none; }}
 p.sign {{ margin: 14pt 0 4pt 0; color: {MUTED}; }}
 code {{ font-family: monospace; font-size: 8.4pt; color: {GREEN}; }}
 pre {{ font-family: monospace; font-size: 7.8pt; line-height: 1.25; white-space: pre;
-       border-left: 2pt solid #b9d0c3; padding: 2pt 0 2pt 8pt; margin: 4pt 0 8pt 0; }}
+       padding: 2pt 0 2pt 8pt; margin: 4pt 0 8pt 0; }}
 .box {{ color: {GREEN}; font-size: 10.5pt; }}
 .ph {{ color: {MUTED}; font-style: italic; }}
 .ref {{ color: {GREEN_2}; }}
-td b, td i, td a, td span, td code, th b, th code {{ font-size: 8.5pt; }}
+td b, td i, td a, td span, td code, th b, th code {{ font-size: 9.5pt; }}
 """
 
 COVER_CSS = """
-* { font-family: sans-serif; }
-.eyebrow { font-size: 8pt; color: #a9d3bd; font-weight: bold; margin: 0 0 6pt 0; }
-h1 { font-size: 24pt; line-height: 1.15; color: #ffffff; margin: 0 0 6pt 0; }
-.sub { font-size: 12pt; line-height: 1.3; color: #ffffff; margin: 0 0 6pt 0; }
-.meta { font-size: 9pt; line-height: 1.35; color: #d7ebe0; margin: 0 0 1.5pt 0; }
-b { color: #ffffff; }
+* { font-family: serif; color: #000000; }
+.eyebrow { font-size: 12pt; margin: 0 0 6pt 0; }
+h1 { font-size: 20pt; font-weight: normal; line-height: 1.15; margin: 0 0 6pt 0; }
+.sub { font-size: 12pt; line-height: 1.3; margin: 0 0 6pt 0; }
+.meta { font-size: 11pt; line-height: 1.35; margin: 0 0 1.5pt 0; }
 code { font-family: monospace; }
 """
 
@@ -240,7 +236,7 @@ def cover_html(title: str, lines: list[str]) -> str:
 
 def _layout(body_html: str, first_top: float) -> tuple[pymupdf.Document, dict[str, int]]:
     """Lay out the body; return the document and the page of each tracked block id."""
-    media = pymupdf.paper_rect("a4")
+    media = pymupdf.paper_rect("letter")
     bottom = media.height - MARGIN_BOTTOM
 
     def rectangles(number: int, filled: pymupdf.Rect) -> tuple:
@@ -279,10 +275,10 @@ def _stranded_blocks(pages: dict[str, int], headings: set[int]) -> set[int]:
 
 
 def _header_footer(document: pymupdf.Document, header: str) -> None:
-    font = pymupdf.Font("helv")
-    bold = pymupdf.Font("hebo")
-    muted = (0.40, 0.45, 0.42)
-    rule = (0.76, 0.84, 0.80)
+    font = pymupdf.Font("tiro")
+    bold = pymupdf.Font("tibo")
+    muted = (0.25, 0.25, 0.25)
+    rule = (0.6, 0.6, 0.6)
     total = len(document)
     for i, page in enumerate(document):
         page.wrap_contents()
@@ -308,9 +304,9 @@ def _header_footer(document: pymupdf.Document, header: str) -> None:
 def render_pdf(source: Path, output: Path, title: str, header: str | None = None) -> None:
     """Render a tracked Markdown document to a styled A4 PDF with cover, header and footer."""
     cover_title, cover_lines, body = split_cover(source.read_text("utf-8"))
-    media = pymupdf.paper_rect("a4")
+    media = pymupdf.paper_rect("letter")
     cover = cover_html(cover_title or title, cover_lines)
-    band_pad = 16 * MM
+    band_pad = 72.0
     cover_rect_height = 400.0
 
     probe = pymupdf.open()
@@ -335,12 +331,6 @@ def render_pdf(source: Path, output: Path, title: str, header: str | None = None
         breaks = frozenset(b for b in breaks if b < start or b > stranded[0]) | {start}
 
     first = document[0]
-    first.draw_rect(
-        pymupdf.Rect(0, 0, media.width, band_bottom),
-        color=None,
-        fill=(0x17 / 255, 0x4A / 255, 0x39 / 255),
-        overlay=False,
-    )
     first.insert_htmlbox(
         pymupdf.Rect(MARGIN_X, band_pad, media.width - MARGIN_X, band_pad + cover_rect_height),
         cover,
@@ -360,9 +350,9 @@ def render_pdf(source: Path, output: Path, title: str, header: str | None = None
 
 
 def main() -> None:
-    from template_pdf import render
+    from fill_submission_docx import fill
 
-    render(SOURCE, OUTPUT, "Adept Technical & Tools Declaration")
+    fill("declaration")
 
 
 if __name__ == "__main__":
