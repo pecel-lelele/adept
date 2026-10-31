@@ -105,6 +105,12 @@ test("selected snapshot date and source remain visible when global freshness is 
   assert.match(html, /Synthetic trend source/);
   assert.doesNotMatch(html, /undefined/);
   assert.equal(await DataAsOf({ source: "trends" }), null);
+  const dbFallback = renderToStaticMarkup(await DataAsOf({ source: "trends", meta: {
+    snapshot_date: "2026-10-20", observed_to: "2026-10-19", is_fallback: true,
+    served_from: "db", sources: [],
+  } }));
+  assert.match(dbFallback, /Showing the last good snapshot/);
+  assert.doesNotMatch(dbFallback, /frozen export|undefined| · <\/p>/);
 });
 
 test("a partially failed run refreshes successful cards and retains its failed state", async () => {

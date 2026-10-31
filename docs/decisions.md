@@ -2820,3 +2820,13 @@
 - **Affects**: Individual dashboard, radar and shared DataAsOf; no attribution schema, permission or data calculation change
 - **Replaces**: none; refines M1-026's user-facing freshness placement
 - **PR / branch**: fix/core-dashboard-clarity
+
+### M4-099: Distinguish last-good database snapshots from frozen exports
+- **Date**: 2026-10-31
+- **Feature**: Core / F2 freshness UI
+- **Type**: UI
+- **Change**: Select the frozen-export label from the selected snapshot's storage origin when available, not from its generic fallback flag; avoid rendering a missing source as `undefined` during freshness-service outages.
+- **Why**: A last-good database snapshot is still database data, even when stale or served after a provider failure. Describing it as a frozen seed export misstates provenance on the newly contextualized dashboard date line.
+- **Affects**: Shared DataAsOf output with selected metadata; no API schema or source date changed
+- **Replaces**: none; refines M4-098 provenance display
+- **PR / branch**: fix/core-dashboard-clarity

@@ -15,9 +15,13 @@ export async function DataAsOf({ source, meta }: { source: DataSourceId; meta?: 
   const snapshotDate = meta?.snapshot_date ?? item?.snapshot_date;
   const historical = day && snapshotDate && Date.parse(snapshotDate) - Date.parse(day) > 60 * 864e5;
   const fallback = meta?.is_fallback ?? item?.is_fallback;
+  const frozen = meta?.served_from
+    ? meta.served_from === "fixture"
+    : item?.served_from === "seed" || (!item?.served_from && item?.is_fallback);
+  const sourceName = meta?.sources.map((s) => s.name).filter(Boolean).join(" · ") || item?.source_name;
   return (
     <p className="a-muted a-small" data-source={source}>
-      {t(fallback ? "asOfFrozen" : "asOf", { date: day })} · {meta?.sources.map((s) => s.name).join(" · ") || item?.source_name}
+      {t(frozen ? "asOfFrozen" : "asOf", { date: day })}{sourceName ? ` · ${sourceName}` : ""}
       {item?.is_stale || historical || fallback ? ` · ${t("lastGood", { date: day })}` : ""}
       {item?.last_checked_at ? ` · ${t("lastChecked", { time: item.last_checked_at })}` : ""}
       {historical || (!meta && item?.is_historical_replay) ? ` · ${t("historicalReplay", { date: snapshotDate ?? "" })}` : ""}
