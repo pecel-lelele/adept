@@ -43,6 +43,7 @@ environment values before publishing:
 | `SESSION_SECRET` | Existing stable random secret, at least 32 characters; keep it across deployments. |
 | `PROXY_SHARED_SECRET` | Existing random secret shared by the co-hosted web and API. |
 | `TRUSTED_PROXY_HOPS` | Set to `1` for the verified Replit edge. Trusted mode rejects zero; best-effort mode permits zero but then anonymous visitors share a rate-limit bucket. Recheck the count if the ingress path changes. |
+| `PROXY_CLIENT_IP_MODE` | Defaults to `best-effort`; use `trusted` after verifying the proxy path if startup must reject a missing/zero trusted hop count. |
 | `WEB_ORIGIN` | Exact published origin, for example `https://adept-corp.replit.app`, without a trailing slash. |
 | `CORS_ORIGINS` | Same exact origin; if unset, the launcher uses `WEB_ORIGIN`. |
 | `APP_ENV`, `NODE_ENV`, `M3_BACKEND` | Launcher enforces `production`, `production`, `postgres`. |
