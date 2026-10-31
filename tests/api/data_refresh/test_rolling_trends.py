@@ -103,6 +103,7 @@ def store(monkeypatch: pytest.MonkeyPatch) -> Store:
         yield SimpleNamespace(execute=lambda *args: None)
 
     monkeypatch.setattr(repository, "write_connection", writer)
+    monkeypatch.setattr(measurements, "load", lambda _day: None)
     monkeypatch.setattr(automatic_trends.refresh, "latest_published", lambda _url: None)
     monkeypatch.setattr(automatic_trends.refresh, "clear_trend_caches", lambda: None)
     return fake
@@ -162,6 +163,9 @@ def test_current_trends_need_no_network_or_model(
     current = (NEWEST - timedelta(days=6), NEWEST)
     note = f"Observed arXiv submissions {current[0]}..{current[1]} against older days."
     monkeypatch.setattr(automatic_trends.refresh, "latest_published", lambda _url: (NEWEST, note))
+    previous = (current[0] - timedelta(days=7), current[0] - timedelta(days=1))
+    published = automatic_trends.rolling_inputs(previous, current, TODAY - timedelta(days=1))
+    monkeypatch.setattr(measurements, "load", lambda _day: published)
     _no_network(monkeypatch)
     result = automatic_trends.run(time.monotonic(), 600, STOP)
     assert result.rows_upserted == 0 and "current through" in result.message
@@ -213,6 +217,7 @@ def test_refresh_fetches_only_new_days_and_matches_each_paper_once(
         "latest_published",
         lambda _url: (NEWEST, published[0].note),
     )
+    monkeypatch.setattr(measurements, "load", lambda _day: published[0])
     assert "current through" in automatic_trends.run(time.monotonic(), 600, STOP).message
 
 
@@ -346,6 +351,67 @@ def test_refetched_day_replaces_its_papers_and_republishes(
     assert store.days[day] == 1 and store.fetched_on[day] == TODAY
     assert [k for k, v in store.papers.items() if v[0] == day] == [f"synthetic-{day}"]
     assert published, "a refetched day inside the windows must republish"
+
+
+@pytest.mark.parametrize("age", [5, 12])
+@pytest.mark.parametrize("failure_stage", ["rows", "publish"])
+def test_retry_republishes_corrected_counts_after_a_failed_refresh(
+    store: Store, monkeypatch: pytest.MonkeyPatch, age: int, failure_stage: str
+) -> None:
+    store.fill(automatic_trends.START_DAY, NEWEST, ["python"])
+    day = TODAY - timedelta(days=age)
+    store.fetched_on[day] = day + timedelta(days=automatic_trends.ARXIV_LAG_DAYS)
+    current = (NEWEST - timedelta(days=6), NEWEST)
+    previous = (current[0] - timedelta(days=7), current[0] - timedelta(days=1))
+    original = automatic_trends.rolling_inputs(previous, current, TODAY)
+    monkeypatch.setattr(
+        automatic_trends.refresh, "latest_published", lambda _url: (NEWEST, original.note)
+    )
+    monkeypatch.setattr(measurements, "load", lambda _day: original)
+    calls: list[date] = []
+    _arxiv(monkeypatch, calls)
+    monkeypatch.setattr(automatic_trends, "_runpod", lambda: ("synthetic", "synthetic"))
+    monkeypatch.setattr(
+        automatic_trends,
+        "match",
+        lambda papers, *args: (
+            [["python"] for _ in papers],
+            "M1-014",
+            automatic_trends.MODEL_ID,
+            None,
+        ),
+    )
+    published = _published(monkeypatch)
+
+    def fail(*args: Any) -> None:
+        raise TimeoutError("Synthetic failure after committing corrected papers")
+
+    with monkeypatch.context() as failing:
+        failing.setattr(measurements, failure_stage, fail)
+        with pytest.raises(TimeoutError, match="Synthetic failure"):
+            automatic_trends.run(time.monotonic(), 600, STOP)
+
+    assert calls == [day] and published == []
+    assert store.days[day] == 1 and store.fetched_on[day] == TODAY
+    assert automatic_trends.missing_days(store.fetched_on, TODAY) == []
+    _no_network(monkeypatch)
+    monkeypatch.setattr(automatic_trends, "match", lambda *args: pytest.fail("rematched papers"))
+    result = automatic_trends.run(time.monotonic(), 600, STOP)
+
+    assert result.rows_upserted > 0 and len(published) == 1
+    corrected = published[0]
+    assert corrected.current == original.current and corrected.fetched == original.fetched
+    if day >= current[0]:
+        assert original.counts_after["python"] == original.total_after == 14
+        assert corrected.counts_after["python"] == corrected.total_after == 13
+        assert corrected.counts_before == original.counts_before
+    else:
+        assert original.counts_before["python"] == original.total_before == 14
+        assert corrected.counts_before["python"] == corrected.total_before == 13
+        assert corrected.counts_after == original.counts_after
+    monkeypatch.setattr(measurements, "load", lambda _day: corrected)
+    assert automatic_trends.run(time.monotonic(), 600, STOP).rows_upserted == 0
+    assert len(published) == 1
 
 
 def test_rebuild_reports_the_stored_fetch_date_not_today(

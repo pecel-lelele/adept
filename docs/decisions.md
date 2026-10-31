@@ -713,6 +713,17 @@
 - **Affects**: F2 snapshots and their readers (F3–F7 estimates), data refresh due check, migration `20261031180000_trend_paper_store.sql`
 - **Replaces**: M1-015 (fixed completed ISO weeks for the automatic refresh); extends M1-017
 - **PR / branch**: feat/trends-rolling-accumulated
+
+### M1-021: Compare durable published inputs before skipping a rolling refresh
+- **Date**: 2026-10-31
+- **Feature**: F2 (Trends), data refresh
+- **Type**: method
+- **Change**: The rolling publish guard compares current store-derived measured inputs with the inputs saved atomically with the latest published snapshot, ignoring only the provenance note's rebuild date. Missing or different published inputs cause publication even when the window is unchanged and this run refetched no days.
+- **Why**: A settled-day replacement commits before scoring/publication. If the run then fails, a same-day retry must detect the unpublished correction durably rather than relying on a per-run set of revisited days; the existing measured-input record provides that comparison without a migration.
+- **Pipeline**: Existing arXiv per-day evidence → existing normalized paper/skill store → both rolling windows' counts, totals and provenance → compare with atomically published inputs → evaluation: all four synthetic retry regression cases pass (scoring/publish failures and corrections in either window) → unchanged scorer/validator and atomic snapshot/input publication.
+- **Affects**: Automatic F2 refresh publication guard and retry behaviour; no schema, provider or scoring-formula changes
+- **Replaces**: none; extends M1-018
+- **PR / branch**: feat/trends-rolling-accumulated
 ---
 
 ## M2: Profile Intake & Matching (F1, F4)
