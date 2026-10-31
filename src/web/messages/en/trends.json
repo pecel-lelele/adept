@@ -140,10 +140,14 @@
     "reset": "Biggest movers",
     "empty": "No daily history is stored yet. Refresh data to start collecting it.",
     "emptyRange": "No skill moved in this range. Choose other dates or skills.",
+    "emptyShort": "A trend point needs {days} stored days of papers. History is still being collected.",
     "chartLabel": "Share of papers mentioning each skill, {from} to {to}",
     "table": "Show as a table",
     "skill": "Skill",
     "change": "Change",
-    "note": "Observed in a sample of up to 50 newest arXiv cs.AI papers per day; research attention, not job demand. Gaps mean a 7-day window is not fully stored."
+    "note": "Observed in a sample of up to 50 newest arXiv cs.AI papers per day; research attention, not job demand. Gaps mean a 7-day window is not fully stored.",
+    "day": "Day",
+    "limit": "Up to {max} skills. Untick one to add another.",
+    "rejected": "That choice could not be shown (a start after the end, a range over {days} days, an unknown skill, or more than {max} skills). Showing the biggest movers instead."
   }
 }

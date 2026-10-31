@@ -58,3 +58,67 @@ test("an empty store says so instead of drawing an invented chart", async () => 
   assert.equal(charted.length, 0);
   assert.match(html, /No daily history is stored yet/);
 });
+
+test("short history explains the incomplete window and keeps the form", async () => {
+  const TrendRangeCard = card("en", []);
+  const html = renderToStaticMarkup(await resolveTree(await TrendRangeCard({
+    series: { ...series, lines: [], available_from: null, available_to: "2026-10-09" },
+    scenario: "fast", pathname: "/app/radar", allSkills: [],
+  })));
+  assert.match(html, /A trend point needs 7 stored days of papers. History is still being collected./);
+  assert.doesNotMatch(html, /No skill moved in this range/);
+  assert.match(html, /<form[^>]*action="\/app\/radar"[^>]*method="get"/);
+});
+
+test("the table lists every day with gaps under their own dates", async () => {
+  const TrendRangeCard = card("en", []);
+  const uneven = {
+    ...series,
+    lines: [
+      { skill_id: "python", label: "Synthetic rising skill", change: 0.05,
+        points: [{ day: "2026-10-12", share: 0.1 }, { day: "2026-10-26", share: 0.15 }] },
+      { skill_id: "sql", label: "Synthetic uneven skill", change: -0.02,
+        points: [{ day: "2026-10-26", share: 0.08 }] },
+    ],
+  };
+  const html = renderToStaticMarkup(await resolveTree(await TrendRangeCard({
+    series: uneven, scenario: "fast", pathname: "/app/radar", allSkills: [],
+  })));
+  const first = html.match(/<tr><th scope="row">2026-10-12<\/th>(.*?)<\/tr>/)?.[1] ?? "";
+  assert.deepEqual([...first.matchAll(/<td>(.*?)<\/td>/g)].map((m) => m[1]), ["10.0%", "–"]);
+  const last = html.match(/<tr><th scope="row">2026-10-26<\/th>(.*?)<\/tr>/)?.[1] ?? "";
+  assert.deepEqual([...last.matchAll(/<td>(.*?)<\/td>/g)].map((m) => m[1]), ["15.0%", "8.0%"]);
+});
+
+test("short history date inputs do not render an unusable minimum", async () => {
+  for (const availableTo of [null, "2026-10-09"] as const) {
+    const TrendRangeCard = card("en", []);
+    const html = renderToStaticMarkup(await resolveTree(await TrendRangeCard({
+      series: { ...series, start: "2026-10-06", end: "2026-10-09", available_from: null, available_to: availableTo },
+      scenario: "fast", pathname: "/app/radar", allSkills: [],
+    })));
+    const inputs = [...html.matchAll(/<input type="date"[^>]*>/g)].map((m) => m[0]);
+    assert.equal(inputs.length, 2);
+    for (const input of inputs) {
+      assert.doesNotMatch(input, /\smin=""/);
+      assert.doesNotMatch(input, /\smin="/);
+      const min = input.match(/\smin="([^"]+)"/)?.[1];
+      const max = input.match(/\smax="([^"]+)"/)?.[1];
+      if (min && max) assert.ok(min <= max, input);
+    }
+  }
+});
+
+test("a rejected choice keeps the form, explains it, and the picker stops at eight skills", async () => {
+  const TrendRangeCard = card("en", []);
+  const many = Array.from({ length: 8 }, (_, n) => ({ ...series.lines[0], skill_id: `k${n}`, label: `Synthetic skill ${n}` }));
+  const html = renderToStaticMarkup(await resolveTree(await TrendRangeCard({
+    series: { ...series, lines: many }, scenario: "fast", pathname: "/app/radar", rejected: true,
+    allSkills: [{ id: "rust", label: "Synthetic extra skill" }],
+  })));
+  assert.match(html, /role="alert"/);
+  assert.match(html, /<form/);
+  assert.match(html, /href="\/app\/radar\?scenario=fast"/);
+  assert.doesNotMatch(html, /<select/);
+  assert.match(html, /Up to 8 skills/);
+});

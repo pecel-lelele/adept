@@ -10,6 +10,11 @@ type Series = Schemas["TrendSeriesResponse"];
 const COLORS = ["#16863e", "#b4483f", "#2563eb", "#9333ea", "#c2410c", "#0e7490", "#a16207", "#475569"] as const;
 
 const pct = (v: number) => `${(v * 100).toFixed(1)}%`;
+const pp = (v: number) => `${v > 0 ? "+" : ""}${(v * 100).toFixed(1)} pp`;
+
+/** Match the API's limits (`series.MAX_SKILLS`, `series.MAX_DAYS`). */
+const MAX_SKILLS = 8;
+const MAX_DAYS = 120;
 
 /**
  * "Trend over time": pick a date range (native calendar pickers) and skills, then see each
@@ -23,8 +28,10 @@ export async function TrendRangeCard({
   snapshotDate,
   pathname,
   allSkills,
+  rejected = false,
 }: {
   series: Series;
+  rejected?: boolean;
   scenario: ScenarioId;
   snapshotDate?: string;
   pathname: string;
@@ -48,6 +55,9 @@ export async function TrendRangeCard({
         <h2 id="h-range">{t("title")}</h2>
       </div>
       <p className="a-card-sub">{t("hint", { days: series.window_days })}</p>
+      {rejected ? (
+        <p className="a-small" role="alert">{t("rejected", { max: MAX_SKILLS, days: MAX_DAYS })}</p>
+      ) : null}
 
       <form className="a-range-form" action={pathname} method="get">
         <input type="hidden" name="scenario" value={scenario} />
@@ -68,12 +78,16 @@ export async function TrendRangeCard({
               {line.label}
             </label>
           ))}
-          <select name="skill" defaultValue="" aria-label={t("add")}>
-            <option value="">{t("add")}</option>
-            {allSkills.filter((s) => !shown.has(s.id)).map((s) => (
-              <option key={s.id} value={s.id}>{s.label}</option>
-            ))}
-          </select>
+          {chartLines.length < MAX_SKILLS ? (
+            <select name="skill" defaultValue="" aria-label={t("add")}>
+              <option value="">{t("add")}</option>
+              {allSkills.filter((s) => !shown.has(s.id)).map((s) => (
+                <option key={s.id} value={s.id}>{s.label}</option>
+              ))}
+            </select>
+          ) : (
+            <small className="a-muted">{t("limit", { max: MAX_SKILLS })}</small>
+          )}
         </fieldset>
         <div className="a-range-actions">
           <button type="submit" className="a-btn">{t("show")}</button>
@@ -82,7 +96,7 @@ export async function TrendRangeCard({
       </form>
 
       {!lines.length ? (
-        <p className="a-muted a-small">{series.available_to ? t("emptyRange") : t("empty")}</p>
+        <p className="a-muted a-small">{!series.available_to ? t("empty") : !series.available_from ? t("emptyShort", { days: series.window_days }) : t("emptyRange")}</p>
       ) : (
         <>
           <TrendLinesChart lines={chartLines} label={t("chartLabel", { from: start, to: end })} />
@@ -93,30 +107,31 @@ export async function TrendRangeCard({
                 <caption className="a-sr">{t("chartLabel", { from: start, to: end })}</caption>
                 <thead>
                   <tr>
-                    <th scope="col">{t("skill")}</th>
-                    <th scope="col">{start}</th>
-                    <th scope="col">{end}</th>
-                    <th scope="col">{t("change")}</th>
+                    <th scope="col">{t("day")}</th>
+                    {lines.map((line) => (
+                      <th key={line.skill_id} scope="col">{line.label}</th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {lines.map((line) => {
-                    const known = line.points
-                      .map((p) => p.share)
-                      .filter((v): v is number => typeof v === "number");
-                    const first = known[0];
-                    const last = known[known.length - 1];
-                    const delta = line.change;
-                    return (
-                      <tr key={line.skill_id}>
-                        <th scope="row">{line.label}</th>
-                        <td>{first === undefined ? "–" : pct(first)}</td>
-                        <td>{last === undefined ? "–" : pct(last)}</td>
-                        <td>{delta === null || delta === undefined ? "–" : `${delta > 0 ? "+" : ""}${(delta * 100).toFixed(1)} pp`}</td>
-                      </tr>
-                    );
-                  })}
+                  {(lines[0]?.points ?? []).map((point) => (
+                    <tr key={point.day}>
+                      <th scope="row">{point.day}</th>
+                      {lines.map((line) => {
+                        const share = line.points.find((p) => p.day === point.day)?.share;
+                        return <td key={line.skill_id}>{typeof share === "number" ? pct(share) : "–"}</td>;
+                      })}
+                    </tr>
+                  ))}
                 </tbody>
+                <tfoot>
+                  <tr>
+                    <th scope="row">{t("change")}</th>
+                    {lines.map((line) => (
+                      <td key={line.skill_id}>{typeof line.change === "number" ? pp(line.change) : "–"}</td>
+                    ))}
+                  </tr>
+                </tfoot>
               </table>
             </div>
           </details>

@@ -37,13 +37,19 @@ def test_each_embedding_request_is_capped_by_the_time_left(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     seen: list[float] = []
+    now = 1000.0
+
+    def monotonic() -> float:
+        return now
 
     def slow(texts: list[str], *args: Any, timeout_s: float, **kwargs: Any) -> list[list[float]]:
+        nonlocal now
         seen.append(timeout_s)
-        time.sleep(0.06)  # the request returns after the deadline
+        now += 0.06  # the request returns after the deadline
         return [[1.0] for _ in texts]
 
+    monkeypatch.setattr(trend_fallback.time, "monotonic", monotonic)
     monkeypatch.setattr(embeddings, "embed", slow)
     with pytest.raises(TimeoutError):
-        trend_fallback.embed_bounded(["x"] * 150, time.monotonic() + 0.05)
+        trend_fallback.embed_bounded(["x"] * 150, now + 0.05)
     assert len(seen) == 1 and 0 < seen[0] <= 0.05

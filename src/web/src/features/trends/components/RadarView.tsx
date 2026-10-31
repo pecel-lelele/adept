@@ -42,6 +42,10 @@ export async function RadarView({
     context === "individual" ? fetchMyProfile() : Promise.resolve(null),
     fetchSeries({ start: range.from, end: range.to, skillIds: range.skillIds, scenario }),
   ]);
+  // A rejected date or skill choice (422) falls back to the default view, so the form and its
+  // reset stay usable and the card explains what was refused.
+  const rejected = !series.ok && series.status === 422;
+  const rangeSeries = rejected ? await fetchSeries({ skillIds: [], scenario }) : series;
   if (!result.ok) return (
     <div className="a-view">
       <PageHeader eyebrow={context === "organisation" ? tp("radarEyebrowOrg") : tp("stepOf", { step: 2, total: journeyStepCount() })}
@@ -151,16 +155,22 @@ export async function RadarView({
         )}
       </div>
 
-      {series.ok ? (
+      {rangeSeries.ok ? (
         <TrendRangeCard
-          series={series.data}
+          series={rangeSeries.data}
+          rejected={rejected}
           scenario={scenario}
           snapshotDate={snapshotDate}
           pathname={context === "organisation" ? "/org/radar" : "/app/radar"}
           allSkills={[...items].sort((a, b) => a.skill_label.localeCompare(b.skill_label)).map((i) => ({ id: i.skill_id, label: i.skill_label }))}
         />
       ) : (
-        <ErrorState failure={series} />
+        <>
+          <ErrorState failure={rangeSeries} />
+          {rejected ? (
+            <a className="a-btn is-ghost" href={`${context === "organisation" ? "/org/radar" : "/app/radar"}?scenario=${scenario}`}>{t("range.reset")}</a>
+          ) : null}
+        </>
       )}
 
       {directions.ok ? <RoleDirectionsCard signals={directions.data.items} meta={directions.data.meta} organisation={context === "organisation"} snapshotDate={snapshotDate} /> : <ErrorState failure={directions} />}

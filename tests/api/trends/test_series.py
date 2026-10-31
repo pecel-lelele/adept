@@ -53,7 +53,8 @@ def test_default_range_shows_the_biggest_movers_with_attribution(
     assert len(lines["python"]["points"]) == 15
     meta = body["meta"]
     assert meta["is_estimate"] is False and meta["sources"][0]["url"].startswith("https://")
-    assert meta["observed_to"] == "2026-10-26"
+    # The first plotted point counts papers from six days before it.
+    assert meta["observed_from"] == "2026-10-06" and meta["observed_to"] == "2026-10-26"
 
 
 def test_chosen_skills_and_range_are_returned_in_order(
@@ -89,3 +90,57 @@ def test_empty_store_returns_no_lines_instead_of_inventing_data(
     monkeypatch.setattr(trend_store, "stored_range", lambda: None)
     body = client.get("/api/v1/trends/series").json()
     assert body["lines"] == [] and body["available_to"] is None
+
+
+def test_short_history_defaults_to_stored_days_not_an_error(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    days = [D0 + timedelta(days=i) for i in range(4)]  # fewer than one 7-day window
+    monkeypatch.setattr(trend_store, "stored_range", lambda: (days[0], days[-1], days[-1]))
+    monkeypatch.setattr(trend_store, "daily", lambda *_a: ({d: 20 for d in days}, {}))
+    response = client.get("/api/v1/trends/series")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["start"] == days[0].isoformat() and body["end"] == days[-1].isoformat()
+    assert body["lines"] == []
+    assert body["available_from"] is None and body["available_to"] == days[-1].isoformat()
+    assert body["meta"]["observed_from"] is None and body["meta"]["observed_to"] is None
+
+
+def test_range_after_stored_history_reports_no_observation_period(
+    client: TestClient, stored: dict[str, Any]
+) -> None:
+    body = client.get(
+        "/api/v1/trends/series",
+        params={"start": "2026-11-05", "end": "2026-11-10", "skill_ids": ["python"]},
+    ).json()
+    assert all(p["share"] is None for p in body["lines"][0]["points"])
+    assert body["meta"]["observed_from"] is None and body["meta"]["observed_to"] is None
+
+
+def test_range_starting_before_history_reports_plotted_observation_period(
+    client: TestClient, stored: dict[str, Any]
+) -> None:
+    response = client.get(
+        "/api/v1/trends/series",
+        params={"start": "2026-10-01", "end": "2026-10-14", "skill_ids": ["python"]},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["available_from"] <= body["available_to"]
+    assert body["meta"]["observed_from"] == "2026-10-06"
+    assert body["meta"]["observed_to"] == "2026-10-14"
+
+
+def test_short_history_allows_explicit_start_with_default_end(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    days = [D0 + timedelta(days=i) for i in range(4)]
+    monkeypatch.setattr(trend_store, "stored_range", lambda: (days[0], days[-1], days[-1]))
+    monkeypatch.setattr(trend_store, "daily", lambda *_a: ({d: 20 for d in days}, {}))
+
+    response = client.get("/api/v1/trends/series", params={"start": days[0].isoformat()})
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["start"] == days[0].isoformat() and body["end"] == days[-1].isoformat()

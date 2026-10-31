@@ -723,6 +723,16 @@
 - **Affects**: F2 trends API and generated client, `/app/radar` and `/org/radar`, `src/web/package.json` and `pnpm-lock.yaml` (recharts and its d3 dependencies only)
 - **Replaces**: none
 - **PR / branch**: feat/trends-range-chart
+
+### M1-020: Trend series observation period and short-history default range
+- **Date**: 2026-10-31
+- **Feature**: F2 (Trends radar)
+- **Type**: method | contract
+- **Change**: `meta.observed_from`/`observed_to` on `/trends/series` now describe the papers actually counted: first plotted point minus 6 days to the last plotted point, and null when no point has a value (empty store, or a range entirely outside stored history). With no `start`, the default range begins at the first stored day when fewer than 7 days are stored, so it is never later than the end and the response is 200 with gaps rather than 422.
+- **Why**: Review of PR 102 found the old dates ignored the 7-day window behind each point (and could invert), and a first refresh with a low time budget made the default request invalid.
+- **Affects**: `GET /api/v1/trends/series`, radar range card (rejected-choice notice, per-day table)
+- **Replaces**: none (refines M1-019)
+- **PR / branch**: feat/trends-range-chart
 ---
 
 ## M2: Profile Intake & Matching (F1, F4)

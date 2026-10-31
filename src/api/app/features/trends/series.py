@@ -69,7 +69,11 @@ def get_series(
     first_full = stored[0] + timedelta(days=WINDOW - 1) if stored else None
     newest = stored[1] if stored else None
     end = end or newest or date.today()
-    start = start or max(end - timedelta(days=DEFAULT_DAYS - 1), first_full or end)
+    if start is None:
+        # While fewer than WINDOW days are stored, default to the stored days (shown as gaps)
+        # rather than a start after the end.
+        floor = first_full if first_full and first_full <= end else (stored[0] if stored else end)
+        start = max(end - timedelta(days=DEFAULT_DAYS - 1), min(floor, end))
     if start > end:
         raise _invalid("The start date must be on or before the end date.")
     if (end - start).days + 1 > MAX_DAYS:
@@ -96,19 +100,23 @@ def get_series(
             falling = [x for x in moved if (x.change or 0) < 0][:DEFAULT_MOVERS]
             lines = rising + falling
     fetched = stored[2] if stored else end
+    # The papers actually counted: from the first plotted window's first day to the last
+    # plotted day. Nothing plotted means no observation period.
+    plotted = sorted({p.day for line in lines for p in line.points if p.share is not None})
     meta = RecommendationMeta(
         sources=[Source(name="arXiv cs.AI submission API", url=ARXIV_API, retrieved_at=fetched)],
         snapshot_date=min(end, newest) if newest else end,
         scenario=scenario,
         is_estimate=False,  # observed sample counts, not a forecast
-        observed_from=start,
-        observed_to=min(end, newest) if newest else end,
+        observed_from=plotted[0] - timedelta(days=WINDOW - 1) if plotted else None,
+        observed_to=plotted[-1] if plotted else None,
     )
     return TrendSeriesResponse(
         start=start,
         end=end,
         window_days=WINDOW,
-        available_from=first_full,
+        # With fewer than WINDOW days stored no window is complete, so there is no valid first day.
+        available_from=first_full if first_full and newest and first_full <= newest else None,
         available_to=newest,
         lines=lines,
         meta=meta,
