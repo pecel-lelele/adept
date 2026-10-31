@@ -82,10 +82,7 @@ const RELEVANCE_TONE = {
   remote_assumed_worldwide: "warn",
 } as const;
 
-/**
- * One job: title (links to the employer's ad), company and place, what is left to learn, match.
- * `malaysiaFocus` shows the ad's raw location, its Malaysia badge and the source it came from.
- */
+/** One job: the employer link, work location, a bounded skill gap and an optional skill match. */
 export async function OpeningItem({
   o,
   showFit = true,
@@ -104,30 +101,23 @@ export async function OpeningItem({
   const pct = (v: number | null | undefined) => (v == null ? null : Math.round(v * 100));
   const now = pct(o.match_now);
   const after = pct(o.match_after_plan);
-  const toLearn = o.skills.filter((s) => s.status === "missing").map((s) => s.label);
+  const toLearn = o.skills.filter((s) => s.status === "missing").slice(0, 3);
   return (
-    <li className="a-job" data-stale={o.is_stale || undefined}>
+    <li className="a-job a-opening" data-stale={o.is_stale || undefined}>
       <div className="a-job-main">
-        <a className="a-job-title" href={o.url} target="_blank" rel="noopener">
-          {o.title}
-          <ArrowUpRight size={14} aria-hidden />
-        </a>
-        <span className="a-job-where">{place ? `${o.employer}, ${place}` : o.employer}</span>
-        {malaysiaFocus ? (
-          <span className="a-chips">
-            <span className="a-chip" data-tone={RELEVANCE_TONE[o.malaysia_relevance]}>
-              {t(`relevance.${o.malaysia_relevance}`)}
-            </span>
-            <span className="a-small a-muted">{t("via", { source: o.source_name })}</span>
-          </span>
-        ) : null}
-        {o.is_stale ? (
-          <span className="a-job-stale a-small a-muted" role="note">
-            {t("stale", { date: o.last_seen })}
-          </span>
-        ) : null}
+        <div className="a-opening-top">
+          <a className="a-job-title" href={o.url} target="_blank" rel="noopener noreferrer">
+            {o.title}<ArrowUpRight size={16} aria-hidden />
+          </a>
+          {malaysiaFocus ? <span className="a-chip" data-tone={RELEVANCE_TONE[o.malaysia_relevance]}>{t(`relevance.${o.malaysia_relevance}`)}</span> : null}
+        </div>
+        <span className="a-job-where">{place ? `${o.employer} · ${place}` : o.employer}</span>
+        {o.is_stale ? <span className="a-job-stale a-small a-muted" role="note">{t("stale", { date: o.last_seen })}</span> : null}
         {showFit && toLearn.length ? (
-          <span className="a-job-learn">{t("toLearn", { skills: toLearn.slice(0, 3).join(", ") })}</span>
+          <div className="a-opening-learning">
+            <span>{t("status.missing")}</span>
+            <ul>{toLearn.map((skill) => <li key={skill.skill_id}>{skill.label}</li>)}</ul>
+          </div>
         ) : null}
       </div>
       {showFit && now != null ? <MatchBox now={now} after={after != null && after > now ? after : null} /> : null}

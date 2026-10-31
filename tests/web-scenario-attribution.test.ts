@@ -4,19 +4,16 @@ import test from "node:test";
 import { loadComponent, React, renderToStaticMarkup, translations } from "./harness/web-components.ts";
 
 for (const locale of ["en", "ms", "zh"]) {
-  test(`scenario comparison attribution names both scenarios (${locale})`, () => {
+  test(`estimate attribution stays screen-reader-only in every scenario (${locale})`, () => {
     const intl = translations(locale);
     const { EstimateLabel } = loadComponent("src/components/EstimateLabel.tsx", { "next-intl": intl });
     const t = intl.useTranslations("common");
     const render = (props: Record<string, unknown>) => renderToStaticMarkup(React.createElement(EstimateLabel, props));
-    const both = render({ scenario: "both" });
-    assert.ok(both.includes(t("estimate.label")));
-    assert.ok(both.includes(t("scenario.moderate")));
-    assert.ok(both.includes(t("scenario.fast")));
-    for (const scenario of ["moderate", "fast"]) {
-      const single = render({ scenario });
-      assert.ok(single.includes(t(`scenario.${scenario}`)));
-      assert.ok(!single.includes("undefined"));
+    for (const scenario of ["moderate", "fast", "both"]) {
+      const html = render({ scenario });
+      assert.ok(html.includes(t("estimate.label")));
+      assert.ok(html.includes(t("estimate.hint")));
+      assert.doesNotMatch(html, /undefined|Moderate AI change|Fast AI change/);
     }
     assert.equal(render({ scenario: "both", isEstimate: false }), "");
   });

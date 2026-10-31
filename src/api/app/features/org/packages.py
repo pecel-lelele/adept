@@ -127,6 +127,12 @@ def assigned(user: CurrentUser) -> AssignedPackage | None:
 
 
 def accept(user: CurrentUser, token: str) -> ProgrammeAssignment:
+    return respond(user, token)
+
+
+def respond(
+    user: CurrentUser, token: str, proposed_role_id: str | None = None
+) -> ProgrammeAssignment:
     """Accept the assigned team plan as a work programme.
 
     It never overwrites the person's personal plan, and it re-checks the route against today's
@@ -139,10 +145,15 @@ def accept(user: CurrentUser, token: str) -> ProgrammeAssignment:
         raise AppError("Your assignment changed. Refresh first.", status_code=409)
     org_id = funding._scope(user)
     stored = package.pathway
+    proposed_label = (
+        programmes.validate_role_proposal(proposed_role_id, stored.role_id)
+        if proposed_role_id is not None
+        else None
+    )
     learner = service.member_learners(org_id, only=user.id).get(user.id)
     plan = stored
     budget = stored.total_cost_myr
-    if learner is not None:
+    if learner is not None and proposed_role_id is None:
         budgets = {
             b.user_id: float(b.available_myr)
             for b in funding.ledger(user, funding.current_year()).budgets
@@ -166,7 +177,10 @@ def accept(user: CurrentUser, token: str) -> ProgrammeAssignment:
     assignment = ProgrammeAssignment(
         user_id=user.id,
         pathway=plan,
-        status="accepted",
+        status="change_requested" if proposed_role_id else "accepted",
+        change_reason="target_role" if proposed_role_id else None,
+        proposed_role_id=proposed_role_id,
+        proposed_role_label=proposed_label,
         decided_at=now,
         agreement=Agreement(
             programme_id=record_id,
@@ -191,6 +205,32 @@ def accept(user: CurrentUser, token: str) -> ProgrammeAssignment:
     )
 
     def save(state: FundingState) -> ProgrammeAssignment:
+        latest = next(
+            (p for p in reversed(state.packages) if any(m.user_id == user.id for m in p.members)),
+            None,
+        )
+        if latest is None or latest.token != token:
+            raise AppError("Your assignment changed. Refresh first.", status_code=409)
+        existing = next(
+            (
+                a
+                for a in state.assignments
+                if a.user_id == user.id and a.agreement.programme_id == record_id
+            ),
+            None,
+        )
+        if proposed_role_id and existing is not None and existing.status == "accepted":
+            # A proposal does not withdraw an accepted plan or its tracked progress.
+            kept = existing.model_copy(
+                update={
+                    "change_reason": "target_role",
+                    "proposed_role_id": proposed_role_id,
+                    "proposed_role_label": proposed_label,
+                    "decided_at": now,
+                }
+            )
+            state.assignments[state.assignments.index(existing)] = kept
+            return kept
         state.assignments = [
             a
             for a in state.assignments

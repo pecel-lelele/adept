@@ -15,6 +15,7 @@ export async function ProgrammesView() {
   if (!result.ok) return <ErrorState failure={result} />;
   const names = new Map(members.ok ? members.data.members.map((m) => [m.id, m.display_name]) : []);
   const list = result.data.programmes;
+  const packages = result.data.package_assignments ?? [];
   const sum = (key: "accepted" | "pending" | "declined" | "change_requested") => list.reduce((n, p) => n + p[key], 0);
   return (
     <div className="a-view">
@@ -31,6 +32,17 @@ export async function ProgrammesView() {
           { label: t("kChanges"), value: sum("change_requested") + sum("declined"), tone: sum("change_requested") ? "warn" : undefined, note: t("kChangesNote") },
         ]}
       />
+      {packages.length ? <section className="a-card">
+        <h2>{t("packageDecisions")}</h2>
+        <ul className="a-rows">{packages.map((a) => <li key={`${a.agreement.programme_id}:${a.user_id}`}>
+          <strong>{names.get(a.user_id) ?? t("formerMember")}</strong>
+          <span>{a.agreement.role_label} · {tw(`status.${a.status}`)}</span>
+          {a.proposed_role_label ? <>
+            <p>{tw("proposedRole", { role: a.proposed_role_label })}</p>
+            <Link className="a-link" href={`/org/programmes/new?member=${encodeURIComponent(a.user_id)}&role=${encodeURIComponent(a.proposed_role_id ?? "")}`}>{t("reviewProposal")}</Link>
+          </> : null}
+        </li>)}</ul>
+      </section> : null}
       {list.length ? (
         list.map((p) => {
           const b = p.record.brief;
@@ -74,6 +86,10 @@ export async function ProgrammesView() {
                             {tw(`status.${a.status}`)}
                             {a.change_reason ? <small> · {tw(`reason.${a.change_reason}`)}</small> : null}
                             {a.note ? <small className="a-muted"> “{a.note}”</small> : null}
+                            {a.proposed_role_label ? <p>
+                              {tw("proposedRole", { role: a.proposed_role_label })} ·{" "}
+                              <Link className="a-link" href={`/org/programmes/new?member=${encodeURIComponent(a.user_id)}&role=${encodeURIComponent(a.proposed_role_id ?? "")}&scenario=${b.scenario}`}>{t("reviewProposal")}</Link>
+                            </p> : null}
                           </td>
                         </tr>
                       ))}
@@ -84,7 +100,7 @@ export async function ProgrammesView() {
             </article>
           );
         })
-      ) : (
+      ) : !packages.length ? (
         <EmptyState
           title={t("emptyTitle")}
           description={t("emptyDesc")}
@@ -94,7 +110,7 @@ export async function ProgrammesView() {
             </Link>
           }
         />
-      )}
+      ) : null}
     </div>
   );
 }

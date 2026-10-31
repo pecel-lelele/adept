@@ -46,7 +46,7 @@ test("the honest line and impact namespace exist in every locale", () => {
   assert.ok(readdirSync("src/web/messages/en").includes("impact.json"));
 });
 
-test("coverage, publication dates and historical disclosure render from the API in every locale", async () => {
+test("coverage, sourced public evidence and archived-sample context render in every locale", async () => {
   const aggregate = { median_free_course_share: .5, median_free_hours_share: .4, median_hrd_course_share: 0,
     median_total_hours: 8, median_sdg_target_count: 2, median_top5_changed: 0 };
   const data = {
@@ -73,7 +73,8 @@ test("coverage, publication dates and historical disclosure render from the API 
     const t = intl.useTranslations("impact");
     assert.ok(html.includes(t("catalogueFree.note", { count: "2", hours: "10" })));
     assert.ok(html.includes(t("catalogueSdg.note", { links: "3", targets: "1" })));
-    assert.ok(html.includes(t("historical", { from: "2024-10-13", to: "2024-10-19" })));
+    assert.ok(html.includes(t("basisArchived", { count: "0" })));
+    assert.doesNotMatch(html, /Historical replay|Details & sources/);
     assert.ok(html.includes(t("published", { date: "2025-01-07" })));
     assert.ok(html.includes("Synthetic context only") && html.includes("Fixture publisher"));
     assert.doesNotMatch(html, /RM|Unexpected error|total_cost/);

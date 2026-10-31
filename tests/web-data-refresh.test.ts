@@ -74,45 +74,6 @@ test("refresh messages have identical keys in every locale, and motion can be di
   assert.match(css, /prefers-reduced-motion: reduce[^}]*\}[\s\S]*?a-refresh-spinner/);
 });
 
-test("the date line uses the selected snapshot's observations, not a newer global snapshot", async () => {
-  const intl = translations("en");
-  const { DataAsOf } = loadComponent("src/components/DataAsOf.tsx", {
-    "next-intl/server": { getTranslations: async (namespace) => intl.useTranslations(namespace) },
-    "@/lib/data-sources": { fetchDataSources: async () => ({ ok: true, data: { sources: [{
-      source: "trends", data_as_of: "2026-10-25", snapshot_date: "2026-10-25", source_name: "arXiv",
-      is_fallback: false, is_stale: false,
-    }] } }) },
-  });
-  const html = renderToStaticMarkup(await DataAsOf({ source: "trends", meta: {
-    snapshot_date: "2026-10-13", observed_to: "2024-10-12", sources: [{ name: "Historical arXiv" }], is_fallback: true,
-  } }));
-  assert.match(html, /Data as of 2024-10-12/);
-  assert.match(html, /Historical observations replayed as snapshot 2026-10-13/);
-  assert.doesNotMatch(html, /Data as of 2026-10-25/);
-});
-
-test("selected snapshot date and source remain visible when global freshness is unavailable", async () => {
-  const intl = translations("en");
-  const { DataAsOf } = loadComponent("src/components/DataAsOf.tsx", {
-    "next-intl/server": { getTranslations: async (namespace) => intl.useTranslations(namespace) },
-    "@/lib/data-sources": { fetchDataSources: async () => ({ ok: false, code: "storage_unavailable" }) },
-  });
-  const html = renderToStaticMarkup(await DataAsOf({ source: "trends", meta: {
-    snapshot_date: "2026-10-20", observed_to: "2026-10-19", is_fallback: true,
-    sources: [{ name: "Synthetic trend source", url: "https://example.test", retrieved_at: "2026-10-20" }],
-  } }));
-  assert.match(html, /Data as of 2026-10-19/);
-  assert.match(html, /Synthetic trend source/);
-  assert.doesNotMatch(html, /undefined/);
-  assert.equal(await DataAsOf({ source: "trends" }), null);
-  const dbFallback = renderToStaticMarkup(await DataAsOf({ source: "trends", meta: {
-    snapshot_date: "2026-10-20", observed_to: "2026-10-19", is_fallback: true,
-    served_from: "db", sources: [],
-  } }));
-  assert.match(dbFallback, /Showing the last good snapshot/);
-  assert.doesNotMatch(dbFallback, /frozen export|undefined| · <\/p>/);
-});
-
 test("a partially failed run refreshes successful cards and retains its failed state", async () => {
   const phases: string[] = [];
   let refreshed = 0;
@@ -147,3 +108,4 @@ if (process.env.REFRESH_SCREENSHOT_HTML) {
   for (const phase of ["running", "failed"]) writeFileSync(`src/data/raw/refresh-screenshots/${phase}.html`,
     `<!doctype html><html lang="en"><meta charset="utf-8"><title>Adept · Refresh data</title><style>${css}</style><body class="a-page"><main style="max-width:800px;margin:48px auto;padding:24px"><h1>Adept · AI trend radar</h1>${render(phase, { run })}</main></body></html>`);
 }
+

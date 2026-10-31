@@ -458,10 +458,13 @@ def list_programmes(user: CurrentUser) -> ProgrammeList:
         return assignment.model_copy(update={"pathway": private_route(assignment.pathway)})
 
     return ProgrammeList(
+        package_assignments=[
+            _sanitize(a) for a in state.assignments if a.agreement.programme_id.startswith("pkg-")
+        ],
         programmes=[
             _status(r, [_sanitize(a) for a in state.assignments])
             for r in reversed(state.programmes)
-        ]
+        ],
     )
 
 
@@ -470,7 +473,22 @@ def my_programmes(user: CurrentUser) -> MyProgrammes:
         return MyProgrammes(assignments=[])
     state = funding_store.snapshot(user.org_id)
     mine = [a for a in state.assignments if a.user_id == user.id]
-    return MyProgrammes(assignments=list(reversed(mine)))
+    labels = data.role_labels()
+    return MyProgrammes(
+        assignments=list(reversed(mine)),
+        role_labels={rid: labels[rid] for rid in data.target_role_ids()},
+    )
+
+
+def validate_role_proposal(role_id: str, current_role_id: str) -> str:
+    """Resolve a member's proposal through the target catalogue; never apply it implicitly."""
+    if role_id not in data.target_role_ids() or role_id == current_role_id:
+        raise AppError(
+            "Choose a different role from the target catalogue.",
+            status_code=422,
+            code="invalid_role_proposal",
+        )
+    return data.role_labels()[role_id]
 
 
 def decide(user: CurrentUser, programme_id: str, body: AssignmentDecision) -> ProgrammeAssignment:
@@ -485,6 +503,13 @@ def decide(user: CurrentUser, programme_id: str, body: AssignmentDecision) -> Pr
     )
     if current is None:
         raise NotFoundError("No programme assignment.")
+    proposed_label = None
+    if body.proposed_role_id is not None:
+        if body.decision != "request_change" or body.reason != "target_role":
+            raise AppError("A target role is proposed through a change request.", status_code=422)
+        proposed_label = validate_role_proposal(body.proposed_role_id, current.agreement.role_id)
+    elif body.reason == "target_role":
+        raise AppError("Choose the role you want to propose.", status_code=422)
     if body.decision == "decline" and current.agreement.mandatory:
         raise AppError(
             "This programme is required by your employer. Ask for a change instead.",
@@ -492,6 +517,20 @@ def decide(user: CurrentUser, programme_id: str, body: AssignmentDecision) -> Pr
             code="mandatory",
         )
     if body.decision == "accept":
+        if programme_id.startswith("pkg-"):
+            from app.features.org import packages
+
+            package = next(
+                (
+                    p
+                    for p in funding_store.snapshot(user.org_id).packages
+                    if f"pkg-{p.token[:12]}" == programme_id
+                ),
+                None,
+            )
+            if package is None:
+                raise NotFoundError("No assigned package.")
+            return packages.accept(user, package.token)
         # Accepting re-checks the route against today's catalogue, prices and skills, within
         # what the employer committed, instead of adopting a stale copy.
         # When sharing is off and no explicit consent is given, do not bypass the sharing flag
@@ -543,6 +582,19 @@ def decide(user: CurrentUser, programme_id: str, body: AssignmentDecision) -> Pr
     def change(state: FundingState) -> ProgrammeAssignment:
         for i, a in enumerate(state.assignments):
             if a.user_id == user.id and a.agreement.programme_id == programme_id:
+                if body.proposed_role_id is not None and a.status == "accepted":
+                    # Asking HR to consider another role is not withdrawing from this one:
+                    # the member keeps their agreement, Progress and team-visible records.
+                    state.assignments[i] = a.model_copy(
+                        update={
+                            "decided_at": datetime.now(UTC),
+                            "change_reason": body.reason,
+                            "note": body.note.strip(),
+                            "proposed_role_id": body.proposed_role_id,
+                            "proposed_role_label": proposed_label,
+                        }
+                    )
+                    return state.assignments[i]
                 update: dict[str, object] = {
                     "status": {
                         "accept": "accepted",
@@ -552,6 +604,8 @@ def decide(user: CurrentUser, programme_id: str, body: AssignmentDecision) -> Pr
                     "decided_at": datetime.now(UTC),
                     "change_reason": body.reason,
                     "note": body.note.strip(),
+                    "proposed_role_id": body.proposed_role_id,
+                    "proposed_role_label": proposed_label,
                 }
                 if refreshed is not None:
                     update["pathway"] = refreshed

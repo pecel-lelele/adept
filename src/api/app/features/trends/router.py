@@ -43,6 +43,12 @@ def malaysia_context() -> MalaysiaLabourContext:
     return labour.current()
 
 
+@router.get("/malaysia-context/history")
+def malaysia_context_history() -> list[MalaysiaLabourContext]:
+    """Stored monthly survey context (latest 120); never fetches live upstream data."""
+    return labour.history()
+
+
 @router.get("/snapshot")
 def get_snapshot(
     snapshot_date: Annotated[

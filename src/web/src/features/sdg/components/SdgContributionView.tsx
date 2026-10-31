@@ -1,9 +1,8 @@
-import { Globe2, Link2, ShieldCheck, Target } from "lucide-react";
+import { Globe2, Link2, Target } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
 import { ErrorState, Kpis, MetaBar, PageHeader, SdgBadge } from "@/components";
-import { journeyStepCount } from "@/config/navigation";
 import type { ApiResult, ScenarioId, Schemas } from "@/lib/api";
 import { SDG_COLOURS } from "@/components/viz";
 
@@ -65,10 +64,9 @@ async function ContributionBody({
   const roleName = (id: string) => labels.get(`role:${id}`) ?? id;
   const linked = data.goals_summary.filter((g) => g.link_count > 0).length;
   const direct = data.links.filter((l) => l.strength === "direct").length;
-  const reviewed = data.links.filter((l) => l.reviewed).length;
   return (
     <div className="a-view">
-      <PageHeader eyebrow={data.scope === "person" ? tp("stepOf", { step: 6, total: journeyStepCount() }) : t("goals")} title={title} description={t("description")}>
+      <PageHeader eyebrow={data.scope === "person" ? undefined : t("goals")} title={title} description={t("description")}>
         <MetaBar meta={data.meta} />
       </PageHeader>
       {data.role_ids && data.role_ids.length > 0 ? (
@@ -78,8 +76,8 @@ async function ContributionBody({
       ) : data.scope === "person" ? (
         <p className="a-notice" data-tone="info">
           {t("noRoleYet")}{" "}
-          <Link href={`/app/pathway/compare?scenario=${scenario}`} className="a-link">
-            {t("compareRoles")}
+          <Link href={`/app/matches?scenario=${scenario}`} className="a-link">
+            {t("chooseRole")}
           </Link>
         </p>
       ) : null}
@@ -88,17 +86,20 @@ async function ContributionBody({
           { label: tp("kGoalsLinked"), value: linked, unit: "/ 17", icon: <Globe2 size={15} />, tone: linked ? "up" : undefined, note: tp("kGoalsLinkedNote") },
           { label: tp("kDirect"), value: direct, icon: <Target size={15} />, note: tp("kDirectNote") },
           { label: tp("kEnabling"), value: data.links.length - direct, icon: <Link2 size={15} />, note: tp("kEnablingNote") },
-          { label: tp("kReviewed"), value: reviewed, unit: `/ ${data.links.length}`, icon: <ShieldCheck size={15} />, note: tp("kReviewedNote") },
         ]}
       />
       {data.target_contributions?.length ? (
-        <section className="a-card a-pad">
-          <h2>{t("weightedTitle")}</h2>
-          <p className="a-small a-muted">{t("weightedHint")}</p>
-          <ul className="a-notes">
+        <section className="a-card" aria-labelledby="h-weighted">
+          <div className="a-card-head">
+            <h2 id="h-weighted">{t("weightedTitle")}</h2>
+          </div>
+          <p className="a-card-sub">{t("weightedHint")}</p>
+          <ul className="a-sdg-shares">
             {data.target_contributions.map((item) => (
               <li key={item.target.target}>
-                <SdgBadge target={item.target} /> {t("hoursShare", { share: Math.round(item.hours_share * 100), hours: item.planned_hours })}
+                <SdgBadge target={item.target} />
+                <span className="a-sdg-share-text">{t("hoursShare", { share: Math.round(item.hours_share * 100), hours: item.planned_hours })}</span>
+                <span className="a-sdg-share-bar" aria-hidden><i style={{ width: `${Math.min(100, Math.round(item.hours_share * 100))}%` }} /></span>
               </li>
             ))}
           </ul>

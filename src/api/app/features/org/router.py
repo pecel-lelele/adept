@@ -23,6 +23,7 @@ from app.contracts.packages import (
     AssignedPackage,
     PackageChoice,
     PackageOptions,
+    PackageRoleProposal,
     TeamPackage,
 )
 from app.contracts.programmes import (
@@ -92,6 +93,16 @@ def accept_assigned_package(
 
 
 # --- employer programmes: objective-first briefs, personalised routes, agreements ---------
+
+
+@router.post("/packages/assigned/propose-role")
+def propose_package_role(
+    body: PackageRoleProposal,
+    user: CurrentUserDep,
+    expected_org: Annotated[str | None, Query(max_length=100)] = None,
+) -> ProgrammeAssignment:
+    _check_workspace(user, expected_org)
+    return packages.respond(user, body.token, body.proposed_role_id)
 
 
 @router.get("/programmes/options")

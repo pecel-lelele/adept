@@ -6,13 +6,14 @@ import * as navigation from "../src/web/src/config/navigation.ts";
 import * as scenario from "../src/web/src/lib/scenario.ts";
 import * as skillSearch from "../src/web/src/features/profile/skill-search.ts";
 import * as intakeDraft from "../src/web/src/features/profile/intake-draft.ts";
+import * as cvHandoff from "../src/web/src/features/profile/cv-handoff.ts";
 import * as errorMessages from "../src/web/src/lib/api/error-message.ts";
 import { loadComponent, React, renderToStaticMarkup, resolveTree, translations } from "./harness/web-components.ts";
 
 const nothing = () => null;
 const link = { default: ({ href, children, ...props }) => React.createElement("a", { href, ...props }, children) };
 
-test("zero matches and zero compare options render actionable empty states in every locale", async () => {
+test("zero matches render actionable empty states in every locale", async () => {
   for (const locale of ["en", "ms", "zh"]) {
     const intl = translations(locale);
     const server = { getTranslations: async (ns) => intl.useTranslations(ns) };
@@ -35,12 +36,14 @@ test("zero matches and zero compare options render actionable empty states in ev
       "@/features/trends/api": { fetchRadar: async () => ({ ok: false }) },
       "@/features/matching/api": { fetchMatches: async () => ({ ok: false }) },
       "@/components/Fold": { Fold: nothing },
-      "./labels": { componentLabels: async () => ({}) },
       "./SnapshotPicker": { SnapshotPicker: nothing }, "./SdgWeightSlider": { SdgWeightSlider: nothing },
       "./ReplayChanges": { ReplayChanges: nothing }, "./MatchImprovements": { MatchImprovements: nothing },
-      "./ScenarioDelta": { ScenarioDelta: nothing }, "./MatchSdgTargets": { MatchSdgTargets: nothing },
+      "./MatchSdgTargets": { MatchSdgTargets: nothing },
       "./ProfileNote": { ProfileNote: nothing }, "./ActionForm": { ActionForm: nothing },
       "../actions": { savePlanAction: nothing },
+      "@/features/pathway/actions": { savePlanAction: nothing },
+      "@/features/pathway/api": { fetchPlanStatus: async () => ({ ok: false }) },
+      "@/features/pathway/components/ActionForm": { ActionForm: nothing },
     };
     let result = { ok: true, data: { matches: [], meta: {} } };
     const { MatchesView } = loadComponent("src/features/matching/components/MatchesView.tsx", {
@@ -49,13 +52,7 @@ test("zero matches and zero compare options render actionable empty states in ev
     const matches = renderToStaticMarkup(await resolveTree(await MatchesView({ scenario: "fast" })));
     assert.ok(matches.includes(intl.useTranslations("matching")("emptyTitle")));
     assert.match(matches, /href="\/app\/profile"/);
-    assert.ok(matches.includes(intl.useTranslations("ui.page")("stepOf", { step: "3", total: "6" })));
-    const { CompareRolesView } = loadComponent("src/features/pathway/components/CompareRolesView.tsx", {
-      ...common, "../api": { fetchCompare: async () => ({ ok: true, data: { options: [], meta: {} } }) },
-    });
-    const compare = renderToStaticMarkup(await resolveTree(await CompareRolesView({ scenario: "fast" })));
-    assert.ok(compare.includes(intl.useTranslations("pathway")("compare.emptyTitle")));
-    assert.match(compare, /href="\/app\/matches\?scenario=fast"/);
+    
     result = { ok: false, status: 0, code: "network", message: "synthetic failure" };
     const failed = renderToStaticMarkup(await resolveTree(await MatchesView({ scenario: "fast" })));
     assert.ok(failed.includes(intl.useTranslations("ui.error")("retry")));
@@ -78,6 +75,7 @@ test("intake Finish shows a disabled Saving state while the save transition is p
       "../actions": { resolveSkillAction: nothing, saveIntakeAction: nothing, uploadCvAction: nothing },
       "../skill-search": skillSearch,
       "../intake-draft": intakeDraft,
+      "../cv-handoff": cvHandoff,
     });
     const html = renderToStaticMarkup(React.createElement(IntakeWizard, { catalogue: [], interests: [], initial: null }));
     assert.match(html, /disabled="" aria-busy="true"/);

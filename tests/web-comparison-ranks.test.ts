@@ -3,30 +3,6 @@ import test from "node:test";
 import * as navigation from "../src/web/src/config/navigation.ts";
 import { loadComponent, React, renderToStaticMarkup, resolveTree, translations } from "./harness/web-components.ts";
 
-test("scenario comparison uses server ranks, absolute other score and an estimate label in every locale", () => {
-  for (const locale of ["en", "ms", "zh"]) {
-    const { ScenarioDelta } = loadComponent("src/features/matching/components/ScenarioDelta.tsx", { "next-intl": translations(locale) });
-    for (const [rank, otherRank, arrow] of [[1, 3, "▲2"], [4, 2, "▼2"], [2, 2, "↔0"]]) {
-      const html = renderToStaticMarkup(React.createElement(ScenarioDelta, { score: 0.72, rank, otherScore: 0.695, otherRank, otherScenario: "moderate" }));
-      assert.ok(html.includes(arrow));
-      assert.ok(html.includes("69.5"));
-      assert.equal((html.match(/class="a-chip"/g) ?? []).length, 2);
-      assert.ok(html.includes(translations(locale).useTranslations("matching")("otherScenarioRank", { rank: String(otherRank) })));
-      assert.doesNotMatch(html, /undefined/);
-    }
-  }
-});
-
-test("top-three improvements show estimated counterfactual ranks when supplied", () => {
-  for (const locale of ["en", "ms", "zh"]) {
-    const { MatchImprovements } = loadComponent("src/features/matching/components/MatchImprovements.tsx", {
-      "next-intl": translations(locale), "next/link": { default: ({ children, ...props }) => React.createElement("a", props, children) },
-    });
-    const html = renderToStaticMarkup(React.createElement(MatchImprovements, { items: [{ skill: "synthetic", label: "Synthetic skill", score_gain: 0.1, new_rank: 2 }] }));
-    assert.ok(html.includes(translations(locale).useTranslations("matching")("newRank", { rank: "2" })));
-  }
-});
-
 test("small-cohort cells and row summaries stay neutral and never become zero-gap data", async () => {
   for (const locale of ["en", "ms", "zh"]) {
     const intl = translations(locale);
@@ -38,7 +14,7 @@ test("small-cohort cells and row summaries stay neutral and never become zero-ga
       "@/features/trends/components/AdminTrendRefresh": { AdminTrendRefresh: nothing },
       "next-intl/server": { getTranslations: async (ns) => intl.useTranslations(ns) },
       "@/components": {}, "@/components/ErrorState": {}, "@/components/viz": {},
-      "@/features/sdg/api": {}, "../programmes/api": {}, "../api": {}, "./JoinCodeCard": {},
+      "@/features/sdg/api": {}, "@/features/sdg/components/SdgLinkCards": {}, "../programmes/api": {}, "../api": {}, "./JoinCodeCard": {},
     });
     const data = { role_ids: ["synthetic-role"], skills: [{ id: "synthetic-skill", label: "Synthetic skill" }], cells: [{ role_id: "synthetic-role", skill_id: "synthetic-skill", gap: null, suppressed: true }], role_gaps: { "synthetic-role": null }, role_suppressed: { "synthetic-role": true }, meta: {} };
     const skills = topGapSkills(data, 14);

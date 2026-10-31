@@ -1,4 +1,4 @@
-"""Pathway reads M1's trend snapshot, compares roles before choosing, and has one gap rule."""
+"""Pathway reads M1's trend snapshot, has one gap rule."""
 
 from datetime import date
 
@@ -6,11 +6,9 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.contracts.common import Source
-from app.contracts.pathway import Pathway, RoleComparison
+from app.contracts.pathway import Pathway
 from app.contracts.sdg import SdgContribution
 from app.features.pathway import data, engine, service, trend_port
-from app.features.sdg import repository as sdg_repository
-from app.features.sdg import service as sdg_service
 
 AISYAH = {"X-Demo-User": "aisyah"}
 
@@ -85,44 +83,12 @@ def test_unknown_replay_date_is_404(client: TestClient) -> None:
     assert resp.status_code == 404
 
 
-# --- compare before choosing --------------------------------------------------------------
+# --- retired comparison route -------------------------------------------------------------
 
 
-def test_compare_lists_every_target_role_with_f6_badges(client: TestClient) -> None:
-    resp = client.get("/api/v1/pathway/compare", headers=AISYAH)
-    assert resp.status_code == 200, resp.text
-    body = RoleComparison.model_validate(resp.json())
-    assert [o.role_id for o in body.options] == data.target_role_ids()
-    assert body.meta.is_estimate and body.meta.sources and body.snapshot_version
-    for option in body.options:
-        f6 = [link.target for link in sdg_repository.role_links(option.role_id)]
-        assert option.sdg_targets == f6 == sdg_service.role_badges(option.role_id)
-        assert 0 <= option.trend_coverage <= 1
-        if option.trend_signal is None:
-            assert option.trend_direction == "unknown"
-
-
-def test_compare_filters_roles_and_marks_the_saved_choice(client: TestClient) -> None:
-    client.post(
-        "/api/v1/pathway/plans",
-        json={"role_id": "data-analyst", "scenario": "moderate"},
-        headers=AISYAH,
-    )
-    resp = client.get(
-        "/api/v1/pathway/compare",
-        params=[("role_ids", "data-analyst"), ("role_ids", "nope"), ("role_ids", "data-analyst")],
-        headers=AISYAH,
-    )
-    body = RoleComparison.model_validate(resp.json())
-    assert [o.role_id for o in body.options] == ["data-analyst"]
-    assert body.saved_role_id == "data-analyst" and body.options[0].is_saved_choice
-
-
-def test_role_trend_is_importance_weighted_over_covered_skills() -> None:
-    reqs = [data.Requirement("a", 3, 1.0), data.Requirement("b", 3, 1.0)]
-    signal, coverage = service.role_trend(reqs, _view({"a": 0.4}))
-    assert signal == pytest.approx(0.4) and coverage == pytest.approx(0.5)
-    assert service.role_trend(reqs, _view({})) == (None, 0.0)
+def test_comparison_endpoint_is_removed(client: TestClient) -> None:
+    assert client.get("/api/v1/pathway/compare", headers=AISYAH).status_code == 404
+    assert "/api/v1/pathway/compare" not in client.app.openapi()["paths"]
 
 
 # --- one gap rule -------------------------------------------------------------------------

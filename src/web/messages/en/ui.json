@@ -49,7 +49,8 @@
     "funding_conflict": "The funding request could not be completed. Check its current status with your manager.",
     "disallowed_content": "Remove unsupported content from your input before continuing.",
     "unknown_course": "Choose a course from the current plan or catalogue.",
-    "insufficient_cohort": "Too few sharing members with completed profiles. Select a larger consenting cohort, or wait for more members to finish their profiles."
+    "insufficient_cohort": "Too few sharing members with completed profiles. Select a larger consenting cohort, or wait for more members to finish their profiles.",
+    "invalid_role_proposal": "Choose a catalogue role"
   },
   "nav": {
     "home": "Home",
@@ -84,7 +85,7 @@
     "myWork": "My organisation",
     "programmes": "Programmes",
     "jobs": "Jobs",
-    "compare": "Compare roles & scenarios"
+    "chooseRoleFirst": "Choose a target role first."
   },
   "shell": {
     "disclaimer": "Projections are estimates from public data. You stay in charge: Adept never makes hiring decisions.",
@@ -236,7 +237,7 @@
     "startEyebrow": "Try it now, no account needed",
     "startTitle": "Upload a CV.",
     "startTitleMuted": "See your first results.",
-    "startBody": "No account needed. We show the skills we found, how they are trending and your best-fit future role. The rest unlocks with a free account.",
+    "startBody": "Upload a CV, confirm your level for every skill, then see your skills outlook and best-fit future role. More results unlock with a free account.",
     "howEyebrow": "How it works",
     "howTitleA": "From your CV",
     "howTitleB": "to a plan you can start this week.",
@@ -374,7 +375,23 @@
     "sampleNote": "Use a sample CV; please don't upload real personal information.",
     "tCtaJoin": "Join your team with a code",
     "tCtaOpen": "Open team workspace",
-    "tCtaCreate": "Create a team account"
+    "tCtaCreate": "Create a team account",
+    "rateTitle": "Rate your skill levels",
+    "rateHelp": "Choose a level for every skill. 1 = beginner, 5 = expert. Nothing is pre-selected.",
+    "ratedCount": "{rated}/{total} rated",
+    "rateLevel": "Level {level}",
+    "rateRequired": "Please rate every skill before saving.",
+    "saveOutlook": "Save and see my skills outlook",
+    "savingOutlook": "Calculating your outlook…",
+    "outlookTitle": "Your skills outlook",
+    "editLevels": "Edit skill levels",
+    "outlookError": "We couldn’t calculate your outlook. Your ratings are kept; please try again.",
+    "strengths": "Your skill strengths",
+    "gaps": "Skills to build",
+    "strengthsHelp": "Your self-assessment: levels 3–5.",
+    "gapsHelp": "Your self-assessment: levels 1–2. Role-specific requirements may differ.",
+    "noStrengths": "No skills rated 3–5 yet. Your learning plan can help you build them.",
+    "noGaps": "No skills rated 1–2. Your full results can still show gaps against a specific role."
   },
   "intake": {
     "title": "Let’s build your profile",
@@ -427,7 +444,11 @@
       "semantic": "Similar meaning"
     },
     "saving": "Saving…",
-    "uploadTypeError": "Use a PDF, Word (.docx) or text file under 5 MB."
+    "uploadTypeError": "Use a PDF, Word (.docx) or text file under 5 MB.",
+    "cvLoadedHint": "Your CV skills and confirmed levels are ready. You can edit them below or add more skills.",
+    "cvReady": "CV processed",
+    "cvFileNote": "Skills imported from this file. The original file contents are not stored.",
+    "replaceCv": "Replace CV"
   },
   "home": {
     "hello": "Hi {name}",
@@ -459,7 +480,6 @@
     "replan": "New trend data changed your plan.",
     "review": "Review",
     "gaps": "{count, plural, =0 {No gaps} one {# gap} other {# gaps}}",
-    "compare": "Compare",
     "latest": "Latest snapshot",
     "progressErrorTitle": "We couldn’t load your progress",
     "progressErrorBody": "Your plan is saved. Open it to try again.",
@@ -496,7 +516,8 @@
     "saved": "Saved",
     "gapsLow": "Covered",
     "gapsHigh": "Most missing",
-    "tooFewMembers": "Too few members to show"
+    "tooFewMembers": "Too few members to show",
+    "assignRole": "Assign a target role"
   },
   "skills": {
     "title": "My skills",
@@ -654,8 +675,6 @@
     "kDirectNote": "The work itself serves the goal",
     "kEnabling": "Enabling links",
     "kEnablingNote": "The skill helps others reach it",
-    "kReviewed": "Reviewed by people",
-    "kReviewedNote": "Checked, not only generated",
     "goalsHint": "Coloured goals are supported by your path",
     "backToRoles": "All roles",
     "sdgWeighted": "UN Goals count {weight}%",

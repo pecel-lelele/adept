@@ -3,12 +3,9 @@ import assert from "node:assert/strict";
 import { journeyHref, safeReturn } from "../src/web/src/lib/navigation.ts";
 import { activeItem, allItems, journeyStepCount, learnerWorkspace } from "../src/web/src/config/navigation.ts";
 
-test("comparison is discoverable and active without changing the six numbered stages", () => {
-  const item = activeItem(learnerWorkspace, "/app/pathway/compare");
-  assert.equal(item?.key, "compare");
-  assert.equal(item?.scenario, true);
-  assert.equal(item?.step, undefined);
-  assert.ok(allItems(learnerWorkspace).includes(item!));
+test("dedicated comparison navigation is removed while the six stages remain", () => {
+  assert.equal(allItems(learnerWorkspace).some((item) => item.href === "/app/pathway/compare"), false);
+  assert.equal(allItems(learnerWorkspace).some((item) => item.key === "compare"), false);
   assert.equal(journeyStepCount(), 6);
   assert.equal(activeItem(learnerWorkspace, "/app/pathway")?.key, "plan");
 });

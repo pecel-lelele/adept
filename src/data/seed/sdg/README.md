@@ -11,7 +11,7 @@
 Regenerate goals and targets: `PYTHONPATH=src .venv/bin/python -m pipelines.sdg.run`.
 
 `reviewed_by` / `reviewed_at` are empty on purpose: the mappings are drafts until a human
-reviewer signs them off, and the UI labels them "pending review" until then.
+reviewer signs them off. The UI does not show a draft or "pending review" tag (M4-100); review status stays in the data and docs.
 `tests/api/sdg` fails if any role or skill lacks a link or a link names an unknown target.
 
 The 2026-10-30 current-occupation additions have enabling links to target 4.4. Its

@@ -43,26 +43,20 @@ export function SdgLinkCards({
             : link.reason;
 
         return (
-          <div key={`${link.target.target}-${link.via}-${i}`} className="a-sdg-flipwrap group">
+          <div key={`${link.target.target}-${link.via}-${i}`} className="a-sdg-flipwrap group" tabIndex={0} role="group" aria-label={`SDG ${link.target.target}: ${link.target.label}`}>
             <div className="a-sdg-flipinner">
               {/* ── FRONT ── */}
               <div className="a-sdg-face a-sdg-front">
-                {/* SDG colour square */}
-                <div className="a-sdg-face-badge" style={{ backgroundColor: color }}>
-                  <span className="a-sdg-face-label">SDG {link.target.target}</span>
-                </div>
-                {/* Short reason/hypothesis */}
-                <p className="a-sdg-face-reason">{reason}</p>
-                {/* Pills at bottom */}
-                <div className="a-sdg-face-pills">
-                  <span className="a-sdg-pill a-sdg-pill-via">{via}</span>
+                <div className="a-sdg-face-top">
+                  <div className="a-sdg-face-badge" style={{ backgroundColor: color }}>
+                    <span className="a-sdg-face-label">SDG {link.target.target}</span>
+                  </div>
                   <Badge variant={isDirect ? "success" : "secondary"}>
                     {isDirect ? t("direct") : t("enabling")}
                   </Badge>
-                  {!link.reviewed && (
-                    <span className="a-sdg-pill a-sdg-pill-draft">{t("draft")}</span>
-                  )}
                 </div>
+                <p className="a-sdg-face-reason">{reason}</p>
+                <p className="a-sdg-face-via">{via}</p>
               </div>
 
               {/* ── BACK ── */}
@@ -96,9 +90,7 @@ export function SdgLinkCards({
                         ↗ {link.evidence.source.name}
                       </a>
                     </div>
-                  ) : (
-                    <p className="a-sdg-back-noev">{t("draft")}</p>
-                  )}
+                  ) : null}
                 </div>
               </div>
             </div>

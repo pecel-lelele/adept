@@ -18,7 +18,8 @@
   },
   "estimate": {
     "label": "Estimate",
-    "hint": "Predictions are estimates, not facts."
+    "hint": "Predictions are estimates, not facts.",
+    "historical": "Historical estimate"
   },
   "source": {
     "label": "Source",
@@ -33,7 +34,11 @@
     "backToLatest": "Back to latest",
     "fallback": "Showing last good snapshot from {date}",
     "label": "Trend data as of {date}",
-    "unavailable": "Trend data unavailable"
+    "unavailable": "Trend data unavailable",
+    "snapshot": "Snapshot {date}",
+    "historicalData": "Historical data",
+    "unverifiedShort": "Observation dates unverified",
+    "fallbackShort": "Last available snapshot"
   },
   "nav": {
     "overview": "Overview",
@@ -86,15 +91,12 @@
   "design": {
     "more": "More",
     "signOut": "Sign out",
-    "details": "Details & sources",
     "filters": "Filter courses",
     "courseDetails": "Course details",
     "continue": "Continue learning",
     "progress": "Your progress",
-    "evidence": "Sources & methodology",
     "options": "Learning options",
     "pathBody": "A clear sequence. A pace that works for you.",
-    "snapshot": "Data edition",
     "rising": "Rising",
     "stable": "Steady",
     "declining": "Declining",
@@ -115,6 +117,8 @@
     "review": "Review",
     "moreSkills": "Show {count} more skills",
     "addSkills": "Review your skills",
-    "observed": "data measured {from} to {to}"
+    "observed": "data measured {from} to {to}",
+    "sources": "Sources",
+    "proof": "Proof of completion"
   }
 }

@@ -1,8 +1,8 @@
 import { Clock3, MailPlus, UserCheck, Users } from "lucide-react";
 import { getTranslations } from "next-intl/server";
+import Link from "next/link";
 
 import { Kpis, PageHeader } from "@/components";
-import { journeyStepCount, orgWorkspace } from "@/config/navigation";
 import { ErrorState } from "@/components/ErrorState";
 import { StackBar } from "@/components/viz";
 
@@ -25,7 +25,7 @@ export async function MembersView() {
 
   return (
     <div className="a-view">
-      <PageHeader eyebrow={tp("stepOf", { step: 1, total: journeyStepCount(orgWorkspace) })} title={tn("team")} description={tp("membersDesc")} />
+      <PageHeader title={tn("team")} description={tp("membersDesc")} />
       <Kpis
         items={[
           { label: t("members"), value: list.length, icon: <Users size={15} /> },
@@ -67,6 +67,11 @@ export async function MembersView() {
                       </span>
                     </td>
                     <td>
+                      {m.intake_status === "complete" && m.skills_shared ? (
+                        <Link className="a-btn is-ghost is-small" href={`/org/programmes/new?member=${encodeURIComponent(m.id)}`}>
+                          {t("assignRole")}
+                        </Link>
+                      ) : null}
                       <RemoveMemberButton id={m.id} name={m.display_name} orgId={org.ok ? org.data.id : undefined} />
                     </td>
                   </tr>
