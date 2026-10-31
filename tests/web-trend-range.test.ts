@@ -170,11 +170,35 @@ test("url state parses safely and links keep the other choices", () => {
   assert.ok(href.includes("entity=role%3Aa") && href.endsWith("#trend"));
 });
 
-test("no user-facing page imports the refresh button; only the admin panel does", () => {
-  for (const path of ["src/web/src/features/trends/components/RadarView.tsx", "src/web/src/features/core/components/DashboardView.tsx"]) {
-    const source = readFileSync(path, "utf8");
-    assert.doesNotMatch(source, /RefreshDataButton/, path);
-    assert.match(source, /dataThrough/, path);
-  }
+test("one contextual trend date replaces duplicate page-level freshness lines", () => {
+  const radar = readFileSync("src/web/src/features/trends/components/RadarView.tsx", "utf8");
+  const home = readFileSync("src/web/src/features/core/components/DashboardView.tsx", "utf8");
+  for (const source of [radar, home]) assert.doesNotMatch(source, /RefreshDataButton|dataThrough/);
+  assert.match(radar, /<MetaBar meta=\{meta\}/);
+  assert.doesNotMatch(radar, /<DataAsOf/);
+  assert.match(home, /<DataAsOf source="trends" meta=\{radar.data.meta\}/);
   assert.match(readFileSync("src/web/src/features/trends/components/DataSourcesPanel.tsx", "utf8"), /RefreshDataButton/);
+});
+
+test("quick range stays visible while advanced filters open only for custom choices", async () => {
+  for (const locale of ["en", "ms", "zh"]) {
+    const simple = { ...range, entities: [], horizon: 90 };
+    const plain = await render(locale, { range: simple });
+    const t = translations(locale).useTranslations("trends.range");
+    assert.ok(plain.includes(`<summary class="a-range-editor-summary">${t("adjust")}`));
+    assert.match(plain, /<details class="a-range-editor"><summary/);
+    assert.ok(plain.indexOf('aria-label="Date range"') < plain.indexOf('class="a-range-editor"') || locale !== "en");
+    assert.ok(plain.includes(t("title")) && plain.includes(t("dataThrough", { date: data.available_to })));
+    for (const changed of [
+      { ...simple, from: "2026-08-01", preset: undefined },
+      { ...simple, entities: ["role:synthetic-up"] },
+      { ...simple, mode: "raw" },
+      { ...simple, horizon: 180 },
+    ]) {
+      const html = await render(locale, { range: changed });
+      assert.match(html, /<details class="a-range-editor" open=""><summary/);
+    }
+    const rejected = await render(locale, { range: simple, rejected: true });
+    assert.match(rejected, /<details class="a-range-editor" open=""><summary/);
+  }
 });

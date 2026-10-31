@@ -129,8 +129,6 @@ export async function DashboardView({ scenario, query, workspaceError = false }:
 
   return (
     <div className="a-view">
-      <DataAsOf source="trends" />
-      {radar.ok ? <p className="a-small a-muted" data-testid="data-through">{(await getTranslations("trends.range"))("dataThrough", { date: radar.data.meta.observed_to ?? radar.data.meta.snapshot_date })}</p> : null}
       {workspaceError ? <p className="a-chip" data-tone="warn" role="alert">{(await getTranslations("ui.workspace"))("workspaceError")}</p> : null}
       <section className="a-welcome">
         <div className="a-welcome-main">
@@ -142,7 +140,7 @@ export async function DashboardView({ scenario, query, workspaceError = false }:
               {hero.cta} <ArrowRight size={16} aria-hidden />
             </Link>
             {account && !account.org_id ? (
-              <Link className="a-link" href="/app/join">
+              <Link className="a-link a-hero-mobile-join" href="/app/join">
                 <Building2 size={15} aria-hidden /> {tp("joinTeam")}
               </Link>
             ) : null}
@@ -152,6 +150,11 @@ export async function DashboardView({ scenario, query, workspaceError = false }:
               </Link>
             ) : null}
           </div>
+          {radar.ok ? (
+            <div className="a-welcome-data">
+              <DataAsOf source="trends" meta={radar.data.meta} />
+            </div>
+          ) : null}
         </div>
         <nav className="a-journey" aria-label={tp("journey")}>
           <span className="a-eyebrow">{tp("journey")}</span>

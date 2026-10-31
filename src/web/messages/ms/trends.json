@@ -131,7 +131,8 @@
   },
   "range": {
     "title": "Trend mengikut masa",
-    "hint": "Setiap garisan kemahiran ialah bahagian kertas penyelidikan AI bersampel yang menyebutnya dalam {days} hari sehingga hari itu. Pilih julat dan garisan, atau bandingkan peranan dan kategori.",
+    "hint": "Garisan aliran merumuskan sampel penyelidikan bagi setiap tempoh {days} hari. Bandingkan kemahiran, peranan atau kategori.",
+    "adjust": "Laraskan carta",
     "from": "Dari",
     "to": "Hingga",
     "skills": "Kemahiran",

@@ -901,6 +901,17 @@
 - **Replaces**: none; extends M1-028 range validation
 - **PR / branch**: feat/trends-calendar-projection / PR #105
 
+
+### M1-034: Reveal trend-chart controls only when needed
+- **Date**: 2026-10-31
+- **Feature**: F2 (Trend radar UI)
+- **Type**: UI
+- **Change**: Keep chart type, quick time ranges, the visualization and dated attribution visible; fold date, line, mode and horizon controls into a native, keyboard-accessible disclosure. Open it automatically for custom, rejected or non-default choices and shorten the multilingual introductory copy.
+- **Why**: An always-expanded form, several button rows and a long explanation pushed the evidence chart below the fold and added unnecessary first-visit cognitive load. Hiding the chart or attribution would be worse, so only advanced controls move.
+- **Affects**: individual/organisation radar trend card and its EN/MS/ZH copy; no calculation, API contract or source change
+- **Replaces**: none; refines M1-025 radar UI
+- **PR / branch**: fix/core-dashboard-clarity
+
 ---
 
 ## M2: Profile Intake & Matching (F1, F4)
@@ -2810,3 +2821,23 @@
 - **Affects**: Automatic jobs scheduling and its tests only; no UI, API contract, catalogue, dependency or other feature changes.
 - **Replaces**: M4-096 shared fetch window without a remote reserve
 - **PR / branch**: feat/jobs-malaysia-focus
+
+### M4-098: Put freshness with the learner's next action
+- **Date**: 2026-10-31
+- **Feature**: Core dashboard / F2 radar
+- **Type**: UI
+- **Change**: Render one trend observation/source line inside the learner's next-action card, using that page's selected snapshot even if the separate freshness service fails. Radar keeps its existing full MetaBar but removes two redundant date lines. The join link stays directly reachable on mobile and in the mobile menu; desktop uses the existing sidebar link instead of repeating it beside the primary task.
+- **Why**: Repeated loose dates above the dashboard delayed the next action, and the duplicated join CTA competed with planning. The selected snapshot metadata is already attributed and must remain visible on a freshness outage.
+- **Affects**: Individual dashboard, radar and shared DataAsOf; no attribution schema, permission or data calculation change
+- **Replaces**: none; refines M1-026's user-facing freshness placement
+- **PR / branch**: fix/core-dashboard-clarity
+
+### M4-099: Distinguish last-good database snapshots from frozen exports
+- **Date**: 2026-10-31
+- **Feature**: Core / F2 freshness UI
+- **Type**: UI
+- **Change**: Select the frozen-export label from the selected snapshot's storage origin when available, not from its generic fallback flag; avoid rendering a missing source as `undefined` during freshness-service outages.
+- **Why**: A last-good database snapshot is still database data, even when stale or served after a provider failure. Describing it as a frozen seed export misstates provenance on the newly contextualized dashboard date line.
+- **Affects**: Shared DataAsOf output with selected metadata; no API schema or source date changed
+- **Replaces**: none; refines M4-098 provenance display
+- **PR / branch**: fix/core-dashboard-clarity
