@@ -57,6 +57,9 @@ DEFAULT_BUCKET = "__default__"
 
 # Tighter buckets for routes that are expensive or write state.
 ROUTE_LIMITS: dict[str, Limit] = {
+    "/api/v1/data/refresh/status/": (120, 60),
+    "/api/v1/data/refresh/check": (6, 60),
+    "/api/v1/data/refresh/run": (6, 3600),
     "/api/v1/preview/cv": (10, 60),  # anonymous parsing and ranking
     "/api/v1/auth/login": (20, 60),  # slows password guessing
     # Production best-effort mode (0 proxy hops) forwards no client IP, so every anonymous visitor
@@ -80,6 +83,7 @@ ROUTE_LIMITS: dict[str, Limit] = {
 
 # Ceilings shared by every client (accounts and anonymous callers together).
 GLOBAL_LIMITS: dict[str, Limit] = {
+    "/api/v1/data/refresh/run": (6, 3600),
     "/api/v1/assistant": (60, 60),  # caps total paid-model calls however many accounts exist
 }
 GLOBAL_CLIENT = "__global__"

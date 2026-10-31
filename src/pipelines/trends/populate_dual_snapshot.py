@@ -19,22 +19,11 @@ import time
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
-from datetime import date
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT / "src" / "api"))
 sys.path.insert(0, str(REPO_ROOT / "src"))
-from app.core.config import get_settings  # noqa: E402
-from pipelines.trends.arxiv_ingest import (  # noqa: E402
-    count_mentions,
-    load_skill_vectors,
-    load_skills,
-    write_signal_rows,
-)
-from pipelines.trends.encoder import get_encoder  # noqa: E402
-from pipelines.trends.score import main as score_main  # noqa: E402
-
 CACHE_DIR = REPO_ROOT / "src" / "data" / "seed" / "arxiv_raw"
 RATE_LIMIT_S = 3.5
 
@@ -87,57 +76,11 @@ def fetch_window_papers(
 
 
 def run() -> None:
-    db_url = get_settings().database_url
-    skills = load_skills()
-    skill_ids = [s[0] for s in skills]
-
-    # Two genuinely different real date windows via arXiv Query API
-    papers_w42 = fetch_window_papers(
-        "2024-10-06",
-        "2024-10-12",
-        "202410060000",
-        "202410122359",
-        max_results=350,
+    raise SystemExit(
+        "Retired: this bootstrap relabelled October 2024 arXiv windows as 2026 signals. "
+        "Use the disclosed frozen historical fixtures for replay; run pipelines.trends.run "
+        "only on genuinely dated source observations. No database rows were written."
     )
-    papers_w43 = fetch_window_papers(
-        "2024-10-13",
-        "2024-10-19",
-        "202410130000",
-        "202410192359",
-        max_results=350,
-    )
-
-    print(f"Window 1 (2026-10-13 / 2026-W42): {len(papers_w42)} papers")
-    print(f"Window 2 (2026-10-20 / 2026-W43): {len(papers_w43)} papers")
-
-    skill_vectors = load_skill_vectors(skill_ids, db_url)
-    model = get_encoder()
-
-    print("\nCounting mentions for Window 1 (W42) ...")
-    counts_w42 = count_mentions(papers_w42, skill_ids, skill_vectors, model)
-    write_signal_rows(counts_w42, len(papers_w42), date(2026, 10, 13), db_url)
-
-    print("\nCounting mentions for Window 2 (W43) ...")
-    counts_w43 = count_mentions(papers_w43, skill_ids, skill_vectors, model)
-    write_signal_rows(counts_w43, len(papers_w43), date(2026, 10, 20), db_url)
-
-    # Score Snapshot 1: 2026-10-13 (baseline)
-    print("\n--- Scoring Snapshot 2026-10-13 ---")
-    score_main(
-        snapshot_date=date(2026, 10, 13),
-        t0_period="2026-W42",
-        t1_period="2026-W42",
-    )
-
-    # Score Snapshot 2: 2026-10-20 (growth between W42 and W43)
-    print("\n--- Scoring Snapshot 2026-10-20 ---")
-    score_main(
-        snapshot_date=date(2026, 10, 20),
-        t0_period="2026-W42",
-        t1_period="2026-W43",
-    )
-
-    print("\nDual snapshots generated successfully in PostgreSQL!")
 
 
 if __name__ == "__main__":

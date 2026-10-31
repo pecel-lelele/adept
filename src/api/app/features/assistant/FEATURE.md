@@ -50,3 +50,22 @@ prices remain estimates requiring current provider and employer confirmation.
 English keywords explicitly include ordinary plurals and supported match/learn inflections,
 with complete-word boundaries preserved. Chinese remains substring-matched; Malay and Chinese
 personal-plan cues are covered by regressions alongside the existing privacy-word exclusions.
+
+Visibility questions take precedence over progress/profile keywords after decision, injection,
+other-person and invention checks. Off-topic subjects are refused before scoring unless the
+question contains a clear career/learning word (a football match is not a career match).
+Weekly hours without digits, plan progress phrased as "how far", source freshness, career
+changes and requests to enrol/book/apply/edit have explicit EN/MS/ZH coverage. Unsupported
+actions direct people to the learning plan or employer pages; chat never performs them.
+
+Profile answers list the person's loaded skill IDs and levels. Named score questions resolve
+stored role labels or readable catalogue IDs and explain that role's loaded score/rank;
+unavailable matches are stated rather than borrowing another score. Named skill advice never
+silently substitutes an unrelated saved-plan step. Career specialisations that cannot be
+resolved direct people to catalogue comparisons, and hiring questions point to actual openings.
+SDG goal questions restrict definitions to that goal's catalogue targets. These are internal
+context/rendering changes, with no public contract or catalogue changes.
+
+Model selection must retain the capability (`how`) answer as well as other specific answers.
+For near ties, a second block must be one of the routed intents. The TSV routing regressions
+and rendered-text tests cover these rules with providers disabled and synthetic accounts.

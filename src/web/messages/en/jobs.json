@@ -73,6 +73,7 @@
     "pickRole": "Choose a role to see which skills you already have for each job."
   },
   "toLearn": "To learn: {skills}",
+  "stale": "Not seen in a source read since {date}; this ad may have closed.",
   "match": {
     "label": "Skill match",
     "today": "Today",

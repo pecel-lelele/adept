@@ -74,7 +74,7 @@ export async function OpeningItem({ o, showFit = true }: { o: Schemas["JobOpenin
   const after = pct(o.match_after_plan);
   const toLearn = o.skills.filter((s) => s.status === "missing").map((s) => s.label);
   return (
-    <li className="a-job">
+    <li className="a-job" data-stale={o.is_stale || undefined}>
       <div className="a-job-main">
         <a className="a-job-title" href={o.url} target="_blank" rel="noopener">
           {o.title}
@@ -83,6 +83,11 @@ export async function OpeningItem({ o, showFit = true }: { o: Schemas["JobOpenin
         <span className="a-job-where">
           {o.employer}, {place}
         </span>
+        {o.is_stale ? (
+          <span className="a-job-stale a-small a-muted" role="note">
+            {t("stale", { date: o.last_seen })}
+          </span>
+        ) : null}
         {showFit && toLearn.length ? (
           <span className="a-job-learn">{t("toLearn", { skills: toLearn.slice(0, 3).join(", ") })}</span>
         ) : null}

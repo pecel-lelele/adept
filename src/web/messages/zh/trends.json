@@ -55,5 +55,78 @@
     "unemployment": "失业率",
     "participation": "劳动力参与率",
     "employmentRatio": "就业人口比率"
+  },
+  "dataSources": {
+    "title": "数据来源",
+    "help": "应用检查已完成的研究周和每日来源周期，然后通过一个共享后台任务刷新。失败的来源保留上次有效数据。",
+    "labels": {
+      "trends": "AI 趋势快照",
+      "courses": "课程目录",
+      "jobs": "职位空缺",
+      "labour": "马来西亚劳动力背景"
+    },
+    "refreshNow": "立即刷新",
+    "working": "正在刷新…",
+    "fetchedOn": "最近获取于 {date}",
+    "dataAsOf": "涵盖 {date}",
+    "noDate": "没有记录获取日期",
+    "rows": "{count, plural, other {# 行}}",
+    "fromDatabase": "来自数据库",
+    "fromSeed": "来自固定导出文件",
+    "fallback": "当前显示的是固定导出文件，并非实时数据。",
+    "trendsElsewhere": "趋势快照请在上方面板中刷新。",
+    "lastRunOk": "上次刷新 {date}：写入 {upserted} 行。",
+    "lastRunFailed": "上次刷新 {date} 失败；仍使用之前的数据。",
+    "resultOk": "已刷新：获取 {fetched} 行，写入 {upserted} 行，拒绝 {rejected} 行。",
+    "resultFailed": "未刷新；仍使用上一次的有效数据。",
+    "boards": "（读取 {ran} 个职位板，跳过 {skipped} 个）",
+    "asOf": "数据截至 {date}",
+    "asOfFrozen": "数据截至 {date}（固定导出文件）",
+    "codes": {
+      "fetch_failed": "数据来源没有响应。",
+      "validation_failed": "获取的数据未通过校验。",
+      "refresh_failed": "刷新意外失败。",
+      "refresh_in_progress": "该数据源正在刷新中。",
+      "refresh_not_supported": "此服务器不支持该刷新。",
+      "refresh_requires_database": "未使用应用数据库，无处可写入。",
+      "storage_unavailable": "无法连接应用数据库。",
+      "forbidden": "只有已配置的管理员才能刷新数据。",
+      "unauthorized": "请重新登录后再刷新数据。",
+      "error": "刷新请求失败（{code}）。当前数据仍然有效。"
+    },
+    "historicalReplay": "历史观测重放为 {date} 快照，并非当前研究。",
+    "rescore": "重新计算已存信号",
+    "lastGood": "正在显示最近有效快照；观测数据截至 {date}。",
+    "lastChecked": "上次检查 {time}",
+    "nextScheduled": "下次计划运行：{time}",
+    "recentRuns": "最近的刷新任务"
+  },
+  "refreshUser": {
+    "title": "刷新数据",
+    "checking": "正在检查更新的数据…",
+    "retry": "重试",
+    "unknownDate": "已记录的日期",
+    "latest": "已是最新 · 数据截至 {date} · 刚刚检查",
+    "done": "已更新 · 数据截至 {date}",
+    "failed": "无法刷新。正在显示 {date} 的最近有效快照。",
+    "cooldown": "请在 {minutes} 分钟后重试。",
+    "shared": "已有刷新任务正在运行；显示其进度。",
+    "refreshing": "正在刷新…",
+    "elapsed": "已用时间：{seconds} 秒",
+    "warmup": "AI 模型启动时可能需要 1 至 3 分钟。您可以继续使用 Adept；完成后页面将自动更新。",
+    "keepShowing": "刷新期间继续显示 {date} 的现有数据。",
+    "sources": {
+      "trends": "趋势",
+      "jobs": "职位",
+      "courses": "课程目录",
+      "labour": "马来西亚劳动力背景"
+    },
+    "states": {
+      "pending": "等待中",
+      "running": "运行中",
+      "done": "完成",
+      "failed": "失败",
+      "skipped": "已是最新"
+    }
   }
 }

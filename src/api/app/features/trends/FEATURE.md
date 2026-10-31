@@ -33,6 +33,17 @@ window, else reports `no_new_data`. All three require a signed-in account listed
 `ADMIN_USER_IDS` (account IDs, set on both web and API; empty = nobody). The workflow's `TREND_DATABASE_URL` secret is the same database
 the app reads as `DATABASE_URL`.
 
+## Automatic app refresh (2026-10-30)
+
+The dashboard, radar and admin page now use the shared background refresh job. GitHub's
+`automatic-data-refresh.yml` calls the public app with `DATA_REFRESH_TOKEN`; the app writes
+through its own database. Trends measure the last two complete real arXiv cs.AI submission
+weeks (bounded samples), skip inference when already measured, and atomically publish the
+measured Sunday as snapshot date. Static BLS retrieval dates remain unchanged. Historical
+October 2024 replay observations stay labelled and the old backdating script is retired.
+The legacy workflow/API above remain available until the replacement is proven in production.
+See [operations and source assessment](../../../../../docs/data-refresh.md).
+
 ## Goal and tasks (from docs/tasks.md)
 
 **Goal:** at least one updatable AI/job-market source; source and date visible; no hard-coded lists.

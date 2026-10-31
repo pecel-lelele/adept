@@ -22,3 +22,23 @@ test("fallback snapshot notice is visible outside collapsed citations in every l
     assert.doesNotMatch(live, /role="status"/);
   }
 });
+
+test("database and fixture replays show their real observation window outside citations", () => {
+  for (const locale of ["en", "ms", "zh"]) {
+    const { MetaBar } = loadComponent("src/components/MetaBar.tsx", { "next-intl": translations(locale) });
+    for (const served_from of ["db", "fixture"]) {
+      const html = renderToStaticMarkup(React.createElement(MetaBar, { meta: {
+        ...meta, served_from, is_fallback: served_from === "fixture", is_replay: true,
+        observation_window_start: "2024-10-13", observation_window_end: "2024-10-19",
+        retrieved_at: "2026-10-24", retrieved_at_basis: "git_commit_date",
+      } }));
+      const notice = html.split("<details")[0];
+      assert.match(notice, /data-trend-replay="true"/);
+      for (const value of ["2024-10-13", "2024-10-19", "2026-10-24"]) assert.ok(notice.includes(value));
+      if (locale === "en") {
+        assert.match(notice, /Historical replay/);
+        assert.match(notice, /fetch time is unverified/);
+      }
+    }
+  }
+});

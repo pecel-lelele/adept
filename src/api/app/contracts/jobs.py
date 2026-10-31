@@ -38,6 +38,14 @@ class JobOpening(BaseModel):
     source_name: str = Field(description="Where the opening was read from (credited in the UI).")
     posted_at: date | None = None
     first_seen: date
+    last_seen: date = Field(description="Last day a source read still listed the ad.")
+    is_stale: bool = Field(
+        default=False,
+        description=(
+            "Not re-seen by a source read in the last 14 days; it may have closed. Shown "
+            "labelled, never counted as open."
+        ),
+    )
     role_method: Literal["title", "skills"] = Field(
         description="How the opening was matched to the role: its job title, or its skills."
     )

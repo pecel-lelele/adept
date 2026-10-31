@@ -55,5 +55,78 @@
     "unemployment": "Kadar pengangguran",
     "participation": "Penyertaan tenaga buruh",
     "employmentRatio": "Nisbah guna tenaga kepada penduduk"
+  },
+  "dataSources": {
+    "title": "Sumber data",
+    "help": "Aplikasi menyemak minggu penyelidikan lengkap dan jadual harian sumber, kemudian menyegarkan melalui satu tugas latar bersama. Sumber yang gagal mengekalkan data terakhir yang baik.",
+    "labels": {
+      "trends": "Snapshot arah aliran AI",
+      "courses": "Katalog kursus",
+      "jobs": "Jawatan kosong",
+      "labour": "Konteks buruh Malaysia"
+    },
+    "refreshNow": "Muat semula sekarang",
+    "working": "Memuat semula…",
+    "fetchedOn": "Diambil kali terakhir {date}",
+    "dataAsOf": "meliputi {date}",
+    "noDate": "Tiada tarikh pengambilan direkodkan",
+    "rows": "{count, plural, other {# baris}}",
+    "fromDatabase": "dipaparkan daripada pangkalan data",
+    "fromSeed": "dipaparkan daripada eksport beku",
+    "fallback": "Memaparkan eksport beku, bukan data langsung.",
+    "trendsElsewhere": "Snapshot arah aliran dimuat semula dalam panel di atas.",
+    "lastRunOk": "Muat semula terakhir {date}: {upserted} baris ditulis.",
+    "lastRunFailed": "Muat semula terakhir {date} gagal; data sebelumnya terus dipaparkan.",
+    "resultOk": "Dimuat semula: {fetched} diambil, {upserted} ditulis, {rejected} ditolak.",
+    "resultFailed": "Tidak dimuat semula; data baik terakhir terus dipaparkan.",
+    "boards": "({ran} papan dibaca, {skipped} dilangkau)",
+    "asOf": "Data setakat {date}",
+    "asOfFrozen": "Data setakat {date} (eksport beku)",
+    "codes": {
+      "fetch_failed": "Sumber tidak memberi respons.",
+      "validation_failed": "Data yang diambil gagal pengesahan.",
+      "refresh_failed": "Muat semula gagal secara tidak dijangka.",
+      "refresh_in_progress": "Sumber ini sedang dimuat semula.",
+      "refresh_not_supported": "Muat semula ini tidak tersedia pada pelayan ini.",
+      "refresh_requires_database": "Pangkalan data aplikasi tidak digunakan, jadi tiada tempat untuk menulis.",
+      "storage_unavailable": "Pangkalan data aplikasi tidak dapat dicapai.",
+      "forbidden": "Hanya pentadbir yang ditetapkan boleh memuat semula data.",
+      "unauthorized": "Log masuk semula untuk memuat semula data.",
+      "error": "Permintaan muat semula gagal ({code}). Data semasa terus dipaparkan."
+    },
+    "historicalReplay": "Pemerhatian sejarah dimainkan semula sebagai snapshot {date}; bukan penyelidikan semasa.",
+    "rescore": "Kira semula isyarat tersimpan",
+    "lastGood": "Memaparkan snapshot baik terakhir; pemerhatian sehingga {date}.",
+    "lastChecked": "Disemak kali terakhir {time}",
+    "nextScheduled": "Jadual seterusnya: {time}",
+    "recentRuns": "Muat semula terkini"
+  },
+  "refreshUser": {
+    "title": "Muat semula data",
+    "checking": "Menyemak data lebih baharu…",
+    "retry": "Cuba lagi",
+    "unknownDate": "tarikh yang direkodkan",
+    "latest": "Sudah terkini · data setakat {date} · baru disemak",
+    "done": "Dikemas kini · data setakat {date}",
+    "failed": "Tidak dapat memuat semula. Memaparkan snapshot baik terakhir dari {date}.",
+    "cooldown": "Cuba lagi dalam {minutes} minit.",
+    "shared": "Muat semula sedang berjalan; memaparkan kemajuannya.",
+    "refreshing": "Memuat semula…",
+    "elapsed": "Masa berlalu: {seconds} s",
+    "warmup": "Ini boleh mengambil masa 1 hingga 3 minit semasa model AI bermula. Anda boleh terus menggunakan Adept; halaman akan dikemas kini apabila selesai.",
+    "keepShowing": "Memaparkan data sedia ada dari {date} semasa memuat semula.",
+    "sources": {
+      "trends": "Arah aliran",
+      "jobs": "Jawatan",
+      "courses": "Katalog",
+      "labour": "Konteks buruh Malaysia"
+    },
+    "states": {
+      "pending": "Menunggu",
+      "running": "Sedang berjalan",
+      "done": "Selesai",
+      "failed": "Gagal",
+      "skipped": "Terkini"
+    }
   }
 }
