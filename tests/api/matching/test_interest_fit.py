@@ -1,12 +1,4 @@
-"""Tests for real Jaccard interest fit and neutral contribution (Prompt 6, Part B).
-
-Verifies:
-  - Jaccard similarity: len(a & b) / len(a | b).
-  - User {tech} vs role {tech, fin, green, health, ai} gives 0.2.
-  - User {tech, fin} vs role {tech, fin} gives 1.0.
-  - Disjoint sets give 0.0.
-  - Empty user interests give None and a neutral contribution of 0.5 in the total score.
-"""
+"""Interest bonus and API arithmetic use the same neutral-plus-overlap formula (M2-030)."""
 
 from __future__ import annotations
 
@@ -34,16 +26,16 @@ def _make_role(role_id: str, tags: set[str]) -> Role:
     )
 
 
-def test_jaccard_one_out_of_five_gives_point_two() -> None:
-    """User {tech} vs role {tech, fin, green, health, ai} gives 0.2."""
+def test_extra_role_tags_do_not_dilute_a_matching_interest() -> None:
+    """All declared interests match, regardless of unused role tags."""
     profile = MatchProfile(skills={"python": 0.5}, interests=frozenset({"tech"}))
     role = _make_role("role-1", {"tech", "fin", "green", "health", "ai"})
 
     fit = interest_fit(profile, role)
-    assert fit == pytest.approx(0.2)
+    assert fit == pytest.approx(1.0)
 
 
-def test_jaccard_identical_sets_give_one() -> None:
+def test_identical_sets_give_one() -> None:
     """User {tech, fin} vs role {tech, fin} gives 1.0."""
     profile = MatchProfile(skills={"python": 0.5}, interests=frozenset({"tech", "fin"}))
     role = _make_role("role-2", {"tech", "fin"})
@@ -52,13 +44,13 @@ def test_jaccard_identical_sets_give_one() -> None:
     assert fit == pytest.approx(1.0)
 
 
-def test_jaccard_disjoint_sets_give_zero() -> None:
-    """Disjoint sets give 0.0."""
+def test_disjoint_sets_give_neutral() -> None:
+    """Unmatched interests cannot lower the score below no interests."""
     profile = MatchProfile(skills={"python": 0.5}, interests=frozenset({"tech"}))
     role = _make_role("role-3", {"finance", "legal"})
 
     fit = interest_fit(profile, role)
-    assert fit == pytest.approx(0.0)
+    assert fit == pytest.approx(NEUTRAL)
 
 
 def test_empty_user_interests_give_none_and_neutral_contribution() -> None:
@@ -133,8 +125,8 @@ def test_api_interest_is_marked_not_provided(client: TestClient) -> None:
     assert match["score"] == pytest.approx(expected, abs=1e-3)
 
 
-def test_api_interest_is_jaccard_when_provided(client: TestClient) -> None:
-    """Given interests -> provided=true and value is a real Jaccard in [0, 1]."""
+def test_api_interest_bonus_when_provided(client: TestClient) -> None:
+    """Given interests -> provided=true and value uses neutral plus matched share."""
     q = client.post(
         "/api/v1/profile/questionnaire",
         json={
@@ -165,6 +157,8 @@ def test_api_interest_is_jaccard_when_provided(client: TestClient) -> None:
     for m in resp.json()["matches"]:
         comp = _interest_component(m)
         assert comp["provided"] is True
-        tags = repository.role_interest_tags(m["role_id"])
-        jaccard = len(user_interests & tags) / len(user_interests | tags)
-        assert comp["value"] == pytest.approx(jaccard, abs=1e-4), m["role_id"]
+        tags = {tag.casefold() for tag in repository.role_interest_tags(m["role_id"])}
+        expected = NEUTRAL + (1 - NEUTRAL) * len(user_interests & tags) / len(user_interests)
+        assert comp["value"] == pytest.approx(expected, abs=1e-4), m["role_id"]
+        assert "case-insensitive" in comp["explanation"]
+        assert m["score"] == pytest.approx(sum(c["weight"] * c["value"] for c in m["components"]))

@@ -196,8 +196,9 @@ def score_components(role_score: _RoleScore, scenario: ScenarioId) -> list[Score
             value=(bd["interest"] if bd["interest"] is not None else NEUTRAL),
             provided=bd["interest"] is not None,
             explanation=(
-                "Jaccard similarity (intersection over union) between your interests and this"
-                " role's tags."
+                f"Neutral {NEUTRAL:g} + {1 - NEUTRAL:g} x the share of your declared interests "
+                "matching this role's tags (case-insensitive). Matching more of your interests "
+                "raises this part; no matching tags, including untagged roles, stays neutral."
                 if bd["interest"] is not None
                 else "Not provided: you have no saved interests, so a neutral 0.5 is used here."
             ),

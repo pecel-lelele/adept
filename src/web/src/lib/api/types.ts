@@ -4042,9 +4042,9 @@ export interface components {
             snapshot_date: string;
             /**
              * Scenario
-             * @enum {string}
+             * @description Scenario of the result; 'both' identifies a moderate/fast comparison.
              */
-            scenario: "moderate" | "fast";
+            scenario: ("moderate" | "fast") | "both";
             /**
              * Is Estimate
              * @default true
@@ -5252,9 +5252,9 @@ export interface components {
             snapshot_date: string;
             /**
              * Scenario
-             * @enum {string}
+             * @description Scenario of the result; 'both' identifies a moderate/fast comparison.
              */
-            scenario: "moderate" | "fast";
+            scenario: ("moderate" | "fast") | "both";
             /**
              * Is Estimate
              * @default true

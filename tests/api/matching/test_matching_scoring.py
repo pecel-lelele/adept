@@ -177,9 +177,8 @@ def test_skill_overlap_empty_role() -> None:
 
 def test_interest_fit_full() -> None:
     full = MatchProfile(skills={}, interests=frozenset({"data", "ai"}))
-    # ROLE_DATA has {"data", "reporting"} -> Jaccard = 1/3
-    # (intersection {data}, union {data, ai, reporting})
-    assert interest_fit(full, ROLE_DATA) == pytest.approx(1 / 3)
+    # One of two declared interests matches: neutral + half of the available bonus.
+    assert interest_fit(full, ROLE_DATA) == pytest.approx(NEUTRAL + (1 - NEUTRAL) / 2)
 
 
 def test_interest_fit_no_interests_returns_none() -> None:

@@ -40,7 +40,7 @@ Gap responses and SDG badges use M3's service ports. Persona CSVs are harness-on
 |---|---|---|
 | Source | Seed taxonomy (`roles.csv`, `role_skills.csv`), user profiles (`user_skills.csv`, `profiles.csv`), trend snapshots | Canonical skills (110) & roles (4 future target roles) |
 | Preprocessing / cleaning | Preserve proficiency levels 1–5 in production and evaluation; parse interest tags | Absent skill = 0; credit = `min(user_level / required_level, 1)` |
-| Features | Skill overlap (`w=0.45`), trend velocity normalized over the union of both scenarios (`w=0.25`), interest Jaccard fit (`w=0.3`) | Shared robust scale per dated snapshot: 0.5+0.5·tanh(2·asinh(c/s)/asinh(2/s)), c=clamp(v,±2), s=median\|v\| over both scenarios (M1-014); deterministic weights |
+| Features | Skill overlap (`w=0.45`), trend velocity normalized over the union of both scenarios (`w=0.25`), interest bonus (`w=0.3`) | Interest = `0.5 + 0.5 × matched declared interests / declared interests`, after case-folding and deduplication; missing tags or no overlap stays neutral, no declared interests stays not provided with neutral contribution (M2-030). Shared robust trend scale per dated snapshot: 0.5+0.5·tanh(2·asinh(c/s)/asinh(2/s)), c=clamp(v,±2), s=median\|v\| over both scenarios (M1-014); deterministic weights |
 | Model / method | Linear composite scoring with tie-breaking on `(-score, role_id)`, gap bucketing | Pure scoring functions; `MatchProfile` fairness whitelist |
 | Evaluation | Precision@k, Recall@k, MRR, nDCG@k on synthetic personas | Mean MRR=1.0, Mean P@3>=0.85, Mean nDCG@3>=0.90 |
 | Serving | `/api/v1/matches` (`list_matches`, `get_match`) | Explainable `ScoreComponent` breakdown, missing/partial skills and trend coverage |

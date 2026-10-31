@@ -2,9 +2,10 @@
 
 score = w_skill * skill_overlap + w_trend * trend + w_interest * interest_contribution
 
-interest_fit is a real Jaccard, len(interests & tags) / len(interests | tags).
-When the user gave no interests, interest_fit is None ("not provided") and the
-total uses the neutral contribution NEUTRAL = 0.5 instead.
+interest_fit = NEUTRAL + (1 - NEUTRAL) * len(interests & tags) / len(interests),
+after case-folding both sets. Declared interests can only add a bonus above neutral;
+untagged roles stay neutral. No interests returns None ("not provided") and the
+total uses NEUTRAL = 0.5 instead (M2-030).
 
 Pure functions, no I/O, so they are easy to test and to evaluate (M2-09).
 `MatchProfile` is the fairness whitelist (M2-12): only these fields can ever
@@ -165,21 +166,17 @@ def role_trend(role: Role, scores: dict[str, float]) -> tuple[float, float]:
 
 
 def interest_fit(profile: MatchProfile, role: Role) -> float | None:
-    """Jaccard similarity between user interests and role interest tags.
+    """Neutral baseline plus a bonus for the share of declared interests matched.
 
-    Formula: len(interests & tags) / len(interests | tags)
-
-    Returns:
-        float in [0.0, 1.0] representing Jaccard overlap.
-        None if the user has no interests recorded (not provided), in which case
-        downstream scoring applies a neutral contribution of 0.5 in the total score.
+    Case-fold before deduplication/comparison. Extra role tags do not dilute a hit.
+    Missing tags or no overlap give NEUTRAL; no declared interests gives None so
+    the display can retain its "not provided" state with the same neutral score.
     """
     if not profile.interests:
         return None
-    union = profile.interests | role.interest_tags
-    if not union:
-        return 0.0
-    return len(profile.interests & role.interest_tags) / len(union)
+    interests = {interest.casefold() for interest in profile.interests}
+    tags = {tag.casefold() for tag in role.interest_tags}
+    return NEUTRAL + (1 - NEUTRAL) * len(interests & tags) / len(interests)
 
 
 def skills_gap(profile: MatchProfile, role: Role) -> dict[str, list[str]]:

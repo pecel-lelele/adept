@@ -113,6 +113,8 @@ when database snapshots are unavailable; strict production reads fail instead. S
 Every response with a recommendation, score or trend carries `meta`:
 `{sources: [{name, url, retrieved_at}], snapshot_date, scenario, is_estimate}`
 (`src/api/app/contracts/common.py`). The web renders it with `MetaBar` (EstimateLabel + SourceBadge).
+`scenario` is `moderate` or `fast` for an individual result, and `both` for the
+scenario list/outlook comparison. `both` is an attribution label, not a selectable scenario.
 
 ## Contracts pipeline
 

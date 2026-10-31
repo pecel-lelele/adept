@@ -392,12 +392,13 @@ flowchart TB
 flowchart LR
   S["Skill overlap<br/>Σ importance × min(level / required, 1)<br/>divided by Σ importance"] -- "× 0.45" --> T(("Fit score"))
   R["Trend outlook<br/>importance-weighted percentile<br/>of skill velocity (scenario)"] -- "× 0.25" --> T
-  I["Interest fit<br/>Jaccard(user interests, role tags)"] -- "× 0.30" --> T
+  I["Interest fit<br/>0.5 + 0.5 × share of declared interests matched<br/>case-insensitive; no interests or no role tags = neutral"] -- "× 0.30" --> T
   G["UN Goals impact (optional λ)<br/>direct links 1 · enabling 0.5"] -. "score' = (1−λ)·score + λ·impact" .-> T
   T --> O["Ranked roles + have / partial / missing skills<br/>each part shown with its explanation"]
 ```
 
 - Protected attributes (age, gender, background) are never read by matching. Counterfactual tests swap personas and require identical results.
+- Declaring matching interests adds a bonus above the neutral interest contribution; unmatched interests stay neutral. Scenario outlooks report each scenario's computed skill aggregate, so mixed skill signals can make fast less extreme than moderate. Comparison metadata says `scenario: "both"`; selectable scenarios remain moderate and fast.
 - Completed learning can raise a skill's effective matching level when an organisation reviewer confirms it, or when a certificate link passes the provider-page check. That link check confirms reachability and provider domain, not certificate ownership.
 
 ### Knowledge graph
