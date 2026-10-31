@@ -127,6 +127,7 @@ Did your team use any generative-AI tool to help create code, design, text, or o
 | Replit Agent | Replit deployment configuration, publishing and repository exploration | Minor |
 | Google Antigravity agent | Repository exploration | Minor |
 | Greptile | Automated pull-request review comments | Moderate |
+| ElevenLabs (synthesis model/version not recorded) | Presentation/demo voice-over using a stock voice; the team confirmed historical use on 30 October 2026. Not an Adept runtime integration. | To be confirmed by the team |
 
 Briefly describe how your team reviewed, tested, and took responsibility for AI-generated output: [Maximum 100 words]
 

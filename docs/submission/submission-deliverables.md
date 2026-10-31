@@ -1,6 +1,6 @@
 # Submission deliverables
 
-Reviewed 31 October 2026 against `main` `0a7868c`. The three written products are separate: [Phase 2 final report](submission-proposal.md), [technical declaration](submission-technical-declaration.md), and [product PRD / pitch brief](final-pitch-prd.md). The three written products each have a public **PDF copy**. A historical proof screenshot is not a current build/usage verification; no document is marked submitted or signed.
+Reviewed 1 November 2026 against `main` `1e1073f` and the PR #113 submission sources. The three written products are separate: [Phase 2 final report](submission-proposal.md), [technical declaration](submission-technical-declaration.md), and [product PRD / pitch brief](final-pitch-prd.md). The three written products each have a public **PDF copy**. A historical proof screenshot is not a current build/usage verification; no document is marked submitted or signed.
 
 | Deliverable | Location | Before submission |
 |---|---|---|
@@ -12,7 +12,6 @@ Reviewed 31 October 2026 against `main` `0a7868c`. The three written products ar
 | Product Requirements Document (for judges) | [PRD: product, market, business model and pilot plan](final-pitch-prd.md) · [portable PDF](../../submission/SDC2026_Pecel-Lele_ProductPRD.pdf) | Validate price and demand assumptions in the paid pilot. |
 | Sponsor proofs | [Replit](../../submission/SDC2026_Pecel%20Lele_Replit_POU.pdf) · [RunPod](../../submission/SDC2026_Pecel%20Lele_Runpod_POU.pdf) | Historical screenshots only; do not change their dates or claim they show the current catalogue/production bill. |
 | Slides | [Team folder](https://drive.google.com/drive/folders/1oNEOcD5OXCK-iAAPoj3aXihO1cW77bTn?usp=sharing) | Create/export **final flattened PDF** at ≤15 slides and verify judge access. The current PRD is a plan, not a slide deck. |
-| Demo / pitch video | [Team folder](https://drive.google.com/drive/folders/1tdSaHsHd1towg-bKghHUuSNn7jbI-LfN?usp=sharing) | Select final files, verify duration, exact credits and public access. |
 
 - [ ] Record final production revision, selected snapshot observation/retrieval dates, successful run URL and recording date. The daily worker needs owner-approved production migrations/configuration, not local tests alone.
 - [ ] Independently audit resolved catalogue IDs and time a *human* valid plan. The [human calculator](../evidence/kpi-human-summary.json) has 0 attempts and null medians; [15 scripted local journeys](../evidence/kpi-automated-journeys.md) cannot establish the Phase 1 time target.
@@ -20,4 +19,4 @@ Reviewed 31 October 2026 against `main` `0a7868c`. The three written products ar
 - [ ] Check PDF word-count validator, rendered pages, links and personal-field placeholders; complete the organiser's **private** originals and declarations before uploading.
 - [ ] Verify final exact document/slide file access to judges and confirm submission receipt; a repo file is not a submission.
 
-The local `submission/demo-video/` workspace is gitignored. This update performs no production refresh, purchase, external upload, or team signature.
+This update performs no production refresh, purchase, external upload, or team signature.

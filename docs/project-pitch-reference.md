@@ -797,7 +797,7 @@ Do not invent market size, customer logos, partnerships, savings, accuracy or pa
 | Adi/grounding       | [Assistant](../src/api/app/features/assistant/FEATURE.md), [LLM](../src/api/app/core/llm/FEATURE.md)                                                                            |
 | Refresh             | [Feature](../src/api/app/features/data_refresh/FEATURE.md), [guide](data-refresh.md)                                                                                            |
 | Evidence            | [Impact](evidence/impact-evidence.md), [journeys](evidence/kpi-automated-journeys.md), [human protocol](evidence/kpi-time-to-plan.md)                                           |
-| Pitch/submission    | [Rubric](submission/rubric-check.md), [declaration](submission/submission-technical-declaration.md), [demo](demo-script.md)                                                     |
+| Pitch/submission    | [Rubric](submission/rubric-check.md), [declaration](submission/submission-technical-declaration.md)                                                     |
 | Package truth       | [Python](../pyproject.toml), [web](../src/web/package.json), [root](../package.json), lockfiles                                                                                 |
 | Data model          | [Migrations](../src/db/migrations/), contracts/repositories                                                                                                                     |
 

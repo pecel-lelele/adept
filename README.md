@@ -44,7 +44,7 @@
 | Replit project | [Project page](https://replit.com/@kylomaxcellino/adept) |
 | RunPod endpoints | [MiniLM](https://api.runpod.ai/v2/ta14jd0by2ijl2) · [Adi](https://api.runpod.ai/v2/b1dd8hy2hqo1nb/openai/v1) (requests need their own credentials) |
 | Slides | [Team folder](https://drive.google.com/drive/folders/1oNEOcD5OXCK-iAAPoj3aXihO1cW77bTn?usp=sharing) · check judge access |
-| Demo and pitch videos | [Team folder](https://drive.google.com/drive/folders/1tdSaHsHd1towg-bKghHUuSNn7jbI-LfN?usp=sharing) · select final files |
+| Pitch materials | [Team folder](https://drive.google.com/drive/folders/1tdSaHsHd1towg-bKghHUuSNn7jbI-LfN?usp=sharing) |
 | Written sources | [Proposal](docs/submission/submission-proposal.md) · [technical declaration](docs/submission/submission-technical-declaration.md) |
 | Operations | [Replit](replit.md) · [RunPod/MiniLM](src/pipelines/trends/runpod/DEPLOYMENT_HANDOFF.md) |
 
@@ -629,7 +629,7 @@ Migrations are in [`src/db/migrations`](src/db/migrations). New changes always g
 
 - [x] Source, synthetic demo CVs, proposal and technical-declaration exports linked.
 - [x] Replit and RunPod proof-of-use exports linked; their historical state is disclosed.
-- [ ] Confirm final PDFs/signatures and selected slide/video files against the latest app.
+- [ ] Confirm final PDFs/signatures and the final pitch deck against the latest app.
 - [ ] Check anonymous access to shared folders and the live demo revision.
 - [ ] Record the observed snapshot, source dates and actual demo/recording date.
 - [ ] Measure human KPI results before making any time-savings claim.
