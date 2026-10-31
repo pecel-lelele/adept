@@ -744,6 +744,30 @@
 - **Affects**: Automatic F2 refresh publication guard and retry behaviour; no schema, provider or scoring-formula changes
 - **Replaces**: none; extends M1-018
 - **PR / branch**: feat/trends-rolling-accumulated
+
+### M1-022: Keep empty-series dates honest and expose the chart's own attribution
+- **Date**: 2026-10-31
+- **Feature**: F2 (Trends radar)
+- **Type**: method | UI
+- **Change**: An empty paper store cites the versioned series method inspected on 31 October 2026, explicitly labelled as having no stored paper observations. It never claims arXiv was retrieved on a user-selected date; observation dates remain null. The range card renders its own series metadata through the existing MetaBar.
+- **Why**: The previous empty-state fallback copied the requested end date into the source retrieval date, including future dates, despite no upstream fetch. The surrounding radar's forecast attribution can describe a different snapshot and does not establish the chart's measured period.
+- **Pipeline**: unchanged stored paper counts or explicit empty store → existing rolling shares/gaps → actual stored fetch dates or dated method-only evidence → unchanged count calculation → future-query empty-state regression and actual MetaBar renders in en/ms/zh → independently attributed chart without fabricated freshness
+- **Affects**: trend-series metadata and radar range card; no schema, provider or migration change
+- **Replaces**: none; completes attribution in M1-019/M1-020
+- **PR / branch**: feat/trends-range-chart / PR #102
+
+
+### M1-023: Read chart denominators and mentions from one database snapshot
+- **Date**: 2026-10-31
+- **Feature**: F2 (Trend series), data refresh
+- **Type**: method
+- **Change**: Count daily paper totals and selected-skill mentions in one SQL statement, using a left join so stored days without mentions remain present. Both quantities come from the same PostgreSQL statement snapshot while a refresh may replace an early-fetched day.
+- **Why**: Two READ COMMITTED statements could observe opposite sides of a correction, pairing old denominators with new mention counts and producing incorrect shares, even above 100 percent. A single statement preserves actual stored sample fractions without changing transaction isolation for other pooled users.
+- **Pipeline**: unchanged stored days and paper mentions → one MVCC statement → day totals plus per-skill counts → existing rolling share calculation → unit mapping/statement regression and opt-in real concurrent-replacement regression → consistent database-derived chart values
+- **Affects**: trend_store.daily and chart readers; no schema, provider or migration change
+- **Replaces**: none; corrects M1-019's split chart read
+- **PR / branch**: feat/trends-range-chart / PR #102
+
 ---
 
 ## M2: Profile Intake & Matching (F1, F4)

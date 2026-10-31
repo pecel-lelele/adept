@@ -144,20 +144,21 @@ def stored_range() -> tuple[date, date, date] | None:
 def daily(
     start: date, end: date, skill_ids: Iterable[str]
 ) -> tuple[dict[date, int], dict[tuple[date, str], int]]:
-    """Papers per stored day and mentions per (day, skill) in [start, end], in one pass."""
+    """Paper totals and mentions from one SQL/MVCC snapshot, even during day replacement."""
     wanted = list(skill_ids)
     with connection() as conn:
-        days = conn.execute(
-            "SELECT day, papers FROM trend_fetched_days WHERE day BETWEEN %s AND %s",
-            (start, end),
-        ).fetchall()
         rows = conn.execute(
+            "WITH days AS ("
+            "SELECT day, papers FROM trend_fetched_days WHERE day BETWEEN %s AND %s"
+            "), mentions AS ("
             "SELECT published_on AS day, s AS skill_id, count(*) AS n "
             "FROM trend_paper_mentions, unnest(skills) s "
-            "WHERE published_on BETWEEN %s AND %s AND s = ANY(%s) GROUP BY 1, 2",
-            (start, end, wanted),
+            "WHERE published_on BETWEEN %s AND %s AND s = ANY(%s) GROUP BY 1, 2"
+            ") SELECT days.day, days.papers, mentions.skill_id, mentions.n "
+            "FROM days LEFT JOIN mentions USING (day)",
+            (start, end, start, end, wanted),
         ).fetchall()
     return (
-        {r["day"]: int(r["papers"]) for r in days},
-        {(r["day"], r["skill_id"]): int(r["n"]) for r in rows},
+        {r["day"]: int(r["papers"]) for r in rows},
+        {(r["day"], r["skill_id"]): int(r["n"]) for r in rows if r["skill_id"] is not None},
     )

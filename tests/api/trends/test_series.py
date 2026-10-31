@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+from contextlib import contextmanager
 from datetime import date, timedelta
+from types import SimpleNamespace
 from typing import Any
 
 import pytest
@@ -12,6 +14,40 @@ from app.features.data_refresh import trend_store
 from app.features.trends import series
 
 D0 = date(2026, 10, 6)
+
+
+def test_daily_counts_share_one_statement_and_preserve_days_without_mentions(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[str] = []
+    rows = [
+        {"day": D0, "papers": 3, "skill_id": "python", "n": 2},
+        {"day": D0, "papers": 3, "skill_id": "sql", "n": 1},
+        {"day": D0 + timedelta(days=1), "papers": 0, "skill_id": None, "n": None},
+    ]
+
+    class Conn:
+        def execute(self, query: str, params: Any) -> Any:
+            calls.append(query)
+            assert len(calls) == 1, "Day totals and mentions must not use separate snapshots"
+            assert params == (
+                D0,
+                D0 + timedelta(days=1),
+                D0,
+                D0 + timedelta(days=1),
+                ["python", "sql"],
+            )
+            return SimpleNamespace(fetchall=lambda: rows)
+
+    @contextmanager
+    def connection() -> Any:
+        yield Conn()
+
+    monkeypatch.setattr(trend_store, "connection", connection)
+    papers, mentions = trend_store.daily(D0, D0 + timedelta(days=1), ["python", "sql"])
+    assert papers == {D0: 3, D0 + timedelta(days=1): 0}
+    assert mentions == {(D0, "python"): 2, (D0, "sql"): 1}
+    assert len(calls) == 1
 
 
 def test_rolling_share_needs_every_day_of_the_window() -> None:
@@ -90,6 +126,24 @@ def test_empty_store_returns_no_lines_instead_of_inventing_data(
     monkeypatch.setattr(trend_store, "stored_range", lambda: None)
     body = client.get("/api/v1/trends/series").json()
     assert body["lines"] == [] and body["available_to"] is None
+
+
+def test_empty_store_does_not_claim_a_fetch_on_the_requested_end_date(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(trend_store, "stored_range", lambda: None)
+    response = client.get(
+        "/api/v1/trends/series", params={"start": "2027-01-05", "end": "2027-01-10"}
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["start"] == "2027-01-05" and body["end"] == "2027-01-10"
+    assert body["meta"]["observed_from"] is None and body["meta"]["observed_to"] is None
+    source = body["meta"]["sources"][0]
+    assert "no stored paper observations" in source["name"]
+    assert source["url"].endswith("/src/api/app/features/trends/series.py")
+    assert source["url"] != series.ARXIV_API
+    assert source["retrieved_at"] == body["meta"]["snapshot_date"] == "2026-10-31"
 
 
 def test_short_history_defaults_to_stored_days_not_an_error(

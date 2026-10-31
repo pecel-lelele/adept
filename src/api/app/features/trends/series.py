@@ -16,6 +16,13 @@ from app.core.errors import AppError
 from app.features.data_refresh import trend_store
 
 ARXIV_API = "https://export.arxiv.org/api/query"  # same source as data_refresh.measurements
+# Versioned method inspected on this date; not an arXiv acquisition or observation date.
+EMPTY_SOURCE = Source(
+    name="Adept trend-series method (no stored paper observations)",
+    url="https://github.com/pecel-lelele/adept/blob/"
+    "8ecc82fc9dc36d88ebca49e0a665d832bee2a381/src/api/app/features/trends/series.py",
+    retrieved_at=date(2026, 10, 31),
+)
 
 WINDOW = 7
 MAX_DAYS = 120
@@ -99,13 +106,17 @@ def get_series(
             rising = [x for x in reversed(moved) if (x.change or 0) > 0][:DEFAULT_MOVERS]
             falling = [x for x in moved if (x.change or 0) < 0][:DEFAULT_MOVERS]
             lines = rising + falling
-    fetched = stored[2] if stored else end
+    source = (
+        Source(name="arXiv cs.AI submission API", url=ARXIV_API, retrieved_at=stored[2])
+        if stored
+        else EMPTY_SOURCE.model_copy()
+    )
     # The papers actually counted: from the first plotted window's first day to the last
     # plotted day. Nothing plotted means no observation period.
     plotted = sorted({p.day for line in lines for p in line.points if p.share is not None})
     meta = RecommendationMeta(
-        sources=[Source(name="arXiv cs.AI submission API", url=ARXIV_API, retrieved_at=fetched)],
-        snapshot_date=min(end, newest) if newest else end,
+        sources=[source],
+        snapshot_date=min(end, newest) if newest else source.retrieved_at,
         scenario=scenario,
         is_estimate=False,  # observed sample counts, not a forecast
         observed_from=plotted[0] - timedelta(days=WINDOW - 1) if plotted else None,

@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 
+import { MetaBar } from "@/components";
 import type { ScenarioId, Schemas } from "@/lib/api";
 
 import { TrendLinesChart, type TrendLine } from "./TrendLinesChart";
@@ -54,6 +55,7 @@ export async function TrendRangeCard({
       <div className="a-card-head">
         <h2 id="h-range">{t("title")}</h2>
       </div>
+      <MetaBar meta={series.meta} />
       <p className="a-card-sub">{t("hint", { days: series.window_days })}</p>
       {rejected ? (
         <p className="a-small" role="alert">{t("rejected", { max: MAX_SKILLS, days: MAX_DAYS })}</p>

@@ -82,3 +82,11 @@ observed 7-day rolling share for every day in a chosen range. The radar's "Trend
 card (`TrendRangeCard`, `TrendLinesChart` on shadcn chart / Recharts) lets people pick dates
 and skills; the choice lives in the URL (`?from=&to=&skill=`).
 
+The card renders its own series attribution rather than borrowing the radar forecast's
+snapshot and sources. With no stored papers, metadata cites the dated, versioned method
+and explicitly says no paper observations are stored; query dates never become an arXiv
+retrieval date. The observation period remains null until a complete window contributes data.
+
+
+Daily denominators and mention counts use one SQL statement snapshot, so a concurrent
+settled-day replacement cannot mix versions or inflate a displayed sample share.

@@ -12,12 +12,18 @@ const series = {
     { skill_id: "sql", label: "Synthetic falling skill", change: -0.02,
       points: [{ day: "2026-10-12", share: null }, { day: "2026-10-26", share: 0.08 }] },
   ],
-  meta: { scenario: "fast" },
+  meta: {
+    scenario: "fast", is_estimate: false, snapshot_date: "2026-10-26",
+    observed_from: "2026-10-06", observed_to: "2026-10-26",
+    sources: [{ name: "Synthetic range-paper source", url: "https://example.test/range-papers", retrieved_at: "2026-10-28" }],
+  },
 };
 
 function card(locale: string, charted: unknown[]) {
   const intl = translations(locale);
+  const { MetaBar } = loadComponent("src/components/MetaBar.tsx", { "next-intl": intl });
   const { TrendRangeCard } = loadComponent("src/features/trends/components/TrendRangeCard.tsx", {
+    "@/components": { MetaBar },
     "next-intl/server": { getTranslations: async (namespace: string) => intl.useTranslations(namespace) },
     "./TrendLinesChart": { TrendLinesChart: (props: unknown) => { charted.push(props); return null; } },
   });
@@ -33,6 +39,11 @@ test("trend range keeps scenario and date limits in a plain GET form in every lo
       allSkills: [{ id: "python", label: "Synthetic rising skill" }, { id: "rust", label: "Synthetic extra skill" }],
     })));
     assert.match(html, /<form[^>]*action="\/app\/radar"[^>]*method="get"/);
+    assert.match(html, /Synthetic range-paper source/);
+    assert.match(html, /href="https:\/\/example.test\/range-papers"/);
+    assert.ok(html.includes(translations(locale).useTranslations("common.design")("observed", {
+      from: series.meta.observed_from, to: series.meta.observed_to,
+    })));
     assert.match(html, /name="scenario" value="fast"/);
     assert.match(html, /name="snapshot_date" value="2026-10-26"/);
     const from = html.match(/<input type="date"[^>]*name="from"[^>]*>/)?.[0] ?? "";
