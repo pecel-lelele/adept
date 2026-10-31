@@ -1217,7 +1217,7 @@
           "jobs"
         ],
         "summary": "Role Openings",
-        "description": "Current openings for one role, the skills they ask for most, and how many are within the\nlearner's reach today and after their plan.",
+        "description": "Current openings for one role, the skills they ask for most, and how many are within the\nlearner's reach today and after their plan. With `malaysia_focus`, remote ads open to\nMalaysia or to anyone are included too, each labelled with its Malaysia relevance.",
         "operationId": "jobs_role_openings",
         "parameters": [
           {
@@ -1253,6 +1253,16 @@
               "minimum": 1,
               "default": 8,
               "title": "Limit"
+            }
+          },
+          {
+            "name": "malaysia_focus",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Malaysia Focus"
             }
           },
           {
@@ -9723,6 +9733,10 @@
             "minimum": 1.0,
             "title": "Page Size"
           },
+          "places": {
+            "$ref": "#/components/schemas/OpeningPlaceCounts",
+            "description": "Open ads on the whole board, by state."
+          },
           "roles": {
             "items": {
               "$ref": "#/components/schemas/RoleOpeningCount"
@@ -9752,6 +9766,7 @@
           "total",
           "page",
           "page_size",
+          "places",
           "roles",
           "meta"
         ],
@@ -9790,6 +9805,16 @@
             "title": "Remote Scope",
             "description": "Remote only: who may apply.",
             "default": ""
+          },
+          "malaysia_relevance": {
+            "type": "string",
+            "enum": [
+              "in_malaysia",
+              "remote_explicit_my",
+              "remote_assumed_worldwide"
+            ],
+            "title": "Malaysia Relevance",
+            "description": "in_malaysia: the ad's own location is in Malaysia; remote_explicit_my: remote, and the feed names Malaysia or a region including it; remote_assumed_worldwide: remote with no Malaysian claim (the feed said worldwide or named no region)."
           },
           "employment_type": {
             "type": "string",
@@ -9909,6 +9934,7 @@
           "employer",
           "location",
           "work_mode",
+          "malaysia_relevance",
           "url",
           "source_name",
           "first_seen",
@@ -10406,6 +10432,33 @@
           "role_ids"
         ],
         "title": "ObjectiveOption"
+      },
+      "OpeningPlaceCounts": {
+        "properties": {
+          "in_malaysia": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "In Malaysia"
+          },
+          "remote_explicit_my": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Remote Explicit My"
+          },
+          "remote_assumed_worldwide": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Remote Assumed Worldwide"
+          }
+        },
+        "type": "object",
+        "required": [
+          "in_malaysia",
+          "remote_explicit_my",
+          "remote_assumed_worldwide"
+        ],
+        "title": "OpeningPlaceCounts",
+        "description": "Open ads by Malaysia-relevance state, kept apart so no blended Malaysia number is shown."
       },
       "OpeningsSummary": {
         "properties": {
@@ -12897,6 +12950,9 @@
             "type": "integer",
             "minimum": 0.0,
             "title": "Remote Count"
+          },
+          "places": {
+            "$ref": "#/components/schemas/OpeningPlaceCounts"
           }
         },
         "type": "object",
@@ -12905,7 +12961,8 @@
           "role_label",
           "open_count",
           "employer_count",
-          "remote_count"
+          "remote_count",
+          "places"
         ],
         "title": "RoleOpeningCount"
       },
@@ -12933,6 +12990,9 @@
             "type": "integer",
             "minimum": 0.0,
             "title": "Remote Count"
+          },
+          "places": {
+            "$ref": "#/components/schemas/OpeningPlaceCounts"
           },
           "employers": {
             "items": {
@@ -13008,6 +13068,7 @@
           "open_count",
           "employer_count",
           "remote_count",
+          "places",
           "employers",
           "openings",
           "skill_demand",

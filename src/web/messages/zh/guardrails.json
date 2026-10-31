@@ -12,7 +12,7 @@
     "arxiv": "通过公共 API 获取已完成的真实 arXiv 投稿周，并采用注明日期的 BLS 基线。2024 年 10 月的冻结回放数据会明确标注；研究关注度并非实测职位需求。",
     "bls": "以职业预测作为估计职位前景的劳动力基线。",
     "onet": "用于构建 Adept 人工整理职位映射的职业分类；Adept 的细分职位并非 O*NET 官方名称。",
-    "jobs": "自动刷新使用有文档的 Greenhouse、Lever 和 Ashby 雇主 API，按每条职位自身的马来西亚地点筛选，14 天后过期。Careerjet、Jooble 和 web3.career 仍为可选。旧导出可能包含已注明来源的其他信息；仅标注全球的职位将被排除。",
+    "jobs": "自动刷新使用有文档的 Greenhouse、Lever 和 Ashby 雇主 API，按每条职位自身的马来西亚地点筛选，14 天后过期。Careerjet、Jooble 和 web3.career 仍为可选。旧导出可能包含已注明来源的其他信息。职位板和角色页面还会读取远程职位平台（Himalayas、Jobicy、Remote OK、Remotive），每条职位标注为“远程 · 向马来西亚开放”或“远程 · 全球”；其他页面只列出位于马来西亚的职位。",
     "mscert": "官方认证说明和有日期的马来西亚考试费用；课程与认证考试分别列出。",
     "awscert": "AWS 官方认证说明和考试费用。",
     "googlecert": "Google Cloud 官方认证说明和考试费用。",

@@ -67,6 +67,8 @@ MY_PLACES = (
 PLACEHOLDER_LOCATIONS = frozenset({"remote", "anywhere", "remote anywhere", "anywhere remote"})
 # Remote openings open to someone living in Malaysia.
 REMOTE_OK = ("malaysia", "worldwide", "anywhere", "global", "asia", "apac", "southeast asia")
+# Stored remote scopes where the feed names a region that includes Malaysia.
+EXPLICIT_REMOTE_SCOPES = frozenset({"Malaysia", "Southeast Asia", "APAC", "Asia"})
 
 
 @dataclass
@@ -235,6 +237,23 @@ def remote_scope(*places: str | None) -> str:
         if word in blob:
             return label
     return ""
+
+
+def malaysia_relevance(location: str | None, work_mode: str | None, scope: str | None) -> str:
+    """How a stored posting relates to Malaysia: in_malaysia, remote_explicit_my,
+    remote_assumed_worldwide or not_malaysia.
+
+    A remote ad naming another place is scoped there, whatever its stored scope says. A stored
+    "Worldwide" may mean the feed named no region at all, so it is never a claim about Malaysia.
+    """
+    if in_malaysia(location):
+        return "in_malaysia"
+    place = (location or "").strip()
+    if work_mode != "remote" or (place and not _placeholder(place)):
+        return "not_malaysia"
+    if scope in EXPLICIT_REMOTE_SCOPES:
+        return "remote_explicit_my"
+    return "remote_assumed_worldwide" if scope == "Worldwide" else "not_malaysia"
 
 
 def iso_day(value: Any) -> date | None:

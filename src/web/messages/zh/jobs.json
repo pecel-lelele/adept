@@ -11,11 +11,24 @@
   "malaysia": "马来西亚",
   "hybrid": "混合办公",
   "posted": "发布于 {date}",
+  "via": "来源：{source}",
+  "relevance": {
+    "in_malaysia": "位于马来西亚",
+    "remote_explicit_my": "远程 · 向马来西亚开放",
+    "remote_assumed_worldwide": "远程 · 全球"
+  },
+  "places": {
+    "inMalaysia": "马来西亚 {count} 个",
+    "remoteOpen": "向马来西亚开放的远程职位 {count} 个",
+    "remoteWorldwide": "全球远程职位 {count} 个"
+  },
   "openings": {
     "title": "职位空缺",
     "meta": "{employers, plural, other {# 家公司}}的 {count, plural, other {# 个空缺}}",
     "metaNone": "目前没有空缺",
+    "metaNoneMalaysia": "目前没有与马来西亚相关的空缺",
     "none": "{role} 目前没有空缺。每天都有新职位加入。",
+    "noneMalaysia": "此角色目前没有位于马来西亚或向马来西亚开放的有效职位。",
     "asked": "雇主要求的技能",
     "all": "查看全部 {count} 个"
   },
@@ -54,8 +67,8 @@
   },
   "board": {
     "title": "职位",
-    "description": "马来西亚 {count} 个空缺，以及你可以申请的远程职位。",
     "role": "角色",
+    "roleSplit": "{inMalaysia} 个 · 远程 {remote} 个",
     "allRoles": "所有角色",
     "where": "工作方式",
     "anyMode": "全部",

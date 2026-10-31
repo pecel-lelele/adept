@@ -7,12 +7,13 @@ import { Fold } from "@/components/Fold";
 import type { ScenarioId } from "@/lib/api";
 
 import { fetchRoleOpenings } from "../api";
-import { OpeningItem, SkillPills, StatusLegend } from "./OpeningItem";
+import { OpeningItem, placeCounts, SkillPills, StatusLegend } from "./OpeningItem";
 
 /**
  * Job openings for a role, folded to one line ("12 openings at 5 companies"). Open: how many
  * match the person's skills now and after the plan, the skills employers ask for, and the jobs
  * that match best. `team` hides personal fit (an HR manager has no learner profile here).
+ * `malaysiaFocus` adds remote ads open to Malaysia or to anyone, split and badged.
  */
 export async function RoleOpeningsCard({
   roleId,
@@ -20,28 +21,37 @@ export async function RoleOpeningsCard({
   limit = 5,
   variant = "learner",
   open = false,
+  malaysiaFocus = false,
 }: {
   roleId: string;
   scenario: ScenarioId;
   limit?: number;
   variant?: "learner" | "team";
   open?: boolean;
+  malaysiaFocus?: boolean;
 }) {
   const t = await getTranslations("jobs");
-  const result = await fetchRoleOpenings(roleId, scenario, limit);
+  const result = await fetchRoleOpenings(roleId, scenario, limit, malaysiaFocus);
   if (!result.ok) return null;
   const d = result.data;
   const learner = variant === "learner";
+  const meta = malaysiaFocus
+    ? d.open_count
+      ? await placeCounts(d.places)
+      : t("openings.metaNoneMalaysia")
+    : d.open_count
+      ? t("openings.meta", { count: d.open_count, employers: d.employer_count })
+      : t("openings.metaNone");
   return (
     <Fold
       id="openings"
       open={open}
       icon={<BriefcaseBusiness size={18} aria-hidden />}
       title={t("openings.title")}
-      meta={d.open_count ? t("openings.meta", { count: d.open_count, employers: d.employer_count }) : t("openings.metaNone")}
+      meta={meta}
     >
       {!d.open_count ? (
-        <p className="a-fold-text">{t("openings.none", { role: d.role_label })}</p>
+        <p className="a-fold-text">{malaysiaFocus ? t("openings.noneMalaysia") : t("openings.none", { role: d.role_label })}</p>
       ) : (
         <>
           {learner && d.rated > 0 ? (
@@ -67,7 +77,7 @@ export async function RoleOpeningsCard({
 
           <ul className="a-jobs">
             {d.openings.map((o) => (
-              <OpeningItem key={o.id} o={o} showFit={learner} />
+              <OpeningItem key={o.id} o={o} showFit={learner} malaysiaFocus={malaysiaFocus} />
             ))}
           </ul>
           <div className="a-fold-foot">
