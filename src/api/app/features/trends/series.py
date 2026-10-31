@@ -25,7 +25,8 @@ EMPTY_SOURCE = Source(
 )
 
 WINDOW = 7
-MAX_DAYS = 120
+# Mirrored by the chart's date limits (web: TrendRangeCard MAX_DAYS). Covers all of 2026.
+MAX_DAYS = 366
 MAX_SKILLS = 8
 DEFAULT_DAYS = 28
 DEFAULT_MOVERS = 3  # rising and falling each, when no skills are chosen
@@ -60,6 +61,15 @@ def _invalid(message: str) -> AppError:
     return AppError(message, status_code=422, code="invalid_range")
 
 
+def default_start(
+    end: date, stored: tuple[date, date, date] | None, first_full: date | None
+) -> date:
+    """Latest DEFAULT_DAYS with data. While fewer than WINDOW days are stored, default to the
+    stored days (shown as gaps) rather than a start after the end."""
+    floor = first_full if first_full and first_full <= end else (stored[0] if stored else end)
+    return max(end - timedelta(days=DEFAULT_DAYS - 1), min(floor, end))
+
+
 def get_series(
     start: date | None,
     end: date | None,
@@ -77,10 +87,7 @@ def get_series(
     newest = stored[1] if stored else None
     end = end or newest or date.today()
     if start is None:
-        # While fewer than WINDOW days are stored, default to the stored days (shown as gaps)
-        # rather than a start after the end.
-        floor = first_full if first_full and first_full <= end else (stored[0] if stored else end)
-        start = max(end - timedelta(days=DEFAULT_DAYS - 1), min(floor, end))
+        start = default_start(end, stored, first_full)
     if start > end:
         raise _invalid("The start date must be on or before the end date.")
     if (end - start).days + 1 > MAX_DAYS:

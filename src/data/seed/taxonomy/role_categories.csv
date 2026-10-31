@@ -1,0 +1,49 @@
+role_id,category_id,category_label
+data-analyst,data-science-analytics,Data Science & Analytics
+machine-learning-engineer,data-science-analytics,Data Science & Analytics
+data-engineer,data-science-analytics,Data Science & Analytics
+business-intelligence-analysts,data-science-analytics,Data Science & Analytics
+database-administrators,data-science-analytics,Data Science & Analytics
+ai-operations-specialist,software-cloud-security,"Software, Cloud & Security"
+cloud-solutions-architect,software-cloud-security,"Software, Cloud & Security"
+cybersecurity-analyst,software-cloud-security,"Software, Cloud & Security"
+web-developers,software-cloud-security,"Software, Cloud & Security"
+network-systems-administrators,software-cloud-security,"Software, Cloud & Security"
+software-quality-assurance-testers,software-cloud-security,"Software, Cloud & Security"
+ai-product-manager,product-design-marketing,"Product, Design & Marketing"
+ux-designer,product-design-marketing,"Product, Design & Marketing"
+digital-marketing-specialist,product-design-marketing,"Product, Design & Marketing"
+business-analyst,business-finance-compliance,"Business, Finance & Compliance"
+process-automation-analyst,business-finance-compliance,"Business, Finance & Compliance"
+compliance-analytics-officer,business-finance-compliance,"Business, Finance & Compliance"
+responsible-ai-officer,business-finance-compliance,"Business, Finance & Compliance"
+islamic-finance-analyst,business-finance-compliance,"Business, Finance & Compliance"
+esg-sustainability-analyst,business-finance-compliance,"Business, Finance & Compliance"
+accountants-auditors,business-finance-compliance,"Business, Finance & Compliance"
+people-analytics-specialist,business-finance-compliance,"Business, Finance & Compliance"
+solar-pv-engineer,engineering-energy-production,"Engineering, Energy & Production"
+energy-manager,engineering-energy-production,"Engineering, Energy & Production"
+smart-manufacturing-engineer,engineering-energy-production,"Engineering, Energy & Production"
+semiconductor-process-engineer,engineering-energy-production,"Engineering, Energy & Production"
+precision-agriculture-specialist,engineering-energy-production,"Engineering, Energy & Production"
+production-workers-all-other,engineering-energy-production,"Engineering, Energy & Production"
+team-assemblers,engineering-energy-production,"Engineering, Energy & Production"
+logistics-supervisor,logistics-supply-chain,Logistics & Supply Chain
+supply-chain-analyst,logistics-supply-chain,Logistics & Supply Chain
+shipping-receiving-inventory-clerks,logistics-supply-chain,Logistics & Supply Chain
+health-informatics-specialist,healthcare-education,Healthcare & Education
+digital-health-nurse,healthcare-education,Healthcare & Education
+registered-nurses,healthcare-education,Healthcare & Education
+learning-experience-designer,healthcare-education,Healthcare & Education
+tvet-digital-skills-trainer,healthcare-education,Healthcare & Education
+teaching-assistants-school,healthcare-education,Healthcare & Education
+bank-operations-executive,office-sales-service,"Office, Sales & Customer Service"
+data-entry-clerk,office-sales-service,"Office, Sales & Customer Service"
+customer-success-specialist,office-sales-service,"Office, Sales & Customer Service"
+hospitality-experience-manager,office-sales-service,"Office, Sales & Customer Service"
+retail-salespersons,office-sales-service,"Office, Sales & Customer Service"
+customer-service-representatives,office-sales-service,"Office, Sales & Customer Service"
+bookkeeping-accounting-clerks,office-sales-service,"Office, Sales & Customer Service"
+secretaries-administrative-assistants,office-sales-service,"Office, Sales & Customer Service"
+retail-sales-supervisors,office-sales-service,"Office, Sales & Customer Service"
+bank-tellers,office-sales-service,"Office, Sales & Customer Service"

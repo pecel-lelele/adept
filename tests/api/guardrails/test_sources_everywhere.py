@@ -87,12 +87,38 @@ def test_mycol_badge_has_its_own_historical_sources(
         assert meta.sources[0].retrieved_at.isoformat() == "2026-10-29"
 
 
+def test_trend_compare_attributes_observed_and_projected_parts_separately(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The sweep sees the empty store; this exercises a response with lines and a projection."""
+    from datetime import date
+
+    from app.features.data_refresh import trend_store
+
+    days = [date(2026, 1, 1) + timedelta(days=i) for i in range(60)]
+    monkeypatch.setattr(trend_store, "stored_range", lambda: (days[0], days[-1], days[-1]))
+    monkeypatch.setattr(
+        trend_store,
+        "daily",
+        lambda start, end, ids: ({d: 50 for d in days}, {(d, s): 5 for d in days for s in ids}),
+    )
+    body = client.get(
+        "/api/v1/trends/compare", params={"entities": ["role:data-analyst"], "scenario": "fast"}
+    ).json()
+    assert body["lines"] and body["projection_meta"]
+    for raw in (body["meta"], body["projection_meta"]):
+        meta = RecommendationMeta.model_validate(raw)
+        assert meta.sources and all(s.url.startswith("https://") for s in meta.sources)
+        assert meta.snapshot_date == days[-1] and meta.scenario == "fast" and meta.is_estimate
+
+
 def test_sweep_found_the_recommendation_endpoints() -> None:
     paths = {p for p, _ in ENDPOINTS}
     for expected in (
         "/api/v1/matches",
         "/api/v1/pathway",
         "/api/v1/trends/radar",
+        "/api/v1/trends/compare",
         "/api/v1/sdg/contribution/me",
         "/api/v1/org/plan",
         "/api/v1/impact/summary",

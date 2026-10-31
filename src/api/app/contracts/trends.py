@@ -205,3 +205,76 @@ class TrendSeriesResponse(BaseModel):
     available_to: date | None = Field(description="Newest stored day.")
     lines: list[TrendSeriesLine]
     meta: RecommendationMeta
+
+
+TrendEntityKind = Literal["skill", "role", "category"]
+CompareMode = Literal["indexed", "raw"]
+TrendRangePreset = Literal["1W", "1M", "3M", "6M"]
+
+
+class TrendComparePoint(BaseModel):
+    day: date
+    value: float | None = Field(
+        description="In the response's mode: rebased to 100 (indexed) or the raw share (0-1). "
+        "Null when that day has no complete data; gaps are never interpolated."
+    )
+
+
+class TrendCompareOption(BaseModel):
+    """A chartable entity from the reviewed taxonomy seeds."""
+
+    entity: str = Field(description="`kind:id`, the form used in the URL and the `entities` query.")
+    kind: TrendEntityKind
+    label: str
+
+
+class TrendCompareLine(BaseModel):
+    entity: str
+    kind: TrendEntityKind
+    entity_id: str
+    label: str
+    points: list[TrendComparePoint]
+    start_value: float | None = Field(description="First available value in the range.")
+    end_value: float | None = Field(description="Last available value in the range.")
+    change: float | None = Field(description="End minus start, in the response's mode.")
+    moderate_end: float | None = Field(
+        description="Moderate pace continuation at the horizon; an estimate, not a prediction."
+    )
+    fast_end: float | None = Field(
+        description="Fast pace continuation at the horizon; an estimate, not a prediction."
+    )
+    projection: list[TrendComparePoint] = Field(
+        description="The selected scenario's pace continuation after the last observed day."
+    )
+
+
+class TrendCompareResponse(BaseModel):
+    """Skill, role and category lines over a stored date range, with a labelled projection.
+
+    Skill lines are observed shares. Role and category lines are derived from arXiv skill
+    signals, not observed role demand. `meta` covers the observed part; `projection_meta`
+    covers the projected part and is always an estimate.
+    """
+
+    kind: TrendEntityKind
+    start: date
+    end: date
+    window_days: int = 7
+    step_days: int = Field(description="Days between points: 1, or 7 on long ranges.")
+    available_from: date | None = Field(description="First day a full window is stored.")
+    available_to: date | None = Field(description="Newest stored day.")
+    mode: CompareMode
+    raw_fallback: bool = Field(
+        default=False,
+        description="Rebasing was requested but no date has every line above 0, so raw is shown.",
+    )
+    base_date: date | None = Field(
+        default=None, description="The date rebased to 100; null in raw mode."
+    )
+    horizon_days: int
+    projected_from: date | None = Field(default=None, description="Last observed day.")
+    projected_to: date | None = None
+    lines: list[TrendCompareLine]
+    options: list[TrendCompareOption]
+    meta: RecommendationMeta
+    projection_meta: RecommendationMeta | None = None

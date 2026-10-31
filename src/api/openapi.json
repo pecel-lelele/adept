@@ -605,8 +605,9 @@
         "tags": [
           "data"
         ],
-        "summary": "User Refresh",
-        "operationId": "data_user_refresh",
+        "summary": "Admin Refresh",
+        "description": "Admin-only manual trigger; people see \"Data through <date>\" and the daily job runs.",
+        "operationId": "data_admin_refresh",
         "parameters": [
           {
             "name": "x-demo-user",
@@ -6143,7 +6144,7 @@
           "trends"
         ],
         "summary": "Get Series",
-        "description": "Observed 7-day rolling share per skill for each day in [start, end] (max 120 days).\n\nCounted from stored papers (no model call). Without `skill_ids`, the three biggest risers\nand fallers in the range are returned. 422 invalid_range for bad dates or skills.",
+        "description": "Observed 7-day rolling share per skill for each day in [start, end] (max 366 days).\n\nCounted from stored papers (no model call). Without `skill_ids`, the three biggest risers\nand fallers in the range are returned. 422 invalid_range for bad dates or skills.",
         "operationId": "trends_get_series",
         "parameters": [
           {
@@ -6215,6 +6216,166 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/TrendSeriesResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/trends/compare": {
+      "get": {
+        "tags": [
+          "trends"
+        ],
+        "summary": "Get Compare",
+        "description": "Skills, roles and categories over a stored range: rebased or raw, with a pace projection.\n\nReads stored papers only; never calls arXiv or a model. 422 invalid_range for dates outside\nstored data, unknown entities or more than 8 lines. Role and category scores are derived\nfrom arXiv skill signals, not observed role demand.",
+        "operationId": "trends_get_compare",
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "skill",
+                "role",
+                "category"
+              ],
+              "type": "string",
+              "default": "skill",
+              "title": "Kind"
+            }
+          },
+          {
+            "name": "entities",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Up to 8 `kind:id` lines. Omit for the biggest movers.",
+              "default": [],
+              "title": "Entities"
+            },
+            "description": "Up to 8 `kind:id` lines. Omit for the biggest movers."
+          },
+          {
+            "name": "preset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "1W",
+                    "1M",
+                    "3M",
+                    "6M"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Preset"
+            }
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Start"
+            }
+          },
+          {
+            "name": "end",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "End"
+            }
+          },
+          {
+            "name": "scenario",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "moderate",
+                "fast"
+              ],
+              "type": "string",
+              "default": "moderate",
+              "title": "Scenario"
+            }
+          },
+          {
+            "name": "horizon_days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 365,
+              "minimum": 1,
+              "default": 90,
+              "title": "Horizon Days"
+            }
+          },
+          {
+            "name": "mode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "indexed",
+                "raw"
+              ],
+              "type": "string",
+              "default": "indexed",
+              "title": "Mode"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrendCompareResponse"
                 }
               }
             }
@@ -14789,6 +14950,336 @@
           "trend_coverage"
         ],
         "title": "TopRole"
+      },
+      "TrendCompareLine": {
+        "properties": {
+          "entity": {
+            "type": "string",
+            "title": "Entity"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "skill",
+              "role",
+              "category"
+            ],
+            "title": "Kind"
+          },
+          "entity_id": {
+            "type": "string",
+            "title": "Entity Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/TrendComparePoint"
+            },
+            "type": "array",
+            "title": "Points"
+          },
+          "start_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Value",
+            "description": "First available value in the range."
+          },
+          "end_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Value",
+            "description": "Last available value in the range."
+          },
+          "change": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change",
+            "description": "End minus start, in the response's mode."
+          },
+          "moderate_end": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moderate End",
+            "description": "Moderate pace continuation at the horizon; an estimate, not a prediction."
+          },
+          "fast_end": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fast End",
+            "description": "Fast pace continuation at the horizon; an estimate, not a prediction."
+          },
+          "projection": {
+            "items": {
+              "$ref": "#/components/schemas/TrendComparePoint"
+            },
+            "type": "array",
+            "title": "Projection",
+            "description": "The selected scenario's pace continuation after the last observed day."
+          }
+        },
+        "type": "object",
+        "required": [
+          "entity",
+          "kind",
+          "entity_id",
+          "label",
+          "points",
+          "start_value",
+          "end_value",
+          "change",
+          "moderate_end",
+          "fast_end",
+          "projection"
+        ],
+        "title": "TrendCompareLine"
+      },
+      "TrendCompareOption": {
+        "properties": {
+          "entity": {
+            "type": "string",
+            "title": "Entity",
+            "description": "`kind:id`, the form used in the URL and the `entities` query."
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "skill",
+              "role",
+              "category"
+            ],
+            "title": "Kind"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "entity",
+          "kind",
+          "label"
+        ],
+        "title": "TrendCompareOption",
+        "description": "A chartable entity from the reviewed taxonomy seeds."
+      },
+      "TrendComparePoint": {
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date",
+            "title": "Day"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value",
+            "description": "In the response's mode: rebased to 100 (indexed) or the raw share (0-1). Null when that day has no complete data; gaps are never interpolated."
+          }
+        },
+        "type": "object",
+        "required": [
+          "day",
+          "value"
+        ],
+        "title": "TrendComparePoint"
+      },
+      "TrendCompareResponse": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "skill",
+              "role",
+              "category"
+            ],
+            "title": "Kind"
+          },
+          "start": {
+            "type": "string",
+            "format": "date",
+            "title": "Start"
+          },
+          "end": {
+            "type": "string",
+            "format": "date",
+            "title": "End"
+          },
+          "window_days": {
+            "type": "integer",
+            "title": "Window Days",
+            "default": 7
+          },
+          "step_days": {
+            "type": "integer",
+            "title": "Step Days",
+            "description": "Days between points: 1, or 7 on long ranges."
+          },
+          "available_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Available From",
+            "description": "First day a full window is stored."
+          },
+          "available_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Available To",
+            "description": "Newest stored day."
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "indexed",
+              "raw"
+            ],
+            "title": "Mode"
+          },
+          "raw_fallback": {
+            "type": "boolean",
+            "title": "Raw Fallback",
+            "description": "Rebasing was requested but no date has every line above 0, so raw is shown.",
+            "default": false
+          },
+          "base_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Date",
+            "description": "The date rebased to 100; null in raw mode."
+          },
+          "horizon_days": {
+            "type": "integer",
+            "title": "Horizon Days"
+          },
+          "projected_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Projected From",
+            "description": "Last observed day."
+          },
+          "projected_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Projected To"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/TrendCompareLine"
+            },
+            "type": "array",
+            "title": "Lines"
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/TrendCompareOption"
+            },
+            "type": "array",
+            "title": "Options"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RecommendationMeta"
+          },
+          "projection_meta": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RecommendationMeta"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "start",
+          "end",
+          "step_days",
+          "available_from",
+          "available_to",
+          "mode",
+          "horizon_days",
+          "lines",
+          "options",
+          "meta"
+        ],
+        "title": "TrendCompareResponse",
+        "description": "Skill, role and category lines over a stored date range, with a labelled projection.\n\nSkill lines are observed shares. Role and category lines are derived from arXiv skill\nsignals, not observed role demand. `meta` covers the observed part; `projection_meta`\ncovers the projected part and is always an estimate."
       },
       "TrendRecommendationMeta": {
         "properties": {

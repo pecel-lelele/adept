@@ -256,8 +256,11 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** User Refresh */
-        post: operations["data_user_refresh"];
+        /**
+         * Admin Refresh
+         * @description Admin-only manual trigger; people see "Data through <date>" and the daily job runs.
+         */
+        post: operations["data_admin_refresh"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1593,12 +1596,36 @@ export interface paths {
         };
         /**
          * Get Series
-         * @description Observed 7-day rolling share per skill for each day in [start, end] (max 120 days).
+         * @description Observed 7-day rolling share per skill for each day in [start, end] (max 366 days).
          *
          *     Counted from stored papers (no model call). Without `skill_ids`, the three biggest risers
          *     and fallers in the range are returned. 422 invalid_range for bad dates or skills.
          */
         get: operations["trends_get_series"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trends/compare": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Compare
+         * @description Skills, roles and categories over a stored range: rebased or raw, with a pace projection.
+         *
+         *     Reads stored papers only; never calls arXiv or a model. 422 invalid_range for dates outside
+         *     stored data, unknown entities or more than 8 lines. Role and category scores are derived
+         *     from arXiv skill signals, not observed role demand.
+         */
+        get: operations["trends_get_compare"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5286,6 +5313,159 @@ export interface components {
             /** Trend Coverage */
             trend_coverage: number;
         };
+        /** TrendCompareLine */
+        TrendCompareLine: {
+            /** Entity */
+            entity: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "skill" | "role" | "category";
+            /** Entity Id */
+            entity_id: string;
+            /** Label */
+            label: string;
+            /** Points */
+            points: components["schemas"]["TrendComparePoint"][];
+            /**
+             * Start Value
+             * @description First available value in the range.
+             */
+            start_value: number | null;
+            /**
+             * End Value
+             * @description Last available value in the range.
+             */
+            end_value: number | null;
+            /**
+             * Change
+             * @description End minus start, in the response's mode.
+             */
+            change: number | null;
+            /**
+             * Moderate End
+             * @description Moderate pace continuation at the horizon; an estimate, not a prediction.
+             */
+            moderate_end: number | null;
+            /**
+             * Fast End
+             * @description Fast pace continuation at the horizon; an estimate, not a prediction.
+             */
+            fast_end: number | null;
+            /**
+             * Projection
+             * @description The selected scenario's pace continuation after the last observed day.
+             */
+            projection: components["schemas"]["TrendComparePoint"][];
+        };
+        /**
+         * TrendCompareOption
+         * @description A chartable entity from the reviewed taxonomy seeds.
+         */
+        TrendCompareOption: {
+            /**
+             * Entity
+             * @description `kind:id`, the form used in the URL and the `entities` query.
+             */
+            entity: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "skill" | "role" | "category";
+            /** Label */
+            label: string;
+        };
+        /** TrendComparePoint */
+        TrendComparePoint: {
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /**
+             * Value
+             * @description In the response's mode: rebased to 100 (indexed) or the raw share (0-1). Null when that day has no complete data; gaps are never interpolated.
+             */
+            value: number | null;
+        };
+        /**
+         * TrendCompareResponse
+         * @description Skill, role and category lines over a stored date range, with a labelled projection.
+         *
+         *     Skill lines are observed shares. Role and category lines are derived from arXiv skill
+         *     signals, not observed role demand. `meta` covers the observed part; `projection_meta`
+         *     covers the projected part and is always an estimate.
+         */
+        TrendCompareResponse: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "skill" | "role" | "category";
+            /**
+             * Start
+             * Format: date
+             */
+            start: string;
+            /**
+             * End
+             * Format: date
+             */
+            end: string;
+            /**
+             * Window Days
+             * @default 7
+             */
+            window_days: number;
+            /**
+             * Step Days
+             * @description Days between points: 1, or 7 on long ranges.
+             */
+            step_days: number;
+            /**
+             * Available From
+             * @description First day a full window is stored.
+             */
+            available_from: string | null;
+            /**
+             * Available To
+             * @description Newest stored day.
+             */
+            available_to: string | null;
+            /**
+             * Mode
+             * @enum {string}
+             */
+            mode: "indexed" | "raw";
+            /**
+             * Raw Fallback
+             * @description Rebasing was requested but no date has every line above 0, so raw is shown.
+             * @default false
+             */
+            raw_fallback: boolean;
+            /**
+             * Base Date
+             * @description The date rebased to 100; null in raw mode.
+             */
+            base_date?: string | null;
+            /** Horizon Days */
+            horizon_days: number;
+            /**
+             * Projected From
+             * @description Last observed day.
+             */
+            projected_from?: string | null;
+            /** Projected To */
+            projected_to?: string | null;
+            /** Lines */
+            lines: components["schemas"]["TrendCompareLine"][];
+            /** Options */
+            options: components["schemas"]["TrendCompareOption"][];
+            meta: components["schemas"]["RecommendationMeta"];
+            projection_meta?: components["schemas"]["RecommendationMeta"] | null;
+        };
         /**
          * TrendRecommendationMeta
          * @description Legacy trend endpoints retain the same explicit origin as snapshot/freshness.
@@ -6112,7 +6292,7 @@ export interface operations {
             };
         };
     };
-    data_user_refresh: {
+    data_admin_refresh: {
         parameters: {
             query?: never;
             header?: {
@@ -8530,6 +8710,45 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TrendSeriesResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    trends_get_compare: {
+        parameters: {
+            query?: {
+                kind?: "skill" | "role" | "category";
+                /** @description Up to 8 `kind:id` lines. Omit for the biggest movers. */
+                entities?: string[];
+                preset?: ("1W" | "1M" | "3M" | "6M") | null;
+                start?: string | null;
+                end?: string | null;
+                scenario?: "moderate" | "fast";
+                horizon_days?: number;
+                mode?: "indexed" | "raw";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrendCompareResponse"];
                 };
             };
             /** @description Validation Error */
