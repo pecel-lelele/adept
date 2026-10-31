@@ -18,11 +18,30 @@ def test_spearman_handles_ties_and_flat_inputs() -> None:
 
 
 def test_the_written_pass_bar_needs_every_part() -> None:
-    assert backfill.verdict(0.6, 0.7, 0.7, 500)
-    assert not backfill.verdict(0.59, 0.9, 0.9, 900)
-    assert not backfill.verdict(0.9, 0.69, 0.9, 900)
-    assert not backfill.verdict(0.9, 0.9, 0.69, 900)
-    assert not backfill.verdict(0.9, 0.9, 0.9, 499)
+    assert backfill.verdict(0.6, 0.7, 0.7, 500, 50, 50)
+    assert not backfill.verdict(0.59, 0.9, 0.9, 900, 50, 50)
+    assert not backfill.verdict(0.9, 0.69, 0.9, 900, 50, 50)
+    assert not backfill.verdict(0.9, 0.9, 0.69, 900, 50, 50)
+    assert not backfill.verdict(0.9, 0.9, 0.9, 499, 50, 50)
+    assert not backfill.verdict(0.9, 0.9, 0.9, 900, 49, 50)
+    assert not backfill.verdict(0.9, 0.9, 0.9, 900, 50, 49)
+
+
+def test_comparison_cannot_pass_when_recent_windows_have_no_shared_evidence(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    day = date(2026, 10, 5)
+    papers = [{"arxiv_id": f"synthetic-{i}"} for i in range(500)]
+    skills = {p["arxiv_id"]: ["python"] for p in papers}
+    sample = backfill.Sample({day: papers}, skills, {day: papers})
+    monkeypatch.setattr(backfill, "_skills", lambda: [("python", "Python"), ("sql", "SQL")])
+    report = backfill.compare(
+        sample, skills, 0.5, 1.0, date(2026, 10, 1), date(2026, 10, 28), date(2026, 10, 31)
+    )
+    assert report["papers"] == 500 and report["spearman"] == 1.0
+    assert report["recent_window_papers"] == {"before": 0, "after": 0}
+    assert report["label_agreement_moderate"] == report["label_agreement_fast"] == 1.0
+    assert report["passed"] is False
 
 
 def test_labels_come_from_the_production_scorer() -> None:

@@ -60,6 +60,8 @@ REPORT = trend_store.EQUIVALENCE_REPORT
 MIN_SPEARMAN = 0.60
 MIN_LABEL_AGREEMENT = 0.70
 MIN_PAPERS = 500
+# At least one full day's sample in each recent 7-day window must actually be compared.
+MIN_RECENT_WINDOW_PAPERS = 50
 DEFAULT_EQUIVALENCE_DAYS = 28
 
 # An assumed list price for the printed estimate only; check it before relying on the figure.
@@ -137,9 +139,18 @@ def label_agreement(
     return sum(a[s][scenario] == b[s][scenario] for s in a) / len(a) if a else 0.0
 
 
-def verdict(rho: float, moderate: float, fast: float, papers: int) -> bool:
+def verdict(
+    rho: float,
+    moderate: float,
+    fast: float,
+    papers: int,
+    before_papers: int,
+    after_papers: int,
+) -> bool:
     return (
         papers >= MIN_PAPERS
+        and before_papers >= MIN_RECENT_WINDOW_PAPERS
+        and after_papers >= MIN_RECENT_WINDOW_PAPERS
         and rho >= MIN_SPEARMAN
         and moderate >= MIN_LABEL_AGREEMENT
         and fast >= MIN_LABEL_AGREEMENT
@@ -265,13 +276,9 @@ def compare(
     first = mid - timedelta(days=automatic_trends.WINDOW_DAYS - 1)
     decay, exposure = score.load_labor_decay(), score.load_automation_exposure()
     window_after = (mid + timedelta(days=1), end)
-    side_a = labels(
-        *_counts(sample.days, sample.minilm, first, mid, ids),
-        *_counts(sample.days, sample.minilm, *window_after, ids),
-        ids,
-        decay,
-        exposure,
-    )
+    before_counts, before_papers = _counts(sample.days, sample.minilm, first, mid, ids)
+    after_counts, after_papers = _counts(sample.days, sample.minilm, *window_after, ids)
+    side_a = labels(before_counts, before_papers, after_counts, after_papers, ids, decay, exposure)
     side_b = labels(
         *_counts(sample.days, gemini, first, mid, ids),
         *_counts(sample.days, gemini, *window_after, ids),
@@ -289,6 +296,7 @@ def compare(
         "end": end.isoformat(),
         "evaluated_on": today.isoformat(),
         "papers": papers,
+        "recent_window_papers": {"before": before_papers, "after": after_papers},
         "threshold": threshold,
         "rule": trend_fallback.RULE_MINILM,
         "reference_rate": rate,
@@ -303,10 +311,11 @@ def compare(
         "mentioned_skills": len(measured),
         "pass_bar": {
             "min_papers": MIN_PAPERS,
+            "min_papers_per_recent_window": MIN_RECENT_WINDOW_PAPERS,
             "min_spearman": MIN_SPEARMAN,
             "min_label_agreement_each_scenario": MIN_LABEL_AGREEMENT,
         },
-        "passed": verdict(rho, moderate, fast, papers),
+        "passed": verdict(rho, moderate, fast, papers, before_papers, after_papers),
     }
 
 
@@ -423,7 +432,10 @@ def export_seed() -> int:
     """Deterministic CSVs of the active series; public IDs and labels only, no abstract text."""
     method = trend_store.series_method()
     SEED_DIR.mkdir(parents=True, exist_ok=True)
-    with connection() as conn:
+    # One MVCC snapshot keeps the exported day denominators and paper rows together
+    # even if a settled day is replaced while these three reads run.
+    with connection() as conn, conn.transaction():
+        conn.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY")
         days = conn.execute(
             "SELECT day, method, papers, fetched_on FROM trend_fetched_days "
             "WHERE method = %s ORDER BY day",

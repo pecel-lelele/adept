@@ -356,3 +356,69 @@ def test_seeding_existing_paper_day_never_mixes_denominators_and_mentions(
             ).fetchone()["threshold"]
             == 0.4
         )
+
+
+def test_export_uses_one_snapshot_during_concurrent_day_replacement(
+    pg: Any, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    from pipelines.trends import backfill
+
+    day = date(2026, 10, 8)
+    old = [{"arxiv_id": "synthetic-export-old-1"}, {"arxiv_id": "synthetic-export-old-2"}]
+    new = [{"arxiv_id": f"synthetic-export-new-{i}"} for i in range(3)]
+    with pg.connect(pg.url) as setup:
+        trend_store.save_days(
+            setup,
+            {day: old},
+            {p["arxiv_id"]: ["python"] for p in old},
+            trend_store.MINILM_METHOD,
+            "synthetic-model",
+            day,
+        )
+    changed = False
+
+    @contextmanager
+    def racing_connection() -> Iterator[Any]:
+        with pg.connect(pg.url, row_factory=dict_row) as reader:
+
+            class RacingReader:
+                def transaction(self) -> Any:
+                    return reader.transaction()
+
+                def execute(self, query: str, params: Any = None) -> Any:
+                    nonlocal changed
+                    result = reader.execute(query, params)
+                    if "FROM trend_fetched_days" in query and not changed:
+                        with pg.connect(pg.url) as writer:
+                            trend_store.save_days(
+                                writer,
+                                {day: new},
+                                {p["arxiv_id"]: ["sql"] for p in new},
+                                trend_store.MINILM_METHOD,
+                                "synthetic-model",
+                                day,
+                            )
+                        changed = True
+                    return result
+
+            yield RacingReader()
+
+    monkeypatch.setenv("TRENDS_MATCHER", "minilm")
+    monkeypatch.setattr(backfill, "connection", racing_connection)
+    monkeypatch.setattr(backfill, "SEED_DIR", tmp_path / "paper_store")
+    assert backfill.export_seed() == 0
+    assert changed
+    with (backfill.SEED_DIR / "trend_fetched_days.csv").open(newline="") as stream:
+        days = list(csv.DictReader(stream))
+    with (backfill.SEED_DIR / "trend_paper_mentions.csv").open(newline="") as stream:
+        papers = list(csv.DictReader(stream))
+    assert len(days) == 1 and days[0]["papers"] == "2"
+    assert {p["arxiv_id"] for p in papers} == {p["arxiv_id"] for p in old}
+    with pg.connect(pg.url) as check:
+        assert (
+            check.execute(
+                "SELECT papers FROM trend_fetched_days WHERE day = %s AND method = %s",
+                (day, trend_store.MINILM_METHOD),
+            ).fetchone()[0]
+            == 3
+        ), "writer really did replace the day between export reads"

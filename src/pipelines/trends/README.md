@@ -54,12 +54,15 @@ with `PYTHONPATH=src/api:src` and the provider settings for that process only:
    rows come from the database if stored; otherwise the encoder selected by
    `TRENDS_EMBEDDING_BACKEND` (`local` needs no paid call) produces and stores them. An existing
    threshold is reused for the same model; the comparison uses only papers with MiniLM evidence,
-   while Gemini storage uses every fully fetched paper in each day.
+   while Gemini storage uses every fully fetched paper in each day. The 500-paper pass bar also
+   requires at least 50 shared papers in each of the two recent 7-day windows; the report shows
+   both counts. This gate was added before any live equivalence result was recorded.
 3. `... run --target host:port/db` stores every missing day from 2026-01-01 in resumable 14-day
    chunks, then publishes the rolling snapshot. Run it again to resume. It refuses to start
    without a passing report. Committing that report is what switches `TRENDS_MATCHER=auto` to
    Gemini.
-4. `... export-seed` writes the series to `src/data/seed/trends/paper_store/`.
+4. `... export-seed` writes the series to `src/data/seed/trends/paper_store/` from one
+   repeatable-read transaction, so a concurrent daily correction cannot mix totals and papers.
 
 To load the history elsewhere, apply migrations and run `make seed` with `DATABASE_URL` set to
 that database. No arXiv or model call is made and existing rows are kept.

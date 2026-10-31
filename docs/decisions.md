@@ -868,6 +868,17 @@
 - **Replaces**: none; corrects M1-027's generic seed conflict behavior
 - **PR / branch**: feat/trends-calendar-projection / PR #105
 
+### M1-031: Require recent evidence in matcher approval and export one database snapshot
+- **Date**: 2026-10-31
+- **Feature**: F2 (Trend equivalence and paper-store export)
+- **Type**: method
+- **Change**: Require at least 50 shared papers in each of the two recent 7-day comparison windows in addition to the pre-existing 500 total and rank/label bars; publish the per-window counts in the report. Read day totals, mentions and calibration inside one repeatable-read, read-only transaction for portable export.
+- **Why**: With zero recent overlap, both matchers yielded the same default labels and could falsely pass without testing any current movement. Separate read-committed export queries could pair a pre-correction denominator with post-correction papers.
+- **Pipeline**: public arXiv sample + stored MiniLM rows → shared-paper recent windows → unchanged scorer and stable threshold → required sample coverage and rank/label evaluation → zero-recent unit and concurrent PostgreSQL export regressions → truthful equivalence report and consistent dated CSVs
+- **Affects**: F2 operator equivalence and seed export; no live matcher switch or paid inference performed
+- **Replaces**: M1-024's pass-bar definition only (recorded before a live equivalence run)
+- **PR / branch**: feat/trends-calendar-projection / PR #105
+
 ---
 
 ## M2: Profile Intake & Matching (F1, F4)
