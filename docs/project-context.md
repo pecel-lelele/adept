@@ -123,10 +123,10 @@ Admin (`/admin`) is internal only, not shown on the landing page.
 |---|---|---|
 | 1. Tell us about yourself | Personal CV / form / questionnaire | Invite members (each completes intake) + organisation profile |
 | 2. Future Skills Radar | Radar highlighted for the user | Radar highlighted for the industry/programme |
-| 3. Get matched | Ranked roles + score breakdown + gap | Team skills-gap heatmap + target roles |
+| 3. Get matched | Ranked roles + plain-language "what would raise this score" tips + gap | Team skills-gap heatmap + target roles |
 | 4. Follow a pathway | Personal plan + SDG contribution | Group plan, assigned to members (members can adjust) + aggregated SDG |
 
-Scenario toggle, source labels and "estimate" labels appear in steps 2–4.
+Scenario toggle and source links appear in steps 2–4; estimate cues sit in each Sources link (M4-100).
 
 ### 11.3 Routes
 

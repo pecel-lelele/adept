@@ -77,12 +77,16 @@ See [operations and source assessment](../../../../../docs/data-refresh.md).
 
 ## Trend over time (2026-10-31, M1-019)
 
-`GET /trends/series` (`series.py`) counts the stored paper cache (M1-018) to give each skill's
-observed 7-day rolling share for every day in a chosen range. The radar's "Trend over time"
-card (`TrendRangeCard`, `TrendLinesChart` on shadcn chart / Recharts) lets people pick dates
-and skills; the choice lives in the URL (`?from=&to=&skill=`).
+> **UI removed (2026-11-01, M4-100).** The radar's "Trend over time" chart, range presets,
+> movers card and page-level snapshot picker are no longer shown; the Radar page keeps its
+> signal and role-direction cards. The `series` and `compare` endpoints below remain as API
+> and test surfaces only. Restoring the chart is future work once a fresh snapshot cadence is
+> verified.
 
-The card renders its own series attribution rather than borrowing the radar forecast's
+`GET /trends/series` (`series.py`) counts the stored paper cache (M1-018) to give each skill's
+observed 7-day rolling share for every day in a chosen range.
+
+The series carries its own attribution rather than borrowing the radar forecast's
 snapshot and sources. With no stored papers, metadata cites the dated, versioned method
 and explicitly says no paper observations are stored; query dates never become an arXiv
 retrieval date. The observation period remains null until a complete window contributes data.
@@ -93,18 +97,13 @@ settled-day replacement cannot mix versions or inflate a displayed sample share.
 
 ## Comparison, projection and history (2026-10-31, M1-024 to M1-027)
 
-The "Trend over time" card uses `GET /trends/compare` (`comparison.py`): a Skills | Roles |
-Categories switch, presets 1W/1M/3M/6M or custom dates, rebased to 100 or raw, up to 8 lines, and
-a stats table with start, end, change and both projected endpoints. All state is in the URL
-(`?view=&preset=&from=&to=&entity=&mode=&horizon=`). Presets and chart stay visible; the
-native "Adjust chart" disclosure holds dates, line choices, mode and horizon, opening on a
-custom or rejected request. The full skill explorer shows ten sorted rows at a time with
-instant previous/next controls; filtering resets to the first page and mobile metrics keep
-visible labels. A page-level picker selects a published snapshot for all radar KPIs, role
-outlooks and skill rows; the chart's custom dates separately compare stored paper history.
-A stored flat period with at least two observations still draws its measured line; no
-complete paper window shows a sourced, styled collecting state—not an invented line. A visible historical line requires the paper-store migration and a
-successful dated refresh/backfill. `TrendMoversCard` on home deep-links in.
+`GET /trends/compare` (`comparison.py`) returns Skills | Roles | Categories series for presets
+1W/1M/3M/6M or custom dates, rebased to 100 or raw, up to 8 lines, with start, end, change and
+both projected endpoints. No page calls it since M4-100. A historical series requires the
+paper-store migration and a successful dated refresh/backfill; with no complete paper window
+it returns a sourced collecting state, not an invented line. On the Radar page, the full skill
+explorer shows ten sorted rows at a time with previous/next controls; filtering resets to the
+first page and mobile metrics keep visible labels.
 
 Role and category lines are derived from arXiv skill signals, not observed role demand. The
 dashed projection reuses the radar's moderate and fast velocities and is labelled "pace

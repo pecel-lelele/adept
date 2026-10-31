@@ -111,7 +111,7 @@ Use current stored labels in slides. Labels now use official occupation wording 
 | F1 resolution    | Alias search, exact/fuzzy and optional semantic suggestions                           | Ambiguous inputs abstain; suggestions do not auto-save   |
 | F2 radar         | Rising/stable/declining skills, role context, dated metadata                          | Estimate/coverage/fallback labels                        |
 | F2 history       | Snapshot picker, replay, differences and explanations                                 | Historical evidence remains labelled                     |
-| F2 chart         | Date-range/multi-skill trend-over-time                                                | Rolling observed sample shares with separate provenance  |
+| F2 chart         | Removed from the UI on 2026-11-01 (M4-100); `series`/`compare` remain API-only        | Future work after a verified fresh snapshot cadence      |
 | F2 Malaysia      | National labour context and limited MyCOL reference                                   | Separate from current vacancies/ranking evidence         |
 | F3 scenarios     | Moderate/fast settings and role low/high ranges                                       | Heuristics, not calibrated confidence intervals          |
 | F4 matching      | Ranked targets, component explanations, have/partial/missing gaps                     | Deterministic weighted suitability score                 |
@@ -965,6 +965,8 @@ origin/main has moved. A trial merge shows no conflicts, but openapi.json and ty
 
 # Trend Diagrams — What Exists vs. What the PR Wants to Build
 
+> **Superseded (2026-11-01, M4-100).** This chart plan was cancelled: the Radar trend-line, range and movers cards and the page-level snapshot picker were removed from the UI. The files named below (`TrendRangeCard.tsx`, `TrendLinesChart.tsx`) no longer exist; the backend `series`/`compare` endpoints remain API-only. Kept as history; do not implement from it.
+
 _(With Malaysian Labour Context: DOSM, MASCO & TalentCorp MyCOL)_
 
 > [!IMPORTANT]
@@ -978,8 +980,8 @@ _(With Malaysian Labour Context: DOSM, MASCO & TalentCorp MyCOL)_
 
 The "Trend over time" card sits inside the **radar page** (`/app/radar` or `/org/radar`). It is rendered by two files:
 
-- [`TrendRangeCard.tsx`](file:///c:/Users/Darren%20Suwandi/Documents/SDC/adept/src/web/src/features/trends/components/TrendRangeCard.tsx) — the outer card (date pickers, skill selector, accessible table)
-- [`TrendLinesChart.tsx`](file:///c:/Users/Darren%20Suwandi/Documents/SDC/adept/src/web/src/features/trends/components/TrendLinesChart.tsx) — the Recharts `LineChart` inside the card
+- `TrendRangeCard.tsx` — the outer card (date pickers, skill selector, accessible table)
+- `TrendLinesChart.tsx` — the Recharts `LineChart` inside the card
 
 ### What the chart currently plots
 
@@ -1031,14 +1033,14 @@ flowchart TD
 ### A. DOSM (Department of Statistics Malaysia)
 
 - **What it is**: Monthly Labour Force Survey (LFS) from `open.dosm.gov.my`.
-- **Where it lives**: [`src/api/app/features/trends/labour.py`](file:///c:/Users/Darren%20Suwandi/Documents/SDC/adept/src/api/app/features/trends/labour.py) and [`MalaysiaContextCard.tsx`](file:///c:/Users/Darren%20Suwandi/Documents/SDC/adept/src/web/src/features/trends/components/MalaysiaContextCard.tsx).
+- **Where it lives**: `src/api/app/features/trends/labour.py` and `MalaysiaContextCard.tsx`.
 - **Metrics tracked**: National unemployment rate (e.g. 2.9%), labour force participation rate (71.0%), employment-to-population ratio (68.9%).
 - **Role in Trend Diagrams**: Shown directly on the radar page alongside the charts to provide real macroeconomic context. **Hard rule:** DOSM figures are _observed survey facts_ (`is_estimate: false`), kept strictly separated from predicted AI role trajectories so user decisions are grounded in real Malaysian workforce capacity.
 
 ### B. MASCO (Malaysia Standard Classification of Occupations)
 
 - **What it is**: The official Malaysian national occupational structure managed by the Ministry of Human Resources (MOHR). Uses 4-digit codes (e.g., `2524` for _Data Professionals_, `2149` for _Engineering Professionals_).
-- **Where it lives**: Stored in `docs/reference/critical-occupations.csv` and crosswalked against Adept's 48 target roles in [`roles.csv`](file:///c:/Users/Darren%20Suwandi/Documents/SDC/adept/src/data/seed/taxonomy/roles.csv).
+- **Where it lives**: Stored in `docs/reference/critical-occupations.csv` and crosswalked against Adept's 48 target roles in `roles.csv`.
 - **Relevance to the PR's "Categories"**:
   - The PR asks for `role_categories.csv` grouping the 48 roles into high-level categories (e.g. _"Data Science & Analytics"_, _"Industrial Engineering"_).
   - The PR instruction states: _"Look at taxonomy and interest_tags values in roles.csv. If an official grouping such as O\*NET SOC major groups works, use it. Otherwise hand-review the list. Either way, log the rule."_
@@ -1047,7 +1049,7 @@ flowchart TD
 ### C. TalentCorp & MyCOL (Malaysia Critical Occupations List)
 
 - **What it is**: Annual list published by TalentCorp Malaysia identifying occupations experiencing acute shortages and high industry demand across Malaysia's economy (66 Table-7 occupation groups).
-- **Where it lives**: [`docs/reference/critical-occupations.md`](file:///c:/Users/Darren%20Suwandi/Documents/SDC/adept/docs/reference/critical-occupations.md) and `critical-occupation-roles.csv`.
+- **Where it lives**: `docs/reference/critical-occupations.md` and `critical-occupation-roles.csv`.
 - **Connection to Trend Radar**:
   - Mapped roles (like `data-analyst` → MASCO `2524`) receive an official Malaysian Critical Occupation badge.
   - **Zero-hallucination constraint**: Only roles verified against the printed report PDF pages are badged (e.g. Data Analyst verified on Table 7, PDF p. 137).
