@@ -9,6 +9,7 @@ import { errorMessage } from "@/lib/api/error-message";
 import type { ScenarioId } from "@/lib/api";
 
 import { Kpis } from "@/components/Kpis";
+import { MetaBar } from "@/components/MetaBar";
 
 import { generateProgrammeAction, sendProgrammeAction } from "../actions";
 import type { ProgrammeBrief, ProgrammeOptions, ProgrammePlan } from "../api";
@@ -240,6 +241,7 @@ export function ProgrammeWizard({ options, orgId, initialRole, initialMember, in
             ))}
           </ul>
           <p className="a-small a-muted">{t("estimateNote", { date: plan.meta.snapshot_date })}</p>
+          <MetaBar meta={plan.meta} />
         </section>
 
         {error ? (
@@ -341,6 +343,7 @@ export function ProgrammeWizard({ options, orgId, initialRole, initialMember, in
               );
             })}
           </ul>
+          <MetaBar meta={options.meta} />
         </div>
       ) : null}
 

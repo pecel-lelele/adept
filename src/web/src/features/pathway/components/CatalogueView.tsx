@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowUpRight, BadgeCheck, BookOpen, Clock3, Gift, SlidersHorizontal } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
-import { ErrorState, Kpis, PageHeader } from "@/components";
+import { ErrorState, Kpis, MetaBar, PageHeader } from "@/components";
 import { call, getApi, type Schemas } from "@/lib/api";
 import { journeyHref } from "@/lib/navigation";
 
@@ -123,6 +123,7 @@ export async function CatalogueView({
   return (
     <div className="a-view">
       <PageHeader eyebrow={d("options")} title={t("catalogue.title")} description={t("catalogue.description")}>
+        {result.ok ? <MetaBar meta={result.data.meta} /> : null}
       </PageHeader>
       <Kpis
         items={[

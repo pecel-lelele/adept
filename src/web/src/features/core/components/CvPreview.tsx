@@ -7,6 +7,7 @@ import { useRef, useState, type DragEvent, type FormEvent } from "react";
 
 import { Ring, scoreColour } from "@/components/viz/Ring";
 import { EstimateLabel } from "@/components/EstimateLabel";
+import { MetaBar } from "@/components/MetaBar";
 import type { Schemas } from "@/lib/api";
 import { CV_SKILLS_KEY, clearCvHandoff, cvFile, writeCvHandoff, type CvFile } from "@/features/profile/cv-handoff";
 import "./cv-preview.css";
@@ -336,6 +337,7 @@ export function CvPreview() {
           </div> : (
             <Link className="a-btn" href="/app/onboarding">{t("manualSkills")} <ArrowRight size={16} aria-hidden /></Link>
           )}
+          <MetaBar meta={result.meta} />
           <button type="button" className="a-link cv-text-button" onClick={reset}>
             {t("tryAgain")}
           </button>

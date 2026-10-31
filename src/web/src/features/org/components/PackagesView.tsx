@@ -1,7 +1,7 @@
 import Form from "next/form";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { ErrorState, PageHeader } from "@/components";
+import { ErrorState, MetaBar, PageHeader } from "@/components";
 import { CertificationsCard, RoleOpeningsCard } from "@/features/jobs";
 import { ActionForm } from "@/features/pathway/components/ActionForm";
 import { currentWorkspace } from "@/lib/auth/workspace";
@@ -51,6 +51,7 @@ export async function PackagesView({ scenario, roleId, memberIds }: {
       <h3>{p.role_label}</h3>
       <p>{t("summary", { cost: p.total_cost_myr.toLocaleString("en-MY"), weeks: p.max_weeks, gaps: p.unmet_skills })}</p>
       <p>{t(p.within_member_budgets ? "withinBudget" : "overBudget")}</p>
+      <MetaBar meta={p.meta} />
       {p.members.map(m => <details className="a-disclosure" key={m.user_id}>
         <summary>{names[m.user_id] ?? m.user_id} · RM {m.pathway.total_cost_myr.toLocaleString("en-MY")} · {t("weeks", { count: m.pathway.total_weeks })}</summary>
         <p>{t("memberTime", { hours: m.pathway.total_hours, weekly: m.pathway.hours_per_week, available: m.available_budget_myr })}</p>

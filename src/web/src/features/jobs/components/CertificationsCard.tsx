@@ -2,6 +2,7 @@ import { Award, ArrowUpRight } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
 import { Fold } from "@/components/Fold";
+import { MetaBar } from "@/components/MetaBar";
 import type { ScenarioId } from "@/lib/api";
 
 import { fetchCertifications } from "../api";
@@ -58,6 +59,9 @@ export async function CertificationsCard({
           </li>
         ))}
       </ul>
+      <div className="a-fold-foot">
+        <MetaBar meta={d.meta} />
+      </div>
     </Fold>
   );
 }

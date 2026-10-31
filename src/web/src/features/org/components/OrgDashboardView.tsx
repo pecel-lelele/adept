@@ -3,7 +3,7 @@ import { ArrowRight, ArrowUpRight, Check, Grid3x3, Leaf, Route, Target, UserChec
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
-import { Kpis } from "@/components";
+import { Kpis, MetaBar } from "@/components";
 import { ErrorState } from "@/components/ErrorState";
 import { Heatmap, SdgTiles, StackBar, StepTrack } from "@/components/viz";
 import { fetchOrgContribution } from "@/features/sdg/api";
@@ -257,6 +257,7 @@ export async function OrgDashboardView({ scenario }: { scenario: ScenarioId }) {
           {spotlight ? <div className="a-home-sdg-card"><SdgLinkCards links={[spotlight]} labels={sdgLabels} /></div> : goals.length ? <SdgTiles goals={goals} /> : <p className="a-muted a-small">{t("noGaps")}</p>}
         </section>
       </div>
+      {gaps.ok ? <MetaBar meta={gaps.data.meta} /> : null}
       {gaps.ok ? <TeamLearningProgress rows={gaps.data.learning_progress ?? []} /> : null}
     </div>
   );

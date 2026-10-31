@@ -20,6 +20,8 @@ export function loadComponent(path: string, overrides: Record<string, unknown> =
     module, exports: module.exports, URLSearchParams, URL, File, FormData, AbortSignal, fetch,
     require: (id: string) => {
       if (id in overrides) return overrides[id];
+      // Attribution link needs next/link + intl context; component tests render without it.
+      if (id === "@/components/MetaBar") return { MetaBar: () => null };
       if (id.startsWith("./")) {
         return loadComponent(resolve(dirname(filename), `${id}.tsx`), overrides, globals);
       }

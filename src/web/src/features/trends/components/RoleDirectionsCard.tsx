@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
 
+import { MetaBar } from "@/components/MetaBar";
 import type { RecommendationMeta, Schemas } from "@/lib/api";
 
 const ROLE_STEP = 5;
@@ -85,6 +86,7 @@ export function RoleDirectionsCard({ signals, meta, organisation = false, snapsh
         <RoleList key={`${edition}:insufficient`} roles={thin} direction="insufficient" title={t("insufficientEvidenceRoles")}
             meta={meta} organisation={organisation} snapshotDate={snapshotDate} />
       </div>
+      <MetaBar meta={meta} />
     </section>
   );
 }

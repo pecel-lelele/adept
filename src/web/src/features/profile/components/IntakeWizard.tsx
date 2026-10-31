@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { startTransition, useEffect, useMemo, useRef, useState, useTransition, type DragEvent } from "react";
 
+import { MetaBar } from "@/components/MetaBar";
 import { errorMessage } from "@/lib/api/error-message";
 
 import type { ApiResult, Schemas } from "@/lib/api";
@@ -454,6 +455,7 @@ export function IntakeWizard({
                         {t("addSuggestion", { label: candidate.label })} · {t(`resolverMethod.${candidate.method}`)}
                       </button>
                     )) : <p className="a-small a-muted" role="status">{t("noSuggestions")}</p>}
+                    <MetaBar meta={resolved.data.meta} />
                   </>
                 ) : <p className="a-notice" role="alert">{errorMessage(te, resolved.code)}</p>}
               </div>

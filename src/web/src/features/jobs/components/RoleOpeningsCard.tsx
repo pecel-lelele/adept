@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
 import { Fold } from "@/components/Fold";
+import { MetaBar } from "@/components/MetaBar";
 import type { ScenarioId } from "@/lib/api";
 
 import { fetchRoleOpenings } from "../api";
@@ -83,6 +84,7 @@ export async function RoleOpeningsCard({
             <Link className="a-btn is-ghost is-small" href={`/app/jobs?role=${encodeURIComponent(roleId)}&scenario=${scenario}`}>
               {t("openings.all", { count: d.open_count })} <ArrowRight size={14} aria-hidden />
             </Link>
+            <MetaBar meta={d.meta} />
           </div>
         </>
       )}

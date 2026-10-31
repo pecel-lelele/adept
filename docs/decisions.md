@@ -3050,3 +3050,13 @@
 - **Affects**: dashboard, radar, matches, plan, progress, SDG and public header views; `tests/e2e/*`, `tests/web-labour-context.test.ts`; no API schema change
 - **Replaces**: none; completes M4-100
 - **PR / branch**: fix/core-dashboard-cleanup
+
+### M4-103: Compact Sources link restored on the remaining recommendation surfaces
+- **Date**: 2026-11-01
+- **Feature**: Core / F1 / F2 / F3 / F5 / F7 / jobs
+- **Type**: UI
+- **Change**: The one-line `MetaBar` "Sources" link is back on the surfaces that lost all attribution in M4-100: CV preview, impact summary, certifications, job board, role openings, org gaps, org dashboard, funding packages, programme wizard, work plan, course catalogue, role outlook, role directions and the intake skill suggestions. Each uses the same `meta` object it used before. No detail panels, `DataAsOf` or visible estimate chips returned. Not changed: `CriticalOccupationBadge` (already shows source name and date), `MalaysiaContextCard` (its panel already carries the link) and the removed compare-roles view.
+- **Why**: AGENTS.md section 3.4 requires attribution wherever recommendations, scores or trends appear.
+- **Affects**: the views above; no API change
+- **Replaces**: none; completes M4-102
+- **PR / branch**: fix/core-dashboard-cleanup

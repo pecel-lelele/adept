@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
 
-import { ErrorState, EstimateLabel } from "@/components";
+import { ErrorState, EstimateLabel, MetaBar } from "@/components";
 import type { ScenarioId } from "@/lib/api";
 
 import { fetchOutlook } from "../api";
@@ -49,6 +49,7 @@ export async function RoleOutlookPanel({
           </span>
         </div>
       ))}
+      <MetaBar meta={result.data.meta} />
     </div>
   );
 }

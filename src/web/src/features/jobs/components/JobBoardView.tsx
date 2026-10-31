@@ -4,7 +4,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
 import { ErrorState } from "@/components/ErrorState";
-import { PageHeader } from "@/components";
+import { MetaBar, PageHeader } from "@/components";
 import type { ScenarioId } from "@/lib/api";
 
 import { fetchJobBoard } from "../api";
@@ -40,7 +40,9 @@ export async function JobBoardView({
   };
   return (
     <div className="a-view">
-      <PageHeader title={t("board.title")} description={await placeCounts(d.places)} />
+      <PageHeader title={t("board.title")} description={await placeCounts(d.places)}>
+        <MetaBar meta={d.meta} />
+      </PageHeader>
 
       <Form action="/app/jobs" className="a-card a-controls a-jobfilters">
         <input type="hidden" name="scenario" value={scenario} />

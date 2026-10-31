@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { Suspense } from "react";
 
-import { ErrorState } from "@/components";
+import { ErrorState, MetaBar } from "@/components";
 import { SiteFooter, SiteHeader } from "@/components/shell/Site";
 
 import { fetchImpact } from "../api";
@@ -61,6 +61,7 @@ function Body({ d, t, providers }: { d: ImpactSummary; t: Translate; providers: 
           ? t("basisArchived", { count: d.personas.length })
           : t("basis", { count: d.personas.length })}
       </p>
+      <MetaBar meta={d.meta} />
 
       <section className={styles.section} aria-labelledby="impact-results">
         <div className={styles.sectionHeading}><h2 id="impact-results">{t("personas.title")}</h2></div>
