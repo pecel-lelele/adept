@@ -1,22 +1,26 @@
-# SDC Hackathon 2026 — Technical & Tools Declaration
+# SDC HACKATHON 2026
 
-**Pecel Lele · Adept · unsigned public draft · 31 October 2026.** Organiser template sections 1–8 and maximum answer lengths are retained. Source baseline is `main` at `0a7868c` (31 October 2026), not a verified deployment revision. Deadline: 1 November 2026. **Do not submit as a completed accuracy declaration until the leader supplies private fields, checks actual team usage and signs.** No secrets appear here.
+Technical & Tools Declaration
+
+Hosted by XMUM AI Club
+
+Submission Deadline: 1st November 2026
 
 ## 1. Team & Project Overview
 
-| Organiser field | Response |
+| Field | Response |
 |---|---|
-| Team Name | Pecel Lele (confirm registration spelling). |
-| Project / Solution Name | Adept. |
-| Name (Leader) | David Kurniawan (team record; confirm privately). |
-| Email & Phone (Leader) | **PRIVATE COMPLETION REQUIRED** in the organiser's submission copy. |
-| University Affiliation(s) | Xiamen University Malaysia (team record). |
-| Live Prototype URL | https://adept-my.replit.app — previously accessible; final deployment revision and snapshot are unverified here. |
-| Code Repository URL (judge access) | https://github.com/pecel-lelele/adept — confirm final access and merge revision. |
+| Team Name | Pecel Lele |
+| Project / Solution Name | Adept |
+| Name (Leader) | David Kurniawan (team record) |
+| Email & Phone (Leader) | PRIVATE COMPLETION REQUIRED in the organiser's submission copy. |
+| University Affiliation(s) | Xiamen University Malaysia (team record) |
+| Live Prototype URL | https://adept-my.replit.app (previously accessible; deployed revision and snapshot unverified against source `main` at `0a7868c`, 31 October 2026) |
+| Code Repository URL (public / access granted to judges) | https://github.com/pecel-lelele/adept |
 
 ## 2. Architecture & Technology Stack
 
-### 2.1 System Architecture Overview (maximum 200 words)
+### 2.1 System Architecture Overview [Maximum 200 words]
 
 <!-- answer:start technical-2.1 limit=200 -->
 Next.js serves a multilingual public interface and proxies requests to private FastAPI. Signed accounts and membership checks protect workspaces. Replit's managed PostgreSQL stores profiles, reference catalogues, snapshots, programmes and progress; local/CI use PostgreSQL with pgvector. The launcher checks API/database readiness; it does not migrate or seed on startup.
@@ -30,9 +34,7 @@ Block flow: public sources → app-side bounded worker (+ RunPod encoder) → va
 
 ### 2.2 Languages, Frameworks & Libraries
 
-**Source manifest/lock versions, not attested deployed package inventory.** Licence terms for binaries and transitive dependencies require independent review.
-
-| Name & Version | Purpose in Project | License / terms |
+| Name & Version | Purpose in Project | License |
 |---|---|---|
 | Python 3.11; Node.js 24; pnpm 10.29.3 | API/runtime, frontend tooling | PSF; Node MIT; pnpm MIT |
 | Next.js 16.4.2; React/React DOM 19.3.1; TypeScript 5.9.3 | Public UI, proxy, types | Next/React MIT; TypeScript Apache-2.0 |
@@ -46,13 +48,15 @@ Block flow: public sources → app-side bounded worker (+ RunPod encoder) → va
 | RunPod SDK 1.12.0; sentence-transformers 6.2.0; Transformers 5.20.2; PyTorch 2.14.1 | Hosted MiniLM worker build/runtime; deployed image must be checked | RunPod MIT; sentence-transformers/Transformers Apache-2.0; PyTorch BSD-3-Clause |
 | pytest >=9.1.1, Ruff >=0.17.2, ESLint 9.39.5; uv; Mermaid 11.12.0, PyYAML 6.0.3, actionlint 1.7.7, Prettier ^3.9.10, Playwright | Tests, package/tooling and diagrams | Upstream package terms; predominantly MIT; Playwright Apache-2.0; uv MIT or Apache-2.0 |
 
+Versions are from source manifests and locks, not an attested deployed package inventory; licence terms for binaries and transitive dependencies require independent review.
+
 Docker Compose is **local development tooling**, not a cloud host; Docker Desktop terms may differ. Review PyMuPDF's AGPL/commercial terms and transitive notices before attesting licence compliance. Adept's own Apache-2.0 licence does not override them.
 
 ## 3. APIs & Cloud Services
 
 ### 3.1 External APIs
 
-| API & Provider | Purpose in Project / execution status | Access Tier |
+| API & Provider | Purpose in Project | Access Tier (free / paid / sponsor-provided) |
 |---|---|---|
 | arXiv query API for completed cs.AI weeks; RSS in legacy/manual tooling | Public research observations; historical 2024 replay stays labelled historical | Public/free; terms and rate limits |
 | UN Statistics SDG Goal/Target API | Official definitions and source audits, not endorsement of Adept's links | Public/free |
@@ -96,7 +100,7 @@ The Replit proof PDF shows historical hosting/database screens and **US$6.38 acc
 
 The counts here are **source CSV rows inspected 31 October 2026**, not a deployed-database count. Taxonomy: **142 skills, 48 stored roles of which 33 `is_target=true`, 104 course rows**; role/skill links are reviewed curations. Historical screenshots and a 20 October synthetic impact fixture list smaller earlier catalogue sizes. No team-trained model or real CV dataset is declared.
 
-| Dataset Name | Source / URL | Type | License / rights caveat | Personal Data? (Y/N) |
+| Dataset Name | Source / URL | Type (public / private / self-collected / synthetic) | License | Personal Data? (Y/N) |
 |---|---|---|---|---|
 | Curated roles/skills, requirements and O*NET 31.0 crosswalk | Team-curated records; O*NET https://www.onetcenter.org/ | Team-curated + public-derived | O*NET CC BY 4.0 with exceptions; edited requirements are estimates | N |
 | arXiv cs.AI papers and dated stored mention inputs | arXiv public API https://info.arxiv.org/help/api/ | Public metadata / sampled extracts | Metadata/content have distinct rights; raw publications may contain author names | Y (public author names may occur upstream; no learner records) |
@@ -110,9 +114,11 @@ The counts here are **source CSV rows inspected 31 October 2026**, not a deploye
 
 ### 4.3 AI-Assisted Development Tools
 
-**[x] Yes [ ] No.** Team-recorded use (verify each member's usage before the final declaration):
+Did your team use any generative-AI tool to help create code, design, text, or other project material?
 
-| Tool & Version | Used For | Extent |
+[x] Yes [ ] No
+
+| Tool & Version | Used For | Extent of Use (minor / moderate / major) |
 |---|---|---|
 | Anthropic Claude Code; model versions varied / not fully recorded | Primary code generation, documentation and presentation planning | Major |
 | OpenAI Codex; exact model versions not fully recorded | Debugging, implementation review and code/document corrections | Major |
@@ -121,7 +127,7 @@ The counts here are **source CSV rows inspected 31 October 2026**, not a deploye
 | Greptile; version unrecorded | PR review | Moderate |
 | Remotion 4.0.538, ElevenLabs voiceover, Mixkit and Google Fonts | Demo/pitch production only; exact exported Mixkit assets/font/take credits require team confirmation | Presentation tooling; actual extent to verify |
 
-**Review and responsibility (maximum 100 words):**
+Briefly describe how your team reviewed, tested, and took responsibility for AI-generated output: [Maximum 100 words]
 
 <!-- answer:start technical-4.3 limit=100 -->
 The team set Adept's product direction; Claude Code produced much of the source and presentation drafts. Codex helped debug and review; other tools supported inspection and PR feedback. Team members remain responsible for all accepted code and claims. The source is checked against tests, source records and dates; test success does not verify a deployed build or customer benefit. The team must inspect the final media assets, licensing notices and all members' tool usage before signing. Model output never authorises invented catalogue entries or personnel decisions.
@@ -131,14 +137,18 @@ The voiceover service is a **presentation service**, not a model inside Adept. T
 
 ## 5. Sponsor-Provided Resources
 
-**[x] Yes [ ] No.** Team-recorded Replit Core subscription and RunPod **US$25** credits; exact remaining balances and eligibility periods need account confirmation. Sponsorship is not permanent free production hosting.
+Did your project use any official SDC sponsor-provided resource?
 
-| Sponsor | Resource | How Used |
+[x] Yes [ ] No
+
+Team-recorded Replit Core subscription and RunPod **US$25** credits; exact remaining balances and eligibility periods need account confirmation. Sponsorship is not permanent free production hosting.
+
+| Sponsor | Resource (API / credits / platform / data) | How It Was Used in the Project |
 |---|---|---|
 | Replit | Core subscription, Autoscale deployment, managed PostgreSQL | Public prototype, private API and persistent app records; Replit Agent exploration declared above. |
 | RunPod | US$25 credits, historical RTX 4090 Pod batch, separate Serverless MiniLM and GLM-5.3 service | Model inference/worker testing; successful Pod batch does not prove new trend publication. |
 
-**Essential or replaceable (maximum 100 words):**
+Was the sponsor resource essential to the core functionality of the prototype, or could it be replaced? Explain briefly: [Maximum 100 words]
 
 <!-- answer:start technical-5 limit=100 -->
 Replit is the prototype's current web/API and managed-PostgreSQL host; RunPod provides MiniLM encoding and optional Adi inference. Neither sponsor's credit is a viable permanent business model. Replacing Replit would require migrating the same schema, signed-session boundaries and backups; replacing MiniLM requires a method-equivalence check before changing any scored series. The learner's normal matching and plan reads are deterministic and do not require per-page model calls. Provider outages preserve dated data or show unavailable states, subject to the actual deployment configuration.
@@ -146,7 +156,7 @@ Replit is the prototype's current web/API and managed-PostgreSQL host; RunPod pr
 
 ## 6. Security, Privacy & Responsible Use
 
-### 6.1 Data Handling & Privacy (maximum 150 words)
+### 6.1 Data Handling & Privacy [Maximum 150 words]
 
 <!-- answer:start technical-6.1 limit=150 -->
 The demo uses synthetic identities and CVs, not real applicants. Signed accounts can store names/emails, password hashes, confirmed skills, preferences, memberships, plans, progress and evidence links in PostgreSQL. CV bytes are parsed in memory and not retained. Members explicitly opt in to share skills/progress; personal plans and assistant conversations stay separate. Authentication, server-side membership/manager checks, upload limits, bounded network access and HTTP-only signed cookies mitigate risks.
@@ -154,7 +164,7 @@ The demo uses synthetic identities and CVs, not real applicants. Signed accounts
 Optional Gemini suggestions receive short contact-redacted skill phrases. Optional Adi providers receive filtered context and server-authored candidate blocks; redaction cannot guarantee that no personal information leaves the service. MiniLM receives public research/catalogue text. Account export and deletion exist, but automatic retention, tested backup erasure and contractual real-user processing arrangements are **not** established. Do not claim PDPA certification or use real CVs in the demo.
 <!-- answer:end technical-6.1 -->
 
-### 6.2 Known Limitations & Risks (maximum 150 words)
+### 6.2 Known Limitations & Risks [Maximum 150 words]
 
 <!-- answer:start technical-6.2 limit=150 -->
 arXiv research share and a US labour baseline cannot measure Malaysian occupation demand. Historical 2024 replay is not fresh evidence; an online check can leave observations unchanged. Scenarios and skill exposure are heuristics, not calibrated probabilities. The catalogue covers selected roles/courses; fees, openings, prerequisites and HRD claimability can change. A completion click is not verified competence or a regulated qualification. SDG links are draft enabling hypotheses, not measured UN outcomes.
@@ -164,16 +174,18 @@ Source dates, estimate/fallback labels, ID validation, permissions, bounded work
 
 ## 7. Compliance & Readiness Checklist
 
-Final accuracy attestations require team review; do not check them automatically.
-
-- [ ] All actually used APIs, cloud services, models, tools, media and datasets have been checked against each team member's activity.
-- [ ] Upstream code/data/model licences, notices and presentation asset credits have been reviewed; PyMuPDF distribution terms resolved.
-- [ ] The final repository, prototype and PDF have been checked for credentials without exposing them.
-- [ ] AI development assistance has been disclosed and final generated content reviewed.
-- [ ] Replit/RunPod credits, durations and any additional official sponsor resources have been verified.
-- [ ] Final URL, deployment revision and judge repository access have been verified.
-- [ ] Leader's private fields are complete; every limited response passes the word count and the organiser template is complete.
+- [ ] All APIs, cloud services, AI tools, models, and datasets used in the project are declared in this document.
+- [ ] All third-party code, datasets, and models are used in accordance with their licenses, and attribution is provided where required.
+- [ ] No API keys, passwords, or other credentials are exposed in the code repository, prototype, or this document.
+- [ ] Any use of generative-AI tools for development has been disclosed and reviewed by the team.
+- [x] Any use of official SDC sponsor resources has been declared in Section 5.
+- [ ] The prototype described here is accessible to judges through the links provided in Section 1.
+- [ ] All fields in this template have been completed within the word limits stated.
 
 ## 8. Declaration
 
-**Unsigned draft.** The leader must verify accuracy, complete their contact details in a private copy, and sign/date the organiser declaration. **Signature: [leader to sign]. Date: [actual signing date].** Final required filename: `SDC2026_Pecel-Lele_TechDeclaration.pdf` if this matches the registered team-name convention.
+By submitting this document, the team leader confirms that the information provided is complete and accurate to the best of the team's knowledge, and that every API, cloud service, AI tool, dataset, model, and sponsor resource used in the project has been declared.
+
+[Signature]
+
+[Date]
