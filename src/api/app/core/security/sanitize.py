@@ -72,9 +72,26 @@ def clean_extracted_text(text: str, *, max_length: int = 20_000) -> str:
     return cleaned.strip()
 
 
-#: Patterns that try to instruct a model, as opposed to markup or encoding tricks.
-_INSTRUCTION_PATTERNS: tuple[re.Pattern[str], ...] = tuple(
-    p for p in INJECTION_PATTERNS if not re.search(r"script|javascript|u003c|\\r\?\\n", p.pattern)
+#: CV-line patterns that address or command a model, as opposed to ordinary role wording.
+_CV_MODEL_ROLE = (
+    r"(?:chatgpt|an?\s+ai|an?\s+llm|an?\s+language model|"
+    r"an?\s+(?:virtual\s+)?assistant|an?\s+[\w-]+\s+bot|a\s+bot)"
+)
+_INSTRUCTION_PATTERNS: tuple[re.Pattern[str], ...] = (
+    re.compile(r"ignore\s+(all\s+)?(previous|prior|above)\s+instructions?", re.I),
+    re.compile(r"disregard\s+(all\s+)?(previous|prior|above)", re.I),
+    re.compile(r"^\s*(system|assistant|developer)\s*:", re.I | re.M),
+    re.compile(r"\byou\s+are\s+(?:now\s+)?" + _CV_MODEL_ROLE, re.I),
+    re.compile(r"\b(?:pretend|act)\s+as\s+(?:if\s+you\s+are\s+)?" + _CV_MODEL_ROLE, re.I),
+    re.compile(
+        r"\bpretend\s+you\s+are\b(?=.{0,120}\b"
+        r"(?:add|list|rate|approve|suggest|extract|ignore|rewrite)\b)",
+        re.I,
+    ),
+    re.compile(r"\bsystem\s+prompt\b", re.I),
+    re.compile(r"reveal\s+(your\s+)?(system\s+)?prompt", re.I),
+    re.compile(r"(base64|hex)\s*decode", re.I),
+    re.compile(r"jailbreak", re.I),
 )
 
 

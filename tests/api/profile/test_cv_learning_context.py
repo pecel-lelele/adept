@@ -115,6 +115,20 @@ def test_dotted_tool_names_do_not_end_a_learning_wish() -> None:
     assert cv_parser.extract_skills("Want to learn Node.js and Python") == []
 
 
+@pytest.mark.parametrize(
+    "line",
+    [
+        "Act as a technical lead using Python",
+        "Acted as a scrum master using Python",
+    ],
+)
+def test_ordinary_act_as_job_descriptions_keep_skills(line: str) -> None:
+    skills, truncated, unmatched_terms = cv_parser.parse_cv_review(line)
+    assert "python" in {skill.skill_id for skill in skills}
+    assert truncated is False
+    assert unmatched_terms == []
+
+
 def test_learning_context_resets_at_next_skills_section() -> None:
     skills, _, unmatched_terms = cv_parser.parse_cv_review(
         "Skills: Want to learn Rust, Kubernetes, SQL\nExperience\nUsed Python\nKemahiran: QlikSense"
